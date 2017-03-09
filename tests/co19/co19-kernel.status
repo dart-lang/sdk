@@ -363,7 +363,6 @@ Language/Interfaces/Superinterfaces/superinterface_of_itself_t01: MissingCompile
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t02: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass # OK
-Language/Libraries_and_Scripts/Exports/invalid_uri_t03: DartkCrash
 Language/Libraries_and_Scripts/Exports/reexport_t01: Pass
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Kernel Issue 28335 (deferred libraries)
@@ -384,9 +383,7 @@ Language/Libraries_and_Scripts/Imports/syntax_t32: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t02: Timeout
 Language/Libraries_and_Scripts/Parts/compilation_t07: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t08: DartkCrash
 Language/Libraries_and_Scripts/Parts/compilation_t09: DartkCrash
-Language/Libraries_and_Scripts/Parts/compilation_t10: DartkCrash
 Language/Libraries_and_Scripts/Parts/compilation_t11: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/static_warning_t01: RuntimeError
 Language/Libraries_and_Scripts/Parts/syntax_t01: MissingCompileTimeError
