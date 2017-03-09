@@ -301,8 +301,14 @@ Future testConfigurations(List<Map> configurations) async {
   if (Platform.isWindows) {
     // When running tests on Windows, use cdb from depot_tools to dump
     // stack traces of tests timing out.
-    var text = await new File(VS_TOOLCHAIN_FILE.toNativePath()).readAsString();
-    firstConf['win_sdk_path'] = JSON.decode(text)['win_sdk'];
+    try {
+      var text =
+          await new File(VS_TOOLCHAIN_FILE.toNativePath()).readAsString();
+      firstConf['win_sdk_path'] = JSON.decode(text)['win_sdk'];
+      } on dynamic {
+        // Ignore errors here. If win_sdk is not found, stack trace dumping
+        // for timeouts won't work.
+      }
   }
 
   // [firstConf] is needed here, since the ProcessQueue needs to know the
