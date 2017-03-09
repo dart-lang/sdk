@@ -2212,8 +2212,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
         arguments.putIfAbsent("actual", () => token.value);
         handleRecoverableError(token, ErrorKind.ExpectedButGot, arguments);
+        return token;
       }
-      return token;
     }
     return super.handleUnrecoverableError(token, kind, arguments);
   }

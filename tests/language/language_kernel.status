@@ -418,7 +418,6 @@ is_malformed_type_test/97: RuntimeError
 is_malformed_type_test/98: RuntimeError
 is_malformed_type_test/99: RuntimeError
 is_not_class2_test: RuntimeError
-is_not_class4_negative_test: Fail
 isnot_malformed_type_test: RuntimeError
 issue_1751477_test: RuntimeError
 label6_negative_test: DartkCrash
@@ -604,8 +603,6 @@ sync_generator2_test/52: MissingCompileTimeError
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
-syntax_test/50: MissingCompileTimeError
-syntax_test/51: MissingCompileTimeError
 syntax_test/64: MissingCompileTimeError
 syntax_test/65: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError

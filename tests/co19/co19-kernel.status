@@ -209,7 +209,6 @@ Language/Expressions/Constants/top_level_function_t01: Crash
 Language/Expressions/Constants/top_level_function_t02: Crash
 Language/Expressions/Constants/top_level_function_t04: MissingCompileTimeError
 Language/Expressions/Constants/top_level_function_t05: MissingCompileTimeError
-Language/Expressions/Function_Expressions/syntax_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Binding_Actuals_to_Formals/same_name_arguments_t01: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
@@ -274,9 +273,6 @@ Language/Expressions/Maps/constant_map_t01: Crash
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/constant_map_type_t01: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Cascaded_Invocations/syntax_t02: DartkCrash
-Language/Expressions/Method_Invocation/Cascaded_Invocations/syntax_t03: DartkCrash
-Language/Expressions/Method_Invocation/Cascaded_Invocations/syntax_t04: DartkCrash
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError # Dartk Issue 28562
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t17: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t18: RuntimeError # Dartk Issue 28562
@@ -304,7 +300,6 @@ Language/Expressions/Throw/no_catch_clause_t06: Crash
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Cast/evaluation_t04: RuntimeError
 Language/Expressions/Type_Cast/evaluation_t05: RuntimeError
-Language/Expressions/Type_Cast/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Test/evaluation_t03: RuntimeError
 Language/Expressions/Type_Test/evaluation_t04: RuntimeError
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335 (deferred libraries)
