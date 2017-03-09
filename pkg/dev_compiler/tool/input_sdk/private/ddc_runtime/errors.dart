@@ -4,10 +4,15 @@
 part of dart._runtime;
 
 bool _trapRuntimeErrors = true;
+bool _ignoreWhitelistedErrors = true;
 
 // Override, e.g., for testing
 void trapRuntimeErrors(bool flag) {
   _trapRuntimeErrors = flag;
+}
+
+void ignoreWhitelistedErrors(bool flag) {
+  _ignoreWhitelistedErrors = flag;
 }
 
 throwCastError(object, actual, type) => JS('', '''(() => {

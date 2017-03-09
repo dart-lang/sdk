@@ -498,7 +498,7 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
   if (result || actual == $jsobject ||
       actual == $int && type == $double) return true;
   if (result === false) return false;
-  if ($ignoreFromWhiteList == void 0) return result;
+  if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
   if ($_ignoreTypeFailure(actual, $type)) return true;
   return result;
 })()''');

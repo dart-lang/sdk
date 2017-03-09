@@ -710,6 +710,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let dynamicAndStringAnddynamicTovoid = () => (dynamicAndStringAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, core.String, dart.dynamic])))();
   let FAndintToF = () => (FAndintToF = dart.constFn(dart.definiteFunctionType(F => [F, [F, core.int]])))();
   let JSSyntaxRegExpTodynamic = () => (JSSyntaxRegExpTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [_js_helper.JSSyntaxRegExp])))();
+  let ListToListOfString = () => (ListToListOfString = dart.constFn(dart.definiteFunctionType(ListOfString(), [core.List])))();
   let JSSyntaxRegExpToint = () => (JSSyntaxRegExpToint = dart.constFn(dart.definiteFunctionType(core.int, [_js_helper.JSSyntaxRegExp])))();
   let JSSyntaxRegExpAndStringAndintToMatch = () => (JSSyntaxRegExpAndStringAndintToMatch = dart.constFn(dart.definiteFunctionType(core.Match, [_js_helper.JSSyntaxRegExp, core.String, core.int])))();
   let dynamicAnddynamicAnddynamicToint = () => (dynamicAnddynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic, dart.dynamic])))();
@@ -1887,6 +1888,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.trapRuntimeErrors = function(flag) {
     dart._trapRuntimeErrors = flag;
   };
+  dart.ignoreWhitelistedErrors = function(flag) {
+    dart._ignoreWhitelistedErrors = flag;
+  };
   dart.throwCastError = function(object, actual, type) {
     var found = dart.typeName(actual);
     var expected = dart.typeName(type);
@@ -2250,7 +2254,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let result = dart.isSubtype(actual, type);
     if (result || actual == dart.jsobject || actual == core.int && type == core.double) return true;
     if (result === false) return false;
-    if (ignoreFromWhiteList == void 0) return result;
+    if (!dart._ignoreWhitelistedErrors || ignoreFromWhiteList == void 0) return result;
     if (dart._ignoreTypeFailure(actual, type)) return true;
     return result;
   };
@@ -2994,6 +2998,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._typeFormalCount = Symbol("_typeFormalCount");
   dart.isSubtype = dart._subtypeMemo((t1, t2) => t1 === t2 || dart._isSubtype(t1, t2, true));
   dart._trapRuntimeErrors = true;
+  dart._ignoreWhitelistedErrors = true;
   dart._jsIterator = Symbol("_jsIterator");
   dart._current = Symbol("_current");
   dart._AsyncStarStreamController = class _AsyncStarStreamController {
@@ -12834,6 +12839,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return regexp[_nativeRegExp];
   };
   dart.lazyFn(_js_helper.regExpGetNative, () => JSSyntaxRegExpTodynamic());
+  _js_helper._stringList = function(l) {
+    return ListOfString()._check(l == null ? l : dart.list(l, core.String));
+  };
+  dart.lazyFn(_js_helper._stringList, () => ListToListOfString());
   const _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
   _js_helper.regExpGetGlobalNative = function(regexp) {
     let nativeRegexp = regexp[_nativeGlobalVersion];
@@ -12900,7 +12909,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     firstMatch(string) {
       let m = this[_nativeRegExp].exec(_js_helper.checkString(string));
       if (m == null) return null;
-      return new _js_helper._MatchImplementation(this, m);
+      return new _js_helper._MatchImplementation(this, _js_helper._stringList(m));
     }
     hasMatch(string) {
       return this[_nativeRegExp].test(_js_helper.checkString(string));
@@ -12924,7 +12933,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       regexp.lastIndex = start;
       let match = regexp.exec(string);
       if (match == null) return null;
-      return new _js_helper._MatchImplementation(this, ListOfString()._check(match));
+      return new _js_helper._MatchImplementation(this, _js_helper._stringList(match));
     }
     [_execAnchored](string, start) {
       let regexp = this[_nativeAnchoredVersion];
@@ -12933,7 +12942,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (match == null) return null;
       if (match[dartx._get](dart.notNull(match[dartx.length]) - 1) != null) return null;
       match[dartx.length] = dart.notNull(match[dartx.length]) - 1;
-      return new _js_helper._MatchImplementation(this, ListOfString()._check(match));
+      return new _js_helper._MatchImplementation(this, _js_helper._stringList(match));
     }
     matchAsPrefix(string, start) {
       if (start === void 0) start = 0;
