@@ -1212,6 +1212,7 @@ WebPlatformTest/custom-elements/concepts/type_A07_t01: Skip # Timing out on the 
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
 LayoutTests/fast/css/MarqueeLayoutTest_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
 LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: Pass, RuntimeError # Gardening: please triage this failure.
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Timesout Issue 26134
