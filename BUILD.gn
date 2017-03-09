@@ -267,7 +267,6 @@ if (defined(is_fuchsia) && is_fuchsia) {
         rebase_path(output),
         "--build-id-map",
         rebase_path("$target_gen_dir/build_id_map"),
-        "--compress",
         "--pre-binaries",
         rebase_path(magenta_bootdata),
       ]
