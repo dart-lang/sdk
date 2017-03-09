@@ -2373,32 +2373,35 @@ abstract class ContextAccessor extends BuilderAccessor {
   Expression buildForEffect();
 
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return internalError("not supported");
+    return makeInvalidWrite(value);
   }
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
-    return internalError("not supported");
+    return makeInvalidWrite(value);
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("not supported");
+    return makeInvalidWrite(value);
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("not supported");
+    return makeInvalidWrite(null);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("not supported");
+    return makeInvalidWrite(null);
   }
 
   makeInvalidRead() => internalError("not supported");
 
-  makeInvalidWrite(Expression value) => internalError("not supported");
+  Expression makeInvalidWrite(Expression value) {
+    return helper.buildCompileTimeError(
+        "Can't be used as left-hand side of assignment.", charOffset);
+  }
 }
 
 class DelayedAssignment extends ContextAccessor {

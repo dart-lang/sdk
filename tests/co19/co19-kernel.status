@@ -131,9 +131,6 @@ Language/Enums/restrictions_t05: MissingCompileTimeError
 Language/Enums/restrictions_t06: MissingCompileTimeError
 Language/Enums/restrictions_t07: MissingCompileTimeError
 Language/Enums/restrictions_t08: MissingCompileTimeError
-Language/Expressions/Assignable_Expressions/syntax_t04: DartkCrash
-Language/Expressions/Assignable_Expressions/syntax_t05: DartkCrash
-Language/Expressions/Assignable_Expressions/syntax_t23: DartkCrash
 Language/Expressions/Assignment/expression_assignment_failed_t03: RuntimeError
 Language/Expressions/Assignment/expression_assignment_t07: RuntimeError
 Language/Expressions/Assignment/no_such_method_t01: RuntimeError
@@ -295,8 +292,6 @@ Language/Expressions/Numbers/syntax_t26: MissingCompileTimeError
 Language/Expressions/Numbers/syntax_t27: MissingCompileTimeError
 Language/Expressions/Numbers/syntax_t29: MissingCompileTimeError
 Language/Expressions/Postfix_Expressions/syntax_t06: MissingCompileTimeError
-Language/Expressions/Postfix_Expressions/syntax_t07: DartkCrash
-Language/Expressions/Postfix_Expressions/syntax_t08: DartkCrash
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: RuntimeError
 Language/Expressions/This/placement_t04: MissingCompileTimeError
@@ -313,8 +308,6 @@ Language/Expressions/Type_Cast/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Test/evaluation_t03: RuntimeError
 Language/Expressions/Type_Test/evaluation_t04: RuntimeError
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Expressions/Unary_Expressions/syntax_t06: DartkCrash
-Language/Expressions/Unary_Expressions/syntax_t07: DartkCrash
 Language/Expressions/Unary_Expressions/syntax_t08: MissingCompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t09: MissingCompileTimeError
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565

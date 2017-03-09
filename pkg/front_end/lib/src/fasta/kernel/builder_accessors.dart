@@ -250,27 +250,33 @@ class ThisAccessor extends BuilderAccessor {
   }
 
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
+    return buildAssignmentError();
+  }
+
+  Expression buildAssignmentError() {
+    String message =
+        isSuper ? "Can't assign to 'super'." : "Can't assign to 'this'.";
+    return helper.buildCompileTimeError(message, charOffset);
   }
 
   toString() => "ThisAccessor($charOffset${isSuper ? ', super' : ''})";
@@ -364,12 +370,12 @@ class SendAccessor extends IncompleteSend {
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
-    return internalError("");
+    return internalError("Unhandled");
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
+    return internalError("Unhandled");
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
