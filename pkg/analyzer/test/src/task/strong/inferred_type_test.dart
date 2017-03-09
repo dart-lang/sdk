@@ -450,7 +450,7 @@ var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() 
 test1() {
   List<int> o;
   var y = o.map(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { });
-  Iterable<int> z = /*warning:DOWN_CAST_COMPOSITE*/y;
+  Iterable<int> z = /*info:DOWN_CAST_COMPOSITE*/y;
 }
 ''');
     var f = mainUnit.functions[0].localVariables[1];
@@ -1776,7 +1776,7 @@ void main() {
   $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
       (x) => x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) {return /*warning:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
+      (x) {return /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
 }
 ''';
     await checkFileElement(
@@ -1814,7 +1814,7 @@ void main() {
   $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
       (x) => x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/
-      (x) {return /*warning:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
+      (x) {return /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
 }
 ''';
     await checkFileElement(

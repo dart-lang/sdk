@@ -1079,23 +1079,23 @@ void main() {
   }
   {
     Left f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/top;
+    f = /*info:DOWN_CAST_COMPOSITE*/top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/top;
+    f = /*info:DOWN_CAST_COMPOSITE*/top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
   {
     Bottom f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/top;
-    f = /*warning:DOWN_CAST_COMPOSITE*/left;
-    f = /*warning:DOWN_CAST_COMPOSITE*/right;
+    f = /*info:DOWN_CAST_COMPOSITE*/top;
+    f = /*info:DOWN_CAST_COMPOSITE*/left;
+    f = /*info:DOWN_CAST_COMPOSITE*/right;
     f = bot;
   }
 }
@@ -1169,14 +1169,14 @@ void main() {
     f = aa;
     f = aTop;
     f = /*error:INVALID_ASSIGNMENT*/botA;
-    f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<ATop>*/(
         topA,
         topTop,
         aa,
         aTop,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply/*<ATop>*/(
         (dynamic x) => new A(),
@@ -1184,7 +1184,7 @@ void main() {
         (A x) => x,
         (A x) => null,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
   }
   {
@@ -1194,14 +1194,14 @@ void main() {
     f = aa;
     f = /*error:INVALID_ASSIGNMENT*/aTop;
     f = botA;
-    f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<BotA>*/(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aTop,
         botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply/*<BotA>*/(
         (dynamic x) => new A(),
@@ -1209,7 +1209,7 @@ void main() {
         (A x) => x,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object),
         botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
   }
   {
@@ -1218,23 +1218,23 @@ void main() {
     f = /*error:INVALID_ASSIGNMENT*/topTop;
     f = aa;
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
-    f = /*warning:DOWN_CAST_COMPOSITE*/botA;
-    f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+    f = /*info:DOWN_CAST_COMPOSITE*/botA;
+    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<AA>*/(
         topA,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/topTop,
         aa,
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
-        /*warning:DOWN_CAST_COMPOSITE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botA,
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                   );
     apply/*<AA>*/(
         (dynamic x) => new A(),
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
         (A x) => x,
         /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
-        /*warning:DOWN_CAST_COMPOSITE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botA,
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                   );
   }
   {
@@ -1244,14 +1244,14 @@ void main() {
     f = /*error:INVALID_ASSIGNMENT*/aa;
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
     f = /*error:INVALID_ASSIGNMENT*/botA;
-    f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<TopTop>*/(
         topA,
         topTop,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/aa,
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                       );
     apply/*<TopTop>*/(
         (dynamic x) => new A(),
@@ -1259,7 +1259,7 @@ void main() {
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
         /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                       );
   }
   {
@@ -1268,23 +1268,23 @@ void main() {
     f = /*error:INVALID_CAST_FUNCTION*/topTop; // known function
     f = /*error:INVALID_CAST_FUNCTION*/aa; // known function
     f = /*error:INVALID_CAST_FUNCTION*/aTop; // known function
-    f = /*warning:DOWN_CAST_COMPOSITE*/botA;
-    f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+    f = /*info:DOWN_CAST_COMPOSITE*/botA;
+    f = /*info:DOWN_CAST_COMPOSITE*/botTop;
     apply/*<TopA>*/(
         topA,
         /*error:INVALID_CAST_FUNCTION*/topTop, // known function
         /*error:INVALID_CAST_FUNCTION*/aa, // known function
         /*error:INVALID_CAST_FUNCTION*/aTop, // known function
-        /*warning:DOWN_CAST_COMPOSITE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botA,
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply/*<TopA>*/(
         (dynamic x) => new A(),
         /*error:INVALID_CAST_FUNCTION_EXPR*/(dynamic x) => (x as Object), // known function
         /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
         /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
-        /*warning:DOWN_CAST_COMPOSITE*/botA,
-        /*warning:DOWN_CAST_COMPOSITE*/botTop
+        /*info:DOWN_CAST_COMPOSITE*/botA,
+        /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
   }
 }
@@ -1423,19 +1423,19 @@ void main() {
     top = top;
     top = left;
 
-    left = /*warning:DOWN_CAST_COMPOSITE*/top;
+    left = /*info:DOWN_CAST_COMPOSITE*/top;
     left = left;
     left = /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
-    right = /*warning:DOWN_CAST_COMPOSITE*/top;
+    right = /*info:DOWN_CAST_COMPOSITE*/top;
     right = /*error:INVALID_ASSIGNMENT*/left;
     right = right;
     right = bot;
 
-    bot = /*warning:DOWN_CAST_COMPOSITE*/top;
-    bot = /*warning:DOWN_CAST_COMPOSITE*/left;
-    bot = /*warning:DOWN_CAST_COMPOSITE*/right;
+    bot = /*info:DOWN_CAST_COMPOSITE*/top;
+    bot = /*info:DOWN_CAST_COMPOSITE*/left;
+    bot = /*info:DOWN_CAST_COMPOSITE*/right;
     bot = bot;
   }
 }
@@ -1455,7 +1455,7 @@ typedef B AToB(A x);  // Bot of the base lattice
 BToA top(AToB f) => f;
 AToB left(AToB f) => f;
 BToA right(BToA f) => f;
-AToB bot_(BToA f) => /*warning:DOWN_CAST_COMPOSITE*/f;
+AToB bot_(BToA f) => /*info:DOWN_CAST_COMPOSITE*/f;
 AToB bot(BToA f) => f as AToB;
 
 void main() {
@@ -1504,7 +1504,7 @@ typedef B AToB(A x);  // Bot of the base lattice
 Function2<B, A> top(AToB f) => f;
 Function2<A, B> left(AToB f) => f;
 Function2<B, A> right(BToA f) => f;
-Function2<A, B> bot_(BToA f) => /*warning:DOWN_CAST_COMPOSITE*/f;
+Function2<A, B> bot_(BToA f) => /*info:DOWN_CAST_COMPOSITE*/f;
 Function2<A, B> bot(BToA f) => f as Function2<A, B>;
 
 void main() {
@@ -1553,7 +1553,7 @@ typedef B AToB(A x);  // Bot of the base lattice
 BToA top(Function2<A, B> f) => f;
 AToB left(Function2<A, B> f) => f;
 BToA right(Function2<B, A> f) => f;
-AToB bot_(Function2<B, A> f) => /*warning:DOWN_CAST_COMPOSITE*/f;
+AToB bot_(Function2<B, A> f) => /*info:DOWN_CAST_COMPOSITE*/f;
 AToB bot(Function2<B, A> f) => f as AToB;
 
 void main() {
@@ -1608,21 +1608,21 @@ void main() {
     top = top;
     top = left;
 
-    left = /*warning:DOWN_CAST_COMPOSITE*/top;
+    left = /*info:DOWN_CAST_COMPOSITE*/top;
     left = left;
     left =
         /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
-    right = /*warning:DOWN_CAST_COMPOSITE*/top;
+    right = /*info:DOWN_CAST_COMPOSITE*/top;
     right =
         /*error:INVALID_ASSIGNMENT*/left;
     right = right;
     right = bot;
 
-    bot = /*warning:DOWN_CAST_COMPOSITE*/top;
-    bot = /*warning:DOWN_CAST_COMPOSITE*/left;
-    bot = /*warning:DOWN_CAST_COMPOSITE*/right;
+    bot = /*info:DOWN_CAST_COMPOSITE*/top;
+    bot = /*info:DOWN_CAST_COMPOSITE*/left;
+    bot = /*info:DOWN_CAST_COMPOSITE*/right;
     bot = bot;
   }
 }
@@ -1654,23 +1654,23 @@ void main() {
   }
   {
     Function2<B, B> f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+    f = /*info:DOWN_CAST_COMPOSITE*/c.top;
     f = c.left;
     f = /*error:INVALID_ASSIGNMENT*/c.right;
     f = c.bot;
   }
   {
     Function2<A, A> f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
+    f = /*info:DOWN_CAST_COMPOSITE*/c.top;
     f = /*error:INVALID_ASSIGNMENT*/c.left;
     f = c.right;
     f = c.bot;
   }
   {
     Function2<A, B> f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/c.top;
-    f = /*warning:DOWN_CAST_COMPOSITE*/c.left;
-    f = /*warning:DOWN_CAST_COMPOSITE*/c.right;
+    f = /*info:DOWN_CAST_COMPOSITE*/c.top;
+    f = /*info:DOWN_CAST_COMPOSITE*/c.left;
+    f = /*info:DOWN_CAST_COMPOSITE*/c.right;
     f = c.bot;
   }
 }
@@ -1712,23 +1712,23 @@ void main() {
   }
   {
     Left f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/top;
+    f = /*info:DOWN_CAST_COMPOSITE*/top;
     f = left;
     f = /*error:INVALID_ASSIGNMENT*/right;
     f = bot;
   }
   {
     Right f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/top;
+    f = /*info:DOWN_CAST_COMPOSITE*/top;
     f = /*error:INVALID_ASSIGNMENT*/left;
     f = right;
     f = bot;
   }
   {
     Bot f;
-    f = /*warning:DOWN_CAST_COMPOSITE*/top;
-    f = /*warning:DOWN_CAST_COMPOSITE*/left;
-    f = /*warning:DOWN_CAST_COMPOSITE*/right;
+    f = /*info:DOWN_CAST_COMPOSITE*/top;
+    f = /*info:DOWN_CAST_COMPOSITE*/left;
+    f = /*info:DOWN_CAST_COMPOSITE*/right;
     f = bot;
   }
 }
@@ -1770,7 +1770,7 @@ void main() {
    r = /*error:INVALID_ASSIGNMENT*/nn;
    r = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   o = /*warning:DOWN_CAST_COMPOSITE*/r;
+   o = /*info:DOWN_CAST_COMPOSITE*/r;
    o = o;
    o = /*error:INVALID_ASSIGNMENT*/n;
    o = /*error:INVALID_ASSIGNMENT*/rr;
@@ -1800,17 +1800,17 @@ void main() {
    rr = /*error:INVALID_ASSIGNMENT*/nn;
    rr = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   ro = /*warning:DOWN_CAST_COMPOSITE*/r;
+   ro = /*info:DOWN_CAST_COMPOSITE*/r;
    ro = /*error:INVALID_ASSIGNMENT*/o;
    ro = /*error:INVALID_ASSIGNMENT*/n;
-   ro = /*warning:DOWN_CAST_COMPOSITE*/rr;
+   ro = /*info:DOWN_CAST_COMPOSITE*/rr;
    ro = ro;
    ro = /*error:INVALID_ASSIGNMENT*/rn;
    ro = oo;
    ro = /*error:INVALID_ASSIGNMENT*/nn;
    ro = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   rn = /*warning:DOWN_CAST_COMPOSITE*/r;
+   rn = /*info:DOWN_CAST_COMPOSITE*/r;
    rn = /*error:INVALID_ASSIGNMENT*/o;
    rn = /*error:INVALID_ASSIGNMENT*/n;
    rn = /*error:INVALID_ASSIGNMENT*/rr;
@@ -1820,11 +1820,11 @@ void main() {
    rn = /*error:INVALID_ASSIGNMENT*/nn;
    rn = /*error:INVALID_ASSIGNMENT*/nnn;
 
-   oo = /*warning:DOWN_CAST_COMPOSITE*/r;
-   oo = /*warning:DOWN_CAST_COMPOSITE*/o;
+   oo = /*info:DOWN_CAST_COMPOSITE*/r;
+   oo = /*info:DOWN_CAST_COMPOSITE*/o;
    oo = /*error:INVALID_ASSIGNMENT*/n;
-   oo = /*warning:DOWN_CAST_COMPOSITE*/rr;
-   oo = /*warning:DOWN_CAST_COMPOSITE*/ro;
+   oo = /*info:DOWN_CAST_COMPOSITE*/rr;
+   oo = /*info:DOWN_CAST_COMPOSITE*/ro;
    oo = /*error:INVALID_ASSIGNMENT*/rn;
    oo = oo;
    oo = /*error:INVALID_ASSIGNMENT*/nn;
@@ -1832,7 +1832,7 @@ void main() {
 
    nn = /*error:INVALID_ASSIGNMENT*/r;
    nn = /*error:INVALID_ASSIGNMENT*/o;
-   nn = /*warning:DOWN_CAST_COMPOSITE*/n;
+   nn = /*info:DOWN_CAST_COMPOSITE*/n;
    nn = /*error:INVALID_ASSIGNMENT*/rr;
    nn = /*error:INVALID_ASSIGNMENT*/ro;
    nn = /*error:INVALID_ASSIGNMENT*/rn;
@@ -1842,12 +1842,12 @@ void main() {
 
    nnn = /*error:INVALID_ASSIGNMENT*/r;
    nnn = /*error:INVALID_ASSIGNMENT*/o;
-   nnn = /*warning:DOWN_CAST_COMPOSITE*/n;
+   nnn = /*info:DOWN_CAST_COMPOSITE*/n;
    nnn = /*error:INVALID_ASSIGNMENT*/rr;
    nnn = /*error:INVALID_ASSIGNMENT*/ro;
    nnn = /*error:INVALID_ASSIGNMENT*/rn;
    nnn = /*error:INVALID_ASSIGNMENT*/oo;
-   nnn = /*warning:DOWN_CAST_COMPOSITE*/nn;
+   nnn = /*info:DOWN_CAST_COMPOSITE*/nn;
    nnn = nnn;
 }
 ''');
@@ -1872,8 +1872,8 @@ void main() {
      f = /*error:INVALID_ASSIGNMENT*/new B();
      f = i2i;
      f = /*error:INVALID_ASSIGNMENT*/n2n;
-     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/i2i as Object;
-     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/n2n as Function;
    }
    {
      N2N f;
@@ -1881,8 +1881,8 @@ void main() {
      f = new B();
      f = /*error:INVALID_ASSIGNMENT*/i2i;
      f = n2n;
-     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/i2i as Object;
-     f = /*info:UNNECESSARY_CAST,warning:DOWN_CAST_COMPOSITE*/n2n as Function;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/i2i as Object;
+     f = /*info:UNNECESSARY_CAST,info:DOWN_CAST_COMPOSITE*/n2n as Function;
    }
    {
      A f;
@@ -1987,7 +1987,7 @@ void main() {
     var local2 = g;
     local = local2;
     local2 = /*error:INVALID_CAST_FUNCTION*/f;
-    local2 = /*warning:DOWN_CAST_COMPOSITE*/local;
+    local2 = /*info:DOWN_CAST_COMPOSITE*/local;
 
     // Non-generic function cannot subtype a generic one.
     local = /*error:INVALID_ASSIGNMENT*/(x) => null;
@@ -2840,7 +2840,7 @@ class C {
     int x =
         /*info:ASSIGNMENT_CAST should be error:INVALID_ASSIGNMENT*/
         b ? li : id;
-    return /*warning:DOWN_CAST_COMPOSITE should be pass*/b ? li : id;
+    return /*info:DOWN_CAST_COMPOSITE should be pass*/b ? li : id;
   }
 }
 ''');
@@ -2855,7 +2855,7 @@ void main() {
   TakesA<dynamic> g;
   TakesA<String> h;
   g = h;
-  f = /*warning:DOWN_CAST_COMPOSITE*/f ?? g;
+  f = /*info:DOWN_CAST_COMPOSITE*/f ?? g;
 }
 ''');
   }
@@ -3404,7 +3404,7 @@ void main() {
     lOfAs = /*error:INVALID_ASSIGNMENT*/mOfDs;
     lOfAs = /*error:INVALID_ASSIGNMENT*/mOfOs;
     lOfAs = mOfAs;
-    lOfAs = /*warning:DOWN_CAST_COMPOSITE*/lOfDs;
+    lOfAs = /*info:DOWN_CAST_COMPOSITE*/lOfDs;
     lOfAs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
     lOfAs = lOfAs;
     lOfAs = new L<A>(); // Reset type propagation.
@@ -3428,10 +3428,10 @@ void main() {
     mOfOs = new M<Object>(); // Reset type propagation.
   }
   {
-    mOfAs = /*warning:DOWN_CAST_COMPOSITE*/mOfDs;
+    mOfAs = /*info:DOWN_CAST_COMPOSITE*/mOfDs;
     mOfAs = /*info:DOWN_CAST_IMPLICIT*/mOfOs;
     mOfAs = mOfAs;
-    mOfAs = /*warning:DOWN_CAST_COMPOSITE*/lOfDs;
+    mOfAs = /*info:DOWN_CAST_COMPOSITE*/lOfDs;
     mOfAs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
     mOfAs = /*info:DOWN_CAST_IMPLICIT*/lOfAs;
   }
@@ -3734,11 +3734,11 @@ class SplayTreeMap<K, V> {
   // define that since it doesn't implement Comparable.
   SplayTreeMap([int compare(K key1, K key2),
                 bool isValidKey(potentialKey)])
-    : _comparator = /*warning:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
+    : _comparator = /*info:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
       _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
 
     // NOTE: this is a down cast because isValidKey has fuzzy arrow type.
-    _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
+    _Predicate<Object> v = /*info:DOWN_CAST_COMPOSITE*/(isValidKey != null)
         ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
 
     v = (isValidKey != null)
@@ -3863,7 +3863,7 @@ void f/*<T extends num>*/(T x, T y) {
   if (x is int) {
     /*info:DYNAMIC_INVOKE*/z./*error:UNDEFINED_GETTER*/isEven;
     var q = x;
-    q = /*warning:DOWN_CAST_COMPOSITE*/z;
+    q = /*info:DOWN_CAST_COMPOSITE*/z;
     /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
 
     // This does not capture the type `T extends int`. Instead the return type
@@ -3873,7 +3873,7 @@ void f/*<T extends num>*/(T x, T y) {
     var g = () => x;
     g = f;
     /*info:DYNAMIC_INVOKE*/g()./*error:UNDEFINED_GETTER*/isEven;
-    q = /*warning:DOWN_CAST_COMPOSITE*/g();
+    q = /*info:DOWN_CAST_COMPOSITE*/g();
     int r = x;
   }
 }
