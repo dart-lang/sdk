@@ -744,8 +744,6 @@ illegal_initializer_test/03: MissingCompileTimeError
 illegal_initializer_test/04: MissingCompileTimeError
 illegal_invocation_test/01: MissingCompileTimeError
 label_test: RuntimeError
-named_constructor_test/05: MissingCompileTimeError
-named_constructor_test/08: MissingCompileTimeError
 prefix_assignment_test/01: MissingCompileTimeError
 prefix_assignment_test/02: MissingCompileTimeError
 prefix_identifier_reference_test/01: MissingCompileTimeError
