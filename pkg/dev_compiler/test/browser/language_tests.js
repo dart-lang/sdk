@@ -423,7 +423,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'element_offset_test': 'fail',
 
       'element_test': async_unittest,
-      'element_types_test': firefox_fail,
+      // This may no longer be a valid test?
+      'element_types_test': is.chrome('<=56') ? pass : fail,
       'event_customevent_test': async_unittest,
       'events_test': async_unittest,
       'fileapi_test': async_unittest,
