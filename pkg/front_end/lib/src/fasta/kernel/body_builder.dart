@@ -465,23 +465,27 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
     List arguments = popList(count) ?? <Expression>[];
-    int firstNamedArgument = arguments.length;
+    int firstNamedArgumentIndex = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
       var node = arguments[i];
       if (node is NamedExpression) {
-        firstNamedArgument = i < firstNamedArgument ? i : firstNamedArgument;
+        firstNamedArgumentIndex =
+            i < firstNamedArgumentIndex ? i : firstNamedArgumentIndex;
       } else {
-        arguments[i] = node = toValue(node);
-        if (i > firstNamedArgument) {
-          internalError("Expected named argument: $node");
+        arguments[i] = toValue(node);
+        if (i > firstNamedArgumentIndex) {
+          arguments[i] = new NamedExpression(
+              "#$i",
+              buildCompileTimeError(
+                  "Expected named argument.", arguments[i].fileOffset));
         }
       }
     }
-    if (firstNamedArgument < arguments.length) {
-      List<Expression> positional =
-          new List<Expression>.from(arguments.getRange(0, firstNamedArgument));
+    if (firstNamedArgumentIndex < arguments.length) {
+      List<Expression> positional = new List<Expression>.from(
+          arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
-          arguments.getRange(firstNamedArgument, arguments.length));
+          arguments.getRange(firstNamedArgumentIndex, arguments.length));
       push(new Arguments(positional, named: named));
     } else {
       push(new Arguments(arguments));
