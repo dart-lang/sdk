@@ -33,6 +33,9 @@ front_end/test/fasta/bootstrap_test: Pass, Slow
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
 
+[ $compiler != dart2analyzer ]
+analyzer/test/src/summary/summarize_fasta_test: RuntimeError
+
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
 
