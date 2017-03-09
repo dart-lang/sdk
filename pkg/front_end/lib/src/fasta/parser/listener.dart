@@ -4,11 +4,12 @@
 
 library fasta.parser.listener;
 
-import '../scanner/token.dart' show BeginGroupToken, Token;
+import '../scanner/token.dart' show BeginGroupToken, SymbolToken, Token;
 
 import '../util/link.dart' show Link;
 
 import 'error_kind.dart' show ErrorKind;
+import 'package:front_end/src/fasta/scanner/precedence.dart' show EOF_INFO;
 import 'parser.dart' show FormalParameterType;
 
 import 'identifier_context.dart' show IdentifierContext;
@@ -959,7 +960,8 @@ class Listener {
 
   /// An unrecoverable error is an error that the parser can't recover from
   /// itself, and recovery is left to the listener. If the listener can
-  /// recover, it should return a non-null continuation token. Error recovery
+  /// recover, it should return a non-null continuation token whose `next`
+  /// pointer is the token the parser should continue from. Error recovery
   /// is tightly coupled to the parser implementation, so to recover from an
   /// error, one must carefully examine the code in the parser that generates
   /// the error.
@@ -980,6 +982,16 @@ class Listener {
 
   void handleScript(Token token) {
     logEvent("Script");
+  }
+
+  /// Creates a new synthetic token whose `next` pointer points to [next].
+  ///
+  /// If [next] is `null`, `null` is returned.
+  Token newSyntheticToken(Token next) {
+    if (next == null) return null;
+    // TODO(paulberry): we really should have a new kind here.  Don't re-use
+    // EOF_INFO.
+    return new SymbolToken(EOF_INFO, next.charOffset)..next = next;
   }
 }
 

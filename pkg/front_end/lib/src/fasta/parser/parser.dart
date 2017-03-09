@@ -3530,7 +3530,7 @@ class Parser {
     } else {
       arguments ??= {};
       arguments.putIfAbsent("actual", () => token.value);
-      next = listener.handleUnrecoverableError(token, kind, arguments);
+      next = listener.handleUnrecoverableError(token, kind, arguments)?.next;
     }
     return next ?? skipToEof(token);
   }
@@ -3581,7 +3581,7 @@ class Parser {
       listener.handleRecoverableError(token, kind, arguments);
       return null;
     } else {
-      return listener.handleUnrecoverableError(token, kind, arguments);
+      return listener.handleUnrecoverableError(token, kind, arguments)?.next;
     }
   }
 }

@@ -535,7 +535,7 @@ class ElementListener extends Listener {
             reportErrorFromToken(preceding,
                 MessageKind.MISSING_TOKEN_AFTER_THIS, {'token': expected});
           }
-          return token;
+          return preceding;
         } else {
           reportFatalError(
               reporter.spanFromToken(token),
@@ -553,12 +553,12 @@ class ElementListener extends Listener {
               {'keyword': token.value});
         } else if (token is ErrorToken) {
           // TODO(ahe): This is dead code.
-          return synthesizeIdentifier(token);
+          return newSyntheticToken(synthesizeIdentifier(token));
         } else {
           reportFatalError(reporter.spanFromToken(token),
               "Expected identifier, but got '${token.value}'.");
         }
-        return token;
+        return newSyntheticToken(token);
 
       case ErrorKind.ExpectedType:
         reportFatalError(reporter.spanFromToken(token),
@@ -580,7 +580,7 @@ class ElementListener extends Listener {
 
       case ErrorKind.ExpectedBlockToSkip:
         if (optional("native", token)) {
-          return native.handleNativeBlockToSkip(this, token);
+          return newSyntheticToken(native.handleNativeBlockToSkip(this, token));
         } else {
           errorCode = MessageKind.BODY_EXPECTED;
         }
@@ -589,7 +589,8 @@ class ElementListener extends Listener {
       case ErrorKind.ExpectedFunctionBody:
         if (optional("native", token)) {
           lastErrorWasNativeFunctionBody = true;
-          return native.handleNativeFunctionBody(this, token);
+          return newSyntheticToken(
+              native.handleNativeFunctionBody(this, token));
         } else {
           reportFatalError(reporter.spanFromToken(token),
               "Expected a function body, but got '${token.value}'.");
@@ -609,8 +610,8 @@ class ElementListener extends Listener {
 
       case ErrorKind.UnmatchedToken:
         reportErrorFromToken(token, MessageKind.UNMATCHED_TOKEN, arguments);
-        Token next = token.next;
-        while (next is ErrorToken) {
+        Token next = token;
+        while (next.next is ErrorToken) {
           next = next.next;
         }
         return next;
