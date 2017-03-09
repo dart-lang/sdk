@@ -169,6 +169,10 @@ dart_library =
     let library = import_(moduleName)[libraryName];
     let dart_sdk = import_('dart_sdk');
 
+    // This import is only needed for chrome debugging. We should provide an
+    // option to compile without it.
+    dart_sdk._debugger.registerDevtoolsFormatter();
+
     if (!_currentIsolate) {
       // Create isolate.
       _currentIsolate = true;
@@ -183,10 +187,6 @@ dart_library =
   function bootstrap() {
     if (_bootstrapped) return;
     _bootstrapped = true;
-
-    // This import is only needed for chrome debugging. We should provide an
-    // option to compile without it.
-    dart_sdk._debugger.registerDevtoolsFormatter();
   }
 
 })(dart_library);
