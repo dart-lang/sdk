@@ -234,7 +234,8 @@ class DateTime {
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
                                       {bool isUtc: false})
-      : this._withValue(millisecondsSinceEpoch, isUtc: isUtc);
+      // `0 + millisecondsSinceEpoch` forces the inferred result to be non-null.
+      : this._withValue(0 + millisecondsSinceEpoch, isUtc: isUtc);
 
   @patch
   DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
@@ -318,7 +319,7 @@ class DateTime {
   int get millisecondsSinceEpoch => _value;
 
   @patch
-  int get microsecondsSinceEpoch => _value * 1000;
+  int get microsecondsSinceEpoch => 1000 * _value;
 
   @patch
   int get year => Primitives.getYear(this);
