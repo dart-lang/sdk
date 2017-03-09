@@ -3669,6 +3669,32 @@ const dynamic V = const p.C.named();
     }
   }
 
+  test_const_invokeConstructor_named_unresolved6() {
+    var library = checkLibrary(
+        r'''
+class C<T> {}
+const V = const C.named();
+''',
+        allowErrors: true);
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+}
+const C<dynamic> V = const C.named();
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class C<T> {
+}
+const dynamic V = const C.named();
+''');
+    }
+  }
+
   test_const_invokeConstructor_unnamed() {
     var library = checkLibrary(r'''
 class C {

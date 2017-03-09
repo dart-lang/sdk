@@ -2195,17 +2195,6 @@ class B {
     verify([source]);
   }
 
-  test_implicitThisReferenceInInitializer_importPrefix() async {
-    Source source = addSource(r'''
-import 'dart:async' as abstract;
-class A {
-  var v = new abstract.Completer();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_implicitThisReferenceInInitializer_prefixedIdentifier() async {
     Source source = addSource(r'''
 class A {

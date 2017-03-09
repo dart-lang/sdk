@@ -191,6 +191,6 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
       name: "mock", classes: [contextClass])..fileUri = fileUri;
   program.libraries.add(mock);
   mock.parent = program;
-  program.uriToSource[mock.fileUri] = new Source(<int>[0], "");
+  program.uriToSource[mock.fileUri] = new Source(<int>[0], const <int>[]);
   return contextClass;
 }

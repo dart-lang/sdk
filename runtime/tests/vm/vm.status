@@ -296,8 +296,3 @@ cc/UseDartApi: Pass,Crash # Issue 28499
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
-
-[ $arch == simdbc  || $arch == simdbc64 ]
-cc/Debugger_RewindOneFrame_Unoptimized: Skip # Issue 27878
-cc/Debugger_RewindTwoFrames_Unoptimized: Skip # Issue 27878
-cc/Debugger_Rewind_Optimized: Skip # Issue 27878

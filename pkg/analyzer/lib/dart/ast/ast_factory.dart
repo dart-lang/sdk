@@ -626,7 +626,7 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       Token functionKeyword,
       TypeParameterList typeParameters,
-      FormalParameterList _parameters);
+      FormalParameterList parameters);
 
   /**
    * Returns a newly created generic type alias. Either or both of the

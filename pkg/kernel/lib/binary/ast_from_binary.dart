@@ -4,6 +4,7 @@
 library kernel.ast_from_binary;
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import '../ast.dart';
 import '../transformations/flags.dart';
@@ -72,6 +73,13 @@ class BinaryBuilder {
         (readByte() << 16) |
         (readByte() << 8) |
         readByte();
+  }
+
+  List<int> readUtf8Bytes() {
+    List<int> bytes = new Uint8List(readUInt());
+    bytes.setRange(0, bytes.length, _bytes, _byteIndex);
+    _byteIndex += bytes.length;
+    return bytes;
   }
 
   String readStringEntry() {
@@ -271,7 +279,7 @@ class BinaryBuilder {
     Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {
       String uri = _sourceUriTable[i];
-      String sourceCode = readStringEntry();
+      List<int> sourceCode = readUtf8Bytes();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
       int previousLineStart = 0;
@@ -689,8 +697,9 @@ class BinaryBuilder {
         return new StaticGet.byReference(readMemberReference())
           ..fileOffset = offset;
       case Tag.StaticSet:
+        int offset = readOffset();
         return new StaticSet.byReference(
-            readMemberReference(), readExpression());
+            readMemberReference(), readExpression())..fileOffset = offset;
       case Tag.MethodInvocation:
         int offset = readOffset();
         return new MethodInvocation.byReference(
@@ -744,7 +753,9 @@ class BinaryBuilder {
         return new IsExpression(readExpression(), readDartType())
           ..fileOffset = offset;
       case Tag.AsExpression:
-        return new AsExpression(readExpression(), readDartType());
+        int offset = readOffset();
+        return new AsExpression(readExpression(), readDartType())
+          ..fileOffset = offset;
       case Tag.StringLiteral:
         return new StringLiteral(readStringReference());
       case Tag.SpecializedIntLiteral:
@@ -771,18 +782,21 @@ class BinaryBuilder {
       case Tag.ThisExpression:
         return new ThisExpression();
       case Tag.Rethrow:
-        return new Rethrow();
+        int offset = readOffset();
+        return new Rethrow()..fileOffset = offset;
       case Tag.Throw:
         int offset = readOffset();
         return new Throw(readExpression())..fileOffset = offset;
       case Tag.ListLiteral:
+        int offset = readOffset();
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: false);
+            typeArgument: typeArgument, isConst: false)..fileOffset = offset;
       case Tag.ConstListLiteral:
+        int offset = readOffset();
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: true);
+            typeArgument: typeArgument, isConst: true)..fileOffset = offset;
       case Tag.MapLiteral:
         int offset = readOffset();
         var keyType = readDartType();
@@ -860,8 +874,10 @@ class BinaryBuilder {
         labelStack.removeLast();
         return label;
       case Tag.BreakStatement:
+        int offset = readOffset();
         int index = readUInt();
-        return new BreakStatement(labelStack[labelStackBase + index]);
+        return new BreakStatement(labelStack[labelStackBase + index])
+          ..fileOffset = offset;
       case Tag.WhileStatement:
         return new WhileStatement(readExpression(), readStatement());
       case Tag.DoStatement:
@@ -1081,13 +1097,16 @@ class BinaryBuilder {
 
   VariableDeclaration readVariableDeclaration() {
     int offset = readOffset();
+    int fileEqualsOffset = readOffset();
     int flags = readByte();
     return new VariableDeclaration(readStringOrNullIfEmpty(),
         type: readDartType(),
         inferredValue: readOptionalInferredValue(),
         initializer: readExpressionOption(),
         isFinal: flags & 0x1 != 0,
-        isConst: flags & 0x2 != 0)..fileOffset = offset;
+        isConst: flags & 0x2 != 0)
+      ..fileOffset = offset
+      ..fileEqualsOffset = fileEqualsOffset;
   }
 
   int readOffset() {

@@ -326,6 +326,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  File copyTo(Folder parentFolder) {
+    throw new FileSystemException(path, 'File could not be copied');
+  }
+
+  @override
   Source createSource([Uri uri]) {
     throw new FileSystemException(path, 'File could not be read');
   }
@@ -393,6 +398,14 @@ class _MemoryFile extends _MemoryResource implements File {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return stamp;
+  }
+
+  @override
+  File copyTo(Folder parentFolder) {
+    parentFolder.create();
+    File destination = parentFolder.getChildAssumingFile(shortName);
+    destination.writeAsBytesSync(readAsBytesSync());
+    return destination;
   }
 
   @override
@@ -469,6 +482,21 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   @override
   bool contains(String path) {
     return _provider.pathContext.isWithin(this.path, path);
+  }
+
+  @override
+  Folder copyTo(Folder parentFolder) {
+    Folder destination = parentFolder.getChildAssumingFolder(shortName);
+    destination.create();
+    for (Resource child in getChildren()) {
+      child.copyTo(destination);
+    }
+    return destination;
+  }
+
+  @override
+  void create() {
+    _provider.newFolder(path);
   }
 
   @override

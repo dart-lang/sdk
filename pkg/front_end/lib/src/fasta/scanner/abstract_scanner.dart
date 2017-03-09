@@ -49,6 +49,18 @@ abstract class AbstractScanner implements Scanner {
    */
   Token tail;
 
+  /**
+   * A pointer to the stream of comment tokens created by this scanner
+   * before they are assigned to the [Token] precedingComments field
+   * of a non-comment token. A value of `null` indicates no comment tokens.
+   */
+  Token comments;
+
+  /**
+   * A pointer to the last scanned comment token or `null` if none.
+   */
+  Token commentsTail;
+
   final List<int> lineStarts;
 
   AbstractScanner(this.includeComments, {int numberOfBytesHint})
@@ -226,17 +238,69 @@ abstract class AbstractScanner implements Scanner {
       return next;
     }
 
-    if ($a <= next && next <= $z) {
+    int nextLower = next | 0x20;
+
+    if ($a <= nextLower && nextLower <= $z) {
       if (identical($r, next)) {
         return tokenizeRawStringKeywordOrIdentifier(next);
       }
       return tokenizeKeywordOrIdentifier(next, true);
     }
 
-    if (($A <= next && next <= $Z) ||
-        identical(next, $_) ||
-        identical(next, $$)) {
+    if (identical(next, $CLOSE_PAREN)) {
+      return appendEndGroup(CLOSE_PAREN_INFO, OPEN_PAREN_TOKEN);
+    }
+
+    if (identical(next, $OPEN_PAREN)) {
+      appendBeginGroup(OPEN_PAREN_INFO);
+      return advance();
+    }
+
+    if (identical(next, $SEMICOLON)) {
+      appendPrecedenceToken(SEMICOLON_INFO);
+      // Type parameters and arguments cannot contain semicolon.
+      discardOpenLt();
+      return advance();
+    }
+
+    if (identical(next, $PERIOD)) {
+      return tokenizeDotsOrNumber(next);
+    }
+
+    if (identical(next, $COMMA)) {
+      appendPrecedenceToken(COMMA_INFO);
+      return advance();
+    }
+
+    if (identical(next, $EQ)) {
+      return tokenizeEquals(next);
+    }
+
+    if (identical(next, $CLOSE_CURLY_BRACKET)) {
+      return appendEndGroup(CLOSE_CURLY_BRACKET_INFO, OPEN_CURLY_BRACKET_TOKEN);
+    }
+
+    if (identical(next, $SLASH)) {
+      return tokenizeSlashOrComment(next);
+    }
+
+
+    if (identical(next, $OPEN_CURLY_BRACKET)) {
+      appendBeginGroup(OPEN_CURLY_BRACKET_INFO);
+      return advance();
+    }
+
+    if (identical(next, $DQ) || identical(next, $SQ)) {
+      return tokenizeString(next, scanOffset, false);
+    }
+
+    if(identical(next, $_)){
       return tokenizeKeywordOrIdentifier(next, true);
+    }
+
+    if (identical(next, $COLON)) {
+      appendPrecedenceToken(COLON_INFO);
+      return advance();
     }
 
     if (identical(next, $LT)) {
@@ -247,16 +311,49 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeGreaterThan(next);
     }
 
-    if (identical(next, $EQ)) {
-      return tokenizeEquals(next);
-    }
-
     if (identical(next, $BANG)) {
       return tokenizeExclamation(next);
     }
 
+    if (identical(next, $OPEN_SQUARE_BRACKET)) {
+      return tokenizeOpenSquareBracket(next);
+    }
+
+    if (identical(next, $CLOSE_SQUARE_BRACKET)) {
+      return appendEndGroup(
+          CLOSE_SQUARE_BRACKET_INFO, OPEN_SQUARE_BRACKET_TOKEN);
+    }
+
+    if (identical(next, $AT)) {
+      return tokenizeAt(next);
+    }
+
+    if (next >= $1 && next <= $9) {
+      return tokenizeNumber(next);
+    }
+
+    if (identical(next, $AMPERSAND)) {
+      return tokenizeAmpersand(next);
+    }
+
+    if (identical(next, $0)) {
+      return tokenizeHexOrNumber(next);
+    }
+
+    if (identical(next, $QUESTION)) {
+      return tokenizeQuestion(next);
+    }
+
+    if (identical(next, $BAR)) {
+      return tokenizeBar(next);
+    }
+
     if (identical(next, $PLUS)) {
       return tokenizePlus(next);
+    }
+
+    if(identical(next, $$)){
+      return tokenizeKeywordOrIdentifier(next, true);
     }
 
     if (identical(next, $MINUS)) {
@@ -267,28 +364,21 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeMultiply(next);
     }
 
-    if (identical(next, $PERCENT)) {
-      return tokenizePercent(next);
-    }
-
-    if (identical(next, $AMPERSAND)) {
-      return tokenizeAmpersand(next);
-    }
-
-    if (identical(next, $BAR)) {
-      return tokenizeBar(next);
-    }
-
     if (identical(next, $CARET)) {
       return tokenizeCaret(next);
     }
 
-    if (identical(next, $OPEN_SQUARE_BRACKET)) {
-      return tokenizeOpenSquareBracket(next);
-    }
-
     if (identical(next, $TILDE)) {
       return tokenizeTilde(next);
+    }
+
+    if (identical(next, $PERCENT)) {
+      return tokenizePercent(next);
+    }
+
+    if (identical(next, $BACKPING)) {
+      appendPrecedenceToken(BACKPING_INFO);
+      return advance();
     }
 
     if (identical(next, $BACKSLASH)) {
@@ -300,91 +390,6 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeTag(next);
     }
 
-    if (identical(next, $OPEN_PAREN)) {
-      appendBeginGroup(OPEN_PAREN_INFO);
-      return advance();
-    }
-
-    if (identical(next, $CLOSE_PAREN)) {
-      return appendEndGroup(CLOSE_PAREN_INFO, OPEN_PAREN_TOKEN);
-    }
-
-    if (identical(next, $COMMA)) {
-      appendPrecedenceToken(COMMA_INFO);
-      return advance();
-    }
-
-    if (identical(next, $COLON)) {
-      appendPrecedenceToken(COLON_INFO);
-      return advance();
-    }
-
-    if (identical(next, $SEMICOLON)) {
-      appendPrecedenceToken(SEMICOLON_INFO);
-      // Type parameters and arguments cannot contain semicolon.
-      discardOpenLt();
-      return advance();
-    }
-
-    if (identical(next, $QUESTION)) {
-      return tokenizeQuestion(next);
-    }
-
-    if (identical(next, $CLOSE_SQUARE_BRACKET)) {
-      return appendEndGroup(
-          CLOSE_SQUARE_BRACKET_INFO, OPEN_SQUARE_BRACKET_TOKEN);
-    }
-
-    if (identical(next, $BACKPING)) {
-      appendPrecedenceToken(BACKPING_INFO);
-      return advance();
-    }
-
-    if (identical(next, $OPEN_CURLY_BRACKET)) {
-      appendBeginGroup(OPEN_CURLY_BRACKET_INFO);
-      return advance();
-    }
-
-    if (identical(next, $CLOSE_CURLY_BRACKET)) {
-      return appendEndGroup(CLOSE_CURLY_BRACKET_INFO, OPEN_CURLY_BRACKET_TOKEN);
-    }
-
-    if (identical(next, $SLASH)) {
-      return tokenizeSlashOrComment(next);
-    }
-
-    if (identical(next, $AT)) {
-      return tokenizeAt(next);
-    }
-
-    if (identical(next, $DQ) || identical(next, $SQ)) {
-      return tokenizeString(next, scanOffset, false);
-    }
-
-    if (identical(next, $PERIOD)) {
-      return tokenizeDotsOrNumber(next);
-    }
-
-    if (identical(next, $0)) {
-      return tokenizeHexOrNumber(next);
-    }
-
-    // TODO(ahe): Would a range check be faster?
-    if (identical(next, $1) ||
-        identical(next, $2) ||
-        identical(next, $3) ||
-        identical(next, $4) ||
-        identical(next, $5) ||
-        identical(next, $6) ||
-        identical(next, $7) ||
-        identical(next, $8) ||
-        identical(next, $9)) {
-      return tokenizeNumber(next);
-    }
-
-    if (identical(next, $EOF)) {
-      return $EOF;
-    }
     if (next < 0x1f) {
       return unexpected(next);
     }
@@ -398,7 +403,7 @@ abstract class AbstractScanner implements Scanner {
     // # or #!.*[\n\r]
     if (scanOffset == 0) {
       if (identical(peek(), $BANG)) {
-        int start = scanOffset + 1;
+        int start = scanOffset;
         bool asciiOnly = true;
         do {
           next = advance();
@@ -407,6 +412,7 @@ abstract class AbstractScanner implements Scanner {
             !identical(next, $CR) &&
             !identical(next, $EOF));
         if (!asciiOnly) handleUnicode(start);
+        appendSubstringToken(SCRIPT_INFO, start, asciiOnly);
         return next;
       }
     }

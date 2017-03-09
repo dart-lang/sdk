@@ -824,7 +824,8 @@ namespace dart {
   V(CheckStackAlwaysExit,            0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \
-  V(Deopt,                         A_D, num, num, ___)
+  V(Deopt,                         A_D, num, num, ___) \
+  V(DeoptRewind,                     0, ___, ___, ___)
 
 // clang-format on
 

@@ -150,6 +150,14 @@ class _PhysicalFile extends _PhysicalResource implements File {
   io.File get _file => _entry as io.File;
 
   @override
+  File copyTo(Folder parentFolder) {
+    parentFolder.create();
+    File destination = parentFolder.getChildAssumingFile(shortName);
+    destination.writeAsBytesSync(readAsBytesSync());
+    return destination;
+  }
+
+  @override
   Source createSource([Uri uri]) {
     return new FileSource(this, uri ?? pathContext.toUri(path));
   }
@@ -243,6 +251,21 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   @override
   bool contains(String path) {
     return absolutePathContext.isWithin(this.path, path);
+  }
+
+  @override
+  Folder copyTo(Folder parentFolder) {
+    Folder destination = parentFolder.getChildAssumingFolder(shortName);
+    destination.create();
+    for (Resource child in getChildren()) {
+      child.copyTo(destination);
+    }
+    return destination;
+  }
+
+  @override
+  void create() {
+    _directory.createSync(recursive: true);
   }
 
   @override

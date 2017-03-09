@@ -812,6 +812,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void handleScript(Token token) {
+    debugEvent("Script");
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     List<Expression> parts = popListForValue(literalCount);
@@ -2233,6 +2238,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleOperator(Token token) {
     debugEvent("Operator");
     push(new Operator(token.stringValue)..fileOffset = token.charOffset);
+  }
+
+  @override
+  void handleSymbolVoid(Token token) {
+    logEvent("SymbolVoid");
   }
 
   dynamic addCompileTimeError(int charOffset, String message) {

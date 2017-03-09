@@ -432,7 +432,7 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSLFilter::InitializeLibrary();
   SSL_CTX* ctx = SSL_CTX_new(TLS_method());
   SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, CertificateCallback);
-  SSL_CTX_set_min_version(ctx, TLS1_VERSION);
+  SSL_CTX_set_min_proto_version(ctx, TLS1_VERSION);
   SSL_CTX_set_cipher_list(ctx, "HIGH:MEDIUM");
   SSLContext* context = new SSLContext(ctx);
   Dart_Handle err = SetSecurityContext(args, context);

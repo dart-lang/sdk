@@ -4,6 +4,7 @@
 library kernel.analyzer.loader;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analyzer/analyzer.dart';
@@ -827,12 +828,13 @@ class DartLoader implements ReferenceLevelLoader {
           in libraryElement.units) {
         var source = compilationUnitElement.source;
         LineInfo lineInfo = context.computeLineInfo(source);
-        String sourceCode;
+        List<int> sourceCode;
         try {
-          sourceCode = context.getContents(source).data;
+          sourceCode =
+              const Utf8Encoder().convert(context.getContents(source).data);
         } catch (e) {
           // The source's contents could not be accessed.
-          sourceCode = '';
+          sourceCode = const <int>[];
         }
         program.uriToSource['${source.uri}'] =
             new ast.Source(lineInfo.lineStarts, sourceCode);

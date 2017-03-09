@@ -27,7 +27,8 @@ import '../scanner/precedence.dart'
         PrecedenceInfo,
         QUESTION_INFO,
         QUESTION_PERIOD_INFO,
-        RELATIONAL_PRECEDENCE;
+        RELATIONAL_PRECEDENCE,
+        SCRIPT_INFO;
 
 import '../scanner/token.dart'
     show
@@ -137,6 +138,9 @@ class Parser {
   }
 
   Token _parseTopLevelDeclaration(Token token) {
+    if (identical(token.info, SCRIPT_INFO)) {
+      return parseScript(token);
+    }
     token = parseMetadataStar(token);
     final String value = token.stringValue;
     if ((identical(value, 'abstract') && optional('class', token.next)) ||
@@ -390,6 +394,11 @@ class Parser {
     return token;
   }
 
+  Token parseScript(Token token) {
+    listener.handleScript(token);
+    return token.next;
+  }
+
   Token parseTypedef(Token token) {
     Token typedefKeyword = token;
     listener.beginFunctionTypeAlias(token);
@@ -413,9 +422,10 @@ class Parser {
   Token parseMixinApplication(Token token) {
     listener.beginMixinApplication(token);
     token = parseType(token);
+    Token withKeyword = token;
     token = expect('with', token);
     token = parseTypeList(token);
-    listener.endMixinApplication();
+    listener.endMixinApplication(withKeyword);
     return token;
   }
 
@@ -2953,6 +2963,10 @@ class Parser {
     token = token.next;
     if (isUserDefinableOperator(token.stringValue)) {
       listener.handleOperator(token);
+      listener.endLiteralSymbol(hashToken, 1);
+      return token.next;
+    } else if (identical(token.stringValue, 'void')) {
+      listener.handleSymbolVoid(token);
       listener.endLiteralSymbol(hashToken, 1);
       return token.next;
     } else {

@@ -54,14 +54,6 @@ class ToAnalyzerTokenStreamConverter {
   /// tokens have been generated yet.
   analyzer.Token _analyzerTokenTail;
 
-  /// If a sequence of consecutive comment tokens is being processed, the first
-  /// translated analyzer comment token.  Otherwise `null`.
-  analyzer.CommentToken _currentCommentHead;
-
-  /// If a sequence of consecutive comment tokens is being processed, the last
-  /// translated analyzer comment token.  Otherwise `null`.
-  analyzer.CommentToken _currentCommentTail;
-
   /// Stack of analyzer "begin" tokens which need to be linked up to
   /// corresponding "end" tokens once those tokens are translated.
   ///
@@ -86,8 +78,6 @@ class ToAnalyzerTokenStreamConverter {
     _analyzerTokenHead = new analyzer.Token(TokenType.EOF, -1);
     _analyzerTokenHead.previous = _analyzerTokenHead;
     _analyzerTokenTail = _analyzerTokenHead;
-    _currentCommentHead = null;
-    _currentCommentTail = null;
     _beginTokenStack = [null];
     _endTokenStack = <Token>[null];
 
@@ -95,19 +85,11 @@ class ToAnalyzerTokenStreamConverter {
       if (token.info.kind == BAD_INPUT_TOKEN) {
         ErrorToken errorToken = token;
         _translateErrorToken(errorToken);
-      } else if (token.info.kind == COMMENT_TOKEN) {
-        var translatedToken = translateCommentToken(token);
-        if (_currentCommentHead == null) {
-          _currentCommentHead = _currentCommentTail = translatedToken;
-        } else {
-          _currentCommentTail.setNext(translatedToken);
-          _currentCommentTail = translatedToken;
-        }
       } else {
-        var translatedToken = translateToken(token, _currentCommentHead);
+        var translatedToken = translateToken(
+            token, translateCommentTokens(token.precedingComments));
         _matchGroups(token, translatedToken);
         translatedToken.setNext(translatedToken);
-        _currentCommentHead = _currentCommentTail = null;
         _analyzerTokenTail.setNext(translatedToken);
         translatedToken.previous = _analyzerTokenTail;
         _analyzerTokenTail = translatedToken;
@@ -125,15 +107,20 @@ class ToAnalyzerTokenStreamConverter {
   void reportError(analyzer.ScannerErrorCode errorCode, int offset,
       List<Object> arguments) {}
 
-  /// Translates a single fasta comment token to the corresponding analyzer
-  /// token.
-  analyzer.CommentToken translateCommentToken(Token token) {
-    // TODO(paulberry,ahe): It would be nice if the scanner gave us an
-    // easier way to distinguish between the two types of comment.
-    var type = token.value.startsWith('/*')
-        ? TokenType.MULTI_LINE_COMMENT
-        : TokenType.SINGLE_LINE_COMMENT;
-    return new analyzer.CommentToken(type, token.value, token.charOffset);
+  /// Translates a sequence of fasta comment tokens to the corresponding
+  /// analyzer tokens.
+  analyzer.CommentToken translateCommentTokens(Token token) {
+    analyzer.CommentToken head;
+    if (token != null) {
+      head = toAnalyzerCommentToken(token);
+      analyzer.CommentToken tail = head;
+      token = token.next;
+      while (token != null) {
+        tail = tail.setNext(toAnalyzerCommentToken(token));
+        token = token.next;
+      }
+    }
+    return head;
   }
 
   /// Translates a single fasta non-comment token to the corresponding analyzer
@@ -225,6 +212,16 @@ class ToAnalyzerTokenStreamConverter {
   }
 }
 
+/// Converts a single Fasta comment token to an analyzer comment token.
+analyzer.CommentToken toAnalyzerCommentToken(Token token) {
+  // TODO(paulberry,ahe): It would be nice if the scanner gave us an
+  // easier way to distinguish between the two types of comment.
+  var type = token.value.startsWith('/*')
+      ? TokenType.MULTI_LINE_COMMENT
+      : TokenType.SINGLE_LINE_COMMENT;
+  return new analyzer.CommentToken(type, token.value, token.charOffset);
+}
+
 /// Converts a stream of Analyzer tokens (starting with [token] and continuing
 /// to EOF) to a stream of Fasta tokens.
 ///
@@ -277,22 +274,40 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     }
   }
 
+  Token translateComments(analyzer.Token token) {
+    if (token == null) {
+      return null;
+    }
+    Token head = fromAnalyzerToken(token);
+    Token tail = head;
+    token = token.next;
+    while (token != null) {
+      tail.next = fromAnalyzerToken(token);
+      tail.next.previousToken = tail;
+      tail = tail.next;
+      token = token.next;
+    }
+    return head;
+  }
+
   analyzer.Token translateAndAppend(analyzer.Token analyzerToken) {
     var token = fromAnalyzerToken(analyzerToken);
+    token.precedingComments =
+        translateComments(analyzerToken.precedingComments);
     tokenTail.next = token;
+    tokenTail.next.previousToken = tokenTail;
     tokenTail = token;
     matchGroups(analyzerToken, token);
     return analyzerToken.next;
   }
 
   while (true) {
-    analyzer.Token commentToken = analyzerToken.precedingComments;
-    while (commentToken != null) {
-      commentToken = translateAndAppend(commentToken);
-    }
     // TODO(paulberry): join up begingroup/endgroup.
     if (analyzerToken.type == TokenType.EOF) {
       tokenTail.next = new SymbolToken(EOF_INFO, analyzerToken.offset);
+      tokenTail.next.previousToken = tokenTail;
+      tokenTail.next.precedingComments =
+          translateComments(analyzerToken.precedingComments);
       return tokenHead.next;
     }
     analyzerToken = translateAndAppend(analyzerToken);
@@ -546,6 +561,9 @@ analyzer.Token toAnalyzerToken(Token token,
             keyword, token.charOffset, commentToken);
       }
       break;
+
+    case SCRIPT_TOKEN:
+      return makeStringToken(TokenType.SCRIPT_TAG);
 
     case STRING_TOKEN:
       return makeStringToken(TokenType.STRING);

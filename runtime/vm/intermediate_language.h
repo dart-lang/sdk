@@ -47,7 +47,7 @@ class UnboxIntegerInstr;
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
 // operation for the lattice.
-class CompileType : public ValueObject {
+class CompileType : public ZoneAllocated {
  public:
   static const bool kNullable = true;
   static const bool kNonNullable = false;
@@ -56,7 +56,7 @@ class CompileType : public ValueObject {
       : is_nullable_(is_nullable), cid_(cid), type_(type) {}
 
   CompileType(const CompileType& other)
-      : ValueObject(),
+      : ZoneAllocated(),
         is_nullable_(other.is_nullable_),
         cid_(other.cid_),
         type_(other.type_) {}
@@ -173,23 +173,6 @@ class CompileType : public ValueObject {
   bool is_nullable_;
   intptr_t cid_;
   const AbstractType* type_;
-};
-
-
-// Zone allocated wrapper for the CompileType value.
-class ZoneCompileType : public ZoneAllocated {
- public:
-  static CompileType* Wrap(const CompileType& type) {
-    ZoneCompileType* zone_type = new ZoneCompileType(type);
-    return zone_type->ToCompileType();
-  }
-
-  CompileType* ToCompileType() { return &type_; }
-
- protected:
-  explicit ZoneCompileType(const CompileType& type) : type_(type) {}
-
-  CompileType type_;
 };
 
 
@@ -1644,7 +1627,7 @@ class Definition : public Instruction {
   // propagation during graph building.
   CompileType* Type() {
     if (type_ == NULL) {
-      type_ = ZoneCompileType::Wrap(ComputeType());
+      type_ = new CompileType(ComputeType());
     }
     return type_;
   }
@@ -1670,7 +1653,7 @@ class Definition : public Instruction {
 
   bool UpdateType(CompileType new_type) {
     if (type_ == NULL) {
-      type_ = ZoneCompileType::Wrap(new_type);
+      type_ = new CompileType(new_type);
       return true;
     }
 
@@ -2793,7 +2776,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
         with_checks_(with_checks),
         complete_(complete) {
     ASSERT(instance_call_ != NULL);
-    ASSERT(ic_data.NumberOfChecks() > 0);
+    ASSERT(!ic_data.NumberOfChecksIs(0));
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }

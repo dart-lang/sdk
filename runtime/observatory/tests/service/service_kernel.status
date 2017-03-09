@@ -1,0 +1,36 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dartk ]
+add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test
+get_object_rpc_test: SkipByDesign # non-kernel specific. Currently no kernel-specific one exists.
+set_name_rpc_test: SkipByDesign # non-kernel specific. Currently no kernel-specific one exists.
+get_source_report_test: SkipByDesign # non-kernel specific. Currently no kernel-specific one exists.
+debugger_location_test: SkipByDesign # non-kernel specific. Currently no kernel-specific one exists.
+
+next_through_for_each_loop_test: RuntimeError # Test based on source behaviour which just seems wrong
+
+get_isolate_after_language_error_test: CompileTimeError
+developer_extension_test: CompileTimeError
+
+library_dependency_test: RuntimeError # There are no imports and exports in kernel.
+
+# These 3 tests fail with 'dart:vmservice_io': error: [...] native function
+# 'VMServiceIO_Shutdown' (0 arguments) cannot be found
+# because of '--compile_all'
+capture_stdio_test: CompileTimeError
+vm_restart_test: CompileTimeError
+address_mapper_test: CompileTimeError
+
+###
+### Not supported for now at least
+###
+*_reload_*: Skip # no reload support for now
+eval_internal_class_test: Skip # no evaluation test for now
+evaluate_*: Skip # no evaluation test for now
+causal*: Skip # no causal stack trace test for now
+###
+
+# Inherited from service.status
+isolate_lifecycle_test: Pass, RuntimeError

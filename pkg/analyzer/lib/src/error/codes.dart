@@ -249,6 +249,20 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try marking the function body with either 'async' or 'async*'.");
 
   /**
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
+   *
+   * Parameters:
+   * 0: the built-in identifier that is being used
+   */
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_PREFIX_NAME =
+      const CompileTimeErrorCode(
+          'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
+          "The built-in identifier '{0}' can't be used as a prefix name.",
+          "Try choosing a different name for the prefix.");
+
+  /**
    * 12.30 Identifier Reference: It is a compile-time error to use a built-in
    * identifier other than dynamic as a type annotation.
    *
@@ -262,9 +276,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try correcting the name to match an existing type.");
 
   /**
-   * 12.30 Identifier Reference: It is a compile-time error if a built-in
-   * identifier is used as the declared name of a class, type parameter or type
-   * alias.
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
    *
    * Parameters:
    * 0: the built-in identifier that is being used
@@ -276,9 +290,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try choosing a different name for the type.");
 
   /**
-   * 12.30 Identifier Reference: It is a compile-time error if a built-in
-   * identifier is used as the declared name of a class, type parameter or type
-   * alias.
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
    *
    * Parameters:
    * 0: the built-in identifier that is being used
@@ -290,9 +304,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try choosing a different name for the typedef.");
 
   /**
-   * 12.30 Identifier Reference: It is a compile-time error if a built-in
-   * identifier is used as the declared name of a class, type parameter or type
-   * alias.
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
    *
    * Parameters:
    * 0: the built-in identifier that is being used

@@ -1537,15 +1537,15 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   __ LoadObject(R4, arguments_descriptor);
 
   const bool kFirstCheckIsSmi = ic_data.GetReceiverClassIdAt(0) == kSmiCid;
-  const intptr_t kNumChecks = ic_data.NumberOfChecks();
+  const intptr_t num_checks = ic_data.NumberOfChecks();
 
-  ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
+  ASSERT(!ic_data.IsNull() && (num_checks > 0));
 
   Label after_smi_test;
   if (kFirstCheckIsSmi) {
     __ tst(R0, Operand(kSmiTagMask));
     // Jump if receiver is not Smi.
-    if (kNumChecks == 1) {
+    if (num_checks == 1) {
       __ b(failed, NE);
     } else {
       __ b(&after_smi_test, NE);
@@ -1558,7 +1558,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
     __ Drop(argument_count);
-    if (kNumChecks > 1) {
+    if (num_checks > 1) {
       __ b(match_found);
     }
   } else {
@@ -1571,8 +1571,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   }
   __ Bind(&after_smi_test);
 
-  ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
-  GrowableArray<CidTarget> sorted(kNumChecks);
+  ASSERT(!ic_data.IsNull() && (num_checks > 0));
+  GrowableArray<CidTarget> sorted(num_checks);
   SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
 
   // Value is not Smi,

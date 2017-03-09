@@ -133,6 +133,8 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/bad_override_test_04_multi',
   'language/bad_override_test_05_multi',
   'language/bad_override_test_06_multi',
+  'language/bad_raw_string_test_01_multi',
+  'language/bad_raw_string_test_02_multi',
   'language/black_listed_test_01_multi',
   'language/black_listed_test_02_multi',
   'language/black_listed_test_03_multi',

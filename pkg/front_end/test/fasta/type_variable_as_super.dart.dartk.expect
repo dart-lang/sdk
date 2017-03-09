@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class B<T extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C<T extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  throw new core::NoSuchMethodError::•(null, #A, <dynamic>[], <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::•(null, #B, <dynamic>[], <dynamic, dynamic>{}, null);
+  new self::C::•<dynamic>();
+}

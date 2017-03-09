@@ -329,8 +329,8 @@ class BlockBuilder : public ValueObject {
       // The type of |value| has already been checked and it is safe to
       // adjust reaching type. This is done manually because there is no type
       // propagation when building intrinsics.
-      unboxed_value->AsUnbox()->value()->SetReachingType(ZoneCompileType::Wrap(
-          CompileType::FromCid(CidForRepresentation(rep))));
+      unboxed_value->AsUnbox()->value()->SetReachingType(
+          new CompileType(CompileType::FromCid(CidForRepresentation(rep))));
     }
     return unboxed_value;
   }

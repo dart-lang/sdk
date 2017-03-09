@@ -181,6 +181,9 @@ class UnlinkedCallKeyValueTrait {
 
 typedef DirectChainedHashMap<UnlinkedCallKeyValueTrait> UnlinkedCallSet;
 
+static inline intptr_t SimplePointerHash(void* ptr) {
+  return reinterpret_cast<intptr_t>(ptr) * 2654435761UL;
+}
 
 class FunctionKeyValueTrait {
  public:
@@ -193,7 +196,15 @@ class FunctionKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) {
+    // We are using pointer hash for objects originating from Kernel because
+    // Fasta currently does not assign any position information to them.
+    if (key->kernel_function() != NULL) {
+      return SimplePointerHash(key->kernel_function());
+    } else {
+      return key->token_pos().value();
+    }
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -214,7 +225,15 @@ class FieldKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) {
+    // We are using pointer hash for objects originating from Kernel because
+    // Fasta currently does not assign any position information to them.
+    if (key->kernel_field() != NULL) {
+      return SimplePointerHash(key->kernel_field());
+    } else {
+      return key->token_pos().value();
+    }
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();

@@ -123,6 +123,13 @@ class Simulator {
               RawObject*** FP,
               RawObject*** SP);
 
+  bool Deoptimize(Thread* thread,
+                  RawObjectPool** pp,
+                  uint32_t** pc,
+                  RawObject*** FP,
+                  RawObject*** SP,
+                  bool is_lazy);
+
   void InlineCacheMiss(int checked_args,
                        Thread* thread,
                        RawICData* icdata,

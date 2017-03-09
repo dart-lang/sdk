@@ -95,9 +95,10 @@ abstract class TreeNode extends Node {
 
   TreeNode parent;
 
-  /// Offset in the source file it comes from. Valid values are from 0 and up,
-  /// or -1 ([noOffset]) if the file offset is not available
-  /// (this is the default if none is specifically set).
+  /// Offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([noOffset]) if the file offset is
+  /// not available (this is the default if none is specifically set).
   int fileOffset = noOffset;
 
   accept(TreeVisitor v);
@@ -3313,6 +3314,13 @@ class YieldStatement extends Statement {
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
 class VariableDeclaration extends Statement {
+  /// Offset of the equals sign in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
+  /// if the equals sign offset is not available (e.g. if not initialized)
+  /// (this is the default if none is specifically set).
+  int fileEqualsOffset = TreeNode.noOffset;
+
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
   ///
@@ -4019,7 +4027,7 @@ class _ChildReplacer extends Transformer {
 
 class Source {
   final List<int> lineStarts;
-  final String source;
+  final List<int> source;
 
   Source(this.lineStarts, this.source);
 }

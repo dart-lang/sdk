@@ -1918,10 +1918,15 @@ class ICData : public Object {
   // the final one.
   intptr_t Length() const;
 
+  // Takes O(result) time!
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
+  // Takes O(result)) time!
   intptr_t NumberOfUsedChecks() const;
+
+  // Takes O(n) time!
+  bool NumberOfChecksIs(intptr_t n) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawICData));

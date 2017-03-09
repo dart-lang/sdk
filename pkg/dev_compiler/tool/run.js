@@ -42,11 +42,11 @@ requirejs.config({
 // TODO(vsm): Factor out test framework code in test/browser/language_tests.js
 // and use here.  Async tests and unittests won't work without it.
 var sdk = requirejs('dart_sdk');
+sdk.dart.ignoreWhitelistedErrors(false);
 var module = requirejs(test);
 var lib = test.split('/').slice(-1)[0];
 try {
-  sdk._isolate_helper.startRootIsolate(() => {}, []);
-  module[lib].main();
+  sdk._isolate_helper.startRootIsolate(module[lib].main, []);
   console.log('Test ' + test + ' passed.');
 } catch (e) {
   console.log('Test ' + test + ' failed:\n' + e.toString());

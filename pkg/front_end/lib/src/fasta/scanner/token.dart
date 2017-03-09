@@ -29,6 +29,23 @@ abstract class Token {
   Token next;
 
   /**
+   * The previous token in the token stream.
+   *
+   * Deprecated :: This exists for compatibility with the Analyzer token stream
+   * and will be removed at some future date.
+   */
+  @deprecated
+  Token previousToken;
+
+  /**
+   * Return the first comment in the list of comments that precede this token,
+   * or `null` if there are no comments preceding this token. Additional
+   * comments can be reached by following the token stream using [next] until
+   * `null` is returned.
+   */
+  Token precedingComments;
+
+  /**
    * The precedence info for this token. [info] determines the kind and the
    * precedence level of this token.
    *

@@ -233,21 +233,33 @@ class Server {
       List fsNameList;
       List fsPathList;
       List fsPathBase64List;
+      List fsUriBase64List;
       Object fsName;
       Object fsPath;
+      Object fsUri;
 
       try {
         // Extract the fs name and fs path from the request headers.
         fsNameList = request.headers['dev_fs_name'];
         fsName = fsNameList[0];
 
-        fsPathList = request.headers['dev_fs_path'];
-        fsPathBase64List = request.headers['dev_fs_path_b64'];
-        // If the 'dev_fs_path_b64' header field was sent, use that instead.
-        if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
-          fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
-        } else {
-          fsPath = fsPathList[0];
+        // Prefer Uri encoding first.
+        fsUriBase64List = request.headers['dev_fs_uri_b64'];
+        if ((fsUriBase64List != null) && (fsUriBase64List.length > 0)) {
+          String decodedFsUri = UTF8.decode(BASE64.decode(fsUriBase64List[0]));
+          fsUri = Uri.parse(decodedFsUri);
+        }
+
+        // Fallback to path encoding.
+        if (fsUri == null) {
+          fsPathList = request.headers['dev_fs_path'];
+          fsPathBase64List = request.headers['dev_fs_path_b64'];
+          // If the 'dev_fs_path_b64' header field was sent, use that instead.
+          if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
+            fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
+          } else {
+            fsPath = fsPathList[0];
+          }
         }
       } catch (e) { /* ignore */ }
 
@@ -256,6 +268,7 @@ class Server {
         result = await _service.devfs.handlePutStream(
             fsName,
             fsPath,
+            fsUri,
             request.transform(GZIP.decoder));
       } catch (e) { /* ignore */ }
 

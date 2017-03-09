@@ -10,6 +10,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   let minitest = expect.minitest;
   let mochaOnError = window.onerror;
   dart_sdk.dart.trapRuntimeErrors(false);
+  dart_sdk.dart.ignoreWhitelistedErrors(false);
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   // Make it easier to debug test failures and required for formatter test that
   // assumes custom formatters are enabled.
@@ -26,6 +27,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   //   'slow' - use 5s timeout instead of default 2s.
   //   'helper'  - not a test, used by other tests.
   //   'unittest' - run separately as a unittest test.
+  //   'whitelist' - run with whitelisted type errors allowed
   //
   // Common combinations:
   const pass = 'pass';
@@ -39,6 +41,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // These are typically tests with asynchronous exceptions that our
   // test framework doesn't always catch.
   const flaky = 'skip';
+  const whitelist = 'whitelist';
 
   // Tests marked with this are still using the deprecated unittest package
   // because they rely on its support for futures and asynchronous tests, which
@@ -78,6 +81,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'async_star_test_05_multi': async_unittest,
 
       'async_switch_test': fail,
+      'async_test': whitelist,
+      'async_this_bound_test': whitelist,
       'asyncstar_throw_in_catch_test': ['skip', 'fail'],
       'await_future_test': skip_timeout,
       'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
@@ -108,7 +113,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'const_switch_test_02_multi': fail,
       'const_switch_test_04_multi': fail,
       'constructor12_test': fail,
+      'covariant_subtyping_tearoff2_test': fail,     
+      'covariant_subtyping_tearoff3_test': fail,
       'covariant_subtyping_unsafe_call2_test': fail,
+      'covariant_subtyping_unsafe_call3_test': fail,
       'cyclic_type2_test': fail,
       'cyclic_type_test_00_multi': fail,
       'cyclic_type_test_01_multi': fail,
@@ -155,10 +163,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'function_subtype_call0_test': fail, // Strong mode "is" rejects some type tests.
       'function_subtype_call1_test': fail,
       'function_subtype_call2_test': fail,
-      'function_subtype_cast0_test': fail,
-      'function_subtype_cast1_test': fail,
-      'function_subtype_cast2_test': fail,
-      'function_subtype_cast3_test': fail,
       'function_subtype_factory0_test': fail,
       'function_subtype_inline0_test': fail,
       'function_subtype_local0_test': fail,
@@ -205,6 +209,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'list_is_test': fail,
       'list_literal3_test': fail,
       'many_generic_instanceof_test': fail,
+      'many_named_arguments_test': whitelist,
       'map_literal10_test': fail,
       'map_literal7_test': fail,
       'memory_swap_test': skip_timeout,
@@ -232,6 +237,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'number_identity2_test': fail,
       'numbers_test': fail,
       'redirecting_factory_reflection_test': fail,
+      'reg_exp_test': whitelist,
       'regress_16640_test': fail,
       'regress_18535_test': fail,
       'regress_22666_test': fail,
@@ -309,10 +315,12 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'int_parse_radix_test_none_multi': ['slow'],
       'integer_to_radix_string_test': fail,
       'integer_to_string_test_01_multi': fail,
-      'iterable_generate_test': fail,
+      'iterable_empty_test': whitelist,
+      'iterable_join_test': whitelist,
       'iterable_return_type_test_02_multi': fail,
       'json_map_test': fail,
       'list_fill_range_test': fail,
+      'list_insert_all_test': whitelist,
       'list_replace_range_test': fail,
       'list_set_all_test': fail,
       'list_to_string2_test': fail,
@@ -324,12 +332,16 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'null_nosuchmethod_test': fail,
       'null_test': fail,
       'num_sign_test': fail,
+      'reg_exp_all_matches_test': whitelist,
+      'reg_exp_start_end_test': whitelist,
       'regress_r21715_test': fail,
       'throw_half_surrogate_pair_test_02_multi': fail,
+      'sort_test': whitelist,
       'splay_tree_from_iterable_test': is.firefox('<=50') ? fail : pass,
       'string_case_test_01_multi': firefox_fail,
       'string_fromcharcodes_test': skip_timeout,
       'string_operations_with_null_test': fail,
+      'string_split_test': whitelist,
       'symbol_reserved_word_test_06_multi': fail,
       'symbol_reserved_word_test_09_multi': fail,
       'symbol_reserved_word_test_12_multi': fail,
@@ -339,7 +351,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // TODO(rnystrom): Times out because it tests a huge number of
       // combinations of URLs (4 * 5 * 5 * 8 * 6 * 6 * 4 = 115200).
       'uri_parse_test': skip_timeout,
-      'uri_test': is.firefox('<=50') ? fail : pass,
+      'uri_test': 'slow',
 
       'list_insert_test': fail,
       'list_removeat_test': fail,
@@ -351,23 +363,32 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     },
 
     'lib/collection': {
+      'linked_list_test': whitelist,
     },
 
     'lib/convert': {
       'base64_test_01_multi': 'slow',
-      'chunked_conversion_utf85_test': 'slow',
+      'chunked_conversion_utf82_test': whitelist,
+      'chunked_conversion_utf83_test': whitelist,
+      'chunked_conversion_utf85_test': ['whitelist', 'slow'],
+      'chunked_conversion_utf86_test': whitelist,
+      'chunked_conversion_utf87_test': whitelist,
 
       'encoding_test': skip_timeout,
 
       'json_utf8_chunk_test': skip_timeout,
       'latin1_test': skip_timeout,
 
+      'streamed_conversion_json_decode1_test': whitelist,
       'streamed_conversion_json_encode1_test': skip_timeout,
       'streamed_conversion_json_utf8_decode_test': skip_timeout,
       'streamed_conversion_json_utf8_encode_test': skip_timeout,
       'streamed_conversion_utf8_decode_test': skip_timeout,
       'streamed_conversion_utf8_encode_test': skip_timeout,
+      'utf82_test': whitelist,
       'utf85_test': skip_timeout,
+      'utf8_encode_test': whitelist,
+      'utf8_test': whitelist,
     },
 
     'lib/html': {
@@ -391,6 +412,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'custom_element_name_clash_test': async_unittest,
       'custom_elements_23127_test': async_unittest,
       'custom_elements_test': async_unittest,
+      'debugger_test': firefox_fail,
       'element_animate_test': 'unittest',
 
       // https://github.com/dart-lang/sdk/issues/27579.
@@ -494,6 +516,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'int64_list_load_store_test': fail,
       'typed_data_hierarchy_int64_test': fail,
       'typed_data_list_test': fail,
+      'typed_list_iterable_test': whitelist,
     },
 
     'lib/mirrors': {
@@ -740,6 +763,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         let negative = /negative_test/.test(name);
         let fail = has('fail');
 
+        let whitelist = has('whitelist');
+        dart_sdk.dart.ignoreWhitelistedErrors(whitelist);
+
         function finish(error) {
           // If the test left any lingering detritus in the DOM, blow it away
           // so it doesn't interfere with later tests.
@@ -766,6 +792,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
           document.body.innerHTML = '';
           console.log("cleared");
           if (error && !(error instanceof Error)) error = new Error(error);
+          dart_sdk.dart.ignoreWhitelistedErrors(false);
           done(error);
         }
 
@@ -814,6 +841,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   // Dart unittests run and then re-enabling it when the dart tests complete.
   html_config.useHtmlConfiguration();
   test('run all dart unittests', function(done) { // 'function' to allow `this.timeout`
+    // Use the whitelist for all unittests - there may be an error in the framework
+    // itself.
+    dart_sdk.dart.ignoreWhitelistedErrors(whitelist);
     if (unittest_tests.length == 0) return done();
 
     // TODO(vsm): We're using an old deprecated version of unittest.

@@ -198,11 +198,12 @@ class Utf8BytesScanner extends ArrayBasedScanner {
   Token firstToken() => tokens.next;
   Token previousToken() => tail;
 
-  void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
+  @override
+  StringToken createSubstringToken(
+      PrecedenceInfo info, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    tail.next = new StringToken.fromUtf8Bytes(
+    return new StringToken.fromUtf8Bytes(
         info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
-    tail = tail.next;
   }
 
   bool atEndOfFile() => byteOffset >= bytes.length - 1;

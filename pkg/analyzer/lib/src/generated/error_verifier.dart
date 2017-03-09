@@ -900,6 +900,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     ImportElement importElement = node.element;
+    if (node.prefix != null) {
+      _checkForBuiltInIdentifierAsName(
+          node.prefix, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME);
+    }
     if (importElement != null) {
       _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);
@@ -1403,7 +1407,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkDuplicateDefinitionInParameterList(FormalParameterList node) {
     Map<String, Element> definedNames = new HashMap<String, Element>();
     for (FormalParameter parameter in node.parameters) {
-      _checkDuplicateIdentifier(definedNames, parameter.identifier);
+      SimpleIdentifier identifier = parameter.identifier;
+      if (identifier != null) {
+        // The identifier can be null if this is a parameter list for a generic
+        // function type.
+        _checkDuplicateIdentifier(definedNames, identifier);
+      }
     }
   }
 

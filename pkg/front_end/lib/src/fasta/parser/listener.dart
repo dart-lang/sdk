@@ -284,7 +284,7 @@ class Listener {
   /// Substructures:
   /// - supertype
   /// - mixin types (TypeList)
-  void endMixinApplication() {
+  void endMixinApplication(Token withKeyword) {
     logEvent("MixinApplication");
   }
 
@@ -680,6 +680,12 @@ class Listener {
     logEvent("NoName");
   }
 
+  /// Handle the end of a generic function type declaration.
+  ///
+  /// Substructures:
+  /// - Return type
+  /// - Type variables
+  /// - Formal parameters
   void handleFunctionType(Token functionToken, Token endToken) {
     logEvent("FunctionType");
   }
@@ -875,6 +881,10 @@ class Listener {
     logEvent("Operator");
   }
 
+  void handleSymbolVoid(Token token) {
+    logEvent("SymbolVoid");
+  }
+
   /// Handle the end of a construct of the form "operator <token>".
   void handleOperatorName(Token operatorKeyword, Token token) {
     logEvent("OperatorName");
@@ -966,6 +976,10 @@ class Listener {
   void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
     recoverableErrors
         .add(new ParserError.fromTokens(token, token, kind, arguments));
+  }
+
+  void handleScript(Token token) {
+    logEvent("Script");
   }
 }
 

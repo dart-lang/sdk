@@ -16,10 +16,12 @@
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
+#include "vm/kernel_isolate.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, show_kernel_isolate);
 
 static uint8_t* malloc_allocator(uint8_t* ptr,
                                  intptr_t old_size,
@@ -57,8 +59,14 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) {
     ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    if (IsVMInternalIsolate(isolate)) {
-      // We do not register the service (and descendants) or the vm-isolate.
+    bool is_kernel_isolate = false;
+#ifndef DART_PRECOMPILED_RUNTIME
+    is_kernel_isolate =
+        KernelIsolate::IsKernelIsolate(isolate) && !FLAG_show_kernel_isolate;
+#endif
+    if (IsVMInternalIsolate(isolate) || is_kernel_isolate) {
+      // We do not register the service (and descendants), the vm-isolate, or
+      // the kernel isolate.
       return;
     }
     // Setup arguments for call.

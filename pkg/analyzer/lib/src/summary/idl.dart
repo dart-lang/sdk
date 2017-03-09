@@ -356,8 +356,8 @@ abstract class CodeRange extends base.SummaryClass {
 }
 
 /**
- * Summary information about a reference to a an entity such as a type, top
- * level executable, or executable within a class.
+ * Summary information about a reference to an entity such as a type, top level
+ * executable, or executable within a class.
  */
 abstract class EntityRef extends base.SummaryClass {
   /**
@@ -448,6 +448,13 @@ abstract class EntityRef extends base.SummaryClass {
    */
   @Id(1)
   List<EntityRef> get typeArguments;
+
+  /**
+   * If this is a function type, the type parameters defined for the function
+   * type (if any).
+   */
+  @Id(7)
+  List<UnlinkedTypeParam> get typeParameters;
 }
 
 /**
@@ -966,8 +973,8 @@ abstract class PackageIndex extends base.SummaryClass {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the identifier of the class member element name, or `null` if the element is
-   * a top-level element.  The list is sorted in ascending order, so that the
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
    * client can quickly check whether an element is referenced in this
    * [PackageIndex].
    */
@@ -1093,6 +1100,34 @@ enum ReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
+}
+
+/**
+ * Enum used to indicate the style of a typedef.
+ */
+enum TypedefStyle {
+  /**
+   * A typedef that defines a non-generic function type. The syntax is
+   * ```
+   * 'typedef' returnType? identifier typeParameters? formalParameterList ';'
+   * ```
+   * The typedef can have type parameters associated with it, but the function
+   * type that results from applying type arguments does not.
+   */
+  functionType,
+
+  /**
+   * A typedef expressed using generic function type syntax. The syntax is
+   * ```
+   * typeAlias ::=
+   *     'typedef' identifier typeParameters? '=' genericFunctionType ';'
+   * genericFunctionType ::=
+   *     returnType? 'Function' typeParameters? parameterTypeList
+   * ```
+   * Both the typedef itself and the function type that results from applying
+   * type arguments can have type parameters.
+   */
+  genericFunctionType
 }
 
 /**
@@ -2127,8 +2162,8 @@ enum UnlinkedExprOperation {
   /**
    * Pop the top 2*n values from the stack (where n is obtained from
    * [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
-   * [Map], and push the result back onto the stack.  The two type parameters for
-   * the [Map] are obtained from [UnlinkedExpr.references].
+   * [Map], and push the result back onto the stack.  The two type parameters
+   * for the [Map] are obtained from [UnlinkedExpr.references].
    */
   makeTypedMap,
 
@@ -2618,8 +2653,8 @@ abstract class UnlinkedParam extends base.SummaryClass {
   int get inheritsCovariantSlot;
 
   /**
-   * The synthetic initializer function of the parameter.  Absent if the variable
-   * does not have an initializer.
+   * The synthetic initializer function of the parameter.  Absent if the
+   * variable does not have an initializer.
    */
   @Id(12)
   UnlinkedExecutable get initializer;
@@ -2637,7 +2672,14 @@ abstract class UnlinkedParam extends base.SummaryClass {
   bool get isFinal;
 
   /**
-   * Indicates whether this is a function-typed parameter.
+   * Indicates whether this is a function-typed parameter. A parameter is
+   * function-typed if the declaration of the parameter has explicit formal
+   * parameters
+   * ```
+   * int functionTyped(int p)
+   * ```
+   * but is not function-typed if it does not, even if the type of the parameter
+   * is a function type.
    */
   @Id(5)
   bool get isFunctionTyped;
@@ -2886,10 +2928,18 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   List<UnlinkedParam> get parameters;
 
   /**
-   * Return type of the typedef.
+   * If [style] is [TypedefStyle.functionType], the return type of the typedef.
+   * If [style] is [TypedefStyle.genericFunctionType], the function type being
+   * defined.
    */
   @Id(2)
   EntityRef get returnType;
+
+  /**
+   * The style of the typedef.
+   */
+  @Id(8)
+  TypedefStyle get style;
 
   /**
    * Type parameters of the typedef, if any.

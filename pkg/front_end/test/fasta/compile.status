@@ -7,7 +7,7 @@
 # pkg/fasta/lib/src/kernel/.
 
 await: Fail
-function_type_recovery: Crash
+function_type_recovery: Fail
 invocations: Fail
 statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail

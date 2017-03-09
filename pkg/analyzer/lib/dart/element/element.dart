@@ -1283,14 +1283,11 @@ abstract class FunctionTypeAliasElement
   static List<FunctionTypeAliasElement> EMPTY_LIST =
       new List<FunctionTypeAliasElement>(0);
 
-  /**
-   * Return the compilation unit in which this type alias is defined.
-   */
   @override
   CompilationUnitElement get enclosingElement;
 
   @override
-  FunctionTypeAlias computeNode();
+  TypeAlias computeNode();
 }
 
 /**
@@ -1314,9 +1311,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
    */
   DartType get returnType;
 
-  /**
-   * The type of this element, which will be a function type.
-   */
+  @override
   FunctionType get type;
 }
 

@@ -191,10 +191,13 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
+      int charEndOffset,
       [String nativeMethodName,
       this.redirectionTarget])
       : procedure = new Procedure(null, kind, null,
-            fileUri: compilationUnit?.relativeFileUri),
+            fileUri: compilationUnit?.relativeFileUri)
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -239,7 +242,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
 
 // TODO(ahe): Move this to own file?
 class KernelConstructorBuilder extends KernelFunctionBuilder {
-  final Constructor constructor = new Constructor(null);
+  final Constructor constructor;
 
   bool hasMovedSuperInitializer = false;
 
@@ -256,8 +259,12 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       List<FormalParameterBuilder> formals,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
+      int charEndOffset,
       [String nativeMethodName])
-      : super(metadata, modifiers, returnType, name, typeVariables, formals,
+      : constructor = new Constructor(null)
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
   bool get isInstanceMember => false;

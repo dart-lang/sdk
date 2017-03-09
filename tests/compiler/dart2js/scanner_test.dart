@@ -184,7 +184,7 @@ main() {
   // Regression test for issue 1761.
   // "#!"
   token = scan([0x23, 0x21]);
-  Expect.equals(token.info, EOF_INFO); // Treated as a comment.
+  Expect.equals(token.info, SCRIPT_INFO); // Treated as a comment.
 
   // Regression test for issue 1761.
   // "#! Hello, World!"
@@ -206,5 +206,5 @@ main() {
     0x64,
     0x21
   ]);
-  Expect.equals(token.info, EOF_INFO); // Treated as a comment.
+  Expect.equals(token.info, SCRIPT_INFO); // Treated as a comment.
 }

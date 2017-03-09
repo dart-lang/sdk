@@ -414,6 +414,7 @@ type StaticGet extends Expression {
 
 type StaticSet extends Expression {
   Byte tag = 27;
+  FileOffset fileOffset;
   MemberReference target;
   Expression value;
 }
@@ -524,6 +525,7 @@ type IsExpression extends Expression {
 
 type AsExpression extends Expression {
   Byte tag = 38;
+  FileOffset fileOffset;
   Expression operand;
   DartType type;
 }
@@ -586,6 +588,7 @@ type ThisExpression extends Expression {
 
 type Rethrow extends Expression {
   Byte tag = 47;
+  FileOffset fileOffset;
 }
 
 type Throw extends Expression {
@@ -596,12 +599,14 @@ type Throw extends Expression {
 
 type ListLiteral extends Expression {
   Byte tag = 49;
+  FileOffset fileOffset;
   DartType typeArgument;
   List<Expression> values;
 }
 
 type ConstListLiteral extends Expression {
   Byte tag = 58; // Note: tag is out of order.
+  FileOffset fileOffset;
   DartType typeArgument;
   List<Expression> values;
 }
@@ -686,6 +691,7 @@ type LabeledStatement extends Statement {
 
 type BreakStatement extends Statement {
   Byte tag = 66;
+  FileOffset fileOffset;
 
   // Reference to the Nth LabeledStatement in scope, with 0 being the
   // outermost enclosing labeled statement within the same FunctionNode.
@@ -801,7 +807,14 @@ type VariableDeclarationStatement extends Statement {
 }
 
 type VariableDeclaration {
+  // The offset for the variable declaration, i.e. the offset of the start of
+  // the declaration.
   FileOffset fileOffset;
+
+  // The offset for the equal sign in the declaration (if it contains one).
+  // If it does not contain one this should be -1.
+  FileOffset fileEqualsOffset;
+
   Byte flags (isFinal, isConst);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,

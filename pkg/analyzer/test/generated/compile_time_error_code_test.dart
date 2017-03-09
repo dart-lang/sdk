@@ -624,6 +624,16 @@ class as = A with B;''');
     verify([source]);
   }
 
+  test_builtInIdentifierAsPrefixName() async {
+    Source source = addSource("import 'dart:async' as abstract;");
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
+      HintCode.UNUSED_IMPORT
+    ]);
+    verify([source]);
+  }
+
   test_builtInIdentifierAsType_formalParameter_field() async {
     Source source = addSource(r'''
 class A {

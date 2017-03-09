@@ -10,7 +10,8 @@ import 'keyword.dart' show Keyword;
 
 import 'precedence.dart' show COMMENT_INFO, EOF_INFO, PrecedenceInfo;
 
-import 'token.dart' show BeginGroupToken, KeywordToken, SymbolToken, Token;
+import 'token.dart'
+    show BeginGroupToken, KeywordToken, StringToken, SymbolToken, Token;
 
 import 'token_constants.dart'
     show LT_TOKEN, OPEN_CURLY_BRACKET_TOKEN, STRING_INTERPOLATION_TOKEN;
@@ -35,6 +36,20 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   Link<BeginGroupToken> groupingStack = const Link<BeginGroupToken>();
 
   /**
+   * Append the given token to the [tail] of the current stream of tokens.
+   */
+  void appendToken(Token token) {
+    tail.next = token;
+    tail.next.previousToken = tail;
+    tail = tail.next;
+    if (comments != null) {
+      tail.precedingComments = comments;
+      comments = null;
+      commentsTail = null;
+    }
+  }
+
+  /**
    * Appends a fixed token whose kind and content is determined by [info].
    * Appends an *operator* token from [info].
    *
@@ -42,8 +57,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * '=>', etc.
    */
   void appendPrecedenceToken(PrecedenceInfo info) {
-    tail.next = new SymbolToken(info, tokenStart);
-    tail = tail.next;
+    appendToken(new SymbolToken(info, tokenStart));
   }
 
   /**
@@ -72,8 +86,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     if (identical(syntax, 'this')) {
       discardOpenLt();
     }
-    tail.next = new KeywordToken(keyword, tokenStart);
-    tail = tail.next;
+    appendToken(new KeywordToken(keyword, tokenStart));
   }
 
   void appendEofToken() {
@@ -83,8 +96,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       unmatchedBeginGroup(groupingStack.head);
       groupingStack = groupingStack.tail;
     }
-    tail.next = new SymbolToken(EOF_INFO, tokenStart);
-    tail = tail.next;
+    appendToken(new SymbolToken(EOF_INFO, tokenStart));
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
   }
@@ -118,8 +130,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    */
   void appendBeginGroup(PrecedenceInfo info) {
     Token token = new BeginGroupToken(info, tokenStart);
-    tail.next = token;
-    tail = tail.next;
+    appendToken(token);
 
     // { (  [ ${ cannot appear inside a type parameters / arguments.
     if (!identical(info.kind, LT_TOKEN)) discardOpenLt();
@@ -209,14 +220,39 @@ abstract class ArrayBasedScanner extends AbstractScanner {
 
   void appendComment(start, bool asciiOnly) {
     if (!includeComments) return;
-    appendSubstringToken(COMMENT_INFO, start, asciiOnly);
+    Token newComment = createSubstringToken(COMMENT_INFO, start, asciiOnly);
+    if (comments == null) {
+      comments = newComment;
+      commentsTail = comments;
+    } else {
+      commentsTail.next = newComment;
+      commentsTail.next.previousToken = commentsTail;
+      commentsTail = commentsTail.next;
+    }
   }
 
   void appendErrorToken(ErrorToken token) {
     hasErrors = true;
-    tail.next = token;
-    tail = token;
+    appendToken(token);
   }
+
+  void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
+      [int extraOffset = 0]) {
+    appendToken(createSubstringToken(info, start, asciiOnly, extraOffset));
+  }
+
+  /**
+   * Returns a new substring from the scan offset [start] to the current
+   * [scanOffset] plus the [extraOffset]. For example, if the current
+   * scanOffset is 10, then [appendSubstringToken(5, -1)] will append the
+   * substring string [5,9).
+   *
+   * Note that [extraOffset] can only be used if the covered character(s) are
+   * known to be ASCII.
+   */
+  StringToken createSubstringToken(
+      PrecedenceInfo info, int start, bool asciiOnly,
+      [int extraOffset = 0]);
 
   /**
    * This method is called to discard '<' from the "grouping" stack.

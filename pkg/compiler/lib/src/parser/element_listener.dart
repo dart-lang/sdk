@@ -335,7 +335,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endMixinApplication() {
+  void endMixinApplication(Token withKeyword) {
     NodeList mixins = popNode();
     NominalTypeAnnotation superclass = popNode();
     pushNode(new MixinApplication(superclass, mixins));

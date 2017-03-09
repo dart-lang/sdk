@@ -200,12 +200,13 @@ class IdentifierContext {
   /// Identifier is the start of a reference occurring in a literal symbol (e.g.
   /// `foo` in `#foo`).
   static const literalSymbol =
-      const IdentifierContext._('literalSymbol', isScopeReference: true);
+      const IdentifierContext._('literalSymbol', inSymbol: true);
 
   /// Identifier is part of a reference occurring in a literal symbol, but it's
   /// not the first identifier of the reference (e.g. `foo` in `#prefix.foo`).
   static const literalSymbolContinuation = const IdentifierContext._(
       'literalSymbolContinuation',
+      inSymbol: true,
       isContinuation: true);
 
   /// Identifier appears in an expression, and it does not immediately follow a
@@ -236,6 +237,9 @@ class IdentifierContext {
   /// declaration.
   final bool inLibraryOrPartOfDeclaration;
 
+  /// Indicates whether the identifier is within a symbol literal.
+  final bool inSymbol;
+
   /// Indicates whether the identifier follows a `.`.
   final bool isContinuation;
 
@@ -244,6 +248,7 @@ class IdentifierContext {
 
   const IdentifierContext._(this._name,
       {this.inLibraryOrPartOfDeclaration: false,
+      this.inSymbol: false,
       this.isContinuation: false,
       this.isScopeReference: false});
 

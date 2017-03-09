@@ -160,13 +160,14 @@ CheckClassInstr::CheckClassInstr(Value* value,
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
-  ASSERT(unary_checks_.NumberOfChecks() > 0);
+  const intptr_t number_of_checks = unary_checks_.NumberOfChecks();
+  ASSERT(number_of_checks > 0);
   ASSERT(unary_checks_.NumArgsTested() == 1);
   SetInputAt(0, value);
   // Otherwise use CheckSmiInstr.
-  ASSERT((unary_checks_.NumberOfChecks() != 1) ||
+  ASSERT(number_of_checks != 1 ||
          (unary_checks_.GetReceiverClassIdAt(0) != kSmiCid));
-  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
+  for (intptr_t i = 0; i < number_of_checks; ++i) {
     cids_.Add(unary_checks.GetReceiverClassIdAt(i));
   }
   cids_.Sort(LowestFirst);
@@ -176,11 +177,11 @@ CheckClassInstr::CheckClassInstr(Value* value,
 bool CheckClassInstr::AttributesEqual(Instruction* other) const {
   CheckClassInstr* other_check = other->AsCheckClass();
   ASSERT(other_check != NULL);
-  if (unary_checks().NumberOfChecks() !=
-      other_check->unary_checks().NumberOfChecks()) {
+  const intptr_t number_of_checks = unary_checks_.NumberOfChecks();
+  if (number_of_checks != other_check->unary_checks().NumberOfChecks()) {
     return false;
   }
-  for (intptr_t i = 0; i < unary_checks().NumberOfChecks(); ++i) {
+  for (intptr_t i = 0; i < number_of_checks; ++i) {
     // TODO(fschneider): Make sure ic_data are sorted to hit more cases.
     if (unary_checks().GetReceiverClassIdAt(i) !=
         other_check->unary_checks().GetReceiverClassIdAt(i)) {
@@ -219,7 +220,7 @@ EffectSet CheckClassIdInstr::Dependencies() const {
 
 
 bool CheckClassInstr::DeoptIfNull() const {
-  if (unary_checks().NumberOfChecks() != 1) {
+  if (!unary_checks().NumberOfChecksIs(1)) {
     return false;
   }
   CompileType* in_type = value()->Type();
@@ -234,7 +235,7 @@ bool CheckClassInstr::DeoptIfNull() const {
 // transitional temporaries). Instead of checking against the null class only
 // we can check against null instance instead.
 bool CheckClassInstr::DeoptIfNotNull() const {
-  if (unary_checks().NumberOfChecks() != 1) {
+  if (!unary_checks().NumberOfChecksIs(1)) {
     return false;
   }
   const intptr_t cid = unary_checks().GetCidAt(0);
@@ -246,10 +247,11 @@ bool CheckClassInstr::IsDenseCidRange(const ICData& unary_checks) {
   ASSERT(unary_checks.NumArgsTested() == 1);
   // TODO(fschneider): Support smis in dense cid checks.
   if (unary_checks.GetReceiverClassIdAt(0) == kSmiCid) return false;
-  if (unary_checks.NumberOfChecks() <= 2) return false;
+  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
+  if (number_of_checks <= 2) return false;
   intptr_t max = 0;
   intptr_t min = kIntptrMax;
-  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
+  for (intptr_t i = 0; i < number_of_checks; ++i) {
     intptr_t cid = unary_checks.GetCidAt(i);
     if (cid < min) min = cid;
     if (cid > max) max = cid;
@@ -3123,6 +3125,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNIMPLEMENTED();
       break;
   }
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                 token_pos());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kIcCall, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
@@ -3290,6 +3294,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           : Array::Handle(ic_data()->arguments_descriptor());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
 
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                 token_pos());
   if (compiler->is_optimizing()) {
     __ PushConstant(function());
     __ StaticCall(ArgumentCount(), argdesc_kidx);

@@ -10,6 +10,7 @@ const int EOF_TOKEN = 0;
 
 const int KEYWORD_TOKEN = $k;
 const int IDENTIFIER_TOKEN = $a;
+const int SCRIPT_TOKEN = $b;
 const int BAD_INPUT_TOKEN = $X;
 const int DOUBLE_TOKEN = $d;
 const int INT_TOKEN = $i;

@@ -295,5 +295,6 @@ class Duration implements Comparable<Duration> {
    * The returned `Duration` has the same length as this one, but will have the
    * opposite sign of this one.
    */
-  Duration operator -() => new Duration._microseconds(-_duration);
+  // Using subtraction helps dart2js avoid negative zeros.
+  Duration operator -() => new Duration._microseconds(0 - _duration);
 }

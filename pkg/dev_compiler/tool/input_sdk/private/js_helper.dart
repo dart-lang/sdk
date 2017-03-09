@@ -6,6 +6,8 @@ library dart._js_helper;
 
 import 'dart:collection';
 
+import 'dart:_debugger' show stackTraceMapper;
+
 import 'dart:_foreign_helper' show
     JS,
     JS_STRING_CONCAT;
@@ -628,15 +630,19 @@ StackTrace getTraceFromException(exception) => new _StackTrace(exception);
 class _StackTrace implements StackTrace {
   var _exception;
   String _trace;
+
   _StackTrace(this._exception);
 
   String toString() {
-    if (_trace != null) return JS('String', '#', _trace);
+    if (_trace != null) return _trace;
 
     String trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
       trace = JS("String|Null", r"#.stack", _exception);
+      if (trace != null && stackTraceMapper != null) {
+        trace = stackTraceMapper(trace);
+      }
     }
     return _trace = (trace == null) ? '' : trace;
   }

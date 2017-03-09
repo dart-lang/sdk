@@ -837,7 +837,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
                         intptr_t num_args_checked = 1);
   Fragment ClosureCall(int argument_count, const Array& argument_names);
   Fragment ThrowException(TokenPosition position);
-  Fragment RethrowException(int catch_try_index);
+  Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadClassId();
   Fragment LoadField(const dart::Field& field);
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
@@ -868,10 +868,11 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
       bool is_initialization_store,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
+      TokenPosition position,
       intptr_t offset,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
-  Fragment StoreStaticField(const dart::Field& field);
+  Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
   Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
@@ -889,6 +890,10 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment AssertBool();
   Fragment AssertAssignable(const dart::AbstractType& dst_type,
                             const dart::String& dst_name);
+
+  bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
+  bool NeedsDebugStepCheck(Value* value, TokenPosition position);
+  Fragment DebugStepCheck(TokenPosition position);
 
   dart::RawFunction* LookupMethodByMember(Member* target,
                                           const dart::String& method_name);
@@ -970,6 +975,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   LocalVariable* CurrentCatchContext() {
     return scopes_->catch_context_variables[try_depth_];
   }
+
 
   // A chained list of breakable blocks. Chaining and lookup is done by the
   // [BreakableBlock] class.

@@ -7,6 +7,8 @@ part of dart._js_helper;
 // Helper method used by internal libraries.
 regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
 
+List<String> _stringList(List l) => l == null ? l : JS('', 'dart.list(#, #)', l, String);
+
 /**
  * Returns a native version of the RegExp with the global flag set.
  *
@@ -105,12 +107,12 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   Match firstMatch(String string) {
-    List<String> m = JS('JSExtendableArray|Null',
+    List m = JS('JSExtendableArray|Null',
                         r'#.exec(#)',
                         _nativeRegExp,
                         checkString(string));
     if (m == null) return null;
-    return new _MatchImplementation(this, m);
+    return new _MatchImplementation(this, _stringList(m));
   }
 
   bool hasMatch(String string) {
@@ -137,7 +139,7 @@ class JSSyntaxRegExp implements RegExp {
     JS("void", "#.lastIndex = #", regexp, start);
     List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
     if (match == null) return null;
-    return new _MatchImplementation(this, match);
+    return new _MatchImplementation(this, _stringList(match));
   }
 
   Match _execAnchored(String string, int start) {
@@ -149,7 +151,7 @@ class JSSyntaxRegExp implements RegExp {
     // match at the start position.
     if (match[match.length - 1] != null) return null;
     match.length -= 1;
-    return new _MatchImplementation(this, match);
+    return new _MatchImplementation(this, _stringList(match));
   }
 
   Match matchAsPrefix(String string, [int start = 0]) {

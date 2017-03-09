@@ -473,7 +473,7 @@ class SsaBuilder extends ast.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(functionResolvedAst, 1, true,
+      return InlineWeeder.canBeInlined(functionResolvedAst, 1,
           enableUserAssertions: compiler.options.enableUserAssertions);
     }
 
@@ -481,7 +481,7 @@ class SsaBuilder extends ast.Visitor
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(function)) {
-        return InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
+        return InlineWeeder.canBeInlined(functionResolvedAst, null,
             enableUserAssertions: compiler.options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
@@ -519,7 +519,7 @@ class SsaBuilder extends ast.Visitor
       if (cachedCanBeInlined == true) {
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
-        assert(InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
+        assert(InlineWeeder.canBeInlined(functionResolvedAst, null,
             allowLoops: true,
             enableUserAssertions: compiler.options.enableUserAssertions));
         return true;
@@ -527,7 +527,6 @@ class SsaBuilder extends ast.Visitor
 
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
-      bool useMaxInliningNodes = true;
       if (insideLoop) {
         maxInliningNodes = InlineWeeder.INLINING_NODES_INSIDE_LOOP +
             InlineWeeder.INLINING_NODES_INSIDE_LOOP_ARG_FACTOR * numParameters;
@@ -540,11 +539,10 @@ class SsaBuilder extends ast.Visitor
       // inlining stack are called only once as well, we know we will
       // save on output size by inlining this method.
       if (isCalledOnce(function)) {
-        useMaxInliningNodes = false;
+        maxInliningNodes = null;
       }
-      bool canInline;
-      canInline = InlineWeeder.canBeInlined(
-          functionResolvedAst, maxInliningNodes, useMaxInliningNodes,
+      bool canInline = InlineWeeder.canBeInlined(
+          functionResolvedAst, maxInliningNodes,
           enableUserAssertions: compiler.options.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(function, insideLoop: insideLoop);
@@ -6587,23 +6585,23 @@ class InlineWeeder extends ast.Visitor {
   bool seenReturn = false;
   bool tooDifficult = false;
   int nodeCount = 0;
-  final int maxInliningNodes;
-  final bool useMaxInliningNodes;
+  final int maxInliningNodes; // `null` for unbounded.
   final bool allowLoops;
   final bool enableUserAssertions;
+  final TreeElements elements;
 
-  InlineWeeder(this.maxInliningNodes, this.useMaxInliningNodes, this.allowLoops,
+  InlineWeeder._(this.elements, this.maxInliningNodes, this.allowLoops,
       this.enableUserAssertions);
 
-  static bool canBeInlined(
-      ResolvedAst resolvedAst, int maxInliningNodes, bool useMaxInliningNodes,
+  static bool canBeInlined(ResolvedAst resolvedAst, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     assert(enableUserAssertions is bool); // Ensure we passed it.
     if (resolvedAst.elements.containsTryStatement) return false;
 
-    InlineWeeder weeder = new InlineWeeder(maxInliningNodes,
-        useMaxInliningNodes, allowLoops, enableUserAssertions);
+    InlineWeeder weeder = new InlineWeeder._(resolvedAst.elements,
+        maxInliningNodes, allowLoops, enableUserAssertions);
     ast.FunctionExpression functionExpression = resolvedAst.node;
+
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);
@@ -6611,7 +6609,7 @@ class InlineWeeder extends ast.Visitor {
   }
 
   bool registerNode() {
-    if (!useMaxInliningNodes) return true;
+    if (maxInliningNodes == null) return true;
     if (nodeCount++ > maxInliningNodes) {
       tooDifficult = true;
       return false;
@@ -6658,6 +6656,15 @@ class InlineWeeder extends ast.Visitor {
   }
 
   void visitSend(ast.Send node) {
+    // TODO(sra): Investigate following, and possibly count occurrences, since
+    // repeated references might cause a temporary to be assigned.
+    //
+    //     Element element = elements[node];
+    //     if (element != null && element.isParameter) {
+    //       // Don't count as additional node, since it's likely that passing
+    //       // the argument would cost us as much space as we inline.
+    //       return;
+    //     }
     if (!registerNode()) return;
     node.visitChildren(this);
   }
@@ -6672,6 +6679,34 @@ class InlineWeeder extends ast.Visitor {
   void visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
     if (!registerNode()) return;
     tooDifficult = true;
+  }
+
+  void visitConditional(ast.Conditional node) {
+    // Heuristic: In "parameter ? A : B" there is a high probability that
+    // parameter is a constant. Assuming the parameter is constant, we can
+    // compute a count that is bounded by the largest arm rather than the sum of
+    // both arms.
+    visit(node.condition);
+    if (tooDifficult) return;
+    int commonPrefixCount = nodeCount;
+
+    visit(node.thenExpression);
+    if (tooDifficult) return;
+    int thenCount = nodeCount - commonPrefixCount;
+
+    nodeCount = commonPrefixCount;
+    visit(node.elseExpression);
+    if (tooDifficult) return;
+    int elseCount = nodeCount - commonPrefixCount;
+
+    nodeCount = commonPrefixCount + thenCount + elseCount;
+    if (node.condition.asSend() != null &&
+        elements[node.condition]?.isParameter == true) {
+      nodeCount =
+          commonPrefixCount + (thenCount > elseCount ? thenCount : elseCount);
+    }
+    // This is last so that [tooDifficult] is always updated.
+    if (!registerNode()) return;
   }
 
   void visitRethrow(ast.Rethrow node) {

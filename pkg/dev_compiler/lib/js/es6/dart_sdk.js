@@ -30,6 +30,7 @@ export const svg$ = Object.create(null);
 export const web_audio = Object.create(null);
 export const web_gl = Object.create(null);
 export const web_sql = Object.create(null);
+export const nativewrappers = Object.create(null);
 let ListOfObject = () => (ListOfObject = dart.constFn(core.List$(core.Object)))();
 let JSArrayOfListOfObject = () => (JSArrayOfListOfObject = dart.constFn(_interceptors.JSArray$(ListOfObject())))();
 let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
@@ -109,6 +110,7 @@ let SetOfSendPort = () => (SetOfSendPort = dart.constFn(core.Set$(isolate$.SendP
 let ListOf_IsolateEvent = () => (ListOf_IsolateEvent = dart.constFn(core.List$(_isolate_helper._IsolateEvent)))();
 let QueueOf_IsolateEvent = () => (QueueOf_IsolateEvent = dart.constFn(collection.Queue$(_isolate_helper._IsolateEvent)))();
 let CompleterOfList = () => (CompleterOfList = dart.constFn(async.Completer$(core.List)))();
+let FutureOrOfList = () => (FutureOrOfList = dart.constFn(async.FutureOr$(core.List)))();
 let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.functionType(dart.void, [dart.dynamic])))();
 let StringTovoid = () => (StringTovoid = dart.constFn(dart.functionType(dart.void, [core.String])))();
 let ExpandoOfint = () => (ExpandoOfint = dart.constFn(core.Expando$(core.int)))();
@@ -705,6 +707,7 @@ let dynamicAndStringTodynamic = () => (dynamicAndStringTodynamic = dart.constFn(
 let dynamicAndStringAnddynamicTovoid = () => (dynamicAndStringAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, core.String, dart.dynamic])))();
 let FAndintToF = () => (FAndintToF = dart.constFn(dart.definiteFunctionType(F => [F, [F, core.int]])))();
 let JSSyntaxRegExpTodynamic = () => (JSSyntaxRegExpTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [_js_helper.JSSyntaxRegExp])))();
+let ListToListOfString = () => (ListToListOfString = dart.constFn(dart.definiteFunctionType(ListOfString(), [core.List])))();
 let JSSyntaxRegExpToint = () => (JSSyntaxRegExpToint = dart.constFn(dart.definiteFunctionType(core.int, [_js_helper.JSSyntaxRegExp])))();
 let JSSyntaxRegExpAndStringAndintToMatch = () => (JSSyntaxRegExpAndStringAndintToMatch = dart.constFn(dart.definiteFunctionType(core.Match, [_js_helper.JSSyntaxRegExp, core.String, core.int])))();
 let dynamicAnddynamicAnddynamicToint = () => (dynamicAnddynamicAnddynamicToint = dart.constFn(dart.definiteFunctionType(core.int, [dart.dynamic, dart.dynamic, dart.dynamic])))();
@@ -1882,6 +1885,9 @@ dart.isGroundType = function(type) {
 dart.trapRuntimeErrors = function(flag) {
   dart._trapRuntimeErrors = flag;
 };
+dart.ignoreWhitelistedErrors = function(flag) {
+  dart._ignoreWhitelistedErrors = flag;
+};
 dart.throwCastError = function(object, actual, type) {
   var found = dart.typeName(actual);
   var expected = dart.typeName(type);
@@ -2245,7 +2251,7 @@ dart.strongInstanceOf = function(obj, type, ignoreFromWhiteList) {
   let result = dart.isSubtype(actual, type);
   if (result || actual == dart.jsobject || actual == core.int && type == core.double) return true;
   if (result === false) return false;
-  if (ignoreFromWhiteList == void 0) return result;
+  if (!dart._ignoreWhitelistedErrors || ignoreFromWhiteList == void 0) return result;
   if (dart._ignoreTypeFailure(actual, type)) return true;
   return result;
 };
@@ -2989,6 +2995,7 @@ dart.setSignature(dart.Typedef, {
 dart._typeFormalCount = Symbol("_typeFormalCount");
 dart.isSubtype = dart._subtypeMemo((t1, t2) => t1 === t2 || dart._isSubtype(t1, t2, true));
 dart._trapRuntimeErrors = true;
+dart._ignoreWhitelistedErrors = true;
 dart._jsIterator = Symbol("_jsIterator");
 dart._current = Symbol("_current");
 dart._AsyncStarStreamController = class _AsyncStarStreamController {
@@ -4066,6 +4073,13 @@ dart.setSignature(_debugger.TypeFormatter, {
     hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
     children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
   })
+});
+_debugger.StackTraceMapper = dart.typedef('StackTraceMapper', () => dart.functionType(core.String, [core.String]));
+dart.copyProperties(_debugger, {
+  get stackTraceMapper() {
+    let _util = dart.global.$dartStackTraceUtility;
+    return _debugger.StackTraceMapper._check(_util != null ? _util.mapper : null);
+  }
 });
 _debugger.registerDevtoolsFormatter = function() {
   let formatters = JSArrayOfJsonMLFormatter().of([_debugger._devtoolsFormatter]);
@@ -9837,7 +9851,7 @@ _isolate_helper.IsolateNatives = class IsolateNatives extends core.Object {
     let completer = CompleterOfList().new();
     port.first.then(dart.dynamic)(dart.fn(msg => {
       if (dart.equals(dart.dindex(msg, 0), _isolate_helper._SPAWNED_SIGNAL)) {
-        completer.complete(msg);
+        completer.complete(FutureOrOfList()._check(msg));
       } else {
         dart.assert(dart.equals(dart.dindex(msg, 0), _isolate_helper._SPAWN_FAILED_SIGNAL));
         completer.completeError(dart.dindex(msg, 1));
@@ -11936,6 +11950,9 @@ _js_helper._StackTrace = class _StackTrace extends core.Object {
     let trace = null;
     if (this[_exception] !== null && typeof this[_exception] === "object") {
       trace = this[_exception].stack;
+      if (trace != null && _debugger.stackTraceMapper != null) {
+        trace = _debugger.stackTraceMapper(trace);
+      }
     }
     return this[_trace] = trace == null ? '' : trace;
   }
@@ -12829,6 +12846,10 @@ _js_helper.regExpGetNative = function(regexp) {
   return regexp[_nativeRegExp];
 };
 dart.lazyFn(_js_helper.regExpGetNative, () => JSSyntaxRegExpTodynamic());
+_js_helper._stringList = function(l) {
+  return ListOfString()._check(l == null ? l : dart.list(l, core.String));
+};
+dart.lazyFn(_js_helper._stringList, () => ListToListOfString());
 const _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
 _js_helper.regExpGetGlobalNative = function(regexp) {
   let nativeRegexp = regexp[_nativeGlobalVersion];
@@ -12895,7 +12916,7 @@ _js_helper.JSSyntaxRegExp = class JSSyntaxRegExp extends core.Object {
   firstMatch(string) {
     let m = this[_nativeRegExp].exec(_js_helper.checkString(string));
     if (m == null) return null;
-    return new _js_helper._MatchImplementation(this, m);
+    return new _js_helper._MatchImplementation(this, _js_helper._stringList(m));
   }
   hasMatch(string) {
     return this[_nativeRegExp].test(_js_helper.checkString(string));
@@ -12919,7 +12940,7 @@ _js_helper.JSSyntaxRegExp = class JSSyntaxRegExp extends core.Object {
     regexp.lastIndex = start;
     let match = regexp.exec(string);
     if (match == null) return null;
-    return new _js_helper._MatchImplementation(this, ListOfString()._check(match));
+    return new _js_helper._MatchImplementation(this, _js_helper._stringList(match));
   }
   [_execAnchored](string, start) {
     let regexp = this[_nativeAnchoredVersion];
@@ -12928,7 +12949,7 @@ _js_helper.JSSyntaxRegExp = class JSSyntaxRegExp extends core.Object {
     if (match == null) return null;
     if (match[dartx._get](dart.notNull(match[dartx.length]) - 1) != null) return null;
     match[dartx.length] = dart.notNull(match[dartx.length]) - 1;
-    return new _js_helper._MatchImplementation(this, ListOfString()._check(match));
+    return new _js_helper._MatchImplementation(this, _js_helper._stringList(match));
   }
   matchAsPrefix(string, start) {
     if (start === void 0) start = 0;
@@ -18308,12 +18329,14 @@ async._Completer$ = dart.generic(T => {
 async._Completer = _Completer();
 const _asyncCompleteError = Symbol('_asyncCompleteError');
 async._AsyncCompleter$ = dart.generic(T => {
+  let FutureOrOfT = () => (FutureOrOfT = dart.constFn(async.FutureOr$(T)))();
   class _AsyncCompleter extends async._Completer$(T) {
     new() {
       super.new();
     }
     complete(value) {
       if (value === void 0) value = null;
+      FutureOrOfT()._check(value);
       if (!dart.test(this.future[_mayComplete])) dart.throw(new core.StateError("Future already completed"));
       this.future[_asyncComplete](value);
     }
@@ -18323,7 +18346,7 @@ async._AsyncCompleter$ = dart.generic(T => {
   }
   dart.setSignature(_AsyncCompleter, {
     methods: () => ({
-      complete: dart.definiteFunctionType(dart.void, [], [dart.dynamic]),
+      complete: dart.definiteFunctionType(dart.void, [], [FutureOrOfT()]),
       [_completeError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace])
     })
   });
@@ -18331,12 +18354,14 @@ async._AsyncCompleter$ = dart.generic(T => {
 });
 async._AsyncCompleter = _AsyncCompleter();
 async._SyncCompleter$ = dart.generic(T => {
+  let FutureOrOfT = () => (FutureOrOfT = dart.constFn(async.FutureOr$(T)))();
   class _SyncCompleter extends async._Completer$(T) {
     new() {
       super.new();
     }
     complete(value) {
       if (value === void 0) value = null;
+      FutureOrOfT()._check(value);
       if (!dart.test(this.future[_mayComplete])) dart.throw(new core.StateError("Future already completed"));
       this.future[_complete](value);
     }
@@ -18346,7 +18371,7 @@ async._SyncCompleter$ = dart.generic(T => {
   }
   dart.setSignature(_SyncCompleter, {
     methods: () => ({
-      complete: dart.definiteFunctionType(dart.void, [], [dart.dynamic]),
+      complete: dart.definiteFunctionType(dart.void, [], [FutureOrOfT()]),
       [_completeError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace])
     })
   });
@@ -32092,7 +32117,7 @@ core.Duration = class Duration extends core.Object {
     return new core.Duration._microseconds(this[_duration][dartx.abs]());
   }
   _negate() {
-    return new core.Duration._microseconds(-dart.notNull(this[_duration]));
+    return new core.Duration._microseconds(0 - dart.notNull(this[_duration]));
   }
 };
 dart.defineNamedConstructor(core.Duration, '_microseconds');
@@ -72292,6 +72317,7 @@ dart.setSignature(html$._GeopositionWrapper, {
     timestamp: dart.definiteFunctionType(core.int, [])
   })
 });
+dart.defineExtensionMembers(html$._GeopositionWrapper, ['coords', 'timestamp']);
 dart.defineExtensionNames([
   'coords',
   'timestamp'
@@ -89772,6 +89798,21 @@ dart.setSignature(html$._WrappedEvent, {
     stopPropagation: dart.definiteFunctionType(dart.void, [])
   })
 });
+dart.defineExtensionMembers(html$._WrappedEvent, [
+  'preventDefault',
+  'stopImmediatePropagation',
+  'stopPropagation',
+  'bubbles',
+  'cancelable',
+  'currentTarget',
+  'defaultPrevented',
+  'eventPhase',
+  'target',
+  'timeStamp',
+  'type',
+  'matchingTarget',
+  'path'
+]);
 html$._BeforeUnloadEvent = class _BeforeUnloadEvent extends html$._WrappedEvent {
   new(base) {
     this[_returnValue] = null;
@@ -89793,6 +89834,7 @@ dart.setSignature(html$._BeforeUnloadEvent, {
   getters: () => ({returnValue: dart.definiteFunctionType(core.String, [])}),
   setters: () => ({returnValue: dart.definiteFunctionType(dart.void, [core.String])})
 });
+dart.defineExtensionMembers(html$._BeforeUnloadEvent, ['returnValue', 'returnValue']);
 const _eventType = Symbol('_eventType');
 html$._BeforeUnloadEventStreamProvider = class _BeforeUnloadEventStreamProvider extends core.Object {
   new(eventType) {
@@ -93095,6 +93137,25 @@ dart.setSignature(html$.KeyEvent, {
   }),
   names: ['_makeRecord', '_convertToHexString']
 });
+dart.defineExtensionMembers(html$.KeyEvent, [
+  'getModifierState',
+  'keyCode',
+  'charCode',
+  'altKey',
+  'which',
+  'currentTarget',
+  'code',
+  'ctrlKey',
+  'detail',
+  'key',
+  'keyLocation',
+  'metaKey',
+  'shiftKey',
+  'sourceDevice',
+  'view',
+  'location',
+  'repeat'
+]);
 dart.defineLazy(html$.KeyEvent, {
   get _keyboardEventDispatchRecord() {
     return html$.KeyEvent._makeRecord();
@@ -94800,12 +94861,16 @@ dart.setSignature(html$._DOMWindowCrossFrame, {
 dart.defineExtensionMembers(html$._DOMWindowCrossFrame, [
   'close',
   'postMessage',
+  'addEventListener',
+  'dispatchEvent',
+  'removeEventListener',
   'history',
   'location',
   'closed',
   'opener',
   'parent',
-  'top'
+  'top',
+  'on'
 ]);
 html$._LocationCrossFrame = class _LocationCrossFrame extends core.Object {
   set href(val) {
@@ -95322,12 +95387,33 @@ html_common.convertNativeToDart_ContextAttributes = function(nativeContextAttrib
 };
 dart.fn(html_common.convertNativeToDart_ContextAttributes, dynamicTodynamic$());
 html_common._TypedImageData = class _TypedImageData extends core.Object {
+  get data() {
+    return this[data$];
+  }
+  set data(value) {
+    super.data = value;
+  }
+  get height() {
+    return this[height$];
+  }
+  set height(value) {
+    super.height = value;
+  }
+  get width() {
+    return this[width$];
+  }
+  set width(value) {
+    super.width = value;
+  }
   new(data, height, width) {
-    this.data = data;
-    this.height = height;
-    this.width = width;
+    this[data$] = data;
+    this[height$] = height;
+    this[width$] = width;
   }
 };
+const data$ = Symbol("_TypedImageData.data");
+const height$ = Symbol("_TypedImageData.height");
+const width$ = Symbol("_TypedImageData.width");
 html_common._TypedImageData[dart.implements] = () => [html$.ImageData];
 dart.setSignature(html_common._TypedImageData, {
   fields: () => ({
@@ -95336,6 +95422,7 @@ dart.setSignature(html_common._TypedImageData, {
     width: core.int
   })
 });
+dart.defineExtensionMembers(html_common._TypedImageData, ['data', 'height', 'width']);
 html_common.convertNativeToDart_ImageData = function(nativeImageData) {
   0;
   if (html$.ImageData.is(nativeImageData)) {
@@ -98616,7 +98703,7 @@ svg$.FilterPrimitiveStandardAttributes = class FilterPrimitiveStandardAttributes
     dart.throw(new core.UnsupportedError("Not supported"));
   }
   get height() {
-    return this[height$];
+    return this[height$0];
   }
   set height(value) {
     super.height = value;
@@ -98628,7 +98715,7 @@ svg$.FilterPrimitiveStandardAttributes = class FilterPrimitiveStandardAttributes
     super.result = value;
   }
   get width() {
-    return this[width$];
+    return this[width$0];
   }
   set width(value) {
     super.width = value;
@@ -98646,9 +98733,9 @@ svg$.FilterPrimitiveStandardAttributes = class FilterPrimitiveStandardAttributes
     super.y = value;
   }
 };
-const height$ = Symbol("FilterPrimitiveStandardAttributes.height");
+const height$0 = Symbol("FilterPrimitiveStandardAttributes.height");
 const result = Symbol("FilterPrimitiveStandardAttributes.result");
-const width$ = Symbol("FilterPrimitiveStandardAttributes.width");
+const width$0 = Symbol("FilterPrimitiveStandardAttributes.width");
 const x = Symbol("FilterPrimitiveStandardAttributes.x");
 const y = Symbol("FilterPrimitiveStandardAttributes.y");
 dart.setSignature(svg$.FilterPrimitiveStandardAttributes, {
@@ -105443,4 +105530,4 @@ dart.setSignature(web_sql.SqlTransaction, {
   methods: () => ({[dartx.executeSql]: dart.definiteFunctionType(dart.void, [core.String, ListOfObject()], [web_sql.SqlStatementCallback, web_sql.SqlStatementErrorCallback])})
 });
 dart.registerExtension(dart.global.SQLTransaction, web_sql.SqlTransaction);
-dart.trackLibraries("dart_sdk", {"dart:_runtime": dart, "dart:_debugger": _debugger, "dart:_foreign_helper": _foreign_helper, "dart:_interceptors": _interceptors, "dart:_internal": _internal, "dart:_isolate_helper": _isolate_helper, "dart:_js_embedded_names": _js_embedded_names, "dart:_js_helper": _js_helper, "dart:_js_mirrors": _js_mirrors, "dart:_js_primitives": _js_primitives, "dart:_metadata": _metadata, "dart:_native_typed_data": _native_typed_data, "dart:async": async, "dart:collection": collection, "dart:convert": convert, "dart:core": core, "dart:developer": developer, "dart:io": io, "dart:isolate": isolate$, "dart:js": js, "dart:js_util": js_util, "dart:math": math, "dart:mirrors": mirrors, "dart:typed_data": typed_data, "dart:indexed_db": indexed_db, "dart:html": html$, "dart:html_common": html_common, "dart:svg": svg$, "dart:web_audio": web_audio, "dart:web_gl": web_gl, "dart:web_sql": web_sql});
+dart.trackLibraries("dart_sdk", {"dart:_runtime": dart, "dart:_debugger": _debugger, "dart:_foreign_helper": _foreign_helper, "dart:_interceptors": _interceptors, "dart:_internal": _internal, "dart:_isolate_helper": _isolate_helper, "dart:_js_embedded_names": _js_embedded_names, "dart:_js_helper": _js_helper, "dart:_js_mirrors": _js_mirrors, "dart:_js_primitives": _js_primitives, "dart:_metadata": _metadata, "dart:_native_typed_data": _native_typed_data, "dart:async": async, "dart:collection": collection, "dart:convert": convert, "dart:core": core, "dart:developer": developer, "dart:io": io, "dart:isolate": isolate$, "dart:js": js, "dart:js_util": js_util, "dart:math": math, "dart:mirrors": mirrors, "dart:typed_data": typed_data, "dart:indexed_db": indexed_db, "dart:html": html$, "dart:html_common": html_common, "dart:svg": svg$, "dart:web_audio": web_audio, "dart:web_gl": web_gl, "dart:web_sql": web_sql, "dart:nativewrappers": nativewrappers});

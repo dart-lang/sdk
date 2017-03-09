@@ -7,7 +7,7 @@
 *: SkipByDesign
 
 # Skip tests that are not yet strong-mode clean.
-[ $strong == true ]
+[ $strong ]
 abstract_exact_selector_test: Skip
 abstract_factory_constructor_test: Skip
 abstract_getter_test: Skip
@@ -680,3 +680,49 @@ unsupported_operators_test: Skip
 variable_declaration_metadata_test: Skip
 void_type_test: Skip
 wrong_number_type_arguments_test: Skip
+
+[ $compiler == dart2analyzer && $strong ]
+async_await_test/02: StaticWarning # Issue 28823
+async_await_test/03: StaticWarning # Issue 28823
+async_await_test/none: StaticWarning # Issue 28823
+async_star_test/01: StaticWarning # Issue 28823
+async_star_test/02: StaticWarning # Issue 28823
+async_star_test/03: StaticWarning # Issue 28823
+async_star_test/04: StaticWarning # Issue 28823
+async_star_test/05: StaticWarning # Issue 28823
+async_star_test/none: StaticWarning # Issue 28823
+bit_operations_test/01: MissingStaticWarning # Issue 28823
+bit_operations_test/02: MissingStaticWarning # Issue 28823
+bit_operations_test/03: MissingStaticWarning # Issue 28823
+bit_operations_test/04: MissingStaticWarning # Issue 28823
+closure_side_effect_test: StaticWarning # Issue 28823
+constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/as_operation: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/catch_check: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/is_check: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/new_before_load: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/new_generic2: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/new_generic3: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/type_annotation_generic3: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError # Issue 28823
+deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError # Issue 28823
+field3a_negative_test: StaticWarning # Issue 28823
+interface_inherit_field_test: StaticWarning # Issue 28823
+internal_library_test/02: MissingStaticWarning # Issue 28823
+main_not_a_function_test/01: MissingStaticWarning # Issue 28823
+main_test/03: MissingStaticWarning # Issue 28823
+many_named_arguments_test: StaticWarning # Issue 28823
+no_main_test/01: MissingStaticWarning # Issue 28823
+regress_23089_test: CompileTimeError # Issue 28823
+reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
+super_setter_test: StaticWarning # Issue 28823
+top_level_non_prefixed_library_test: CompileTimeError # Issue 28823
+try_catch4_test: StaticWarning # Issue 28823
+try_catch5_test: StaticWarning # Issue 28823
+
+[ $compiler == dart2analyzer && $system != windows ]
+bad_raw_string_test/03: MissingCompileTimeError # Issue 28664

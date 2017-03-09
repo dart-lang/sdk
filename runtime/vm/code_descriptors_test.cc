@@ -31,7 +31,6 @@ CODEGEN_TEST_GENERATE(StackMapCodegen, test) {
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   parsed_function->SetNodeSequence(test->node_sequence());
-  parsed_function->set_instantiator(NULL);
   parsed_function->EnsureExpressionTemp();
   test->node_sequence()->scope()->AddVariable(
       parsed_function->expression_temp_var());

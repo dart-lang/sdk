@@ -153,7 +153,6 @@ dart_library =
   dart_library.library = library;
 
   function import_(libraryName) {
-    bootstrap();
     let loader = libraries.get(libraryName);
     // TODO(vsm): A user might call this directly from JS (as we do in tests).
     // We may want a different error type.
@@ -170,6 +169,10 @@ dart_library =
     let dart_sdk = import_('dart_sdk');
 
     if (!_currentIsolate) {
+      // This import is only needed for chrome debugging. We should provide an
+      // option to compile without it.
+      dart_sdk._debugger.registerDevtoolsFormatter();
+
       // Create isolate.
       _currentIsolate = true;
       dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
@@ -178,16 +181,6 @@ dart_library =
     library.main();
   }
   dart_library.start = start;
-
-  let _bootstrapped = false;
-  function bootstrap() {
-    if (_bootstrapped) return;
-    _bootstrapped = true;
-
-    // This import is only needed for chrome debugging. We should provide an
-    // option to compile without it.
-    dart_sdk._debugger.registerDevtoolsFormatter();
-  }
 
 })(dart_library);
 }

@@ -27,7 +27,6 @@ mirrors/empty_test: RuntimeError # Issue 6490
 mirrors/enum_test: RuntimeError # Issue 6490
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
-mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_interface_test: RuntimeError # Issue 12087
@@ -237,6 +236,9 @@ mirrors/mirrors_used_get_name2_test: RuntimeError
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
+
+[ $compiler == dart2js && $runtime == ff ]
+math/math_parse_double_test: Pass, RuntimeError # Issue 28983
 
 [ $runtime == chrome && $system == macos ]
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696

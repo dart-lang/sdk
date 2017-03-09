@@ -5946,10 +5946,11 @@ RawTypeParameter* Function::LookupTypeParameter(
         if (type_param_name.Equals(type_name)) {
           if (parent_level > 0) {
             // Clone type parameter and set parent_level.
-            return TypeParameter::New(
+            type_param = TypeParameter::New(
                 Class::Handle(), function, type_param.index(), parent_level,
                 type_param_name, AbstractType::Handle(type_param.bound()),
                 TokenPosition::kNoSource);
+            type_param.SetIsFinalized();
           }
           return type_param.raw();
         }
@@ -9221,9 +9222,18 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       *column = offset - smi.Value() + 1;
     }
     if (token_len != NULL) {
-      // We don't explicitly save this data.
-      // TODO(jensj): Load the source and attempt to find it from there.
+      // We don't explicitly save this data: Load the source
+      // and find it from there.
+      const String& source = String::Handle(zone, Source());
       *token_len = 1;
+      if (offset < source.Length() &&
+          Scanner::IsIdentStartChar(source.CharAt(offset))) {
+        for (intptr_t i = offset + 1;
+             i < source.Length() && Scanner::IsIdentChar(source.CharAt(i));
+             ++i) {
+          ++*token_len;
+        }
+      }
     }
     return;
   }
@@ -12994,6 +13004,19 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
+bool ICData::NumberOfChecksIs(intptr_t n) const {
+  const intptr_t length = Length();
+  for (intptr_t i = 0; i < length; i++) {
+    if (i == n) {
+      return IsSentinelAt(i);
+    } else {
+      if (IsSentinelAt(i)) return false;
+    }
+  }
+  return n == length;
+}
+
+
 // Discounts any checks with usage of zero.
 intptr_t ICData::NumberOfUsedChecks() const {
   intptr_t n = NumberOfChecks();
@@ -13056,9 +13079,8 @@ void ICData::WriteSentinelAt(intptr_t index) const {
 
 
 void ICData::ClearCountAt(intptr_t index) const {
-  const intptr_t len = NumberOfChecks();
   ASSERT(index >= 0);
-  ASSERT(index < len);
+  ASSERT(index < NumberOfChecks());
   SetCountAt(index, 0);
 }
 
@@ -13157,7 +13179,7 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   Zone* zone = Thread::Current()->zone();
   const Function& smi_op_target =
       Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-  if (NumberOfChecks() == 0) {
+  if (NumberOfChecksIs(0)) {
     GrowableArray<intptr_t> class_ids(2);
     class_ids.Add(kSmiCid);
     class_ids.Add(kSmiCid);
@@ -13165,7 +13187,7 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
     // 'AddCheck' sets the initial count to 1.
     SetCountAt(0, 0);
     is_smi_two_args_op = true;
-  } else if (NumberOfChecks() == 1) {
+  } else if (NumberOfChecksIs(1)) {
     GrowableArray<intptr_t> class_ids(2);
     Function& target = Function::Handle();
     GetCheckAt(0, &class_ids, &target);
@@ -13651,7 +13673,7 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   aggregate.Sort(CidCount::HighestCountFirst);
 
   ICData& result = ICData::Handle(ICData::NewFrom(*this, kNumArgsTested));
-  ASSERT(result.NumberOfChecks() == 0);
+  ASSERT(result.NumberOfChecksIs(0));
   // Room for all entries and the sentinel.
   const intptr_t data_len = result.TestEntryLength() * (aggregate.length() + 1);
   // Allocate the array but do not assign it to result until we have populated
@@ -13668,13 +13690,13 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   }
   WriteSentinel(data, result.TestEntryLength());
   result.set_ic_data_array(data);
-  ASSERT(result.NumberOfChecks() == aggregate.length());
+  ASSERT(result.NumberOfChecksIs(aggregate.length()));
   return result.raw();
 }
 
 
 bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
-  if (NumberOfChecks() == 0) return false;
+  if (NumberOfChecksIs(0)) return false;
   Class& cls = Class::Handle();
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
@@ -13707,7 +13729,7 @@ bool ICData::HasReceiverClassId(intptr_t class_id) const {
 // Returns true if all targets are the same.
 // TODO(srdjan): if targets are native use their C_function to compare.
 bool ICData::HasOneTarget() const {
-  ASSERT(NumberOfChecks() > 0);
+  ASSERT(!NumberOfChecksIs(0));
   const Function& first_target = Function::Handle(GetTargetAt(0));
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 1; i < len; i++) {
@@ -17719,11 +17741,15 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  if (parameterized_class() != other_type_param.parameterized_class()) {
+  if (parameterized_class_id() != other_type_param.parameterized_class_id()) {
+    return false;
+  }
+  if (parameterized_function() != other_type_param.parameterized_function()) {
     return false;
   }
   if (IsFinalized() == other_type_param.IsFinalized()) {
-    return index() == other_type_param.index();
+    return (index() == other_type_param.index()) &&
+           (parent_level() == other_type_param.parent_level());
   }
   return name() == other_type_param.name();
 }
@@ -17917,7 +17943,13 @@ RawString* TypeParameter::EnumerateURIs() const {
 
 intptr_t TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = Class::Handle(parameterized_class()).id();
+  uint32_t result;
+  if (IsClassTypeParameter()) {
+    result = parameterized_class_id();
+  } else {
+    result = Function::Handle(parameterized_function()).Hash();
+    result = CombineHashes(result, parent_level());
+  }
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
   result = CombineHashes(result, index());

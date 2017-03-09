@@ -24,6 +24,7 @@ import '../builder/builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
+        FunctionTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -195,16 +196,23 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
+      int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel});
 
   void addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants, int charOffset);
+      List<String> constants, int charOffset, int charEndOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
       T returnType,
       String name,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      int charOffset);
+
+  FunctionTypeBuilder addFunctionType(
+      T returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset);
@@ -217,6 +225,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
+      int charEndOffset,
       String nativeMethodName);
 
   FormalParameterBuilder addFormalParameter(List<MetadataBuilder> metadata,

@@ -261,6 +261,7 @@ class OutlineBuilder extends UnhandledListener {
         asyncModifier,
         computeProcedureKind(getOrSet),
         beginToken.charOffset,
+        endToken.charOffset,
         nativeMethodName,
         isTopLevel: true);
     nativeMethodName = null;
@@ -311,14 +312,24 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers =
         Modifier.validate(pop(), isAbstract: bodyKind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
-    library.addProcedure(metadata, modifiers, returnType, name, typeVariables,
-        formals, asyncModifier, kind, beginToken.charOffset, nativeMethodName,
+    library.addProcedure(
+        metadata,
+        modifiers,
+        returnType,
+        name,
+        typeVariables,
+        formals,
+        asyncModifier,
+        kind,
+        beginToken.charOffset,
+        endToken.charOffset,
+        nativeMethodName,
         isTopLevel: false);
     nativeMethodName = null;
   }
 
   @override
-  void endMixinApplication() {
+  void endMixinApplication(Token withKeyword) {
     debugEvent("MixinApplication");
     List<TypeBuilder> mixins = pop();
     TypeBuilder supertype = pop();
@@ -353,6 +364,11 @@ class OutlineBuilder extends UnhandledListener {
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
     push(popList(count) ?? NullValue.TypeArguments);
+  }
+
+  @override
+  void handleScript(Token token) {
+    debugEvent("Script");
   }
 
   @override
@@ -472,7 +488,8 @@ class OutlineBuilder extends UnhandledListener {
     List<String> constants = popList(count);
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addEnum(metadata, name, constants, enumKeyword.charOffset);
+    library.addEnum(
+        metadata, name, constants, enumKeyword.charOffset, endBrace.charOffset);
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -482,13 +499,46 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleFunctionType(Token functionToken, Token endToken) {
+    debugEvent("FunctionType");
+    List<FormalParameterBuilder> formals = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
+    TypeBuilder returnType = pop();
+    push(library.addFunctionType(
+        returnType, typeVariables, formals, functionToken.charOffset));
+  }
+
+  @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
-    List<FormalParameterBuilder> formals = pop();
-    List<TypeVariableBuilder> typeVariables = pop();
-    String name = pop();
-    TypeBuilder returnType = pop();
+    List<FormalParameterBuilder> formals;
+    List<TypeVariableBuilder> typeVariables;
+    String name;
+    TypeBuilder returnType;
+    if (equals == null) {
+      formals = pop();
+      typeVariables = pop();
+      name = pop();
+      returnType = pop();
+    } else {
+      var type = pop();
+      typeVariables = pop();
+      name = pop();
+      if (type is FunctionTypeBuilder) {
+        // TODO(ahe): We need to start a nested declaration when parsing the
+        // formals and return type so we can correctly bind
+        // `type.typeVariables`. A typedef can have type variables, and a new
+        // function type can also have type variables (representing the type of
+        // a generic function).
+        formals = type.formals;
+        returnType = type.returnType;
+      } else {
+        // TODO(ahe): Improve this error message.
+        library.addCompileTimeError(
+            equals.charOffset, "Can't create typedef from non-function type.");
+      }
+    }
     List<MetadataBuilder> metadata = pop();
     library.addFunctionTypeAlias(metadata, returnType, name, typeVariables,
         formals, typedefKeyword.charOffset);
@@ -562,8 +612,16 @@ class OutlineBuilder extends UnhandledListener {
     var name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFactoryMethod(metadata, modifiers, name, formals, asyncModifier,
-        redirectionTarget, beginToken.charOffset, nativeMethodName);
+    library.addFactoryMethod(
+        metadata,
+        modifiers,
+        name,
+        formals,
+        asyncModifier,
+        redirectionTarget,
+        beginToken.charOffset,
+        endToken.charOffset,
+        nativeMethodName);
     nativeMethodName = null;
   }
 

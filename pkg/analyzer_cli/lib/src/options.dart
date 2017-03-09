@@ -456,17 +456,11 @@ class CommandLineOptions {
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
-        bool validArgs;
-        if (!args.contains('--build-mode')) {
-          validArgs = false;
-        } else if (args.length == 2) {
-          validArgs = true;
-        } else if (args.length == 4 && args.contains('--dart-sdk')) {
-          validArgs = true;
-        } else {
-          validArgs = false;
-        }
-        if (!validArgs) {
+        bool hasBuildMode = args.contains('--build-mode');
+        bool onlyDartSdkArg = args.length == 2 ||
+            (args.length == 3 && args.any((a) => a.startsWith('--dart-sdk'))) ||
+            (args.length == 4 && args.contains('--dart-sdk'));
+        if (!(hasBuildMode && onlyDartSdkArg)) {
           printAndFail('The --persistent_worker flag should be used with and '
               'only with the --build-mode flag, and possibly the --dart-sdk '
               'option. Got: $args');

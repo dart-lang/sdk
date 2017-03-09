@@ -1124,6 +1124,7 @@ StaticGet* StaticGet::ReadFrom(Reader* reader) {
 StaticSet* StaticSet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticSet* set = new StaticSet();
+  set->position_ = reader->ReadPosition();
   set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->expression_ = Expression::ReadFrom(reader);
   return set;
@@ -1245,6 +1246,7 @@ IsExpression* IsExpression::ReadFrom(Reader* reader) {
 AsExpression* AsExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   AsExpression* expr = new AsExpression();
+  expr->position_ = reader->ReadPosition();
   expr->operand_ = Expression::ReadFrom(reader);
   expr->type_ = DartType::ReadFrom(reader);
   return expr;
@@ -1326,7 +1328,9 @@ ThisExpression* ThisExpression::ReadFrom(Reader* reader) {
 
 Rethrow* Rethrow::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  return new Rethrow();
+  Rethrow* rethrow = new Rethrow();
+  rethrow->position_ = reader->ReadPosition();
+  return rethrow;
 }
 
 
@@ -1343,6 +1347,7 @@ ListLiteral* ListLiteral::ReadFrom(Reader* reader, bool is_const) {
   TRACE_READ_OFFSET();
   ListLiteral* literal = new ListLiteral();
   literal->is_const_ = is_const;
+  literal->position_ = reader->ReadPosition();
   literal->type_ = DartType::ReadFrom(reader);
   literal->expressions_.ReadFromStatic<Expression>(reader);
   return literal;
@@ -1508,6 +1513,7 @@ LabeledStatement* LabeledStatement::ReadFrom(Reader* reader) {
 BreakStatement* BreakStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   BreakStatement* stmt = new BreakStatement();
+  stmt->position_ = reader->ReadPosition();
   stmt->target_ = reader->helper()->labels()->Lookup(reader->ReadUInt());
   return stmt;
 }
@@ -1688,6 +1694,7 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
 
   VariableDeclaration* decl = new VariableDeclaration();
   decl->position_ = reader->ReadPosition();
+  decl->equals_position_ = reader->ReadPosition();
   decl->flags_ = reader->ReadFlags();
   decl->name_ = Reference::ReadStringFrom(reader);
   decl->type_ = DartType::ReadFrom(reader);
