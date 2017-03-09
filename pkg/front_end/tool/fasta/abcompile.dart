@@ -1,3 +1,7 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -6,7 +10,10 @@ import 'dart:io';
 import 'standard_deviation.dart';
 
 const String bRootPath = const String.fromEnvironment("bRoot");
-const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
+const int abIterations =
+    const int.fromEnvironment("abIterations", defaultValue: 15);
+const int iterations =
+    const int.fromEnvironment("iterations", defaultValue: 15);
 
 /// Compare the performance of two different fast implementations
 /// by alternately launching the compile application in this directory
@@ -47,16 +54,25 @@ main(List<String> args) async {
   List<double> aWarm = <double>[];
   List<double> bCold = <double>[];
   List<double> bWarm = <double>[];
-  for (int count = 0; count < 15; ++count) {
+
+  var stopwatch = new Stopwatch()..start();
+  for (int count = 0; count < abIterations; ++count) {
+    print('A/B iteration ${count + 1} of $abIterations ...');
     await run(aRoot, aCompile, args, aCold, aWarm);
     await run(bRoot, bCompile, args, bCold, bWarm);
   }
+  stopwatch.stop();
+  print('Overall run time: ${stopwatch.elapsed.inMinutes} minutes');
 
   print('');
   print('Raw data:');
   print('A cold, A warm, B cold, B warm');
   for (int index = 0; index < aCold.length; ++index) {
     print('${aCold[index]}, ${aWarm[index]}, ${bCold[index]}, ${bWarm[index]}');
+  }
+
+  if (aWarm.length < 1) {
+    return;
   }
 
   double aColdMean = average(aCold);
@@ -68,40 +84,61 @@ main(List<String> args) async {
   print('Average:');
   print('$aColdMean, $aWarmMean, $bColdMean, $bWarmMean');
 
+  if (aWarm.length < 2) {
+    return;
+  }
+
   double aColdStdDev = standardDeviation(aColdMean, aCold);
   double aWarmStdDev = standardDeviation(aWarmMean, aWarm);
   double bColdStdDev = standardDeviation(bColdMean, bCold);
   double bWarmStdDev = standardDeviation(bWarmMean, bWarm);
 
-  double aColdStdDevMean = standardDeviationOfTheMean(aCold, aColdStdDev);
-  double aWarmStdDevMean = standardDeviationOfTheMean(aWarm, aWarmStdDev);
-  double bColdStdDevMean = standardDeviationOfTheMean(bCold, bColdStdDev);
-  double bWarmStdDevMean = standardDeviationOfTheMean(bWarm, bWarmStdDev);
+  double aColdSDM = standardDeviationOfTheMean(aCold, aColdStdDev);
+  double aWarmSDM = standardDeviationOfTheMean(aWarm, aWarmStdDev);
+  double bColdSDM = standardDeviationOfTheMean(bCold, bColdStdDev);
+  double bWarmSDM = standardDeviationOfTheMean(bWarm, bWarmStdDev);
 
   print('');
   print('Uncertainty:');
-  print(
-      '$aColdStdDevMean, $aWarmStdDevMean, $bColdStdDevMean, $bWarmStdDevMean');
+  print('$aColdSDM, $aWarmSDM, $bColdSDM, $bWarmSDM');
 
   double coldDelta = aColdMean - bColdMean;
-  double coldStdDevMean =
-      sqrt(pow(aColdStdDevMean, 2) + pow(bColdStdDevMean, 2));
+  double coldUncertainty = sqrt(pow(aColdSDM, 2) + pow(bColdSDM, 2));
   double warmDelta = aWarmMean - bWarmMean;
-  double warmStdDevMean =
-      sqrt(pow(aWarmStdDevMean, 2) + pow(bWarmStdDevMean, 2));
+  double warmUncertainty = sqrt(pow(aWarmSDM, 2) + pow(bWarmSDM, 2));
+
+  double coldDeltaPercent = (coldDelta / bColdMean * 1000).round() / 10;
+  double coldUncertaintyPercent =
+      (coldUncertainty / bColdMean * 1000).round() / 10;
+  double warmDeltaPercent = (warmDelta / bWarmMean * 1000).round() / 10;
+  double warmUncertaintyPercent =
+      (warmUncertainty / bWarmMean * 1000).round() / 10;
+
+  double coldBest = coldDelta - 3 * coldUncertainty;
+  double coldBestPercent = coldDeltaPercent - 3 * coldUncertaintyPercent;
+  double coldWorst = coldDelta + 3 * coldUncertainty;
+  double coldWorstPercent = coldDeltaPercent + 3 * coldUncertaintyPercent;
+
+  double warmBest = warmDelta - 3 * warmUncertainty;
+  double warmBestPercent = warmDeltaPercent - 3 * warmUncertaintyPercent;
+  double warmWorst = warmDelta + 3 * warmUncertainty;
+  double warmWorstPercent = warmDeltaPercent + 3 * warmUncertaintyPercent;
 
   print('');
   print('Summary:');
-  print('  A cold start - B cold start : $coldDelta');
-  print('  Uncertainty                 : $coldStdDevMean');
+  print('$coldDelta, $coldDeltaPercent%, A cold start - B cold start');
+  print('$coldUncertainty, $coldUncertaintyPercent%, Propagated uncertainty');
+  print('$coldBest, $coldBestPercent%, 99.9% best case');
+  print('$coldWorst, $coldWorstPercent%, 99.9% worst case');
   print('');
-  print('  A warm runs - B warm runs   : $warmDelta');
-  print('  Uncertainty                 : $warmStdDevMean');
+  print('$warmDelta, $warmDeltaPercent%, A warm runs - B warm runs');
+  print('$warmUncertainty, $warmUncertaintyPercent%, Propagated uncertainty');
+  print('$warmBest, $warmBestPercent%, 99.9% best case');
+  print('$warmWorst, $warmWorstPercent%, 99.9% worst case');
 }
 
-const String _wroteProgram = 'Wrote program to';
-const String _coldStart = 'Cold start (first run):';
-const String _warmRun = 'Warm run average (runs #4';
+const String _iterationTag = '=== Iteration ';
+const String _summaryTag = 'Summary: {"';
 
 /// Launch the specified dart program, forwarding all arguments and environment
 /// that was passed to this program
@@ -110,24 +147,25 @@ Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
   print('Running $dartApp');
 
   void processLine(String line) {
-    if (line.contains(_wroteProgram)) {
+    if (line.startsWith(_iterationTag)) {
       // Show progress
       stdout
         ..write('.')
         ..flush();
       return;
     }
-    int index = line.indexOf(_coldStart);
-    if (index >= 0) {
-      cold.add(double.parse(line.substring(index + _coldStart.length)));
-      print('\ncold: ${cold.last}');
-      return;
-    }
-    index = line.indexOf(_warmRun);
-    if (index >= 0) {
-      index = line.indexOf(':', index + _warmRun.length);
-      warm.add(double.parse(line.substring(index + 1)));
-      print('warm: ${warm.last}');
+    if (line.startsWith(_summaryTag)) {
+      String json = line.substring(_summaryTag.length - 2);
+      Map<String, dynamic> results = JSON.decode(json);
+      List<double> elapsedTimes = results['elapsedTimes'];
+      print('\nElapse times: $elapsedTimes');
+      if (elapsedTimes.length > 0) {
+        cold.add(elapsedTimes[0]);
+      }
+      if (elapsedTimes.length > 4) {
+        // Drop the first 3 and average the remaining
+        warm.add(average(elapsedTimes.sublist(3)));
+      }
       return;
     }
   }
@@ -135,6 +173,7 @@ Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
   String workingDirPath = workingDir.toFilePath();
   List<String> procArgs = <String>[
     '-Diterations=$iterations',
+    '-Dsummary=true',
     dartApp.toFilePath()
   ];
   procArgs.addAll(args);

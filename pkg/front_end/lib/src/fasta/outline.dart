@@ -6,6 +6,8 @@ library fasta.outline;
 
 import 'dart:async' show Future;
 
+import 'dart:convert' show JSON;
+
 import 'dart:io' show exitCode;
 
 import 'kernel/verifier.dart' show verifyProgram;
@@ -24,14 +26,27 @@ import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
 
+const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 compileEntryPoint(List<String> arguments) async {
+  // Timing results for each iteration
+  List<double> elapsedTimes = <double>[];
+
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
-      print("\n");
+      print("\n\n=== Iteration ${i+1} of $iterations");
     }
+    var stopwatch = new Stopwatch()..start();
     await compile(arguments);
+    stopwatch.stop();
+
+    elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
+  }
+
+  if (summary) {
+    var json = JSON.encode(<String, dynamic>{'elapsedTimes': elapsedTimes});
+    print('\nSummary: $json');
   }
 }
 
