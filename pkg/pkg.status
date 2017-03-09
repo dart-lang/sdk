@@ -211,3 +211,4 @@ kernel/test/closures_test: Fail
 
 [ $runtime == vm && $system == windows ]
 analyzer_cli/test/driver_test: Pass, Slow
+analyzer/test/src/task/strong/checker_test: Pass, Slow
