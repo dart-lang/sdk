@@ -209,7 +209,6 @@ static void FindErrorHandler(uword* handler_pc,
 static uword RemapExceptionPCForDeopt(Thread* thread,
                                       uword program_counter,
                                       uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -231,13 +230,11 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
       }
     }
   }
-#endif  // !DBC
   return program_counter;
 }
 
 
 static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -247,7 +244,7 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     {
       DartFrameIterator frames(thread);
       StackFrame* frame = frames.NextFrame();
-      while ((frame != NULL) && (frame->fp() < frame_pointer)) {
+      while ((frame != NULL) && IsCalleeFrameOf(frame_pointer, frame->fp())) {
         if (frame->IsMarkedForLazyDeopt()) {
           frame->UnmarkForLazyDeopt();
         }
@@ -260,7 +257,7 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
 #endif
 
     for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-      if ((*pending_deopts)[i].fp() < frame_pointer) {
+      if (IsCalleeFrameOf(frame_pointer, (*pending_deopts)[i].fp())) {
         if (FLAG_trace_deoptimization) {
           THR_Print(
               "Lazy deopt skipped due to throw for "
@@ -275,7 +272,6 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     ValidateFrames();
 #endif
   }
-#endif  // !DBC
 }
 
 
@@ -301,8 +297,13 @@ void Exceptions::JumpToFrame(Thread* thread,
                              uword stack_pointer,
                              uword frame_pointer,
                              bool clear_deopt_at_target) {
-  uword fp_for_clearing =
-      (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
+  uword fp_for_clearing = (clear_deopt_at_target
+#if defined(TARGET_ARCH_DBC)
+                               ? frame_pointer - 1
+#else
+                               ? frame_pointer + 1
+#endif
+                               : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done

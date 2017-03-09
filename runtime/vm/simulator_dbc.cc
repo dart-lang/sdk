@@ -1086,20 +1086,28 @@ static DART_NOINLINE bool InvokeNativeWrapper(Thread* thread,
     goto DispatchAfterException;                                               \
   } while (0)
 
-// Runtime call helpers: handle invocation and potential exception after return.
+// Runtime call helpers: handle invocation and potential exception
+// after return.  The caller may have changed the return address on
+// the stack.  Handle this by updating the pc.
 #define INVOKE_RUNTIME(Func, Args)                                             \
   if (!InvokeRuntime(thread, this, Func, Args)) {                              \
     HANDLE_EXCEPTION;                                                          \
+  } else {                                                                     \
+    pc = reinterpret_cast<uint32_t*>(fp_[kSavedCallerPcSlotFromFp]);           \
   }
 
 #define INVOKE_NATIVE(Func, Args)                                              \
   if (!InvokeNative(thread, this, Func, &Args)) {                              \
     HANDLE_EXCEPTION;                                                          \
+  } else {                                                                     \
+    pc = reinterpret_cast<uint32_t*>(fp_[kSavedCallerPcSlotFromFp]);           \
   }
 
 #define INVOKE_NATIVE_WRAPPER(Func, Args)                                      \
   if (!InvokeNativeWrapper(thread, this, Func, &Args)) {                       \
     HANDLE_EXCEPTION;                                                          \
+  } else {                                                                     \
+    pc = reinterpret_cast<uint32_t*>(fp_[kSavedCallerPcSlotFromFp]);           \
   }
 
 #define LOAD_CONSTANT(index) (pp->data()[(index)].raw_obj_)
@@ -1124,6 +1132,8 @@ DART_FORCE_INLINE bool Simulator::Deoptimize(Thread* thread,
   EnterSyntheticFrame(FP, SP, *pc - (is_lazy ? 1 : 0));
   const intptr_t frame_size_in_bytes =
       DLRT_DeoptimizeCopyFrame(reinterpret_cast<uword>(*FP), is_lazy ? 1 : 0);
+  // Copy frame updates the caller pc (which is our pc).
+  *pc = reinterpret_cast<uint32_t*>((*FP)[kSavedCallerPcSlotFromFp]);
   LeaveSyntheticFrame(FP, SP);
 
   *SP = *FP + (frame_size_in_bytes / kWordSize);
@@ -1552,7 +1562,7 @@ RawObject* Simulator::Call(const Code& code,
       SP[1] = null_value;
       Exit(thread, FP, SP + 2, pc);
       NativeArguments args(thread, 0, NULL, SP + 1);
-      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)
+      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args);
       DISPATCH_OP(original_bc);
     }
 #else
@@ -2656,8 +2666,18 @@ RawObject* Simulator::Call(const Code& code,
       return result;
     }
 
+    // If we have a pending lazy deopt then the caller's pc is stored
+    // in the isolate.
+    uint32_t* caller_pc = pc;
+    if ((reinterpret_cast<uword>(pc) ==
+         StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint())) {
+      caller_pc =
+          reinterpret_cast<uint32_t*>(thread->isolate()->FindPendingDeopt(
+              reinterpret_cast<uword>(SavedCallerFP(FP))));
+    }
+
     // Look at the caller to determine how many arguments to pop.
-    const uint8_t argc = Bytecode::DecodeArgc(pc[-1]);
+    const uint8_t argc = Bytecode::DecodeArgc(caller_pc[-1]);
 
     // Restore SP, FP and PP. Push result and dispatch.
     SP = FrameArguments(FP, argc);

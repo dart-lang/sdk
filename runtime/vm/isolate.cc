@@ -1945,14 +1945,15 @@ uword Isolate::FindPendingDeopt(uword fp) const {
       return (*pending_deopts_)[i].pc();
     }
   }
-  FATAL("Missing pending deopt entry");
+  FATAL1("Missing pending deopt entry for fp=%" Pp "", fp);
   return 0;
 }
 
 
 void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
   for (intptr_t i = pending_deopts_->length() - 1; i >= 0; i--) {
-    if ((*pending_deopts_)[i].fp() <= fp) {
+    uword deopt_fp = (*pending_deopts_)[i].fp();
+    if ((fp == deopt_fp) || IsCalleeFrameOf(fp, deopt_fp)) {
       pending_deopts_->RemoveAt(i);
     }
   }

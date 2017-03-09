@@ -49,6 +49,7 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
 
 void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ DeoptRewind();
+  __ Trap();
 }
 
 
@@ -75,12 +76,14 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // with something meaningful to make sure GC can scan the stack during
 // the last phase of deoptimization which materializes objects.
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
-  __ Trap();
+  __ Deopt(0 /* unused */, 0 /* lazy */);
+  __ Trap();  // Not reached: pc is updated as part of deoptimization.
 }
 
 
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
-  __ Trap();
+  __ Deopt(0 /* unused */, 0 /* lazy */);
+  __ Trap();  // Not reached: pc is updated as part of deoptimization.
 }
 
 
