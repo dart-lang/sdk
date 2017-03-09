@@ -128,14 +128,16 @@ class _Visitor extends SimpleAstVisitor {
         new ErrorReporter(
             AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
 
-    final DartObjectImpl rightValue = binaryExpression.rightOperand.accept(visitor);
+    final DartObjectImpl rightValue =
+        binaryExpression.rightOperand.accept(visitor);
     if (rightValue?.type?.name == "int") {
       // Constant is on right side of comparison operator
       _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
       return;
     }
 
-    final DartObjectImpl leftValue = binaryExpression.leftOperand.accept(visitor);
+    final DartObjectImpl leftValue =
+        binaryExpression.leftOperand.accept(visitor);
     if (leftValue?.type?.name == "int") {
       // Constants is on left side of comparison operator
       _checkConstant(binaryExpression, leftValue.toIntValue(),

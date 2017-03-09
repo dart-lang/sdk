@@ -234,10 +234,10 @@ AstNodePredicate _noFurtherAssignmentInvalidatingCondition(
     }
 
     return nodesInDFS
-            .skipWhile((n) => n != statement)
-            .takeWhile((n) => n != node)
-            .where(isMutation)
-            .isEmpty;
+        .skipWhile((n) => n != statement)
+        .takeWhile((n) => n != node)
+        .where(isMutation)
+        .isEmpty;
   };
 }
 

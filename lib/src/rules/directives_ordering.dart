@@ -245,16 +245,19 @@ class _Visitor extends SimpleAstVisitor {
     _checkDirectiveSectionOrderedAlphabetically(lintedNodes, node);
   }
 
-  void _checkDartDirectiveGoFirst(Set<AstNode> lintedNodes, CompilationUnit node) {
+  void _checkDartDirectiveGoFirst(
+      Set<AstNode> lintedNodes, CompilationUnit node) {
     void reportImport(NamespaceDirective directive) {
       if (lintedNodes.add(directive)) {
-        rule._reportLintWithDartDirectiveGoFirstMessage(directive, _importKeyword);
+        rule._reportLintWithDartDirectiveGoFirstMessage(
+            directive, _importKeyword);
       }
     }
 
     void reportExport(NamespaceDirective directive) {
       if (lintedNodes.add(directive)) {
-        rule._reportLintWithDartDirectiveGoFirstMessage(directive, _exportKeyword);
+        rule._reportLintWithDartDirectiveGoFirstMessage(
+            directive, _exportKeyword);
       }
     }
 

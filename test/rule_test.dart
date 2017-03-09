@@ -139,8 +139,10 @@ defineRuleUnitTests() {
       testEach(bad, isValidDartIdentifier, isFalse);
     });
     group('pubspec', () {
-      testEach(['pubspec.yaml', '_pubspec.yaml'], Analyzer.facade.isPubspecFileName, isTrue);
-      testEach(['__pubspec.yaml', 'foo.yaml'], Analyzer.facade.isPubspecFileName, isFalse);
+      testEach(['pubspec.yaml', '_pubspec.yaml'],
+          Analyzer.facade.isPubspecFileName, isTrue);
+      testEach(['__pubspec.yaml', 'foo.yaml'],
+          Analyzer.facade.isPubspecFileName, isFalse);
     });
 
     group('camel case', () {
@@ -233,16 +235,15 @@ defineRuleUnitTests() {
       testEachInt(bad, Analyzer.facade.isUpperCase, isFalse);
     });
     group('libary_name_prefixes', () {
-      testEach(Iterable<List<String>> values, dynamic f(List<String> s),
-          Matcher m) {
+      testEach(
+          Iterable<List<String>> values, dynamic f(List<String> s), Matcher m) {
         values.forEach((s) => test('${s[3]}', () => expect(f(s), m)));
       }
 
-      bool isGoodPrefx(List<String> v) =>
-          matchesOrIsPrefixedBy(
-              v[3],
-              Analyzer.facade.createLibraryNamePrefix(
-                  libraryPath: v[0], projectRoot: v[1], packageName: v[2]));
+      bool isGoodPrefx(List<String> v) => matchesOrIsPrefixedBy(
+          v[3],
+          Analyzer.facade.createLibraryNamePrefix(
+              libraryPath: v[0], projectRoot: v[1], packageName: v[2]));
 
       var good = [
         ['/u/b/c/lib/src/a.dart', '/u/b/c', 'acme', 'acme.src.a'],
@@ -300,19 +301,16 @@ defineSanityTests() {
     });
     test('inequality', () {
       expect(
-              () =>
-              expect(new Annotation('Message', ErrorType.LINT, 1),
-                  matchesAnnotation('Message', ErrorType.HINT, 1)),
+          () => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message', ErrorType.HINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
       expect(
-              () =>
-              expect(new Annotation('Message', ErrorType.LINT, 1),
-                  matchesAnnotation('Message2', ErrorType.LINT, 1)),
+          () => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message2', ErrorType.LINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
       expect(
-              () =>
-              expect(new Annotation('Message', ErrorType.LINT, 1),
-                  matchesAnnotation('Message', ErrorType.LINT, 2)),
+          () => expect(new Annotation('Message', ErrorType.LINT, 1),
+              matchesAnnotation('Message', ErrorType.LINT, 2)),
           throwsA(new isInstanceOf<TestFailure>()));
     });
   });
@@ -376,8 +374,8 @@ Annotation extractAnnotation(String line) {
   return null;
 }
 
-AnnotationMatcher matchesAnnotation(String message, ErrorType type,
-    int lineNumber) =>
+AnnotationMatcher matchesAnnotation(
+        String message, ErrorType type, int lineNumber) =>
     new AnnotationMatcher(new Annotation(message, type, lineNumber));
 
 testEach(Iterable<Object> values, bool f(String s), Matcher m) {
@@ -461,13 +459,9 @@ class Annotation {
 
   Annotation.forError(AnalysisError error, LineInfo lineInfo)
       : this(error.message, error.errorCode.type,
-      lineInfo
-          .getLocation(error.offset)
-          .lineNumber,
-      column: lineInfo
-          .getLocation(error.offset)
-          .columnNumber,
-      length: error.length);
+            lineInfo.getLocation(error.offset).lineNumber,
+            column: lineInfo.getLocation(error.offset).columnNumber,
+            length: error.length);
 
   Annotation.forLint([String message, int column, int length])
       : this(message, ErrorType.LINT, null, column: column, length: length);
@@ -479,7 +473,7 @@ class Annotation {
   static Iterable<Annotation> fromErrors(AnalysisErrorInfo error) {
     List<Annotation> annotations = [];
     error.errors.forEach(
-            (e) => annotations.add(new Annotation.forError(e, error.lineInfo)));
+        (e) => annotations.add(new Annotation.forError(e, error.lineInfo)));
     return annotations;
   }
 }

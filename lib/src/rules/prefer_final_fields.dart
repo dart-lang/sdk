@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor {
         return;
       }
 
-      if (variable.initializer == null){
+      if (variable.initializer == null) {
         return;
       }
 

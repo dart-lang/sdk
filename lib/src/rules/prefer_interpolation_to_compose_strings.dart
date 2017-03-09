@@ -61,18 +61,21 @@ class _Visitor extends SimpleAstVisitor {
         _checkAssignmentExpression(node, skippedNodes);
       }
     }
+
     DartTypeUtilities.traverseNodesInDFS(node).forEach(checkRule);
   }
 
-  _checkAssignmentExpression(AssignmentExpression node, Set<AstNode> skippedNodes) {
+  _checkAssignmentExpression(
+      AssignmentExpression node, Set<AstNode> skippedNodes) {
     if (node.operator.type == TokenType.PLUS_EQ &&
-        (DartTypeUtilities.isClass(node.leftHandSide.bestType, 'String', 'dart.core') ||
-            DartTypeUtilities.isClass(node.rightHandSide.bestType, 'String', 'dart.core'))) {
+        (DartTypeUtilities.isClass(
+                node.leftHandSide.bestType, 'String', 'dart.core') ||
+            DartTypeUtilities.isClass(
+                node.rightHandSide.bestType, 'String', 'dart.core'))) {
       DartTypeUtilities.traverseNodesInDFS(node).forEach(skippedNodes.add);
       rule.reportLint(node);
     }
   }
-
 
   _checkBinaryExpression(BinaryExpression node, Set<AstNode> skippedNodes) {
     if (node.operator.type == TokenType.PLUS) {
@@ -80,8 +83,10 @@ class _Visitor extends SimpleAstVisitor {
           node.rightOperand is StringLiteral) {
         return;
       }
-      if (DartTypeUtilities.isClass(node.leftOperand.bestType, 'String', 'dart.core') ||
-          DartTypeUtilities.isClass(node.rightOperand.bestType, 'String', 'dart.core')) {
+      if (DartTypeUtilities.isClass(
+              node.leftOperand.bestType, 'String', 'dart.core') ||
+          DartTypeUtilities.isClass(
+              node.rightOperand.bestType, 'String', 'dart.core')) {
         DartTypeUtilities.traverseNodesInDFS(node).forEach(skippedNodes.add);
         rule.reportLint(node);
       }
