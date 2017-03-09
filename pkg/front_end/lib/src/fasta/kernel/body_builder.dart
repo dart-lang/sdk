@@ -2707,8 +2707,10 @@ String getNodeName(Object node) {
     return node.name;
   } else if (node is PrefixBuilder) {
     return node.name;
-  } else if (node is ThisPropertyAccessor) {
-    return node.name.name;
+  } else if (node is ThisAccessor) {
+    return node.isSuper ? "super" : "this";
+  } else if (node is BuilderAccessor) {
+    return node.plainNameForRead;
   } else {
     return internalError("Unhandled: ${node.runtimeType}");
   }
