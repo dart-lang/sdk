@@ -2184,6 +2184,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     if (impact.usesInterceptor) {
       if (backend.codegenEnqueuer.nativeEnqueuer.hasInstantiatedNativeClasses) {
         impacts.interceptorUse.registerImpact(transformed, elementEnvironment);
+        // TODO(johnniwinther): Avoid these workarounds.
+        backend.backendUsage.needToInitializeIsolateAffinityTag = true;
+        backend.backendUsage.needToInitializeDispatchProperty = true;
       }
     }
 

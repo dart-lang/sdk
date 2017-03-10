@@ -16,8 +16,8 @@ import 'backend_helpers.dart';
 import 'backend_impact.dart';
 
 abstract class BackendUsage {
-  bool get needToInitializeIsolateAffinityTag;
-  bool get needToInitializeDispatchProperty;
+  bool needToInitializeIsolateAffinityTag;
+  bool needToInitializeDispatchProperty;
   bool usedByBackend(Element element);
   Iterable<Element> get globalDependencies;
 
@@ -236,8 +236,8 @@ class BackendUsageImpl implements BackendUsage {
   /// List of elements that the backend may use.
   final Set<Element> _helpersUsed;
 
-  final bool needToInitializeIsolateAffinityTag;
-  final bool needToInitializeDispatchProperty;
+  bool needToInitializeIsolateAffinityTag;
+  bool needToInitializeDispatchProperty;
 
   /// `true` if a core-library function requires the preamble file to function.
   final bool requiresPreamble;
