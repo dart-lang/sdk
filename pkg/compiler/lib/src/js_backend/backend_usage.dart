@@ -147,8 +147,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     return false;
   }
 
-  void _processBackendStaticUse(MethodElement element,
-      {bool isGlobal: false}) {
+  void _processBackendStaticUse(MethodElement element, {bool isGlobal: false}) {
     registerBackendUse(element);
     if (isGlobal) {
       registerGlobalDependency(element);
