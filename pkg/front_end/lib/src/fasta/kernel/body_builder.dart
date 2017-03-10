@@ -1927,7 +1927,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     enterLocalScope();
     LabelTarget target = new LabelTarget(member, token.charOffset);
     for (Label label in labels) {
-      scope[label.name] = target;
+      scope.declareLabel(label.name, target);
     }
     push(target);
   }
@@ -2030,11 +2030,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     assert(scope == switchScope);
     for (Label label in labels) {
-      Builder existing = scope.local[label.name];
-      if (existing == null) {
-        scope[label.name] = createGotoTarget(firstToken.charOffset);
-      } else {
+      if (scope.hasLocalLabel(label.name)) {
         // TODO(ahe): Should validate this is a goto target and not duplicated.
+      } else {
+        scope.declareLabel(label.name, createGotoTarget(firstToken.charOffset));
       }
     }
     push(expressions);
@@ -2074,8 +2073,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       List<Label> labels = pop();
       SwitchCase current = cases[i] = pop();
       for (Label label in labels) {
-        JumpTarget target =
-            switchScope.lookup(label.name, label.fileOffset, uri);
+        JumpTarget target = switchScope.lookupLabel(label.name);
         if (target != null) {
           target.resolveGotos(current);
         }
@@ -2109,7 +2107,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (hasTarget) {
       Identifier identifier = pop();
       name = identifier.name;
-      target = scope.lookup(identifier.name, breakKeyword.next.charOffset, uri);
+      target = scope.lookupLabel(identifier.name);
     }
     if (target == null && name == null) {
       push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
@@ -2136,8 +2134,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (hasTarget) {
       Identifier identifier = pop();
       name = identifier.name;
-      target =
-          scope.lookup(identifier.name, continueKeyword.next.charOffset, uri);
+      target = scope.lookupLabel(identifier.name);
       if (target != null && target is! JumpTarget) {
         push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
             "Target of continue must be a label.", continueKeyword.charOffset));
@@ -2149,8 +2146,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               "Can't find label '$name'.", continueKeyword.next.charOffset));
           return;
         }
-        switchScope[identifier.name] =
-            target = createGotoTarget(identifier.fileOffset);
+        switchScope.declareLabel(
+            identifier.name, target = createGotoTarget(identifier.fileOffset));
       }
       if (target.isGotoTarget) {
         ContinueSwitchStatement statement = new ContinueSwitchStatement(null);

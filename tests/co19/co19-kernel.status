@@ -472,7 +472,6 @@ Language/Statements/For/syntax_t13: MissingCompileTimeError
 Language/Statements/For/syntax_t19: MissingCompileTimeError
 Language/Statements/For/syntax_t20: MissingCompileTimeError
 Language/Statements/If/execution_t03: Crash
-Language/Statements/Labels/namespace_t01: DartkCrash
 Language/Statements/Labels/scope_t05: MissingCompileTimeError
 Language/Statements/Labels/syntax_t03: Pass # OK
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError

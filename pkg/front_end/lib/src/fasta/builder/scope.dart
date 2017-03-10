@@ -20,6 +20,8 @@ class Scope {
   /// succeed.
   final bool isModifiable;
 
+  Map<String, Builder> labels;
+
   Scope(this.local, this.parent, {this.isModifiable: true});
 
   Scope createNestedScope({bool isModifiable: true}) {
@@ -84,6 +86,21 @@ class Scope {
     assert(getterBuilder != null);
     assert(setterBuilder != null);
     return setter ? setterBuilder : getterBuilder;
+  }
+
+  bool hasLocalLabel(String name) => labels != null && labels.containsKey(name);
+
+  void declareLabel(String name, Builder target) {
+    if (isModifiable) {
+      labels ??= <String, Builder>{};
+      labels[name] = target;
+    } else {
+      internalError("Can't extend an unmodifiable scope.");
+    }
+  }
+
+  Builder lookupLabel(String name) {
+    return (labels == null ? null : labels[name]) ?? parent?.lookupLabel(name);
   }
 
   // TODO(ahe): Rename to extend or something.
