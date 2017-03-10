@@ -15,7 +15,7 @@ import 'package:unittest/unittest.dart';
 
 // Chop off the file name.
 String baseDirectory =
-    path.dirname(Platform.script.path) + Platform.pathSeparator;
+    path.dirname(Platform.script.path) + '/';
 
 Uri baseUri = Platform.script.replace(path: baseDirectory);
 Uri spawnUri = baseUri.resolveUri(Uri.parse('complex_reload/v1/main.dart'));
