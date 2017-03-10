@@ -374,7 +374,6 @@ function_syntax_test/69: MissingCompileTimeError
 function_syntax_test/71: MissingCompileTimeError
 function_syntax_test/73: MissingCompileTimeError
 function_syntax_test/74: MissingCompileTimeError
-function_type/function_type*: DartkCrash # Issue 27969
 function_type_alias2_test: RuntimeError
 function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
@@ -548,7 +547,6 @@ setter4_test: CompileTimeError
 setter_override_test/01: RuntimeError
 setter_override_test/02: RuntimeError
 setter_override_test/none: RuntimeError
-source_self_negative_test: DartkCrash
 static_field3_test/03: CompileTimeError
 static_field3_test/04: CompileTimeError
 static_final_field2_test/02: MissingCompileTimeError

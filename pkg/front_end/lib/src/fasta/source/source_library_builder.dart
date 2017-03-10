@@ -334,7 +334,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void includeParts() {
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
-      includePart(part);
+      if (part == this) {
+        addCompileTimeError(-1, "A file can't be a part of itself.");
+      } else {
+        includePart(part);
+      }
     }
   }
 

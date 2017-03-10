@@ -366,7 +366,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for de
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t02: Timeout
 Language/Libraries_and_Scripts/Parts/compilation_t07: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t09: DartkCrash
 Language/Libraries_and_Scripts/Parts/compilation_t11: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/static_warning_t01: CompileTimeError
 Language/Libraries_and_Scripts/Parts/syntax_t01: MissingCompileTimeError
@@ -613,7 +612,14 @@ Language/Metadata/before_function_t05: RuntimeError
 Language/Metadata/before_function_t06: RuntimeError
 Language/Metadata/before_function_t07: RuntimeError
 Language/Metadata/before_type_param_t01: CompileTimeError
-Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
+Language/Metadata/compilation_t01: MissingCompileTimeError
+Language/Metadata/compilation_t02: MissingCompileTimeError
+Language/Metadata/compilation_t03: MissingCompileTimeError
+Language/Metadata/compilation_t04: MissingCompileTimeError
+Language/Metadata/compilation_t08: MissingCompileTimeError
+Language/Metadata/compilation_t09: MissingCompileTimeError
+Language/Metadata/compilation_t10: MissingCompileTimeError
+Language/Metadata/compilation_t11: MissingCompileTimeError
 Language/Overview/Privacy/private_and_public_t04: CompileTimeError
 Language/Statements/Labels/scope_t01: CompileTimeError
 Language/Statements/Labels/scope_t07: CompileTimeError
@@ -632,6 +638,8 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
+Language/Classes/Constructors/Factories/name_t04: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t05: MissingCompileTimeError
 Language/Classes/Constructors/Factories/redirecting_to_itself_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/redirecting_to_itself_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/redirecting_to_itself_t03: MissingCompileTimeError
