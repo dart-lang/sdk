@@ -106,6 +106,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
                bool require_client_certificate,
                Dart_Handle protocols_handle);
   void Destroy();
+  void FreeResources();
   void Handshake();
   void GetSelectedProtocol(Dart_NativeArguments args);
   void Renegotiate(bool use_session_cache,
