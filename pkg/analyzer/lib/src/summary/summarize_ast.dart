@@ -414,7 +414,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Map<int, int> localClosureIndexMap = null;
       _ConstExprSerializer serializer =
           new _ConstExprSerializer(this, localClosureIndexMap, null);
-      serializer.serializeAnnotation(a);
+      try {
+        serializer.serializeAnnotation(a);
+      } on StateError {
+        return new UnlinkedExprBuilder()..isValidConst = false;
+      }
       return serializer.toBuilder();
     }).toList();
   }

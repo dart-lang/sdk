@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
 
@@ -9225,6 +9226,17 @@ D d;''');
     addNamedSource('/foo.dart', 'const b = null;');
     serializeLibraryText('@a import "foo.dart"; const a = b;');
     checkAnnotationA(unlinkedUnits[0].imports[0].annotations);
+  }
+
+  test_metadata_invalid_assignable() {
+    // Verify that the following does not cause an exception to be thrown.
+    serializeLibraryText('@a(-b=""c');
+    expect(unlinkedUnits, hasLength(1));
+    List<UnlinkedVariable> variables = unlinkedUnits[0].variables;
+    expect(variables, hasLength(1));
+    List<UnlinkedExpr> annotations = variables[0].annotations;
+    expect(annotations, hasLength(1));
+    expect(annotations[0].isValidConst, isFalse);
   }
 
   test_metadata_invalid_instanceCreation_argument_super() {
