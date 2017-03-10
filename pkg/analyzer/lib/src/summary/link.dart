@@ -354,6 +354,8 @@ abstract class ClassElementForLink extends Object
   /// TODO(brianwilkerson) This appears to be unused and might be removable.
   bool hasBeenInferred;
 
+  bool hasInferredInstanceMethods = false;
+
   ClassElementForLink(CompilationUnitElementForLink enclosingElement)
       : enclosingElement = enclosingElement,
         hasBeenInferred = !enclosingElement.isInBuildUnit;
@@ -1287,9 +1289,11 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
    */
   void link() {
     if (library._linker.strongMode) {
-      new InstanceMemberInferrer(enclosingElement._linker.typeProvider,
-              enclosingElement.inheritanceManager)
-          .inferCompilationUnit(this);
+      var inferrer = new InstanceMemberInferrer(
+          enclosingElement._linker.typeProvider,
+          enclosingElement.inheritanceManager);
+      inferrer.inferInstanceMethods(this);
+      inferrer.inferCompilationUnit(this);
       for (TopLevelVariableElementForLink variable in topLevelVariables) {
         variable.link(this);
       }

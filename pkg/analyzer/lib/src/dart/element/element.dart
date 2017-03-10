@@ -455,6 +455,12 @@ class ClassElementImpl extends AbstractClassElementImpl
   List<MethodElement> _methods;
 
   /**
+   * A flag indicating whether the types associated with the instance methods of
+   * this class have been inferred.
+   */
+  bool _hasInferredInstanceMethods = false;
+
+  /**
    * A flag indicating whether the types associated with the instance members of
    * this class have been inferred.
    */
@@ -649,6 +655,18 @@ class ClassElementImpl extends AbstractClassElementImpl
   void set hasBeenInferred(bool hasBeenInferred) {
     _assertNotResynthesized(_unlinkedClass);
     _hasBeenInferred = hasBeenInferred;
+  }
+
+  bool get hasInferredInstanceMethods {
+    if (_unlinkedClass != null) {
+      return context.analysisOptions.strongMode;
+    }
+    return _hasInferredInstanceMethods;
+  }
+
+  void set hasInferredInstanceMethods(bool done) {
+    _assertNotResynthesized(_unlinkedClass);
+    _hasInferredInstanceMethods = done;
   }
 
   @override
