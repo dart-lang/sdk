@@ -469,7 +469,6 @@ mixin_illegal_cycles_test/05: MissingCompileTimeError
 mixin_illegal_cycles_test/06: MissingCompileTimeError
 mixin_illegal_object_test/01: MissingCompileTimeError
 mixin_illegal_object_test/02: MissingCompileTimeError
-mixin_invalid_inheritance2_test/03: DartkCrash
 mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError

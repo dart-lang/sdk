@@ -414,7 +414,6 @@ Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t02: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t07: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_type_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_type_t02: DartkCrash
 Language/Mixins/Mixin_Application/wrong_type_t04: Crash
 Language/Mixins/Mixin_Application/wrong_type_t05: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_type_t06: Crash

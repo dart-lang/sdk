@@ -76,6 +76,7 @@ import 'kernel_builder.dart'
     show
         Builder,
         ClassBuilder,
+        InvalidTypeBuilder,
         KernelClassBuilder,
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
@@ -405,7 +406,7 @@ class KernelTarget extends TargetImplementation {
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
-    /// http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
+    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     if (builder is NamedMixinApplicationBuilder) {
       /// >A mixin application of the form S with M; defines a class C with
       /// >superclass S.
@@ -444,6 +445,8 @@ class KernelTarget extends TargetImplementation {
                 builder.cls.mixin, constructor, substitutionMap));
           }
         }
+      } else if (supertype is InvalidTypeBuilder) {
+        builder.addSyntheticConstructor(makeDefaultConstructor());
       } else {
         internalError("Unhandled: ${supertype.runtimeType}");
       }
