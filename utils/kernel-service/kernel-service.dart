@@ -44,7 +44,7 @@ Future<CompilationResult> _processLoadRequestImpl(String inputFilePathOrUri) {
   if (!scriptUri.isScheme('file')) {
     // TODO(vegorov): Reuse loader code to support other schemes.
     return new Future<CompilationResult>.value(new CompilationResult.error(
-        ["Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"]));
+        "Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"));
   }
 
   return parseScript(scriptUri, verbose: verbose);

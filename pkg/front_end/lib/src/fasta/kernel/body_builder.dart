@@ -25,7 +25,7 @@ import '../parser/dart_vm_native.dart' show skipNativeClause;
 import '../scanner/token.dart'
     show BeginGroupToken, Token, isBinaryOperator, isMinusOperator;
 
-import '../errors.dart' show internalError, printUnexpected;
+import '../errors.dart' show formatUnexpected, internalError;
 
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
@@ -112,8 +112,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   bool isFirstIdentifier = false;
 
-  bool hasParserError = false;
-
   bool inInitializer = false;
 
   bool inCatchClause = false;
@@ -142,6 +140,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         library = library,
         isDartLibrary = library.uri.scheme == "dart",
         super(scope);
+
+  bool get hasParserError => recoverableErrors.isNotEmpty;
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is KernelConstructorBuilder;
@@ -2204,12 +2204,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
+    bool silent = hasParserError;
     super.handleRecoverableError(token, kind, arguments);
-    if (!hasParserError) {
-      printUnexpected(uri, recoverableErrors.last.beginOffset,
-          '${recoverableErrors.last.kind}');
-    }
-    hasParserError = true;
+    addCompileTimeError(recoverableErrors.last.beginOffset,
+        '${recoverableErrors.last.kind} $arguments',
+        silent: silent);
   }
 
   @override
@@ -2231,7 +2230,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression buildCompileTimeError(error, [int charOffset = -1]) {
-    String message = printUnexpected(uri, charOffset, error);
+    addCompileTimeError(charOffset, error);
+    String message = formatUnexpected(uri, charOffset, error);
     Builder constructor = library.loader.getCompileTimeError();
     return new Throw(buildStaticInvocation(constructor.target,
         new Arguments(<Expression>[new StringLiteral(message)]),
@@ -2270,8 +2270,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     logEvent("SymbolVoid");
   }
 
-  dynamic addCompileTimeError(int charOffset, String message) {
-    return library.addCompileTimeError(charOffset, message, uri);
+  dynamic addCompileTimeError(int charOffset, String message,
+      {bool silent: false}) {
+    return library.addCompileTimeError(charOffset, message, fileUri: uri);
   }
 
   @override

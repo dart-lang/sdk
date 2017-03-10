@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 import 'package:front_end/src/fasta/compile_platform.dart' as compile_platform;
 
-import 'package:front_end/src/fasta/outline.dart' show CompileTask;
+import 'package:front_end/src/fasta/fasta.dart' show CompileTask;
 
 import 'package:front_end/src/fasta/compiler_command_line.dart'
     show CompilerCommandLine;

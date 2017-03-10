@@ -16,7 +16,7 @@ import 'compiler_context.dart' show CompilerContext;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
-import 'outline.dart' show CompileTask;
+import 'fasta.dart' show CompileTask;
 
 import 'errors.dart' show InputError;
 

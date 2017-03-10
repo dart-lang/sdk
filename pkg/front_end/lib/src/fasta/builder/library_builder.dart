@@ -51,9 +51,12 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
-  void addCompileTimeError(int charOffset, Object message, [Uri fileUri]) {
+  void addCompileTimeError(int charOffset, Object message,
+      {Uri fileUri, bool silent: false}) {
     fileUri ??= this.fileUri;
-    printUnexpected(fileUri, charOffset, message);
+    if (!silent) {
+      printUnexpected(fileUri, charOffset, message);
+    }
     compileTimeErrors.add(new InputError(fileUri, charOffset, message));
   }
 

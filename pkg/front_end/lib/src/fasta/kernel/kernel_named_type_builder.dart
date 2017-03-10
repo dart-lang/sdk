@@ -47,7 +47,7 @@ class KernelNamedTypeBuilder
     String message = builder.isTypeVariable
         ? "The type variable '$name' can't be used as supertype."
         : "The type '$name' can't be used as supertype.";
-    library.addCompileTimeError(charOffset, message, fileUri);
+    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
     return null;
   }
 

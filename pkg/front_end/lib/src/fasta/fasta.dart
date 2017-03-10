@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.outline;
+library fasta;
 
 import 'dart:async' show Future;
 
@@ -188,12 +188,12 @@ Future<CompilationResult> parseScript(
     program = await kernelTarget.writeOutline(null);
     program = await kernelTarget.writeProgram(null);
     if (kernelTarget.errors.isNotEmpty) {
-      return new CompilationResult.error(kernelTarget.errors
+      return new CompilationResult.errors(kernelTarget.errors
           .map((err) => err.toString())
           .toList(growable: false));
     }
   } on InputError catch (e) {
-    return new CompilationResult.error(<String>[e.format()]);
+    return new CompilationResult.error(e.format());
   }
 
   // Perform target-specific transformations.

@@ -12,7 +12,7 @@ import 'dart:io' show File, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'outline.dart' as fasta;
+import 'fasta.dart' as fasta;
 
 /// Compilation status codes.
 ///
@@ -35,7 +35,11 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List bytes) = _CompilationOk;
 
-  factory CompilationResult.error(List<String> errors) = _CompilationError;
+  factory CompilationResult.errors(List<String> errors) = _CompilationError;
+
+  factory CompilationResult.error(String error) {
+    return new _CompilationError(<String>[error]);
+  }
 
   factory CompilationResult.crash(Object exception, StackTrace stack) =
       _CompilationCrash;
