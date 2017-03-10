@@ -42,6 +42,7 @@ const _star_flag = 1 << 2;
 const _static_flag = 1 << 3;
 const _sync_flag = 1 << 1;
 const _var_flag = 0;
+
 /// Retrieve the operator from an assignment operator (e.g. + from +=).
 /// Operators are encoded using the scanner token kind id.
 int opForAssignOp(int kind) {
@@ -80,6 +81,7 @@ int opForAssignOp(int kind) {
       throw "Unhandled kind $kind";
   }
 }
+
 /// Create an unlinked summary given a null-terminated byte buffer with the
 /// contents of a file.
 UnlinkedUnit summarize(Uri uri, List<int> contents) {
@@ -88,6 +90,7 @@ UnlinkedUnit summarize(Uri uri, List<int> contents) {
   parser.parseUnit(scan(contents).tokens);
   return listener.topScope.unit;
 }
+
 /// Builder for constant expressions.
 ///
 /// Any invalid subexpression is denoted with [Invalid].
@@ -295,7 +298,7 @@ abstract class ExpressionListener extends StackListener {
     push(new KeyValuePair(key, value));
   }
 
-  void endLiteralString(int interpolationCount) {
+  void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
     if (interpolationCount != 0) {
       popList(2 * interpolationCount + 1);
@@ -470,6 +473,7 @@ abstract class ExpressionListener extends StackListener {
     if (ignore) return;
     push(new NullLiteral());
   }
+
   void handleModifier(Token token) {
     debugEvent("Modifier");
     assert(ignore);
@@ -480,6 +484,7 @@ abstract class ExpressionListener extends StackListener {
     debugEvent("Modifiers");
     assert(ignore);
   }
+
   // type-variables are the declared parameters on declarations.
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
@@ -505,6 +510,7 @@ abstract class ExpressionListener extends StackListener {
     debugEvent("NoInitializers");
     assert(ignore);
   }
+
   void handleNoType(Token token) {
     debugEvent("NoType");
     if (ignore) return;
@@ -522,6 +528,7 @@ abstract class ExpressionListener extends StackListener {
     if (ignore) return;
     push(_invariantCheckToken);
   }
+
   void handleQualified(period) {
     debugEvent('Qualified');
     if (ignore) return;
@@ -593,6 +600,7 @@ abstract class ExpressionListener extends StackListener {
 
   void _unhandledSend();
 }
+
 /// Builder for initializer expressions. These expressions exclude any nested
 /// expression that is not needed to infer strong mode types.
 class InitializerBuilder extends ExpressionListener {
@@ -664,6 +672,7 @@ class InitializerBuilder extends ExpressionListener {
     pop();
     push(NullValue.Arguments);
   }
+
   void handleNewExpression(Token token) {
     debugEvent("NewExpression");
     if (ignore) return;
@@ -704,6 +713,7 @@ class InitializerBuilder extends ExpressionListener {
     push(new Opaque(hint: "call"));
   }
 }
+
 /// A listener of parser events that builds summary information as parsing
 /// progresses.
 class SummaryBuilder extends StackListener {
@@ -993,6 +1003,7 @@ class SummaryBuilder extends StackListener {
     push(new _InitializedName(
         name, new UnlinkedExecutableBuilder(bodyExpr: initializer)));
   }
+
   void endFields(
       int count, Token covariantKeyword, Token beginToken, Token endToken) {
     debugEvent("Fields");
@@ -1004,6 +1015,7 @@ class SummaryBuilder extends StackListener {
       // _endFields(count, s.currentEnum.values, false);
     }
   }
+
   void endFormalParameter(
       Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     debugEvent("FormalParameter");
@@ -1149,8 +1161,8 @@ class SummaryBuilder extends StackListener {
     if (name == 'dart.core') isCoreLibrary = true;
   }
 
-  void endLiteralString(int count) {
-    assert(count == 0); // TODO(sigmund): handle interpolation
+  void endLiteralString(int interpolationCount, Token endToken) {
+    assert(interpolationCount == 0); // TODO(sigmund): handle interpolation
   }
 
   void endMember() {
@@ -1371,6 +1383,7 @@ class SummaryBuilder extends StackListener {
             : ReferenceKind.topLevelFunction,
         typeVariables?.length ?? 0 /* todo */);
   }
+
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
     push(popList(count) ?? const []);
