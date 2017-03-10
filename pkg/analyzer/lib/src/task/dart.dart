@@ -3469,7 +3469,6 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
           new InheritanceManager(
               resolutionMap.elementDeclaredByCompilationUnit(unit).library),
           typeSystem: context.typeSystem);
-      inferrer.inferInstanceMethods(unit.element);
       inferrer.inferCompilationUnit(unit.element);
     }
     //

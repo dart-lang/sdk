@@ -949,7 +949,6 @@ class B extends A {
 
   InstanceMemberInferrer _runInferrer(CompilationUnitElement unit) {
     InstanceMemberInferrer inferrer = createInferrer(unit.library);
-    inferrer.inferInstanceMethods(unit);
     inferrer.inferCompilationUnit(unit);
     return inferrer;
   }

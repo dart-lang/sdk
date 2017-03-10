@@ -73,7 +73,7 @@ class InstanceMemberInferrer {
    * The classes that have been visited while attempting to infer the types of
    * instance members of some base class.
    */
-  HashSet<ClassElementImpl> classesBeingInferred =
+  HashSet<ClassElementImpl> elementsBeingInferred =
       new HashSet<ClassElementImpl>();
 
   /**
@@ -98,17 +98,6 @@ class InstanceMemberInferrer {
         // This is a short circuit return to prevent types that inherit from
         // types containing a circular reference from being inferred.
       }
-    }
-  }
-
-  /**
-   * Infer types for all of the instance methods in [unit].
-   */
-  void inferInstanceMethods(CompilationUnitElement unit) {
-    for (ClassElement classElement in unit.types) {
-      try {
-        _inferClassInstanceMethods(classElement);
-      } on _CycleException {}
     }
   }
 
@@ -214,7 +203,7 @@ class InstanceMemberInferrer {
       if (classElement.hasBeenInferred) {
         return;
       }
-      if (!classesBeingInferred.add(classElement)) {
+      if (!elementsBeingInferred.add(classElement)) {
         // We have found a circularity in the class hierarchy. For now we just
         // stop trying to infer any type information for any classes that
         // inherit from any class in the cycle. We could potentially limit the
@@ -235,6 +224,7 @@ class InstanceMemberInferrer {
         //
         classElement.fields.forEach(_inferField);
         classElement.accessors.forEach(_inferExecutable);
+        classElement.methods.forEach(_inferExecutable);
         //
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.
@@ -242,49 +232,7 @@ class InstanceMemberInferrer {
         classElement.constructors.forEach(_inferConstructorFieldFormals);
         classElement.hasBeenInferred = true;
       } finally {
-        classesBeingInferred.remove(classElement);
-      }
-    }
-  }
-
-  /**
-   * Infer types for all of the instance methods in the given [classElement].
-   */
-  void _inferClassInstanceMethods(ClassElement classElement) {
-    if (classElement is ClassElementImpl) {
-      if (classElement.hasInferredInstanceMethods) {
-        return;
-      }
-      if (!classesBeingInferred.add(classElement)) {
-        // We have found a circularity in the class hierarchy. For now we just
-        // stop trying to infer any type information for any classes that
-        // inherit from any class in the cycle. We could potentially limit the
-        // algorithm to only not inferring types in the classes in the cycle,
-        // but it isn't clear that the results would be significantly better.
-        throw new _CycleException();
-      }
-      try {
-        //
-        // Process supertypes first.
-        //
-        void processSupertype(InterfaceType type) {
-          ClassElement element = type?.element;
-          if (element != null) {
-            _inferClassInstanceMethods(element);
-          }
-        }
-
-        processSupertype(classElement.supertype);
-        classElement.mixins.forEach(processSupertype);
-        classElement.interfaces.forEach(processSupertype);
-
-        //
-        // Then infer the types for the instance methods in this class.
-        //
-        classElement.methods.forEach(_inferExecutable);
-        classElement.hasInferredInstanceMethods = true;
-      } finally {
-        classesBeingInferred.remove(classElement);
+        elementsBeingInferred.remove(classElement);
       }
     }
   }
