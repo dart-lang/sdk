@@ -103,10 +103,10 @@ void checkElementText(LibraryElement library, String expected,
   }
 
   // Print the actual text to simplify copy/paste into the expectation.
-  if (actualText != expected) {
-    print('-------- Actual --------');
-    print(actualText + '------------------------');
-  }
+//  if (actualText != expected) {
+//    print('-------- Actual --------');
+//    print(actualText + '------------------------');
+//  }
 
   expect(actualText, expected);
 }
