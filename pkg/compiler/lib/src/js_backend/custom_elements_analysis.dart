@@ -183,8 +183,8 @@ class CustomElementsAnalysisJoin {
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = makeTypeConstant(classElement);
-        backend.computeImpactForCompileTimeConstant(
-            constant, impactBuilder, false);
+        backend.computeImpactForCompileTimeConstant(constant, impactBuilder,
+            forResolution: forResolution);
         backend.addCompileTimeConstantForEmission(constant);
       }
     }

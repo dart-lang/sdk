@@ -239,7 +239,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
     var enclosing = constructor.enclosingClass;
-    if (backend.classNeedsRti(astAdapter.getElement(enclosing))) {
+    if (backend.rtiNeed.classNeedsRti(astAdapter.getElement(enclosing))) {
       ClassElement clsElement =
           astAdapter.getElement(constructor).enclosingElement;
       enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
@@ -1693,7 +1693,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction object, ir.ListLiteral listLiteral) {
     ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfListLiteral(listLiteral));
-    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!backend.rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
@@ -1768,7 +1768,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     ir.Class cls = constructor.enclosingClass;
 
-    if (backend.classNeedsRti(astAdapter.getElement(cls))) {
+    if (backend.rtiNeed.classNeedsRti(astAdapter.getElement(cls))) {
       List<HInstruction> typeInputs = <HInstruction>[];
       type.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs

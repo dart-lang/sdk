@@ -376,8 +376,13 @@ class JavaScriptBackend extends Target {
     return result;
   }
 
-  final RuntimeTypes rti;
-  final RuntimeTypesEncoder rtiEncoder;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder =
+      new _RuntimeTypesNeedBuilder();
+  RuntimeTypesNeed _rtiNeed;
+  final _RuntimeTypes _rti;
+  RuntimeTypesChecks _rtiChecks;
+
+  RuntimeTypesEncoder _rtiEncoder;
 
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
@@ -491,8 +496,7 @@ class JavaScriptBackend extends Target {
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
-      : rti = new _RuntimeTypes(compiler),
-        rtiEncoder = new _RuntimeTypesEncoder(compiler),
+      : _rti = new _RuntimeTypes(compiler),
         annotations = new Annotations(compiler),
         this.sourceInformationStrategy = createSourceInformationStrategy(
             generateSourceMap: generateSourceMap,
@@ -562,6 +566,38 @@ class JavaScriptBackend extends Target {
     assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage == null,
         message: "BackendUsage has already been computed."));
     return _backendUsageBuilder;
+  }
+
+  RuntimeTypesNeed get rtiNeed {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeed != null,
+        message: "RuntimeTypesNeed has not been computed yet."));
+    return _rtiNeed;
+  }
+
+  RuntimeTypesNeedBuilder get rtiNeedBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeed == null,
+        message: "RuntimeTypesNeed has already been computed."));
+    return _rtiNeedBuilder;
+  }
+
+  RuntimeTypesChecks get rtiChecks {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks != null,
+        message: "RuntimeTypesChecks has not been computed yet."));
+    return _rtiChecks;
+  }
+
+  RuntimeTypesChecksBuilder get rtiChecksBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks == null,
+        message: "RuntimeTypesChecks has already been computed."));
+    return _rti;
+  }
+
+  RuntimeTypesSubstitutions get rtiSubstitutions => _rti;
+
+  RuntimeTypesEncoder get rtiEncoder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder != null,
+        message: "RuntimeTypesEncoder has not been created."));
+    return _rtiEncoder;
   }
 
   CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
@@ -748,20 +784,21 @@ class JavaScriptBackend extends Target {
   }
 
   /// Called during codegen when [constant] has been used.
-  void computeImpactForCompileTimeConstant(ConstantValue constant,
-      WorldImpactBuilder impactBuilder, bool isForResolution) {
-    computeImpactForCompileTimeConstantInternal(
-        constant, impactBuilder, isForResolution);
+  void computeImpactForCompileTimeConstant(
+      ConstantValue constant, WorldImpactBuilder impactBuilder,
+      {bool forResolution}) {
+    computeImpactForCompileTimeConstantInternal(constant, impactBuilder,
+        forResolution: forResolution);
 
-    if (!isForResolution && lookupMapAnalysis.isLookupMap(constant)) {
+    if (!forResolution && lookupMapAnalysis.isLookupMap(constant)) {
       // Note: internally, this registration will temporarily remove the
       // constant dependencies and add them later on-demand.
       lookupMapAnalysis.registerLookupMapReference(constant);
     }
 
     for (ConstantValue dependency in constant.getDependencies()) {
-      computeImpactForCompileTimeConstant(
-          dependency, impactBuilder, isForResolution);
+      computeImpactForCompileTimeConstant(dependency, impactBuilder,
+          forResolution: forResolution);
     }
   }
 
@@ -769,11 +806,12 @@ class JavaScriptBackend extends Target {
     constants.addCompileTimeConstantForEmission(constant);
   }
 
-  void computeImpactForCompileTimeConstantInternal(ConstantValue constant,
-      WorldImpactBuilder impactBuilder, bool isForResolution) {
+  void computeImpactForCompileTimeConstantInternal(
+      ConstantValue constant, WorldImpactBuilder impactBuilder,
+      {bool forResolution}) {
     ResolutionDartType type = constant.getType(compiler.commonElements);
-    computeImpactForInstantiatedConstantType(
-        type, impactBuilder, isForResolution);
+    computeImpactForInstantiatedConstantType(type, impactBuilder,
+        forResolution: forResolution);
 
     if (constant.isFunction) {
       FunctionConstantValue function = constant;
@@ -783,10 +821,10 @@ class JavaScriptBackend extends Target {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
       ClassElement cls = interceptor.cls;
-      computeImpactForInstantiatedConstantType(
-          cls.thisType, impactBuilder, isForResolution);
+      computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder,
+          forResolution: forResolution);
     } else if (constant.isType) {
-      if (isForResolution) {
+      if (forResolution) {
         MethodElement helper = helpers.createRuntimeType;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
@@ -801,10 +839,11 @@ class JavaScriptBackend extends Target {
   }
 
   void computeImpactForInstantiatedConstantType(
-      DartType type, WorldImpactBuilder impactBuilder, bool isForResolution) {
+      DartType type, WorldImpactBuilder impactBuilder,
+      {bool forResolution}) {
     if (type is ResolutionInterfaceType) {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
-      if (!isForResolution && classNeedsRtiField(type.element)) {
+      if (!forResolution && rtiNeed.classNeedsRtiField(type.element)) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
             helpers.setRuntimeTypeInfo,
@@ -832,10 +871,16 @@ class JavaScriptBackend extends Target {
       processAnnotations(entity, closedWorldRefiner);
     }
     mirrorsData.computeMembersNeededForReflection(closedWorld);
-    rti.computeClassesNeedingRti(
-        compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    _registeredMetadata.clear();
     _backendUsage = _backendUsageBuilder.close();
+    _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
+        compiler.enqueuer.resolution.worldBuilder,
+        closedWorld,
+        compiler.types,
+        commonElements,
+        helpers,
+        _backendUsage,
+        enableTypeAssertions: compiler.options.enableTypeAssertions);
+    _registeredMetadata.clear();
     _interceptorData =
         _interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
@@ -850,7 +895,8 @@ class JavaScriptBackend extends Target {
   /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(
       ResolutionDartType typeArgument, ResolutionDartType bound) {
-    rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
+    rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
+        typeArgument, bound);
   }
 
   /// Returns the [WorldImpact] of enabling deferred loading.
@@ -927,25 +973,11 @@ class JavaScriptBackend extends Target {
     return impactBuilder;
   }
 
-  bool classNeedsRti(ClassElement cls) {
-    if (backendUsage.isRuntimeTypeUsed) return true;
-    return rti.classesNeedingRti.contains(cls.declaration);
-  }
-
-  // TODO(johnniwinther): Move rti queries into an rti data object only
-  // available after resolution.
-  bool classNeedsRtiField(ClassElement cls) {
-    if (cls.rawType.typeArguments.isEmpty) return false;
-    if (backendUsage.isRuntimeTypeUsed) return true;
-    return rti.classesNeedingRti.contains(cls.declaration);
-  }
-
   bool isComplexNoSuchMethod(FunctionElement element) =>
       noSuchMethodRegistry.isComplex(element);
 
   bool methodNeedsRti(FunctionElement function) {
-    return rti.methodsNeedingRti.contains(function) ||
-        backendUsage.isRuntimeTypeUsed;
+    return rtiNeed.methodNeedsRti(function);
   }
 
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
@@ -987,7 +1019,8 @@ class JavaScriptBackend extends Target {
         ConstantValue initialValue = constants.getConstantValue(constant);
         if (initialValue != null) {
           computeImpactForCompileTimeConstant(
-              initialValue, work.registry.worldImpact, false);
+              initialValue, work.registry.worldImpact,
+              forResolution: false);
           addCompileTimeConstantForEmission(initialValue);
           // We don't need to generate code for static or top-level
           // variables. For instance variables, we may need to generate
@@ -1053,6 +1086,11 @@ class JavaScriptBackend extends Target {
   String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
     return jsAst.prettyPrint(generatedCode[element], compiler);
+  }
+
+  /// Called to finalize the [RuntimeTypesChecks] information.
+  void finalizeRti() {
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks();
   }
 
   /// Generates the output and returns the total size of the generated code.
@@ -1337,7 +1375,8 @@ class JavaScriptBackend extends Target {
               new Dependency(constant, metadata.annotatedElement);
           metadataConstants.add(dependency);
           computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder, enqueuer.isResolutionQueue);
+              dependency.constant, impactBuilder,
+              forResolution: enqueuer.isResolutionQueue);
         }
 
         // TODO(johnniwinther): We should have access to all recently processed
@@ -1347,7 +1386,8 @@ class JavaScriptBackend extends Target {
       } else {
         for (Dependency dependency in metadataConstants) {
           computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder, enqueuer.isResolutionQueue);
+              dependency.constant, impactBuilder,
+              forResolution: enqueuer.isResolutionQueue);
         }
         metadataConstants.clear();
       }
@@ -1424,6 +1464,9 @@ class JavaScriptBackend extends Target {
     _namer = determineNamer(_closedWorld, compiler.codegenWorldBuilder);
     tracer = new Tracer(_closedWorld, namer, compiler);
     emitter.createEmitter(_namer, _closedWorld);
+    _rtiEncoder =
+        _namer.rtiEncoder = new _RuntimeTypesEncoder(_namer, emitter, helpers);
+
     lookupMapAnalysis.onCodegenStart();
     if (backendUsage.isIsolateInUse) {
       return enableIsolateSupport(forResolution: false);
@@ -1894,7 +1937,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
             // '--generic-method-syntax'. This must be revised in order to
             // support generic methods fully.
             ClassElement cls = type.element.enclosingClass;
-            backend.rti.registerClassUsingTypeVariableExpression(cls);
+            backend.rtiNeedBuilder
+                .registerClassUsingTypeVariableExpression(cls);
             registerImpact(impacts.typeVariableExpression);
           }
           hasTypeLiteral = true;
@@ -1999,7 +2043,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     // then the class of the type variable does too.
     ClassElement contextClass = Types.getClassContext(type);
     if (contextClass != null) {
-      backend.rti.registerRtiDependency(type.element, contextClass);
+      backend.rtiNeedBuilder.registerRtiDependency(type.element, contextClass);
     }
   }
 
@@ -2101,7 +2145,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (ConstantValue constant in impact.compileTimeConstants) {
-      backend.computeImpactForCompileTimeConstant(constant, transformed, false);
+      backend.computeImpactForCompileTimeConstant(constant, transformed,
+          forResolution: false);
       backend.addCompileTimeConstantForEmission(constant);
     }
 
@@ -2114,7 +2159,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       switch (staticUse.kind) {
         case StaticUseKind.CLOSURE:
           LocalFunctionElement closure = staticUse.element;
-          if (backend.methodNeedsRti(closure)) {
+          if (backend.rtiNeed.methodNeedsRti(closure)) {
             impacts.computeSignature
                 .registerImpact(transformed, elementEnvironment);
           }
@@ -2314,7 +2359,6 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
   NativeData get nativeData => _backend.nativeData;
   InterceptorDataBuilder get interceptorData =>
       _backend._interceptorDataBuilder;
-  RuntimeTypes get rti => _backend.rti;
   TypeVariableHandler get typeVariableHandler => _backend.typeVariableHandler;
   Resolution get resolution => _backend.resolution;
   MirrorsData get mirrorsData => _backend.mirrorsData;
@@ -2365,6 +2409,8 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
   ResolutionEnqueuerListener(JavaScriptBackend backend) : super(backend);
 
   BackendUsageBuilder get backendUsage => _backend.backendUsageBuilder;
+
+  RuntimeTypesNeedBuilder get rtiNeedBuilder => _backend.rtiNeedBuilder;
 
   WorldImpact createImpactFor(BackendImpact impact) {
     backendUsage.processBackendImpact(impact);
@@ -2490,7 +2536,7 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
       registerBackendImpact(impactBuilder, impacts.mapClass);
       // For map literals, the dependency between the implementation class
       // and [Map] is not visible, so we have to add it manually.
-      rti.registerRtiDependency(helpers.mapLiteralClass, cls);
+      rtiNeedBuilder.registerRtiDependency(helpers.mapLiteralClass, cls);
     } else if (cls == helpers.boundClosureClass) {
       registerBackendImpact(impactBuilder, impacts.boundClosureClass);
     } else if (nativeData.isNativeOrExtendsNative(cls)) {
@@ -2611,7 +2657,10 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
 
   // TODO(johnniwinther): Change these to final fields.
   LookupMapAnalysis get lookupMapAnalysis => _backend.lookupMapAnalysis;
+
   DumpInfoTask get dumpInfoTask => _backend.compiler.dumpInfoTask;
+
+  RuntimeTypesNeed get rtiNeed => _backend.rtiNeed;
 
   WorldImpact createImpactFor(BackendImpact impact) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
@@ -2640,14 +2689,14 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
   }
 
   WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
-    if (methodNeedsRti(closure)) {
+    if (rtiNeed.methodNeedsRti(closure)) {
       return _registerComputeSignature();
     }
     return const WorldImpact();
   }
 
   WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod) {
-    if (methodNeedsRti(callMethod)) {
+    if (rtiNeed.methodNeedsRti(callMethod)) {
       return _registerComputeSignature();
     }
     return const WorldImpact();
@@ -2728,8 +2777,4 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
   WorldImpact registerInstantiatedClass(ClassEntity cls) {
     return _processClass(cls);
   }
-
-  // TODO(johnniwinther): Avoid the need for accessing [_backend].
-  bool methodNeedsRti(FunctionElement function) =>
-      _backend.methodNeedsRti(function);
 }

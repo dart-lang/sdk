@@ -157,7 +157,7 @@ class SsaBuilder extends ast.Visitor
 
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
-  final RuntimeTypes rti;
+  final RuntimeTypesSubstitutions rtiSubstitutions;
 
   SourceInformationBuilder sourceInformationBuilder;
 
@@ -206,7 +206,7 @@ class SsaBuilder extends ast.Visitor
       : this.infoReporter = backend.compiler.dumpInfoTask,
         this.backend = backend,
         this.constantSystem = backend.constantSystem,
-        this.rti = backend.rti,
+        this.rtiSubstitutions = backend.rtiSubstitutions,
         this.inferenceResults = backend.compiler.globalInference.results {
     assert(target.isImplementation);
     compiler = backend.compiler;
@@ -824,7 +824,7 @@ class SsaBuilder extends ast.Visitor
 
     ClassElement enclosing = function.enclosingClass;
     if ((function.isConstructor || function.isGenerativeConstructorBody) &&
-        backend.classNeedsRti(enclosing)) {
+        backend.rtiNeed.classNeedsRti(enclosing)) {
       enclosing.typeVariables
           .forEach((ResolutionTypeVariableType typeVariable) {
         HInstruction argument = compiledArguments[argumentIndex++];
@@ -904,7 +904,7 @@ class SsaBuilder extends ast.Visitor
     reporter.withCurrentElement(callee, () {
       constructorResolvedAsts.add(constructorResolvedAst);
       ClassElement enclosingClass = callee.enclosingClass;
-      if (backend.classNeedsRti(enclosingClass)) {
+      if (backend.rtiNeed.classNeedsRti(enclosingClass)) {
         // If [enclosingClass] needs RTI, we have to give a value to its
         // type parameters.
         ClassElement currentClass = caller.enclosingClass;
@@ -1246,7 +1246,7 @@ class SsaBuilder extends ast.Visitor
     if (!isNativeUpgradeFactory) {
       // Create the runtime type information, if needed.
       bool hasRtiInput = false;
-      if (backend.classNeedsRtiField(classElement)) {
+      if (backend.rtiNeed.classNeedsRtiField(classElement)) {
         // Read the values of the type arguments and create a
         // HTypeInfoExpression to set on the newly create object.
         hasRtiInput = true;
@@ -1333,7 +1333,7 @@ class SsaBuilder extends ast.Visitor
       ConstructorElement constructor =
           constructorResolvedAst.element.implementation;
       ClassElement currentClass = constructor.enclosingClass;
-      if (backend.classNeedsRti(currentClass)) {
+      if (backend.rtiNeed.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
         currentClass.typeVariables
@@ -1385,7 +1385,7 @@ class SsaBuilder extends ast.Visitor
     // may contain references to type variables.
     var enclosing = element.enclosingElement;
     if ((element.isConstructor || element.isGenerativeConstructorBody) &&
-        backend.classNeedsRti(enclosing)) {
+        backend.rtiNeed.classNeedsRti(enclosing)) {
       enclosing.typeVariables
           .forEach((ResolutionTypeVariableType typeVariable) {
         HParameterValue param =
@@ -2423,7 +2423,7 @@ class SsaBuilder extends ast.Visitor
       pushInvokeStatic(null, helper, inputs, typeMask: commonMasks.boolType);
       HInstruction call = pop();
       return new HIs.variable(type, expression, call, commonMasks.boolType);
-    } else if (RuntimeTypes.hasTypeArguments(type)) {
+    } else if (RuntimeTypesSubstitutions.hasTypeArguments(type)) {
       ClassElement element = type.element;
       MethodElement helper = helpers.checkSubtype;
       HInstruction representations =
@@ -3241,13 +3241,13 @@ class SsaBuilder extends ast.Visitor
     if (closedWorld.isUsedAsMixin(cls)) return true;
 
     return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
-      return !rti.isTrivialSubstitution(subclass, cls);
+      return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
     });
   }
 
   HInstruction handleListConstructor(ResolutionInterfaceType type,
       ast.Node currentNode, HInstruction newObject) {
-    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!backend.rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return newObject;
     }
     List<HInstruction> inputs = <HInstruction>[];
@@ -3473,7 +3473,7 @@ class SsaBuilder extends ast.Visitor
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (backend.classNeedsRti(commonElements.listClass) &&
+    if (backend.rtiNeed.classNeedsRti(commonElements.listClass) &&
         (isFixedListConstructorCall ||
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
@@ -3495,7 +3495,7 @@ class SsaBuilder extends ast.Visitor
   void potentiallyAddTypeArguments(List<HInstruction> inputs, ClassElement cls,
       ResolutionInterfaceType expectedType,
       {SourceInformation sourceInformation}) {
-    if (!backend.classNeedsRti(cls)) return;
+    if (!backend.rtiNeed.classNeedsRti(cls)) return;
     assert(cls.typeVariables.length == expectedType.typeArguments.length);
     expectedType.typeArguments.forEach((ResolutionDartType argument) {
       inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
@@ -5088,7 +5088,7 @@ class SsaBuilder extends ast.Visitor
     }
 
     ClassElement targetClass = targetConstructor.enclosingClass;
-    if (backend.classNeedsRti(targetClass)) {
+    if (backend.rtiNeed.classNeedsRti(targetClass)) {
       ClassElement cls = redirectingConstructor.enclosingClass;
       ResolutionInterfaceType targetType =
           redirectingConstructor.computeEffectiveTargetType(cls.thisType);
@@ -5203,7 +5203,7 @@ class SsaBuilder extends ast.Visitor
   HInstruction setRtiIfNeeded(HInstruction object, ast.Node node) {
     ResolutionInterfaceType type =
         localsHandler.substInContext(elements.getType(node));
-    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!backend.rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
@@ -5650,7 +5650,7 @@ class SsaBuilder extends ast.Visitor
     ClassElement cls = listConstructor.enclosingClass;
 
     MethodElement createFunction = listConstructor;
-    if (backend.classNeedsRti(cls)) {
+    if (backend.rtiNeed.classNeedsRti(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
       expectedType.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs

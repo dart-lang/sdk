@@ -2971,7 +2971,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // should iterate over all the concrete classes in [receiverMask].
     ClassEntity receiverClass = receiverMask.singleClass(closedWorld);
     if (receiverClass != null) {
-      if (backend.rti.isTrivialSubstitution(receiverClass, cls)) {
+      if (backend.rtiSubstitutions.isTrivialSubstitution(receiverClass, cls)) {
         return false;
       }
     }
@@ -2979,7 +2979,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (closedWorld.isUsedAsMixin(cls)) return true;
 
     return closedWorld.anyStrictSubclassOf(cls, (ClassEntity subclass) {
-      return !backend.rti.isTrivialSubstitution(subclass, cls);
+      return !backend.rtiSubstitutions.isTrivialSubstitution(subclass, cls);
     });
   }
 

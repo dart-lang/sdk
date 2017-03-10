@@ -911,7 +911,8 @@ class ClosureTranslator extends Visitor {
     // TODO(johnniwinther): Find out why this can be null.
     if (type == null) return;
     if (outermostElement.isClassMember &&
-        compiler.backend.classNeedsRti(outermostElement.enclosingClass)) {
+        compiler.backend.rtiNeed
+            .classNeedsRti(outermostElement.enclosingClass)) {
       if (outermostElement.isConstructor || outermostElement.isField) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember) {
@@ -1117,7 +1118,7 @@ class ClosureTranslator extends Visitor {
       // If the method needs RTI, or checked mode is set, we need to
       // escape the potential type variables used in that closure.
       if (element is FunctionElement &&
-          (compiler.backend.methodNeedsRti(element) ||
+          (compiler.backend.rtiNeed.methodNeedsRti(element) ||
               compiler.options.enableTypeAssertions)) {
         analyzeTypeVariables(type);
       }

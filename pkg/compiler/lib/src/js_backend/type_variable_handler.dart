@@ -112,7 +112,8 @@ class TypeVariableHandler {
       _backend.constants.evaluate(constant);
       ConstantValue value = _backend.constants.getConstantValue(constant);
       _backend.computeImpactForCompileTimeConstant(
-          value, impactBuilderForCodegen, false);
+          value, impactBuilderForCodegen,
+          forResolution: false);
       _backend.addCompileTimeConstantForEmission(value);
       constants
           .add(_reifyTypeVariableConstant(value, currentTypeVariable.element));

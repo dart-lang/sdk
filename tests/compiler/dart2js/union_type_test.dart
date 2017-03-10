@@ -22,7 +22,6 @@ main() {
       }
       """,
         useMockCompiler: false);
-    env.compiler.closeResolution();
     ClosedWorld world = env.closedWorld;
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'));
     FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'));

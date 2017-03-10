@@ -798,7 +798,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // the notion of generics in the backend. For example, [:this:] in
       // a class [:A<T>:], is currently always considered to have the
       // raw type.
-    } else if (!RuntimeTypes.hasTypeArguments(type)) {
+    } else if (!RuntimeTypesSubstitutions.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
       assert(TypeMask.assertIsNormalized(expressionMask, closedWorld));
       TypeMask typeMask = (element == commonElements.nullClass)
@@ -1156,7 +1156,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (closedWorld.isUsedAsMixin(cls)) return true;
 
     return closedWorld.anyStrictSubclassOf(cls, (ClassEntity subclass) {
-      return !backend.rti.isTrivialSubstitution(subclass, cls);
+      return !backend.rtiSubstitutions.isTrivialSubstitution(subclass, cls);
     });
   }
 

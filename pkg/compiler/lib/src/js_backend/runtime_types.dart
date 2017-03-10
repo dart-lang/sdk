@@ -17,49 +17,86 @@ typedef jsAst.Expression OnVariableCallback(
     ResolutionTypeVariableType variable);
 typedef bool ShouldEncodeTypedefCallback(ResolutionTypedefType variable);
 
-// TODO(johnniwinther): Rename to something like [RuntimeTypeUsageCollector]
-// we semantics is more clear.
-abstract class RuntimeTypes {
-  TypeChecks get requiredChecks;
-  Iterable<ClassElement> get classesNeedingRti;
-  Iterable<Element> get methodsNeedingRti;
+/// Interface for the classes and methods that need runtime types.
+abstract class RuntimeTypesNeed {
+  bool classNeedsRti(ClassElement cls);
+  bool classNeedsRtiField(ClassElement cls);
+  bool methodNeedsRti(FunctionElement function);
+  bool classUsesTypeVariableExpression(ClassElement cls);
+}
 
-  /// The set of classes that use one of their type variables as expressions
-  /// to get the runtime type.
-  Iterable<ClassElement> get classesUsingTypeVariableExpression;
-
+/// Interface for computing classes and methods that need runtime types.
+abstract class RuntimeTypesNeedBuilder {
+  /// Registers that [cls] contains a type variable literal.
   void registerClassUsingTypeVariableExpression(ClassElement cls);
-  void registerRtiDependency(ClassElement element, ClassElement dependency);
-  void registerTypeVariableBoundsSubtypeCheck(
-      ResolutionDartType typeArgument, ResolutionDartType bound);
 
-  Set<ClassElement> getClassesUsedInSubstitutions(
-      JavaScriptBackend backend, TypeChecks checks);
-  void computeClassesNeedingRti(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld);
-
-  /// Compute the required type checkes and substitutions for the given
-  /// instantitated and checked classes.
-  TypeChecks computeChecks(
-      Set<ClassElement> instantiated, Set<ClassElement> checked);
-
-  /// Compute type arguments of classes that use one of their type variables in
-  /// is-checks and add the is-checks that they imply.
+  /// Registers that if [element] needs reified runtime type information then so
+  /// does [dependency].
   ///
-  /// This function must be called after all is-checks have been registered.
-  void addImplicitChecks(
-      WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks);
+  /// For instance:
+  ///
+  ///     class A<T> {
+  ///       m() => new B<T>();
+  ///     }
+  ///     class B<T> {}
+  ///     main() => new A<String>().m() is B<int>;
+  ///
+  /// Here `A` need reified runtime type information because `B` needs it in
+  /// order to generate the check against `B<int>`.
+  void registerRtiDependency(ClassElement element, ClassElement dependency);
+
+  /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
+  RuntimeTypesNeed computeRuntimeTypesNeed(
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      DartTypes types,
+      CommonElements commonElements,
+      BackendHelpers helpers,
+      BackendUsage backendUsage,
+      {bool enableTypeAssertions});
+}
+
+/// Interface for the needed runtime type checks.
+abstract class RuntimeTypesChecks {
+  /// Returns the required runtime type checks.
+  TypeChecks get requiredChecks;
 
   /// Return all classes that are referenced in the type of the function, i.e.,
   /// in the return type or the argument types.
   Set<ClassElement> getReferencedClasses(ResolutionFunctionType type);
 
   /// Return all classes that are uses a type arguments.
-  Set<ClassElement> getRequiredArgumentClasses(JavaScriptBackend backend);
+  Set<ClassElement> getRequiredArgumentClasses();
+}
 
+/// Interface for computing the needed runtime type checks.
+abstract class RuntimeTypesChecksBuilder {
+  void registerTypeVariableBoundsSubtypeCheck(
+      ResolutionDartType typeArgument, ResolutionDartType bound);
+
+  /// Computes the [RuntimeTypesChecks] for the data in this builder.
+  RuntimeTypesChecks computeRequiredChecks();
+
+  /// Compute type arguments of classes that use one of their type variables in
+  /// is-checks and add the is-checks that they imply.
+  ///
+  /// This function must be called after all is-checks have been registered.
+  void registerImplicitChecks(
+      WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks);
+}
+
+/// Interface for computing substitutions need for runtime type checks.
+abstract class RuntimeTypesSubstitutions {
   bool isTrivialSubstitution(ClassElement cls, ClassElement check);
 
   Substitution getSubstitution(ClassElement cls, ClassElement other);
+
+  /// Compute the required type checkes and substitutions for the given
+  /// instantitated and checked classes.
+  TypeChecks computeChecks(
+      Set<ClassElement> instantiated, Set<ClassElement> checked);
+
+  Set<ClassElement> getClassesUsedInSubstitutions(TypeChecks checks);
 
   static bool hasTypeArguments(ResolutionDartType type) {
     if (type is ResolutionInterfaceType) {
@@ -100,63 +137,8 @@ abstract class RuntimeTypesEncoder {
   String getTypeRepresentationForTypeConstant(ResolutionDartType type);
 }
 
-class _RuntimeTypes implements RuntimeTypes {
-  final Compiler compiler;
-
-  final Map<ClassElement, Set<ClassElement>> rtiDependencies;
-
-  @override
-  final Set<ClassElement> classesNeedingRti;
-
-  @override
-  final Set<Element> methodsNeedingRti;
-
-  @override
-  final Set<ClassElement> classesUsingTypeVariableExpression;
-
-  // The set of type arguments tested against type variable bounds.
-  final Set<ResolutionDartType> checkedTypeArguments;
-  // The set of tested type variable bounds.
-  final Set<ResolutionDartType> checkedBounds;
-
-  TypeChecks cachedRequiredChecks;
-
-  JavaScriptBackend get backend => compiler.backend;
-
-  _RuntimeTypes(Compiler compiler)
-      : this.compiler = compiler,
-        classesNeedingRti = new Set<ClassElement>(),
-        methodsNeedingRti = new Set<Element>(),
-        rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
-        classesUsingTypeVariableExpression = new Set<ClassElement>(),
-        checkedTypeArguments = new Set<ResolutionDartType>(),
-        checkedBounds = new Set<ResolutionDartType>();
-
-  Set<ClassElement> directlyInstantiatedArguments;
-  Set<ClassElement> allInstantiatedArguments;
-  Set<ClassElement> checkedArguments;
-
-  @override
-  void registerClassUsingTypeVariableExpression(ClassElement cls) {
-    classesUsingTypeVariableExpression.add(cls);
-  }
-
-  @override
-  void registerRtiDependency(ClassElement element, ClassElement dependency) {
-    // We're not dealing with typedef for now.
-    assert(element != null);
-    Set<ClassElement> classes =
-        rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
-    classes.add(dependency);
-  }
-
-  @override
-  void registerTypeVariableBoundsSubtypeCheck(
-      ResolutionDartType typeArgument, ResolutionDartType bound) {
-    checkedTypeArguments.add(typeArgument);
-    checkedBounds.add(bound);
-  }
-
+/// Common functionality for [_RuntimeTypesNeedBuilder] and [_RuntimeTypes].
+abstract class _RuntimeTypesBase {
   // TODO(21969): remove this and analyze instantiated types and factory calls
   // instead to find out which types are instantiated, if finitely many, or if
   // we have to use the more imprecise generic algorithm.
@@ -171,8 +153,7 @@ class _RuntimeTypes implements RuntimeTypes {
    * TODO(karlklose): move these computations into a function producing an
    * immutable datastructure.
    */
-  @override
-  void addImplicitChecks(
+  void registerImplicitChecks(
       WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks) {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
@@ -215,10 +196,77 @@ class _RuntimeTypes implements RuntimeTypes {
       }
     }
   }
+}
+
+class _RuntimeTypesNeed implements RuntimeTypesNeed {
+  final BackendUsage _backendUsage;
+  final Set<ClassElement> classesNeedingRti;
+  final Set<Element> methodsNeedingRti;
+
+  /// The set of classes that use one of their type variables as expressions
+  /// to get the runtime type.
+  final Set<ClassElement> classesUsingTypeVariableExpression;
+
+  _RuntimeTypesNeed(this._backendUsage, this.classesNeedingRti,
+      this.methodsNeedingRti, this.classesUsingTypeVariableExpression);
+
+  bool classNeedsRti(ClassElement cls) {
+    if (_backendUsage.isRuntimeTypeUsed) return true;
+    return classesNeedingRti.contains(cls.declaration);
+  }
+
+  bool classNeedsRtiField(ClassElement cls) {
+    if (cls.rawType.typeArguments.isEmpty) return false;
+    if (_backendUsage.isRuntimeTypeUsed) return true;
+    return classesNeedingRti.contains(cls.declaration);
+  }
+
+  bool methodNeedsRti(FunctionElement function) {
+    return methodsNeedingRti.contains(function) ||
+        _backendUsage.isRuntimeTypeUsed;
+  }
 
   @override
-  void computeClassesNeedingRti(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld) {
+  bool classUsesTypeVariableExpression(ClassElement cls) {
+    return classesUsingTypeVariableExpression.contains(cls);
+  }
+}
+
+class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
+    implements RuntimeTypesNeedBuilder {
+  final Map<ClassElement, Set<ClassElement>> rtiDependencies =
+      <ClassElement, Set<ClassElement>>{};
+
+  final Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
+
+  final Set<Element> methodsNeedingRti = new Set<Element>();
+
+  final Set<ClassElement> classesUsingTypeVariableExpression =
+      new Set<ClassElement>();
+
+  @override
+  void registerClassUsingTypeVariableExpression(ClassElement cls) {
+    classesUsingTypeVariableExpression.add(cls);
+  }
+
+  @override
+  void registerRtiDependency(ClassElement element, ClassElement dependency) {
+    // We're not dealing with typedef for now.
+    assert(element != null);
+    Set<ClassElement> classes =
+        rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
+    classes.add(dependency);
+  }
+
+  @override
+  RuntimeTypesNeed computeRuntimeTypesNeed(
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      DartTypes types,
+      CommonElements commonElements,
+      BackendHelpers helpers,
+      BackendUsage backendUsage,
+      {bool enableTypeAssertions}) {
     // Find the classes that need runtime type information. Such
     // classes are:
     // (1) used in a is check with type variables,
@@ -256,21 +304,21 @@ class _RuntimeTypes implements RuntimeTypes {
       }
     });
     // Add is-checks that result from classes using type variables in checks.
-    addImplicitChecks(
-        compiler.resolutionWorldBuilder, classesUsingTypeVariableTests);
+    registerImplicitChecks(
+        resolutionWorldBuilder, classesUsingTypeVariableTests);
     // Add the rti dependencies that are implicit in the way the backend
     // generates code: when we create a new [List], we actually create
     // a JSArray in the backend and we need to add type arguments to
     // the calls of the list constructor whenever we determine that
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
-    if (backend.helpers.jsArrayClass != null) {
-      ClassElement listClass = compiler.commonElements.listClass;
-      registerRtiDependency(backend.helpers.jsArrayClass, listClass);
+    if (helpers.jsArrayClass != null) {
+      ClassElement listClass = commonElements.listClass;
+      registerRtiDependency(helpers.jsArrayClass, listClass);
     }
     // Compute the set of all classes and methods that need runtime type
     // information.
-    compiler.resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
+    resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
       if (type.isInterfaceType) {
         ResolutionInterfaceType itf = type;
         if (!itf.treatAsRaw) {
@@ -289,20 +337,20 @@ class _RuntimeTypes implements RuntimeTypes {
             ResolutionDartType memberType = method.type;
             ClassElement contextClass = Types.getClassContext(memberType);
             if (contextClass != null &&
-                compiler.types.isPotentialSubtype(memberType, type)) {
+                types.isPotentialSubtype(memberType, type)) {
               potentiallyAddForRti(contextClass);
               methodsNeedingRti.add(method);
             }
           }
 
-          compiler.resolutionWorldBuilder.closuresWithFreeTypeVariables
+          resolutionWorldBuilder.closuresWithFreeTypeVariables
               .forEach(analyzeMethod);
-          compiler.resolutionWorldBuilder.callMethodsWithFreeTypeVariables
+          resolutionWorldBuilder.callMethodsWithFreeTypeVariables
               .forEach(analyzeMethod);
         }
       }
     });
-    if (compiler.options.enableTypeAssertions) {
+    if (enableTypeAssertions) {
       void analyzeMethod(TypedElement method) {
         ResolutionDartType memberType = method.type;
         ClassElement contextClass = Types.getClassContext(memberType);
@@ -312,23 +360,74 @@ class _RuntimeTypes implements RuntimeTypes {
         }
       }
 
-      compiler.resolutionWorldBuilder.closuresWithFreeTypeVariables
+      resolutionWorldBuilder.closuresWithFreeTypeVariables
           .forEach(analyzeMethod);
-      compiler.resolutionWorldBuilder.callMethodsWithFreeTypeVariables
+      resolutionWorldBuilder.callMethodsWithFreeTypeVariables
           .forEach(analyzeMethod);
     }
+
     // Add the classes that need RTI because they use a type variable as
     // expression.
     classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
+
+    return new _RuntimeTypesNeed(backendUsage, classesNeedingRti,
+        methodsNeedingRti, classesUsingTypeVariableExpression);
+  }
+}
+
+class _RuntimeTypesChecks implements RuntimeTypesChecks {
+  final RuntimeTypesSubstitutions substitutions;
+  final TypeChecks requiredChecks;
+  final Set<ClassElement> directlyInstantiatedArguments;
+  final Set<ClassElement> checkedArguments;
+
+  _RuntimeTypesChecks(this.substitutions, this.requiredChecks,
+      this.directlyInstantiatedArguments, this.checkedArguments);
+
+  @override
+  Set<ClassElement> getRequiredArgumentClasses() {
+    Set<ClassElement> requiredArgumentClasses = new Set<ClassElement>.from(
+        substitutions.getClassesUsedInSubstitutions(requiredChecks));
+    return requiredArgumentClasses
+      ..addAll(directlyInstantiatedArguments)
+      ..addAll(checkedArguments);
   }
 
   @override
-  TypeChecks get requiredChecks {
-    if (cachedRequiredChecks == null) {
-      computeRequiredChecks();
-    }
-    assert(cachedRequiredChecks != null);
-    return cachedRequiredChecks;
+  Set<ClassElement> getReferencedClasses(ResolutionFunctionType type) {
+    FunctionArgumentCollector collector = new FunctionArgumentCollector();
+    collector.collect(type);
+    return collector.classes;
+  }
+}
+
+class _RuntimeTypes extends _RuntimeTypesBase
+    implements RuntimeTypesChecksBuilder, RuntimeTypesSubstitutions {
+  final Compiler compiler;
+
+  // The set of type arguments tested against type variable bounds.
+  final Set<ResolutionDartType> checkedTypeArguments;
+  // The set of tested type variable bounds.
+  final Set<ResolutionDartType> checkedBounds;
+
+  TypeChecks cachedRequiredChecks;
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  _RuntimeTypes(Compiler compiler)
+      : this.compiler = compiler,
+        checkedTypeArguments = new Set<ResolutionDartType>(),
+        checkedBounds = new Set<ResolutionDartType>();
+
+  Set<ClassElement> directlyInstantiatedArguments;
+  Set<ClassElement> allInstantiatedArguments;
+  Set<ClassElement> checkedArguments;
+
+  @override
+  void registerTypeVariableBoundsSubtypeCheck(
+      ResolutionDartType typeArgument, ResolutionDartType bound) {
+    checkedTypeArguments.add(typeArgument);
+    checkedBounds.add(bound);
   }
 
   @override
@@ -358,7 +457,7 @@ class _RuntimeTypes implements RuntimeTypes {
     return result;
   }
 
-  void computeRequiredChecks() {
+  RuntimeTypesChecks computeRequiredChecks() {
     Set<ResolutionDartType> isChecks = compiler.codegenWorldBuilder.isChecks;
     // These types are needed for is-checks against function types.
     Set<ResolutionDartType> instantiatedTypesAndClosures =
@@ -367,6 +466,8 @@ class _RuntimeTypes implements RuntimeTypes {
     computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
     cachedRequiredChecks =
         computeChecks(allInstantiatedArguments, checkedArguments);
+    return new _RuntimeTypesChecks(this, cachedRequiredChecks,
+        directlyInstantiatedArguments, checkedArguments);
   }
 
   Set<ResolutionDartType> computeInstantiatedTypesAndClosures(
@@ -406,10 +507,10 @@ class _RuntimeTypes implements RuntimeTypes {
    */
   void computeInstantiatedArguments(Set<ResolutionDartType> instantiatedTypes,
       Set<ResolutionDartType> isChecks) {
-    ArgumentCollector superCollector = new ArgumentCollector(backend);
-    ArgumentCollector directCollector = new ArgumentCollector(backend);
+    ArgumentCollector superCollector = new ArgumentCollector();
+    ArgumentCollector directCollector = new ArgumentCollector();
     FunctionArgumentCollector functionArgumentCollector =
-        new FunctionArgumentCollector(backend);
+        new FunctionArgumentCollector();
 
     // We need to add classes occuring in function type arguments, like for
     // instance 'I' for [: o is C<f> :] where f is [: typedef I f(); :].
@@ -453,9 +554,9 @@ class _RuntimeTypes implements RuntimeTypes {
   /// Collects all type arguments used in is-checks.
   void computeCheckedArguments(Set<ResolutionDartType> instantiatedTypes,
       Set<ResolutionDartType> isChecks) {
-    ArgumentCollector collector = new ArgumentCollector(backend);
+    ArgumentCollector collector = new ArgumentCollector();
     FunctionArgumentCollector functionArgumentCollector =
-        new FunctionArgumentCollector(backend);
+        new FunctionArgumentCollector();
 
     // We need to add types occuring in function type arguments, like for
     // instance 'J' for [: (J j) {} is f :] where f is
@@ -484,10 +585,9 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   @override
-  Set<ClassElement> getClassesUsedInSubstitutions(
-      JavaScriptBackend backend, TypeChecks checks) {
+  Set<ClassElement> getClassesUsedInSubstitutions(TypeChecks checks) {
     Set<ClassElement> instantiated = new Set<ClassElement>();
-    ArgumentCollector collector = new ArgumentCollector(backend);
+    ArgumentCollector collector = new ArgumentCollector();
     for (ClassElement target in checks.classes) {
       instantiated.add(target);
       for (TypeCheck check in checks[target]) {
@@ -501,23 +601,6 @@ class _RuntimeTypes implements RuntimeTypes {
 
     // TODO(sra): This computation misses substitutions for reading type
     // parameters.
-  }
-
-  @override
-  Set<ClassElement> getRequiredArgumentClasses(JavaScriptBackend backend) {
-    Set<ClassElement> requiredArgumentClasses = new Set<ClassElement>.from(
-        getClassesUsedInSubstitutions(backend, requiredChecks));
-    return requiredArgumentClasses
-      ..addAll(directlyInstantiatedArguments)
-      ..addAll(checkedArguments);
-  }
-
-  @override
-  Set<ClassElement> getReferencedClasses(ResolutionFunctionType type) {
-    FunctionArgumentCollector collector =
-        new FunctionArgumentCollector(backend);
-    collector.collect(type);
-    return collector.classes;
   }
 
   // TODO(karlklose): maybe precompute this value and store it in typeChecks?
@@ -588,14 +671,25 @@ class _RuntimeTypes implements RuntimeTypes {
 }
 
 class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
-  final Compiler compiler;
+  final Namer namer;
+  final CodeEmitterTask emitter;
+  final BackendHelpers helpers;
   final TypeRepresentationGenerator representationGenerator;
 
-  _RuntimeTypesEncoder(Compiler compiler)
-      : this.compiler = compiler,
-        representationGenerator = new TypeRepresentationGenerator(compiler);
+  _RuntimeTypesEncoder(this.namer, this.emitter, this.helpers)
+      : representationGenerator =
+            new TypeRepresentationGenerator(namer, emitter);
 
-  JavaScriptBackend get backend => compiler.backend;
+  @override
+  bool isSimpleFunctionType(ResolutionFunctionType type) {
+    if (!type.returnType.isDynamic) return false;
+    if (!type.optionalParameterTypes.isEmpty) return false;
+    if (!type.namedParameterTypes.isEmpty) return false;
+    for (ResolutionDartType parameter in type.parameterTypes) {
+      if (!parameter.isDynamic) return false;
+    }
+    return true;
+  }
 
   /// Returns the JavaScript template to determine at runtime if a type object
   /// is a function type.
@@ -659,10 +753,9 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
     jsAst.Expression encoding =
         getTypeEncoding(type, alwaysGenerateFunction: true);
     if (contextClass != null) {
-      JavaScriptBackend backend = compiler.backend;
-      jsAst.Name contextName = backend.namer.className(contextClass);
+      jsAst.Name contextName = namer.className(contextClass);
       return js('function () { return #(#, #, #); }', [
-        backend.emitter.staticFunctionAccess(backend.helpers.computeSignature),
+        emitter.staticFunctionAccess(helpers.computeSignature),
         encoding,
         this_,
         js.quoteName(contextName)
@@ -698,7 +791,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
 
     if (substitution.arguments
         .every((ResolutionDartType type) => type.isDynamic)) {
-      return backend.emitter.emitter.generateFunctionThatReturnsNull();
+      return emitter.emitter.generateFunctionThatReturnsNull();
     } else {
       jsAst.Expression value =
           getSubstitutionRepresentation(substitution.arguments, use);
@@ -724,7 +817,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
     }
 
     if (substitution.arguments[index].isDynamic) {
-      return backend.emitter.emitter.generateFunctionThatReturnsNull();
+      return emitter.emitter.generateFunctionThatReturnsNull();
     } else {
       jsAst.Expression value =
           getTypeRepresentation(substitution.arguments[index], use);
@@ -735,17 +828,15 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   }
 
   String getVariableName(String name) {
-    return backend.namer.safeVariableName(name);
+    return namer.safeVariableName(name);
   }
 
   @override
   jsAst.Name get getFunctionThatReturnsNullName =>
-      backend.namer.internalGlobal('functionThatReturnsNull');
+      namer.internalGlobal('functionThatReturnsNull');
 
   @override
   String getTypeRepresentationForTypeConstant(ResolutionDartType type) {
-    JavaScriptBackend backend = compiler.backend;
-    Namer namer = backend.namer;
     if (type.isDynamic) return "dynamic";
     String name = namer.uniqueNameForTypeConstantElement(type.element);
     if (!type.element.isClass) return name;
@@ -760,29 +851,15 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
     String arguments = new List.filled(variables.length, 'dynamic').join(', ');
     return '$name<$arguments>';
   }
-
-  @override
-  bool isSimpleFunctionType(ResolutionFunctionType type) {
-    if (!type.returnType.isDynamic) return false;
-    if (!type.optionalParameterTypes.isEmpty) return false;
-    if (!type.namedParameterTypes.isEmpty) return false;
-    for (ResolutionDartType parameter in type.parameterTypes) {
-      if (!parameter.isDynamic) return false;
-    }
-    return true;
-  }
 }
 
 class TypeRepresentationGenerator implements DartTypeVisitor {
-  final Compiler compiler;
+  final Namer namer;
+  final CodeEmitterTask emitter;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
 
-  JavaScriptBackend get backend => compiler.backend;
-  Namer get namer => backend.namer;
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  TypeRepresentationGenerator(Compiler this.compiler);
+  TypeRepresentationGenerator(this.namer, this.emitter);
 
   /**
    * Creates a type representation for [type]. [onVariable] is called to provide
@@ -803,7 +880,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   }
 
   jsAst.Expression getJavaScriptClassName(Element element) {
-    return backend.emitter.typeAccess(element);
+    return emitter.typeAccess(element);
   }
 
   @override
@@ -950,10 +1027,7 @@ class TypeCheckMapping implements TypeChecks {
 }
 
 class ArgumentCollector extends DartTypeVisitor {
-  final JavaScriptBackend backend;
   final Set<ClassElement> classes = new Set<ClassElement>();
-
-  ArgumentCollector(this.backend);
 
   collect(ResolutionDartType type, {bool isTypeArgument: false}) {
     visit(type, isTypeArgument);
@@ -982,10 +1056,9 @@ class ArgumentCollector extends DartTypeVisitor {
 }
 
 class FunctionArgumentCollector extends DartTypeVisitor {
-  final JavaScriptBackend backend;
   final Set<ClassElement> classes = new Set<ClassElement>();
 
-  FunctionArgumentCollector(this.backend);
+  FunctionArgumentCollector();
 
   collect(ResolutionDartType type) {
     visit(type, false);

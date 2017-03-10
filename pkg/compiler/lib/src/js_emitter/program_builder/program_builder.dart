@@ -493,7 +493,7 @@ class ProgramBuilder {
 
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
-    bool hasRtiField = backend.classNeedsRtiField(element);
+    bool hasRtiField = backend.rtiNeed.classNeedsRtiField(element);
     if (backend.isJsInterop(element)) {
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
