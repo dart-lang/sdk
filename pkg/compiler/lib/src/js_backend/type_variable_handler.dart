@@ -22,7 +22,6 @@ import 'backend_usage.dart' show BackendUsageBuilder;
  */
 class TypeVariableHandler {
   final Compiler _compiler;
-  ConstructorElement _typeVariableConstructor;
 
   /**
    * Set to 'true' on first encounter of a class with type variables.
@@ -53,7 +52,6 @@ class TypeVariableHandler {
 
   TypeVariableHandler(this._compiler);
 
-  ClassElement get _typeVariableClass => _backend.helpers.typeVariableClass;
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
   JavaScriptBackend get _backend => _compiler.backend;
@@ -75,19 +73,10 @@ class TypeVariableHandler {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
       if (!_seenClassesWithTypeVariables) {
-        _typeVariableClass.ensureResolved(_compiler.resolution);
-        Link constructors = _typeVariableClass.constructors;
-        if (constructors.isEmpty && constructors.tail.isEmpty) {
-          reporter.internalError(_typeVariableClass,
-              "Class '$_typeVariableClass' should only have one constructor");
-        }
-        _typeVariableConstructor = _typeVariableClass.constructors.head;
-        _backendUsageBuilder.registerBackendStaticUse(
-            impactBuilderForResolution, _typeVariableConstructor);
-        _backendUsageBuilder.registerBackendInstantiation(
-            impactBuilderForResolution, _typeVariableClass);
-        _backendUsageBuilder.registerBackendStaticUse(
-            impactBuilderForResolution, _backend.helpers.createRuntimeType);
+        _backend.impacts.typeVariableMirror.registerImpact(
+            impactBuilderForResolution, _compiler.elementEnvironment);
+        _backendUsageBuilder
+            .processBackendImpact(_backend.impacts.typeVariableMirror);
         _seenClassesWithTypeVariables = true;
       }
     } else {
@@ -110,9 +99,10 @@ class TypeVariableHandler {
           _metadataCollector.reifyType(typeVariableElement.bound);
       ConstantValue boundValue = new SyntheticConstantValue(
           SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
+      ClassElement typeVariableClass = _backend.helpers.typeVariableClass;
       ConstantExpression constant = new ConstructedConstantExpression(
-          _typeVariableConstructor.enclosingClass.thisType,
-          _typeVariableConstructor,
+          typeVariableClass.thisType,
+          _backend.helpers.typeVariableConstructor,
           const CallStructure.unnamed(3), [
         new TypeConstantExpression(cls.rawType, cls.name),
         new StringConstantExpression(currentTypeVariable.name),

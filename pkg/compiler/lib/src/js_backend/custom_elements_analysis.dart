@@ -60,8 +60,10 @@ class CustomElementsAnalysis {
   CustomElementsAnalysis(JavaScriptBackend backend)
       : this.backend = backend,
         this.compiler = backend.compiler,
-        resolutionJoin = new CustomElementsAnalysisJoin(backend),
-        codegenJoin = new CustomElementsAnalysisJoin(backend) {
+        resolutionJoin =
+            new CustomElementsAnalysisJoin(backend, forResolution: true),
+        codegenJoin =
+            new CustomElementsAnalysisJoin(backend, forResolution: false) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the work-around
@@ -133,6 +135,7 @@ class CustomElementsAnalysis {
 class CustomElementsAnalysisJoin {
   final JavaScriptBackend backend;
   Compiler get compiler => backend.compiler;
+  final bool forResolution;
 
   final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
 
@@ -152,9 +155,7 @@ class CustomElementsAnalysisJoin {
   // ClassesOutput: classes requiring metadata.
   final activeClasses = new Set<ClassElement>();
 
-  CustomElementsAnalysisJoin(this.backend);
-
-  BackendUsageBuilder get backendUsageBuilder => backend.backendUsageBuilder;
+  CustomElementsAnalysisJoin(this.backend, {this.forResolution});
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
@@ -175,8 +176,10 @@ class CustomElementsAnalysisJoin {
           impactBuilder
               .registerStaticUse(new StaticUse.foreignUse(constructor));
         }
-        escapingConstructors
-            .forEach(backendUsageBuilder.registerGlobalDependency);
+        if (forResolution) {
+          escapingConstructors
+              .forEach(backend.backendUsageBuilder.registerGlobalDependency);
+        }
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = makeTypeConstant(classElement);

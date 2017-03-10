@@ -8,7 +8,6 @@ import 'dart:async' show Future;
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
-import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart'
     show BackendClasses, ImpactTransformer, ForeignResolver, NativeRegistry;
@@ -59,7 +58,7 @@ import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
 import '../universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+    show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart'
     show
         ImpactStrategy,
@@ -443,7 +442,8 @@ class JavaScriptBackend extends Target {
   InterceptorDataBuilder _interceptorDataBuilder;
   InterceptorData _interceptorData;
   OneShotInterceptorData _oneShotInterceptorData;
-  BackendUsageImpl _backendUsage;
+  BackendUsage _backendUsage;
+  BackendUsageBuilder _backendUsageBuilder;
   final MirrorsData mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
 
@@ -503,7 +503,8 @@ class JavaScriptBackend extends Target {
         mirrorsData = new MirrorsData(compiler),
         this.compiler = compiler {
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
-    _backendUsage = new BackendUsageImpl(commonElements, helpers, resolution);
+    _backendUsageBuilder = new BackendUsageBuilderImpl(
+        compiler.elementEnvironment, commonElements, helpers);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
@@ -551,9 +552,17 @@ class JavaScriptBackend extends Target {
     return _oneShotInterceptorData;
   }
 
-  BackendUsage get backendUsage => _backendUsage;
+  BackendUsage get backendUsage {
+    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage != null,
+        message: "BackendUsage has not been computed yet."));
+    return _backendUsage;
+  }
 
-  BackendUsageBuilder get backendUsageBuilder => _backendUsage;
+  BackendUsageBuilder get backendUsageBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _backendUsage == null,
+        message: "BackendUsage has already been computed."));
+    return _backendUsageBuilder;
+  }
 
   CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
 
@@ -763,7 +772,8 @@ class JavaScriptBackend extends Target {
   void computeImpactForCompileTimeConstantInternal(ConstantValue constant,
       WorldImpactBuilder impactBuilder, bool isForResolution) {
     ResolutionDartType type = constant.getType(compiler.commonElements);
-    computeImpactForInstantiatedConstantType(type, impactBuilder);
+    computeImpactForInstantiatedConstantType(
+        type, impactBuilder, isForResolution);
 
     if (constant.isFunction) {
       FunctionConstantValue function = constant;
@@ -773,7 +783,8 @@ class JavaScriptBackend extends Target {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
       ClassElement cls = interceptor.cls;
-      computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
+      computeImpactForInstantiatedConstantType(
+          cls.thisType, impactBuilder, isForResolution);
     } else if (constant.isType) {
       if (isForResolution) {
         MethodElement helper = helpers.createRuntimeType;
@@ -790,10 +801,10 @@ class JavaScriptBackend extends Target {
   }
 
   void computeImpactForInstantiatedConstantType(
-      DartType type, WorldImpactBuilder impactBuilder) {
+      DartType type, WorldImpactBuilder impactBuilder, bool isForResolution) {
     if (type is ResolutionInterfaceType) {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
-      if (classNeedsRtiField(type.element)) {
+      if (!isForResolution && classNeedsRtiField(type.element)) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
             helpers.setRuntimeTypeInfo,
@@ -824,6 +835,7 @@ class JavaScriptBackend extends Target {
     rti.computeClassesNeedingRti(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _registeredMetadata.clear();
+    _backendUsage = _backendUsageBuilder.close();
     _interceptorData =
         _interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
@@ -832,45 +844,6 @@ class JavaScriptBackend extends Target {
 
   void onTypeInferenceComplete() {
     noSuchMethodRegistry.onTypeInferenceComplete();
-  }
-
-  /// Called to register that an instantiated generic class has a call method.
-  /// Any backend specific [WorldImpact] of this is returned.
-  ///
-  /// Note: The [callMethod] is registered even thought it doesn't reference
-  /// the type variables.
-  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
-      {bool forResolution}) {
-    if (forResolution || methodNeedsRti(callMethod)) {
-      return _registerComputeSignature();
-    }
-    return const WorldImpact();
-  }
-
-  WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure,
-      {bool forResolution}) {
-    if (forResolution || methodNeedsRti(closure)) {
-      return _registerComputeSignature();
-    }
-    return const WorldImpact();
-  }
-
-  WorldImpact registerBoundClosure() {
-    return backendUsageBuilder.createImpactFor(impacts.memberClosure);
-  }
-
-  WorldImpact registerGetOfStaticFunction() {
-    return backendUsageBuilder.createImpactFor(impacts.staticClosure);
-  }
-
-  WorldImpact _registerComputeSignature() {
-    return backendUsageBuilder.createImpactFor(impacts.computeSignature);
-  }
-
-  /// Called to register that the `runtimeType` property has been accessed. Any
-  /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerRuntimeType() {
-    return backendUsageBuilder.createImpactFor(impacts.runtimeTypeSupport);
   }
 
   /// Register a runtime type variable bound tests between [typeArgument] and
@@ -882,7 +855,8 @@ class JavaScriptBackend extends Target {
 
   /// Returns the [WorldImpact] of enabling deferred loading.
   WorldImpact computeDeferredLoadingImpact() {
-    return backendUsageBuilder.createImpactFor(impacts.deferredLoading);
+    backendUsageBuilder.processBackendImpact(impacts.deferredLoading);
+    return impacts.deferredLoading.createImpactFor(compiler.elementEnvironment);
   }
 
   /// Called to register a `noSuchMethod` implementation.
@@ -924,10 +898,6 @@ class JavaScriptBackend extends Target {
     return null;
   }
 
-  WorldImpact computeNoSuchMethodImpact() {
-    return backendUsageBuilder.createImpactFor(impacts.noSuchMethodSupport);
-  }
-
   /// Called to enable support for isolates. Any backend specific [WorldImpact]
   /// of this is returned.
   WorldImpact enableIsolateSupport({bool forResolution}) {
@@ -945,11 +915,14 @@ class JavaScriptBackend extends Target {
       impactBuilder.registerStaticUse(
           new StaticUse.staticTearOff(compiler.mainFunction));
     }
-    backendUsageBuilder.registerBackendImpact(
-        impactBuilder, impacts.isolateSupport);
+    impacts.isolateSupport
+        .registerImpact(impactBuilder, compiler.elementEnvironment);
     if (forResolution) {
-      backendUsageBuilder.registerBackendImpact(
-          impactBuilder, impacts.isolateSupportForResolution);
+      backendUsageBuilder.processBackendImpact(impacts.isolateSupport);
+      impacts.isolateSupportForResolution
+          .registerImpact(impactBuilder, compiler.elementEnvironment);
+      backendUsageBuilder
+          .processBackendImpact(impacts.isolateSupportForResolution);
     }
     return impactBuilder;
   }
@@ -959,6 +932,8 @@ class JavaScriptBackend extends Target {
     return rti.classesNeedingRti.contains(cls.declaration);
   }
 
+  // TODO(johnniwinther): Move rti queries into an rti data object only
+  // available after resolution.
   bool classNeedsRtiField(ClassElement cls) {
     if (cls.rawType.typeArguments.isEmpty) return false;
     if (backendUsage.isRuntimeTypeUsed) return true;
@@ -1305,12 +1280,15 @@ class JavaScriptBackend extends Target {
       if (!enabledNoSuchMethod &&
           (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
               noSuchMethodRegistry.hasComplexNoSuchMethod)) {
-        enqueuer.applyImpact(computeNoSuchMethodImpact());
+        backendUsageBuilder.processBackendImpact(impacts.noSuchMethodSupport);
+        enqueuer.applyImpact(impacts.noSuchMethodSupport
+            .createImpactFor(compiler.elementEnvironment));
         enabledNoSuchMethod = true;
       }
     } else {
       if (enabledNoSuchMethod && !_noSuchMethodEnabledForCodegen) {
-        enqueuer.applyImpact(computeNoSuchMethodImpact());
+        enqueuer.applyImpact(impacts.noSuchMethodSupport
+            .createImpactFor(compiler.elementEnvironment));
         _noSuchMethodEnabledForCodegen = true;
       }
     }
@@ -1568,8 +1546,11 @@ class JavaScriptBackend extends Target {
       {bool forResolution}) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
     if (mainMethod.parameters.isNotEmpty) {
-      backendUsageBuilder.registerBackendImpact(
-          mainImpact, impacts.mainWithArguments);
+      impacts.mainWithArguments
+          .registerImpact(mainImpact, compiler.elementEnvironment);
+      if (forResolution) {
+        backendUsageBuilder.processBackendImpact(impacts.mainWithArguments);
+      }
       mainImpact.registerStaticUse(
           new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
       // If the main method takes arguments, this compilation could be the
@@ -1787,102 +1768,94 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   BackendImpacts get impacts => backend.impacts;
 
-  BackendUsageBuilder get backendUsage => backend.backendUsageBuilder;
+  ElementEnvironment get elementEnvironment =>
+      backend.compiler.elementEnvironment;
 
   @override
   WorldImpact transformResolutionImpact(
       ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
+    BackendUsageBuilder backendUsage = backend.backendUsageBuilder;
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
+
+    void registerImpact(BackendImpact impact) {
+      impact.registerImpact(transformed, elementEnvironment);
+      backendUsage.processBackendImpact(impact);
+    }
+
     for (Feature feature in worldImpact.features) {
       switch (feature) {
         case Feature.ABSTRACT_CLASS_INSTANTIATION:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.abstractClassInstantiation);
+          registerImpact(impacts.abstractClassInstantiation);
           break;
         case Feature.ASSERT:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.assertWithoutMessage);
+          registerImpact(impacts.assertWithoutMessage);
           break;
         case Feature.ASSERT_WITH_MESSAGE:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.assertWithMessage);
+          registerImpact(impacts.assertWithMessage);
           break;
         case Feature.ASYNC:
-          backendUsage.registerBackendImpact(transformed, impacts.asyncBody);
+          registerImpact(impacts.asyncBody);
           break;
         case Feature.ASYNC_FOR_IN:
-          backendUsage.registerBackendImpact(transformed, impacts.asyncForIn);
+          registerImpact(impacts.asyncForIn);
           break;
         case Feature.ASYNC_STAR:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.asyncStarBody);
+          registerImpact(impacts.asyncStarBody);
           break;
         case Feature.CATCH_STATEMENT:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.catchStatement);
+          registerImpact(impacts.catchStatement);
           break;
         case Feature.COMPILE_TIME_ERROR:
           if (backend.compiler.options.generateCodeWithCompileTimeErrors) {
             // TODO(johnniwinther): This should have its own uncatchable error.
-            backendUsage.registerBackendImpact(
-                transformed, impacts.throwRuntimeError);
+            registerImpact(impacts.throwRuntimeError);
           }
           break;
         case Feature.FALL_THROUGH_ERROR:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.fallThroughError);
+          registerImpact(impacts.fallThroughError);
           break;
         case Feature.FIELD_WITHOUT_INITIALIZER:
         case Feature.LOCAL_WITHOUT_INITIALIZER:
           transformed.registerTypeUse(
               new TypeUse.instantiation(backend.commonElements.nullType));
-          backendUsage.registerBackendImpact(transformed, impacts.nullLiteral);
+          registerImpact(impacts.nullLiteral);
           break;
         case Feature.LAZY_FIELD:
-          backendUsage.registerBackendImpact(transformed, impacts.lazyField);
+          registerImpact(impacts.lazyField);
           break;
         case Feature.STACK_TRACE_IN_CATCH:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.stackTraceInCatch);
+          registerImpact(impacts.stackTraceInCatch);
           break;
         case Feature.STRING_INTERPOLATION:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.stringInterpolation);
+          registerImpact(impacts.stringInterpolation);
           break;
         case Feature.STRING_JUXTAPOSITION:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.stringJuxtaposition);
+          registerImpact(impacts.stringJuxtaposition);
           break;
         case Feature.SUPER_NO_SUCH_METHOD:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.superNoSuchMethod);
+          registerImpact(impacts.superNoSuchMethod);
           break;
         case Feature.SYMBOL_CONSTRUCTOR:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.symbolConstructor);
+          registerImpact(impacts.symbolConstructor);
           break;
         case Feature.SYNC_FOR_IN:
-          backendUsage.registerBackendImpact(transformed, impacts.syncForIn);
+          registerImpact(impacts.syncForIn);
           break;
         case Feature.SYNC_STAR:
-          backendUsage.registerBackendImpact(transformed, impacts.syncStarBody);
+          registerImpact(impacts.syncStarBody);
           break;
         case Feature.THROW_EXPRESSION:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.throwExpression);
+          registerImpact(impacts.throwExpression);
           break;
         case Feature.THROW_NO_SUCH_METHOD:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.throwNoSuchMethod);
+          registerImpact(impacts.throwNoSuchMethod);
           break;
         case Feature.THROW_RUNTIME_ERROR:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.throwRuntimeError);
+          registerImpact(impacts.throwRuntimeError);
           break;
         case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.typeVariableBoundCheck);
+          registerImpact(impacts.typeVariableBoundCheck);
           break;
       }
     }
@@ -1922,8 +1895,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
             // support generic methods fully.
             ClassElement cls = type.element.enclosingClass;
             backend.rti.registerClassUsingTypeVariableExpression(cls);
-            backendUsage.registerBackendImpact(
-                transformed, impacts.typeVariableExpression);
+            registerImpact(impacts.typeVariableExpression);
           }
           hasTypeLiteral = true;
           break;
@@ -1931,21 +1903,20 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     if (hasAsCast) {
-      backendUsage.registerBackendImpact(transformed, impacts.asCheck);
+      registerImpact(impacts.asCheck);
     }
 
     if (hasTypeLiteral) {
       transformed.registerTypeUse(
           new TypeUse.instantiation(backend.compiler.commonElements.typeType));
-      backendUsage.registerBackendImpact(transformed, impacts.typeLiteral);
+      registerImpact(impacts.typeLiteral);
     }
 
     for (MapLiteralUse mapLiteralUse in worldImpact.mapLiterals) {
       // TODO(johnniwinther): Use the [isEmpty] property when factory
       // constructors are registered directly.
       if (mapLiteralUse.isConstant) {
-        backendUsage.registerBackendImpact(
-            transformed, impacts.constantMapLiteral);
+        registerImpact(impacts.constantMapLiteral);
       } else {
         transformed
             .registerTypeUse(new TypeUse.instantiation(mapLiteralUse.type));
@@ -1964,7 +1935,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     if (worldImpact.constSymbolNames.isNotEmpty) {
-      backendUsage.registerBackendImpact(transformed, impacts.constSymbol);
+      registerImpact(impacts.constSymbol);
       for (String constSymbolName in worldImpact.constSymbolNames) {
         backend.mirrorsData.registerConstSymbol(constSymbolName);
       }
@@ -1973,11 +1944,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     for (StaticUse staticUse in worldImpact.staticUses) {
       switch (staticUse.kind) {
         case StaticUseKind.CLOSURE:
-          backendUsage.registerBackendImpact(transformed, impacts.closure);
+          registerImpact(impacts.closure);
           LocalFunctionElement closure = staticUse.element;
           if (closure.type.containsTypeVariables) {
-            backendUsage.registerBackendImpact(
-                transformed, impacts.computeSignature);
+            registerImpact(impacts.computeSignature);
           }
           break;
         case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
@@ -1991,21 +1961,19 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     for (ConstantExpression constant in worldImpact.constantLiterals) {
       switch (constant.kind) {
         case ConstantExpressionKind.NULL:
-          backendUsage.registerBackendImpact(transformed, impacts.nullLiteral);
+          registerImpact(impacts.nullLiteral);
           break;
         case ConstantExpressionKind.BOOL:
-          backendUsage.registerBackendImpact(transformed, impacts.boolLiteral);
+          registerImpact(impacts.boolLiteral);
           break;
         case ConstantExpressionKind.INT:
-          backendUsage.registerBackendImpact(transformed, impacts.intLiteral);
+          registerImpact(impacts.intLiteral);
           break;
         case ConstantExpressionKind.DOUBLE:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.doubleLiteral);
+          registerImpact(impacts.doubleLiteral);
           break;
         case ConstantExpressionKind.STRING:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.stringLiteral);
+          registerImpact(impacts.stringLiteral);
           break;
         default:
           assert(invariant(NO_LOCATION_SPANNABLE, false,
@@ -2037,41 +2005,42 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
   void onIsCheck(ResolutionDartType type, TransformedWorldImpact transformed) {
+    BackendUsageBuilder backendUsage = backend.backendUsageBuilder;
+
+    void registerImpact(BackendImpact impact) {
+      impact.registerImpact(transformed, elementEnvironment);
+      backendUsage.processBackendImpact(impact);
+    }
+
     registerRequiredType(type);
     type.computeUnaliased(backend.resolution);
     type = type.unaliased;
-    backendUsage.registerBackendImpact(transformed, impacts.typeCheck);
+    registerImpact(impacts.typeCheck);
 
     bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
     if (inCheckedMode) {
-      backendUsage.registerBackendImpact(
-          transformed, impacts.checkedModeTypeCheck);
+      registerImpact(impacts.checkedModeTypeCheck);
     }
     if (type.isMalformed) {
-      backendUsage.registerBackendImpact(
-          transformed, impacts.malformedTypeCheck);
+      registerImpact(impacts.malformedTypeCheck);
     }
     if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
-      backendUsage.registerBackendImpact(transformed, impacts.genericTypeCheck);
+      registerImpact(impacts.genericTypeCheck);
       if (inCheckedMode) {
-        backendUsage.registerBackendImpact(
-            transformed, impacts.genericCheckedModeTypeCheck);
+        registerImpact(impacts.genericCheckedModeTypeCheck);
       }
       if (type.isTypeVariable) {
-        backendUsage.registerBackendImpact(
-            transformed, impacts.typeVariableTypeCheck);
+        registerImpact(impacts.typeVariableTypeCheck);
         if (inCheckedMode) {
-          backendUsage.registerBackendImpact(
-              transformed, impacts.typeVariableCheckedModeTypeCheck);
+          registerImpact(impacts.typeVariableCheckedModeTypeCheck);
         }
       }
     }
     if (type is ResolutionFunctionType) {
-      backendUsage.registerBackendImpact(
-          transformed, impacts.functionTypeCheck);
+      registerImpact(impacts.functionTypeCheck);
     }
     if (type.element != null && backend.isNative(type.element)) {
-      backendUsage.registerBackendImpact(transformed, impacts.nativeTypeCheck);
+      registerImpact(impacts.nativeTypeCheck);
     }
   }
 
@@ -2079,7 +2048,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       ResolutionDartType type, TransformedWorldImpact transformed) {
     if (type.isDynamic) return;
     type = type.unaliased;
-    backendUsage.registerBackendImpact(transformed, impacts.typeCheck);
+    impacts.typeCheck.registerImpact(transformed, elementEnvironment);
 
     bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
@@ -2094,7 +2063,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       if (helper != null) {
         StaticUse staticUse = helper.getStaticUse(backend.helpers);
         transformed.registerStaticUse(staticUse);
-        backendUsage.registerBackendUse(staticUse.element);
       }
       // We also need the native variant of the check (for DOM types).
       helper = backend.checkedModeHelpers
@@ -2102,17 +2070,16 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       if (helper != null) {
         StaticUse staticUse = helper.getStaticUse(backend.helpers);
         transformed.registerStaticUse(staticUse);
-        backendUsage.registerBackendUse(staticUse.element);
       }
     }
     if (!type.treatAsRaw || type.containsTypeVariables) {
-      backendUsage.registerBackendImpact(transformed, impacts.genericIsCheck);
+      impacts.genericIsCheck.registerImpact(transformed, elementEnvironment);
     }
     if (type.element != null && backend.isNative(type.element)) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
-      backendUsage.registerBackendImpact(transformed, impacts.nativeTypeCheck);
+      impacts.nativeTypeCheck.registerImpact(transformed, elementEnvironment);
     }
   }
 
@@ -2148,8 +2115,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case StaticUseKind.CLOSURE:
           LocalFunctionElement closure = staticUse.element;
           if (backend.methodNeedsRti(closure)) {
-            backendUsage.registerBackendImpact(
-                transformed, impacts.computeSignature);
+            impacts.computeSignature
+                .registerImpact(transformed, elementEnvironment);
           }
           break;
         case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
@@ -2171,7 +2138,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     if (impact.usesInterceptor) {
       if (backend.codegenEnqueuer.nativeEnqueuer.hasInstantiatedNativeClasses) {
-        backendUsage.registerBackendImpact(transformed, impacts.interceptorUse);
+        impacts.interceptorUse.registerImpact(transformed, elementEnvironment);
       }
     }
 
@@ -2183,14 +2150,13 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     for (FunctionElement element in impact.asyncMarkers) {
       switch (element.asyncMarker) {
         case AsyncMarker.ASYNC:
-          backendUsage.registerBackendImpact(transformed, impacts.asyncBody);
+          impacts.asyncBody.registerImpact(transformed, elementEnvironment);
           break;
         case AsyncMarker.SYNC_STAR:
-          backendUsage.registerBackendImpact(transformed, impacts.syncStarBody);
+          impacts.syncStarBody.registerImpact(transformed, elementEnvironment);
           break;
         case AsyncMarker.ASYNC_STAR:
-          backendUsage.registerBackendImpact(
-              transformed, impacts.asyncStarBody);
+          impacts.asyncStarBody.registerImpact(transformed, elementEnvironment);
           break;
       }
     }
@@ -2343,7 +2309,6 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
   CommonElements get commonElements => _backend.commonElements;
   BackendHelpers get helpers => _backend.helpers;
   BackendImpacts get impacts => _backend.impacts;
-  BackendUsageBuilder get backendUsage => _backend.backendUsageBuilder;
   CustomElementsAnalysis get customElementsAnalysis =>
       _backend.customElementsAnalysis;
   NativeData get nativeData => _backend.nativeData;
@@ -2354,17 +2319,23 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
   Resolution get resolution => _backend.resolution;
   MirrorsData get mirrorsData => _backend.mirrorsData;
   CompilerOptions get options => _backend.compiler.options;
+  ElementEnvironment get elementEnvironment =>
+      _backend.compiler.elementEnvironment;
+
+  WorldImpact createImpactFor(BackendImpact impact);
+  void registerBackendImpact(WorldImpactBuilder builder, BackendImpact impact);
+  void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder);
 
   WorldImpact registerBoundClosure() {
-    return backendUsage.createImpactFor(impacts.memberClosure);
+    return createImpactFor(impacts.memberClosure);
   }
 
   WorldImpact registerGetOfStaticFunction() {
-    return backendUsage.createImpactFor(impacts.staticClosure);
+    return createImpactFor(impacts.staticClosure);
   }
 
   WorldImpact _registerComputeSignature() {
-    return backendUsage.createImpactFor(impacts.computeSignature);
+    return createImpactFor(impacts.computeSignature);
   }
 
   /// Called to register that an instantiated generic class has a call method.
@@ -2386,107 +2357,76 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
       if (cls == commonElements.intClass ||
           cls == commonElements.doubleClass ||
           cls == commonElements.numClass) {
-        backendUsage.registerBackendImpact(impactBuilder, impacts.numClasses);
+        registerBackendImpact(impactBuilder, impacts.numClasses);
       } else if (cls == commonElements.listClass ||
           cls == commonElements.stringClass) {
-        backendUsage.registerBackendImpact(
-            impactBuilder, impacts.listOrStringClasses);
+        registerBackendImpact(impactBuilder, impacts.listOrStringClasses);
       } else if (cls == commonElements.functionClass) {
-        backendUsage.registerBackendImpact(
-            impactBuilder, impacts.functionClass);
+        registerBackendImpact(impactBuilder, impacts.functionClass);
       } else if (cls == commonElements.mapClass) {
-        backendUsage.registerBackendImpact(impactBuilder, impacts.mapClass);
+        registerBackendImpact(impactBuilder, impacts.mapClass);
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
         rti.registerRtiDependency(helpers.mapLiteralClass, cls);
       } else if (cls == helpers.boundClosureClass) {
-        backendUsage.registerBackendImpact(
-            impactBuilder, impacts.boundClosureClass);
+        registerBackendImpact(impactBuilder, impacts.boundClosureClass);
       } else if (nativeData.isNativeOrExtendsNative(cls)) {
-        backendUsage.registerBackendImpact(
-            impactBuilder, impacts.nativeOrExtendsClass);
+        registerBackendImpact(impactBuilder, impacts.nativeOrExtendsClass);
       } else if (cls == helpers.mapLiteralClass) {
-        backendUsage.registerBackendImpact(
-            impactBuilder, impacts.mapLiteralClass);
+        registerBackendImpact(impactBuilder, impacts.mapLiteralClass);
       }
     }
     if (cls == helpers.closureClass) {
-      backendUsage.registerBackendImpact(impactBuilder, impacts.closureClass);
+      registerBackendImpact(impactBuilder, impacts.closureClass);
     }
     if (cls == commonElements.stringClass || cls == helpers.jsStringClass) {
-      addInterceptors(helpers.jsStringClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsStringClass, impactBuilder);
     } else if (cls == commonElements.listClass ||
         cls == helpers.jsArrayClass ||
         cls == helpers.jsFixedArrayClass ||
         cls == helpers.jsExtendableArrayClass ||
         cls == helpers.jsUnmodifiableArrayClass) {
-      addInterceptors(helpers.jsArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsMutableArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsFixedArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsExtendableArrayClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUnmodifiableArrayClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsArrayClass, impactBuilder);
+      addInterceptors(helpers.jsMutableArrayClass, impactBuilder);
+      addInterceptors(helpers.jsFixedArrayClass, impactBuilder);
+      addInterceptors(helpers.jsExtendableArrayClass, impactBuilder);
+      addInterceptors(helpers.jsUnmodifiableArrayClass, impactBuilder);
       if (forResolution) {
-        backendUsage.registerBackendImpact(impactBuilder, impacts.listClasses);
+        registerBackendImpact(impactBuilder, impacts.listClasses);
       }
     } else if (cls == commonElements.intClass || cls == helpers.jsIntClass) {
-      addInterceptors(helpers.jsIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt32Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt31Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsNumberClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsIntClass, impactBuilder);
+      addInterceptors(helpers.jsPositiveIntClass, impactBuilder);
+      addInterceptors(helpers.jsUInt32Class, impactBuilder);
+      addInterceptors(helpers.jsUInt31Class, impactBuilder);
+      addInterceptors(helpers.jsNumberClass, impactBuilder);
     } else if (cls == commonElements.doubleClass ||
         cls == helpers.jsDoubleClass) {
-      addInterceptors(helpers.jsDoubleClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsNumberClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsDoubleClass, impactBuilder);
+      addInterceptors(helpers.jsNumberClass, impactBuilder);
     } else if (cls == commonElements.boolClass || cls == helpers.jsBoolClass) {
-      addInterceptors(helpers.jsBoolClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsBoolClass, impactBuilder);
     } else if (cls == commonElements.nullClass || cls == helpers.jsNullClass) {
-      addInterceptors(helpers.jsNullClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsNullClass, impactBuilder);
     } else if (cls == commonElements.numClass || cls == helpers.jsNumberClass) {
-      addInterceptors(helpers.jsIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsPositiveIntClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt32Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsUInt31Class, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsDoubleClass, impactBuilder,
-          forResolution: forResolution);
-      addInterceptors(helpers.jsNumberClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsIntClass, impactBuilder);
+      addInterceptors(helpers.jsPositiveIntClass, impactBuilder);
+      addInterceptors(helpers.jsUInt32Class, impactBuilder);
+      addInterceptors(helpers.jsUInt31Class, impactBuilder);
+      addInterceptors(helpers.jsDoubleClass, impactBuilder);
+      addInterceptors(helpers.jsNumberClass, impactBuilder);
     } else if (cls == helpers.jsJavaScriptObjectClass) {
-      addInterceptors(helpers.jsJavaScriptObjectClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsJavaScriptObjectClass, impactBuilder);
     } else if (cls == helpers.jsPlainJavaScriptObjectClass) {
-      addInterceptors(helpers.jsPlainJavaScriptObjectClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsPlainJavaScriptObjectClass, impactBuilder);
     } else if (cls == helpers.jsUnknownJavaScriptObjectClass) {
-      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, impactBuilder);
     } else if (cls == helpers.jsJavaScriptFunctionClass) {
-      addInterceptors(helpers.jsJavaScriptFunctionClass, impactBuilder,
-          forResolution: forResolution);
+      addInterceptors(helpers.jsJavaScriptFunctionClass, impactBuilder);
     } else if (nativeData.isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, forResolution: forResolution);
     } else if (cls == helpers.jsIndexingBehaviorInterface) {
-      backendUsage.registerBackendImpact(
-          impactBuilder, impacts.jsIndexingBehavior);
+      registerBackendImpact(impactBuilder, impacts.jsIndexingBehavior);
     }
 
     customElementsAnalysis.registerInstantiatedClass(cls,
@@ -2503,19 +2443,9 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
     }
   }
 
-  void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder,
-      {bool forResolution}) {
-    if (forResolution) {
-      cls.ensureResolved(resolution);
-      interceptorData.addInterceptors(cls);
-    }
-    backendUsage.registerBackendInstantiation(impactBuilder, cls);
-  }
-
   void _registerUsedElement(
       WorldImpactBuilderImpl worldImpact, MemberElement element,
       {bool forResolution}) {
-    backendUsage.registerUsedMember(element);
     mirrorsData.registerUsedMember(element);
     customElementsAnalysis.registerStaticUse(element,
         forResolution: forResolution);
@@ -2533,6 +2463,25 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
 
 class ResolutionEnqueuerListener extends EnqueuerListenerBase {
   ResolutionEnqueuerListener(JavaScriptBackend backend) : super(backend);
+
+  BackendUsageBuilder get backendUsage => _backend.backendUsageBuilder;
+
+  WorldImpact createImpactFor(BackendImpact impact) {
+    backendUsage.processBackendImpact(impact);
+    return impact.createImpactFor(elementEnvironment);
+  }
+
+  void registerBackendImpact(WorldImpactBuilder builder, BackendImpact impact) {
+    impact.registerImpact(builder, elementEnvironment);
+    backendUsage.processBackendImpact(impact);
+  }
+
+  void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder) {
+    cls.ensureResolved(resolution);
+    interceptorData.addInterceptors(cls);
+    impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+    backendUsage.registerBackendUse(cls);
+  }
 
   // TODO(johnniwinther): Change this to a final field.
   NoSuchMethodRegistry get noSuchMethodRegistry =>
@@ -2558,12 +2507,13 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     _registerUsedElement(worldImpact, member, forResolution: true);
+    backendUsage.registerUsedMember(member);
 
     if (member.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!_isLoadLibraryFunctionResolved) {
         _isLoadLibraryFunctionResolved = true;
-        backendUsage.registerBackendImpact(worldImpact, impacts.loadLibrary);
+        registerBackendImpact(worldImpact, impacts.loadLibrary);
       }
     }
 
@@ -2607,7 +2557,8 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
   /// Called to register that the `runtimeType` property has been accessed. Any
   /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerRuntimeType() {
-    return backendUsage.createImpactFor(impacts.runtimeTypeSupport);
+    backendUsage.processBackendImpact(impacts.runtimeTypeSupport);
+    return impacts.runtimeTypeSupport.createImpactFor(elementEnvironment);
   }
 
   WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
@@ -2636,18 +2587,16 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
-    addInterceptors(helpers.jsBoolClass, impactBuilder, forResolution: true);
-    addInterceptors(helpers.jsNullClass, impactBuilder, forResolution: true);
+    addInterceptors(helpers.jsBoolClass, impactBuilder);
+    addInterceptors(helpers.jsNullClass, impactBuilder);
     if (options.enableTypeAssertions) {
-      backendUsage.registerBackendImpact(
-          impactBuilder, impacts.enableTypeAssertions);
+      registerBackendImpact(impactBuilder, impacts.enableTypeAssertions);
     }
 
     if (JavaScriptBackend.TRACE_CALLS) {
-      backendUsage.registerBackendImpact(impactBuilder, impacts.traceHelper);
+      registerBackendImpact(impactBuilder, impacts.traceHelper);
     }
-    backendUsage.registerBackendImpact(
-        impactBuilder, impacts.assertUnreachable);
+    registerBackendImpact(impactBuilder, impacts.assertUnreachable);
     _registerCheckedModeHelpers(impactBuilder);
     return impactBuilder;
   }
@@ -2664,7 +2613,7 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
       staticUses.add(helper.getStaticUse(helpers).element);
     }
-    backendUsage.registerBackendImpact(
+    registerBackendImpact(
         impactBuilder, new BackendImpact(globalUses: staticUses));
   }
 }
@@ -2675,6 +2624,21 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
   // TODO(johnniwinther): Change these to final fields.
   LookupMapAnalysis get lookupMapAnalysis => _backend.lookupMapAnalysis;
   DumpInfoTask get dumpInfoTask => _backend.compiler.dumpInfoTask;
+
+  WorldImpact createImpactFor(BackendImpact impact) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    impact.registerImpact(impactBuilder, elementEnvironment);
+    return impactBuilder;
+  }
+
+  void registerBackendImpact(WorldImpactBuilder builder, BackendImpact impact) {
+    impact.registerImpact(builder, elementEnvironment);
+  }
+
+  void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder) {
+    impactBuilder.registerTypeUse(
+        new TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+  }
 
   @override
   void registerInstantiatedType(ResolutionInterfaceType type,

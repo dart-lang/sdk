@@ -33,7 +33,7 @@ void checkAnnotation(String name, String declaration,
                    $declaration
                    main() {}""";
 
-  compileAndCheck(source1, name, (compiler, element) {
+  analyzeAndCheck(source1, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(
         1, element.metadata.length, 'Unexpected metadata count on $element.');
@@ -54,7 +54,7 @@ void checkAnnotation(String name, String declaration,
                    $declaration
                    main() {}""";
 
-  compileAndCheck(source2, name, (compiler, element) {
+  analyzeAndCheck(source2, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(2, element.metadata.length);
     PartialMetadataAnnotation annotation1 = element.metadata.elementAt(0);
@@ -89,7 +89,7 @@ void checkAnnotation(String name, String declaration,
                    }
                    main() {}""";
 
-  compileAndCheck(source3, 'Foo', (compiler, element) {
+  analyzeAndCheck(source3, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
     element.ensureResolved(compiler.resolution);
@@ -115,7 +115,7 @@ void checkAnnotation(String name, String declaration,
                    }
                    main() {}""";
 
-  compileAndCheck(source4, 'Foo', (compiler, element) {
+  analyzeAndCheck(source4, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
     element.ensureResolved(compiler.resolution);
@@ -168,7 +168,7 @@ void testLibraryTags() {
 
     Uri uri = new Uri(scheme: 'source', path: 'main.dart');
 
-    var compiler = compilerFor(source, uri)
+    var compiler = compilerFor(source, uri, analyzeOnly: true)
       ..registerSource(partUri, partSource)
       ..registerSource(libUri, libSource);
 

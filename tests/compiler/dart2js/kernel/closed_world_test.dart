@@ -15,6 +15,7 @@ import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -97,9 +98,9 @@ main(List<String> args) {
         new ResolutionWorkItemBuilder(compiler.resolution),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(compiler, enqueuer);
-
-    checkResolutionEnqueuers(compiler.backend.backendUsage,
-        compiler.backend.backendUsage, compiler.enqueuer.resolution, enqueuer,
+    BackendUsage backendUsage = compiler.backend.backendUsageBuilder.close();
+    checkResolutionEnqueuers(
+        backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: (Element element) {

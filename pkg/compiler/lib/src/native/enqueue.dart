@@ -82,7 +82,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   JavaScriptBackend get backend => compiler.backend;
   BackendHelpers get helpers => backend.helpers;
-  BackendUsageBuilder get _backendUsageBuilder => backend.backendUsageBuilder;
   Resolution get resolution => compiler.resolution;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -443,11 +442,12 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     return _unusedClasses.where(predicate);
   }
 
+  void registerBackendUse(Element element) {}
+
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
     void staticUse(element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
-      _backendUsageBuilder.registerBackendUse(element);
-      _backendUsageBuilder.registerGlobalDependency(element);
+      registerBackendUse(element);
     }
 
     staticUse(helpers.defineProperty);
@@ -473,6 +473,13 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   NativeResolutionEnqueuer(Compiler compiler)
       : super(compiler, compiler.options.enableNativeLiveTypeAnalysis);
+
+  BackendUsageBuilder get _backendUsageBuilder => backend.backendUsageBuilder;
+
+  void registerBackendUse(Element element) {
+    _backendUsageBuilder.registerBackendUse(element);
+    _backendUsageBuilder.registerGlobalDependency(element);
+  }
 
   void processNativeClass(ClassElement classElement) {
     super.processNativeClass(classElement);

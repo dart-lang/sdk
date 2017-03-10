@@ -6,10 +6,13 @@ library dart2js.js_helpers.impact;
 
 import '../common/names.dart';
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CommonElements;
+import '../core_types.dart' show CommonElements, ElementEnvironment;
 import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
 import '../universe/selector.dart';
+import '../universe/world_impact.dart'
+    show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
+import '../universe/use.dart';
 import '../util/enumset.dart';
 import 'backend_helpers.dart';
 import 'js_backend.dart';
@@ -44,6 +47,48 @@ class BackendImpact {
 
   Iterable<BackendFeature> get features =>
       _features.iterable(BackendFeature.values);
+
+  WorldImpact createImpactFor(ElementEnvironment elementEnvironment) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    registerImpact(impactBuilder, elementEnvironment);
+    return impactBuilder;
+  }
+
+  /// Register this backend impact to the [worldImpactBuilder].
+  void registerImpact(WorldImpactBuilder worldImpactBuilder,
+      ElementEnvironment elementEnvironment) {
+    for (Element staticUse in staticUses) {
+      assert(staticUse != null);
+      worldImpactBuilder.registerStaticUse(
+          // TODO(johnniwinther): Store the correct use in impacts.
+          new StaticUse.foreignUse(staticUse));
+    }
+    for (Element staticUse in globalUses) {
+      assert(staticUse != null);
+      worldImpactBuilder.registerStaticUse(
+          // TODO(johnniwinther): Store the correct use in impacts.
+          new StaticUse.foreignUse(staticUse));
+    }
+    for (Selector selector in dynamicUses) {
+      assert(selector != null);
+      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector, null));
+    }
+    for (ResolutionInterfaceType instantiatedType in instantiatedTypes) {
+      worldImpactBuilder
+          .registerTypeUse(new TypeUse.instantiation(instantiatedType));
+    }
+    for (ClassElement cls in instantiatedClasses) {
+      worldImpactBuilder.registerTypeUse(
+          new TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+    }
+    for (ClassElement cls in globalClasses) {
+      worldImpactBuilder.registerTypeUse(
+          new TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+    }
+    for (BackendImpact otherImpact in otherImpacts) {
+      otherImpact.registerImpact(worldImpactBuilder, elementEnvironment);
+    }
+  }
 }
 
 /// The JavaScript backend dependencies for various features.
@@ -733,5 +778,17 @@ class BackendImpacts {
   BackendImpact get staticClosure {
     return _staticClosure ??=
         new BackendImpact(globalClasses: [helpers.closureClass]);
+  }
+
+  BackendImpact _typeVariableMirror;
+
+  /// Backend impact for type variables through mirrors.
+  BackendImpact get typeVariableMirror {
+    return _typeVariableMirror ??= new BackendImpact(staticUses: [
+      helpers.typeVariableConstructor,
+      helpers.createRuntimeType
+    ], instantiatedClasses: [
+      helpers.typeVariableClass
+    ]);
   }
 }

@@ -297,6 +297,10 @@ class BackendHelpers {
   ClassEntity get typeVariableClass =>
       _typeVariableClass ??= _findHelperClass('TypeVariable');
 
+  ConstructorEntity _typeVariableConstructor;
+  ConstructorEntity get typeVariableConstructor => _typeVariableConstructor ??=
+      _env.lookupConstructor(typeVariableClass, '');
+
   ClassEntity _noSideEffectsClass;
   ClassEntity get noSideEffectsClass =>
       _noSideEffectsClass ??= _findHelperClass('NoSideEffects');

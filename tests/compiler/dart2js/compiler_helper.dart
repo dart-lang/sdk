@@ -159,12 +159,14 @@ Future<String> compileAll(String code,
   });
 }
 
-Future compileAndCheck(String code, String name,
+Future analyzeAndCheck(String code, String name,
     check(MockCompiler compiler, lego.Element element),
     {int expectedErrors, int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri,
-      expectedErrors: expectedErrors, expectedWarnings: expectedWarnings);
+      expectedErrors: expectedErrors,
+      expectedWarnings: expectedWarnings,
+      analyzeOnly: true);
   return compiler.run(uri).then((_) {
     lego.Element element = findElement(compiler, name);
     return check(compiler, element);
