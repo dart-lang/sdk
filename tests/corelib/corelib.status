@@ -82,8 +82,6 @@ double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1
 [ $runtime == ff ]
 double_round3_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Pass, Fail, OK # Fails on ff 34, passes on ff 35. Runtime rounds 0.49999999999999994 to 1.
-list_test/none: RuntimeError # Issue 27871
-list_test/01: RuntimeError # Issue 27871
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
@@ -123,8 +121,6 @@ string_case_test/02: Fail, OK  # Bug in IE.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
-list_test/none: Fail # Issue 28014
-list_test/01: Fail # Issue 28014
 int_parse_radix_test/none: Pass, RuntimeError # Issue 28983
 string_trim2_test: Pass, RuntimeError # Issue 28983
 string_trimlr_test/01: Pass, RuntimeError # Issue 28983
@@ -133,6 +129,10 @@ double_parse_test/03: Pass, RuntimeError # Issue 28983
 double_parse_test/none: Pass, RuntimeError # Issue 28983
 num_parse_test/01: Pass, RuntimeError # Issue 28983
 num_parse_test/none: Pass, RuntimeError # Issue 28983
+
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) && $fast_startup == false]
+list_test/none: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
+list_test/01: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
 
 [ $compiler == dart2js && $runtime == dartium ]
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.
