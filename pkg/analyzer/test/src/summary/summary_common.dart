@@ -18,7 +18,6 @@ import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
 
