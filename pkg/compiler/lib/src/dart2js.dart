@@ -570,6 +570,7 @@ class AbortLeg {
 }
 
 void writeString(Uri uri, String text) {
+  if (!enableWriteString) return;
   if (uri.scheme != 'file') {
     fail('Unhandled scheme ${uri.scheme}.');
   }
@@ -771,6 +772,11 @@ typedef Future<api.CompilationResult> CompileFunc(
 
 ExitFunc exitFunc = exit;
 CompileFunc compileFunc = api.compile;
+
+/// If `true` a '.deps' file will be generated after compilation.
+///
+/// Set this to `false` in end-to-end tests to avoid generating '.deps' files.
+bool enableWriteString = true;
 
 Future<api.CompilationResult> internalMain(List<String> arguments) {
   Future onError(exception, trace) {
