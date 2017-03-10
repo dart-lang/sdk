@@ -467,6 +467,7 @@ LayoutTests/fast/dom/shadow/shadow-content-crash_t01: RuntimeError # co19-roll r
 LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/shadow/shadow-removechild-and-blur-event_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/shadowroot-keyframes_t01: RuntimeError, Pass # Issue 29018
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/StyleSheet/discarded-sheet-owner-null_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/Window/window-resize_t01: RuntimeError # co19-roll r738: Please triage this failure.
