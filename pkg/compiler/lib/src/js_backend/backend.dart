@@ -902,7 +902,7 @@ class JavaScriptBackend extends Target {
   /// Returns the [WorldImpact] of enabling deferred loading.
   WorldImpact computeDeferredLoadingImpact() {
     backendUsageBuilder.processBackendImpact(impacts.deferredLoading);
-    return impacts.deferredLoading.createImpactFor(compiler.elementEnvironment);
+    return impacts.deferredLoading.createImpact(compiler.elementEnvironment);
   }
 
   /// Called to register a `noSuchMethod` implementation.
@@ -1320,13 +1320,13 @@ class JavaScriptBackend extends Target {
               noSuchMethodRegistry.hasComplexNoSuchMethod)) {
         backendUsageBuilder.processBackendImpact(impacts.noSuchMethodSupport);
         enqueuer.applyImpact(impacts.noSuchMethodSupport
-            .createImpactFor(compiler.elementEnvironment));
+            .createImpact(compiler.elementEnvironment));
         enabledNoSuchMethod = true;
       }
     } else {
       if (enabledNoSuchMethod && !_noSuchMethodEnabledForCodegen) {
         enqueuer.applyImpact(impacts.noSuchMethodSupport
-            .createImpactFor(compiler.elementEnvironment));
+            .createImpact(compiler.elementEnvironment));
         _noSuchMethodEnabledForCodegen = true;
       }
     }
@@ -2356,66 +2356,34 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
   BackendImpacts get impacts => _backend.impacts;
   CustomElementsAnalysis get customElementsAnalysis =>
       _backend.customElementsAnalysis;
-  NativeData get nativeData => _backend.nativeData;
-  InterceptorDataBuilder get interceptorData =>
-      _backend._interceptorDataBuilder;
   TypeVariableHandler get typeVariableHandler => _backend.typeVariableHandler;
-  Resolution get resolution => _backend.resolution;
   MirrorsData get mirrorsData => _backend.mirrorsData;
-  CompilerOptions get options => _backend.compiler.options;
   ElementEnvironment get elementEnvironment =>
       _backend.compiler.elementEnvironment;
-
-  WorldImpact createImpactFor(BackendImpact impact);
-
-  WorldImpact registerBoundClosure() {
-    return createImpactFor(impacts.memberClosure);
-  }
-
-  WorldImpact registerGetOfStaticFunction() {
-    return createImpactFor(impacts.staticClosure);
-  }
-
-  WorldImpact _registerComputeSignature() {
-    return createImpactFor(impacts.computeSignature);
-  }
-
-  /// Called to register that an instantiated generic class has a call method.
-  /// Any backend specific [WorldImpact] of this is returned.
-  ///
-  /// Note: The [callMethod] is registered even thought it doesn't reference
-  /// the type variables.
-  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod);
-
-  void _registerUsedElement(
-      WorldImpactBuilderImpl worldImpact, MemberElement element,
-      {bool forResolution}) {
-    mirrorsData.registerUsedMember(element);
-    customElementsAnalysis.registerStaticUse(element,
-        forResolution: forResolution);
-
-    if (element.isFunction && element.isInstanceMember) {
-      MemberElement function = element;
-      ClassElement cls = function.enclosingClass;
-      if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
-        worldImpact
-            .addImpact(registerCallMethodWithFreeTypeVariables(function));
-      }
-    }
-  }
 }
 
 class ResolutionEnqueuerListener extends EnqueuerListenerBase {
+  /// True when we enqueue the loadLibrary code.
+  bool _isLoadLibraryFunctionResolved = false;
+
   ResolutionEnqueuerListener(JavaScriptBackend backend) : super(backend);
+
+  // TODO(johnniwinther): Change these to final fields.
+  NativeData get nativeData => _backend.nativeData;
+
+  CompilerOptions get options => _backend.compiler.options;
+
+  Resolution get resolution => _backend.resolution;
+
+  InterceptorDataBuilder get interceptorData =>
+      _backend._interceptorDataBuilder;
 
   BackendUsageBuilder get backendUsage => _backend.backendUsageBuilder;
 
   RuntimeTypesNeedBuilder get rtiNeedBuilder => _backend.rtiNeedBuilder;
 
-  WorldImpact createImpactFor(BackendImpact impact) {
-    backendUsage.processBackendImpact(impact);
-    return impact.createImpactFor(elementEnvironment);
-  }
+  NoSuchMethodRegistry get noSuchMethodRegistry =>
+      _backend.noSuchMethodRegistry;
 
   void registerBackendImpact(WorldImpactBuilder builder, BackendImpact impact) {
     impact.registerImpact(builder, elementEnvironment);
@@ -2429,12 +2397,22 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
     backendUsage.registerBackendUse(cls);
   }
 
-  // TODO(johnniwinther): Change this to a final field.
-  NoSuchMethodRegistry get noSuchMethodRegistry =>
-      _backend.noSuchMethodRegistry;
+  @override
+  WorldImpact registerBoundClosure() {
+    backendUsage.processBackendImpact(impacts.memberClosure);
+    return impacts.memberClosure.createImpact(elementEnvironment);
+  }
 
-  /// True when we enqueue the loadLibrary code.
-  bool _isLoadLibraryFunctionResolved = false;
+  @override
+  WorldImpact registerGetOfStaticFunction() {
+    backendUsage.processBackendImpact(impacts.staticClosure);
+    return impacts.staticClosure.createImpact(elementEnvironment);
+  }
+
+  WorldImpact _registerComputeSignature() {
+    backendUsage.processBackendImpact(impacts.computeSignature);
+    return impacts.computeSignature.createImpact(elementEnvironment);
+  }
 
   @override
   void registerInstantiatedType(ResolutionInterfaceType type,
@@ -2452,7 +2430,16 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
   @override
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    _registerUsedElement(worldImpact, member, forResolution: true);
+    mirrorsData.registerUsedMember(member);
+    customElementsAnalysis.registerStaticUse(member, forResolution: true);
+
+    if (member.isFunction && member.isInstanceMember) {
+      MethodElement method = member;
+      ClassElement cls = method.enclosingClass;
+      if (method.name == Identifiers.call && !cls.typeVariables.isEmpty) {
+        worldImpact.addImpact(_registerComputeSignature());
+      }
+    }
     backendUsage.registerUsedMember(member);
 
     if (member.isDeferredLoaderGetter) {
@@ -2504,15 +2491,10 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
   /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerRuntimeType() {
     backendUsage.processBackendImpact(impacts.runtimeTypeSupport);
-    return impacts.runtimeTypeSupport.createImpactFor(elementEnvironment);
+    return impacts.runtimeTypeSupport.createImpact(elementEnvironment);
   }
 
   WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
-    return _registerComputeSignature();
-  }
-
-  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
-      {bool forResolution}) {
     return _registerComputeSignature();
   }
 
@@ -2662,10 +2644,19 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
 
   RuntimeTypesNeed get rtiNeed => _backend.rtiNeed;
 
-  WorldImpact createImpactFor(BackendImpact impact) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    impact.registerImpact(impactBuilder, elementEnvironment);
-    return impactBuilder;
+
+  @override
+  WorldImpact registerBoundClosure() {
+    return impacts.memberClosure.createImpact(elementEnvironment);
+  }
+
+  @override
+  WorldImpact registerGetOfStaticFunction() {
+    return impacts.staticClosure.createImpact(elementEnvironment);
+  }
+
+  WorldImpact _registerComputeSignature() {
+    return impacts.computeSignature.createImpact(elementEnvironment);
   }
 
   @override
@@ -2683,20 +2674,24 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
   @override
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    _registerUsedElement(worldImpact, member, forResolution: false);
+    mirrorsData.registerUsedMember(member);
+    customElementsAnalysis.registerStaticUse(member,
+        forResolution: false);
+
+    if (member.isFunction && member.isInstanceMember) {
+      MethodElement method = member;
+      ClassElement cls = method.enclosingClass;
+      if (method.name == Identifiers.call && !cls.typeVariables.isEmpty &&
+          rtiNeed.methodNeedsRti(method)) {
+        worldImpact.addImpact(_registerComputeSignature());
+      }
+    }
 
     return worldImpact;
   }
 
   WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
     if (rtiNeed.methodNeedsRti(closure)) {
-      return _registerComputeSignature();
-    }
-    return const WorldImpact();
-  }
-
-  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod) {
-    if (rtiNeed.methodNeedsRti(callMethod)) {
       return _registerComputeSignature();
     }
     return const WorldImpact();

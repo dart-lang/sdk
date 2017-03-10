@@ -48,7 +48,7 @@ class BackendImpact {
   Iterable<BackendFeature> get features =>
       _features.iterable(BackendFeature.values);
 
-  WorldImpact createImpactFor(ElementEnvironment elementEnvironment) {
+  WorldImpact createImpact(ElementEnvironment elementEnvironment) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     registerImpact(impactBuilder, elementEnvironment);
     return impactBuilder;
