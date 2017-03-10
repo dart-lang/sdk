@@ -10,7 +10,7 @@ import '../../common/names.dart' show Names, Selectors;
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
-import '../../core_types.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements;
 import '../../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;

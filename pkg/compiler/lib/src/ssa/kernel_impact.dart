@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/types.dart';
 import '../elements/elements.dart' show AstElement, ResolvedAst;
 import '../elements/entities.dart';

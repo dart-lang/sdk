@@ -399,3 +399,13 @@ class MirrorsHandler {
     }
   }
 }
+
+/// Records that [constant] is used by the element behind [registry].
+class Dependency {
+  final ConstantValue constant;
+  final Element annotatedElement;
+
+  const Dependency(this.constant, this.annotatedElement);
+
+  String toString() => '$annotatedElement:${constant.toStructuredText()}';
+}

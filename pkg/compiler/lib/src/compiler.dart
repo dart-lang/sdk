@@ -22,7 +22,7 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'core_types.dart'
+import 'common_elements.dart'
     show CommonElements, CommonElementsMixin, ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';

@@ -12,7 +12,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';

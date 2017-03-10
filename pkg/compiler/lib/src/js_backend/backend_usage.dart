@@ -4,7 +4,7 @@
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/resolution_types.dart';
 import '../universe/selector.dart';

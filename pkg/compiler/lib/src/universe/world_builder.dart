@@ -9,7 +9,7 @@ import 'dart:collection';
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';

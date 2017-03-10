@@ -5,7 +5,7 @@
 library dart2js.constant_system;
 
 import '../common/backend_api.dart' show BackendClasses;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart' show DartTypes;
 import '../elements/types.dart';
 import '../resolution/operators.dart';

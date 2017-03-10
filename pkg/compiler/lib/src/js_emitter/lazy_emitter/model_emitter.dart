@@ -23,7 +23,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
 import '../../../compiler_new.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../core_types.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements;
 import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'

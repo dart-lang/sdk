@@ -6,7 +6,7 @@ library dart2js.constants.expressions;
 
 import '../common.dart';
 import '../constants/constant_system.dart';
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../resolution/operators.dart';

@@ -8,7 +8,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, MethodElement;
 import '../elements/entities.dart';

@@ -5,7 +5,7 @@
 library js_backend.interceptor_data;
 
 import '../common/names.dart' show Identifiers;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../js/js.dart' as jsAst;
 import '../types/types.dart' show TypeMask;

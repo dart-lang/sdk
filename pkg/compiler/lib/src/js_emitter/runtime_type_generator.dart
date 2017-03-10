@@ -8,7 +8,7 @@ import '../closure.dart' show ClosureClassMap, ClosureFieldElement;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypeVariableType;
 import '../elements/elements.dart'

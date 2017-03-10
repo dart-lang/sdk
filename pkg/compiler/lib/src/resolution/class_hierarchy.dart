@@ -6,7 +6,7 @@ library dart2js.resolution.class_hierarchy;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'

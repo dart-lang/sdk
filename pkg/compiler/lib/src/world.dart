@@ -8,7 +8,7 @@ import 'closure.dart' show ClosureClassElement, SynthesizedCallMethodElementX;
 import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'constants/constant_system.dart';
-import 'core_types.dart' show CommonElements;
+import 'common_elements.dart' show CommonElements;
 import 'elements/entities.dart';
 import 'elements/elements.dart'
     show

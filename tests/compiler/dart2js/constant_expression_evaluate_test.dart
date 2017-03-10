@@ -14,7 +14,7 @@ import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/constant_system_dart.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/core_types.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'memory_compiler.dart';

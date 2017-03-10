@@ -11,7 +11,7 @@ import 'dart:math' show min;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../util/util.dart' show equalElements;
 import 'elements.dart';

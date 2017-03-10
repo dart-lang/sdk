@@ -8,7 +8,7 @@ import '../common/backend_api.dart' show BackendClasses;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../elements/resolution_types.dart' show DartTypes;
 import '../elements/entities.dart';

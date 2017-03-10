@@ -19,7 +19,7 @@ import '../constants/expressions.dart'
         ConstructedConstantExpression,
         ErroneousConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'

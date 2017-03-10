@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart' show ErroneousElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart' show MalformedType;

@@ -7,7 +7,7 @@ import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionElementX;

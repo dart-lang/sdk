@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
