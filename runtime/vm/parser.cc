@@ -3709,7 +3709,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     body = CloseAsyncFunction(generated_body_closure, body);
     generated_body_closure.set_end_token_pos(end_token_pos);
   } else if (func.IsAsyncClosure()) {
-    body = CloseAsyncClosure(body);
+    body = CloseAsyncClosure(body, end_token_pos);
   } else if (func.IsSyncGenerator()) {
     body = CloseSyncGenFunction(generated_body_closure, body);
     generated_body_closure.set_end_token_pos(end_token_pos);
@@ -6719,7 +6719,8 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode* body) {
 }
 
 
-SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
+SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block,
+                                         TokenPosition func_end_pos) {
   // This is the outermost try-catch of the function.
   ASSERT(try_stack_ != NULL);
   ASSERT(try_stack_->outer_try() == NULL);
@@ -6788,7 +6789,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   completer_args->Add(
       new (Z) LoadLocalNode(TokenPosition::kNoSource, stack_trace_param.var));
   current_block_->statements->Add(new (Z) InstanceCallNode(
-      TokenPos(),
+      func_end_pos,
       new (Z) LoadLocalNode(TokenPosition::kNoSource, async_completer),
       Symbols::CompleterCompleteError(), completer_args));
   ReturnNode* return_node = new (Z) ReturnNode(TokenPosition::kNoSource);
@@ -7568,11 +7569,12 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 }
 
 
-SequenceNode* Parser::CloseAsyncClosure(SequenceNode* body) {
+SequenceNode* Parser::CloseAsyncClosure(SequenceNode* body,
+                                        TokenPosition func_end_pos) {
   // We need a temporary expression to store intermediate return values.
   parsed_function()->EnsureExpressionTemp();
 
-  SequenceNode* new_body = CloseAsyncTryBlock(body);
+  SequenceNode* new_body = CloseAsyncTryBlock(body, func_end_pos);
   ASSERT(new_body != NULL);
   ASSERT(new_body->scope() != NULL);
   return new_body;

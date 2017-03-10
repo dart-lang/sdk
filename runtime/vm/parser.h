@@ -666,8 +666,10 @@ class Parser : public ValueObject {
   SequenceNode* CloseAsyncFunction(const Function& closure,
                                    SequenceNode* closure_node);
 
-  SequenceNode* CloseAsyncClosure(SequenceNode* body);
-  SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block);
+  SequenceNode* CloseAsyncClosure(SequenceNode* body,
+                                  TokenPosition func_end_pos);
+  SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block,
+                                   TokenPosition func_end_pos);
   SequenceNode* CloseAsyncGeneratorTryBlock(SequenceNode* body);
 
   void AddAsyncClosureParameters(ParamList* params);
