@@ -387,13 +387,6 @@ class JavaScriptBackend extends Target {
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
 
-  /// List of constants from metadata.  If metadata must be preserved,
-  /// these constants must be registered.
-  final List<Dependency> metadataConstants = <Dependency>[];
-
-  /// Set of elements for which metadata has been registered as dependencies.
-  final Set<Element> _registeredMetadata = new Set<Element>();
-
   TypeVariableHandler typeVariableHandler;
 
   /// Number of methods compiled before considering reflection.
@@ -436,12 +429,6 @@ class JavaScriptBackend extends Target {
 
   /// Interface for serialization of backend specific data.
   JavaScriptBackendSerialization serialization;
-
-  StagedWorldImpactBuilder constantImpactsForResolution =
-      new StagedWorldImpactBuilder();
-
-  StagedWorldImpactBuilder constantImpactsForCodegen =
-      new StagedWorldImpactBuilder();
 
   final NativeData nativeData = new NativeData();
   InterceptorDataBuilder _interceptorDataBuilder;
@@ -880,11 +867,11 @@ class JavaScriptBackend extends Target {
         helpers,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
-    _registeredMetadata.clear();
     _interceptorData =
         _interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
         new OneShotInterceptorData(interceptorData, helpers);
+    mirrorsAnalysis.onResolutionComplete();
   }
 
   void onTypeInferenceComplete() {
@@ -1263,33 +1250,6 @@ class JavaScriptBackend extends Target {
     return new jsAst.Call(helperExpression, arguments);
   }
 
-  /// Returns all static fields that are referenced through [targetsUsed].
-  /// If the target is a library or class all nested static fields are
-  /// included too.
-  Iterable<Element> _findStaticFieldTargets() {
-    List staticFields = [];
-
-    void addFieldsInContainer(ScopeContainerElement container) {
-      container.forEachLocalMember((Element member) {
-        if (!member.isInstanceMember && member.isField) {
-          staticFields.add(member);
-        } else if (member.isClass) {
-          addFieldsInContainer(member);
-        }
-      });
-    }
-
-    for (Element target in mirrorsData.targetsUsed) {
-      if (target == null) continue;
-      if (target.isField) {
-        staticFields.add(target);
-      } else if (target.isLibrary || target.isClass) {
-        addFieldsInContainer(target);
-      }
-    }
-    return staticFields;
-  }
-
   // TODO(johnniwinther): Split this into [ResolutionEnqueuerListener]
   // and [CodegenEnqueuerListener].
   bool _onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
@@ -1336,105 +1296,12 @@ class JavaScriptBackend extends Target {
     if (compiler.options.useKernel && compiler.mainApp != null) {
       kernelTask.buildKernelIr();
     }
-
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;
     }
 
-    if (mirrorsData.isTreeShakingDisabled) {
-      enqueuer.applyImpact(mirrorsAnalysis.computeImpactForReflectiveElements(
-          recentClasses,
-          enqueuer.processedClasses,
-          compiler.libraryLoader.libraries,
-          forResolution: enqueuer.isResolutionQueue));
-    } else if (!mirrorsData.targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
-      // Add all static elements (not classes) that have been requested for
-      // reflection. If there is no mirror-usage these are probably not
-      // necessary, but the backend relies on them being resolved.
-      enqueuer.applyImpact(mirrorsAnalysis
-          .computeImpactForReflectiveStaticFields(_findStaticFieldTargets(),
-              forResolution: enqueuer.isResolutionQueue));
-    }
-
-    if (mirrorsData.mustPreserveNames) reporter.log('Preserving names.');
-
-    if (mirrorsData.mustRetainMetadata) {
-      reporter.log('Retaining metadata.');
-
-      compiler.libraryLoader.libraries.forEach(mirrorsData.retainMetadataOf);
-
-      StagedWorldImpactBuilder impactBuilder = enqueuer.isResolutionQueue
-          ? constantImpactsForResolution
-          : constantImpactsForCodegen;
-      if (enqueuer.isResolutionQueue && !enqueuer.queueIsClosed) {
-        /// Register the constant value of [metadata] as live in resolution.
-        void registerMetadataConstant(MetadataAnnotation metadata) {
-          ConstantValue constant =
-              constants.getConstantValueForMetadata(metadata);
-          Dependency dependency =
-              new Dependency(constant, metadata.annotatedElement);
-          metadataConstants.add(dependency);
-          computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder,
-              forResolution: enqueuer.isResolutionQueue);
-        }
-
-        // TODO(johnniwinther): We should have access to all recently processed
-        // elements and process these instead.
-        processMetadata(compiler.enqueuer.resolution.processedEntities,
-            registerMetadataConstant);
-      } else {
-        for (Dependency dependency in metadataConstants) {
-          computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder,
-              forResolution: enqueuer.isResolutionQueue);
-        }
-        metadataConstants.clear();
-      }
-      enqueuer.applyImpact(impactBuilder.flush());
-    }
+    mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
-  }
-
-  /// Call [registerMetadataConstant] on all metadata from [entities].
-  void processMetadata(
-      Iterable<Entity> entities, void onMetadata(MetadataAnnotation metadata)) {
-    void processLibraryMetadata(LibraryElement library) {
-      if (_registeredMetadata.add(library)) {
-        library.metadata.forEach(onMetadata);
-        library.entryCompilationUnit.metadata.forEach(onMetadata);
-        for (ImportElement import in library.imports) {
-          import.metadata.forEach(onMetadata);
-        }
-      }
-    }
-
-    void processElementMetadata(Element element) {
-      if (_registeredMetadata.add(element)) {
-        element.metadata.forEach(onMetadata);
-        if (element.isFunction) {
-          FunctionElement function = element;
-          for (ParameterElement parameter in function.parameters) {
-            parameter.metadata.forEach(onMetadata);
-          }
-        }
-        if (element.enclosingClass != null) {
-          // Only process library of top level fields/methods
-          // (and not for classes).
-          // TODO(johnniwinther): Fix this: We are missing some metadata on
-          // libraries (example: in co19/Language/Metadata/before_export_t01).
-          if (element.enclosingElement is ClassElement) {
-            // Use [enclosingElement] instead of [enclosingClass] to ensure that
-            // we process patch class metadata for patch and injected members.
-            processElementMetadata(element.enclosingElement);
-          }
-        } else {
-          processLibraryMetadata(element.library);
-        }
-      }
-    }
-
-    entities.forEach(processElementMetadata);
   }
 
   /// Called after the queue is closed. [onQueueEmpty] may be called multiple
@@ -2647,7 +2514,6 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
 
   RuntimeTypesNeed get rtiNeed => _backend.rtiNeed;
 
-
   @override
   WorldImpact registerBoundClosure() {
     return impacts.memberClosure.createImpact(elementEnvironment);
@@ -2678,13 +2544,13 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     mirrorsData.registerUsedMember(member);
-    customElementsAnalysis.registerStaticUse(member,
-        forResolution: false);
+    customElementsAnalysis.registerStaticUse(member, forResolution: false);
 
     if (member.isFunction && member.isInstanceMember) {
       MethodElement method = member;
       ClassElement cls = method.enclosingClass;
-      if (method.name == Identifiers.call && !cls.typeVariables.isEmpty &&
+      if (method.name == Identifiers.call &&
+          !cls.typeVariables.isEmpty &&
           rtiNeed.methodNeedsRti(method)) {
         worldImpact.addImpact(_registerComputeSignature());
       }

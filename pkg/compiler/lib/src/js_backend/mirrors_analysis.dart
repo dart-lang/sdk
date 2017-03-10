@@ -6,25 +6,173 @@ library dart2js.mirrors_handler;
 
 import '../common.dart';
 import '../common/resolution.dart';
+import '../compiler.dart';
+import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../enqueue.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart';
 import 'backend.dart';
+import 'constant_handler_javascript.dart';
+import 'mirrors_data.dart';
 
 class MirrorsAnalysis {
+  final JavaScriptBackend backend;
   final MirrorsHandler resolutionHandler;
   final MirrorsHandler codegenHandler;
 
-  MirrorsAnalysis(JavaScriptBackend backend, Resolution resolution)
+  /// List of constants from metadata.  If metadata must be preserved,
+  /// these constants must be registered.
+  final List<Dependency> metadataConstants = <Dependency>[];
+
+  /// Set of elements for which metadata has been registered as dependencies.
+  final Set<Element> _registeredMetadata = new Set<Element>();
+
+  StagedWorldImpactBuilder constantImpactsForResolution =
+      new StagedWorldImpactBuilder();
+
+  StagedWorldImpactBuilder constantImpactsForCodegen =
+      new StagedWorldImpactBuilder();
+
+  MirrorsAnalysis(this.backend, Resolution resolution)
       : resolutionHandler = new MirrorsHandler(backend, resolution),
         codegenHandler = new MirrorsHandler(backend, resolution);
 
+  DiagnosticReporter get reporter => backend.reporter;
+  Compiler get compiler => backend.compiler;
+  JavaScriptConstantCompiler get constants => backend.constants;
+  MirrorsData get mirrorsData => backend.mirrorsData;
+
+  /// Returns all static fields that are referenced through
+  /// `mirrorsData.targetsUsed`. If the target is a library or class all nested
+  /// static fields are included too.
+  Iterable<Element> _findStaticFieldTargets() {
+    List staticFields = [];
+
+    void addFieldsInContainer(ScopeContainerElement container) {
+      container.forEachLocalMember((Element member) {
+        if (!member.isInstanceMember && member.isField) {
+          staticFields.add(member);
+        } else if (member.isClass) {
+          addFieldsInContainer(member);
+        }
+      });
+    }
+
+    for (Element target in mirrorsData.targetsUsed) {
+      if (target == null) continue;
+      if (target.isField) {
+        staticFields.add(target);
+      } else if (target.isLibrary || target.isClass) {
+        addFieldsInContainer(target);
+      }
+    }
+    return staticFields;
+  }
+
+  /// Call [registerMetadataConstant] on all metadata from [entities].
+  void processMetadata(
+      Iterable<Entity> entities, void onMetadata(MetadataAnnotation metadata)) {
+    void processLibraryMetadata(LibraryElement library) {
+      if (_registeredMetadata.add(library)) {
+        library.metadata.forEach(onMetadata);
+        library.entryCompilationUnit.metadata.forEach(onMetadata);
+        for (ImportElement import in library.imports) {
+          import.metadata.forEach(onMetadata);
+        }
+      }
+    }
+
+    void processElementMetadata(Element element) {
+      if (_registeredMetadata.add(element)) {
+        element.metadata.forEach(onMetadata);
+        if (element.isFunction) {
+          FunctionElement function = element;
+          for (ParameterElement parameter in function.parameters) {
+            parameter.metadata.forEach(onMetadata);
+          }
+        }
+        if (element.enclosingClass != null) {
+          // Only process library of top level fields/methods
+          // (and not for classes).
+          // TODO(johnniwinther): Fix this: We are missing some metadata on
+          // libraries (example: in co19/Language/Metadata/before_export_t01).
+          if (element.enclosingElement is ClassElement) {
+            // Use [enclosingElement] instead of [enclosingClass] to ensure that
+            // we process patch class metadata for patch and injected members.
+            processElementMetadata(element.enclosingElement);
+          }
+        } else {
+          processLibraryMetadata(element.library);
+        }
+      }
+    }
+
+    entities.forEach(processElementMetadata);
+  }
+
+  void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
+    if (mirrorsData.isTreeShakingDisabled) {
+      enqueuer.applyImpact(_computeImpactForReflectiveElements(recentClasses,
+          enqueuer.processedClasses, compiler.libraryLoader.libraries,
+          forResolution: enqueuer.isResolutionQueue));
+    } else if (!mirrorsData.targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
+      // Add all static elements (not classes) that have been requested for
+      // reflection. If there is no mirror-usage these are probably not
+      // necessary, but the backend relies on them being resolved.
+      enqueuer.applyImpact(
+          _computeImpactForReflectiveStaticFields(_findStaticFieldTargets()));
+    }
+
+    if (mirrorsData.mustPreserveNames) reporter.log('Preserving names.');
+
+    if (mirrorsData.mustRetainMetadata) {
+      reporter.log('Retaining metadata.');
+
+      compiler.libraryLoader.libraries.forEach(mirrorsData.retainMetadataOf);
+
+      StagedWorldImpactBuilder impactBuilder = enqueuer.isResolutionQueue
+          ? constantImpactsForResolution
+          : constantImpactsForCodegen;
+      if (enqueuer.isResolutionQueue && !enqueuer.queueIsClosed) {
+        /// Register the constant value of [metadata] as live in resolution.
+        void registerMetadataConstant(MetadataAnnotation metadata) {
+          ConstantValue constant =
+              constants.getConstantValueForMetadata(metadata);
+          Dependency dependency =
+              new Dependency(constant, metadata.annotatedElement);
+          metadataConstants.add(dependency);
+          backend.computeImpactForCompileTimeConstant(
+              dependency.constant, impactBuilder,
+              forResolution: enqueuer.isResolutionQueue);
+        }
+
+        // TODO(johnniwinther): We should have access to all recently processed
+        // elements and process these instead.
+        processMetadata(compiler.enqueuer.resolution.processedEntities,
+            registerMetadataConstant);
+      } else {
+        for (Dependency dependency in metadataConstants) {
+          backend.computeImpactForCompileTimeConstant(
+              dependency.constant, impactBuilder,
+              forResolution: enqueuer.isResolutionQueue);
+        }
+        metadataConstants.clear();
+      }
+      enqueuer.applyImpact(impactBuilder.flush());
+    }
+  }
+
+  void onResolutionComplete() {
+    _registeredMetadata.clear();
+  }
+
   /// Compute the impact for elements that are matched by the mirrors used
   /// annotation or, in lack thereof, all elements.
-  WorldImpact computeImpactForReflectiveElements(
+  WorldImpact _computeImpactForReflectiveElements(
       Iterable<ClassEntity> recents,
       Iterable<ClassEntity> processedClasses,
       Iterable<LibraryElement> loadedLibraries,
@@ -37,11 +185,10 @@ class MirrorsAnalysis {
 
   /// Compute the impact for the static fields that have been marked as used by
   /// reflective usage through `MirrorsUsed`.
-  WorldImpact computeImpactForReflectiveStaticFields(Iterable<Element> elements,
-      {bool forResolution}) {
-    MirrorsHandler handler = forResolution ? resolutionHandler : codegenHandler;
-    handler.enqueueReflectiveStaticFields(elements);
-    return handler.flush();
+  WorldImpact _computeImpactForReflectiveStaticFields(
+      Iterable<Element> elements) {
+    resolutionHandler.enqueueReflectiveStaticFields(elements);
+    return resolutionHandler.flush();
   }
 }
 
