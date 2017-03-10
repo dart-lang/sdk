@@ -631,6 +631,601 @@ Null V;
 ''');
   }
 
+  test_method_error_conflict_parameterType_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<T> {
+  void m(T a) {}
+}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  m(a) {}
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+  void m(T a) {}
+}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  void m(dynamic a) {}
+}
+''');
+  }
+
+  test_method_error_conflict_parameterType_notGeneric() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  void m(int a) {}
+}
+class B {
+  void m(String a) {}
+}
+class C extends A implements B {
+  m(a) {}
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A {
+  void m(int a) {}
+}
+class B {
+  void m(String a) {}
+}
+class C extends A implements B {
+  void m(dynamic a) {}
+}
+''');
+  }
+
+  test_method_error_conflict_returnType_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  m(a) {}
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  dynamic m(int a) {}
+}
+''');
+  }
+
+  test_method_error_conflict_returnType_notGeneric() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int m() {}
+}
+class B {
+  String m() {}
+}
+class C extends A implements B {
+  m() {}
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A {
+  int m() {}
+}
+class B {
+  String m() {}
+}
+class C extends A implements B {
+  dynamic m() {}
+}
+''');
+  }
+
+  test_method_error_hasMethod_noParameter_required() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  void m(int a) {}
+}
+class B extends A {
+  m(a, b) {}
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A {
+  void m(int a) {}
+}
+class B extends A {
+  void m(int a, dynamic b) {}
+}
+''');
+  }
+
+  test_method_missing_hasMethod_noParameter_named() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  void m(int a) {}
+}
+class B extends A {
+  m(a, {b}) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  void m(int a) {}
+}
+class B extends A {
+  void m(int a, {dynamic b}) {}
+}
+''');
+  }
+
+  test_method_missing_hasMethod_noParameter_optional() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  void m(int a) {}
+}
+class B extends A {
+  m(a, [b]) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  void m(int a) {}
+}
+class B extends A {
+  void m(int a, [dynamic b]) {}
+}
+''');
+  }
+
+  test_method_missing_hasMethod_withoutTypes() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  m(a) {}
+}
+class B extends A {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  dynamic m(dynamic a) {}
+}
+class B extends A {
+  dynamic m(dynamic a) {}
+}
+''');
+  }
+
+  test_method_missing_noMember() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int foo(String a) => null;
+}
+class B extends A {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  int foo(String a) {}
+}
+class B extends A {
+  dynamic m(dynamic a) {}
+}
+''');
+  }
+
+  test_method_missing_notMethod() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int m = 42;
+}
+class B extends A {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  int m;
+}
+class B extends A {
+  dynamic m(dynamic a) {}
+}
+''');
+  }
+
+  test_method_OK_sequence_extendsExtends_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> extends A<int, T> {}
+class C extends B<String> {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> extends A<int, T> {
+}
+class C extends B<String> {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_sequence_inferMiddle_extendsExtends() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a) {}
+}
+class B extends A {
+  m(a) {}
+}
+class C extends B {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a) {}
+}
+class B extends A {
+  String m(int a) {}
+}
+class C extends B {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_sequence_inferMiddle_extendsImplements() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a) {}
+}
+class B implements A {
+  m(a) {}
+}
+class C extends B {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a) {}
+}
+class B implements A {
+  String m(int a) {}
+}
+class C extends B {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_sequence_inferMiddle_extendsWith() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a) {}
+}
+class B extends Object with A {
+  m(a) {}
+}
+class C extends B {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a) {}
+}
+class B extends Object with A {
+  synthetic B();
+  String m(int a) {}
+}
+class C extends B {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_single_extends_direct_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a, double b) {}
+}
+class B extends A<int, String> {
+  m(a, b) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<K, V> {
+  V m(K a, double b) {}
+}
+class B extends A<int, String> {
+  String m(int a, double b) {}
+}
+''');
+  }
+
+  test_method_OK_single_extends_direct_notGeneric() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a) {}
+}
+class B extends A {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a) {}
+}
+class B extends A {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_single_extends_direct_notGeneric_named() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a, {double b}) {}
+}
+class B extends A {
+  m(a, {b}) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a, {double b}) {}
+}
+class B extends A {
+  String m(int a, {double b}) {}
+}
+''');
+  }
+
+  test_method_OK_single_extends_direct_notGeneric_positional() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a, [double b]) {}
+}
+class B extends A {
+  m(a, [b]) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a, [double b]) {}
+}
+class B extends A {
+  String m(int a, [double b]) {}
+}
+''');
+  }
+
+  test_method_OK_single_extends_indirect_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> extends A<int, T> {}
+class C extends B<String> {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> extends A<int, T> {
+}
+class C extends B<String> {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_single_implements_direct_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A<K, V> {
+  V m(K a);
+}
+class B implements A<int, String> {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A<K, V> {
+  V m(K a);
+}
+class B implements A<int, String> {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_single_implements_direct_notGeneric() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  String m(int a);
+}
+class B implements A {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  String m(int a);
+}
+class B implements A {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_single_implements_indirect_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A<K, V> {
+  V m(K a);
+}
+abstract class B<T1, T2> extends A<T2, T1> {}
+class C implements B<int, String> {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A<K, V> {
+  V m(K a);
+}
+abstract class B<T1, T2> extends A<T2, T1> {
+}
+class C implements B<int, String> {
+  int m(String a) {}
+}
+''');
+  }
+
+  test_method_OK_single_withExtends_notGeneric() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a) {}
+}
+class B extends Object with A {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a) {}
+}
+class B extends Object with A {
+  synthetic B();
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_two_extendsImplements_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<String> {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<String> {
+  String m(int a) {}
+}
+''');
+  }
+
+  test_method_OK_two_extendsImplements_notGeneric() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  String m(int a) {}
+}
+class B {
+  String m(int a) {}
+}
+class C extends A implements B {
+  m(a) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  String m(int a) {}
+}
+class B {
+  String m(int a) {}
+}
+class C extends A implements B {
+  String m(int a) {}
+}
+''');
+  }
+
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
     String path = _p('/test.dart');
     provider.newFile(path, text);
