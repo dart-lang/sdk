@@ -145,7 +145,7 @@
       "../../lib/src/fasta/testing",
       "../../lib/src/fasta/util",
       "../../tool",
-      "../../tool/fasta",
+      "../../tool/_fasta",
       "parser/parser_suite.dart",
       "scanner/scanner_suite.dart",
       "compile_test.dart",
