@@ -86,11 +86,7 @@ Where `$DART_AOT_VM` is defined as described [above](#Building-The-Dart-SDK).
 
 ## Running Tests
 
-Run:
-
-```bash
-dart -c pkg/testing/bin/testing.dart --config=pkg/front_end/test/fasta/testing.json
-```
+See [How to test Fasta](TESTING.md)
 
 ## Running dart2js
 
