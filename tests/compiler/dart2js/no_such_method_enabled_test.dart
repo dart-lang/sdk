@@ -20,7 +20,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -40,7 +40,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -62,7 +62,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -84,7 +84,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -109,7 +109,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.throwingImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -130,7 +130,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -148,7 +148,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -166,7 +166,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -184,7 +184,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.notApplicableImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -204,7 +204,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.throwingImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -225,7 +225,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -247,7 +247,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isTrue(compiler.backend.enabledNoSuchMethod);
+  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
       .contains(clsA.lookupMember('noSuchMethod')));
@@ -267,7 +267,7 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
   await compiler.run(uri);
-  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
   ClassElement clsA = findElement(compiler, 'A');
   Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
       .contains(clsA.lookupMember('noSuchMethod')));

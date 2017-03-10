@@ -420,10 +420,6 @@ class JavaScriptBackend extends Target {
 
   PatchResolverTask patchResolverTask;
 
-  /// Whether or not `noSuchMethod` support has been enabled.
-  bool enabledNoSuchMethod = false;
-  bool _noSuchMethodEnabledForCodegen = false;
-
   /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy sourceInformationStrategy;
 
@@ -822,7 +818,7 @@ class JavaScriptBackend extends Target {
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(backendClasses.typeType));
     }
-    lookupMapAnalysis.registerConstantKey(constant);
+    if (!forResolution) lookupMapAnalysis.registerConstantKey(constant);
   }
 
   void computeImpactForInstantiatedConstantType(
@@ -890,11 +886,6 @@ class JavaScriptBackend extends Target {
   WorldImpact computeDeferredLoadingImpact() {
     backendUsageBuilder.processBackendImpact(impacts.deferredLoading);
     return impacts.deferredLoading.createImpact(compiler.elementEnvironment);
-  }
-
-  /// Called to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(MethodElement noSuchMethod) {
-    noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
   }
 
   /// Called when resolving a call to a foreign function.
@@ -1250,58 +1241,13 @@ class JavaScriptBackend extends Target {
     return new jsAst.Call(helperExpression, arguments);
   }
 
-  // TODO(johnniwinther): Split this into [ResolutionEnqueuerListener]
-  // and [CodegenEnqueuerListener].
-  bool _onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    // Add elements used synthetically, that is, through features rather than
-    // syntax, for instance custom elements.
-    //
-    // Return early if any elements are added to avoid counting the elements as
-    // due to mirrors.
-    enqueuer.applyImpact(customElementsAnalysis.flush(
-        forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(
-        lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(
-        typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
-
-    if (enqueuer.isResolutionQueue) {
-      for (ClassElement cls in recentClasses) {
-        Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
-        if (element != null && element.isInstanceMember && element.isFunction) {
-          registerNoSuchMethod(element);
-        }
-      }
-    }
-    noSuchMethodRegistry.onQueueEmpty();
-    if (enqueuer.isResolutionQueue) {
-      if (!enabledNoSuchMethod &&
-          (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
-              noSuchMethodRegistry.hasComplexNoSuchMethod)) {
-        backendUsageBuilder.processBackendImpact(impacts.noSuchMethodSupport);
-        enqueuer.applyImpact(impacts.noSuchMethodSupport
-            .createImpact(compiler.elementEnvironment));
-        enabledNoSuchMethod = true;
-      }
-    } else {
-      if (enabledNoSuchMethod && !_noSuchMethodEnabledForCodegen) {
-        enqueuer.applyImpact(impacts.noSuchMethodSupport
-            .createImpact(compiler.elementEnvironment));
-        _noSuchMethodEnabledForCodegen = true;
-      }
-    }
-
-    if (!enqueuer.queueIsEmpty) return false;
-
+  void _onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     if (compiler.options.useKernel && compiler.mainApp != null) {
       kernelTask.buildKernelIr();
     }
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;
     }
-
-    mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
-    return true;
   }
 
   /// Called after the queue is closed. [onQueueEmpty] may be called multiple
@@ -2230,6 +2176,8 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
   MirrorsData get mirrorsData => _backend.mirrorsData;
   ElementEnvironment get elementEnvironment =>
       _backend.compiler.elementEnvironment;
+  LookupMapAnalysis get lookupMapAnalysis => _backend.lookupMapAnalysis;
+  MirrorsAnalysis get mirrorsAnalysis => _backend.mirrorsAnalysis;
 }
 
 class ResolutionEnqueuerListener extends EnqueuerListenerBase {
@@ -2294,7 +2242,37 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
 
   @override
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    return _backend._onQueueEmpty(enqueuer, recentClasses);
+    // Add elements used synthetically, that is, through features rather than
+    // syntax, for instance custom elements.
+    //
+    // Return early if any elements are added to avoid counting the elements as
+    // due to mirrors.
+    enqueuer.applyImpact(customElementsAnalysis.flush(forResolution: true));
+    enqueuer.applyImpact(lookupMapAnalysis.flush(forResolution: true));
+    enqueuer.applyImpact(typeVariableHandler.flush(forResolution: true));
+
+    for (ClassElement cls in recentClasses) {
+      Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
+      if (element != null && element.isInstanceMember && element.isFunction) {
+        noSuchMethodRegistry.registerNoSuchMethod(element);
+      }
+    }
+    noSuchMethodRegistry.onQueueEmpty();
+    if (!backendUsage.isNoSuchMethodUsed &&
+        (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
+            noSuchMethodRegistry.hasComplexNoSuchMethod)) {
+      backendUsage.processBackendImpact(impacts.noSuchMethodSupport);
+      enqueuer.applyImpact(
+          impacts.noSuchMethodSupport.createImpact(elementEnvironment));
+      backendUsage.isNoSuchMethodUsed = true;
+    }
+
+    if (!enqueuer.queueIsEmpty) return false;
+
+    _backend._onQueueEmpty(enqueuer, recentClasses);
+
+    mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
+    return true;
   }
 
   @override
@@ -2505,14 +2483,16 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
 }
 
 class CodegenEnqueuerListener extends EnqueuerListenerBase {
+  bool _isNoSuchMethodUsed = false;
+
   CodegenEnqueuerListener(JavaScriptBackend backend) : super(backend);
 
   // TODO(johnniwinther): Change these to final fields.
-  LookupMapAnalysis get lookupMapAnalysis => _backend.lookupMapAnalysis;
-
   DumpInfoTask get dumpInfoTask => _backend.compiler.dumpInfoTask;
 
   RuntimeTypesNeed get rtiNeed => _backend.rtiNeed;
+
+  BackendUsage get backendUsage => _backend.backendUsage;
 
   @override
   WorldImpact registerBoundClosure() {
@@ -2536,8 +2516,28 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
 
   @override
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
+    // Add elements used synthetically, that is, through features rather than
+    // syntax, for instance custom elements.
+    //
+    // Return early if any elements are added to avoid counting the elements as
+    // due to mirrors.
+    enqueuer.applyImpact(customElementsAnalysis.flush(forResolution: false));
+    enqueuer.applyImpact(lookupMapAnalysis.flush(forResolution: false));
+    enqueuer.applyImpact(typeVariableHandler.flush(forResolution: false));
+
+    if (backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
+      enqueuer.applyImpact(
+          impacts.noSuchMethodSupport.createImpact(elementEnvironment));
+      _isNoSuchMethodUsed = true;
+    }
+
+    if (!enqueuer.queueIsEmpty) return false;
+
     // TODO(johnniwinther): Avoid the need for accessing [_backend].
-    return _backend._onQueueEmpty(enqueuer, recentClasses);
+    _backend._onQueueEmpty(enqueuer, recentClasses);
+
+    mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
+    return true;
   }
 
   @override

@@ -839,10 +839,8 @@ abstract class Compiler implements LibraryLoaderListener {
    * were resolved, but not compiled (aka excess resolution).
    */
   checkQueues() {
-    for (Enqueuer world in [enqueuer.resolution, enqueuer.codegen]) {
-      world.forEach((WorkItem work) {
-        reporter.internalError(work.element, "Work list is not empty.");
-      });
+    for (Enqueuer enqueuer in [enqueuer.resolution, enqueuer.codegen]) {
+      enqueuer.checkQueueIsEmpty();
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(enqueuer.resolution.processedEntities);

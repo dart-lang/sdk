@@ -68,6 +68,14 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   bool get queueIsEmpty => _queue.isEmpty;
 
+  @override
+  void checkQueueIsEmpty() {
+    if (_queue.isNotEmpty) {
+      throw new SpannableAssertionFailure(
+          _queue.first.element, "$name queue is not empty.");
+    }
+  }
+
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 

@@ -96,6 +96,9 @@ abstract class Enqueuer {
   /// if it is no longer needed.
   void applyImpact(WorldImpact worldImpact, {var impactSource});
   bool checkNoEnqueuedInvokedInstanceMethods();
+
+  /// Check the enqueuer queue is empty or fail otherwise.
+  void checkQueueIsEmpty();
   void logSummary(log(message));
 
   Iterable<Entity> get processedEntities;
@@ -207,6 +210,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   ResolutionWorldBuilder get worldBuilder => _universe;
 
   bool get queueIsEmpty => _queue.isEmpty;
+
+  @override
+  void checkQueueIsEmpty() {
+    if (_queue.isNotEmpty) {
+      throw new SpannableAssertionFailure(
+          _queue.first.element, "$name queue is not empty.");
+    }
+  }
 
   Iterable<ClassEntity> get processedClasses => _universe.processedClasses;
 

@@ -533,7 +533,7 @@ class ProgramBuilder {
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
 
-    if (backend.enabledNoSuchMethod && element.isObject) {
+    if (backend.backendUsage.isNoSuchMethodUsed && element.isObject) {
       Map<js.Name, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((js.Name name, Selector selector) {

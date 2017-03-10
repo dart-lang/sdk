@@ -35,6 +35,9 @@ abstract class BackendUsage {
 
   /// `true` if `Function.apply` is used.
   bool get isFunctionApplyUsed;
+
+  /// `true` if `noSuchMethod` is used.
+  bool get isNoSuchMethodUsed;
 }
 
 abstract class BackendUsageBuilder {
@@ -54,6 +57,9 @@ abstract class BackendUsageBuilder {
 
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed;
+
+  /// `true` if `noSuchMethod` is used.
+  bool isNoSuchMethodUsed;
 
   BackendUsage close();
 }
@@ -85,6 +91,9 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed = false;
+
+  /// `true` if `noSuchMethod` is used.
+  bool isNoSuchMethodUsed = false;
 
   BackendUsageBuilderImpl(
       this._elementEnvironment, this._commonElements, this._helpers);
@@ -225,7 +234,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         isInvokeOnUsed: isInvokeOnUsed,
         isRuntimeTypeUsed: isRuntimeTypeUsed,
         isIsolateInUse: isIsolateInUse,
-        isFunctionApplyUsed: isFunctionApplyUsed);
+        isFunctionApplyUsed: isFunctionApplyUsed,
+        isNoSuchMethodUsed: isNoSuchMethodUsed);
   }
 }
 
@@ -254,6 +264,9 @@ class BackendUsageImpl implements BackendUsage {
   /// `true` if `Function.apply` is used.
   final bool isFunctionApplyUsed;
 
+  /// `true` if `noSuchMethod` is used.
+  final bool isNoSuchMethodUsed;
+
   BackendUsageImpl(
       {Set<Element> globalDependencies,
       Set<Element> helpersUsed,
@@ -263,7 +276,8 @@ class BackendUsageImpl implements BackendUsage {
       this.isInvokeOnUsed,
       this.isRuntimeTypeUsed,
       this.isIsolateInUse,
-      this.isFunctionApplyUsed})
+      this.isFunctionApplyUsed,
+      this.isNoSuchMethodUsed})
       : this._globalDependencies = globalDependencies,
         this._helpersUsed = helpersUsed;
 
