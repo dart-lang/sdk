@@ -3012,7 +3012,7 @@ class Parser {
       token = parseStringPart(token);
       kind = token.kind;
     }
-    listener.endLiteralString(interpolationCount);
+    listener.endLiteralString(interpolationCount, token);
     return token;
   }
 

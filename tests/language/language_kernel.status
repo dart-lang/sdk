@@ -623,7 +623,6 @@ type_variable_conflict_test/05: MissingCompileTimeError
 type_variable_conflict_test/06: MissingCompileTimeError
 type_variable_function_type_test: RuntimeError
 type_variable_scope3_test/00: MissingCompileTimeError
-vm/causal_async_exception_stack_test: RuntimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/regress_27201_test: CompileTimeError

@@ -112,7 +112,7 @@ class AstBuilder extends ScopeListener {
     push(ast.simpleStringLiteral(toAnalyzerToken(token), token.value));
   }
 
-  void endLiteralString(int interpolationCount) {
+  void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();

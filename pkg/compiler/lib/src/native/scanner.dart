@@ -35,8 +35,8 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
   if (identical(token.kind, Tokens.STRING_TOKEN)) {
     hasExpression = true;
     listener.beginLiteralString(token);
-    listener.endLiteralString(0);
     token = token.next;
+    listener.endLiteralString(0, token);
   }
   listener.endReturnStatement(hasExpression, begin, token);
   // TODO(ngeoffray): expect a ';'.

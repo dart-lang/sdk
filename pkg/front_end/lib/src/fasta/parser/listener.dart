@@ -476,7 +476,7 @@ class Listener {
 
   void beginLiteralString(Token token) {}
 
-  void endLiteralString(int interpolationCount) {
+  void endLiteralString(int interpolationCount, Token endToken) {
     logEvent("LiteralString");
   }
 

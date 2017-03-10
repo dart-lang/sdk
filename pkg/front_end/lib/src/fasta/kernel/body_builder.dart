@@ -595,7 +595,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return buildCompileTimeError(
           "Not an operator: '$operator'.", token.charOffset);
     } else {
-      Expression result = makeBinary(a, new Name(operator), null, b);
+      Expression result =
+          makeBinary(a, new Name(operator), null, b, token.charOffset);
       if (isSuper) {
         result = toSuperMethodInvocation(result);
       }
@@ -795,7 +796,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endLiteralString(int interpolationCount) {
+  void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
@@ -818,7 +819,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       expressions
           .add(new StringLiteral(unescapeLastStringPart(last.value, quote)));
-      push(new StringConcatenation(expressions));
+      push(new StringConcatenation(expressions)
+        ..fileOffset = endToken.charOffset);
     }
   }
 
@@ -1076,7 +1078,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     push(new ListLiteral(expressions,
-        typeArgument: typeArgument, isConst: constKeyword != null));
+        typeArgument: typeArgument, isConst: constKeyword != null)
+      ..fileOffset = constKeyword?.charOffset ?? beginToken.charOffset);
   }
 
   @override
@@ -1119,7 +1122,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     push(new MapLiteral(entries,
-        keyType: keyType, valueType: valueType, isConst: constKeyword != null));
+        keyType: keyType, valueType: valueType, isConst: constKeyword != null)
+      ..fileOffset = constKeyword?.charOffset ?? beginToken.charOffset);
   }
 
   @override
@@ -1280,7 +1284,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     Expression expression = popForValue();
-    push(new Throw(expression));
+    push(new Throw(expression)..fileOffset = throwToken.charOffset);
   }
 
   @override
@@ -1329,7 +1333,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     variable ??= new VariableDeclaration(name.name,
-        type: type ?? const DynamicType(), initializer: name.initializer);
+        type: type ?? const DynamicType(),
+        initializer: name.initializer)..fileOffset = name.fileOffset;
     push(variable);
   }
 
@@ -1510,7 +1515,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("UnaryPrefixAssignmentExpression");
     var accessor = pop();
     if (accessor is BuilderAccessor) {
-      push(accessor.buildPrefixIncrement(incrementOperator(token)));
+      push(accessor.buildPrefixIncrement(
+          incrementOperator(token), token.charOffset));
     } else {
       push(wrapInvalid(toValue(accessor)));
     }
@@ -2114,7 +2120,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
           "Can't break to '$name'.", breakKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new BreakStatement(null);
+      BreakStatement statement = new BreakStatement(null)
+        ..fileOffset = breakKeyword.charOffset;
       target.addBreak(statement);
       push(statement);
     }
@@ -2159,7 +2166,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
           "Can't continue at '$name'.", continueKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new BreakStatement(null);
+      BreakStatement statement = new BreakStatement(null)
+        ..fileOffset = continueKeyword.charOffset;
       target.addContinue(statement);
       push(statement);
     }
@@ -2384,17 +2392,18 @@ abstract class ContextAccessor extends BuilderAccessor {
     return makeInvalidWrite(value);
   }
 
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+  Expression buildCompoundAssignment(
+      Name binaryOperator, Expression value, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return makeInvalidWrite(value);
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator,
+  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return makeInvalidWrite(null);
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator,
+  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return makeInvalidWrite(null);
   }
@@ -2428,40 +2437,40 @@ class DelayedAssignment extends ContextAccessor {
     if (identical("=", assignmentOperator)) {
       return accessor.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(plusName, value,
+      return accessor.buildCompoundAssignment(plusName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("-=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(minusName, value,
+      return accessor.buildCompoundAssignment(minusName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("*=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(multiplyName, value,
+      return accessor.buildCompoundAssignment(multiplyName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("%=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(percentName, value,
+      return accessor.buildCompoundAssignment(percentName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("&=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(ampersandName, value,
+      return accessor.buildCompoundAssignment(ampersandName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(divisionName, value,
+      return accessor.buildCompoundAssignment(divisionName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("<<=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(leftShiftName, value,
+      return accessor.buildCompoundAssignment(leftShiftName, value, charOffset,
           voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(rightShiftName, value,
+      return accessor.buildCompoundAssignment(rightShiftName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
       return accessor.buildNullAwareAssignment(value, const DynamicType(),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(caretName, value,
+      return accessor.buildCompoundAssignment(caretName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("|=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(barName, value,
+      return accessor.buildCompoundAssignment(barName, value, charOffset,
           voidContext: voidContext);
     } else if (identical("~/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(mustacheName, value,
+      return accessor.buildCompoundAssignment(mustacheName, value, charOffset,
           voidContext: voidContext);
     } else {
       return internalError("Unhandled: $assignmentOperator");
@@ -2495,12 +2504,12 @@ class DelayedPostfixIncrement extends ContextAccessor {
       : super(helper, charOffset, accessor);
 
   Expression buildSimpleRead() {
-    return accessor.buildPostfixIncrement(binaryOperator,
+    return accessor.buildPostfixIncrement(binaryOperator, charOffset,
         voidContext: false, interfaceTarget: interfaceTarget);
   }
 
   Expression buildForEffect() {
-    return accessor.buildPostfixIncrement(binaryOperator,
+    return accessor.buildPostfixIncrement(binaryOperator, charOffset,
         voidContext: true, interfaceTarget: interfaceTarget);
   }
 }

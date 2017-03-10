@@ -866,7 +866,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endLiteralString(int count) {
+  void endLiteralString(int count, Token endToken) {
     StringQuoting quoting = popQuoting();
 
     Link<StringInterpolationPart> parts = const Link<StringInterpolationPart>();
