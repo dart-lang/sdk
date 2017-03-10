@@ -17,7 +17,10 @@ Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeEr
 Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
-Language/Classes/Constructors/Factories/name_t02: DartkCrash
+Language/Classes/Constructors/Factories/name_t01: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t03: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t04: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: RuntimeError # Dartk Issue 28566
 Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError

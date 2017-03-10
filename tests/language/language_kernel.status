@@ -335,8 +335,6 @@ external_test/24: MissingCompileTimeError
 external_test/25: MissingCompileTimeError
 external_test/30: MissingCompileTimeError
 external_test/31: MissingCompileTimeError
-factory2_negative_test: DartkCrash
-factory_negative_test: DartkCrash
 factory_redirection_test/07: MissingCompileTimeError
 field_decl_missing_var_type_test/01: MissingCompileTimeError
 final_initializer_instance_reference_test/01: MissingCompileTimeError
