@@ -16,6 +16,7 @@ import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/get_handler.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -140,7 +141,9 @@ class GetHandler2 implements AbstractGetHandler {
    */
   void handleGetRequest(HttpRequest request) {
     String path = request.uri.path;
-    if (path == '/' || path == STATUS_PATH) {
+    if (path == '/') {
+      _returnRedirect(request, STATUS_PATH);
+    } else if (path == STATUS_PATH) {
       _returnServerStatus(request);
     } else if (path == ANALYSIS_PERFORMANCE_PATH) {
       _returnAnalysisPerformance(request);
@@ -602,6 +605,11 @@ class GetHandler2 implements AbstractGetHandler {
         }
       });
     });
+  }
+
+  void _returnRedirect(HttpRequest request, String pathFragment) {
+    HttpResponse response = request.response;
+    response.redirect(request.uri.resolve(pathFragment));
   }
 
   /**
@@ -1090,9 +1098,9 @@ class GetHandler2 implements AbstractGetHandler {
       buffer.write('<br>');
       buffer.write('Instrumentation: ');
       if (AnalysisEngine.instance.instrumentationService.isActive) {
-        buffer.write('<span style="color:red">Active</span>');
+        buffer.write('<strong>active</strong>');
       } else {
-        buffer.write('Inactive');
+        buffer.write('inactive');
       }
       buffer.write('<br>');
       buffer.write('Process ID: ');
@@ -1101,6 +1109,21 @@ class GetHandler2 implements AbstractGetHandler {
       buffer.write('<p><b>Performance Data</b></p>');
       buffer.write(makeLink(
           COMMUNICATION_PERFORMANCE_PATH, {}, 'Communication performance'));
+
+      if (AnalysisEngine.instance.instrumentationService.isActive) {
+        buffer.write('<p><b>Instrumentation</b></p>');
+        InstrumentationServer instrumentationServer = AnalysisEngine
+            .instance.instrumentationService.instrumentationServer;
+        String description = instrumentationServer.describe;
+        HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.ELEMENT);
+        description = htmlEscape.convert(description);
+        // Convert http(s): references to hyperlinks.
+        final RegExp urlRegExp = new RegExp(r'[http|https]+:\/*(\S+)');
+        description = description.replaceAllMapped(urlRegExp, (Match match) {
+          return '<a href="${match.group(0)}">${match.group(1)}</a>';
+        });
+        buffer.write(description.replaceAll('\n', '<br>'));
+      }
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
       buffer.write('<p><b>Versions</b></p>');

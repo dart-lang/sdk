@@ -28,6 +28,11 @@ abstract class InstrumentationServer {
   String get sessionId;
 
   /**
+   * A user-friendly description of this instrumentation server.
+   */
+  String get describe;
+
+  /**
    * Pass the given [message] to the instrumentation server so that it will be
    * logged with other messages.
    *
@@ -109,6 +114,8 @@ class InstrumentationService {
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
+
+  InstrumentationServer get instrumentationServer => _instrumentationServer;
 
   /**
    * Log that the given analysis [task] is being performed in the given
@@ -368,6 +375,13 @@ class MulticastInstrumentationServer implements InstrumentationServer {
 
   @override
   String get sessionId => _servers[0].sessionId;
+
+  @override
+  String get describe {
+    return _servers
+        .map((InstrumentationServer server) => server.describe)
+        .join("\n");
+  }
 
   @override
   void log(String message) {

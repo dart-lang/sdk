@@ -166,6 +166,9 @@ class TestInstrumentationServer implements InstrumentationServer {
   String get sessionId => '';
 
   @override
+  String get describe => 'test instrumentation';
+
+  @override
   void log(String message) {
     normalChannel.writeln(message);
   }
