@@ -240,16 +240,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
     var enclosing = constructor.enclosingClass;
     if (backend.rtiNeed.classNeedsRti(astAdapter.getElement(enclosing))) {
-      ClassElement clsElement =
-          astAdapter.getElement(constructor).enclosingElement;
       enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
         var typeParamElement = astAdapter.getElement(typeParameter);
         HParameterValue param =
             addParameter(typeParamElement, commonMasks.nonNullType);
         // This is a little bit wacky (and n^2) until we make the localsHandler
         // take Kernel DartTypes instead of just the AST DartTypes.
-        var typeVariableType = clsElement.typeVariables.firstWhere(
-            (ResolutionTypeVariableType i) => i.name == typeParameter.name);
+        var typeVariableType = astAdapter
+            .getElement(enclosing)
+            .typeVariables
+            .firstWhere(
+                (ResolutionTypeVariableType i) => i.name == typeParameter.name);
         localsHandler.directLocals[
             localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
       });
@@ -278,6 +279,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _buildInitializers(constructor, constructorChain, fieldValues);
 
     final constructorArguments = <HInstruction>[];
+    // Doing this instead of fieldValues.forEach because we haven't defined the
+    // order of the arguments here. We can define that with JElements.
     astAdapter.getClass(constructor.enclosingClass).forEachInstanceField(
         (ClassElement enclosingClass, FieldElement member) {
       var value = fieldValues[astAdapter.getFieldFromElement(member)];
@@ -1768,7 +1771,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     ir.Class cls = constructor.enclosingClass;
 
-    if (backend.rtiNeed.classNeedsRti(astAdapter.getElement(cls))) {
+    if (backend.rtiNeed.classNeedsRti(astAdapter.getClass(cls))) {
       List<HInstruction> typeInputs = <HInstruction>[];
       type.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs
@@ -2684,7 +2687,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         // TODO(efortuna): Do we need to check mixin classes as well?
         if (procedure.name.name == Identifiers.noSuchMethod_ &&
             Selectors.noSuchMethod_
-                .signatureApplies(astAdapter.getElement(procedure))) {
+                .signatureApplies(astAdapter.getMethod(procedure))) {
           noSuchMethod = procedure;
         }
       }
