@@ -168,6 +168,14 @@ void CallPattern::SetTargetCode(const Code& target_code) const {
 }
 
 
+void CallPattern::InsertDeoptCallAt(uword pc) {
+  const uint8_t argc = Bytecode::IsCallOpcode(Bytecode::At(pc))
+                           ? Bytecode::DecodeArgc(Bytecode::At(pc))
+                           : 0;
+  *reinterpret_cast<Instr*>(pc) = Bytecode::Encode(Bytecode::kDeopt, argc, 0);
+}
+
+
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       data_pool_index_(-1),

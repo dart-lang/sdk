@@ -1935,6 +1935,30 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
     function.SwitchToUnoptimizedCode();
   }
 
+#if defined(TARGET_ARCH_DBC)
+  const Instructions& instrs =
+      Instructions::Handle(zone, optimized_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
+    CodePatcher::InsertDeoptimizationCallAt(frame->pc());
+    if (FLAG_trace_patching) {
+      const String& name = String::Handle(function.name());
+      OS::PrintErr("InsertDeoptimizationCallAt: 0x%" Px " for %s\n",
+                   frame->pc(), name.ToCString());
+    }
+    const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
+    ExceptionHandlerInfo info;
+    for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
+      handlers.GetHandlerInfo(i, &info);
+      const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;
+      CodePatcher::InsertDeoptimizationCallAt(patch_pc);
+      if (FLAG_trace_patching) {
+        OS::PrintErr("  at handler 0x%" Px "\n", patch_pc);
+      }
+    }
+  }
+#else  // !DBC
   if (frame->IsMarkedForLazyDeopt()) {
     // Deopt already scheduled.
     if (FLAG_trace_deoptimization) {
@@ -1958,6 +1982,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
                 frame->fp(), deopt_pc);
     }
   }
+#endif  // !DBC
 
   // Mark code as dead (do not GC its embedded objects).
   optimized_code.set_is_alive(false);
@@ -2055,6 +2080,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
               is_lazy_deopt ? "lazy-deopt" : "");
   }
 
+#if !defined(TARGET_ARCH_DBC)
   if (is_lazy_deopt) {
     uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
     if (FLAG_trace_deoptimization) {
@@ -2065,7 +2091,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
     // N.B.: Update frame before updating pending deopt table. The profiler
     // may attempt a stack walk in between.
     caller_frame->set_pc(deopt_pc);
-    ASSERT(!caller_frame->IsMarkedForLazyDeopt());
     ASSERT(caller_frame->pc() == deopt_pc);
     ASSERT(optimized_code.ContainsInstructionAt(caller_frame->pc()));
     isolate->ClearPendingDeoptsAtOrBelow(caller_frame->fp());
@@ -2075,6 +2100,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                 caller_frame->pc());
     }
   }
+#endif  // !DBC
 
   // Copy the saved registers from the stack.
   fpu_register_t* fpu_registers;

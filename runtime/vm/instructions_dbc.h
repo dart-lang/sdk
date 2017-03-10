@@ -57,6 +57,8 @@ class CallPattern : public ValueObject {
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& code) const;
 
+  static void InsertDeoptCallAt(uword pc);
+
  private:
   const ObjectPool& object_pool_;
 

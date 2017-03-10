@@ -278,6 +278,11 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
+void CodePatcher::InsertDeoptimizationCallAt(uword start) {
+  UNREACHABLE();
+}
+
+
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
                                                      ICData* ic_data_result) {

@@ -30,6 +30,11 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
 }
 
 
+void CodePatcher::InsertDeoptimizationCallAt(uword start) {
+  CallPattern::InsertDeoptCallAt(start);
+}
+
+
 RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
                                         const Code& code,
                                         ICData* ic_data) {
