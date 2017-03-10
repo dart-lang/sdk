@@ -8,7 +8,13 @@ import 'dart:async' show Future;
 
 import 'dart:convert' show JSON;
 
-import 'dart:io' show exitCode;
+import 'dart:io' show BytesBuilder, FileSystemEntity, exitCode;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+
+import 'package:kernel/kernel.dart' show Program;
+
+import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'kernel/verifier.dart' show verifyProgram;
 
@@ -25,6 +31,8 @@ import 'dill/dill_target.dart' show DillTarget;
 import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
+
+import 'vm.dart' show CompilationResult;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
@@ -153,5 +161,60 @@ class CompileTask {
       }
     }
     return uri;
+  }
+}
+
+Future<CompilationResult> parseScript(
+    Uri fileName, Uri packages, Uri patchedSdk, bool verbose) async {
+  if (!FileSystemEntity.isFileSync(fileName.toFilePath())) {
+    throw "Input file '${fileName.toFilePath()}' does not exist.";
+  }
+
+  if (!FileSystemEntity.isDirectorySync(patchedSdk.toFilePath())) {
+    throw "Patched sdk directory not found at ${patchedSdk.toFilePath()}";
+  }
+
+  Target target = getTarget("vm", new TargetFlags(strongMode: false));
+
+  Program program;
+  final uriTranslator = await TranslateUri.parse(null, packages);
+  final Ticker ticker = new Ticker(isVerbose: verbose);
+  final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+  dillTarget.read(patchedSdk.resolve('platform.dill'));
+  final KernelTarget kernelTarget = new KernelTarget(dillTarget, uriTranslator);
+  try {
+    kernelTarget.read(fileName);
+    await dillTarget.writeOutline(null);
+    program = await kernelTarget.writeOutline(null);
+    program = await kernelTarget.writeProgram(null);
+    if (kernelTarget.errors.isNotEmpty) {
+      return new CompilationResult.error(kernelTarget.errors
+          .map((err) => err.toString())
+          .toList(growable: false));
+    }
+  } on InputError catch (e) {
+    return new CompilationResult.error(<String>[e.format()]);
+  }
+
+  // Perform target-specific transformations.
+  target.performModularTransformations(program);
+  target.performGlobalTransformations(program);
+
+  // Write the program to a list of bytes and return it.
+  var sink = new ByteSink();
+  new BinaryPrinter(sink).writeProgramFile(program);
+  return new CompilationResult.ok(sink.builder.takeBytes());
+}
+
+// TODO(ahe): https://github.com/dart-lang/sdk/issues/28316
+class ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
+
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  void close() {
+    // Nothing to do.
   }
 }
