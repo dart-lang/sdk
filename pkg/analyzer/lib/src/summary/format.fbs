@@ -1195,6 +1195,15 @@ table EntityRef {
   syntheticReturnType:EntityRef (id: 5);
 
   /**
+   * If this [EntityRef] is a result of type inference, and so contained within
+   * [LinkedUnit.types], and was computed as a result of top-level type
+   * inference, which failed for this target, contains the list of one or more
+   * errors describing the failure.  The [reference] must point at `dynamic` in
+   * this case.
+   */
+  topLevelInferenceErrors:[TopLevelInferenceError] (id: 8);
+
+  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it (if any).
    */
@@ -1585,6 +1594,16 @@ table PackageIndex {
    * [strings] list.
    */
   unitUnitUris:[uint] (id: 3);
+}
+
+/**
+ * Summary information about a top-level type inference error.
+ */
+table TopLevelInferenceError {
+  /**
+   * The message describing the error.
+   */
+  message:string (id: 0);
 }
 
 /**

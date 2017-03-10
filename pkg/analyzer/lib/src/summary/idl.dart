@@ -443,6 +443,16 @@ abstract class EntityRef extends base.SummaryClass {
   EntityRef get syntheticReturnType;
 
   /**
+   * If this [EntityRef] is a result of type inference, and so contained within
+   * [LinkedUnit.types], and was computed as a result of top-level type
+   * inference, which failed for this target, contains the list of one or more
+   * errors describing the failure.  The [reference] must point at `dynamic` in
+   * this case.
+   */
+  @Id(8)
+  List<TopLevelInferenceError> get topLevelInferenceErrors;
+
+  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it (if any).
    */
@@ -1100,6 +1110,17 @@ enum ReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
+}
+
+/**
+ * Summary information about a top-level type inference error.
+ */
+abstract class TopLevelInferenceError extends base.SummaryClass {
+  /**
+   * The message describing the error.
+   */
+  @Id(0)
+  String get message;
 }
 
 /**
