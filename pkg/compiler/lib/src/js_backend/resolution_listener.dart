@@ -177,6 +177,8 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
       typeVariableHandler.registerClassWithTypeVariables(cls,
           forResolution: true);
     }
+    // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
+    // for these into [BackendHelpers] or [BackendImpacts].
     // Register any helper that will be needed by the backend.
     if (cls == commonElements.intClass ||
         cls == commonElements.doubleClass ||

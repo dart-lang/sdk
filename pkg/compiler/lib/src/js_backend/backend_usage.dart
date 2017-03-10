@@ -119,7 +119,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   }
 
   bool _isValidBackendUse(Element element) {
-    assert(invariant(element, element.isDeclaration, message: ""));
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     if (element is ConstructorElement &&
         (element == _helpers.streamIteratorConstructor ||
             _commonElements.isSymbolConstructor(element) ||

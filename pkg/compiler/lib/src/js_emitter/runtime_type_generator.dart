@@ -328,48 +328,4 @@ class RuntimeTypeGenerator {
           superclass, generateIsTest, generateSubstitution, alreadyGenerated);
     }
   }
-
-  List<StubMethod> generateTypeVariableReaderStubs(ClassElement classElement) {
-    List<StubMethod> stubs = <StubMethod>[];
-    ClassElement superclass = classElement;
-    while (superclass != null) {
-      for (ResolutionTypeVariableType parameter in superclass.typeVariables) {
-        if (backend.emitter.readTypeVariables.contains(parameter.element)) {
-          stubs.add(
-              _generateTypeVariableReader(classElement, parameter.element));
-        }
-      }
-      superclass = superclass.superclass;
-    }
-
-    return stubs;
-  }
-
-  StubMethod _generateTypeVariableReader(
-      ClassElement cls, TypeVariableElement element) {
-    jsAst.Name name = namer.nameForReadTypeVariable(element);
-    int index = element.index;
-    jsAst.Expression computeTypeVariable;
-
-    Substitution substitution =
-        backend.rtiSubstitutions.getSubstitution(cls, element.typeDeclaration);
-    jsAst.Name rtiFieldName = backend.namer.rtiFieldName;
-    if (substitution != null) {
-      computeTypeVariable = js(r'#.apply(null, this.#)', [
-        backend.rtiEncoder.getSubstitutionCodeForVariable(substitution, index),
-        rtiFieldName
-      ]);
-    } else {
-      // TODO(ahe): These can be generated dynamically.
-      computeTypeVariable = js(r'this.# && this.#[#]',
-          [rtiFieldName, rtiFieldName, js.number(index)]);
-    }
-    jsAst.Expression convertRtiToRuntimeType = backend.emitter
-        .staticFunctionAccess(backend.helpers.convertRtiToRuntimeType);
-
-    return new StubMethod(
-        name,
-        js('function () { return #(#) }',
-            [convertRtiToRuntimeType, computeTypeVariable]));
-  }
 }
