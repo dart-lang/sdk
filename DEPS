@@ -91,7 +91,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.0",
   "protobuf_tag": "@0.5.3",
-  "pub_rev": "@53327f4a7ca2ddd20a40f6a94db61ac136371b03",
+  "pub_rev": "@fbcdfb43fd486da8224d47a8a1a3359ec4852101",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.22.0",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",

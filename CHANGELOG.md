@@ -34,6 +34,27 @@
     * any analysis option specified on the command line (e.g. `--strong` or `--no-strong`) 
       takes precedence over any corresponding value specified in the analysis options file.
 
+* Pub
+
+  * `pub publish`
+
+    * Warns if a package imports a package that's not a dependency from within
+      `lib/` or `bin/`, or a package that's not a dev dependency from within
+      `test/` or `tool/`.
+
+    * No longer produces "UID too large" errors on OS X. All packages are now
+      uploaded with the user and group names set to "pub".
+
+    * No longer fails with a stack overflow when uploading a package that uses
+      Git submodules.
+
+  * `pub get` and `pub upgrade`
+
+    * Produce more informative error messages if they're run directly in a
+      package that uses Flutter.
+
+    * Properly unlock SDK and path dependencies if they have a new version
+      that's also valid according to the user's pubspec.
 
 ## 1.22.0
 
