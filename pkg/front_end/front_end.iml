@@ -13,7 +13,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/base/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/src/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/tool/fasta/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/tool/_fasta/packages" />
       <excludeFolder url="file://$MODULE_DIR$/tool/packages" />
     </content>
     <orderEntry type="inheritedJdk" />
