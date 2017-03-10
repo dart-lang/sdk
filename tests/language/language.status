@@ -314,5 +314,5 @@ closure_cycles_test: Pass, Crash
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dartium || $runtime == drt) && ($compiler == none || $compiler == app_jit) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dartium || $runtime == drt) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 await_for_test: RuntimeError # issue 28974
