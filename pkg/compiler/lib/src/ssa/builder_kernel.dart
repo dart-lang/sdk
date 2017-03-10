@@ -247,7 +247,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         // This is a little bit wacky (and n^2) until we make the localsHandler
         // take Kernel DartTypes instead of just the AST DartTypes.
         var typeVariableType = astAdapter
-            .getElement(enclosing)
+            .getClass(enclosing)
             .typeVariables
             .firstWhere(
                 (ResolutionTypeVariableType i) => i.name == typeParameter.name);
