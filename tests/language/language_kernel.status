@@ -317,7 +317,6 @@ deferred_type_dependency_test/as: RuntimeError
 deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
 deferred_type_dependency_test/type_annotation: RuntimeError
-duplicate_export_negative_test: DartkCrash
 dynamic2_test/00: MissingCompileTimeError
 dynamic2_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError

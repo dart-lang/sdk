@@ -58,6 +58,8 @@ export 'function_type_builder.dart' show FunctionTypeBuilder;
 
 import 'library_builder.dart' show LibraryBuilder;
 
+import 'invalid_type_builder.dart' show InvalidTypeBuilder;
+
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for declarations, not for scopes.
@@ -95,6 +97,7 @@ abstract class Builder {
   Builder combineAmbiguousImport(
       String name, Builder other, LibraryBuilder library) {
     if (other == this) return this;
+    if (other is InvalidTypeBuilder) return other;
     bool isLocal = false;
     Builder preferred;
     Builder hidden;
