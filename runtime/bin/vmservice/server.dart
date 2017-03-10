@@ -344,6 +344,13 @@ class Server {
       _server = await HttpServer.bind(address, _port);
       _server.listen(_requestHandler, cancelOnError: true);
       serverPrint('Observatory listening on $serverAddress');
+      if (Platform.isFuchsia) {
+        // Create a file with the port number.
+        String tmp = Directory.systemTemp.path;
+        String path = "$tmp/dart.services/${_server.port}";
+        serverPrint("Creating $path");
+        new File(path)..createSync(recursive: true);
+      }
       // Server is up and running.
       _notifyServerState(serverAddress.toString());
       onServerAddressChange('$serverAddress');
@@ -359,6 +366,13 @@ class Server {
   Future cleanup(bool force) {
     if (_server == null) {
       return new Future.value(null);
+    }
+    if (Platform.isFuchsia) {
+      // Remove the file with the port number.
+      String tmp = Directory.systemTemp.path;
+      String path = "$tmp/dart.services/${_server.port}";
+      serverPrint("Deleting $path");
+      new File(path)..deleteSync();
     }
     return _server.close(force: force);
   }
