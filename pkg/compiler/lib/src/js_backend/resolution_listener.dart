@@ -5,63 +5,89 @@
 // TODO(johnniwinther): Make this a library.
 part of js_backend.backend;
 
-class ResolutionEnqueuerListener extends EnqueuerListenerBase {
+class ResolutionEnqueuerListener extends EnqueuerListener {
+  // TODO(johnniwinther): Avoid the need for accessing through [_backend].
+  final JavaScriptBackend _backend;
+
+  final CompilerOptions _options;
+  final CommonElements _commonElements;
+  final BackendHelpers _helpers;
+  final BackendImpacts _impacts;
+  final ElementEnvironment _elementEnvironment;
+
+  final NativeData _nativeData;
+  final InterceptorDataBuilder _interceptorData;
+  final BackendUsageBuilder _backendUsage;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final MirrorsData _mirrorsData;
+
+  final NoSuchMethodRegistry _noSuchMethodRegistry;
+  final CustomElementsAnalysis _customElementsAnalysis;
+  final LookupMapAnalysis _lookupMapAnalysis;
+  final MirrorsAnalysis _mirrorsAnalysis;
+
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
 
-  ResolutionEnqueuerListener(JavaScriptBackend backend) : super(backend);
+  ResolutionEnqueuerListener(
+      this._backend,
+      this._options,
+      this._elementEnvironment,
+      this._commonElements,
+      this._helpers,
+      this._impacts,
+      this._nativeData,
+      this._interceptorData,
+      this._backendUsage,
+      this._rtiNeedBuilder,
+      this._mirrorsData,
+      this._noSuchMethodRegistry,
+      this._customElementsAnalysis,
+      this._lookupMapAnalysis,
+      this._mirrorsAnalysis);
 
-  // TODO(johnniwinther): Change these to final fields.
-  NativeData get nativeData => _backend.nativeData;
+  // TODO(johnniwinther): Avoid the need for this.
+  Resolution get _resolution => _backend.resolution;
 
-  CompilerOptions get options => _backend.compiler.options;
+  // TODO(johnniwinther): Change this to a final field. Currently breaks
+  // `kernel/closed_world_test`.
+  TypeVariableHandler get _typeVariableHandler => _backend.typeVariableHandler;
 
-  Resolution get resolution => _backend.resolution;
-
-  InterceptorDataBuilder get interceptorData =>
-      _backend._interceptorDataBuilder;
-
-  BackendUsageBuilder get backendUsage => _backend.backendUsageBuilder;
-
-  RuntimeTypesNeedBuilder get rtiNeedBuilder => _backend.rtiNeedBuilder;
-
-  NoSuchMethodRegistry get noSuchMethodRegistry =>
-      _backend.noSuchMethodRegistry;
-
-  void registerBackendImpact(WorldImpactBuilder builder, BackendImpact impact) {
-    impact.registerImpact(builder, elementEnvironment);
-    backendUsage.processBackendImpact(impact);
+  void _registerBackendImpact(
+      WorldImpactBuilder builder, BackendImpact impact) {
+    impact.registerImpact(builder, _elementEnvironment);
+    _backendUsage.processBackendImpact(impact);
   }
 
-  void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder) {
-    cls.ensureResolved(resolution);
-    interceptorData.addInterceptors(cls);
+  void _addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder) {
+    cls.ensureResolved(_resolution);
+    _interceptorData.addInterceptors(cls);
     impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
-    backendUsage.registerBackendUse(cls);
+    _backendUsage.registerBackendUse(cls);
   }
 
   @override
   WorldImpact registerBoundClosure() {
-    backendUsage.processBackendImpact(impacts.memberClosure);
-    return impacts.memberClosure.createImpact(elementEnvironment);
+    _backendUsage.processBackendImpact(_impacts.memberClosure);
+    return _impacts.memberClosure.createImpact(_elementEnvironment);
   }
 
   @override
   WorldImpact registerGetOfStaticFunction() {
-    backendUsage.processBackendImpact(impacts.staticClosure);
-    return impacts.staticClosure.createImpact(elementEnvironment);
+    _backendUsage.processBackendImpact(_impacts.staticClosure);
+    return _impacts.staticClosure.createImpact(_elementEnvironment);
   }
 
   WorldImpact _registerComputeSignature() {
-    backendUsage.processBackendImpact(impacts.computeSignature);
-    return impacts.computeSignature.createImpact(elementEnvironment);
+    _backendUsage.processBackendImpact(_impacts.computeSignature);
+    return _impacts.computeSignature.createImpact(_elementEnvironment);
   }
 
   @override
   void registerInstantiatedType(ResolutionInterfaceType type,
       {bool isGlobal: false}) {
     if (isGlobal) {
-      backendUsage.registerGlobalDependency(type.element);
+      _backendUsage.registerGlobalDependency(type.element);
     }
   }
 
@@ -72,39 +98,39 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(customElementsAnalysis.flush(forResolution: true));
-    enqueuer.applyImpact(lookupMapAnalysis.flush(forResolution: true));
-    enqueuer.applyImpact(typeVariableHandler.flush(forResolution: true));
+    enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: true));
+    enqueuer.applyImpact(_lookupMapAnalysis.flush(forResolution: true));
+    enqueuer.applyImpact(_typeVariableHandler.flush(forResolution: true));
 
     for (ClassElement cls in recentClasses) {
       Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
       if (element != null && element.isInstanceMember && element.isFunction) {
-        noSuchMethodRegistry.registerNoSuchMethod(element);
+        _noSuchMethodRegistry.registerNoSuchMethod(element);
       }
     }
-    noSuchMethodRegistry.onQueueEmpty();
-    if (!backendUsage.isNoSuchMethodUsed &&
-        (noSuchMethodRegistry.hasThrowingNoSuchMethod ||
-            noSuchMethodRegistry.hasComplexNoSuchMethod)) {
-      backendUsage.processBackendImpact(impacts.noSuchMethodSupport);
+    _noSuchMethodRegistry.onQueueEmpty();
+    if (!_backendUsage.isNoSuchMethodUsed &&
+        (_noSuchMethodRegistry.hasThrowingNoSuchMethod ||
+            _noSuchMethodRegistry.hasComplexNoSuchMethod)) {
+      _backendUsage.processBackendImpact(_impacts.noSuchMethodSupport);
       enqueuer.applyImpact(
-          impacts.noSuchMethodSupport.createImpact(elementEnvironment));
-      backendUsage.isNoSuchMethodUsed = true;
+          _impacts.noSuchMethodSupport.createImpact(_elementEnvironment));
+      _backendUsage.isNoSuchMethodUsed = true;
     }
 
     if (!enqueuer.queueIsEmpty) return false;
 
     _backend._onQueueEmpty(enqueuer, recentClasses);
 
-    mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
+    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 
   @override
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    mirrorsData.registerUsedMember(member);
-    customElementsAnalysis.registerStaticUse(member, forResolution: true);
+    _mirrorsData.registerUsedMember(member);
+    _customElementsAnalysis.registerStaticUse(member, forResolution: true);
 
     if (member.isFunction && member.isInstanceMember) {
       MethodElement method = member;
@@ -113,13 +139,13 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }
-    backendUsage.registerUsedMember(member);
+    _backendUsage.registerUsedMember(member);
 
     if (member.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!_isLoadLibraryFunctionResolved) {
         _isLoadLibraryFunctionResolved = true;
-        registerBackendImpact(worldImpact, impacts.loadLibrary);
+        _registerBackendImpact(worldImpact, _impacts.loadLibrary);
       }
     }
 
@@ -128,18 +154,18 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
     // which are ending here because their initializing expression is
     // compiled.
     LibraryElement library = member.library;
-    if (!backendUsage.isIsolateInUse && !(member.isField && member.isConst)) {
+    if (!_backendUsage.isIsolateInUse && !(member.isField && member.isConst)) {
       Uri uri = library.canonicalUri;
       if (uri == Uris.dart_isolate) {
-        backendUsage.isIsolateInUse = true;
-        worldImpact.addImpact(enableIsolateSupport());
+        _backendUsage.isIsolateInUse = true;
+        worldImpact.addImpact(_enableIsolateSupport());
       } else if (uri == Uris.dart_async) {
         if (member.name == '_createTimer' ||
             member.name == '_createPeriodicTimer') {
           // The [:Timer:] class uses the event queue of the isolate
           // library, so we make sure that event queue is generated.
-          backendUsage.isIsolateInUse = true;
-          worldImpact.addImpact(enableIsolateSupport());
+          _backendUsage.isIsolateInUse = true;
+          worldImpact.addImpact(_enableIsolateSupport());
         }
       }
     }
@@ -149,22 +175,22 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
       // runtimeType. We have to enable runtime type before hitting the
       // codegen, so that constructors know whether they need to generate code
       // for runtime type.
-      backendUsage.isRuntimeTypeUsed = true;
+      _backendUsage.isRuntimeTypeUsed = true;
       // TODO(ahe): Record precise dependency here.
-      worldImpact.addImpact(registerRuntimeType());
+      worldImpact.addImpact(_registerRuntimeType());
     }
 
     return worldImpact;
   }
 
-  WorldImpact enableIsolateSupport() =>
+  WorldImpact _enableIsolateSupport() =>
       _backend.enableIsolateSupport(forResolution: true);
 
   /// Called to register that the `runtimeType` property has been accessed. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerRuntimeType() {
-    backendUsage.processBackendImpact(impacts.runtimeTypeSupport);
-    return impacts.runtimeTypeSupport.createImpact(elementEnvironment);
+  WorldImpact _registerRuntimeType() {
+    _backendUsage.processBackendImpact(_impacts.runtimeTypeSupport);
+    return _impacts.runtimeTypeSupport.createImpact(_elementEnvironment);
   }
 
   WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
@@ -174,91 +200,94 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
   WorldImpact _processClass(ClassElement cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(cls,
+      _typeVariableHandler.registerClassWithTypeVariables(cls,
           forResolution: true);
     }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
     // for these into [BackendHelpers] or [BackendImpacts].
     // Register any helper that will be needed by the backend.
-    if (cls == commonElements.intClass ||
-        cls == commonElements.doubleClass ||
-        cls == commonElements.numClass) {
-      registerBackendImpact(impactBuilder, impacts.numClasses);
-    } else if (cls == commonElements.listClass ||
-        cls == commonElements.stringClass) {
-      registerBackendImpact(impactBuilder, impacts.listOrStringClasses);
-    } else if (cls == commonElements.functionClass) {
-      registerBackendImpact(impactBuilder, impacts.functionClass);
-    } else if (cls == commonElements.mapClass) {
-      registerBackendImpact(impactBuilder, impacts.mapClass);
+    if (cls == _commonElements.intClass ||
+        cls == _commonElements.doubleClass ||
+        cls == _commonElements.numClass) {
+      _registerBackendImpact(impactBuilder, _impacts.numClasses);
+    } else if (cls == _commonElements.listClass ||
+        cls == _commonElements.stringClass) {
+      _registerBackendImpact(impactBuilder, _impacts.listOrStringClasses);
+    } else if (cls == _commonElements.functionClass) {
+      _registerBackendImpact(impactBuilder, _impacts.functionClass);
+    } else if (cls == _commonElements.mapClass) {
+      _registerBackendImpact(impactBuilder, _impacts.mapClass);
       // For map literals, the dependency between the implementation class
       // and [Map] is not visible, so we have to add it manually.
-      rtiNeedBuilder.registerRtiDependency(helpers.mapLiteralClass, cls);
-    } else if (cls == helpers.boundClosureClass) {
-      registerBackendImpact(impactBuilder, impacts.boundClosureClass);
-    } else if (nativeData.isNativeOrExtendsNative(cls)) {
-      registerBackendImpact(impactBuilder, impacts.nativeOrExtendsClass);
-    } else if (cls == helpers.mapLiteralClass) {
-      registerBackendImpact(impactBuilder, impacts.mapLiteralClass);
+      _rtiNeedBuilder.registerRtiDependency(_helpers.mapLiteralClass, cls);
+    } else if (cls == _helpers.boundClosureClass) {
+      _registerBackendImpact(impactBuilder, _impacts.boundClosureClass);
+    } else if (_nativeData.isNativeOrExtendsNative(cls)) {
+      _registerBackendImpact(impactBuilder, _impacts.nativeOrExtendsClass);
+    } else if (cls == _helpers.mapLiteralClass) {
+      _registerBackendImpact(impactBuilder, _impacts.mapLiteralClass);
     }
-    if (cls == helpers.closureClass) {
-      registerBackendImpact(impactBuilder, impacts.closureClass);
+    if (cls == _helpers.closureClass) {
+      _registerBackendImpact(impactBuilder, _impacts.closureClass);
     }
-    if (cls == commonElements.stringClass || cls == helpers.jsStringClass) {
-      addInterceptors(helpers.jsStringClass, impactBuilder);
-    } else if (cls == commonElements.listClass ||
-        cls == helpers.jsArrayClass ||
-        cls == helpers.jsFixedArrayClass ||
-        cls == helpers.jsExtendableArrayClass ||
-        cls == helpers.jsUnmodifiableArrayClass) {
-      addInterceptors(helpers.jsArrayClass, impactBuilder);
-      addInterceptors(helpers.jsMutableArrayClass, impactBuilder);
-      addInterceptors(helpers.jsFixedArrayClass, impactBuilder);
-      addInterceptors(helpers.jsExtendableArrayClass, impactBuilder);
-      addInterceptors(helpers.jsUnmodifiableArrayClass, impactBuilder);
-      registerBackendImpact(impactBuilder, impacts.listClasses);
-    } else if (cls == commonElements.intClass || cls == helpers.jsIntClass) {
-      addInterceptors(helpers.jsIntClass, impactBuilder);
-      addInterceptors(helpers.jsPositiveIntClass, impactBuilder);
-      addInterceptors(helpers.jsUInt32Class, impactBuilder);
-      addInterceptors(helpers.jsUInt31Class, impactBuilder);
-      addInterceptors(helpers.jsNumberClass, impactBuilder);
-    } else if (cls == commonElements.doubleClass ||
-        cls == helpers.jsDoubleClass) {
-      addInterceptors(helpers.jsDoubleClass, impactBuilder);
-      addInterceptors(helpers.jsNumberClass, impactBuilder);
-    } else if (cls == commonElements.boolClass || cls == helpers.jsBoolClass) {
-      addInterceptors(helpers.jsBoolClass, impactBuilder);
-    } else if (cls == commonElements.nullClass || cls == helpers.jsNullClass) {
-      addInterceptors(helpers.jsNullClass, impactBuilder);
-    } else if (cls == commonElements.numClass || cls == helpers.jsNumberClass) {
-      addInterceptors(helpers.jsIntClass, impactBuilder);
-      addInterceptors(helpers.jsPositiveIntClass, impactBuilder);
-      addInterceptors(helpers.jsUInt32Class, impactBuilder);
-      addInterceptors(helpers.jsUInt31Class, impactBuilder);
-      addInterceptors(helpers.jsDoubleClass, impactBuilder);
-      addInterceptors(helpers.jsNumberClass, impactBuilder);
-    } else if (cls == helpers.jsJavaScriptObjectClass) {
-      addInterceptors(helpers.jsJavaScriptObjectClass, impactBuilder);
-    } else if (cls == helpers.jsPlainJavaScriptObjectClass) {
-      addInterceptors(helpers.jsPlainJavaScriptObjectClass, impactBuilder);
-    } else if (cls == helpers.jsUnknownJavaScriptObjectClass) {
-      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, impactBuilder);
-    } else if (cls == helpers.jsJavaScriptFunctionClass) {
-      addInterceptors(helpers.jsJavaScriptFunctionClass, impactBuilder);
-    } else if (nativeData.isNativeOrExtendsNative(cls)) {
-      addInterceptorsForNativeClassMembers(cls);
-    } else if (cls == helpers.jsIndexingBehaviorInterface) {
-      registerBackendImpact(impactBuilder, impacts.jsIndexingBehavior);
+    if (cls == _commonElements.stringClass || cls == _helpers.jsStringClass) {
+      _addInterceptors(_helpers.jsStringClass, impactBuilder);
+    } else if (cls == _commonElements.listClass ||
+        cls == _helpers.jsArrayClass ||
+        cls == _helpers.jsFixedArrayClass ||
+        cls == _helpers.jsExtendableArrayClass ||
+        cls == _helpers.jsUnmodifiableArrayClass) {
+      _addInterceptors(_helpers.jsArrayClass, impactBuilder);
+      _addInterceptors(_helpers.jsMutableArrayClass, impactBuilder);
+      _addInterceptors(_helpers.jsFixedArrayClass, impactBuilder);
+      _addInterceptors(_helpers.jsExtendableArrayClass, impactBuilder);
+      _addInterceptors(_helpers.jsUnmodifiableArrayClass, impactBuilder);
+      _registerBackendImpact(impactBuilder, _impacts.listClasses);
+    } else if (cls == _commonElements.intClass || cls == _helpers.jsIntClass) {
+      _addInterceptors(_helpers.jsIntClass, impactBuilder);
+      _addInterceptors(_helpers.jsPositiveIntClass, impactBuilder);
+      _addInterceptors(_helpers.jsUInt32Class, impactBuilder);
+      _addInterceptors(_helpers.jsUInt31Class, impactBuilder);
+      _addInterceptors(_helpers.jsNumberClass, impactBuilder);
+    } else if (cls == _commonElements.doubleClass ||
+        cls == _helpers.jsDoubleClass) {
+      _addInterceptors(_helpers.jsDoubleClass, impactBuilder);
+      _addInterceptors(_helpers.jsNumberClass, impactBuilder);
+    } else if (cls == _commonElements.boolClass ||
+        cls == _helpers.jsBoolClass) {
+      _addInterceptors(_helpers.jsBoolClass, impactBuilder);
+    } else if (cls == _commonElements.nullClass ||
+        cls == _helpers.jsNullClass) {
+      _addInterceptors(_helpers.jsNullClass, impactBuilder);
+    } else if (cls == _commonElements.numClass ||
+        cls == _helpers.jsNumberClass) {
+      _addInterceptors(_helpers.jsIntClass, impactBuilder);
+      _addInterceptors(_helpers.jsPositiveIntClass, impactBuilder);
+      _addInterceptors(_helpers.jsUInt32Class, impactBuilder);
+      _addInterceptors(_helpers.jsUInt31Class, impactBuilder);
+      _addInterceptors(_helpers.jsDoubleClass, impactBuilder);
+      _addInterceptors(_helpers.jsNumberClass, impactBuilder);
+    } else if (cls == _helpers.jsJavaScriptObjectClass) {
+      _addInterceptors(_helpers.jsJavaScriptObjectClass, impactBuilder);
+    } else if (cls == _helpers.jsPlainJavaScriptObjectClass) {
+      _addInterceptors(_helpers.jsPlainJavaScriptObjectClass, impactBuilder);
+    } else if (cls == _helpers.jsUnknownJavaScriptObjectClass) {
+      _addInterceptors(_helpers.jsUnknownJavaScriptObjectClass, impactBuilder);
+    } else if (cls == _helpers.jsJavaScriptFunctionClass) {
+      _addInterceptors(_helpers.jsJavaScriptFunctionClass, impactBuilder);
+    } else if (_nativeData.isNativeOrExtendsNative(cls)) {
+      _addInterceptorsForNativeClassMembers(cls);
+    } else if (cls == _helpers.jsIndexingBehaviorInterface) {
+      _registerBackendImpact(impactBuilder, _impacts.jsIndexingBehavior);
     }
 
-    customElementsAnalysis.registerInstantiatedClass(cls, forResolution: true);
+    _customElementsAnalysis.registerInstantiatedClass(cls, forResolution: true);
     return impactBuilder;
   }
 
-  void addInterceptorsForNativeClassMembers(ClassElement cls) {
-    cls.ensureResolved(resolution);
-    interceptorData.addInterceptorsForNativeClassMembers(cls);
+  void _addInterceptorsForNativeClassMembers(ClassElement cls) {
+    cls.ensureResolved(_resolution);
+    _interceptorData.addInterceptorsForNativeClassMembers(cls);
   }
 
   @override
@@ -273,38 +302,33 @@ class ResolutionEnqueuerListener extends EnqueuerListenerBase {
 
   /// Compute the [WorldImpact] for backend helper methods.
   WorldImpact computeHelpersImpact() {
-    assert(helpers.interceptorsLibrary != null);
+    assert(_helpers.interceptorsLibrary != null);
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
-    addInterceptors(helpers.jsBoolClass, impactBuilder);
-    addInterceptors(helpers.jsNullClass, impactBuilder);
-    if (options.enableTypeAssertions) {
-      registerBackendImpact(impactBuilder, impacts.enableTypeAssertions);
+    _addInterceptors(_helpers.jsBoolClass, impactBuilder);
+    _addInterceptors(_helpers.jsNullClass, impactBuilder);
+    if (_options.enableTypeAssertions) {
+      _registerBackendImpact(impactBuilder, _impacts.enableTypeAssertions);
     }
 
     if (JavaScriptBackend.TRACE_CALLS) {
-      registerBackendImpact(impactBuilder, impacts.traceHelper);
+      _registerBackendImpact(impactBuilder, _impacts.traceHelper);
     }
-    registerBackendImpact(impactBuilder, impacts.assertUnreachable);
+    _registerBackendImpact(impactBuilder, _impacts.assertUnreachable);
     _registerCheckedModeHelpers(impactBuilder);
     return impactBuilder;
   }
 
-  /// Called to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(MethodElement noSuchMethod) {
-    noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
-  }
-
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
-    // We register all the helpers in the resolution queue.
-    // TODO(13155): Find a way to register fewer helpers.
+    // We register all the _helpers in the _resolution queue.
+    // TODO(13155): Find a way to register fewer _helpers.
     List<Element> staticUses = <Element>[];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
-      staticUses.add(helper.getStaticUse(helpers).element);
+      staticUses.add(helper.getStaticUse(_helpers).element);
     }
-    registerBackendImpact(
+    _registerBackendImpact(
         impactBuilder, new BackendImpact(globalUses: staticUses));
   }
 }

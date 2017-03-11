@@ -5,36 +5,59 @@
 // TODO(johnniwinther): Make this a library.
 part of js_backend.backend;
 
-class CodegenEnqueuerListener extends EnqueuerListenerBase {
+class CodegenEnqueuerListener extends EnqueuerListener {
+  // TODO(johnniwinther): Avoid the need for accessing through [_backend].
+  final JavaScriptBackend _backend;
+
+  final ElementEnvironment _elementEnvironment;
+  final CommonElements _commonElements;
+  final BackendHelpers _helpers;
+  final BackendImpacts _impacts;
+
+  final MirrorsData _mirrorsData;
+
+  final CustomElementsAnalysis _customElementsAnalysis;
+  final TypeVariableHandler _typeVariableHandler;
+  final LookupMapAnalysis _lookupMapAnalysis;
+  final MirrorsAnalysis _mirrorsAnalysis;
+
   bool _isNoSuchMethodUsed = false;
 
-  CodegenEnqueuerListener(JavaScriptBackend backend) : super(backend);
+  CodegenEnqueuerListener(
+      this._backend,
+      this._elementEnvironment,
+      this._commonElements,
+      this._helpers,
+      this._impacts,
+      this._mirrorsData,
+      this._customElementsAnalysis,
+      this._typeVariableHandler,
+      this._lookupMapAnalysis,
+      this._mirrorsAnalysis);
 
   // TODO(johnniwinther): Change these to final fields.
-  DumpInfoTask get dumpInfoTask => _backend.compiler.dumpInfoTask;
-
-  RuntimeTypesNeed get rtiNeed => _backend.rtiNeed;
-
-  BackendUsage get backendUsage => _backend.backendUsage;
+  DumpInfoTask get _dumpInfoTask => _backend.compiler.dumpInfoTask;
+  RuntimeTypesNeed get _rtiNeed => _backend._rtiNeed;
+  BackendUsage get _backendUsage => _backend.backendUsage;
 
   @override
   WorldImpact registerBoundClosure() {
-    return impacts.memberClosure.createImpact(elementEnvironment);
+    return _impacts.memberClosure.createImpact(_elementEnvironment);
   }
 
   @override
   WorldImpact registerGetOfStaticFunction() {
-    return impacts.staticClosure.createImpact(elementEnvironment);
+    return _impacts.staticClosure.createImpact(_elementEnvironment);
   }
 
   WorldImpact _registerComputeSignature() {
-    return impacts.computeSignature.createImpact(elementEnvironment);
+    return _impacts.computeSignature.createImpact(_elementEnvironment);
   }
 
   @override
   void registerInstantiatedType(ResolutionInterfaceType type,
       {bool isGlobal: false}) {
-    lookupMapAnalysis.registerInstantiatedType(type);
+    _lookupMapAnalysis.registerInstantiatedType(type);
   }
 
   @override
@@ -44,13 +67,13 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(customElementsAnalysis.flush(forResolution: false));
-    enqueuer.applyImpact(lookupMapAnalysis.flush(forResolution: false));
-    enqueuer.applyImpact(typeVariableHandler.flush(forResolution: false));
+    enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: false));
+    enqueuer.applyImpact(_lookupMapAnalysis.flush(forResolution: false));
+    enqueuer.applyImpact(_typeVariableHandler.flush(forResolution: false));
 
-    if (backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
+    if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
       enqueuer.applyImpact(
-          impacts.noSuchMethodSupport.createImpact(elementEnvironment));
+          _impacts.noSuchMethodSupport.createImpact(_elementEnvironment));
       _isNoSuchMethodUsed = true;
     }
 
@@ -59,22 +82,22 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
     // TODO(johnniwinther): Avoid the need for accessing [_backend].
     _backend._onQueueEmpty(enqueuer, recentClasses);
 
-    mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
+    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 
   @override
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    mirrorsData.registerUsedMember(member);
-    customElementsAnalysis.registerStaticUse(member, forResolution: false);
+    _mirrorsData.registerUsedMember(member);
+    _customElementsAnalysis.registerStaticUse(member, forResolution: false);
 
     if (member.isFunction && member.isInstanceMember) {
       MethodElement method = member;
       ClassElement cls = method.enclosingClass;
       if (method.name == Identifiers.call &&
           !cls.typeVariables.isEmpty &&
-          rtiNeed.methodNeedsRti(method)) {
+          _rtiNeed.methodNeedsRti(method)) {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }
@@ -83,7 +106,7 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
   }
 
   WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
-    if (rtiNeed.methodNeedsRti(closure)) {
+    if (_rtiNeed.methodNeedsRti(closure)) {
       return _registerComputeSignature();
     }
     return const WorldImpact();
@@ -92,66 +115,70 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
   WorldImpact _processClass(ClassElement cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(cls,
+      _typeVariableHandler.registerClassWithTypeVariables(cls,
           forResolution: false);
     }
-    if (cls == helpers.closureClass) {
-      impacts.closureClass.registerImpact(impactBuilder, elementEnvironment);
+    if (cls == _helpers.closureClass) {
+      _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);
     }
 
     void registerInstantiation(ClassElement cls) {
       impactBuilder.registerTypeUse(
-          new TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+          new TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
     }
 
-    if (cls == commonElements.stringClass || cls == helpers.jsStringClass) {
-      registerInstantiation(helpers.jsStringClass);
-    } else if (cls == commonElements.listClass ||
-        cls == helpers.jsArrayClass ||
-        cls == helpers.jsFixedArrayClass ||
-        cls == helpers.jsExtendableArrayClass ||
-        cls == helpers.jsUnmodifiableArrayClass) {
-      registerInstantiation(helpers.jsArrayClass);
-      registerInstantiation(helpers.jsMutableArrayClass);
-      registerInstantiation(helpers.jsFixedArrayClass);
-      registerInstantiation(helpers.jsExtendableArrayClass);
-      registerInstantiation(helpers.jsUnmodifiableArrayClass);
-    } else if (cls == commonElements.intClass || cls == helpers.jsIntClass) {
-      registerInstantiation(helpers.jsIntClass);
-      registerInstantiation(helpers.jsPositiveIntClass);
-      registerInstantiation(helpers.jsUInt32Class);
-      registerInstantiation(helpers.jsUInt31Class);
-      registerInstantiation(helpers.jsNumberClass);
-    } else if (cls == commonElements.doubleClass ||
-        cls == helpers.jsDoubleClass) {
-      registerInstantiation(helpers.jsDoubleClass);
-      registerInstantiation(helpers.jsNumberClass);
-    } else if (cls == commonElements.boolClass || cls == helpers.jsBoolClass) {
-      registerInstantiation(helpers.jsBoolClass);
-    } else if (cls == commonElements.nullClass || cls == helpers.jsNullClass) {
-      registerInstantiation(helpers.jsNullClass);
-    } else if (cls == commonElements.numClass || cls == helpers.jsNumberClass) {
-      registerInstantiation(helpers.jsIntClass);
-      registerInstantiation(helpers.jsPositiveIntClass);
-      registerInstantiation(helpers.jsUInt32Class);
-      registerInstantiation(helpers.jsUInt31Class);
-      registerInstantiation(helpers.jsDoubleClass);
-      registerInstantiation(helpers.jsNumberClass);
-    } else if (cls == helpers.jsJavaScriptObjectClass) {
-      registerInstantiation(helpers.jsJavaScriptObjectClass);
-    } else if (cls == helpers.jsPlainJavaScriptObjectClass) {
-      registerInstantiation(helpers.jsPlainJavaScriptObjectClass);
-    } else if (cls == helpers.jsUnknownJavaScriptObjectClass) {
-      registerInstantiation(helpers.jsUnknownJavaScriptObjectClass);
-    } else if (cls == helpers.jsJavaScriptFunctionClass) {
-      registerInstantiation(helpers.jsJavaScriptFunctionClass);
-    } else if (cls == helpers.jsIndexingBehaviorInterface) {
-      impacts.jsIndexingBehavior
-          .registerImpact(impactBuilder, elementEnvironment);
+    if (cls == _commonElements.stringClass || cls == _helpers.jsStringClass) {
+      registerInstantiation(_helpers.jsStringClass);
+    } else if (cls == _commonElements.listClass ||
+        cls == _helpers.jsArrayClass ||
+        cls == _helpers.jsFixedArrayClass ||
+        cls == _helpers.jsExtendableArrayClass ||
+        cls == _helpers.jsUnmodifiableArrayClass) {
+      registerInstantiation(_helpers.jsArrayClass);
+      registerInstantiation(_helpers.jsMutableArrayClass);
+      registerInstantiation(_helpers.jsFixedArrayClass);
+      registerInstantiation(_helpers.jsExtendableArrayClass);
+      registerInstantiation(_helpers.jsUnmodifiableArrayClass);
+    } else if (cls == _commonElements.intClass || cls == _helpers.jsIntClass) {
+      registerInstantiation(_helpers.jsIntClass);
+      registerInstantiation(_helpers.jsPositiveIntClass);
+      registerInstantiation(_helpers.jsUInt32Class);
+      registerInstantiation(_helpers.jsUInt31Class);
+      registerInstantiation(_helpers.jsNumberClass);
+    } else if (cls == _commonElements.doubleClass ||
+        cls == _helpers.jsDoubleClass) {
+      registerInstantiation(_helpers.jsDoubleClass);
+      registerInstantiation(_helpers.jsNumberClass);
+    } else if (cls == _commonElements.boolClass ||
+        cls == _helpers.jsBoolClass) {
+      registerInstantiation(_helpers.jsBoolClass);
+    } else if (cls == _commonElements.nullClass ||
+        cls == _helpers.jsNullClass) {
+      registerInstantiation(_helpers.jsNullClass);
+    } else if (cls == _commonElements.numClass ||
+        cls == _helpers.jsNumberClass) {
+      registerInstantiation(_helpers.jsIntClass);
+      registerInstantiation(_helpers.jsPositiveIntClass);
+      registerInstantiation(_helpers.jsUInt32Class);
+      registerInstantiation(_helpers.jsUInt31Class);
+      registerInstantiation(_helpers.jsDoubleClass);
+      registerInstantiation(_helpers.jsNumberClass);
+    } else if (cls == _helpers.jsJavaScriptObjectClass) {
+      registerInstantiation(_helpers.jsJavaScriptObjectClass);
+    } else if (cls == _helpers.jsPlainJavaScriptObjectClass) {
+      registerInstantiation(_helpers.jsPlainJavaScriptObjectClass);
+    } else if (cls == _helpers.jsUnknownJavaScriptObjectClass) {
+      registerInstantiation(_helpers.jsUnknownJavaScriptObjectClass);
+    } else if (cls == _helpers.jsJavaScriptFunctionClass) {
+      registerInstantiation(_helpers.jsJavaScriptFunctionClass);
+    } else if (cls == _helpers.jsIndexingBehaviorInterface) {
+      _impacts.jsIndexingBehavior
+          .registerImpact(impactBuilder, _elementEnvironment);
     }
 
-    customElementsAnalysis.registerInstantiatedClass(cls, forResolution: false);
-    lookupMapAnalysis.registerInstantiatedClass(cls);
+    _customElementsAnalysis.registerInstantiatedClass(cls,
+        forResolution: false);
+    _lookupMapAnalysis.registerInstantiatedClass(cls);
     return impactBuilder;
   }
 

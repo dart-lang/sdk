@@ -513,8 +513,33 @@ class JavaScriptBackend extends Target {
         new InterceptorDataBuilderImpl(nativeData, helpers, commonElements);
     backendClasses = new JavaScriptBackendClasses(
         compiler.elementEnvironment, helpers, nativeData);
-    _resolutionEnqueuerListener = new ResolutionEnqueuerListener(this);
-    _codegenEnqueuerListener = new CodegenEnqueuerListener(this);
+    _resolutionEnqueuerListener = new ResolutionEnqueuerListener(
+        this,
+        compiler.options,
+        compiler.elementEnvironment,
+        commonElements,
+        helpers,
+        impacts,
+        nativeData,
+        _interceptorDataBuilder,
+        _backendUsageBuilder,
+        _rtiNeedBuilder,
+        mirrorsData,
+        noSuchMethodRegistry,
+        customElementsAnalysis,
+        lookupMapAnalysis,
+        mirrorsAnalysis);
+    _codegenEnqueuerListener = new CodegenEnqueuerListener(
+        this,
+        compiler.elementEnvironment,
+        commonElements,
+        helpers,
+        impacts,
+        mirrorsData,
+        customElementsAnalysis,
+        typeVariableHandler,
+        lookupMapAnalysis,
+        mirrorsAnalysis);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -1664,24 +1689,4 @@ class JavaScriptBackendClasses implements BackendClasses {
   InterfaceType get symbolType {
     return _env.getRawType(helpers.symbolImplementationClass);
   }
-}
-
-abstract class EnqueuerListenerBase implements EnqueuerListener {
-  // TODO(johnniwinther): Avoid the need for accessing through [_backend].
-  JavaScriptBackend _backend;
-
-  EnqueuerListenerBase(this._backend);
-
-  // TODO(johnniwinther): Change these to final fields.
-  CommonElements get commonElements => _backend.commonElements;
-  BackendHelpers get helpers => _backend.helpers;
-  BackendImpacts get impacts => _backend.impacts;
-  CustomElementsAnalysis get customElementsAnalysis =>
-      _backend.customElementsAnalysis;
-  TypeVariableHandler get typeVariableHandler => _backend.typeVariableHandler;
-  MirrorsData get mirrorsData => _backend.mirrorsData;
-  ElementEnvironment get elementEnvironment =>
-      _backend.compiler.elementEnvironment;
-  LookupMapAnalysis get lookupMapAnalysis => _backend.lookupMapAnalysis;
-  MirrorsAnalysis get mirrorsAnalysis => _backend.mirrorsAnalysis;
 }
