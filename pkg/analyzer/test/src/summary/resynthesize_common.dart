@@ -5443,6 +5443,46 @@ const dynamic v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
     }
   }
 
+  test_constExpr_pushReference_enum_field() {
+    var library = checkLibrary('''
+enum E {a, b, c}
+final vValue = E.a;
+final vValues = E.values;
+final vIndex = E.a.index;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  final int index;
+  static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+final E vValue;
+final List<E> vValues;
+final int vIndex;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  final int index;
+  static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+final dynamic vValue;
+final dynamic vValues;
+final dynamic vIndex;
+''');
+    }
+  }
+
   test_constExpr_pushReference_field_simpleIdentifier() {
     var library = checkLibrary('''
 class C {
