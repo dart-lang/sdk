@@ -4,12 +4,17 @@
 
 library dart2js.common.work;
 
-import '../elements/entities.dart' show MemberEntity;
+import '../common.dart';
+import '../elements/elements.dart' show AstElement;
 import '../universe/world_impact.dart' show WorldImpact;
 
 abstract class WorkItem {
   /// Element on which the work will be done.
-  MemberEntity get element;
+  final AstElement element;
+
+  WorkItem(this.element) {
+    assert(invariant(element, element.isDeclaration));
+  }
 
   WorldImpact run();
 }

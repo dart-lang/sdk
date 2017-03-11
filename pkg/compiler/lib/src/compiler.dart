@@ -1858,7 +1858,7 @@ class CompilerResolution implements Resolution {
   }
 
   @override
-  ResolutionWorkItem createWorkItem(MemberElement element) {
+  ResolutionWorkItem createWorkItem(Element element) {
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.createResolutionWorkItem(element);
     } else {

@@ -12,13 +12,13 @@ import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart' show ResolutionDartType, Types;
 import '../elements/elements.dart'
     show
+        AstElement,
         ClassElement,
         Element,
         ExecutableElement,
         FunctionElement,
         FunctionSignature,
         LibraryElement,
-        MemberElement,
         MetadataAnnotation,
         MethodElement,
         ResolvedAst,
@@ -43,16 +43,15 @@ import 'work.dart' show WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 abstract class ResolutionWorkItem implements WorkItem {
-  factory ResolutionWorkItem(Resolution resolution, MemberElement element) =
+  factory ResolutionWorkItem(Resolution resolution, AstElement element) =
       _ResolutionWorkItem;
 }
 
 class _ResolutionWorkItem extends WorkItem implements ResolutionWorkItem {
   bool _isAnalyzed = false;
-  final MemberElement element;
   final Resolution resolution;
 
-  _ResolutionWorkItem(this.resolution, this.element);
+  _ResolutionWorkItem(this.resolution, AstElement element) : super(element);
 
   WorldImpact run() {
     assert(invariant(element, !_isAnalyzed,
@@ -173,7 +172,7 @@ abstract class Resolution implements Frontend {
   /// The error itself is given in [message].
   void registerCompileTimeError(Element element, DiagnosticMessage message);
 
-  ResolutionWorkItem createWorkItem(MemberElement element);
+  ResolutionWorkItem createWorkItem(Element element);
 
   /// Returns `true` if [element] as a fully computed [ResolvedAst].
   bool hasResolvedAst(ExecutableElement element);

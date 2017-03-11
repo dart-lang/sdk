@@ -347,6 +347,9 @@ class JavaScriptBackend extends Target {
   static const bool TRACE_CALLS =
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
 
+  /// Maps special classes to their implementation (JSXxx) class.
+  Map<ClassElement, ClassElement> implementationClasses;
+
   Namer _namer;
 
   Namer get namer {
@@ -407,7 +410,7 @@ class JavaScriptBackend extends Target {
 
   /// The compiler task responsible for the compilation of constants for both
   /// the frontend and the backend.
-  final JavaScriptConstantTask constantCompilerTask;
+  JavaScriptConstantTask constantCompilerTask;
 
   /// Backend transformation methods for the world impacts.
   JavaScriptImpactTransformer impactTransformer;
@@ -426,7 +429,7 @@ class JavaScriptBackend extends Target {
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsage _backendUsage;
   BackendUsageBuilder _backendUsageBuilder;
-  MirrorsData mirrorsData;
+  final MirrorsData mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
 
   ResolutionEnqueuerListener _resolutionEnqueuerListener;
@@ -480,12 +483,10 @@ class JavaScriptBackend extends Target {
             useMultiSourceInfo: useMultiSourceInfo,
             useNewSourceInfo: useNewSourceInfo),
         frontend = new JSFrontendAccess(compiler),
-        constantCompilerTask = new JavaScriptConstantTask(compiler),
+        mirrorsData = new MirrorsData(compiler),
         this.compiler = compiler {
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
-    mirrorsData = new MirrorsData(
-        compiler, compiler.options, commonElements, helpers, constants);
     _backendUsageBuilder = new BackendUsageBuilderImpl(
         compiler.elementEnvironment, commonElements, helpers);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
@@ -499,6 +500,7 @@ class JavaScriptBackend extends Target {
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     kernelTask = new KernelTask(compiler);
+    constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
@@ -869,8 +871,7 @@ class JavaScriptBackend extends Target {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
       processAnnotations(entity, closedWorldRefiner);
     }
-    mirrorsData.computeMembersNeededForReflection(
-        compiler.enqueuer.resolution.worldBuilder, closedWorld);
+    mirrorsData.computeMembersNeededForReflection(closedWorld);
     _backendUsage = _backendUsageBuilder.close();
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         compiler.enqueuer.resolution.worldBuilder,
@@ -1096,6 +1097,15 @@ class JavaScriptBackend extends Target {
     return programSize;
   }
 
+  Element getDartClass(Element element) {
+    for (ClassElement dartClass in implementationClasses.keys) {
+      if (element == implementationClasses[dartClass]) {
+        return dartClass;
+      }
+    }
+    return element;
+  }
+
   /**
    * Returns [:true:] if the checking of [type] is performed directly on the
    * object and not on an interceptor.
@@ -1177,6 +1187,15 @@ class JavaScriptBackend extends Target {
     }
 
     helpers.onLibrariesLoaded(loadedLibraries);
+
+    implementationClasses = <ClassElement, ClassElement>{};
+    implementationClasses[commonElements.intClass] = helpers.jsIntClass;
+    implementationClasses[commonElements.boolClass] = helpers.jsBoolClass;
+    implementationClasses[commonElements.numClass] = helpers.jsNumberClass;
+    implementationClasses[commonElements.doubleClass] = helpers.jsDoubleClass;
+    implementationClasses[commonElements.stringClass] = helpers.jsStringClass;
+    implementationClasses[commonElements.listClass] = helpers.jsArrayClass;
+    implementationClasses[commonElements.nullClass] = helpers.jsNullClass;
 
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,

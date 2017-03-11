@@ -10,11 +10,11 @@ import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart'
     show
+        AstElement,
         ClassElement,
         Element,
         FunctionElement,
         LocalFunctionElement,
-        MemberElement,
         ResolvedAst;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
@@ -150,10 +150,10 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
 class CodegenRegistry {
-  final MemberElement currentElement;
+  final Element currentElement;
   final _CodegenImpact worldImpact;
 
-  CodegenRegistry(MemberElement currentElement)
+  CodegenRegistry(AstElement currentElement)
       : this.currentElement = currentElement,
         this.worldImpact = new _CodegenImpact();
 
@@ -227,7 +227,7 @@ class CodegenWorkItem extends WorkItem {
   final ResolvedAst resolvedAst;
   final JavaScriptBackend backend;
 
-  factory CodegenWorkItem(JavaScriptBackend backend, MemberElement element) {
+  factory CodegenWorkItem(JavaScriptBackend backend, AstElement element) {
     // If this assertion fails, the resolution callbacks of the backend may be
     // missing call of form registry.registerXXX. Alternatively, the code
     // generation could spuriously be adding dependencies on things we know we
@@ -239,9 +239,8 @@ class CodegenWorkItem extends WorkItem {
   }
 
   CodegenWorkItem.internal(ResolvedAst resolvedAst, this.backend)
-      : this.resolvedAst = resolvedAst;
-
-  MemberElement get element => resolvedAst.element;
+      : this.resolvedAst = resolvedAst,
+        super(resolvedAst.element);
 
   WorldImpact run() {
     registry = new CodegenRegistry(element);

@@ -4,17 +4,15 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/resolution_types.dart';
+import '../enqueue.dart';
 import '../options.dart';
 import '../world.dart';
-import '../universe/world_builder.dart';
 import '../util/emptyset.dart';
 import 'backend_helpers.dart';
-import 'constant_handler_javascript.dart';
 
 class MirrorsData {
   /// True if a call to preserveMetadataMarker has been seen.  This means that
@@ -53,19 +51,13 @@ class MirrorsData {
   /// element must be retained.
   final Set<Element> metaTargetsUsed = new Set<Element>();
 
-  // TODO(johnniwinther): Avoid the need for this.
-  final Compiler _compiler;
+  final Compiler compiler;
 
-  final CompilerOptions _options;
+  MirrorsData(this.compiler);
 
-  final CommonElements _commonElements;
+  CompilerOptions get _options => compiler.options;
 
-  final BackendHelpers _helpers;
-
-  final JavaScriptConstantCompiler _constants;
-
-  MirrorsData(this._compiler, this._options, this._commonElements,
-      this._helpers, this._constants);
+  BackendHelpers get _helpers => compiler.backend.helpers;
 
   void registerUsedMember(MemberElement member) {
     if (member == _helpers.disableTreeShakingMarker) {
@@ -104,10 +96,10 @@ class MirrorsData {
     if (mustRetainMetadata) hasRetainedMetadata = true;
     if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
-        metadata.ensureResolved(_compiler.resolution);
+        metadata.ensureResolved(compiler.resolution);
         ConstantValue constant =
-            _constants.getConstantValueForMetadata(metadata);
-        _constants.addCompileTimeConstantForEmission(constant);
+            compiler.backend.constants.getConstantValueForMetadata(metadata);
+        compiler.backend.constants.addCompileTimeConstantForEmission(constant);
       }
       return true;
     }
@@ -175,29 +167,9 @@ class MirrorsData {
    */
   bool isAccessibleByReflection(Element element) {
     if (element.isClass) {
-      element = _getDartClass(element);
+      element = compiler.backend.getDartClass(element);
     }
     return membersNeededForReflection.contains(element);
-  }
-
-  ClassElement _getDartClass(ClassElement cls) {
-    if (cls == _commonElements.intClass) {
-      return _helpers.jsIntClass;
-    } else if (cls == _commonElements.boolClass) {
-      return _helpers.jsBoolClass;
-    } else if (cls == _commonElements.numClass) {
-      return _helpers.jsNumberClass;
-    } else if (cls == _commonElements.doubleClass) {
-      return _helpers.jsDoubleClass;
-    } else if (cls == _commonElements.stringClass) {
-      return _helpers.jsStringClass;
-    } else if (cls == _commonElements.listClass) {
-      return _helpers.jsArrayClass;
-    } else if (cls == _commonElements.nullClass) {
-      return _helpers.jsNullClass;
-    } else {
-      return cls;
-    }
   }
 
   /// Returns `true` if this member element needs reflection information at
@@ -240,11 +212,11 @@ class MirrorsData {
       // TODO(kasperl): It would be nice if we didn't have to resolve
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
-      metadata.ensureResolved(_compiler.resolution);
+      metadata.ensureResolved(compiler.resolution);
       ConstantValue value =
-          _compiler.constants.getConstantValue(metadata.constant);
+          compiler.constants.getConstantValue(metadata.constant);
       if (value == null) continue;
-      ResolutionDartType type = value.getType(_commonElements);
+      ResolutionDartType type = value.getType(compiler.commonElements);
       if (metaTargetsUsed.contains(type.element)) return true;
     }
     return false;
@@ -262,8 +234,7 @@ class MirrorsData {
    * be visible by reflection unless some other interfaces makes them
    * accessible.
    */
-  void computeMembersNeededForReflection(
-      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
+  void computeMembersNeededForReflection(ClosedWorld closedWorld) {
     if (_membersNeededForReflection != null) return;
     if (closedWorld.commonElements.mirrorsLibrary == null) {
       _membersNeededForReflection = const ImmutableEmptySet<Element>();
@@ -273,12 +244,15 @@ class MirrorsData {
     // can include the correct ones when including the class.
     Map<ClassElement, List<LocalFunctionElement>> closureMap =
         new Map<ClassElement, List<LocalFunctionElement>>();
-    for (LocalFunctionElement closure in worldBuilder.allClosures) {
+    for (LocalFunctionElement closure
+        in compiler.resolutionWorldBuilder.allClosures) {
       closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
     }
     bool foundClosure = false;
     Set<Element> reflectableMembers = new Set<Element>();
-    for (ClassElement cls in worldBuilder.directlyInstantiatedClasses) {
+    ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
+    for (ClassElement cls
+        in resolution.worldBuilder.directlyInstantiatedClasses) {
       // Do not process internal classes.
       if (cls.library.isInternalLibrary || cls.isInjected) continue;
       if (referencedFromMirrorSystem(cls)) {
@@ -287,15 +261,15 @@ class MirrorsData {
         assert(invariant(cls, cls.isResolved));
         reflectableMembers.add(cls);
         // 2) its constructors (if resolved)
-        cls.constructors.forEach((ConstructorElement constructor) {
-          if (worldBuilder.isMemberUsed(constructor)) {
+        cls.constructors.forEach((Element constructor) {
+          if (resolution.hasBeenProcessed(constructor)) {
             reflectableMembers.add(constructor);
           }
         });
         // 3) all members, including fields via getter/setters (if resolved)
         cls.forEachClassMember((Member member) {
           MemberElement element = member.element;
-          if (worldBuilder.isMemberUsed(element)) {
+          if (resolution.hasBeenProcessed(element)) {
             memberNames.add(member.name);
             reflectableMembers.add(element);
             element.nestedClosures
@@ -313,7 +287,7 @@ class MirrorsData {
                 // TODO(20993): find out why this assertion fails.
                 // assert(invariant(member.element,
                 //    resolution.hasBeenProcessed(member.element)));
-                if (worldBuilder.isMemberUsed(member.element)) {
+                if (resolution.hasBeenProcessed(member.element)) {
                   reflectableMembers.add(member.element);
                 }
               }
@@ -329,13 +303,13 @@ class MirrorsData {
       } else {
         // check members themselves
         cls.constructors.forEach((ConstructorElement element) {
-          if (!worldBuilder.isMemberUsed(element)) return;
+          if (!resolution.hasBeenProcessed(element)) return;
           if (referencedFromMirrorSystem(element, false)) {
             reflectableMembers.add(element);
           }
         });
         cls.forEachClassMember((Member member) {
-          if (!worldBuilder.isMemberUsed(member.element)) return;
+          if (!resolution.hasBeenProcessed(member.element)) return;
           if (referencedFromMirrorSystem(member.element, false)) {
             reflectableMembers.add(member.element);
           }
@@ -357,12 +331,11 @@ class MirrorsData {
     // We also need top-level non-class elements like static functions and
     // global fields. We use the resolution queue to decide which elements are
     // part of the live world.
-    for (LibraryElement lib in _compiler.libraryLoader.libraries) {
+    for (LibraryElement lib in compiler.libraryLoader.libraries) {
       if (lib.isInternalLibrary) continue;
-      lib.forEachLocalMember((Element element) {
-        if (element.isClass || element.isTypedef) return;
-        MemberElement member = element;
-        if (worldBuilder.isMemberUsed(member) &&
+      lib.forEachLocalMember((Element member) {
+        if (!(member.isClass || member.isTypedef) &&
+            resolution.hasBeenProcessed(member) &&
             referencedFromMirrorSystem(member)) {
           reflectableMembers.add(member);
         }
@@ -384,7 +357,8 @@ class MirrorsData {
       ClassElement cls = _helpers.closureClass;
       reflectableMembers.add(cls);
     }
-    Set<Element> closurizedMembers = worldBuilder.closurizedMembers;
+    Set<Element> closurizedMembers =
+        compiler.resolutionWorldBuilder.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
       ClassElement cls = _helpers.boundClosureClass;
       reflectableMembers.add(cls);

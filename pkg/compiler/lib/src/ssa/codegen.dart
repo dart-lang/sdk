@@ -12,12 +12,12 @@ import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart'
     show
-        AsyncMarker,
         JumpTarget,
         LabelDefinition,
-        MethodElement,
         Name,
-        ResolvedAst;
+        AsyncMarker,
+        ResolvedAst,
+        FunctionElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -51,7 +51,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   js.Fun buildJavaScriptFunction(
       ResolvedAst resolvedAst, List<js.Parameter> parameters, js.Block body) {
-    MethodElement element = resolvedAst.element;
+    FunctionElement element = resolvedAst.element;
     js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
         ? (element.asyncMarker.isYielding
             ? const js.AsyncModifier.asyncStar()
@@ -93,7 +93,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Expression generateMethod(
       CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
-      MethodElement element = work.element;
+      FunctionElement element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
         work.registry.registerAsyncMarker(element);
       }
@@ -2319,7 +2319,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.Throw(value).withSourceInformation(sourceInformation));
     } else {
       Entity element = work.element;
-      if (element is MethodElement && element.asyncMarker.isYielding) {
+      if (element is FunctionElement && element.asyncMarker.isYielding) {
         // `return <expr>;` is illegal in a sync* or async* function.
         // To have the async-translator working, we avoid introducing
         // `return` nodes.

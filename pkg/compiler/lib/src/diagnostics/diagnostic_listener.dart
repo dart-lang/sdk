@@ -5,7 +5,7 @@
 library dart2js.diagnostic_listener;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token;
-import '../elements/entities.dart';
+import '../elements/elements.dart' show Element;
 import '../options.dart' show DiagnosticOptions;
 import 'messages.dart';
 import 'source_span.dart' show SourceSpan;
@@ -62,7 +62,7 @@ abstract class DiagnosticReporter {
 
   /// Set current element of this reporter to [element]. This is used for
   /// creating [SourceSpan] in [spanFromSpannable].
-  withCurrentElement(Entity element, f());
+  withCurrentElement(Element element, f());
 
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]);

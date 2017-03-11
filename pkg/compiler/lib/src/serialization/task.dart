@@ -70,7 +70,7 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   }
 
   /// Creates the [ResolutionWorkItem] for the deserialized [element].
-  ResolutionWorkItem createResolutionWorkItem(MemberElement element) {
+  ResolutionWorkItem createResolutionWorkItem(Element element) {
     assert(deserializer != null);
     assert(isDeserialized(element));
     return new DeserializedResolutionWorkItem(
@@ -135,7 +135,7 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
 ///
 /// This will not resolve the element but only compute the [WorldImpact].
 class DeserializedResolutionWorkItem implements ResolutionWorkItem {
-  final MemberElement element;
+  final Element element;
   final WorldImpact worldImpact;
 
   DeserializedResolutionWorkItem(this.element, this.worldImpact);
