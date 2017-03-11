@@ -73,6 +73,7 @@ import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
+import 'codegen_listener.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
@@ -86,10 +87,9 @@ import 'namer.dart';
 import 'native_data.dart' show NativeData;
 import 'no_such_method_registry.dart';
 import 'patch_resolver.dart';
+import 'resolution_listener.dart';
 import 'type_variable_handler.dart';
 
-part 'codegen_listener.dart';
-part 'resolution_listener.dart';
 part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;

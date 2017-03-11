@@ -2,8 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnniwinther): Make this a library.
-part of js_backend.backend;
+library js_backend.backend.resolution_listener;
+
+import '../common/names.dart' show Identifiers, Uris;
+import '../common/resolution.dart'
+    show Resolution;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../enqueue.dart'
+    show
+    Enqueuer,
+    EnqueuerListener;
+import '../kernel/task.dart';
+import '../options.dart' show CompilerOptions;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/world_impact.dart'
+    show
+    WorldImpact,
+    WorldImpactBuilder,
+    WorldImpactBuilderImpl;
+import 'backend.dart';
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
+import 'backend_usage.dart';
+import 'checked_mode_helpers.dart';
+import 'custom_elements_analysis.dart';
+import 'interceptor_data.dart';
+import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'mirrors_analysis.dart';
+import 'mirrors_data.dart';
+import 'native_data.dart' show NativeData;
+import 'no_such_method_registry.dart';
+import 'type_variable_handler.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for accessing through [_backend].

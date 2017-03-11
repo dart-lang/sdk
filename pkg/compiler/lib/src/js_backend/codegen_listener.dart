@@ -2,8 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnniwinther): Make this a library.
-part of js_backend.backend;
+library js_backend.backend.codegen_listener;
+
+import '../common/names.dart' show Identifiers;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../dump_info.dart' show DumpInfoTask;
+import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../enqueue.dart'
+    show
+    Enqueuer,
+    EnqueuerListener;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/world_impact.dart'
+    show
+    WorldImpact,
+    WorldImpactBuilderImpl;
+import 'backend.dart';
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
+import 'backend_usage.dart';
+import 'custom_elements_analysis.dart';
+import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'mirrors_analysis.dart';
+import 'mirrors_data.dart';
+import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for accessing through [_backend].
@@ -37,7 +62,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   // TODO(johnniwinther): Change these to final fields.
   DumpInfoTask get _dumpInfoTask => _backend.compiler.dumpInfoTask;
-  RuntimeTypesNeed get _rtiNeed => _backend._rtiNeed;
+  RuntimeTypesNeed get _rtiNeed => _backend.rtiNeed;
   BackendUsage get _backendUsage => _backend.backendUsage;
 
   @override
