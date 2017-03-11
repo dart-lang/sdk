@@ -5,6 +5,7 @@
 library linter.src.rules.unnecessary_lambdas;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -34,7 +35,21 @@ Iterable<Element> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     DartTypeUtilities
         .traverseNodesInDFS(node)
         .where((e) => e is SimpleIdentifier)
-        .map((e) => (e as SimpleIdentifier).staticElement);
+        .map((e) => (e as SimpleIdentifier).bestElement);
+
+bool _hasRecursivelyQuestionPeriod(AstNode node) {
+  if (node == null) {
+    return false;
+  }
+  return (node is PropertyAccess &&
+          (node.operator?.type == TokenType.QUESTION_PERIOD ||
+              _hasRecursivelyQuestionPeriod(node.target))) ||
+      (node is IndexExpression &&
+              _hasRecursivelyQuestionPeriod(node.target)) ||
+      (node is MethodInvocation &&
+          (node.operator?.type == TokenType.QUESTION_PERIOD ||
+              _hasRecursivelyQuestionPeriod(node.target)));
+}
 
 class UnnecessaryLambdas extends LintRule {
   _Visitor _visitor;
@@ -80,16 +95,17 @@ class _Visitor extends SimpleAstVisitor {
 
   void _visitInvocationExpression(
       InvocationExpression node, FunctionExpression nodeToLint) {
-    if (nodeToLint.parameters.length != node.argumentList.length) {
+    if (nodeToLint.parameters.parameters.length !=
+        node.argumentList.arguments.length) {
       return;
     }
     if (node.argumentList.arguments.any((e) => e is! SimpleIdentifier)) {
       return;
     }
     final parameters =
-        nodeToLint.parameters.parameters.map((e) => e.identifier.staticElement);
+        nodeToLint.parameters.parameters.map((e) => e.identifier.bestElement);
     final arguments = node.argumentList.arguments
-        .map((e) => (e as SimpleIdentifier).staticElement);
+        .map((e) => (e as SimpleIdentifier).bestElement);
     for (int i = 0; i < parameters.length; i++) {
       if (parameters.elementAt(i) != arguments.elementAt(i)) {
         return;
@@ -99,8 +115,11 @@ class _Visitor extends SimpleAstVisitor {
     if (node is FunctionExpressionInvocation) {
       restOfElements = _extractElementsOfSimpleIdentifiers(node.function);
     } else if (node is MethodInvocation && node.target != null) {
+      if (_hasRecursivelyQuestionPeriod(node)) {
+        return;
+      }
       restOfElements = node.target is SimpleIdentifier
-          ? [(node.target as SimpleIdentifier).staticElement]
+          ? [(node.target as SimpleIdentifier).bestElement]
           : _extractElementsOfSimpleIdentifiers(node.target);
     }
     if (restOfElements.any(parameters.contains)) {
