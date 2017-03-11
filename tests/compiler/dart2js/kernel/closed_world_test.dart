@@ -136,11 +136,8 @@ ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
   if (compiler.deferredLoadTask.isProgramSplit) {
     enqueuer.applyImpact(backend.computeDeferredLoadingImpact());
   }
-  enqueuer.applyImpact(backend.computeHelpersImpact());
-  enqueuer.applyImpact(enqueuer.nativeEnqueuer
-      .processNativeClasses(compiler.libraryLoader.libraries));
-  enqueuer.applyImpact(
-      backend.computeMainImpact(compiler.mainFunction, forResolution: true));
+  enqueuer.open(const ImpactStrategy(), compiler.mainFunction,
+      compiler.libraryLoader.libraries);
   enqueuer.forEach((work) {
     AstElement element = work.element;
     ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);

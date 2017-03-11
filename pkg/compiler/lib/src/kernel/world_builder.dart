@@ -78,6 +78,18 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     _typeConverter = new DartTypeConverter(this);
   }
 
+  KMethod get _mainFunction {
+    return _env.program.mainMethod != null
+        ? _getMethod(_env.program.mainMethod)
+        : null;
+  }
+
+  KLibrary get _mainLibrary {
+    return _env.program.mainMethod != null
+        ? _getLibrary(_env.program.mainMethod.enclosingLibrary)
+        : null;
+  }
+
   @override
   CommonElements get commonElements => _commonElements;
 
@@ -486,6 +498,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   final KernelWorldBuilder worldBuilder;
 
   KernelElementEnvironment(this.worldBuilder);
+
+  @override
+  LibraryEntity get mainLibrary => worldBuilder._mainLibrary;
+
+  @override
+  FunctionEntity get mainFunction => worldBuilder._mainFunction;
 
   @override
   InterfaceType getThisType(ClassEntity cls) {

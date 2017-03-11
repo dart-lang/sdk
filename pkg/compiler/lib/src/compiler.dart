@@ -620,16 +620,15 @@ abstract class Compiler implements LibraryLoaderListener {
           enqueuer.resolution
               .applyImpact(backend.computeDeferredLoadingImpact());
         }
-        // Elements required by enqueueHelpers are global dependencies
-        // that are not pulled in by a particular element.
-        enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
         reporter.log('Resolving...');
+        MethodElement mainMethod;
         if (mainFunction != null && !mainFunction.isMalformed) {
           mainFunction.computeType(resolution);
+          mainMethod = mainFunction;
         }
 
-        processQueue(enqueuer.resolution, mainFunction,
+        processQueue(enqueuer.resolution, mainMethod, libraryLoader.libraries,
             onProgress: showResolutionProgress);
         enqueuer.resolution.logSummary(reporter.log);
 
@@ -687,7 +686,7 @@ abstract class Compiler implements LibraryLoaderListener {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
           });
         }
-        processQueue(enqueuer.codegen, mainFunction,
+        processQueue(enqueuer.codegen, mainMethod, libraryLoader.libraries,
             onProgress: showCodegenProgress);
         enqueuer.codegen.logSummary(reporter.log);
 
@@ -808,15 +807,10 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   void processQueue(Enqueuer enqueuer, MethodElement mainMethod,
+      Iterable<LibraryEntity> libraries,
       {void onProgress()}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
-      enqueuer.open(impactStrategy);
-      enqueuer.applyImpact(enqueuer.nativeEnqueuer
-          .processNativeClasses(libraryLoader.libraries));
-      if (mainMethod != null && !mainMethod.isMalformed) {
-        enqueuer.applyImpact(backend.computeMainImpact(mainMethod,
-            forResolution: enqueuer.isResolutionQueue));
-      }
+      enqueuer.open(impactStrategy, mainMethod, libraries);
       if (options.verbose) {
         progress.reset();
       }
@@ -1926,6 +1920,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   LibraryProvider get _libraryProvider => _compiler.libraryLoader;
   Resolution get _resolution => _compiler.resolution;
+
+  @override
+  LibraryEntity get mainLibrary => _compiler.mainApp;
+
+  @override
+  FunctionEntity get mainFunction => _compiler.mainFunction;
 
   @override
   ResolutionInterfaceType getThisType(ClassElement cls) {

@@ -389,9 +389,6 @@ class JavaScriptBackend extends Target {
 
   TypeVariableHandler typeVariableHandler;
 
-  /// Number of methods compiled before considering reflection.
-  int preMirrorsMethodCount = 0;
-
   /// Resolution and codegen support for generating table of interceptors and
   /// constructors for custom elements.
   CustomElementsAnalysis customElementsAnalysis;
@@ -869,10 +866,6 @@ class JavaScriptBackend extends Target {
     }
   }
 
-  // TODO(johnniwinther): Avoid the need for this.
-  WorldImpact computeHelpersImpact() =>
-      _resolutionEnqueuerListener.computeHelpersImpact();
-
   void onResolutionComplete(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
@@ -945,35 +938,6 @@ class JavaScriptBackend extends Target {
     }
     // No native behavior for this call.
     return null;
-  }
-
-  /// Called to enable support for isolates. Any backend specific [WorldImpact]
-  /// of this is returned.
-  WorldImpact enableIsolateSupport({bool forResolution}) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    // TODO(floitsch): We should also ensure that the class IsolateMessage is
-    // instantiated. Currently, just enabling isolate support works.
-    if (compiler.mainFunction != null) {
-      // The JavaScript backend implements [Isolate.spawn] by looking up
-      // top-level functions by name. So all top-level function tear-off
-      // closures have a private name field.
-      //
-      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
-      // implementation as [Isolate.spawn], and fails if it cannot look main up
-      // by name.
-      impactBuilder.registerStaticUse(
-          new StaticUse.staticTearOff(compiler.mainFunction));
-    }
-    impacts.isolateSupport
-        .registerImpact(impactBuilder, compiler.elementEnvironment);
-    if (forResolution) {
-      backendUsageBuilder.processBackendImpact(impacts.isolateSupport);
-      impacts.isolateSupportForResolution
-          .registerImpact(impactBuilder, compiler.elementEnvironment);
-      backendUsageBuilder
-          .processBackendImpact(impacts.isolateSupportForResolution);
-    }
-    return impactBuilder;
   }
 
   bool isComplexNoSuchMethod(FunctionElement element) =>
@@ -1101,8 +1065,9 @@ class JavaScriptBackend extends Target {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic();
     int totalMethodCount = generatedCode.length;
-    if (totalMethodCount != preMirrorsMethodCount) {
-      int mirrorCount = totalMethodCount - preMirrorsMethodCount;
+    if (totalMethodCount != mirrorsAnalysis.preMirrorsMethodCount) {
+      int mirrorCount =
+          totalMethodCount - mirrorsAnalysis.preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
       DiagnosticMessage hint =
           reporter.createMessage(compiler.mainApp, MessageKind.MIRROR_BLOAT, {
@@ -1266,15 +1231,6 @@ class JavaScriptBackend extends Target {
     return new jsAst.Call(helperExpression, arguments);
   }
 
-  void _onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    if (compiler.options.useKernel && compiler.mainApp != null) {
-      kernelTask.buildKernelIr();
-    }
-    if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
-      preMirrorsMethodCount = generatedCode.length;
-    }
-  }
-
   /// Called after the queue is closed. [onQueueEmpty] may be called multiple
   /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {
@@ -1306,9 +1262,6 @@ class JavaScriptBackend extends Target {
         _namer.rtiEncoder = new _RuntimeTypesEncoder(_namer, emitter, helpers);
 
     lookupMapAnalysis.onCodegenStart();
-    if (backendUsage.isIsolateInUse) {
-      return enableIsolateSupport(forResolution: false);
-    }
     return const WorldImpact();
   }
 
@@ -1421,29 +1374,6 @@ class JavaScriptBackend extends Target {
   MethodElement helperForMissingMain() => helpers.missingMain;
 
   MethodElement helperForMainArity() => helpers.mainHasTooManyParameters;
-
-  /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
-  WorldImpact computeMainImpact(MethodElement mainMethod,
-      {bool forResolution}) {
-    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-    if (mainMethod.parameters.isNotEmpty) {
-      impacts.mainWithArguments
-          .registerImpact(mainImpact, compiler.elementEnvironment);
-      if (forResolution) {
-        backendUsageBuilder.processBackendImpact(impacts.mainWithArguments);
-      }
-      mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
-      // If the main method takes arguments, this compilation could be the
-      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
-      // main takes no arguments, but in this case the spawned isolate can't
-      // communicate with the spawning isolate.
-      mainImpact.addImpact(enableIsolateSupport(forResolution: forResolution));
-    }
-    mainImpact.registerStaticUse(
-        new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
-    return mainImpact;
-  }
 
   /// Returns the filename for the output-unit named [name].
   ///

@@ -60,6 +60,58 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     _lookupMapAnalysis.registerInstantiatedType(type);
   }
 
+  /// Called to enable support for isolates. Any backend specific [WorldImpact]
+  /// of this is returned.
+  WorldImpact _enableIsolateSupport(MethodElement mainMethod) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    // TODO(floitsch): We should also ensure that the class IsolateMessage is
+    // instantiated. Currently, just enabling isolate support works.
+    if (mainMethod != null) {
+      // The JavaScript backend implements [Isolate.spawn] by looking up
+      // top-level functions by name. So all top-level function tear-off
+      // closures have a private name field.
+      //
+      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
+      // implementation as [Isolate.spawn], and fails if it cannot look main up
+      // by name.
+      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(mainMethod));
+    }
+    _impacts.isolateSupport.registerImpact(impactBuilder, _elementEnvironment);
+    return impactBuilder;
+  }
+
+  /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
+  WorldImpact _computeMainImpact(MethodElement mainMethod) {
+    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    if (mainMethod.parameters.isNotEmpty) {
+      _impacts.mainWithArguments
+          .registerImpact(mainImpact, _elementEnvironment);
+      mainImpact.registerStaticUse(
+          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
+      // If the main method takes arguments, this compilation could be the
+      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
+      // main takes no arguments, but in this case the spawned isolate can't
+      // communicate with the spawning isolate.
+      mainImpact.addImpact(_enableIsolateSupport(mainMethod));
+    }
+    mainImpact.registerStaticUse(
+        new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+    return mainImpact;
+  }
+
+  @override
+  void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
+      Iterable<LibraryEntity> libraries) {
+    enqueuer
+        .applyImpact(enqueuer.nativeEnqueuer.processNativeClasses(libraries));
+    if (mainMethod != null) {
+      enqueuer.applyImpact(_computeMainImpact(mainMethod));
+    }
+    if (_backendUsage.isIsolateInUse) {
+      enqueuer.applyImpact(_enableIsolateSupport(mainMethod));
+    }
+  }
+
   @override
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     // Add elements used synthetically, that is, through features rather than
@@ -78,9 +130,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     }
 
     if (!enqueuer.queueIsEmpty) return false;
-
-    // TODO(johnniwinther): Avoid the need for accessing [_backend].
-    _backend._onQueueEmpty(enqueuer, recentClasses);
 
     _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;

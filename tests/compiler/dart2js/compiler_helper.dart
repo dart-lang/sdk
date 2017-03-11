@@ -74,9 +74,8 @@ Future<String> compile(String code,
     lego.Element element = compiler.mainApp.find(entry);
     if (element == null) return null;
     compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.enqueuer.resolution
-        .applyImpact(compiler.backend.computeHelpersImpact());
-    compiler.processQueue(compiler.enqueuer.resolution, element);
+    compiler.processQueue(compiler.enqueuer.resolution, element,
+        compiler.libraryLoader.libraries);
     ResolutionWorkItem resolutionWork =
         new ResolutionWorkItem(compiler.resolution, element);
     resolutionWork.run();

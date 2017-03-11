@@ -367,10 +367,9 @@ class MyCompiler extends CompilerImpl {
           enqueuer.resolution
               .applyImpact(backend.computeDeferredLoadingImpact());
         }
-        enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
         reporter.log('Resolving...');
-        processQueue(enqueuer.resolution, mainFunction);
+        processQueue(enqueuer.resolution, mainFunction, libraryLoader.libraries);
         enqueuer.resolution.logSummary(reporter.log);
 
         (reporter as CompilerDiagnosticReporter)

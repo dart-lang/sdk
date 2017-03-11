@@ -199,7 +199,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _targetFunction = (target as ir.FunctionDeclaration).function;
       buildFunctionNode(_targetFunction);
     } else {
-      throw 'No case implemented to handle target: $target';
+      throw 'No case implemented to handle target: $target for $targetElement';
     }
     assert(graph.isValid());
     return graph;

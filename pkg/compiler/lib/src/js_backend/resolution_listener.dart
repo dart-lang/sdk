@@ -28,7 +28,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
-
   ResolutionEnqueuerListener(
       this._backend,
       this._options,
@@ -46,8 +45,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._lookupMapAnalysis,
       this._mirrorsAnalysis);
 
-  // TODO(johnniwinther): Avoid the need for this.
+  // TODO(johnniwinther): Avoid the need for these.
   Resolution get _resolution => _backend.resolution;
+  KernelTask get _kernelTask => _backend.kernelTask;
 
   // TODO(johnniwinther): Change this to a final field. Currently breaks
   // `kernel/closed_world_test`.
@@ -91,6 +91,63 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
   }
 
+  /// Called to enable support for isolates. Any backend specific [WorldImpact]
+  /// of this is returned.
+  WorldImpact _enableIsolateSupport(MethodElement mainMethod) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    // TODO(floitsch): We should also ensure that the class IsolateMessage is
+    // instantiated. Currently, just enabling isolate support works.
+    if (mainMethod != null) {
+      // The JavaScript backend implements [Isolate.spawn] by looking up
+      // top-level functions by name. So all top-level function tear-off
+      // closures have a private name field.
+      //
+      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
+      // implementation as [Isolate.spawn], and fails if it cannot look main up
+      // by name.
+      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(mainMethod));
+    }
+    _impacts.isolateSupport.registerImpact(impactBuilder, _elementEnvironment);
+    _backendUsage.processBackendImpact(_impacts.isolateSupport);
+    _impacts.isolateSupportForResolution
+        .registerImpact(impactBuilder, _elementEnvironment);
+    _backendUsage.processBackendImpact(_impacts.isolateSupportForResolution);
+    return impactBuilder;
+  }
+
+  /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
+  WorldImpact _computeMainImpact(MethodElement mainMethod) {
+    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    if (mainMethod.parameters.isNotEmpty) {
+      _impacts.mainWithArguments
+          .registerImpact(mainImpact, _elementEnvironment);
+      _backendUsage.processBackendImpact(_impacts.mainWithArguments);
+      mainImpact.registerStaticUse(
+          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
+      // If the main method takes arguments, this compilation could be the
+      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
+      // main takes no arguments, but in this case the spawned isolate can't
+      // communicate with the spawning isolate.
+      mainImpact.addImpact(_enableIsolateSupport(mainMethod));
+    }
+    mainImpact.registerStaticUse(
+        new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+    return mainImpact;
+  }
+
+  @override
+  void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
+      Iterable<LibraryEntity> libraries) {
+    enqueuer
+        .applyImpact(enqueuer.nativeEnqueuer.processNativeClasses(libraries));
+    if (mainMethod != null) {
+      enqueuer.applyImpact(_computeMainImpact(mainMethod));
+    }
+    // Elements required by enqueueHelpers are global dependencies
+    // that are not pulled in by a particular element.
+    enqueuer.applyImpact(computeHelpersImpact());
+  }
+
   @override
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     // Add elements used synthetically, that is, through features rather than
@@ -120,7 +177,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    _backend._onQueueEmpty(enqueuer, recentClasses);
+    if (_options.useKernel) {
+      _kernelTask.buildKernelIr();
+    }
 
     _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
@@ -158,14 +217,16 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       Uri uri = library.canonicalUri;
       if (uri == Uris.dart_isolate) {
         _backendUsage.isIsolateInUse = true;
-        worldImpact.addImpact(_enableIsolateSupport());
+        worldImpact
+            .addImpact(_enableIsolateSupport(_elementEnvironment.mainFunction));
       } else if (uri == Uris.dart_async) {
         if (member.name == '_createTimer' ||
             member.name == '_createPeriodicTimer') {
           // The [:Timer:] class uses the event queue of the isolate
           // library, so we make sure that event queue is generated.
           _backendUsage.isIsolateInUse = true;
-          worldImpact.addImpact(_enableIsolateSupport());
+          worldImpact.addImpact(
+              _enableIsolateSupport(_elementEnvironment.mainFunction));
         }
       }
     }
@@ -182,9 +243,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     return worldImpact;
   }
-
-  WorldImpact _enableIsolateSupport() =>
-      _backend.enableIsolateSupport(forResolution: true);
 
   /// Called to register that the `runtimeType` property has been accessed. Any
   /// backend specific [WorldImpact] of this is returned.

@@ -37,6 +37,9 @@ class MirrorsAnalysis {
   StagedWorldImpactBuilder constantImpactsForCodegen =
       new StagedWorldImpactBuilder();
 
+  /// Number of methods compiled before considering reflection.
+  int preMirrorsMethodCount = 0;
+
   MirrorsAnalysis(this.backend, Resolution resolution)
       : resolutionHandler = new MirrorsHandler(backend, resolution),
         codegenHandler = new MirrorsHandler(backend, resolution);
@@ -115,6 +118,9 @@ class MirrorsAnalysis {
   }
 
   void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
+    if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
+      preMirrorsMethodCount = backend.generatedCode.length;
+    }
     if (mirrorsData.isTreeShakingDisabled) {
       enqueuer.applyImpact(_computeImpactForReflectiveElements(recentClasses,
           enqueuer.processedClasses, compiler.libraryLoader.libraries,

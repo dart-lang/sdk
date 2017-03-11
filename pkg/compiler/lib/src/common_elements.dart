@@ -211,6 +211,14 @@ abstract class CommonElements {
 /// The environment makes private and injected members directly available and
 /// should therefore not be used to determine scopes.
 abstract class ElementEnvironment {
+  /// Returns the main library for the compilation.
+  LibraryEntity get mainLibrary;
+
+  /// Returns the main method for the compilation.
+  FunctionEntity get mainFunction;
+
+  /// Lookup the library with the canonical [uri], fail if the library is
+  /// missing and [required];
   LibraryEntity lookupLibrary(Uri uri, {bool required: false});
 
   /// Lookup the class [name] in [library], fail if the class is missing and
