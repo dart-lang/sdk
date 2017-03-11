@@ -26,6 +26,7 @@ import 'elements/elements.dart'
         FunctionElement,
         ImportElement,
         LibraryElement,
+        MemberElement,
         MetadataAnnotation,
         PrefixElement,
         ResolvedAstKind,
@@ -319,8 +320,8 @@ class DeferredLoadTask extends CompilerTask {
       } else {
         // TODO(sigurdm): We want to be more specific about this - need a better
         // way to query "liveness".
-        AstElement analyzableElement = element.analyzableElement.declaration;
-        if (!compiler.enqueuer.resolution.hasBeenProcessed(analyzableElement)) {
+        MemberElement analyzableElement = element.analyzableElement.declaration;
+        if (!compiler.resolutionWorldBuilder.isMemberUsed(analyzableElement)) {
           return;
         }
 
@@ -421,8 +422,8 @@ class DeferredLoadTask extends CompilerTask {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
-      void addLiveInstanceMember(_, Element element) {
-        if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
+      void addLiveInstanceMember(_, MemberElement element) {
+        if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         elements.add(element);
         collectDependencies(element);

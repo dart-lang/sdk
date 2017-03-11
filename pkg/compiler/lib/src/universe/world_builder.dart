@@ -203,6 +203,11 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// Returns `true` if [member] is invoked as a setter.
   bool hasInvokedSetter(Element member);
 
+  /// Returns `true` if [member] has been marked as used (called, read, etc.) in
+  /// this world builder.
+  // TODO(johnniwinther): Maybe this should be part of [ClosedWorld] (instead).
+  bool isMemberUsed(MemberEntity member);
+
   /// The closed world computed by this world builder.
   ///
   /// This is only available after the world builder has been closed.
@@ -1067,6 +1072,16 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     assert(isClosed);
     return _closedWorldCache;
   }
+
+  @override
+  bool isMemberUsed(MemberEntity member) {
+    if (member.isInstanceMember) {
+      _MemberUsage usage = _instanceMemberUsage[member];
+      if (usage != null && usage.hasUse) return true;
+    }
+    _StaticMemberUsage usage = _staticMemberUsage[member];
+    return usage != null && usage.hasUse;
+  }
 }
 
 /// World builder specific to codegen.
@@ -1574,6 +1589,9 @@ abstract class _AbstractUsage<T> {
   EnumSet<T> get appliedUse => _originalUse.minus(_pendingUse);
 
   EnumSet<T> get _originalUse;
+
+  /// `true` if the [appliedUse] is non-empty.
+  bool get hasUse => appliedUse.isNotEmpty;
 }
 
 /// Registry for the observed use of a member [entity] in the open world.
