@@ -448,27 +448,35 @@ class ClosureScope {
 }
 
 class ClosureClassMap {
-  // The closure's element before any translation. Will be null for methods.
+  /// The local function element before any translation.
+  ///
+  /// Will be null for methods.
   final LocalFunctionElement closureElement;
-  // The closureClassElement will be null for methods that are not local
-  // closures.
+
+  /// The synthesized closure class for [closureElement].
+  ///
+  /// The closureClassElement will be null for methods that are not local
+  /// closures.
   final ClosureClassElement closureClassElement;
-  // The callElement will be null for methods that are not local closures.
-  final FunctionElement callElement;
-  // The [thisElement] makes handling 'this' easier by treating it like any
-  // other argument. It is only set for instance-members.
+
+  /// The synthesized `call` method of the [ closureClassElement].
+  ///
+  /// The callElement will be null for methods that are not local closures.
+  final MethodElement callElement;
+
+  /// The [thisElement] makes handling 'this' easier by treating it like any
+  /// other argument. It is only set for instance-members.
   final ThisLocal thisLocal;
 
-  // Maps free locals, arguments, function elements, and box locals to
-  // their locations.
+  /// Maps free locals, arguments, function elements, and box locals to
+  /// their locations.
   final Map<Local, CapturedVariable> freeVariableMap =
       new Map<Local, CapturedVariable>();
 
-  // Maps [Loop] and [FunctionExpression] nodes to their
-  // [ClosureScope] which contains their box and the
-  // captured variables that are stored in the box.
-  // This map will be empty if the method/closure of this [ClosureData] does not
-  // contain any nested closure.
+  /// Maps [Loop] and [FunctionExpression] nodes to their [ClosureScope] which
+  /// contains their box and the captured variables that are stored in the box.
+  /// This map will be empty if the method/closure of this [ClosureData] does
+  /// not contain any nested closure.
   final Map<Node, ClosureScope> capturingScopes = new Map<Node, ClosureScope>();
 
   /// Variables that are used in a try must be treated as boxed because the
@@ -1071,7 +1079,7 @@ class ClosureTranslator extends Visitor {
         new ClosureClassElement(node, closureName, compiler, element);
     // Extend [globalizedElement] as an instantiated class in the closed world.
     closedWorldRefiner.registerClosureClass(globalizedElement);
-    FunctionElement callElement = new SynthesizedCallMethodElementX(
+    MethodElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
     backend.mirrorsData.maybeMarkClosureAsNeededForReflection(
         globalizedElement, callElement, element);

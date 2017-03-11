@@ -177,8 +177,8 @@ class CustomElementsAnalysisJoin {
               .registerStaticUse(new StaticUse.foreignUse(constructor));
         }
         if (forResolution) {
-          escapingConstructors
-              .forEach(backend.backendUsageBuilder.registerGlobalDependency);
+          escapingConstructors.forEach(
+              backend.backendUsageBuilder.registerGlobalFunctionDependency);
         }
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.

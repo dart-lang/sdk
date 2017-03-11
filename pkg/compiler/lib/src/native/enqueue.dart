@@ -442,10 +442,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     return _unusedClasses.where(predicate);
   }
 
-  void registerBackendUse(Element element) {}
+  void registerBackendUse(MethodElement element) {}
 
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
-    void staticUse(element) {
+    void staticUse(MethodElement element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
       registerBackendUse(element);
     }
@@ -476,9 +476,9 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   BackendUsageBuilder get _backendUsageBuilder => backend.backendUsageBuilder;
 
-  void registerBackendUse(Element element) {
+  void registerBackendUse(MethodElement element) {
     _backendUsageBuilder.registerBackendUse(element);
-    _backendUsageBuilder.registerGlobalDependency(element);
+    _backendUsageBuilder.registerGlobalFunctionDependency(element);
   }
 
   void processNativeClass(ClassElement classElement) {

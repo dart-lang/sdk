@@ -6,6 +6,7 @@ import '../common.dart';
 import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -42,7 +43,8 @@ abstract class BackendUsage {
 
 abstract class BackendUsageBuilder {
   Element registerBackendUse(Element element);
-  void registerGlobalDependency(Element element);
+  void registerGlobalFunctionDependency(MethodElement element);
+  void registerGlobalClassDependency(ClassElement element);
 
   /// Collect backend use from [backendImpact].
   void processBackendImpact(BackendImpact backendImpact);
@@ -160,23 +162,23 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   void _processBackendStaticUse(MethodElement element, {bool isGlobal: false}) {
     registerBackendUse(element);
     if (isGlobal) {
-      registerGlobalDependency(element);
+      registerGlobalFunctionDependency(element);
     }
   }
 
   void _processBackendInstantiation(ClassElement cls, {bool isGlobal: false}) {
     registerBackendUse(cls);
     if (isGlobal) {
-      registerGlobalDependency(cls);
+      registerGlobalClassDependency(cls);
     }
   }
 
   void processBackendImpact(BackendImpact backendImpact) {
-    for (Element staticUse in backendImpact.staticUses) {
+    for (MemberElement staticUse in backendImpact.staticUses) {
       assert(staticUse != null);
       _processBackendStaticUse(staticUse);
     }
-    for (Element staticUse in backendImpact.globalUses) {
+    for (MemberElement staticUse in backendImpact.globalUses) {
       assert(staticUse != null);
       _processBackendStaticUse(staticUse, isGlobal: true);
     }
@@ -217,7 +219,15 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
-  void registerGlobalDependency(Element element) {
+  void registerGlobalFunctionDependency(MethodElement element) {
+    _registerGlobalDependency(element);
+  }
+
+  void registerGlobalClassDependency(ClassElement element) {
+    _registerGlobalDependency(element);
+  }
+
+  void _registerGlobalDependency(Element element) {
     if (element == null) return;
     if (_globalDependencies == null) {
       _globalDependencies = new Setlet<Element>();

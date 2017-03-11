@@ -48,25 +48,25 @@ import 'backend.dart';
  */
 class NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
-  final Set<FunctionElement> defaultImpls = new Set<FunctionElement>();
+  final Set<MethodElement> defaultImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category B, described above.
-  final Set<FunctionElement> throwingImpls = new Set<FunctionElement>();
+  final Set<MethodElement> throwingImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category C, described above.
-  final Set<FunctionElement> notApplicableImpls = new Set<FunctionElement>();
+  final Set<MethodElement> notApplicableImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category D, described above.
-  final Set<FunctionElement> otherImpls = new Set<FunctionElement>();
+  final Set<MethodElement> otherImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category D1
-  final Set<FunctionElement> complexNoReturnImpls = new Set<FunctionElement>();
+  final Set<MethodElement> complexNoReturnImpls = new Set<MethodElement>();
 
   /// The implementations that fall into category D2
-  final Set<FunctionElement> complexReturningImpls = new Set<FunctionElement>();
+  final Set<MethodElement> complexReturningImpls = new Set<MethodElement>();
 
   /// The implementations that have not yet been categorized.
-  final Set<FunctionElement> _uncategorizedImpls = new Set<FunctionElement>();
+  final Set<MethodElement> _uncategorizedImpls = new Set<MethodElement>();
 
   final JavaScriptBackend _backend;
   final Compiler _compiler;
@@ -80,7 +80,7 @@ class NoSuchMethodRegistry {
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
 
-  void registerNoSuchMethod(FunctionElement noSuchMethodElement) {
+  void registerNoSuchMethod(MethodElement noSuchMethodElement) {
     _uncategorizedImpls.add(noSuchMethodElement);
   }
 
@@ -118,12 +118,12 @@ class NoSuchMethodRegistry {
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
   /// category D, as described above.
-  bool isComplex(FunctionElement element) {
+  bool isComplex(MethodElement element) {
     assert(element.name == Identifiers.noSuchMethod_);
     return otherImpls.contains(element);
   }
 
-  _subcategorizeOther(FunctionElement element) {
+  _subcategorizeOther(MethodElement element) {
     if (_compiler.globalInference.results.resultOf(element).throwsAlways) {
       complexNoReturnImpls.add(element);
     } else {
@@ -131,7 +131,7 @@ class NoSuchMethodRegistry {
     }
   }
 
-  NsmCategory _categorizeImpl(FunctionElement element) {
+  NsmCategory _categorizeImpl(MethodElement element) {
     assert(element.name == Identifiers.noSuchMethod_);
     if (defaultImpls.contains(element)) {
       return NsmCategory.DEFAULT;
@@ -185,14 +185,14 @@ class NoSuchMethodRegistry {
     }
   }
 
-  bool isDefaultNoSuchMethodImplementation(FunctionElement element) {
+  bool isDefaultNoSuchMethodImplementation(MethodElement element) {
     ClassElement classElement = element.enclosingClass;
     return classElement == _compiler.commonElements.objectClass ||
         classElement == _backend.helpers.jsInterceptorClass ||
         classElement == _backend.helpers.jsNullClass;
   }
 
-  bool _hasForwardingSyntax(FunctionElement element) {
+  bool _hasForwardingSyntax(MethodElement element) {
     // At this point we know that this is signature-compatible with
     // Object.noSuchMethod, but it may have more than one argument as long as
     // it only has one required argument.
@@ -242,7 +242,7 @@ class NoSuchMethodRegistry {
     return false;
   }
 
-  bool _hasThrowingSyntax(FunctionElement element) {
+  bool _hasThrowingSyntax(MethodElement element) {
     if (!element.hasResolvedAst) {
       // TODO(johnniwinther): Why do we see unresolved elements here?
       return false;

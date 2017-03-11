@@ -436,7 +436,7 @@ class JavaScriptBackend extends Target {
   CodegenEnqueuerListener _codegenEnqueuerListener;
 
   BackendHelpers helpers;
-  final BackendImpacts impacts;
+  BackendImpacts impacts;
 
   /// Common classes used by the backend.
   BackendClasses backendClasses;
@@ -482,11 +482,11 @@ class JavaScriptBackend extends Target {
             generateSourceMap: generateSourceMap,
             useMultiSourceInfo: useMultiSourceInfo,
             useNewSourceInfo: useNewSourceInfo),
-        impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
         mirrorsData = new MirrorsData(compiler),
         this.compiler = compiler {
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
+    impacts = new BackendImpacts(compiler.options, commonElements, helpers);
     _backendUsageBuilder = new BackendUsageBuilderImpl(
         compiler.elementEnvironment, commonElements, helpers);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);

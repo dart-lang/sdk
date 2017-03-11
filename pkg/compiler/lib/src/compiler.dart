@@ -530,9 +530,11 @@ abstract class Compiler implements LibraryLoaderListener {
               {'main': Identifiers.main},
               Identifiers.main,
               parameter);
-          mainFunction = backend.helperForMainArity();
           // Don't warn about main not being used:
-          impactBuilder.registerStaticUse(new StaticUse.foreignUse(main));
+          impactBuilder
+              .registerStaticUse(new StaticUse.foreignUse(mainFunction));
+
+          mainFunction = backend.helperForMainArity();
         });
       }
     }

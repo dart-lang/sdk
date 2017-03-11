@@ -10,16 +10,10 @@ import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
-import '../enqueue.dart'
-    show
-    Enqueuer,
-    EnqueuerListener;
+import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
-import '../universe/world_impact.dart'
-    show
-    WorldImpact,
-    WorldImpactBuilderImpl;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'backend.dart';
 import 'backend_helpers.dart';
 import 'backend_impact.dart';

@@ -5,25 +5,18 @@
 library js_backend.backend.resolution_listener;
 
 import '../common/names.dart' show Identifiers, Uris;
-import '../common/resolution.dart'
-    show Resolution;
+import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
-import '../enqueue.dart'
-    show
-    Enqueuer,
-    EnqueuerListener;
+import '../elements/types.dart';
+import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../kernel/task.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
-    show
-    WorldImpact,
-    WorldImpactBuilder,
-    WorldImpactBuilderImpl;
+    show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'backend.dart';
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
@@ -117,10 +110,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerInstantiatedType(ResolutionInterfaceType type,
-      {bool isGlobal: false}) {
+  void registerInstantiatedType(InterfaceType type, {bool isGlobal: false}) {
     if (isGlobal) {
-      _backendUsage.registerGlobalDependency(type.element);
+      _backendUsage.registerGlobalClassDependency(type.element);
     }
   }
 
@@ -192,8 +184,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     enqueuer.applyImpact(_lookupMapAnalysis.flush(forResolution: true));
     enqueuer.applyImpact(_typeVariableHandler.flush(forResolution: true));
 
-    for (ClassElement cls in recentClasses) {
-      Element element = cls.lookupLocalMember(Identifiers.noSuchMethod_);
+    for (ClassEntity cls in recentClasses) {
+      MemberEntity element =
+          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
       if (element != null && element.isInstanceMember && element.isFunction) {
         _noSuchMethodRegistry.registerNoSuchMethod(element);
       }
@@ -284,7 +277,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     return _impacts.runtimeTypeSupport.createImpact(_elementEnvironment);
   }
 
-  WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
+  WorldImpact registerClosureWithFreeTypeVariables(MemberEntity closure) {
     return _registerComputeSignature();
   }
 
@@ -415,7 +408,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the _helpers in the _resolution queue.
     // TODO(13155): Find a way to register fewer _helpers.
-    List<Element> staticUses = <Element>[];
+    List<MemberEntity> staticUses = <MemberEntity>[];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
       staticUses.add(helper.getStaticUse(_helpers).element);
     }

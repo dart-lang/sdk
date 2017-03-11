@@ -76,7 +76,7 @@ class LookupMapAnalysis {
   final DiagnosticReporter reporter;
 
   /// The resolved [VariableElement] associated with the top-level `_version`.
-  VariableElement lookupMapVersionVariable;
+  FieldElement lookupMapVersionVariable;
 
   /// The resolved [LibraryElement] associated with
   /// `package:lookup_map/lookup_map.dart`.

@@ -242,14 +242,14 @@ class MirrorsHandler {
   /// needed for reflection.
   void _enqueueReflectiveConstructor(ConstructorElement constructor,
       {bool enclosingWasIncluded}) {
+    assert(constructor.isDeclaration);
     if (_shouldIncludeElementDueToMirrors(constructor,
         includedEnclosing: enclosingWasIncluded)) {
       _logEnqueueReflectiveAction(constructor);
-      ClassElement cls = constructor.declaration.enclosingClass;
+      ClassElement cls = constructor.enclosingClass;
       impactBuilder
           .registerTypeUse(new TypeUse.mirrorInstantiation(cls.rawType));
-      impactBuilder
-          .registerStaticUse(new StaticUse.foreignUse(constructor.declaration));
+      impactBuilder.registerStaticUse(new StaticUse.foreignUse(constructor));
     }
   }
 
@@ -257,16 +257,14 @@ class MirrorsHandler {
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
-  void _enqueueReflectiveMember(Element element, bool enclosingWasIncluded) {
+  void _enqueueReflectiveMember(
+      MemberElement element, bool enclosingWasIncluded) {
+    assert(element.isDeclaration);
     if (_shouldIncludeElementDueToMirrors(element,
         includedEnclosing: enclosingWasIncluded)) {
       _logEnqueueReflectiveAction(element);
-      if (element.isTypedef) {
-        TypedefElement typedef = element;
-        typedef.ensureResolved(_resolution);
-      } else if (Elements.isStaticOrTopLevel(element)) {
-        impactBuilder
-            .registerStaticUse(new StaticUse.foreignUse(element.declaration));
+      if (Elements.isStaticOrTopLevel(element)) {
+        impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
       } else if (element.isInstanceMember) {
         // We need to enqueue all members matching this one in subclasses, as
         // well.
@@ -292,6 +290,7 @@ class MirrorsHandler {
   void _enqueueReflectiveElementsInClass(
       ClassElement cls, Iterable<ClassEntity> recents,
       {bool enclosingWasIncluded}) {
+    assert(cls.isDeclaration);
     if (cls.library.isInternalLibrary || cls.isInjected) return;
     bool includeClass = _shouldIncludeElementDueToMirrors(cls,
         includedEnclosing: enclosingWasIncluded);
@@ -307,8 +306,8 @@ class MirrorsHandler {
     // TODO(herhut): Add a warning if a mirrors annotation cannot hit.
     if (recents.contains(cls.declaration)) {
       _logEnqueueReflectiveAction(cls, "members");
-      cls.constructors.forEach((Element element) {
-        _enqueueReflectiveConstructor(element,
+      cls.constructors.forEach((ConstructorElement element) {
+        _enqueueReflectiveConstructor(element.declaration,
             enclosingWasIncluded: includeClass);
       });
       cls.forEachClassMember((Member member) {
@@ -340,6 +339,7 @@ class MirrorsHandler {
   /// reflection.
   void _enqueueReflectiveElementsInLibrary(
       LibraryElement lib, Iterable<ClassEntity> recents) {
+    assert(lib.isDeclaration);
     bool includeLibrary =
         _shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
@@ -352,6 +352,9 @@ class MirrorsHandler {
               enclosingWasIncluded: includeLibrary);
           cls = cls.superclass;
         } while (cls != null && cls.isUnnamedMixinApplication);
+      } else if (member.isTypedef) {
+        TypedefElement typedef = member;
+        typedef.ensureResolved(_resolution);
       } else {
         _enqueueReflectiveMember(member, includeLibrary);
       }

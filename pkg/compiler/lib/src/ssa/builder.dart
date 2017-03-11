@@ -1810,7 +1810,7 @@ class SsaBuilder extends ast.Visitor
     assert(nestedClosureData.closureClassElement != null);
     ClosureClassElement closureClassElement =
         nestedClosureData.closureClassElement;
-    FunctionElement callElement = nestedClosureData.callElement;
+    MethodElement callElement = nestedClosureData.callElement;
     // TODO(ahe): This should be registered in codegen, not here.
     // TODO(johnniwinther): Is [registerStaticUse] equivalent to
     // [addToWorkList]?
