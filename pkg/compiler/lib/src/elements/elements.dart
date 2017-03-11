@@ -1999,7 +1999,7 @@ abstract class MemberSignature {
 abstract class Member extends MemberSignature {
   /// The [Element] that declared this member, possibly implicitly in case of
   /// a getter or setter defined by a field.
-  Element get element;
+  MemberElement get element;
 
   /// The instance of the class that declared this member.
   ///
