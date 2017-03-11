@@ -9156,6 +9156,14 @@ class C<K {
     parseExpression("f(x: 1 y: 2)", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_missingComma_beforeNamedArgument() {
+    createParser('(a b: c)');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+    expect(argumentList.arguments, hasLength(2));
+  }
+
   void test_missingGet() {
     CompilationUnit unit = parseCompilationUnit(
         r'''

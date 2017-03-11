@@ -685,6 +685,24 @@ class Parser {
     if (_matches(TokenType.CLOSE_PAREN)) {
       return astFactory.argumentList(leftParenthesis, null, getAndAdvance());
     }
+
+    /**
+     * Return `true` if the parser appears to be at the beginning of an argument
+     * even though there was no comma. This is a special case of the more
+     * general recovery technique described below.
+     */
+    bool isLikelyMissingComma() {
+      if (_matchesIdentifier() &&
+          _tokenMatches(_currentToken.next, TokenType.COLON) &&
+          leftParenthesis is BeginToken &&
+          leftParenthesis.endToken != null) {
+        _reportErrorForToken(
+            ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [',']);
+        return true;
+      }
+      return false;
+    }
+
     //
     // Even though unnamed arguments must all appear before any named arguments,
     // we allow them to appear in any order so that we can recover faster.
@@ -692,14 +710,18 @@ class Parser {
     bool wasInInitializer = _inInitializer;
     _inInitializer = false;
     try {
+      Token previousStartOfArgument = _currentToken;
       Expression argument = parseArgument();
       List<Expression> arguments = <Expression>[argument];
       bool foundNamedArgument = argument is NamedExpression;
       bool generatedError = false;
-      while (_optional(TokenType.COMMA)) {
+      while (_optional(TokenType.COMMA) ||
+          (isLikelyMissingComma() &&
+              previousStartOfArgument != _currentToken)) {
         if (_matches(TokenType.CLOSE_PAREN)) {
           break;
         }
+        previousStartOfArgument = _currentToken;
         argument = parseArgument();
         arguments.add(argument);
         if (argument is NamedExpression) {
