@@ -165,7 +165,8 @@ class Listener {
 
   void beginFactoryMethod(Token token) {}
 
-  void endFactoryMethod(Token beginToken, Token endToken) {
+  void endFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
     logEvent("FactoryMethod");
   }
 

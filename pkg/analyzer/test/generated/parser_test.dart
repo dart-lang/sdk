@@ -286,13 +286,6 @@ class ClassMemberParserTest extends ParserTestCase
  * Tests which exercise the parser using a class member.
  */
 abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
-  void test_constFactory() {
-    createParser('const factory C() = A;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-  }
-
   void test_parseAwaitExpression_asStatement_inAsync() {
     createParser('m() async { await x; }');
     ClassMember member = parser.parseClassMember('C');
@@ -1021,23 +1014,50 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseClassMember_redirectingFactory_const() {
-    createParser('const factory C() = B;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
+    createParser('const factory C() = prefix.B.foo;');
+    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
     assertNoErrors();
-    expect(member, new isInstanceOf<ConstructorDeclaration>());
-    ConstructorDeclaration constructor = member;
+    expect(constructor, isNotNull);
     expect(constructor.externalKeyword, isNull);
-    expect(constructor.constKeyword, isNotNull);
-    expect(constructor.factoryKeyword, isNotNull);
-    expect(constructor.returnType, isNotNull);
+    expect(constructor.constKeyword.keyword, Keyword.CONST);
+    expect(constructor.factoryKeyword.keyword, Keyword.FACTORY);
+    expect(constructor.returnType.name, 'C');
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
-    expect(constructor.separator, isNotNull);
-    expect(constructor.initializers, hasLength(0));
+    expect(constructor.parameters.parameters, isEmpty);
+    expect(constructor.separator.type, TokenType.EQ);
+    expect(constructor.initializers, isEmpty);
     expect(constructor.redirectedConstructor, isNotNull);
-    expect(constructor.body, isNotNull);
+    expect(constructor.redirectedConstructor.type.name.name, 'prefix.B');
+    expect(constructor.redirectedConstructor.period.type, TokenType.PERIOD);
+    expect(constructor.redirectedConstructor.name.name, 'foo');
+    expect(constructor.body, new isInstanceOf<EmptyFunctionBody>());
+  }
+
+  void test_parseClassMember_redirectingFactory_expressionBody() {
+    createParser('factory C() => null;');
+    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
+    assertNoErrors();
+    expect(constructor, isNotNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword.keyword, Keyword.FACTORY);
+    expect(constructor.returnType.name, 'C');
+    expect(constructor.period, isNull);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.parameters.parameters, isEmpty);
+    expect(constructor.separator, isNull);
+    expect(constructor.initializers, isEmpty);
+    expect(constructor.redirectedConstructor, isNull);
+
+    var body = constructor.body as ExpressionFunctionBody;
+    expect(body.keyword, isNull);
+    expect(body.star, isNull);
+    expect(body.functionDefinition.type, TokenType.FUNCTION);
+    expect(body.expression, isNotNull);
+    expect(body.semicolon, isNotNull);
   }
 
   void test_parseClassMember_redirectingFactory_nonConst() {
@@ -1049,15 +1069,19 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     ConstructorDeclaration constructor = member;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
-    expect(constructor.factoryKeyword, isNotNull);
-    expect(constructor.returnType, isNotNull);
+    expect(constructor.factoryKeyword.keyword, Keyword.FACTORY);
+    expect(constructor.returnType.name, 'C');
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
-    expect(constructor.separator, isNotNull);
-    expect(constructor.initializers, hasLength(0));
+    expect(constructor.parameters.parameters, isEmpty);
+    expect(constructor.separator.type, TokenType.EQ);
+    expect(constructor.initializers, isEmpty);
     expect(constructor.redirectedConstructor, isNotNull);
-    expect(constructor.body, isNotNull);
+    expect(constructor.redirectedConstructor.type.name.name, 'B');
+    expect(constructor.redirectedConstructor.period, isNull);
+    expect(constructor.redirectedConstructor.name, isNull);
+    expect(constructor.body, new isInstanceOf<EmptyFunctionBody>());
   }
 
   void test_parseConstructor_assert() {

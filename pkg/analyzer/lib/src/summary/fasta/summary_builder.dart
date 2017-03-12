@@ -984,7 +984,8 @@ class SummaryBuilder extends StackListener {
     checkEmpty();
   }
 
-  void endFactoryMethod(Token beginToken, Token endToken) {
+  void endFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("FactoryMethod");
     throw new UnimplementedError(); // TODO(paulberry)
     // pop(); // async-modifiers

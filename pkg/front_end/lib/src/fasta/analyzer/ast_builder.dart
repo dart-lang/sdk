@@ -571,6 +571,16 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void endRedirectingFactoryBody(Token equalToken, Token endToken) {
+    debugEvent("RedirectingFactoryBody");
+    ConstructorName constructorName = pop();
+    Token starToken = pop();
+    Token asyncToken = pop();
+    push(new _RedirectingFactoryBody(
+        asyncToken, starToken, equalToken, constructorName));
+  }
+
+  @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
     RethrowExpression expression =
@@ -1173,6 +1183,46 @@ class AstBuilder extends ScopeListener {
     push(ast.variableDeclaration(name, null, null));
   }
 
+  @override
+  void endFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token semicolon) {
+    debugEvent("FactoryMethod");
+
+    FunctionBody body;
+    Token separator;
+    ConstructorName redirectedConstructor;
+    Object bodyObject = pop();
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      separator = bodyObject.equalToken;
+      redirectedConstructor = bodyObject.constructorName;
+      body = ast.emptyFunctionBody(toAnalyzerToken(semicolon));
+    } else {
+      internalError('Unexpected body object: ${bodyObject.runtimeType}');
+    }
+
+    FormalParameterList parameters = pop();
+    ConstructorName constructorName = pop();
+    _Modifiers modifiers = pop();
+    List<Annotation> metadata = pop();
+    Comment comment = pop();
+    push(ast.constructorDeclaration(
+        comment,
+        metadata,
+        toAnalyzerToken(modifiers?.externalKeyword),
+        toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
+        toAnalyzerToken(factoryKeyword),
+        constructorName.type.name,
+        constructorName.period,
+        constructorName.name,
+        parameters,
+        toAnalyzerToken(separator),
+        null,
+        redirectedConstructor,
+        body));
+  }
+
   void endFieldInitializer(Token assignment) {
     debugEvent("FieldInitializer");
     Expression initializer = pop();
@@ -1468,6 +1518,17 @@ class _ParameterDefaultValue {
   final Expression value;
 
   _ParameterDefaultValue(this.separator, this.value);
+}
+
+/// Data structure placed on stack to represent the redirected constructor.
+class _RedirectingFactoryBody {
+  final Token asyncKeyword;
+  final Token starKeyword;
+  final Token equalToken;
+  final ConstructorName constructorName;
+
+  _RedirectingFactoryBody(this.asyncKeyword, this.starKeyword, this.equalToken,
+      this.constructorName);
 }
 
 /// Data structure placed on the stack as a container for optional parameters.

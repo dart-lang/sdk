@@ -1858,7 +1858,7 @@ class Parser {
     } else {
       token = parseFunctionBody(token, false, isExternal);
     }
-    listener.endFactoryMethod(start, token);
+    listener.endFactoryMethod(start, factoryKeyword, token);
     return token.next;
   }
 

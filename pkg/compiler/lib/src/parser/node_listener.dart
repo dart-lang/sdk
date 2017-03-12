@@ -861,8 +861,9 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFactoryMethod(Token beginToken, Token endToken) {
-    super.endFactoryMethod(beginToken, endToken);
+  void endFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    super.endFactoryMethod(beginToken, factoryKeyword, endToken);
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();

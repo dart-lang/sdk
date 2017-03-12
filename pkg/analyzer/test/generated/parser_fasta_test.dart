@@ -52,13 +52,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
   @override
   @failingTest
-  void test_constFactory() {
-    // TODO(paulberry): Unhandled event: ConstructorReference
-    super.test_constFactory();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_constructor_withInitializers() {
     // TODO(paulberry): 'this' can't be used here.
     super.test_parseClassMember_constructor_withInitializers();
@@ -90,20 +83,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   void test_parseClassMember_method_generic_comment_void() {
     // TODO(paulberry): Fasta doesn't support generic comment syntax
     super.test_parseClassMember_method_generic_comment_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_redirectingFactory_const() {
-    // TODO(paulberry): Unhandled event: ConstructorReference
-    super.test_parseClassMember_redirectingFactory_const();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_redirectingFactory_nonConst() {
-    // TODO(paulberry): Unhandled event: ConstructorReference
-    super.test_parseClassMember_redirectingFactory_nonConst();
   }
 
   @override
