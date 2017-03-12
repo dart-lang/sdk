@@ -386,7 +386,10 @@ class Unparser extends Indentation implements Visitor {
     if (node.nodes != null) {
       unparseNodeListFrom(node, node.nodes, spaces: spaces);
     }
-    if (node.endToken != null) write(node.endToken.lexeme);
+    // if "[]" then beginToken == endToken ... only write beginToken
+    if (node.endToken != null && node.endToken != node.beginToken) {
+      write(node.endToken.lexeme);
+    }
   }
 
   visitNodeList(NodeList node) {
