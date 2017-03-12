@@ -110,7 +110,7 @@ abstract class TokenStreamRewriterTest {
       if (setPrevious) token.previousToken = head;
       head = token;
     }
-    int eofOffset = head.charOffset + head.value.length;
+    int eofOffset = head.charOffset + head.lexeme.length;
     if (eofOffset < 0) eofOffset = 0;
     Token eof = new SymbolToken(EOF_INFO, eofOffset);
     head.next = eof;
