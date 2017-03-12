@@ -22,7 +22,7 @@ import 'identifier_context.dart' show IdentifierContext;
 
 class DebugListener extends Listener {
   void handleIdentifier(Token token, IdentifierContext context) {
-    logEvent("Identifier: ${token.value}");
+    logEvent("Identifier: ${token.lexeme}");
   }
 
   void logEvent(String name) {

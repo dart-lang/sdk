@@ -717,7 +717,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
-    String name = token.value;
+    String name = token.lexeme;
     if (isFirstIdentifier) {
       assert(!inInitializer ||
           this.scope == enclosingScope ||
@@ -800,25 +800,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(new StringLiteral(unescapeString(token.value)));
+      push(new StringLiteral(unescapeString(token.lexeme)));
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
       Token last = parts.last;
-      Quote quote = analyzeQuote(first.value);
+      Quote quote = analyzeQuote(first.lexeme);
       List<Expression> expressions = <Expression>[];
       expressions
-          .add(new StringLiteral(unescapeFirstStringPart(first.value, quote)));
+          .add(new StringLiteral(unescapeFirstStringPart(first.lexeme, quote)));
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
-          expressions.add(new StringLiteral(unescape(part.value, quote)));
+          expressions.add(new StringLiteral(unescape(part.lexeme, quote)));
         } else {
           expressions.add(toValue(part));
         }
       }
       expressions
-          .add(new StringLiteral(unescapeLastStringPart(last.value, quote)));
+          .add(new StringLiteral(unescapeLastStringPart(last.lexeme, quote)));
       push(new StringConcatenation(expressions)
         ..fileOffset = endToken.charOffset);
     }
@@ -854,7 +854,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(new IntLiteral(int.parse(token.value)));
+    push(new IntLiteral(int.parse(token.lexeme)));
   }
 
   @override
@@ -1093,7 +1093,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(new DoubleLiteral(double.parse(token.value)));
+    push(new DoubleLiteral(double.parse(token.lexeme)));
   }
 
   @override
@@ -1218,7 +1218,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       name = name.name;
     }
     if (name is BuilderAccessor) {
-      warning("'${beginToken.value}' isn't a type.", beginToken.charOffset);
+      warning("'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
     } else if (name is UnresolvedIdentifier) {
       warning("'${name.name}' isn't a type.", beginToken.charOffset);
@@ -1507,7 +1507,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Name incrementOperator(Token token) {
     if (optional("++", token)) return plusName;
     if (optional("--", token)) return minusName;
-    return internalError("Unknown increment operator: ${token.value}");
+    return internalError("Unknown increment operator: ${token.lexeme}");
   }
 
   @override
@@ -1572,7 +1572,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (prefix is ClassBuilder) {
         type = prefix;
       } else {
-        type = new Identifier(start.value)..fileOffset = start.charOffset;
+        type = new Identifier(start.lexeme)..fileOffset = start.charOffset;
       }
     }
     String name;
@@ -2217,7 +2217,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       String expected = arguments["expected"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
-        arguments.putIfAbsent("actual", () => token.value);
+        arguments.putIfAbsent("actual", () => token.lexeme);
         handleRecoverableError(token, ErrorKind.ExpectedButGot, arguments);
         return newSyntheticToken(token);
       }

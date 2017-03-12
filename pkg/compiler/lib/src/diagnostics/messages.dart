@@ -3772,7 +3772,7 @@ class Message {
       // Shouldn't happen.
       return value.assertionMessage;
     } else if (value is Token) {
-      value = value.value;
+      value = value.lexeme;
     }
     return '$value';
   }

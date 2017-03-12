@@ -109,28 +109,28 @@ class AstBuilder extends ScopeListener {
   }
 
   void doStringPart(Token token) {
-    push(ast.simpleStringLiteral(toAnalyzerToken(token), token.value));
+    push(ast.simpleStringLiteral(toAnalyzerToken(token), token.lexeme));
   }
 
   void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      String value = unescapeString(token.value);
+      String value = unescapeString(token.lexeme);
       push(ast.simpleStringLiteral(toAnalyzerToken(token), value));
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
       Token last = parts.last;
-      Quote quote = analyzeQuote(first.value);
+      Quote quote = analyzeQuote(first.lexeme);
       List<InterpolationElement> elements = <InterpolationElement>[];
-      elements.add(ast.interpolationString(
-          toAnalyzerToken(first), unescapeFirstStringPart(first.value, quote)));
+      elements.add(ast.interpolationString(toAnalyzerToken(first),
+          unescapeFirstStringPart(first.lexeme, quote)));
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
           elements
-              .add(ast.interpolationString(toAnalyzerToken(part), part.value));
+              .add(ast.interpolationString(toAnalyzerToken(part), part.lexeme));
         } else if (part is Expression) {
           elements.add(ast.interpolationExpression(null, part, null));
         } else {
@@ -139,7 +139,7 @@ class AstBuilder extends ScopeListener {
         }
       }
       elements.add(ast.interpolationString(
-          toAnalyzerToken(last), unescapeLastStringPart(last.value, quote)));
+          toAnalyzerToken(last), unescapeLastStringPart(last.lexeme, quote)));
       push(ast.stringInterpolation(elements));
     }
   }
@@ -186,7 +186,7 @@ class AstBuilder extends ScopeListener {
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       if (context.isScopeReference) {
-        String name = token.value;
+        String name = token.lexeme;
         Builder builder = scope.lookup(name, token.charOffset, uri);
         if (builder != null) {
           Element element = elementStore[builder];
@@ -332,7 +332,7 @@ class AstBuilder extends ScopeListener {
 
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(ast.integerLiteral(toAnalyzerToken(token), int.parse(token.value)));
+    push(ast.integerLiteral(toAnalyzerToken(token), int.parse(token.lexeme)));
   }
 
   void endExpressionFunctionBody(Token arrowToken, Token endToken) {
@@ -494,7 +494,7 @@ class AstBuilder extends ScopeListener {
 
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(ast.doubleLiteral(toAnalyzerToken(token), double.parse(token.value)));
+    push(ast.doubleLiteral(toAnalyzerToken(token), double.parse(token.lexeme)));
   }
 
   void handleLiteralNull(Token token) {
@@ -1563,7 +1563,7 @@ class _Modifiers {
     // disallowed modifiers are not used; the parser should do that.
     // TODO(paulberry,ahe): implement the necessary logic in the parser.
     for (var token in modifierTokens) {
-      var s = token.value;
+      var s = token.lexeme;
       if (identical('abstract', s)) {
         abstractKeyword = token;
       } else if (identical('const', s)) {

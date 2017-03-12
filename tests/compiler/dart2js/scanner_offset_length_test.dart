@@ -11,7 +11,7 @@ Token scan(String text) =>
 check(String text) {
   Token token = scan(text);
   while (token.kind != EOF_TOKEN) {
-    Expect.equals(token.value.length, token.charCount);
+    Expect.equals(token.lexeme.length, token.charCount);
 
     var start = token.charOffset;
     var end = token.charOffset + token.charCount;
@@ -27,9 +27,9 @@ check(String text) {
     var substring = text.substring(start, end);
 
     Expect.stringEquals(
-        token.value,
+        token.lexeme,
         substring,
-        'token.value=${token.value} == '
+        'token.value=${token.lexeme} == '
         'text.substring(start,end)=${substring}: $text');
 
     print('$text: [$start,$end]:$token');

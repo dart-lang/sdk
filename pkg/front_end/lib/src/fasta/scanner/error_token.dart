@@ -55,14 +55,14 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 
 /// Common superclass for all error tokens.
 ///
-/// It's considered an implementation error to access [value] of an
+/// It's considered an implementation error to access [lexeme] of an
 /// [ErrorToken].
 abstract class ErrorToken extends Token {
   ErrorToken(int charOffset) : super(charOffset);
 
   PrecedenceInfo get info => BAD_INPUT_INFO;
 
-  String get value => throw assertionMessage;
+  String get lexeme => throw assertionMessage;
 
   String get stringValue => null;
 
@@ -204,7 +204,7 @@ class UnmatchedToken extends ErrorToken {
       : this.begin = begin,
         super(begin.charOffset);
 
-  String toString() => "UnmatchedToken(${begin.value})";
+  String toString() => "UnmatchedToken(${begin.lexeme})";
 
   String get assertionMessage => "'$begin' isn't closed.";
 

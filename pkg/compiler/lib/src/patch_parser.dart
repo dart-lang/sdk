@@ -393,11 +393,11 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
 
   String getNativeAnnotation(MetadataAnnotationX annotation) {
     if (annotation.beginToken != null &&
-        annotation.beginToken.next.value == 'Native') {
+        annotation.beginToken.next.lexeme == 'Native') {
       // Skipping '@', 'Native', and '('.
       Token argument = annotation.beginToken.next.next.next;
       if (argument is StringToken) {
-        return argument.value;
+        return argument.lexeme;
       }
     }
     return null;
@@ -434,7 +434,8 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   const JsInteropAnnotationHandler();
 
   bool hasJsNameAnnotation(MetadataAnnotationX annotation) =>
-      annotation.beginToken != null && annotation.beginToken.next.value == 'JS';
+      annotation.beginToken != null &&
+      annotation.beginToken.next.lexeme == 'JS';
 
   bool apply(
       Compiler compiler, Element element, MetadataAnnotation annotation) {
@@ -466,13 +467,13 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
 
   PatchVersion getPatchVersion(MetadataAnnotationX annotation) {
     if (annotation.beginToken != null) {
-      if (annotation.beginToken.next.value == 'patch') {
+      if (annotation.beginToken.next.lexeme == 'patch') {
         return const PatchVersion(null);
-      } else if (annotation.beginToken.next.value == 'patch_full') {
+      } else if (annotation.beginToken.next.lexeme == 'patch_full') {
         return const PatchVersion('full');
-      } else if (annotation.beginToken.next.value == 'patch_lazy') {
+      } else if (annotation.beginToken.next.lexeme == 'patch_lazy') {
         return const PatchVersion('lazy');
-      } else if (annotation.beginToken.next.value == 'patch_startup') {
+      } else if (annotation.beginToken.next.lexeme == 'patch_startup') {
         return const PatchVersion('startup');
       }
     }

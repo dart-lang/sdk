@@ -199,7 +199,7 @@ class DirectiveListener extends Listener {
 
   void beginLiteralString(Token token) {
     if (_inDirective) {
-      var quotedString = token.value;
+      var quotedString = token.lexeme;
       uris.add(quotedString.substring(1, quotedString.length - 1));
     }
   }

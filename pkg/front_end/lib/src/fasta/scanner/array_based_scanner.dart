@@ -125,7 +125,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   }
 
   /**
-   * Appends a token that begins a new group, represented by [value].
+   * Appends a token that begins a new group, represented by [info].
    * Group begin tokens are '{', '(', '[' and '${'.
    */
   void appendBeginGroup(PrecedenceInfo info) {
@@ -138,7 +138,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   }
 
   /**
-   * Appends a token that begins an end group, represented by [value].
+   * Appends a token that begins an end group, represented by [info].
    * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
    * '>>' are handled separately bo [appendGt] and [appendGtGt].
    */

@@ -240,7 +240,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         id = token;
       }
       // Should be at '{', 'with', 'implements', '<' or 'native'.
-      return id.value;
+      return id.lexeme;
     }
 
     return reporter.withCurrentElement(classElement, () {

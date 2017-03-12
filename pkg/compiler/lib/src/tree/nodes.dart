@@ -1091,7 +1091,7 @@ class AsyncModifier extends Node {
   Token getEndToken() => starToken != null ? starToken : asyncToken;
 
   /// Is `true` if this modifier is either `async` or `async*`.
-  bool get isAsynchronous => asyncToken.value == 'async';
+  bool get isAsynchronous => asyncToken.lexeme == 'async';
 
   /// Is `true` if this modifier is either `sync*` or `async*`.
   bool get isYielding => starToken != null;
@@ -1218,7 +1218,7 @@ class LiteralInt extends Literal<int> {
       if (identical(valueToken.kind, Tokens.PLUS_TOKEN)) {
         valueToken = valueToken.next;
       }
-      return int.parse(valueToken.value);
+      return int.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
@@ -1241,7 +1241,7 @@ class LiteralDouble extends Literal<double> {
       if (identical(valueToken.kind, Tokens.PLUS_TOKEN)) {
         valueToken = valueToken.next;
       }
-      return double.parse(valueToken.value);
+      return double.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
@@ -1260,7 +1260,7 @@ class LiteralBool extends Literal<bool> {
   bool get value {
     if (identical(token.stringValue, 'true')) return true;
     if (identical(token.stringValue, 'false')) return false;
-    (this.handler)(token, "not a bool ${token.value}");
+    (this.handler)(token, "not a bool ${token.lexeme}");
     throw false;
   }
 
@@ -1433,7 +1433,7 @@ class LiteralSymbol extends Expression {
 class Identifier extends Expression with StoredTreeElementMixin {
   final Token token;
 
-  String get source => token.value;
+  String get source => token.lexeme;
 
   Identifier(Token this.token);
 

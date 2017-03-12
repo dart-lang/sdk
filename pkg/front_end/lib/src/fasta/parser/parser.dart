@@ -2690,7 +2690,7 @@ class Parser {
         (identical(kind, FUNCTION_TOKEN) ||
             identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
             (identical(kind, KEYWORD_TOKEN) &&
-                (nextToken.value == 'async' || nextToken.value == 'sync')))) {
+                (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync')))) {
       listener.handleNoTypeVariables(token);
       return parseUnnamedFunction(token);
     } else {
@@ -2809,7 +2809,7 @@ class Parser {
       if (identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
           (identical(kind, KEYWORD_TOKEN) &&
-              (nextToken.value == 'async' || nextToken.value == 'sync'))) {
+              (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync'))) {
         return parseUnnamedFunction(token);
       }
       // Fall through.
@@ -3529,7 +3529,7 @@ class Parser {
       next = reportErrorToken(token, false);
     } else {
       arguments ??= {};
-      arguments.putIfAbsent("actual", () => token.value);
+      arguments.putIfAbsent("actual", () => token.lexeme);
       next = listener.handleUnrecoverableError(token, kind, arguments)?.next;
     }
     return next ?? skipToEof(token);
@@ -3565,7 +3565,7 @@ class Parser {
         break;
 
       case ErrorKind.UnmatchedToken:
-        String begin = token.begin.value;
+        String begin = token.begin.lexeme;
         String end = closeBraceFor(begin);
         arguments = {'begin': begin, 'end': end};
         break;

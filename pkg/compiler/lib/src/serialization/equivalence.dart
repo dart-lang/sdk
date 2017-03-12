@@ -1446,7 +1446,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
       return strategy.test(
               t1, t2, 'charOffset', t1.charOffset, t2.charOffset) &&
           strategy.test(t1, t2, 'info', t1.info, t2.info) &&
-          strategy.test(t1, t2, 'value', t1.value, t2.value);
+          strategy.test(t1, t2, 'value', t1.lexeme, t2.lexeme);
     });
   }
 

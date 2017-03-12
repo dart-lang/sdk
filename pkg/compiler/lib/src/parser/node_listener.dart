@@ -326,7 +326,7 @@ class NodeListener extends ElementListener {
 
   void handleOnError(Token token, var errorInformation) {
     reporter.internalError(
-        reporter.spanFromToken(token), "'${token.value}': ${errorInformation}");
+        reporter.spanFromToken(token), "'${token.lexeme}': ${errorInformation}");
   }
 
   @override

@@ -37,7 +37,7 @@ class Unparser extends Indentation implements Visitor {
 
   void addToken(Token token) {
     if (token == null) return;
-    write(token.value);
+    write(token.lexeme);
     if (identical(token.kind, Tokens.KEYWORD_TOKEN) ||
         identical(token.kind, Tokens.IDENTIFIER_TOKEN)) {
       write(' ');
@@ -65,7 +65,7 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitAssert(Assert node) {
-    write(node.assertToken.value);
+    write(node.assertToken.lexeme);
     write('(');
     visit(node.condition);
     if (node.hasMessage) {
@@ -94,7 +94,7 @@ class Unparser extends Indentation implements Visitor {
       newline();
     }
     if (statements.endToken != null) {
-      write(statements.endToken.value);
+      write(statements.endToken.lexeme);
     }
   }
 
@@ -178,22 +178,22 @@ class Unparser extends Indentation implements Visitor {
   visitConditional(Conditional node) {
     visit(node.condition);
     space();
-    write(node.questionToken.value);
+    write(node.questionToken.lexeme);
     space();
     visit(node.thenExpression);
     space();
-    write(node.colonToken.value);
+    write(node.colonToken.lexeme);
     space();
     visit(node.elseExpression);
   }
 
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
-    write(node.endToken.value);
+    write(node.endToken.lexeme);
   }
 
   visitFor(For node) {
-    write(node.forToken.value);
+    write(node.forToken.lexeme);
     space();
     write('(');
     visit(node.initializer);
@@ -240,9 +240,9 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitAsyncModifier(AsyncModifier node) {
-    write(node.asyncToken.value);
+    write(node.asyncToken.lexeme);
     if (node.starToken != null) {
-      write(node.starToken.value);
+      write(node.starToken.lexeme);
     }
   }
 
@@ -256,7 +256,7 @@ class Unparser extends Indentation implements Visitor {
       write(' ');
     }
     if (node.getOrSet != null) {
-      write(node.getOrSet.value);
+      write(node.getOrSet.lexeme);
       write(' ');
     }
     unparseFunctionName(node.name);
@@ -285,18 +285,18 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    write(node.token.value);
+    write(node.token.lexeme);
   }
 
   visitIf(If node) {
-    write(node.ifToken.value);
+    write(node.ifToken.lexeme);
     space();
     visit(node.condition);
     space();
     visit(node.thenPart);
     if (node.hasElsePart) {
       space();
-      write(node.elseToken.value);
+      write(node.elseToken.lexeme);
       space();
       if (node.elsePart is! Block && minify) write(' ');
       visit(node.elsePart);
@@ -304,23 +304,23 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitLiteralBool(LiteralBool node) {
-    write(node.token.value);
+    write(node.token.lexeme);
   }
 
   visitLiteralDouble(LiteralDouble node) {
-    write(node.token.value);
+    write(node.token.lexeme);
     // -Lit is represented as a send.
-    if (node.token.kind == Tokens.PLUS_TOKEN) write(node.token.next.value);
+    if (node.token.kind == Tokens.PLUS_TOKEN) write(node.token.next.lexeme);
   }
 
   visitLiteralInt(LiteralInt node) {
-    write(node.token.value);
+    write(node.token.lexeme);
     // -Lit is represented as a send.
-    if (node.token.kind == Tokens.PLUS_TOKEN) write(node.token.next.value);
+    if (node.token.kind == Tokens.PLUS_TOKEN) write(node.token.next.lexeme);
   }
 
   visitLiteralString(LiteralString node) {
-    write(node.token.value);
+    write(node.token.lexeme);
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
@@ -330,11 +330,11 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitLiteralNull(LiteralNull node) {
-    write(node.token.value);
+    write(node.token.lexeme);
   }
 
   visitLiteralSymbol(LiteralSymbol node) {
-    write(node.hashToken.value);
+    write(node.hashToken.lexeme);
     unparseNodeListOfIdentifiers(node.identifiers);
   }
 
@@ -342,10 +342,10 @@ class Unparser extends Indentation implements Visitor {
     // Manually print the list to avoid spaces around operators in unminified
     // code.
     Link<Node> l = node.nodes;
-    write(l.head.asIdentifier().token.value);
+    write(l.head.asIdentifier().token.lexeme);
     for (l = l.tail; !l.isEmpty; l = l.tail) {
       write(".");
-      write(l.head.asIdentifier().token.value);
+      write(l.head.asIdentifier().token.lexeme);
     }
   }
 
@@ -355,7 +355,7 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitLiteralList(LiteralList node) {
-    if (node.constKeyword != null) write(node.constKeyword.value);
+    if (node.constKeyword != null) write(node.constKeyword.lexeme);
     visit(node.typeArguments);
     visit(node.elements);
     // If list is empty, emit space after [] to disambiguate cases like []==[].
@@ -386,7 +386,7 @@ class Unparser extends Indentation implements Visitor {
     if (node.nodes != null) {
       unparseNodeListFrom(node, node.nodes, spaces: spaces);
     }
-    if (node.endToken != null) write(node.endToken.value);
+    if (node.endToken != null) write(node.endToken.lexeme);
   }
 
   visitNodeList(NodeList node) {
@@ -399,10 +399,10 @@ class Unparser extends Indentation implements Visitor {
 
   visitRedirectingFactoryBody(RedirectingFactoryBody node) {
     space();
-    write(node.beginToken.value);
+    write(node.beginToken.lexeme);
     space();
     visit(node.constructorReference);
-    write(node.endToken.value);
+    write(node.endToken.lexeme);
   }
 
   visitRethrow(Rethrow node) {
@@ -410,23 +410,23 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitReturn(Return node) {
-    write(node.beginToken.value);
+    write(node.beginToken.lexeme);
     if (node.hasExpression && node.beginToken.stringValue != '=>') {
       write(' ');
     }
     if (node.beginToken.stringValue == '=>') space();
     visit(node.expression);
-    if (node.endToken != null) write(node.endToken.value);
+    if (node.endToken != null) write(node.endToken.lexeme);
   }
 
   visitYield(Yield node) {
-    write(node.yieldToken.value);
+    write(node.yieldToken.lexeme);
     if (node.starToken != null) {
-      write(node.starToken.value);
+      write(node.starToken.lexeme);
     }
     write(' ');
     visit(node.expression);
-    write(node.endToken.value);
+    write(node.endToken.lexeme);
   }
 
   unparseSendReceiver(Send node, {bool spacesNeeded: false}) {
@@ -437,7 +437,7 @@ class Unparser extends Indentation implements Visitor {
       newline();
       indentMore();
       indentMore();
-      write(asCascadeReceiver.cascadeOperator.value);
+      write(asCascadeReceiver.cascadeOperator.lexeme);
       indentLess();
       indentLess();
     } else if (node.selector.asOperator() == null) {
@@ -537,13 +537,13 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitThrow(Throw node) {
-    write(node.throwToken.value);
+    write(node.throwToken.lexeme);
     write(' ');
     visit(node.expression);
   }
 
   visitAwait(Await node) {
-    write(node.awaitToken.value);
+    write(node.awaitToken.lexeme);
     write(' ');
     visit(node.expression);
   }
@@ -587,7 +587,7 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitDoWhile(DoWhile node) {
-    write(node.doKeyword.value);
+    write(node.doKeyword.lexeme);
     if (node.body is! Block) {
       write(' ');
     } else {
@@ -595,14 +595,14 @@ class Unparser extends Indentation implements Visitor {
     }
     visit(node.body);
     space();
-    write(node.whileKeyword.value);
+    write(node.whileKeyword.lexeme);
     space();
     visit(node.condition);
-    write(node.endToken.value);
+    write(node.endToken.lexeme);
   }
 
   visitWhile(While node) {
-    write(node.whileKeyword.value);
+    write(node.whileKeyword.lexeme);
     space();
     visit(node.condition);
     space();
@@ -610,9 +610,9 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
-    write(node.getBeginToken().value);
+    write(node.getBeginToken().lexeme);
     visit(node.expression);
-    write(node.getEndToken().value);
+    write(node.getEndToken().lexeme);
   }
 
   visitStringInterpolation(StringInterpolation node) {
@@ -628,16 +628,16 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    write(node.semicolonToken.value);
+    write(node.semicolonToken.lexeme);
   }
 
   visitGotoStatement(GotoStatement node) {
-    write(node.keywordToken.value);
+    write(node.keywordToken.lexeme);
     if (node.target != null) {
       write(' ');
       visit(node.target);
     }
-    write(node.semicolonToken.value);
+    write(node.semicolonToken.lexeme);
   }
 
   visitBreakStatement(BreakStatement node) {
@@ -649,7 +649,7 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitForIn(ForIn node) {
-    write(node.forToken.value);
+    write(node.forToken.lexeme);
     space();
     write('(');
     visit(node.declaredIdentifier);
@@ -662,7 +662,7 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitAsyncForIn(AsyncForIn node) {
-    write(node.awaitToken.value);
+    write(node.awaitToken.lexeme);
     write(' ');
     visitForIn(node);
   }
@@ -673,7 +673,7 @@ class Unparser extends Indentation implements Visitor {
 
   visitLabel(Label node) {
     visit(node.identifier);
-    write(node.colonToken.value);
+    write(node.colonToken.lexeme);
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -682,21 +682,21 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
-    if (node.constKeyword != null) write(node.constKeyword.value);
+    if (node.constKeyword != null) write(node.constKeyword.lexeme);
     if (node.typeArguments != null) visit(node.typeArguments);
     visit(node.entries);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
     visit(node.key);
-    write(node.colonToken.value);
+    write(node.colonToken.lexeme);
     space();
     visit(node.value);
   }
 
   visitNamedArgument(NamedArgument node) {
     visit(node.name);
-    write(node.colonToken.value);
+    write(node.colonToken.lexeme);
     space();
     visit(node.expression);
   }
@@ -755,7 +755,7 @@ class Unparser extends Indentation implements Visitor {
   visitCaseMatch(CaseMatch node) {
     addToken(node.caseKeyword);
     visit(node.expression);
-    write(node.colonToken.value);
+    write(node.colonToken.lexeme);
   }
 
   visitCatchBlock(CatchBlock node) {
@@ -782,18 +782,18 @@ class Unparser extends Indentation implements Visitor {
       visit(node.templateParameters);
     }
     visit(node.formals);
-    write(node.endToken.value);
+    write(node.endToken.lexeme);
   }
 
   visitLibraryName(LibraryName node) {
     addToken(node.libraryKeyword);
     node.visitChildren(this);
-    write(node.getEndToken().value);
+    write(node.getEndToken().lexeme);
     newline();
   }
 
   visitConditionalUri(ConditionalUri node) {
-    write(node.ifToken.value);
+    write(node.ifToken.lexeme);
     space();
     write('(');
     visit(node.key);
@@ -830,7 +830,7 @@ class Unparser extends Indentation implements Visitor {
       write(' ');
       visit(node.combinators);
     }
-    write(node.getEndToken().value);
+    write(node.getEndToken().lexeme);
     newline();
   }
 
@@ -845,21 +845,21 @@ class Unparser extends Indentation implements Visitor {
       write(' ');
       visit(node.combinators);
     }
-    write(node.getEndToken().value);
+    write(node.getEndToken().lexeme);
     newline();
   }
 
   visitPart(Part node) {
     addToken(node.partKeyword);
     visit(node.uri);
-    write(node.getEndToken().value);
+    write(node.getEndToken().lexeme);
   }
 
   visitPartOf(PartOf node) {
     addToken(node.partKeyword);
     addToken(node.ofKeyword);
     visit(node.name);
-    write(node.getEndToken().value);
+    write(node.getEndToken().lexeme);
   }
 
   visitCombinator(Combinator node) {

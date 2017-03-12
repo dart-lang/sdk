@@ -1173,7 +1173,7 @@ PrecedenceInfo closeBraceInfoFor(BeginGroupToken begin) {
     '{': CLOSE_CURLY_BRACKET_INFO,
     '<': GT_INFO,
     r'${': CLOSE_CURLY_BRACKET_INFO,
-  }[begin.value];
+  }[begin.lexeme];
 }
 
 class LineStarts extends Object with ListMixin<int> {

@@ -83,7 +83,7 @@ Token defaultRecoveryStrategy(
       append = true;
     }
     if (prepend) {
-      codeUnits.addAll(goodTail.value.codeUnits);
+      codeUnits.addAll(goodTail.lexeme.codeUnits);
     }
     NonAsciiIdentifierToken current = first;
     while (current != errorTail) {
@@ -105,7 +105,7 @@ Token defaultRecoveryStrategy(
       }
     }
     if (append) {
-      codeUnits.addAll(next.value.codeUnits);
+      codeUnits.addAll(next.lexeme.codeUnits);
       next = next.next;
     }
     String value = new String.fromCharCodes(codeUnits);

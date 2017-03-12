@@ -199,7 +199,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginClassDeclaration(Token begin, Token name) {
-    library.beginNestedDeclaration(name.value);
+    library.beginNestedDeclaration(name.lexeme);
   }
 
   @override
@@ -230,12 +230,12 @@ class OutlineBuilder extends UnhandledListener {
     if (token == null) return ProcedureKind.Method;
     if (optional("get", token)) return ProcedureKind.Getter;
     if (optional("set", token)) return ProcedureKind.Setter;
-    return internalError("Unhandled: ${token.value}");
+    return internalError("Unhandled: ${token.lexeme}");
   }
 
   @override
   void beginTopLevelMethod(Token token, Token name) {
-    library.beginNestedDeclaration(name.value, hasMembers: false);
+    library.beginNestedDeclaration(name.lexeme, hasMembers: false);
   }
 
   @override
@@ -281,7 +281,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginMethod(Token token, Token name) {
-    library.beginNestedDeclaration(name.value, hasMembers: false);
+    library.beginNestedDeclaration(name.lexeme, hasMembers: false);
   }
 
   @override
@@ -338,7 +338,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token name) {
-    library.beginNestedDeclaration(name.value, hasMembers: false);
+    library.beginNestedDeclaration(name.lexeme, hasMembers: false);
   }
 
   @override
@@ -689,7 +689,7 @@ class OutlineBuilder extends UnhandledListener {
     if (isDartLibrary && kind == ErrorKind.ExpectedBlockToSkip) {
       Token recover = skipNativeClause(token);
       if (recover != null) {
-        nativeMethodName = unescapeString(token.next.value);
+        nativeMethodName = unescapeString(token.next.lexeme);
         return recover;
       }
     }

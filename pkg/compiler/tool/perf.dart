@@ -209,7 +209,7 @@ class DirectiveListener extends Listener {
 
   void beginLiteralString(Token token) {
     if (inDirective) {
-      var quotedString = token.value;
+      var quotedString = token.lexeme;
       targets.add(quotedString.substring(1, quotedString.length - 1));
     }
   }

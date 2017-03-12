@@ -21,7 +21,7 @@ class StringValidator {
 
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
       {bool isFirst: false, bool isLast: false}) {
-    String source = token.value;
+    String source = token.lexeme;
     int leftQuote = 0;
     int rightQuote = 0;
     if (isFirst) leftQuote = quoting.leftQuoteLength;
