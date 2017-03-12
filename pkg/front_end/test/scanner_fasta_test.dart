@@ -157,6 +157,22 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
   @override
   @failingTest
+  void test_index() {
+    // TODO(paulberry,ahe): "[]" should be parsed as a single token.
+    // See dartbug.com/28665.
+    super.test_index();
+  }
+
+  @override
+  @failingTest
+  void test_index_eq() {
+    // TODO(paulberry,ahe): "[]=" should be parsed as a single token.
+    // See dartbug.com/28665.
+    super.test_index_eq();
+  }
+
+  @override
+  @failingTest
   void test_mismatched_closer() {
     // TODO(paulberry,ahe): Fasta and analyzer recover this error differently.
     // Figure out which recovery technique we want the front end to use.
