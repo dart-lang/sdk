@@ -328,7 +328,7 @@ abstract class ServerPlugin {
    */
   Response _getResponse(Request request) {
     ResponseResult result = null;
-    switch (request.id) {
+    switch (request.method) {
       case ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
         result = handleAnalysisHandleWatchEvents(request.params);
         break;

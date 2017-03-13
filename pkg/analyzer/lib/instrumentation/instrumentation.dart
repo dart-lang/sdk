@@ -23,14 +23,14 @@ class AnalysisPerformanceKind {
  */
 abstract class InstrumentationServer {
   /**
-   * Return the identifier used to identify the current session.
-   */
-  String get sessionId;
-
-  /**
    * A user-friendly description of this instrumentation server.
    */
   String get describe;
+
+  /**
+   * Return the identifier used to identify the current session.
+   */
+  String get sessionId;
 
   /**
    * Pass the given [message] to the instrumentation server so that it will be
@@ -75,6 +75,9 @@ class InstrumentationService {
   static const String TAG_LOG_ENTRY = 'Log';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_PERFORMANCE = 'Perf';
+  static const String TAG_PLUGIN_NOTIFICATION = 'PluginNoti';
+  static const String TAG_PLUGIN_REQUEST = 'PluginReq';
+  static const String TAG_PLUGIN_RESPONSE = 'PluginRes';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
   static const String TAG_SUBPROCESS_START = 'SPStart';
@@ -99,6 +102,8 @@ class InstrumentationService {
    */
   InstrumentationService(this._instrumentationServer);
 
+  InstrumentationServer get instrumentationServer => _instrumentationServer;
+
   /**
    * Return `true` if this [InstrumentationService] was initialized with a
    * non-`null` server (and hence instrumentation is active).
@@ -114,8 +119,6 @@ class InstrumentationService {
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
-
-  InstrumentationServer get instrumentationServer => _instrumentationServer;
 
   /**
    * Log that the given analysis [task] is being performed in the given
@@ -198,6 +201,27 @@ class InstrumentationService {
     if (_instrumentationServer != null) {
       _instrumentationServer
           .log(_join([TAG_PERFORMANCE, kind, elapsed, message]));
+    }
+  }
+
+  void logPluginNotification(Uri pluginUri, String notification) {
+    if (_instrumentationServer != null) {
+      _instrumentationServer.log(
+          _join([TAG_PLUGIN_NOTIFICATION, _toString(pluginUri), notification]));
+    }
+  }
+
+  void logPluginRequest(Uri pluginUri, String request) {
+    if (_instrumentationServer != null) {
+      _instrumentationServer
+          .log(_join([TAG_PLUGIN_REQUEST, _toString(pluginUri), request]));
+    }
+  }
+
+  void logPluginResponse(Uri pluginUri, String response) {
+    if (_instrumentationServer != null) {
+      _instrumentationServer
+          .log(_join([TAG_PLUGIN_RESPONSE, _toString(pluginUri), response]));
     }
   }
 
@@ -374,14 +398,14 @@ class MulticastInstrumentationServer implements InstrumentationServer {
   MulticastInstrumentationServer(this._servers);
 
   @override
-  String get sessionId => _servers[0].sessionId;
-
-  @override
   String get describe {
     return _servers
         .map((InstrumentationServer server) => server.describe)
         .join("\n");
   }
+
+  @override
+  String get sessionId => _servers[0].sessionId;
 
   @override
   void log(String message) {

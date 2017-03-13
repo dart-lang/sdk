@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
@@ -570,7 +568,7 @@ class Response {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new HashMap<String, Object>();
+    Map<String, Object> jsonObject = <String, Object>{};
     jsonObject[ID] = id;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
