@@ -9,7 +9,7 @@ import '../scanner/token.dart' show BeginGroupToken, SymbolToken, Token;
 import '../util/link.dart' show Link;
 
 import 'error_kind.dart' show ErrorKind;
-import 'package:front_end/src/fasta/scanner/precedence.dart' show EOF_INFO;
+import 'package:front_end/src/fasta/scanner/precedence.dart' show RECOVERY_INFO;
 import 'parser.dart' show FormalParameterType;
 
 import 'identifier_context.dart' show IdentifierContext;
@@ -1000,9 +1000,7 @@ class Listener {
   /// If [next] is `null`, `null` is returned.
   Token newSyntheticToken(Token next) {
     if (next == null) return null;
-    // TODO(paulberry): we really should have a new kind here.  Don't re-use
-    // EOF_INFO.
-    return new SymbolToken(EOF_INFO, next.charOffset)..next = next;
+    return new SymbolToken(RECOVERY_INFO, next.charOffset)..next = next;
   }
 }
 
