@@ -95,7 +95,6 @@ Language/Classes/Setters/parameter_t06: MissingCompileTimeError
 Language/Classes/Setters/parameter_t07: MissingCompileTimeError
 Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Setters/static_setter_t05: RuntimeError
-Language/Classes/Setters/static_setter_t06: DartkCrash
 Language/Classes/Setters/syntax_t01: RuntimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Setters/syntax_t04: RuntimeError

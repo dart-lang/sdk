@@ -435,6 +435,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
         if (builder == null) {
           return buildThrowNoSuchMethodError(null);
         }
+        setter = builder.target;
       }
       if (builder.hasProblem) {
         return helper.buildProblemExpression(builder, name.name)
@@ -453,8 +454,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
           }
         }
       }
-      if (getter == null) {
-        return internalError("no getter for $name");
+      if (getter == null && setter == null) {
+        return internalError("No accessor for '$name'.");
       }
       return new StaticAccessor(helper, charOffset, getter, setter);
     }
