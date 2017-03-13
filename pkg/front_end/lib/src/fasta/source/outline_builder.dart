@@ -274,7 +274,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token) {
+  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     debugEvent("handleFunctionBodySkipped");
     push(MethodBody.Regular);
   }

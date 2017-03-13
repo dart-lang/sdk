@@ -478,7 +478,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token) {
+  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     pushNode(new Block(new NodeList.empty()));
   }
 

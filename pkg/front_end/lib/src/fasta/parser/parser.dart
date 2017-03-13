@@ -2013,14 +2013,16 @@ class Parser {
       if (identical(value, '=>')) {
         token = parseExpression(token.next);
         expectSemicolon(token);
+        listener.handleFunctionBodySkipped(token, true);
       } else if (identical(value, '=')) {
         reportRecoverableError(token, ErrorKind.ExpectedBody);
         token = parseExpression(token.next);
         expectSemicolon(token);
+        listener.handleFunctionBodySkipped(token, true);
       } else {
         token = skipBlock(token);
+        listener.handleFunctionBodySkipped(token, false);
       }
-      listener.handleFunctionBodySkipped(token);
     }
     return token;
   }

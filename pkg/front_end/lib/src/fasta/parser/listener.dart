@@ -251,7 +251,11 @@ class Listener {
     logEvent("NoFunctionBody");
   }
 
-  void handleFunctionBodySkipped(Token token) {}
+  /// Handle the end of a function body that was skipped by the parser.
+  ///
+  /// The boolean [isExpressionBody] indicates whether the function body that
+  /// was skipped used "=>" syntax.
+  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {}
 
   void beginFunctionName(Token token) {}
 
