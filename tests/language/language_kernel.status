@@ -693,8 +693,6 @@ vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
-bad_raw_string_test/03: Skip # Issue 28680
-bad_raw_string_test/none: Skip # Issue 28680
 const_syntax_test/08: Crash
 const_syntax_test/09: Crash
 final_syntax_test/09: MissingCompileTimeError
