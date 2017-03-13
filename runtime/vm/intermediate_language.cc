@@ -3138,6 +3138,11 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+bool InstanceCallInstr::MatchesCoreName(const String& name) {
+  return function_name().raw() == Library::PrivateCoreLibName(name).raw();
+}
+
+
 bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
   if (FLAG_precompiled_mode && with_checks()) return false;
 

@@ -1329,12 +1329,6 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 }
 
 
-// Tells whether the function of the call matches the core private name.
-static bool matches_core(InstanceCallInstr* call, const String& name) {
-  return call->function_name().raw() == Library::PrivateCoreLibName(name).raw();
-}
-
-
 // TODO(srdjan): Use ICData to check if always true or false.
 void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
@@ -1344,20 +1338,20 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   bool negate = false;
   if (call->ArgumentCount() == 2) {
     type_args = flow_graph()->constant_null();
-    if (matches_core(call, Symbols::_simpleInstanceOf())) {
+    if (call->MatchesCoreName(Symbols::_simpleInstanceOf())) {
       type =
           AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
       negate = false;  // Just to be sure.
     } else {
-      if (matches_core(call, Symbols::_instanceOfNum())) {
+      if (call->MatchesCoreName(Symbols::_instanceOfNum())) {
         type = Type::Number();
-      } else if (matches_core(call, Symbols::_instanceOfInt())) {
+      } else if (call->MatchesCoreName(Symbols::_instanceOfInt())) {
         type = Type::IntType();
-      } else if (matches_core(call, Symbols::_instanceOfSmi())) {
+      } else if (call->MatchesCoreName(Symbols::_instanceOfSmi())) {
         type = Type::SmiType();
-      } else if (matches_core(call, Symbols::_instanceOfDouble())) {
+      } else if (call->MatchesCoreName(Symbols::_instanceOfDouble())) {
         type = Type::Double();
-      } else if (matches_core(call, Symbols::_instanceOfString())) {
+      } else if (call->MatchesCoreName(Symbols::_instanceOfString())) {
         type = Type::StringType();
       } else {
         UNIMPLEMENTED();

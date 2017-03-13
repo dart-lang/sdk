@@ -1292,6 +1292,25 @@ void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
 }
 
 
+RedefinitionInstr* FlowGraph::EnsureRedefinition(BlockEntryInstr* block,
+                                                 Definition* original,
+                                                 CompileType compile_type) {
+  RedefinitionInstr* first = block->next()->AsRedefinition();
+  if (first != NULL && (first->type() != NULL)) {
+    if ((first->value()->definition() == original) &&
+        first->type()->IsEqualTo(&compile_type)) {
+      // Already redefined. Do nothing.
+      return NULL;
+    }
+  }
+  RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
+  redef->set_type(new CompileType(compile_type));
+  InsertAfter(block, redef, NULL, FlowGraph::kValue);
+  RenameDominatedUses(original, redef, redef);
+  return redef;
+}
+
+
 void FlowGraph::RemoveRedefinitions() {
   // Remove redefinition instructions inserted to inhibit hoisting.
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();

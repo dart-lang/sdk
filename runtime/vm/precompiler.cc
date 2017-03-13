@@ -3364,6 +3364,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // to be later used by the inliner.
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
 
+        flow_graph->RemoveRedefinitions();
         {
 #ifndef PRODUCT
           TimelineDurationScope tds2(thread(), compiler_timeline,
