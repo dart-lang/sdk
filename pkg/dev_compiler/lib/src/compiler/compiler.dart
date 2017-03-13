@@ -444,6 +444,13 @@ class JSModuleFile {
   /// the libraries in this module.
   final List<int> summaryBytes;
 
+  /// Unique identifier indicating hole to inline the source map.
+  ///
+  /// We cannot generate the source map before the script it is for is
+  /// generated so we have generate the script including this id and then
+  /// replace the ID once the source map is generated.
+  static String sourceMapHoleID = 'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
+
   JSModuleFile(
       this.name, this.errors, this.options, this.moduleTree, this.summaryBytes);
 
@@ -486,7 +493,9 @@ class JSModuleFile {
     if (options.sourceMap && sourceMap != null) {
       builtMap =
           placeSourceMap(sourceMap.build(jsUrl), mapUrl, options.bazelMapping);
-
+      if (name == 'dart_sdk') {
+        builtMap = cleanupSdkSourcemap(builtMap);
+      }
       if (options.sourceMapComment) {
         var relativeMapUrl = path
             .toUri(
@@ -494,18 +503,20 @@ class JSModuleFile {
             .toString();
         assert(path.dirname(jsUrl) == path.dirname(mapUrl));
         printer.emit('\n//# sourceMappingURL=');
-        if (options.inlineSourceMap) {
-          var bytes = UTF8.encode(JSON.encode(builtMap));
-          var base64 = BASE64.encode(bytes);
-          printer..emit('data:application/json;base64,')..emit(base64);
-        } else {
-          printer.emit(relativeMapUrl);
-        }
+        printer.emit(relativeMapUrl);
         printer.emit('\n');
       }
     }
 
-    return new JSModuleCode(printer.getText(), builtMap);
+    var text = printer.getText();
+    var rawSourceMap = options.inlineSourceMap ? JSON.encode(builtMap) : null;
+    // Encode the sourcemap as an escaped string rather than JSON
+    // as Dart code using the sourcemap can't take advantage of it being JS
+    // JSON so we might as well encode it as a String which should be quicker
+    // to parse.
+    text = text.replaceFirst(sourceMapHoleID, JSON.encode(rawSourceMap));
+
+    return new JSModuleCode(text, builtMap);
   }
 
   /// Similar to [getCode] but immediately writes the resulting files.
@@ -583,5 +594,19 @@ Map placeSourceMap(
     list[i] = transformUri(list[i]);
   }
   map['file'] = transformUri(map['file']);
+  return map;
+}
+
+/// Cleanup the dart_sdk source map.
+///
+/// Strip out files that should not be included in the sdk sourcemap as they
+/// are implementation details that would just confuse users.
+/// Normalize sdk urls to use "dart:" for more understandable stack traces.
+Map cleanupSdkSourcemap(Map sourceMap) {
+  var map = new Map.from(sourceMap);
+  var list = new List.from(map['sources']);
+  map['sources'] = map['sources']
+      .map((url) => url.contains('/_internal/') ? null : url)
+      .toList();
   return map;
 }

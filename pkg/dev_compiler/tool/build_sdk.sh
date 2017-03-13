@@ -20,6 +20,9 @@ echo "*** Compiling SDK to JavaScript"
       --dart-sdk gen/patched_sdk \
       --dart-sdk-summary=build \
       --summary-out lib/sdk/ddc_sdk.sum \
+      --source-map \
+      --source-map-comment \
+      --inline-source-map \
       --modules=amd \
       -o lib/js/amd/dart_sdk.js \
       --modules=es6 \

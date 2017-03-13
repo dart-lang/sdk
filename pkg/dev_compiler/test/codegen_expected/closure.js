@@ -117,4 +117,4 @@ closure.some_top_level_constant = "abc";
 closure.some_top_level_final = "abc";
 /** @type {string} */
 closure.some_top_level_var = "abc";
-dart.trackLibraries("closure", {"closure.dart": closure});
+dart.trackLibraries("closure", {"closure.dart": closure}, null);

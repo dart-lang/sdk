@@ -323,7 +323,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
-    _moduleItems.add(js.statement('#.trackLibraries(#, #);',
+    _moduleItems.add(js.statement(
+        '#.trackLibraries(#, #, ${JSModuleFile.sourceMapHoleID});',
         [_runtimeModule, js.string(name), _librariesDebuggerObject()]));
 
     // Add the module's code (produced by visiting compilation units, above)
