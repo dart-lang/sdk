@@ -23,7 +23,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show
         SummaryDataStore,
         InSummaryUriResolver,
-        InputPackagesResultProvider,
         InSummarySource;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
 

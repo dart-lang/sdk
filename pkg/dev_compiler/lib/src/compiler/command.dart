@@ -19,6 +19,8 @@ import '../analyzer/context.dart' show AnalyzerOptions;
 import 'compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
 import 'module_builder.dart';
 
+const _binaryName = 'dartdevc';
+
 bool _verbose = false;
 
 /// Runs a single compile for dartdevc.
@@ -44,8 +46,13 @@ int compile(List<String> args, {void printFn(Object obj)}) {
   }
 
   _verbose = argResults['verbose'];
-  if (argResults['help']) {
+  if (argResults['help'] || args.isEmpty) {
     printFn(_usageMessage);
+    return 0;
+  }
+
+  if (argResults['version']) {
+    printFn('$_binaryName version ${_getVersion()}');
     return 0;
   }
 
@@ -73,7 +80,7 @@ You can report this bug at:
     https://github.com/dart-lang/sdk/issues/labels/area-dev-compiler
 Please include the information below in your report, along with
 any other information that may help us track it down. Thanks!
-    dartdevc arguments: ${args.join(' ')}
+    $_binaryName arguments: ${args.join(' ')}
     dart --version: ${Platform.version}
 ```
 $error
@@ -87,10 +94,11 @@ ArgParser ddcArgParser({bool hide: true}) {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h',
-        help: 'Display this message.\n'
-            'Add --verbose to show hidden options.',
+        help: 'Display this message. Add --verbose to show hidden options.',
         negatable: false)
     ..addFlag('verbose', abbr: 'v', help: 'Verbose output.')
+    ..addFlag('version',
+        negatable: false, help: 'Print the $_binaryName version.')
     ..addFlag(ignoreUnrecognizedFlagsFlag,
         help: 'Ignore unrecognized command line flags.',
         defaultsTo: false,
@@ -98,10 +106,10 @@ ArgParser ddcArgParser({bool hide: true}) {
     ..addOption('out',
         abbr: 'o', allowMultiple: true, help: 'Output file (required).')
     ..addOption('module-root',
-        help: 'Root module directory.\n'
+        help: 'Root module directory. '
             'Generated module paths are relative to this root.')
     ..addOption('library-root',
-        help: 'Root of source files.\n'
+        help: 'Root of source files. '
             'Generated library names are relative to this root.');
   defineAnalysisArguments(argParser, hide: hide, ddc: true);
   addModuleFormatOptions(argParser, allowMultiple: true, hide: hide);
@@ -224,8 +232,22 @@ String _moduleForLibrary(
 }
 
 String get _usageMessage =>
-    'Dart Development Compiler compiles Dart into a JavaScript module.'
-    '\n\n${ddcArgParser(hide: !_verbose).usage}';
+    'The Dart Development Compiler compiles Dart sources into a JavaScript '
+    'module.\n\n'
+    'Usage: $_binaryName [options...] <sources...>\n\n'
+    '${ddcArgParser(hide: !_verbose).usage}';
+
+String _getVersion() {
+  try {
+    // This is relative to bin/snapshot, so ../..
+    String versionPath = Platform.script.resolve('../../version').toFilePath();
+    File versionFile = new File(versionPath);
+    return versionFile.readAsStringSync().trim();
+  } catch (_) {
+    // This happens when the script is not running in the context of an SDK.
+    return "<unknown>";
+  }
+}
 
 void _usageException(String message) {
   throw new UsageException(message, _usageMessage);
