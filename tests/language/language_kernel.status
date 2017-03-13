@@ -30,9 +30,6 @@ async_await_syntax_test/a05h: MissingCompileTimeError
 async_await_syntax_test/a06b: MissingCompileTimeError
 async_await_syntax_test/a12e: MissingCompileTimeError
 async_await_syntax_test/a12f: MissingCompileTimeError
-async_await_syntax_test/b00a: DartkCrash
-async_await_syntax_test/b00b: DartkCrash
-async_await_syntax_test/b00c: DartkCrash
 async_await_syntax_test/b01b: MissingCompileTimeError
 async_await_syntax_test/b01c: MissingCompileTimeError
 async_await_syntax_test/b10b: MissingCompileTimeError
@@ -49,7 +46,6 @@ async_await_syntax_test/e2: MissingCompileTimeError
 async_await_syntax_test/e3: MissingCompileTimeError
 async_return_types_test/return_value_sync_star: MissingCompileTimeError
 async_star_pause_test: Crash
-async_test/constructor2: DartkCrash
 async_test/constructor3: MissingCompileTimeError
 async_test/setter1: MissingCompileTimeError
 await_backwards_compatibility_test/await1: MissingCompileTimeError
