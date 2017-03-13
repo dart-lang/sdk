@@ -39,7 +39,7 @@ typedef void ReadyCallback();
 external set dartStackTraceUtility(DartStackTraceUtility value);
 
 typedef String StackTraceMapper(String stackTrace);
-typedef String SourceMapProvider(String modulePath);
+typedef dynamic SourceMapProvider(String modulePath);
 typedef String SetSourceMapProvider(SourceMapProvider provider);
 
 @JS()
@@ -48,6 +48,9 @@ class DartStackTraceUtility {
   external factory DartStackTraceUtility(
       {StackTraceMapper mapper, SetSourceMapProvider setSourceMapProvider});
 }
+
+@JS('JSON.stringify')
+external String _stringify(dynamic json);
 
 /// Source mapping that is waits to parse source maps until they match the uri
 /// of a requested source map.
@@ -72,6 +75,10 @@ class LazyMapping extends Mapping {
     if (!_bundle.containsMapping(uri)) {
       var rawMap = _provider(uri);
       if (rawMap != null) {
+        if (rawMap is! String) {
+          // The sourcemap was passed as regular JavaScript JSON.
+          rawMap = _stringify(rawMap);
+        }
         SingleMapping mapping = parse(rawMap);
         mapping
           ..targetUrl = uri

@@ -509,11 +509,7 @@ class JSModuleFile {
     }
 
     var text = printer.getText();
-    var rawSourceMap = options.inlineSourceMap ? JSON.encode(builtMap) : null;
-    // Encode the sourcemap as an escaped string rather than JSON
-    // as Dart code using the sourcemap can't take advantage of it being JS
-    // JSON so we might as well encode it as a String which should be quicker
-    // to parse.
+    var rawSourceMap = options.inlineSourceMap ? builtMap : null;
     text = text.replaceFirst(sourceMapHoleID, JSON.encode(rawSourceMap));
 
     return new JSModuleCode(text, builtMap);
