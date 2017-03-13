@@ -73,6 +73,7 @@ import 'package:linter/src/rules/use_adjacent_strings_to_concatenate_literals.da
 import 'package:linter/src/rules/use_collection_literals_when_possible.dart';
 import 'package:linter/src/rules/use_expression_function_body_when_possible.dart';
 import 'package:linter/src/rules/use_function_declaration_instead_of_variable.dart';
+import 'package:linter/src/rules/use_initializing_formals_when_possible.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
 void registerLintRules() {
@@ -147,5 +148,6 @@ void registerLintRules() {
     ..register(new UseCollectionLiteralsWhenPossible())
     ..register(new UseExpressionFunctionBodyWhenPossible())
     ..register(new UseFunctionDeclarationInsteadOfVariable())
+    ..register(new UseInitializingFormalsWhenPossible())
     ..register(new ValidRegExps());
 }
