@@ -144,11 +144,11 @@ class ExtensionTypeSet {
 
   bool isNativeClass(Element element) => _setContains(_nativeTypes, element);
 
-  bool _isNativeInterface(Element element) =>
+  bool isNativeInterface(Element element) =>
       _setContains(_extensibleTypes, element);
 
   bool hasNativeSubtype(DartType type) =>
-      _isNativeInterface(type.element) || isNativeClass(type.element);
+      isNativeInterface(type.element) || isNativeClass(type.element);
 
   /// Collects all supertypes that may themselves contain native subtypes,
   /// excluding [Object], for example `List` is implemented by several native
