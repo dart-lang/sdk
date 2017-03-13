@@ -667,7 +667,6 @@ final_syntax_test/09: Crash
 getter_declaration_negative_test: Fail
 hello_dart_test: Crash
 instance_creation_in_function_annotation_test: RuntimeError
-label_test: CompileTimeError
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
