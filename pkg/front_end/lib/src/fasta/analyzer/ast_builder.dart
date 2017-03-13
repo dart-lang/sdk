@@ -233,6 +233,15 @@ class AstBuilder extends ScopeListener {
     push(ast.expressionStatement(pop(), toAnalyzerToken(token)));
   }
 
+  @override
+  void endEmptyFunctionBody(Token semicolon) {
+    debugEvent("EmptyFunctionBody");
+    // TODO(scheglov) Change the parser to not produce these modifiers.
+    pop(); // star
+    pop(); // async
+    push(ast.emptyFunctionBody(toAnalyzerToken(semicolon)));
+  }
+
   void endFunctionBody(int count, Token beginToken, Token endToken) {
     debugEvent("FunctionBody");
     List statements = popList(count);
@@ -249,7 +258,9 @@ class AstBuilder extends ScopeListener {
   void finishFunction(formals, asyncModifier, FunctionBody body) {
     debugEvent("finishFunction");
     Statement bodyStatement;
-    if (body is ExpressionFunctionBody) {
+    if (body is EmptyFunctionBody) {
+      bodyStatement = ast.emptyStatement(body.semicolon);
+    } else if (body is ExpressionFunctionBody) {
       bodyStatement = ast.returnStatement(null, body.expression, null);
     } else {
       bodyStatement = (body as BlockFunctionBody).block;

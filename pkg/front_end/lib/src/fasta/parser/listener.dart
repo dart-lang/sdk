@@ -559,6 +559,10 @@ class Listener {
 
   void beginReturnStatement(Token token) {}
 
+  void endEmptyFunctionBody(Token semicolon) {
+    logEvent("EmptyFunctionBody");
+  }
+
   void endExpressionFunctionBody(Token arrowToken, Token endToken) {
     logEvent("ExpressionFunctionBody");
   }

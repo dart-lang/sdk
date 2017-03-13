@@ -869,6 +869,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void endEmptyFunctionBody(Token semicolon) {
+    debugEvent("ExpressionFunctionBody");
+    endFunctionBody(0, null, semicolon);
+  }
+
+  @override
   void endExpressionFunctionBody(Token arrowToken, Token endToken) {
     debugEvent("ExpressionFunctionBody");
     endReturnStatement(true, arrowToken, endToken);

@@ -2029,7 +2029,7 @@ class Parser {
       if (!allowAbstract) {
         reportRecoverableError(token, ErrorKind.ExpectedBody);
       }
-      listener.endFunctionBody(0, null, token);
+      listener.endEmptyFunctionBody(token);
       return token;
     } else if (optional('=>', token)) {
       Token begin = token;

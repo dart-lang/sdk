@@ -551,7 +551,6 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     assertNoErrors();
     expect(member, new isInstanceOf<MethodDeclaration>());
     MethodDeclaration method = member;
-    expect(method.body, isNotNull);
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNotNull);
     expect(method.modifierKeyword, isNull);
@@ -561,6 +560,11 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
+
+    var body = method.body as EmptyFunctionBody;
+    expect(body.keyword, isNull);
+    expect(body.star, isNull);
+    expect(body.semicolon.type, TokenType.SEMICOLON);
   }
 
   void test_parseClassMember_method_external_withTypeAndArgs() {
