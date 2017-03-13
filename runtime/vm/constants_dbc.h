@@ -531,11 +531,10 @@ namespace dart {
 //
 //    Instantiate type arguments PP[D] with instantiator SP[0].
 //
-//  - InstanceOf A
+//  - InstanceOf
 //
-//    Test if instance SP[-3] with type arguments SP[-2] is (A = 0) or is not
-//    (A = 1) a subtype of SP[-1] using SubtypeTestCache SP[0], with result
-//    placed at top of stack.
+//    Test if instance SP[-3] with type arguments SP[-2] is  a subtype of SP[-1]
+//    using SubtypeTestCache SP[0], with result placed at top of stack.
 //
 //  - AssertAssignable A, D
 //
@@ -809,7 +808,7 @@ namespace dart {
   V(MoveSpecial,                   A_D, reg, num, ___) \
   V(InstantiateType,                 D, lit, ___, ___) \
   V(InstantiateTypeArgumentsTOS,   A_D, num, lit, ___) \
-  V(InstanceOf,                      A, num, ___, ___) \
+  V(InstanceOf,                      0, ___, ___, ___) \
   V(BadTypeError,                    0, ___, ___, ___) \
   V(AssertAssignable,              A_D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \

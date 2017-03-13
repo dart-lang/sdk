@@ -544,7 +544,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
-                                           bool negate_result,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType());
@@ -594,21 +593,15 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     // instanceof runtime call will be left as the result of the operation.
     __ lw(T0, Address(SP, 4 * kWordSize));
     __ addiu(SP, SP, Immediate(5 * kWordSize));
-    if (negate_result) {
-      __ LoadObject(V0, Bool::True());
-      __ bne(T0, V0, &done);
-      __ LoadObject(V0, Bool::False());
-    } else {
-      __ mov(V0, T0);
-    }
+    __ mov(V0, T0);
     __ b(&done);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(V0, Bool::Get(negate_result));
+  __ LoadObject(V0, Bool::Get(false));
   __ b(&done);
 
   __ Bind(&is_instance);
-  __ LoadObject(V0, Bool::Get(!negate_result));
+  __ LoadObject(V0, Bool::Get(true));
   __ Bind(&done);
   // Remove instantiator type arguments (A1).
   __ Drop(1);

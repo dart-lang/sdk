@@ -2924,7 +2924,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(InstanceOf, A);  // Stack: instance, type args, type, cache
+    BYTECODE(InstanceOf, 0);  // Stack: instance, type args, type, cache
     RawInstance* instance = static_cast<RawInstance*>(SP[-3]);
     RawTypeArguments* instantiator_type_arguments =
         static_cast<RawTypeArguments*>(SP[-2]);
@@ -2984,9 +2984,6 @@ RawObject* Simulator::Call(const Code& code,
 
   InstanceOfOk:
     SP -= 3;
-    if (rA) {  // Negate result.
-      SP[0] = (SP[0] == true_value) ? false_value : true_value;
-    }
     DISPATCH();
   }
 

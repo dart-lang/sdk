@@ -755,7 +755,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
              ((rep == kUnboxedDouble) && (value_cid == kDoubleCid)) ||
              ((rep == kUnboxedMint) && (value_cid == kMintCid)));
       // The representation guarantees the type check to be true.
-      SetValue(instr, instr->negate_result() ? Bool::False() : Bool::True());
+      SetValue(instr, Bool::True());
     } else {
       SetValue(instr, non_constant_);
     }
@@ -770,8 +770,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
             checked_type, checked_type_arguments, &bound_error);
         // Can only have bound error with generics.
         ASSERT(bound_error.IsNull());
-        SetValue(instr, Bool::Get(instr->negate_result() ? !is_instance
-                                                         : is_instance));
+        SetValue(instr, Bool::Get(is_instance));
         return;
       }
     }

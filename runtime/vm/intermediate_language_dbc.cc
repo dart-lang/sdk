@@ -201,7 +201,7 @@ EMIT_NATIVE_CODE(InstanceOf,
 
   __ PushConstant(type());
   __ PushConstant(test_cache);
-  __ InstanceOf(negate_result() ? 1 : 0);
+  __ InstanceOf();
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
