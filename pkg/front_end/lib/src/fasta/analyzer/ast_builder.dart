@@ -1304,9 +1304,9 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    Token period;
-    void unnamedConstructor(
-        SimpleIdentifier returnType, SimpleIdentifier name) {
+
+    void constructor(SimpleIdentifier returnType, analyzer.Token period,
+        SimpleIdentifier name) {
       push(ast.constructorDeclaration(
           comment,
           metadata,
@@ -1314,7 +1314,7 @@ class AstBuilder extends ScopeListener {
           toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
           null, // TODO(paulberry): factoryKeyword
           returnType,
-          toAnalyzerToken(period),
+          period,
           name,
           parameters,
           toAnalyzerToken(separator),
@@ -1341,12 +1341,14 @@ class AstBuilder extends ScopeListener {
 
     if (name is SimpleIdentifier) {
       if (name.name == className) {
-        unnamedConstructor(name, null);
+        constructor(name, null, null);
       } else {
         method(null, name);
       }
     } else if (name is _OperatorName) {
       method(name.operatorKeyword, name.name);
+    } else if (name is PrefixedIdentifier) {
+      constructor(name.prefix, name.period, name.identifier);
     } else {
       throw new UnimplementedError();
     }
