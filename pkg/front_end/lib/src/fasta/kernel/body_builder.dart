@@ -266,7 +266,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void exitSwitchScope() {
-    switchScope = pop();
+    Scope outerSwitchScope = pop();
+    if (switchScope.unclaimedForwardDeclarations != null) {
+      switchScope.unclaimedForwardDeclarations
+          .forEach((String name, Builder builder) {
+        if (outerSwitchScope == null) {
+          addCompileTimeError(-1, "Label not found: '$name'.");
+        } else {
+          outerSwitchScope.forwardDeclareLabel(name, builder);
+        }
+      });
+    }
+    switchScope = outerSwitchScope;
   }
 
   @override
@@ -1780,16 +1791,29 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     enterLocalScope();
   }
 
+  void enterFunction() {
+    debugEvent("enterFunction");
+    functionNestingLevel++;
+    push(switchScope ?? NullValue.SwitchScope);
+    switchScope = null;
+  }
+
+  void exitFunction() {
+    debugEvent("exitFunction");
+    functionNestingLevel--;
+    switchScope = pop();
+  }
+
   @override
   void beginFunction(Token token) {
     debugEvent("beginFunction");
-    functionNestingLevel++;
+    enterFunction();
   }
 
   @override
   void beginUnnamedFunction(Token token) {
     debugEvent("beginUnnamedFunction");
-    functionNestingLevel++;
+    enterFunction();
   }
 
   @override
@@ -1804,7 +1828,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List<TypeParameter> typeParameters = pop();
     push(formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)));
-    functionNestingLevel--;
   }
 
   @override
@@ -1815,6 +1838,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FunctionDeclaration declaration = pop();
     function.returnType = pop() ?? const DynamicType();
     pop(); // Modifiers.
+    exitFunction();
     declaration.function = function;
     function.parent = declaration;
     push(declaration);
@@ -1827,11 +1851,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
     FormalParameters formals = pop();
+    exitFunction();
     List<TypeParameter> typeParameters = pop();
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier));
     push(new FunctionExpression(function));
-    functionNestingLevel--;
   }
 
   @override
@@ -2033,6 +2057,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     for (Label label in labels) {
       if (scope.hasLocalLabel(label.name)) {
         // TODO(ahe): Should validate this is a goto target and not duplicated.
+        scope.claimLabel(label.name);
       } else {
         scope.declareLabel(label.name, createGotoTarget(firstToken.charOffset));
       }
@@ -2055,7 +2080,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     List<Label> labels = pop();
     List<Expression> expressions = pop();
-    push(new SwitchCase(expressions, block, isDefault: defaultKeyword != null));
+    push(new SwitchCase(expressions, block, isDefault: defaultKeyword != null)
+      ..fileOffset = firstToken.charOffset);
     push(labels);
   }
 
@@ -2151,10 +2177,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               "Can't find label '$name'.", continueKeyword.next.charOffset));
           return;
         }
-        switchScope.declareLabel(
+        switchScope.forwardDeclareLabel(
             identifier.name, target = createGotoTarget(identifier.fileOffset));
       }
-      if (target.isGotoTarget) {
+      if (target.isGotoTarget &&
+          target.functionNestingLevel == functionNestingLevel) {
         ContinueSwitchStatement statement = new ContinueSwitchStatement(null);
         target.addGoto(statement);
         push(statement);

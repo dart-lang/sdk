@@ -16,8 +16,6 @@ import 'package:kernel/kernel.dart' show Program;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
-import 'kernel/verifier.dart' show verifyProgram;
-
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'compiler_context.dart' show CompilerContext;
@@ -144,22 +142,8 @@ class CompileTask {
     KernelTarget kernelTarget = await buildOutline();
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
-    await kernelTarget.writeProgram(uri);
-    if (c.options.dumpIr) {
-      kernelTarget.dumpIr();
-    }
-    if (c.options.verify) {
-      try {
-        verifyProgram(kernelTarget.program);
-        ticker.logMs("Verified program");
-      } catch (e, s) {
-        exitCode = 1;
-        print("Verification of program failed: $e");
-        if (s != null && c.options.verbose) {
-          print(s);
-        }
-      }
-    }
+    await kernelTarget.writeProgram(uri,
+        dumpIr: c.options.dumpIr, verify: c.options.verify);
     return uri;
   }
 }

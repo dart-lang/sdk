@@ -22,6 +22,8 @@ class Scope {
 
   Map<String, Builder> labels;
 
+  Map<String, Builder> forwardDeclaredLabels;
+
   Scope(this.local, this.parent, {this.isModifiable: true});
 
   Scope createNestedScope({bool isModifiable: true}) {
@@ -97,6 +99,23 @@ class Scope {
     } else {
       internalError("Can't extend an unmodifiable scope.");
     }
+  }
+
+  void forwardDeclareLabel(String name, Builder target) {
+    declareLabel(name, target);
+    forwardDeclaredLabels ??= <String, Builder>{};
+    forwardDeclaredLabels[name] = target;
+  }
+
+  void claimLabel(String name) {
+    forwardDeclaredLabels.remove(name);
+    if (forwardDeclaredLabels.length == 0) {
+      forwardDeclaredLabels = null;
+    }
+  }
+
+  Map<String, Builder> get unclaimedForwardDeclarations {
+    return forwardDeclaredLabels;
   }
 
   Builder lookupLabel(String name) {

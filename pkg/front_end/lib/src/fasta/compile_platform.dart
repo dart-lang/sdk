@@ -6,8 +6,6 @@ library fasta.compile_platform;
 
 import 'dart:async' show Future;
 
-import 'kernel/verifier.dart' show verifyProgram;
-
 import 'ticker.dart' show Ticker;
 
 import 'dart:io' show exitCode;
@@ -66,22 +64,7 @@ Future compilePlatform(CompilerContext c, Ticker ticker) async {
   await kernelTarget.writeOutline(output);
 
   if (exitCode != 0) return null;
-  if (c.options.dumpIr) {
-    kernelTarget.dumpIr();
-  }
-  if (c.options.verify) {
-    try {
-      verifyProgram(kernelTarget.program);
-      ticker.logMs("Verified program");
-    } catch (e, s) {
-      exitCode = 1;
-      print("Verification of program failed: $e");
-      if (s != null && c.options.verbose) {
-        print(s);
-      }
-    }
-  }
-  if (exitCode != 0) return null;
-  await kernelTarget.writeProgram(output);
+  await kernelTarget.writeProgram(output,
+      dumpIr: c.options.dumpIr, verify: c.options.verify);
   await kernelTarget.writeDepsFile(output, deps);
 }

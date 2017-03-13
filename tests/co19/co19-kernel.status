@@ -448,14 +448,12 @@ Language/Overview/Scoping/conflicting_names_t40: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t41: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t44: Crash
 Language/Overview/Scoping/hiding_declaration_t16: Crash
-Language/Statements/Continue/async_loops_t10: DartkCrash
 Language/Statements/Continue/label_t06: MissingCompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError
 Language/Statements/Continue/label_t08: MissingCompileTimeError
 Language/Statements/Continue/label_t09: MissingCompileTimeError
 Language/Statements/Continue/label_t10: MissingCompileTimeError
 Language/Statements/Continue/label_t11: MissingCompileTimeError
-Language/Statements/Continue/label_t14: DartkCrash
 Language/Statements/Do/execution_t04: Crash
 Language/Statements/For/Asynchronous_For_in/syntax_t02: MissingCompileTimeError
 Language/Statements/For/syntax_t07: CompileTimeError

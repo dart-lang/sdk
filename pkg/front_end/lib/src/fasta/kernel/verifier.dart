@@ -23,12 +23,11 @@ import '../errors.dart' show printUnexpected;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
-void verifyProgram(Program program, {bool isOutline: false}) {
+List<VerificationError> verifyProgram(Program program,
+    {bool isOutline: false}) {
   FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(isOutline);
   program.accept(verifier);
-  if (verifier.errors.isNotEmpty) {
-    throw verifier.errors.first;
-  }
+  return verifier.errors;
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor {

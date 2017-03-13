@@ -582,13 +582,11 @@ super_no_such_method3_test/01: RuntimeError
 super_no_such_method4_test/01: RuntimeError
 super_no_such_method5_test/01: RuntimeError
 switch1_negative_test: Fail
-switch4_negative_test: DartkCrash
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_label_test: DartkCrash
 sync_generator2_test/01: MissingCompileTimeError
 sync_generator2_test/02: MissingCompileTimeError
 sync_generator2_test/03: MissingCompileTimeError

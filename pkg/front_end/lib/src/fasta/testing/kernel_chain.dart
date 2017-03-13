@@ -192,12 +192,12 @@ class Verify extends Step<Program, Program, TestContext> {
   String get name => "verify";
 
   Future<Result<Program>> run(Program program, TestContext testContext) async {
-    try {
-      verifyProgram(program, isOutline: !fullCompile);
+    var errors = verifyProgram(program, isOutline: !fullCompile);
+    if (errors.isEmpty) {
       return pass(program);
-    } catch (e, s) {
+    } else {
       return new Result<Program>(
-          null, testContext.expectationSet["VerificationError"], e, s);
+          null, testContext.expectationSet["VerificationError"], errors, null);
     }
   }
 }

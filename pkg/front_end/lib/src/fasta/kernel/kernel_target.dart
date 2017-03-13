@@ -88,6 +88,8 @@ import 'kernel_builder.dart'
         TypeBuilder,
         TypeVariableBuilder;
 
+import 'verifier.dart' show verifyProgram;
+
 class KernelTarget extends TargetImplementation {
   final DillTarget dillTarget;
 
@@ -214,7 +216,8 @@ class KernelTarget extends TargetImplementation {
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
   }
 
-  Future<Program> writeProgram(Uri uri) async {
+  Future<Program> writeProgram(Uri uri,
+      {bool dumpIr: false, bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
       return handleInputError(uri, null, isFullProgram: true);
@@ -229,6 +232,8 @@ class KernelTarget extends TargetImplementation {
       // TODO(ahe): Don't call this from two different places.
       setup_builtin_library.transformProgram(program);
       otherTransformations();
+      if (dumpIr) this.dumpIr();
+      if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
         return handleInputError(uri, null, isFullProgram: true);
@@ -623,6 +628,12 @@ class KernelTarget extends TargetImplementation {
       printer.writeLibraryFile(library);
     }
     print("$sb");
+    ticker.logMs("Dumped IR");
+  }
+
+  void verify() {
+    errors.addAll(verifyProgram(program));
+    ticker.logMs("Verified program");
   }
 }
 
