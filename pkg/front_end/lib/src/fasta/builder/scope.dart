@@ -108,6 +108,7 @@ class Scope {
   }
 
   void claimLabel(String name) {
+    if (forwardDeclaredLabels == null) return;
     forwardDeclaredLabels.remove(name);
     if (forwardDeclaredLabels.length == 0) {
       forwardDeclaredLabels = null;
