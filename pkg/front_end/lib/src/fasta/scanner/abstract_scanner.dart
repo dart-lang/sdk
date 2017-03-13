@@ -17,7 +17,7 @@ import 'keyword.dart' show KeywordState, Keyword;
 
 import 'precedence.dart';
 
-import 'token.dart' show BeginGroupToken, KeywordToken, SymbolToken, Token;
+import 'token.dart' show BeginGroupToken, SymbolToken, Token;
 
 import 'token_constants.dart';
 
