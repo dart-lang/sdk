@@ -55,7 +55,7 @@ abstract class StackListener extends Listener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
-    push(token.value);
+    push(token.lexeme);
   }
 
   void handleNoArguments(Token token) {

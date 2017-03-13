@@ -433,7 +433,7 @@ abstract class ExpressionListener extends StackListener {
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
     if (ignore) return;
-    push(new BoolLiteral(token.value == 'true'));
+    push(new BoolLiteral(token.lexeme == 'true'));
   }
 
   void handleLiteralDouble(Token token) {
@@ -591,8 +591,8 @@ abstract class ExpressionListener extends StackListener {
     var end = new ClassMemberParser(this).skipExpression(current);
     var str = new StringBuffer();
     while (current != end) {
-      if (!["(", ",", ")"].contains(current.value)) str.write(' ');
-      str.write(current.value);
+      if (!["(", ",", ")"].contains(current.lexeme)) str.write(' ');
+      str.write(current.lexeme);
       current = current.next;
     }
     print('exp: $str');
@@ -1466,7 +1466,7 @@ class SummaryBuilder extends StackListener {
   void handleOperatorName(Token operatorKeyword, Token token) {
     // TODO(sigmund): convert operator names to name used by summaries.
     debugEvent("OperatorName");
-    push(operatorKeyword.value);
+    push(operatorKeyword.lexeme);
   }
 
   void handleQualified(Token period) {
