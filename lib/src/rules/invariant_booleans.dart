@@ -95,6 +95,12 @@ void nestedOk5() {
   if (bar != null) {...} // OK
 }
 ```
+
+_**WARNING:** this lint is comparatively expensive as, in general, calculating 
+[boolean satisfiability](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) is hard. 
+Performance improvements are planned ([#434](https://github.com/dart-lang/linter/issues/434)) but 
+in the meantime, this lint should be sparingly enabled in large projects or when lint performance 
+is a concern._
 ''';
 
 Set<Expression> _findConditionsCausingReturns(
