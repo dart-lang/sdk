@@ -572,6 +572,9 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("endTypeVariable");
     TypeBuilder bound = pop();
     String name = pop();
+    // TODO(paulberry): type variable metadata should not be ignored.  See
+    // dartbug.com/28981.
+    /* List<MetadataBuilder> metadata = */ pop();
     push(library.addTypeVariable(name, bound, token.charOffset));
   }
 

@@ -162,6 +162,17 @@ class AstBuilder extends ScopeListener {
     push(ast.methodInvocation(null, null, null, null, arguments));
   }
 
+  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+    debugEvent("Metadata");
+    ArgumentList arguments = pop();
+    SimpleIdentifier constructorName = popIfNotNull(periodBeforeName);
+    var typeArguments = pop();
+    assert(typeArguments == null); // TODO(paulberry)
+    Identifier name = pop();
+    push(ast.annotation(toAnalyzerToken(beginToken), name,
+        toAnalyzerToken(periodBeforeName), constructorName, arguments));
+  }
+
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     analyzer.Token analyzerToken = toAnalyzerToken(token);
@@ -1265,9 +1276,8 @@ class AstBuilder extends ScopeListener {
     debugEvent("TypeVariable");
     TypeAnnotation bound = pop();
     SimpleIdentifier name = pop();
-    List<Annotation> metadata = null; // TODO(paulberry)
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    List<Annotation> metadata = pop();
+    Comment comment = pop();
     push(ast.typeParameter(
         comment, metadata, name, toAnalyzerToken(extendsOrSuper), bound));
   }

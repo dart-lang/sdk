@@ -1120,16 +1120,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void
-      test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
-    // TODO(paulberry,ahe): Fasta doesn't appear to support annotated type
-    // parameters.
-    super
-        .test_parseCompilationUnitMember_function_generic_noReturnType_annotated();
-  }
-
-  @override
-  @failingTest
   void test_parseDirectives_mixed() {
     // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
     // stop parsing as soon as the first non-directive is encountered; this is

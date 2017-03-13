@@ -156,6 +156,10 @@ class MemberListener extends NodeListener {
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     super.endMetadata(beginToken, periodBeforeName, endToken);
-    pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
+    // TODO(paulberry,ahe): type variable metadata should not be ignored.  See
+    // dartbug.com/5841.
+    if (!inTypeVariable) {
+      pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
+    }
   }
 }

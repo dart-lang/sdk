@@ -522,6 +522,11 @@ class Listener {
 
   void beginMetadata(Token token) {}
 
+  /// Handle the end of a metadata annotation.  Substructures:
+  /// - Identifier
+  /// - Type arguments
+  /// - Constructor name (only if [periodBeforeName] is not `null`)
+  /// - Arguments
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     logEvent("Metadata");
   }
@@ -710,6 +715,7 @@ class Listener {
 
   /// Handle the end of a type formal parameter (e.g. "X extends Y").
   /// Substructures:
+  /// - Metadata
   /// - Name (identifier)
   /// - Type bound
   void endTypeVariable(Token token, Token extendsOrSuper) {

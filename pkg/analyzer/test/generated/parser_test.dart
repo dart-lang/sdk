@@ -14767,4 +14767,15 @@ enum E {
     var typeAlias = parseFullCompilationUnitMember() as GenericTypeAlias;
     expectCommentText(typeAlias.documentationComment, '/// Doc');
   }
+
+  void test_parseTypeVariable_withDocumentationComment() {
+    createParser('''
+class A<
+    /// Doc
+    B> {}
+''');
+    var classDeclaration = parseFullCompilationUnitMember() as ClassDeclaration;
+    var typeVariable = classDeclaration.typeParameters.typeParameters[0];
+    expectCommentText(typeVariable.documentationComment, '/// Doc');
+  }
 }
