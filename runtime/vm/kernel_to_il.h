@@ -815,7 +815,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
                          bool negate = false);
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
-  Fragment CatchBlockEntry(const Array& handler_types, intptr_t handler_index);
+  Fragment CatchBlockEntry(const Array& handler_types,
+                           intptr_t handler_index,
+                           bool needs_stacktrace);
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue();
   Fragment CheckStackOverflow();
