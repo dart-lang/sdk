@@ -30,7 +30,7 @@ class DietParser extends ClassMemberParser {
         reportRecoverableError(token, ErrorKind.ExpectedOpenParens, {});
         return token;
       }
-      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endToken = beginGroupToken.endGroup;

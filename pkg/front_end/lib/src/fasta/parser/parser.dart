@@ -460,7 +460,7 @@ class Parser {
         return token;
       }
       return reportUnrecoverableError(
-          token, ErrorKind.ExpectedButGot, {"expected": "("});
+          token, ErrorKind.ExpectedButGot, {"expected": "("})?.next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endToken = beginGroupToken.endGroup;
@@ -757,16 +757,17 @@ class Parser {
 
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
-      return reportUnrecoverableError(token, ErrorKind.ExpectedBlockToSkip);
+      return reportUnrecoverableError(token, ErrorKind.ExpectedBlockToSkip)
+          ?.next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     }
     return beginGroupToken.endGroup;
   }
@@ -875,7 +876,7 @@ class Parser {
 
   Token parseStringPart(Token token) {
     if (token.kind != STRING_TOKEN) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedString);
+      token = reportUnrecoverableError(token, ErrorKind.ExpectedString)?.next;
     }
     listener.handleStringPart(token);
     return token.next;
@@ -883,7 +884,8 @@ class Parser {
 
   Token parseIdentifier(Token token, IdentifierContext context) {
     if (!token.isIdentifier()) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedIdentifier);
+      token =
+          reportUnrecoverableError(token, ErrorKind.ExpectedIdentifier)?.next;
     }
     listener.handleIdentifier(token, context);
     return token.next;
@@ -892,7 +894,7 @@ class Parser {
   Token expect(String string, Token token) {
     if (!identical(string, token.stringValue)) {
       return reportUnrecoverableError(
-          token, ErrorKind.ExpectedButGot, {"expected": string});
+          token, ErrorKind.ExpectedButGot, {"expected": string})?.next;
     }
     return token.next;
   }
@@ -963,7 +965,7 @@ class Parser {
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
       } else {
-        token = reportUnrecoverableError(token, ErrorKind.ExpectedType);
+        token = reportUnrecoverableError(token, ErrorKind.ExpectedType)?.next;
         listener.handleInvalidTypeReference(token);
       }
       token = parseTypeArgumentsOpt(token);
@@ -1039,13 +1041,15 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -1090,7 +1094,8 @@ class Parser {
         }
         break;
       } else {
-        token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+        token =
+            reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
         if (identical(token.kind, EOF_TOKEN)) return token;
       }
     }
@@ -1627,16 +1632,17 @@ class Parser {
 
   Token skipClassBody(Token token) {
     if (!optional('{', token)) {
-      return reportUnrecoverableError(token, ErrorKind.ExpectedClassBodyToSkip);
+      return reportUnrecoverableError(token, ErrorKind.ExpectedClassBodyToSkip)
+          ?.next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     }
     return endGroup;
   }
@@ -1645,7 +1651,8 @@ class Parser {
     Token begin = token;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedClassBody);
+      token =
+          reportUnrecoverableError(token, ErrorKind.ExpectedClassBody)?.next;
     }
     token = token.next;
     int count = 0;
@@ -1682,13 +1689,15 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -1740,7 +1749,8 @@ class Parser {
         isField = true;
         break;
       } else {
-        token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+        token =
+            reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
         if (identical(token.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
           listener.endFields(1, null, start, token);
@@ -2060,7 +2070,8 @@ class Parser {
     Token begin = token;
     int statementCount = 0;
     if (!optional('{', token)) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedFunctionBody);
+      token =
+          reportUnrecoverableError(token, ErrorKind.ExpectedFunctionBody)?.next;
       listener.handleInvalidFunctionBody(token);
       return token;
     }
@@ -2129,7 +2140,7 @@ class Parser {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
       // example, provokes this.
-      return reportUnrecoverableError(token, ErrorKind.StackOverflow);
+      return reportUnrecoverableError(token, ErrorKind.StackOverflow)?.next;
     }
     Token result = parseStatementX(token);
     statementDepth--;
@@ -2434,7 +2445,7 @@ class Parser {
         BeginGroupToken begin = token;
         token = (begin.endGroup != null) ? begin.endGroup : token;
       } else if (token is ErrorToken) {
-        reportErrorToken(token, false);
+        reportErrorToken(token, false)?.next;
       }
       token = token.next;
     }
@@ -2449,7 +2460,7 @@ class Parser {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for examaple, the language test
       // deep_nesting1_negative_test.
-      return reportUnrecoverableError(token, ErrorKind.StackOverflow);
+      return reportUnrecoverableError(token, ErrorKind.StackOverflow)?.next;
     }
     listener.beginExpression(token);
     Token result = optional('throw', token)
@@ -2516,7 +2527,8 @@ class Parser {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else {
-            token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+            token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken)
+                ?.next;
           }
         } else if (identical(info, IS_INFO)) {
           token = parseIsOperatorRest(token);
@@ -2556,7 +2568,7 @@ class Parser {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.handleBinaryExpression(cascadeOperator);
     } else {
-      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
     }
     Token mark;
     do {
@@ -2684,7 +2696,7 @@ class Parser {
   }
 
   Token expressionExpected(Token token) {
-    token = reportUnrecoverableError(token, ErrorKind.ExpectedExpression);
+    token = reportUnrecoverableError(token, ErrorKind.ExpectedExpression)?.next;
     listener.handleInvalidExpression(token);
     return token;
   }
@@ -2718,7 +2730,7 @@ class Parser {
     // [begin] is now known to have type [BeginGroupToken].
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {
-      reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
       token = begin.endGroup;
     }
     listener.handleParenthesizedExpression(begin);
@@ -2907,7 +2919,7 @@ class Parser {
       token = parseArguments(token);
     } else {
       listener.handleNoArguments(token);
-      token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
     }
     return token;
   }
@@ -3538,7 +3550,7 @@ class Parser {
     } else {
       arguments ??= {};
       arguments.putIfAbsent("actual", () => token.lexeme);
-      next = listener.handleUnrecoverableError(token, kind, arguments)?.next;
+      next = listener.handleUnrecoverableError(token, kind, arguments);
     }
     return next ?? skipToEof(token);
   }
@@ -3589,7 +3601,7 @@ class Parser {
       listener.handleRecoverableError(token, kind, arguments);
       return null;
     } else {
-      return listener.handleUnrecoverableError(token, kind, arguments)?.next;
+      return listener.handleUnrecoverableError(token, kind, arguments);
     }
   }
 }
