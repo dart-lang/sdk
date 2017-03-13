@@ -115,11 +115,20 @@ class ServerIsolateChannel implements ServerCommunicationChannel {
    */
   SendPort _sendPort;
 
-  ReceivePort receivePort;
+  /**
+   * The port used to receive responses and notifications from the plugin.
+   */
+  ReceivePort _receivePort;
 
-  ReceivePort errorPort;
+  /**
+   * The port used to receive unhandled exceptions thrown in the plugin.
+   */
+  ReceivePort _errorPort;
 
-  ReceivePort exitPort;
+  /**
+   * The port used to receive notification when the plugin isolate has exited.
+   */
+  ReceivePort _exitPort;
 
   /**
    * Initialize a newly created channel to communicate with an isolate running
@@ -129,14 +138,10 @@ class ServerIsolateChannel implements ServerCommunicationChannel {
       this.pluginUri, this.packagesUri, this.instrumentationService);
   @override
   void close() {
-    receivePort?.close();
-    errorPort?.close();
-    exitPort?.close();
+    _receivePort?.close();
+    _errorPort?.close();
+    _exitPort?.close();
     _isolate = null;
-//    _sendPort = null;
-//    receivePort = null;
-//    errorPort = null;
-//    exitPort = null;
   }
 
   @override
@@ -146,26 +151,26 @@ class ServerIsolateChannel implements ServerCommunicationChannel {
     if (_isolate != null) {
       throw new StateError('Cannot listen to the same channel more than once.');
     }
-    receivePort = new ReceivePort();
+    _receivePort = new ReceivePort();
     if (onError != null) {
-      errorPort = new ReceivePort();
-      errorPort.listen((error) {
+      _errorPort = new ReceivePort();
+      _errorPort.listen((error) {
         onError(error);
       });
     }
     if (onDone != null) {
-      exitPort = new ReceivePort();
-      exitPort.listen((_) {
+      _exitPort = new ReceivePort();
+      _exitPort.listen((_) {
         onDone();
       });
     }
     _isolate = await Isolate.spawnUri(
-        pluginUri, <String>[], receivePort.sendPort,
-        onError: errorPort?.sendPort,
-        onExit: exitPort?.sendPort,
+        pluginUri, <String>[], _receivePort.sendPort,
+        onError: _errorPort?.sendPort,
+        onExit: _exitPort?.sendPort,
         packageConfig: packagesUri);
     Completer<Null> channelReady = new Completer<Null>();
-    receivePort.listen((dynamic input) {
+    _receivePort.listen((dynamic input) {
       if (input is SendPort) {
 //        print('[server] Received send port');
         _sendPort = input;
