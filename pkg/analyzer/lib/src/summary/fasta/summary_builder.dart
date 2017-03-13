@@ -208,7 +208,7 @@ abstract class ExpressionListener extends StackListener {
   void beginLiteralString(Token token) {
     debugEvent("beginLiteralString");
     if (ignore) return;
-    push(new StringLiteral(token.value));
+    push(new StringLiteral(token.lexeme));
   }
 
   void beginUnnamedFunction(token) {
@@ -421,7 +421,7 @@ abstract class ExpressionListener extends StackListener {
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("Identifier");
     if (ignore) return;
-    push(new Ref(token.value));
+    push(new Ref(token.lexeme));
   }
 
   void handleIsOperator(Token operator, Token not, Token endToken) {
@@ -439,13 +439,13 @@ abstract class ExpressionListener extends StackListener {
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
     if (ignore) return;
-    push(new DoubleLiteral(double.parse(token.value)));
+    push(new DoubleLiteral(double.parse(token.lexeme)));
   }
 
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     if (ignore) return;
-    push(new IntLiteral(int.parse(token.value)));
+    push(new IntLiteral(int.parse(token.lexeme)));
   }
 
   void handleLiteralList(count, begin, constKeyword, end) {
@@ -549,7 +549,7 @@ abstract class ExpressionListener extends StackListener {
   void handleStringPart(token) {
     debugEvent("handleStringPart");
     if (ignore) return;
-    push(new StringLiteral(token.value));
+    push(new StringLiteral(token.lexeme));
   }
 
   void handleType(Token beginToken, Token endToken) {
@@ -773,7 +773,7 @@ class SummaryBuilder extends StackListener {
   void beginClassDeclaration(Token beginToken, Token name) {
     debugEvent("beginClass");
     var classScope = scope = new ClassScope(scope);
-    classScope.className = name.value;
+    classScope.className = name.lexeme;
   }
 
   void beginCompilationUnit(Token token) {
@@ -814,7 +814,7 @@ class SummaryBuilder extends StackListener {
 
   void beginLiteralString(Token token) {
     debugEvent("beginLiteralString");
-    push(token.value.substring(1, token.value.length - 1));
+    push(token.lexeme.substring(1, token.lexeme.length - 1));
   }
 
   void beginMember(Token token) {
@@ -1478,7 +1478,7 @@ class SummaryBuilder extends StackListener {
 
   void handleStringPart(token) {
     debugEvent("handleStringPart");
-    push(token.value.substring(1, token.value.length - 1));
+    push(token.lexeme.substring(1, token.lexeme.length - 1));
   }
 
   void handleType(Token beginToken, Token endToken) {
