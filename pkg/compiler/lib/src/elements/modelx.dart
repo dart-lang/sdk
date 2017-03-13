@@ -767,6 +767,20 @@ class CompilationUnitElementX extends ElementX
     }
     partTag = tag;
     LibraryName libraryTag = library.libraryTag;
+
+    Expression libraryReference = tag.name;
+    if (libraryReference is LiteralString) {
+      // Name is a URI. Resolve and compare to library's URI.
+      String content = libraryReference.dartString.slowToString();
+      Uri uri = this.script.readableUri.resolve(content);
+      Uri expectedUri = library.canonicalUri;
+      if (uri != expectedUri) {
+        // Consider finding a relative URI reference for the error message.
+        reporter.reportWarningMessage(tag.name,
+            MessageKind.LIBRARY_URI_MISMATCH, {'libraryUri': expectedUri});
+      }
+      return;
+    }
     String actualName = tag.name.toString();
     if (libraryTag != null) {
       String expectedName = libraryTag.name.toString();

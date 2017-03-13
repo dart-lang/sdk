@@ -1626,7 +1626,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         }
       }
     }
-    if (hasPartDirective && libraryNameNode == null) {
+    if (hasPartDirective && libraryNameNode == null &&
+        !context.analysisOptions.enableUriInPartOf) {
       errors.add(new AnalysisError(librarySource, 0, 0,
           ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }

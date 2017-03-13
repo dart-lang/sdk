@@ -870,8 +870,37 @@ part of my_lib;
 part of my_lib;
 '''
     });
-    _assertErrorsWithCodes(
-        [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
+    if (context.analysisOptions.enableUriInPartOf) {
+      // TODO(28522)
+      // Should report that names are wrong.
+    } else {
+      _assertErrorsWithCodes(
+          [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
+      AnalysisError error = errorListener.errors[0];
+    }
+  }
+
+  test_perform_error_missingLibraryDirectiveWithPart_noCommon() {
+    _performBuildTask({
+      '/lib.dart': '''
+part 'partA.dart';
+part 'partB.dart';
+''',
+      '/partA.dart': '''
+part of libA;
+        ''',
+      '/partB.dart': '''
+part of libB;
+'''
+    });
+    if (context.analysisOptions.enableUriInPartOf) {
+      // TODO(28522)
+      // Should report that names are wrong.
+    } else {
+      _assertErrorsWithCodes(
+          [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
+      AnalysisError error = errorListener.errors[0];
+    }
   }
 
   test_perform_error_partDoesNotExist() {
