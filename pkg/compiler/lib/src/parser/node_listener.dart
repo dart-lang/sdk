@@ -1009,18 +1009,6 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
-    inTypeVariable = false;
-    NominalTypeAnnotation bound = popNode();
-    Identifier name = popNode();
-    // TODO(paulberry): type variable metadata should not be ignored.  See
-    // dartbug.com/5841.
-    popNode(); // Metadata
-    pushNode(new TypeVariable(name, extendsOrSuper, bound));
-    rejectBuiltInIdentifier(name);
-  }
-
-  @override
   void log(message) {
     reporter.log(message);
   }

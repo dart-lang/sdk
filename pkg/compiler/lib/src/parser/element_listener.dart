@@ -76,9 +76,6 @@ class ElementListener extends Listener {
   LinkBuilder<MetadataAnnotation> metadata =
       new LinkBuilder<MetadataAnnotation>();
 
-  /// Indicates whether the parser is currently accepting a type variable.
-  bool inTypeVariable = false;
-
   /// Records a stack of booleans for each member parsed (a stack is used to
   /// support nested members which isn't currently possible, but it also serves
   /// as a simple way to tell we're currently parsing a member). In this case,
@@ -253,13 +250,8 @@ class ElementListener extends Listener {
     if (periodBeforeName != null) {
       popNode(); // Discard name.
     }
-    popNode(); // Discard type parameters
-    popNode(); // Discard identifier
-    // TODO(paulberry,ahe): type variable metadata should not be ignored.  See
-    // dartbug.com/5841.
-    if (!inTypeVariable) {
-      pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
-    }
+    popNode(); // Discard node (Send or Identifier).
+    pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
   }
 
   @override
@@ -427,13 +419,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void beginTypeVariable(Token token) {
-    inTypeVariable = true;
-  }
-
-  @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
-    inTypeVariable = false;
     NominalTypeAnnotation bound = popNode();
     Identifier name = popNode();
     pushNode(new TypeVariable(name, extendsOrSuper, bound));

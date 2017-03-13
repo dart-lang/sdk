@@ -14,11 +14,7 @@ import 'token.dart'
     show BeginGroupToken, KeywordToken, StringToken, SymbolToken, Token;
 
 import 'token_constants.dart'
-    show
-        LT_TOKEN,
-        OPEN_CURLY_BRACKET_TOKEN,
-        OPEN_PAREN_TOKEN,
-        STRING_INTERPOLATION_TOKEN;
+    show LT_TOKEN, OPEN_CURLY_BRACKET_TOKEN, STRING_INTERPOLATION_TOKEN;
 
 import 'characters.dart' show $LF, $STX;
 
@@ -136,11 +132,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     Token token = new BeginGroupToken(info, tokenStart);
     appendToken(token);
 
-    // { [ ${ cannot appear inside a type parameters / arguments.
-    if (!identical(info.kind, LT_TOKEN) &&
-        !identical(info.kind, OPEN_PAREN_TOKEN)) {
-      discardOpenLt();
-    }
+    // { (  [ ${ cannot appear inside a type parameters / arguments.
+    if (!identical(info.kind, LT_TOKEN)) discardOpenLt();
     groupingStack = groupingStack.prepend(token);
   }
 
