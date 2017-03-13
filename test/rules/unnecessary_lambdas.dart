@@ -16,10 +16,29 @@ _stateOf<T>(int a, int b) {
 }
 */
 
-class MyClass {
-  int m1() {
-    return 0;
+class GettersTest {
+  final a = 1;
+  get b => 2;
+  get c => a;
+  Function finalVar() {
+    return () { // LINT
+      a.toString();
+    };
   }
+  Function getter1() {
+    return () { // OK
+      b.toString();
+    };
+  }
+  Function getter2() {
+    return () { // OK
+      c.toString();
+    };
+  }
+}
+
+class MyClass {
+  final m1 = 0;
 
   int m2(int p) {
     return p;
@@ -27,45 +46,62 @@ class MyClass {
 }
 
 void main() {
-  List<String> names = [];
+  final List<String> finalList = [];
+  List<String> nonFinalList = [];
 
   final array = <MyClass>[];
   final x = new MyClass();
 
   // ignore: unused_local_variable
-  final notRelevantQuestionPeriod = (p) => array[x?.m1()].m2(p); // LINT
+  final notRelevantQuestionPeriod = (p) => array[x?.m1].m2(p); // LINT
+  // ignore: unused_local_variable
+  final correctNotRelevantQuestionPeriod = array[x?.m1].m2; // OK
 
-  names.forEach((name) { // LINT
+  finalList.forEach((name) { // LINT
     print(name);
   });
+  finalList.forEach(print); // OK
 
-  names.forEach(print); // OK
+  // Lambdas as parameters.
+  finalList.where((e) => finalList.contains(e)); // LINT
+  finalList.where((e) => nonFinalList.contains(e)); // OK
+  finalList.where((e) => finalList?.contains(e)); // OK
+  finalList.where(finalList.contains); // OK
 
-  names.where((e) => names.contains(e)); // LINT
-  names.where((e) => names?.contains(e)); // OK
+  // Lambdas assigned to variables.
   // ignore: unused_local_variable
-  var a = (() => names.removeLast()); // LINT
+  var a = (() => finalList.removeLast()); // LINT
   // ignore: unused_local_variable
-  var b = (() => names?.removeLast()); // OK
+  var b = (() => nonFinalList.removeLast()); // OK
+  // ignore: unused_local_variable
+  var c = (() => finalList?.removeLast()); // OK
+// ignore: unused_local_variable
+  var d = finalList.removeLast; // OK
 
-  names.where((e) => e.contains(e)); // OK
+  finalList.where((e) => e.contains(e)); // OK
 
   // ignore: undefined_getter
-  names.where((e) => e.a.contains(e)); // OK
+  finalList.where((e) => e.a.contains(e)); // OK
 
-  names.where((e) => // OK
+  // Linted because parameter is final.
+  finalList.where((final e) =>
       ((a) => e.contains(a))(e)); // LINT
+  finalList.where((final e) =>
+      (e.contains)(e)); // OK
+  finalList.where((e) =>
+      ((a) => e.contains(a))(e)); // OK
 
-  names.where((e) => // OK
+  finalList.where((e) => // OK
       ((a) => e?.contains(a))(e)); // OK
 
+  // ignore: unused_local_variable
   var noStatementLambda = () { // OK
     // Empty lambda
   };
 
-  names.forEach((name) { // OK
-    noStatementLambda(); // More than one statement
-    print(name);
+  finalList.forEach((name) { // OK
+    print(name); // More than one statement
+    print(name); // More than one statement
   });
 
   // ignore: unused_local_variable
@@ -85,7 +121,7 @@ void method() {
   // ignore: unused_local_variable
   var b = names.where((e) => // LINT
       ((e) => e?.contains(e))(e));
-  // Can be replaced by names.where((e) => e?.contains(e));
+  names.where((e) => e?.contains(e)); // OK
 
   // ignore: unused_local_variable
   var c = names.where((e) { // LINT
@@ -93,4 +129,29 @@ void method() {
       return e.contains(e);
     })(e);
   });
+}
+
+void reportedFalsePositive() {
+  Function makeCallable(void f()) => f;
+
+  var f = () => print('a');
+
+  // r1 was linted (r2 is the result to remove the lint)
+  var r1 = makeCallable((){ // OK
+    f();
+  });
+  var r2 = makeCallable(f); // OK
+
+  f = () => print('b');
+
+  r1(); // prints b
+  r2(); // prints a
+}
+
+void reportedTruePositive () {
+  final f = (){ };
+  // ignore: unused_local_variable
+  final lambda = () { f(); }; // LINT
+  // ignore: unused_local_variable
+  final equivalent = f; // OK
 }
