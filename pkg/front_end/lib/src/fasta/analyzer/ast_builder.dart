@@ -171,7 +171,8 @@ class AstBuilder extends ScopeListener {
       return;
     }
 
-    SimpleIdentifier identifier = ast.simpleIdentifier(analyzerToken);
+    SimpleIdentifier identifier = ast.simpleIdentifier(analyzerToken,
+        isDeclaration: context.inDeclaration);
     if (context.inLibraryOrPartOfDeclaration) {
       if (!context.isContinuation) {
         push([identifier]);
@@ -1303,7 +1304,7 @@ class AstBuilder extends ScopeListener {
           toAnalyzerToken(modifiers?.externalKeyword),
           toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
           null, // TODO(paulberry): factoryKeyword
-          returnType,
+          ast.simpleIdentifier(returnType.token),
           period,
           name,
           parameters,
