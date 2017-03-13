@@ -101,7 +101,8 @@ class StackFrame : public ValueObject {
   bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
-                            bool* is_catch_all) const;
+                            bool* is_catch_all,
+                            bool* is_optimized) const;
   // Returns token_pos of the pc(), or -1 if none exists.
   TokenPosition GetTokenPos() const;
 
