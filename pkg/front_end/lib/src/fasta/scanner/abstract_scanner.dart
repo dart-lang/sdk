@@ -435,11 +435,7 @@ abstract class AbstractScanner implements Scanner {
     // [ [] []=
     next = advance();
     if (identical(next, $CLOSE_SQUARE_BRACKET)) {
-      Token token = previousToken();
-      if (token is KeywordToken && token.keyword.syntax == 'operator' ||
-          token is SymbolToken && token.info == HASH_INFO) {
-        return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
-      }
+      return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
     }
     appendBeginGroup(OPEN_SQUARE_BRACKET_INFO);
     return next;

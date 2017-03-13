@@ -492,6 +492,11 @@ class Parser {
         token = parseOptionalFormalParameters(token, true,
             inFunctionType: inFunctionType);
         break;
+      } else if (identical(value, '[]')) {
+        --parameterCount;
+        reportRecoverableError(token, ErrorKind.EmptyOptionalParameterList);
+        token = token.next;
+        break;
       }
       token = parseFormalParameter(token, FormalParameterType.REQUIRED,
           inFunctionType: inFunctionType);
