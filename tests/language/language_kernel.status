@@ -419,7 +419,6 @@ is_malformed_type_test/99: RuntimeError
 is_not_class2_test: RuntimeError
 isnot_malformed_type_test: RuntimeError
 issue_1751477_test: RuntimeError
-label6_negative_test: DartkCrash
 large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 library_ambiguous_test/00: MissingRuntimeError
 library_ambiguous_test/04: MissingRuntimeError
@@ -694,47 +693,13 @@ vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
-assignable_expression_test/01: MissingCompileTimeError
-assignable_expression_test/11: MissingCompileTimeError
-assignable_expression_test/21: MissingCompileTimeError
-assignable_expression_test/31: MissingCompileTimeError
-assignable_expression_test/41: MissingCompileTimeError
 bad_raw_string_test/03: Skip # Issue 28680
 bad_raw_string_test/none: Skip # Issue 28680
 const_syntax_test/08: Crash
 const_syntax_test/09: Crash
-constructor_duplicate_final_test/03: MissingCompileTimeError
-constructor_duplicate_initializers_test/01: MissingCompileTimeError
-constructor_duplicate_initializers_test/02: MissingCompileTimeError
-constructor_return_test/01: MissingCompileTimeError
-constructor_return_test/02: MissingCompileTimeError
-constructor_return_test/03: MissingCompileTimeError
-constructor_return_test/04: MissingCompileTimeError
-constructor_return_test/05: MissingCompileTimeError
-factory_redirection3_cyclic_test/01: MissingCompileTimeError
-factory_redirection_test/04: MissingCompileTimeError
 final_syntax_test/09: MissingCompileTimeError
 getter_declaration_negative_test: Crash
-getter_no_setter2_test/02: MissingCompileTimeError
-getter_no_setter_test/02: MissingCompileTimeError
 getter_parameters_test/02: Crash
-if_null_assignment_behavior_test/29: MissingCompileTimeError
-if_null_assignment_behavior_test/30: MissingCompileTimeError
-illegal_initializer_test/01: MissingCompileTimeError
-illegal_initializer_test/02: MissingCompileTimeError
-illegal_initializer_test/03: MissingCompileTimeError
-illegal_initializer_test/04: MissingCompileTimeError
-illegal_invocation_test/01: MissingCompileTimeError
-label_test: RuntimeError
-prefix_assignment_test/01: MissingCompileTimeError
-prefix_assignment_test/02: MissingCompileTimeError
-prefix_identifier_reference_test/01: MissingCompileTimeError
-prefix_identifier_reference_test/02: MissingCompileTimeError
-prefix_identifier_reference_test/03: MissingCompileTimeError
-prefix_identifier_reference_test/04: MissingCompileTimeError
-prefix_identifier_reference_test/05: MissingCompileTimeError
-prefix_unqualified_invocation_test/01: MissingCompileTimeError
-prefix_unqualified_invocation_test/02: MissingCompileTimeError
 ref_before_declaration_test/00: Crash
 ref_before_declaration_test/01: Crash
 ref_before_declaration_test/02: Crash
@@ -744,29 +709,9 @@ ref_before_declaration_test/05: Crash
 ref_before_declaration_test/06: Crash
 ref_before_declaration_test/07: Crash
 ref_before_declaration_test/none: Crash
-regress_23038_test/01: MissingCompileTimeError
 setter_declaration2_negative_test: Crash
 setter_declaration_negative_test: Crash
-this_test/01: MissingCompileTimeError
-this_test/02: MissingCompileTimeError
-this_test/03: MissingCompileTimeError
-this_test/04: MissingCompileTimeError
-this_test/05: MissingCompileTimeError
-this_test/06: MissingCompileTimeError
-this_test/07: MissingCompileTimeError
-this_test/08: MissingCompileTimeError
 try_catch_syntax_test/05: Crash
-try_catch_syntax_test/13: MissingCompileTimeError
-try_catch_syntax_test/14: MissingCompileTimeError
-try_catch_syntax_test/15: MissingCompileTimeError
-type_variable_conflict2_test/02: MissingCompileTimeError
-type_variable_conflict2_test/06: MissingCompileTimeError
-type_variable_conflict2_test/08: MissingCompileTimeError
-type_variable_conflict2_test/10: MissingCompileTimeError
-unsupported_operators_test/01: MissingCompileTimeError
-unsupported_operators_test/02: MissingCompileTimeError
-unsupported_operators_test/03: MissingCompileTimeError
-unsupported_operators_test/04: MissingCompileTimeError
 vm/closure_memory_retention_test: Skip  # Hits OOM
 
 # dartk: precompilation failures (debug)

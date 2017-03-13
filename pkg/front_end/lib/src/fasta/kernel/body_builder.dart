@@ -271,7 +271,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   JumpTarget createJumpTarget(JumpTargetKind kind, int charOffset) {
-    return new JumpTarget(kind, member, charOffset);
+    return new JumpTarget(kind, functionNestingLevel, member, charOffset);
   }
 
   @override
@@ -1925,7 +1925,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("beginLabeledStatement");
     List<Label> labels = popList(labelCount);
     enterLocalScope();
-    LabelTarget target = new LabelTarget(member, token.charOffset);
+    LabelTarget target =
+        new LabelTarget(member, functionNestingLevel, token.charOffset);
     for (Label label in labels) {
       scope.declareLabel(label.name, target);
     }
@@ -2117,6 +2118,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         !target.isBreakTarget) {
       push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
           "Can't break to '$name'.", breakKeyword.next.charOffset));
+    } else if (target.functionNestingLevel != functionNestingLevel) {
+      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+          "Can't break to '$name' in a different function.",
+          breakKeyword.next.charOffset));
     } else {
       BreakStatement statement = new BreakStatement(null)
         ..fileOffset = breakKeyword.charOffset;
@@ -2162,6 +2167,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (!target.isContinueTarget) {
       push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
           "Can't continue at '$name'.", continueKeyword.next.charOffset));
+    } else if (target.functionNestingLevel != functionNestingLevel) {
+      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+          "Can't continue at '$name' in a different function.",
+          continueKeyword.next.charOffset));
     } else {
       BreakStatement statement = new BreakStatement(null)
         ..fileOffset = continueKeyword.charOffset;
@@ -2517,7 +2526,10 @@ class JumpTarget extends Builder {
 
   final JumpTargetKind kind;
 
-  JumpTarget(this.kind, MemberBuilder member, int charOffset)
+  final int functionNestingLevel;
+
+  JumpTarget(this.kind, this.functionNestingLevel, MemberBuilder member,
+      int charOffset)
       : super(member, charOffset, member.fileUri);
 
   bool get isBreakTarget => kind == JumpTargetKind.Break;
@@ -2573,10 +2585,13 @@ class LabelTarget extends Builder implements JumpTarget {
 
   final JumpTarget continueTarget;
 
-  LabelTarget(MemberBuilder member, int charOffset)
-      : breakTarget = new JumpTarget(JumpTargetKind.Break, member, charOffset),
-        continueTarget =
-            new JumpTarget(JumpTargetKind.Continue, member, charOffset),
+  final int functionNestingLevel;
+
+  LabelTarget(MemberBuilder member, this.functionNestingLevel, int charOffset)
+      : breakTarget = new JumpTarget(
+            JumpTargetKind.Break, functionNestingLevel, member, charOffset),
+        continueTarget = new JumpTarget(
+            JumpTargetKind.Continue, functionNestingLevel, member, charOffset),
         super(member, charOffset, member.fileUri);
 
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
