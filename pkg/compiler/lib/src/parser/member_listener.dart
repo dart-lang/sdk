@@ -90,8 +90,9 @@ class MemberListener extends NodeListener {
   }
 
   @override
-  void endFactoryMethod(Token beginToken, Token endToken) {
-    super.endFactoryMethod(beginToken, endToken);
+  void endFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    super.endFactoryMethod(beginToken, factoryKeyword, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
     String name = getMethodNameHack(method.name);

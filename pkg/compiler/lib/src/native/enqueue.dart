@@ -7,7 +7,7 @@ import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionElementX;
@@ -82,7 +82,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   JavaScriptBackend get backend => compiler.backend;
   BackendHelpers get helpers => backend.helpers;
-  BackendUsageBuilder get _backendUsageBuilder => backend.backendUsageBuilder;
   Resolution get resolution => compiler.resolution;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -241,7 +240,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         id = token;
       }
       // Should be at '{', 'with', 'implements', '<' or 'native'.
-      return id.value;
+      return id.lexeme;
     }
 
     return reporter.withCurrentElement(classElement, () {
@@ -443,11 +442,12 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     return _unusedClasses.where(predicate);
   }
 
+  void registerBackendUse(MethodElement element) {}
+
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
-    void staticUse(element) {
+    void staticUse(MethodElement element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
-      _backendUsageBuilder.registerBackendUse(element);
-      _backendUsageBuilder.registerGlobalDependency(element);
+      registerBackendUse(element);
     }
 
     staticUse(helpers.defineProperty);
@@ -473,6 +473,13 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   NativeResolutionEnqueuer(Compiler compiler)
       : super(compiler, compiler.options.enableNativeLiveTypeAnalysis);
+
+  BackendUsageBuilder get _backendUsageBuilder => backend.backendUsageBuilder;
+
+  void registerBackendUse(MethodElement element) {
+    _backendUsageBuilder.registerBackendUse(element);
+    _backendUsageBuilder.registerGlobalFunctionDependency(element);
+  }
 
   void processNativeClass(ClassElement classElement) {
     super.processNativeClass(classElement);

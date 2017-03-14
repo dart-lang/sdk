@@ -1833,11 +1833,24 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   Definition* callee_receiver = instr->ArgumentAt(0);
   const Function& function = flow_graph_->function();
+  Class& receiver_class = Class::Handle(Z);
+
   if (function.IsDynamicFunction() &&
       flow_graph_->IsReceiver(callee_receiver)) {
     // Call receiver is method receiver.
-    Class& receiver_class = Class::Handle(Z, function.Owner());
-
+    receiver_class = function.Owner();
+  } else {
+    // Check if we have an non-nullable compile type for the receiver.
+    CompileType* type = instr->ArgumentAt(0)->Type();
+    if (type->ToAbstractType()->IsType() &&
+        !type->ToAbstractType()->IsDynamicType() && !type->is_nullable()) {
+      receiver_class = type->ToAbstractType()->type_class();
+      if (receiver_class.is_implemented()) {
+        receiver_class = Class::null();
+      }
+    }
+  }
+  if (!receiver_class.IsNull()) {
     GrowableArray<intptr_t> class_ids(6);
     if (thread()->cha()->ConcreteSubclasses(receiver_class, &class_ids)) {
       // First check if all subclasses end up calling the same method.

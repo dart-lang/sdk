@@ -72,14 +72,14 @@ class Collector {
       return (ClassElement cls) => true;
     }
 
-    Set<ClassElement> unneededClasses = new Set<ClassElement>();
+    Set<ClassEntity> unneededClasses = new Set<ClassEntity>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
     unneededClasses.add(commonElements.boolClass);
 
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
-    Set<ClassElement> needed = new Set<ClassElement>();
+    Set<ClassEntity> needed = new Set<ClassEntity>();
     for (js.Name name
         in backend.oneShotInterceptorData.specializedGetInterceptorNames) {
       needed.addAll(backend.oneShotInterceptorData
@@ -90,7 +90,7 @@ class Collector {
     needed.addAll(computeInterceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
-    for (ClassElement interceptor
+    for (ClassEntity interceptor
         in backend.interceptorData.interceptedClasses) {
       if (!needed.contains(interceptor) &&
           interceptor != commonElements.objectClass) {
@@ -106,7 +106,7 @@ class Collector {
     unneededClasses.add(helpers.jsUInt31Class);
     unneededClasses.add(helpers.jsPositiveIntClass);
 
-    return (ClassElement cls) => !unneededClasses.contains(cls);
+    return (ClassEntity cls) => !unneededClasses.contains(cls);
   }
 
   /**

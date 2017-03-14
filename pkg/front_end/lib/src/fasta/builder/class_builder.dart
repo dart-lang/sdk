@@ -4,12 +4,16 @@
 
 library fasta.class_builder;
 
+import '../errors.dart' show internalError;
+
 import 'builder.dart'
     show
         Builder,
         ConstructorReferenceBuilder,
         LibraryBuilder,
         MetadataBuilder,
+        MixinApplicationBuilder,
+        NamedTypeBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder;
@@ -100,4 +104,67 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   }
 
   Builder findConstructorOrFactory(String name);
+
+  /// Returns a map which maps the type variables of [superclass] to their
+  /// respective values as defined by the superclass clause of this class (and
+  /// its superclasses).
+  ///
+  /// It's assumed that [superclass] is a superclass of this class.
+  ///
+  /// For example, given:
+  ///
+  ///     class Box<T> {}
+  ///     class BeatBox extends Box<Beat> {}
+  ///     class Beat {}
+  ///
+  /// We have:
+  ///
+  ///     [[BeatBox]].getSubstitutionMap([[Box]]) -> {[[Box::T]]: Beat]]}.
+  ///
+  /// This method returns null if the map is empty, and it's an error if
+  /// [superclass] isn't a superclass.
+  Map<TypeVariableBuilder, TypeBuilder> getSubstitutionMap(
+      ClassBuilder superclass,
+      Uri fileUri,
+      int charOffset,
+      TypeBuilder dynamicType) {
+    TypeBuilder supertype = this.supertype;
+    Map<TypeVariableBuilder, TypeBuilder> substitutionMap;
+    List arguments;
+    List variables;
+    Builder builder;
+    while (builder != superclass) {
+      if (supertype is NamedTypeBuilder) {
+        NamedTypeBuilder t = supertype;
+        builder = t.builder;
+        arguments = t.arguments;
+        if (builder is ClassBuilder) {
+          variables = builder.typeVariables;
+          if (builder != superclass) {
+            supertype = builder.supertype;
+          }
+        }
+      } else if (supertype is MixinApplicationBuilder) {
+        MixinApplicationBuilder t = supertype;
+        supertype = t.supertype;
+      } else {
+        internalError("Superclass not found.", fileUri, charOffset);
+      }
+      if (variables != null) {
+        Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
+            <TypeVariableBuilder, TypeBuilder>{};
+        arguments ??= const [];
+        for (int i = 0; i < variables.length; i++) {
+          TypeBuilder argument =
+              arguments.length < i ? arguments[i] : dynamicType;
+          if (substitutionMap != null) {
+            argument = argument.subst(substitutionMap);
+          }
+          directSubstitutionMap[variables[i]] = argument;
+        }
+        substitutionMap = directSubstitutionMap;
+      }
+    }
+    return substitutionMap;
+  }
 }

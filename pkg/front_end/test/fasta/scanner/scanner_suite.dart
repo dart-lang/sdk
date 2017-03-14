@@ -13,9 +13,10 @@ Future<ChainContext> createContext(
 
 class ScannerContext extends ChainContext {
   final List<Step> steps = const <Step>[
-      const Read(),
-      const Scan(),
+    const Read(),
+    const Scan(),
   ];
 }
 
-main(List<String> arguments) => runMe(arguments, createContext);
+main(List<String> arguments) =>
+    runMe(arguments, createContext, "../testing.json");

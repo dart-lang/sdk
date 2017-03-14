@@ -56,7 +56,7 @@ class ClassStubGenerator {
   jsAst.Expression generateGetter(MemberEntity member, jsAst.Name fieldName) {
     ClassEntity cls = member.enclosingClass;
     String receiver =
-        backend.interceptorData.isInterceptorClass(cls) ? 'receiver' : 'this';
+        backend.interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
     List<String> args =
         backend.interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
     return js('function(#) { return #.# }', [args, receiver, fieldName]);
@@ -65,7 +65,7 @@ class ClassStubGenerator {
   jsAst.Expression generateSetter(MemberEntity member, jsAst.Name fieldName) {
     ClassEntity cls = member.enclosingClass;
     String receiver =
-        backend.interceptorData.isInterceptorClass(cls) ? 'receiver' : 'this';
+        backend.interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
     List<String> args =
         backend.interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
     // TODO(floitsch): remove 'return'?
@@ -84,14 +84,14 @@ class ClassStubGenerator {
     // receiver explicitely and we need to pass it to the getter call.
     bool isInterceptedMethod =
         backend.interceptorData.isInterceptedMethod(member);
-    bool isInterceptorClass =
-        backend.interceptorData.isInterceptorClass(member.enclosingClass);
+    bool isInterceptedClass =
+        backend.interceptorData.isInterceptedClass(member.enclosingClass);
 
     const String receiverArgumentName = r'$receiver';
 
     jsAst.Expression buildGetter() {
       jsAst.Expression receiver =
-          js(isInterceptorClass ? receiverArgumentName : 'this');
+          js(isInterceptedClass ? receiverArgumentName : 'this');
       if (member.isGetter) {
         jsAst.Name getterName = namer.getterForElement(member);
         if (isInterceptedMethod) {

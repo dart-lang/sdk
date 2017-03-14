@@ -8,7 +8,8 @@ library compiler.src.js_backend.lookup_map_analysis;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart';
+import '../common/backend_api.dart';
 import '../constants/values.dart'
     show
         ConstantValue,
@@ -17,13 +18,67 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
+import '../options.dart';
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
 import 'js_backend.dart' show JavaScriptBackend;
+
+/// Lookup map handling for resolution.
+///
+/// This analysis checks for the import of `package:lookup_map/lookup_map.dart`,
+/// and if found, read the `_version` variable from it.
+///
+/// In [LookupMapAnalysis] the value of `_version` is checked to ensure that it
+/// is valid to perform the optimization of `LookupMap`. The actual optimization
+/// is performed by [LookupMapAnalysis].
+class LookupMapLibraryAccess {
+  static final Uri PACKAGE_LOOKUP_MAP =
+      new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
+
+  /// Reference the diagnostic reporting system for logging and reporting issues
+  /// to the end-user.
+  final DiagnosticReporter _reporter;
+
+  final ElementEnvironment _elementEnvironment;
+
+  /// The resolved [FieldEntity] associated with the top-level `_version`.
+  FieldEntity lookupMapVersionVariable;
+
+  /// The resolved [LibraryEntity] associated with
+  /// `package:lookup_map/lookup_map.dart`.
+  LibraryEntity lookupMapLibrary;
+
+  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+
+  LookupMapLibraryAccess(this._reporter, this._elementEnvironment);
+
+  /// Compute the [WorldImpact] for the constants registered since last flush.
+  WorldImpact flush() {
+    return impactBuilder.flush();
+  }
+
+  /// Initializes this analysis by providing the resolved library. This is
+  /// invoked during resolution when the `lookup_map` library is discovered.
+  void init(LibraryEntity library) {
+    lookupMapLibrary = library;
+    // We will enable the lookupMapAnalysis as long as we get a known version of
+    // the lookup_map package. We otherwise produce a warning.
+    lookupMapVersionVariable =
+        _elementEnvironment.lookupLibraryMember(lookupMapLibrary, '_version');
+    if (lookupMapVersionVariable == null) {
+      _reporter.reportHintMessage(
+          library, MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
+    } else {
+      impactBuilder.registerStaticUse(
+          new StaticUse.foreignUse(lookupMapVersionVariable));
+    }
+  }
+}
 
 /// An analysis and optimization to remove unused entries from a `LookupMap`.
 ///
@@ -69,18 +124,19 @@ class LookupMapAnalysis {
 
   /// Reference to [JavaScriptBackend] to be able to enqueue work when we
   /// discover that a key in a map is potentially used.
-  final JavaScriptBackend backend;
+  final JavaScriptBackend _backend;
+
+  final CompilerOptions _options;
 
   /// Reference the diagnostic reporting system for logging and reporting issues
   /// to the end-user.
-  final DiagnosticReporter reporter;
+  final DiagnosticReporter _reporter;
 
-  /// The resolved [VariableElement] associated with the top-level `_version`.
-  VariableElement lookupMapVersionVariable;
+  final ElementEnvironment _elementEnvironment;
 
-  /// The resolved [LibraryElement] associated with
-  /// `package:lookup_map/lookup_map.dart`.
-  LibraryElement lookupMapLibrary;
+  final CommonElements _commonElements;
+
+  final BackendClasses _backendClasses;
 
   /// The resolved [ClassElement] associated with `LookupMap`.
   ClassElement typeLookupMapClass;
@@ -119,23 +175,18 @@ class LookupMapAnalysis {
   /// entry with that key.
   final _pending = <ConstantValue, List<_LookupMapInfo>>{};
 
-  final StagedWorldImpactBuilder impactBuilderForResolution =
-      new StagedWorldImpactBuilder();
   final StagedWorldImpactBuilder impactBuilderForCodegen =
       new StagedWorldImpactBuilder();
 
   /// Whether the backend is currently processing the codegen queue.
   bool _inCodegen = false;
 
-  LookupMapAnalysis(this.backend, this.reporter);
+  LookupMapAnalysis(this._backend, this._options, this._reporter,
+      this._elementEnvironment, this._commonElements, this._backendClasses);
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
-  WorldImpact flush({bool forResolution}) {
-    if (forResolution) {
-      return impactBuilderForResolution.flush();
-    } else {
-      return impactBuilderForCodegen.flush();
-    }
+  WorldImpact flush() {
+    return impactBuilderForCodegen.flush();
   }
 
   /// Whether this analysis and optimization is enabled.
@@ -145,34 +196,19 @@ class LookupMapAnalysis {
     return typeLookupMapClass != null;
   }
 
-  /// Initializes this analysis by providing the resolved library. This is
-  /// invoked during resolution when the `lookup_map` library is discovered.
-  void init(LibraryElement library) {
-    lookupMapLibrary = library;
-    // We will enable the lookupMapAnalysis as long as we get a known version of
-    // the lookup_map package. We otherwise produce a warning.
-    lookupMapVersionVariable = library.implementation.findLocal('_version');
-    if (lookupMapVersionVariable == null) {
-      reporter.reportInfo(
-          library, MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
-    } else {
-      impactBuilderForResolution.registerStaticUse(
-          new StaticUse.foreignUse(lookupMapVersionVariable));
-    }
-  }
-
   /// Checks if the version of lookup_map is valid, and if so, enable this
   /// analysis during codegen.
-  void onCodegenStart() {
+  void onCodegenStart(LookupMapLibraryAccess analysis) {
     _inCodegen = true;
+    FieldElement lookupMapVersionVariable = analysis.lookupMapVersionVariable;
     if (lookupMapVersionVariable == null) return;
 
     // At this point, the lookupMapVersionVariable should be resolved and it's
     // constant value should be available.
     StringConstantValue value =
-        backend.constants.getConstantValue(lookupMapVersionVariable.constant);
+        _backend.constants.getConstantValue(lookupMapVersionVariable.constant);
     if (value == null) {
-      reporter.reportInfo(lookupMapVersionVariable,
+      _reporter.reportHintMessage(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
       return;
     }
@@ -185,16 +221,16 @@ class LookupMapAnalysis {
     } catch (e) {}
 
     if (version == null || !_validLookupMapVersionConstraint.allows(version)) {
-      reporter.reportInfo(lookupMapVersionVariable,
+      _reporter.reportHintMessage(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
       return;
     }
 
-    ClassElement cls = lookupMapLibrary.findLocal('LookupMap');
-    cls.computeType(backend.resolution);
-    entriesField = cls.lookupMember('_entries');
-    keyField = cls.lookupMember('_key');
-    valueField = cls.lookupMember('_value');
+    ClassEntity cls =
+        _elementEnvironment.lookupClass(analysis.lookupMapLibrary, 'LookupMap');
+    entriesField = _elementEnvironment.lookupClassMember(cls, '_entries');
+    keyField = _elementEnvironment.lookupClassMember(cls, '_key');
+    valueField = _elementEnvironment.lookupClassMember(cls, '_value');
     // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
     typeLookupMapClass = cls;
   }
@@ -235,8 +271,8 @@ class LookupMapAnalysis {
   void _addClassUse(ClassElement cls) {
     ConstantValue key = _typeConstants.putIfAbsent(
         cls,
-        () => backend.constantSystem.createType(
-            backend.commonElements, backend.backendClasses, cls.rawType));
+        () => _backend.constantSystem
+            .createType(_commonElements, _backendClasses, cls.rawType));
     _addUse(key);
   }
 
@@ -285,8 +321,9 @@ class LookupMapAnalysis {
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
-        backend.computeImpactForInstantiatedConstantType(
-            backend.backendClasses.typeType, impactBuilderForCodegen);
+        _backend.computeImpactForInstantiatedConstantType(
+            _backendClasses.typeType, impactBuilderForCodegen,
+            forResolution: false);
         _addGenerics(arg);
       }
     }
@@ -320,8 +357,7 @@ class LookupMapAnalysis {
 
     // When --verbose is passed, we show the total number and set of keys that
     // were tree-shaken from lookup maps.
-    Compiler compiler = backend.compiler;
-    if (compiler.options.verbose) {
+    if (_options.verbose) {
       var sb = new StringBuffer();
       int count = 0;
       for (var info in _lookupMaps.values) {
@@ -331,7 +367,7 @@ class LookupMapAnalysis {
           count++;
         }
       }
-      reporter.log(count == 0
+      _reporter.log(count == 0
           ? 'lookup-map: nothing was tree-shaken'
           : 'lookup-map: found $count unused keys ($sb)');
     }
@@ -426,8 +462,9 @@ class _LookupMapInfo {
     assert(!usedEntries.containsKey(key));
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
-    analysis.backend.computeImpactForCompileTimeConstant(
-        constant, analysis.impactBuilderForCodegen, false);
+    analysis._backend.computeImpactForCompileTimeConstant(
+        constant, analysis.impactBuilderForCodegen,
+        forResolution: false);
   }
 
   /// Restores [original] to contain all of the entries marked as possibly used.

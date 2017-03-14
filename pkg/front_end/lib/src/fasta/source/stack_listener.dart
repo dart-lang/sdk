@@ -111,7 +111,7 @@ abstract class StackListener extends Listener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
-    push(token.value);
+    push(token.lexeme);
   }
 
   @override
@@ -210,11 +210,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void endLiteralString(int interpolationCount) {
+  void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(unescapeString(token.value));
+      push(unescapeString(token.lexeme));
     } else {
       internalError("String interpolation not implemented.");
     }

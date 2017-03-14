@@ -21,7 +21,7 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
 
   String valueToString(var value) {
     if (value is Token) {
-      return value.value;
+      return value.lexeme;
     }
     return value;
   }

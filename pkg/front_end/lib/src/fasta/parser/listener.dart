@@ -4,11 +4,12 @@
 
 library fasta.parser.listener;
 
-import '../scanner/token.dart' show BeginGroupToken, Token;
+import '../scanner/token.dart' show BeginGroupToken, SymbolToken, Token;
 
 import '../util/link.dart' show Link;
 
 import 'error_kind.dart' show ErrorKind;
+import 'package:front_end/src/fasta/scanner/precedence.dart' show RECOVERY_INFO;
 import 'parser.dart' show FormalParameterType;
 
 import 'identifier_context.dart' show IdentifierContext;
@@ -164,7 +165,8 @@ class Listener {
 
   void beginFactoryMethod(Token token) {}
 
-  void endFactoryMethod(Token beginToken, Token endToken) {
+  void endFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
     logEvent("FactoryMethod");
   }
 
@@ -249,7 +251,11 @@ class Listener {
     logEvent("NoFunctionBody");
   }
 
-  void handleFunctionBodySkipped(Token token) {}
+  /// Handle the end of a function body that was skipped by the parser.
+  ///
+  /// The boolean [isExpressionBody] indicates whether the function body that
+  /// was skipped used "=>" syntax.
+  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {}
 
   void beginFunctionName(Token token) {}
 
@@ -382,7 +388,7 @@ class Listener {
 
   void beginInitializedIdentifier(Token token) {}
 
-  void endInitializedIdentifier() {
+  void endInitializedIdentifier(Token nameToken) {
     logEvent("InitializedIdentifier");
   }
 
@@ -475,7 +481,7 @@ class Listener {
 
   void beginLiteralString(Token token) {}
 
-  void endLiteralString(int interpolationCount) {
+  void endLiteralString(int interpolationCount, Token endToken) {
     logEvent("LiteralString");
   }
 
@@ -557,6 +563,10 @@ class Listener {
 
   void beginReturnStatement(Token token) {}
 
+  void endEmptyFunctionBody(Token semicolon) {
+    logEvent("EmptyFunctionBody");
+  }
+
   void endExpressionFunctionBody(Token arrowToken, Token endToken) {
     logEvent("ExpressionFunctionBody");
   }
@@ -568,7 +578,7 @@ class Listener {
 
   void beginSend(Token token) {}
 
-  void endSend(Token token) {
+  void endSend(Token beginToken, Token endToken) {
     logEvent("Send");
   }
 
@@ -959,7 +969,8 @@ class Listener {
 
   /// An unrecoverable error is an error that the parser can't recover from
   /// itself, and recovery is left to the listener. If the listener can
-  /// recover, it should return a non-null continuation token. Error recovery
+  /// recover, it should return a non-null continuation token whose `next`
+  /// pointer is the token the parser should continue from. Error recovery
   /// is tightly coupled to the parser implementation, so to recover from an
   /// error, one must carefully examine the code in the parser that generates
   /// the error.
@@ -980,6 +991,14 @@ class Listener {
 
   void handleScript(Token token) {
     logEvent("Script");
+  }
+
+  /// Creates a new synthetic token whose `next` pointer points to [next].
+  ///
+  /// If [next] is `null`, `null` is returned.
+  Token newSyntheticToken(Token next) {
+    if (next == null) return null;
+    return new SymbolToken(RECOVERY_INFO, next.charOffset)..next = next;
   }
 }
 

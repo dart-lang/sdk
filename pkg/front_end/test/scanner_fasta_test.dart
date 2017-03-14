@@ -115,19 +115,19 @@ class ScannerTest_Fasta extends ScannerTestBase {
       previousEnd = token.charOffset + token.charCount;
 
       // Spot check for specific token/comment combinations
-      if (token.value == 'class') {
+      if (token.lexeme == 'class') {
         ++spotCheckCount;
-        expect(token.precedingComments?.value, '/// Doc comment before class');
-        expect(token.precedingComments?.next?.value, '/// second line');
-        expect(token.precedingComments?.next?.next?.value, '/// third');
+        expect(token.precedingComments?.lexeme, '/// Doc comment before class');
+        expect(token.precedingComments?.next?.lexeme, '/// second line');
+        expect(token.precedingComments?.next?.next?.lexeme, '/// third');
         expect(token.precedingComments?.next?.next?.next, isNull);
-      } else if (token.value == 'Foo2') {
+      } else if (token.lexeme == 'Foo2') {
         ++spotCheckCount;
-        expect(token.precedingComments?.value, '/** Doc comment 2 */');
-      } else if (token.value == ')') {
+        expect(token.precedingComments?.lexeme, '/** Doc comment 2 */');
+      } else if (token.lexeme == ')') {
         if (token.precedingComments != null) {
           ++spotCheckCount;
-          expect(token.precedingComments?.value,
+          expect(token.precedingComments?.lexeme,
               '/* comment before closing paren */');
           expect(token.precedingComments?.next, isNull);
         }
@@ -138,7 +138,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
     expect(tokenCount, 26);
     expect(spotCheckCount, 3);
     expect(commentTokenCount, 9);
-    expect(token.precedingComments?.value, '// EOF comment');
+    expect(token.precedingComments?.lexeme, '// EOF comment');
   }
 
   @override
@@ -153,22 +153,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
   void test_comment_generic_method_type_list() {
     // TODO(paulberry,ahe): Fasta doesn't support generic method comment syntax.
     super.test_comment_generic_method_type_list();
-  }
-
-  @override
-  @failingTest
-  void test_index() {
-    // TODO(paulberry,ahe): "[]" should be parsed as a single token.
-    // See dartbug.com/28665.
-    super.test_index();
-  }
-
-  @override
-  @failingTest
-  void test_index_eq() {
-    // TODO(paulberry,ahe): "[]=" should be parsed as a single token.
-    // See dartbug.com/28665.
-    super.test_index_eq();
   }
 
   @override

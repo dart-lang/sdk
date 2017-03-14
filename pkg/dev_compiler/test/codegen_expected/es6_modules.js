@@ -45,4 +45,4 @@ dart.defineLazy(es6_modules, {
   },
   set lazyMutable(_) {}
 });
-dart.trackLibraries("es6_modules", {"es6_modules.dart": es6_modules});
+dart.trackLibraries("es6_modules", {"es6_modules.dart": es6_modules}, null);

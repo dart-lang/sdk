@@ -302,6 +302,10 @@ class NodeListener extends ElementListener {
     pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
+  void endEmptyFunctionBody(Token semicolon) {
+    endFunctionBody(0, null, semicolon);
+  }
+
   void endExpressionFunctionBody(Token arrowToken, Token endToken) {
     endReturnStatement(true, arrowToken, endToken);
   }
@@ -326,7 +330,7 @@ class NodeListener extends ElementListener {
 
   void handleOnError(Token token, var errorInformation) {
     reporter.internalError(
-        reporter.spanFromToken(token), "'${token.value}': ${errorInformation}");
+        reporter.spanFromToken(token), "'${token.lexeme}': ${errorInformation}");
   }
 
   @override
@@ -447,7 +451,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endSend(Token token) {
+  void endSend(Token beginToken, Token endToken) {
     NodeList arguments = popNode();
     NodeList typeArguments = popNode();
     Node selector = popNode();
@@ -474,7 +478,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token token) {
+  void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     pushNode(new Block(new NodeList.empty()));
   }
 
@@ -861,8 +865,9 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFactoryMethod(Token beginToken, Token endToken) {
-    super.endFactoryMethod(beginToken, endToken);
+  void endFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    super.endFactoryMethod(beginToken, factoryKeyword, endToken);
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();

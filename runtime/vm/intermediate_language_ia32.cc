@@ -2117,8 +2117,9 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(compiler->zone(),
                                       StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
-  compiler->GenerateCall(token_pos(), *StubCode::AllocateArray_entry(),
-                         RawPcDescriptors::kOther, locs());
+  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
+                                  *StubCode::AllocateArray_entry(),
+                                  RawPcDescriptors::kOther, locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }

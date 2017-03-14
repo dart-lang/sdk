@@ -17,7 +17,7 @@ import 'keyword.dart' show KeywordState, Keyword;
 
 import 'precedence.dart';
 
-import 'token.dart' show BeginGroupToken, KeywordToken, SymbolToken, Token;
+import 'token.dart' show BeginGroupToken, SymbolToken, Token;
 
 import 'token_constants.dart';
 
@@ -435,11 +435,7 @@ abstract class AbstractScanner implements Scanner {
     // [ [] []=
     next = advance();
     if (identical(next, $CLOSE_SQUARE_BRACKET)) {
-      Token token = previousToken();
-      if (token is KeywordToken && token.keyword.syntax == 'operator' ||
-          token is SymbolToken && token.info == HASH_INFO) {
-        return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
-      }
+      return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
     }
     appendBeginGroup(OPEN_SQUARE_BRACKET_INFO);
     return next;
@@ -1173,7 +1169,7 @@ PrecedenceInfo closeBraceInfoFor(BeginGroupToken begin) {
     '{': CLOSE_CURLY_BRACKET_INFO,
     '<': GT_INFO,
     r'${': CLOSE_CURLY_BRACKET_INFO,
-  }[begin.value];
+  }[begin.lexeme];
 }
 
 class LineStarts extends Object with ListMixin<int> {

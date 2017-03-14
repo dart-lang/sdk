@@ -7,11 +7,12 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
 class Trace {
-  String trace = "";
-  record(x) {
+  String trace;
+  Trace(this.trace);
+  void record(x) {
     trace += x.toString();
   }
-  toString() => trace;
+  String toString() => trace;
 }
 
 
@@ -19,68 +20,115 @@ Stream makeMeAStream() {
   return timedCounter(5);
 }
 
-Trace t1 = new Trace();
 
-consumeOne() async {
+consumeOne(trace) async {
   // Equivalent to await for (x in makeMeAStream()) { ... }
   var s = makeMeAStream();
   var it = new StreamIterator(s);
   while (await it.moveNext()) {
     var x = it.current;
-    t1.record(x);
+    trace.record(x);
   }
-  t1.record("X");
+  trace.record("X");
 }
 
-Trace t2 = new Trace();
 
-consumeTwo() async {
+consumeTwo(trace) async {
   await for (var x in makeMeAStream()) {
-    t2.record(x);
+    trace.record(x);
   }
-  t2.record("Y");
+  trace.record("Y");
 }
 
-Trace t3 = new Trace();
 
-consumeNested() async {
+consumeNested(trace) async {
   await for (var x in makeMeAStream()) {
-    t3.record(x);
+    trace.record(x);
     await for (var y in makeMeAStream()) {
-      t3.record(y);
+      trace.record(y);
     }
-    t3.record("|");
+    trace.record("|");
   }
-  t3.record("Z");
+  trace.record("Z");
 }
 
-Trace t4 = new Trace();
-
-consumeSomeOfInfinite() async {
+consumeSomeOfInfinite(trace) async {
   int i = 0;
   await for (var x in infiniteStream()) {
     i++;
     if (i > 10) break;
-    t4.record(x);
+    trace.record(x);
   }
-  t4.record("U");
+  trace.record("U");
+}
+
+const String cancelError =
+    "ERROR: Error in future returned by .cancel() must be caught";
+
+/// Creates a stream that yields integers forever, but throws when canceled.
+///
+/// The thrown error should end up in the future returned by `cancel`.
+Stream<int> errorOnCancelStream(int n) async* {
+  try {
+    while (true) yield n++;
+  } finally {
+    throw cancelError;
+  }
+}
+
+
+// Sanity-check that the errorOnCancelStream behaves as expected.
+testErrorOnCancel() {
+  var stream = errorOnCancelStream(0);
+  var subscription = stream.listen(null);
+  return subscription.cancel().then((_) {
+    Expect.fail("Cancel future did not contain error");
+  }, onError: (e) {
+    Expect.equals(cancelError, e);
+  });
+}
+
+testCancelAwaited() async {
+  return runZoned(() async {
+    var stream = errorOnCancelStream(0);
+    try {
+      var n = 0;
+      await for (var x in stream) {
+        Expect.equals(n++, x);
+        if (x == 5) break;
+      }
+      Expect.fail("Didn't await the cancel future.");
+    } on String catch (e) {
+      Expect.equals(cancelError, e);
+    }
+  }, onError: (e) {
+    // Catch the error if it's uncaught.
+    if (cancelError == e) {
+      Expect.fail("Error in cancel is considered uncaught");
+    }
+    throw e;
+  });
 }
 
 main() {
-  var f1 = consumeOne();
-  t1.record("T1:");
+  Trace t1 = new Trace("T1:");
+  var f1 = consumeOne(t1);
 
-  var f2 = consumeTwo();
-  t2.record("T2:");
- 
-  var f3 = consumeNested();
-  t3.record("T3:");
- 
-  var f4 = consumeSomeOfInfinite();
-  t4.record("T4:");
+  Trace t2 = new Trace("T2:");
+  var f2 = consumeTwo(t2);
+
+  Trace t3 = new Trace("T3:");
+  var f3 = consumeNested(t3);
+
+  Trace t4 = new Trace("T4:");
+  var f4 = consumeSomeOfInfinite(t4);
+
+  var f5 = testErrorOnCancel();
+
+  var f6 = testCancelAwaited();
 
   asyncStart();
-  Future.wait([f1, f2, f3, f4]).then((_) {
+  Future.wait([f1, f2, f3, f4, f5, f6]).then((_) {
     Expect.equals("T1:12345X", t1.toString());
     Expect.equals("T2:12345Y", t2.toString());
     Expect.equals("T3:112345|212345|312345|412345|512345|Z", t3.toString());

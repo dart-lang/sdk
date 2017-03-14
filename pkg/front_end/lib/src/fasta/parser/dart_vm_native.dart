@@ -28,8 +28,7 @@ Token skipNativeClause(Token token) {
   if (!optional("native", token)) return null;
   token = token.next;
   if (token.kind != STRING_TOKEN) return null;
-  token = token.next;
-  if (!optional(";", token)) return null;
+  if (!optional(";", token.next)) return null;
   return token;
 }
 

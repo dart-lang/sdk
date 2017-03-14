@@ -22,7 +22,7 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'core_types.dart'
+import 'common_elements.dart'
     show CommonElements, CommonElementsMixin, ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
@@ -530,9 +530,11 @@ abstract class Compiler implements LibraryLoaderListener {
               {'main': Identifiers.main},
               Identifiers.main,
               parameter);
-          mainFunction = backend.helperForMainArity();
           // Don't warn about main not being used:
-          impactBuilder.registerStaticUse(new StaticUse.foreignUse(main));
+          impactBuilder
+              .registerStaticUse(new StaticUse.foreignUse(mainFunction));
+
+          mainFunction = backend.helperForMainArity();
         });
       }
     }
@@ -620,16 +622,15 @@ abstract class Compiler implements LibraryLoaderListener {
           enqueuer.resolution
               .applyImpact(backend.computeDeferredLoadingImpact());
         }
-        // Elements required by enqueueHelpers are global dependencies
-        // that are not pulled in by a particular element.
-        enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
         reporter.log('Resolving...');
+        MethodElement mainMethod;
         if (mainFunction != null && !mainFunction.isMalformed) {
           mainFunction.computeType(resolution);
+          mainMethod = mainFunction;
         }
 
-        processQueue(enqueuer.resolution, mainFunction,
+        processQueue(enqueuer.resolution, mainMethod, libraryLoader.libraries,
             onProgress: showResolutionProgress);
         enqueuer.resolution.logSummary(reporter.log);
 
@@ -687,7 +688,7 @@ abstract class Compiler implements LibraryLoaderListener {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
           });
         }
-        processQueue(enqueuer.codegen, mainFunction,
+        processQueue(enqueuer.codegen, mainMethod, libraryLoader.libraries,
             onProgress: showCodegenProgress);
         enqueuer.codegen.logSummary(reporter.log);
 
@@ -808,15 +809,10 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   void processQueue(Enqueuer enqueuer, MethodElement mainMethod,
+      Iterable<LibraryEntity> libraries,
       {void onProgress()}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
-      enqueuer.open(impactStrategy);
-      enqueuer.applyImpact(enqueuer.nativeEnqueuer
-          .processNativeClasses(libraryLoader.libraries));
-      if (mainMethod != null && !mainMethod.isMalformed) {
-        enqueuer.applyImpact(backend.computeMainImpact(mainMethod,
-            forResolution: enqueuer.isResolutionQueue));
-      }
+      enqueuer.open(impactStrategy, mainMethod, libraries);
       if (options.verbose) {
         progress.reset();
       }
@@ -839,10 +835,8 @@ abstract class Compiler implements LibraryLoaderListener {
    * were resolved, but not compiled (aka excess resolution).
    */
   checkQueues() {
-    for (Enqueuer world in [enqueuer.resolution, enqueuer.codegen]) {
-      world.forEach((WorkItem work) {
-        reporter.internalError(work.element, "Work list is not empty.");
-      });
+    for (Enqueuer enqueuer in [enqueuer.resolution, enqueuer.codegen]) {
+      enqueuer.checkQueueIsEmpty();
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(enqueuer.resolution.processedEntities);
@@ -1864,7 +1858,7 @@ class CompilerResolution implements Resolution {
   }
 
   @override
-  ResolutionWorkItem createWorkItem(Element element) {
+  ResolutionWorkItem createWorkItem(MemberElement element) {
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.createResolutionWorkItem(element);
     } else {
@@ -1928,6 +1922,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   LibraryProvider get _libraryProvider => _compiler.libraryLoader;
   Resolution get _resolution => _compiler.resolution;
+
+  @override
+  LibraryEntity get mainLibrary => _compiler.mainApp;
+
+  @override
+  FunctionEntity get mainFunction => _compiler.mainFunction;
 
   @override
   ResolutionInterfaceType getThisType(ClassElement cls) {

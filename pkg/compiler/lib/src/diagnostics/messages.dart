@@ -244,6 +244,7 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
   LIBRARY_TAG_MUST_BE_FIRST,
+  LIBRARY_URI_MISMATCH,
   MAIN_HAS_PART_OF,
   MAIN_NOT_A_FUNCTION,
   MAIN_WITH_EXTRA_PARAMETER,
@@ -2029,6 +2030,26 @@ part of lib.bar;
             }
           ]),
 
+      MessageKind.LIBRARY_URI_MISMATCH: const MessageTemplate(
+          MessageKind.LIBRARY_URI_MISMATCH,
+          "Expected URI of library '#{libraryUri}'.",
+          howToFix: "Try changing the directive to 'part of "
+                    "\"#{libraryUri}\";'.",
+          examples: const [
+            const {
+              'main.dart': """
+library lib.foo;
+
+part 'part.dart';
+
+main() {}
+""",
+              'part.dart': """
+part of 'not-main.dart';
+"""
+            }
+          ]),
+
       MessageKind.MISSING_LIBRARY_NAME: const MessageTemplate(
           MessageKind.MISSING_LIBRARY_NAME,
           "Library has no name. Part directive expected library name "
@@ -3772,7 +3793,7 @@ class Message {
       // Shouldn't happen.
       return value.assertionMessage;
     } else if (value is Token) {
-      value = value.value;
+      value = value.lexeme;
     }
     return '$value';
   }

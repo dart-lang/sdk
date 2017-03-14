@@ -23,6 +23,7 @@ template <typename T>
 class GrowableArray;
 class ParsedFunction;
 
+
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
@@ -361,6 +362,12 @@ class FlowGraphCompiler : public ValueObject {
                     RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
+  void GenerateCallWithDeopt(TokenPosition token_pos,
+                             intptr_t deopt_id,
+                             const StubEntry& stub_entry,
+                             RawPcDescriptors::Kind kind,
+                             LocationSummary* locs);
+
   void GeneratePatchableCall(TokenPosition token_pos,
                              const StubEntry& stub_entry,
                              RawPcDescriptors::Kind kind,
@@ -467,8 +474,14 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter(intptr_t edge_id);
 #endif  // !defined(TARGET_ARCH_DBC)
+  void EmitCatchEntryState(
+      Environment* env = NULL,
+      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
 
-  void EmitTrySync(Instruction* instr, intptr_t try_index);
+  void EmitCallsiteMetaData(TokenPosition token_pos,
+                            intptr_t deopt_id,
+                            RawPcDescriptors::Kind kind,
+                            LocationSummary* locs);
 
   void EmitComment(Instruction* instr);
 
@@ -530,6 +543,7 @@ class FlowGraphCompiler : public ValueObject {
   RawArray* CreateDeoptInfo(Assembler* assembler);
   void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
+  void FinalizeCatchEntryStateMap(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);
   void FinalizeCodeSourceMap(const Code& code);
 
@@ -609,6 +623,8 @@ class FlowGraphCompiler : public ValueObject {
 
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
+  friend class CheckedSmiSlowPath;          // Same.
+  friend class CheckedSmiComparisonSlowPath;  // Same.
 
   static bool ShouldInlineSmiStringHashCode(const ICData& ic_data);
 
@@ -771,6 +787,7 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list_;
   StackMapTableBuilder* stackmap_table_builder_;
   CodeSourceMapBuilder* code_source_map_builder_;
+  CatchEntryStateMapBuilder* catch_entry_state_maps_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;

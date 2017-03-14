@@ -251,7 +251,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
           "Compiler and ${className} disagree on number of fields.");
     }
 
-    if (backend.classNeedsRtiField(classElement)) {
+    if (backend.rtiNeed.classNeedsRtiField(classElement)) {
       arguments.add(_reifiedTypeArguments(constant.type));
     }
 
@@ -311,7 +311,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     element.forEachInstanceField((_, FieldElement field) {
       fields.add(constantReferenceGenerator(constant.fields[field]));
     }, includeSuperAndInjectedMembers: true);
-    if (backend.classNeedsRtiField(constant.type.element)) {
+    if (backend.rtiNeed.classNeedsRtiField(constant.type.element)) {
       fields.add(_reifiedTypeArguments(constant.type));
     }
     jsAst.New instantiation = new jsAst.New(constructor, fields);
@@ -326,7 +326,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       ResolutionInterfaceType type, jsAst.Expression value) {
     if (type is ResolutionInterfaceType &&
         !type.treatAsRaw &&
-        backend.classNeedsRti(type.element)) {
+        backend.rtiNeed.classNeedsRti(type.element)) {
       return new jsAst.Call(
           getHelperProperty(backend.helpers.setRuntimeTypeInfo),
           [value, _reifiedTypeArguments(type)]);

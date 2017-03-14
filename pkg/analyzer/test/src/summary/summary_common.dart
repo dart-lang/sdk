@@ -9227,6 +9227,17 @@ D d;''');
     checkAnnotationA(unlinkedUnits[0].imports[0].annotations);
   }
 
+  test_metadata_invalid_assignable() {
+    // Verify that the following does not cause an exception to be thrown.
+    serializeLibraryText('@a(-b=""c');
+    expect(unlinkedUnits, hasLength(1));
+    List<UnlinkedVariable> variables = unlinkedUnits[0].variables;
+    expect(variables, hasLength(1));
+    List<UnlinkedExpr> annotations = variables[0].annotations;
+    expect(annotations, hasLength(1));
+    expect(annotations[0].isValidConst, isFalse);
+  }
+
   test_metadata_invalid_instanceCreation_argument_super() {
     List<UnlinkedExpr> annotations = serializeClassText('''
 class A {

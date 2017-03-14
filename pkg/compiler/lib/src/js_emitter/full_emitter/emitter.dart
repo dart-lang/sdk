@@ -15,7 +15,7 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../core_types.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'

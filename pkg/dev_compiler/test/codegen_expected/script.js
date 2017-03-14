@@ -12,7 +12,7 @@ define(['dart_sdk'], function(dart_sdk) {
     core.print(dart.str`hello ${name}`);
   };
   dart.fn(script.main, ListOfStringTovoid());
-  dart.trackLibraries("script", {"script.dart": script});
+  dart.trackLibraries("script", {"script.dart": script}, null);
   // Exports:
   return {
     script: script

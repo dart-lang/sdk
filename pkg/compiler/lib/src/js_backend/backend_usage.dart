@@ -4,8 +4,9 @@
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../core_types.dart';
+import '../common_elements.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -16,8 +17,8 @@ import 'backend_helpers.dart';
 import 'backend_impact.dart';
 
 abstract class BackendUsage {
-  bool get needToInitializeIsolateAffinityTag;
-  bool get needToInitializeDispatchProperty;
+  bool needToInitializeIsolateAffinityTag;
+  bool needToInitializeDispatchProperty;
   bool usedByBackend(Element element);
   Iterable<Element> get globalDependencies;
 
@@ -35,20 +36,19 @@ abstract class BackendUsage {
 
   /// `true` if `Function.apply` is used.
   bool get isFunctionApplyUsed;
+
+  /// `true` if `noSuchMethod` is used.
+  bool get isNoSuchMethodUsed;
 }
 
 abstract class BackendUsageBuilder {
   Element registerBackendUse(Element element);
-  void registerGlobalDependency(Element element);
-  void registerBackendImpact(
-      WorldImpactBuilder worldImpact, BackendImpact backendImpact);
-  void registerBackendStaticUse(
-      WorldImpactBuilder worldImpact, MethodElement element,
-      {bool isGlobal: false});
-  void registerBackendInstantiation(
-      WorldImpactBuilder worldImpact, ClassElement cls,
-      {bool isGlobal: false});
-  WorldImpact createImpactFor(BackendImpact impact);
+  void registerGlobalFunctionDependency(MethodElement element);
+  void registerGlobalClassDependency(ClassElement element);
+
+  /// Collect backend use from [backendImpact].
+  void processBackendImpact(BackendImpact backendImpact);
+
   void registerUsedMember(MemberElement member);
 
   /// `true` of `Object.runtimeType` is used.
@@ -59,12 +59,17 @@ abstract class BackendUsageBuilder {
 
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed;
+
+  /// `true` if `noSuchMethod` is used.
+  bool isNoSuchMethodUsed;
+
+  BackendUsage close();
 }
 
-class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
+class BackendUsageBuilderImpl implements BackendUsageBuilder {
+  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
-  final Resolution _resolution;
   // TODO(johnniwinther): Remove the need for this.
   Setlet<Element> _globalDependencies;
 
@@ -89,12 +94,11 @@ class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed = false;
 
-  BackendUsageImpl(this._commonElements, this._helpers, this._resolution);
+  /// `true` if `noSuchMethod` is used.
+  bool isNoSuchMethodUsed = false;
 
-  bool get needToInitializeIsolateAffinityTag =>
-      _needToInitializeIsolateAffinityTag;
-  bool get needToInitializeDispatchProperty =>
-      _needToInitializeDispatchProperty;
+  BackendUsageBuilderImpl(
+      this._elementEnvironment, this._commonElements, this._helpers);
 
   /// The backend must *always* call this method when enqueuing an
   /// element. Calls done by the backend are not seen by global
@@ -117,7 +121,8 @@ class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
   }
 
   bool _isValidBackendUse(Element element) {
-    assert(invariant(element, element.isDeclaration, message: ""));
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     if (element is ConstructorElement &&
         (element == _helpers.streamIteratorConstructor ||
             _commonElements.isSymbolConstructor(element) ||
@@ -154,71 +159,41 @@ class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
     return false;
   }
 
-  bool usedByBackend(Element element) {
-    if (element.isRegularParameter ||
-        element.isInitializingFormal ||
-        element.isField) {
-      if (usedByBackend(element.enclosingElement)) return true;
-    }
-    return _helpersUsed.contains(element.declaration);
-  }
-
-  WorldImpact createImpactFor(BackendImpact impact) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    registerBackendImpact(impactBuilder, impact);
-    return impactBuilder;
-  }
-
-  void registerBackendStaticUse(
-      WorldImpactBuilder worldImpact, MethodElement element,
-      {bool isGlobal: false}) {
+  void _processBackendStaticUse(MethodElement element, {bool isGlobal: false}) {
     registerBackendUse(element);
-    worldImpact.registerStaticUse(
-        // TODO(johnniwinther): Store the correct use in impacts.
-        new StaticUse.foreignUse(element));
     if (isGlobal) {
-      registerGlobalDependency(element);
+      registerGlobalFunctionDependency(element);
     }
   }
 
-  void registerBackendInstantiation(
-      WorldImpactBuilder worldImpact, ClassElement cls,
-      {bool isGlobal: false}) {
-    cls.ensureResolved(_resolution);
+  void _processBackendInstantiation(ClassElement cls, {bool isGlobal: false}) {
     registerBackendUse(cls);
-    worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
     if (isGlobal) {
-      registerGlobalDependency(cls);
+      registerGlobalClassDependency(cls);
     }
   }
 
-  void registerBackendImpact(
-      WorldImpactBuilder worldImpact, BackendImpact backendImpact) {
-    for (Element staticUse in backendImpact.staticUses) {
+  void processBackendImpact(BackendImpact backendImpact) {
+    for (MemberElement staticUse in backendImpact.staticUses) {
       assert(staticUse != null);
-      registerBackendStaticUse(worldImpact, staticUse);
+      _processBackendStaticUse(staticUse);
     }
-    for (Element staticUse in backendImpact.globalUses) {
+    for (MemberElement staticUse in backendImpact.globalUses) {
       assert(staticUse != null);
-      registerBackendStaticUse(worldImpact, staticUse, isGlobal: true);
-    }
-    for (Selector selector in backendImpact.dynamicUses) {
-      assert(selector != null);
-      worldImpact.registerDynamicUse(new DynamicUse(selector, null));
+      _processBackendStaticUse(staticUse, isGlobal: true);
     }
     for (ResolutionInterfaceType instantiatedType
         in backendImpact.instantiatedTypes) {
       registerBackendUse(instantiatedType.element);
-      worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
     }
     for (ClassElement cls in backendImpact.instantiatedClasses) {
-      registerBackendInstantiation(worldImpact, cls);
+      _processBackendInstantiation(cls);
     }
     for (ClassElement cls in backendImpact.globalClasses) {
-      registerBackendInstantiation(worldImpact, cls, isGlobal: true);
+      _processBackendInstantiation(cls, isGlobal: true);
     }
     for (BackendImpact otherImpact in backendImpact.otherImpacts) {
-      registerBackendImpact(worldImpact, otherImpact);
+      processBackendImpact(otherImpact);
     }
     for (BackendFeature feature in backendImpact.features) {
       switch (feature) {
@@ -244,12 +219,86 @@ class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
     }
   }
 
-  void registerGlobalDependency(Element element) {
+  void registerGlobalFunctionDependency(MethodElement element) {
+    _registerGlobalDependency(element);
+  }
+
+  void registerGlobalClassDependency(ClassElement element) {
+    _registerGlobalDependency(element);
+  }
+
+  void _registerGlobalDependency(Element element) {
     if (element == null) return;
     if (_globalDependencies == null) {
       _globalDependencies = new Setlet<Element>();
     }
     _globalDependencies.add(element.implementation);
+  }
+
+  BackendUsage close() {
+    return new BackendUsageImpl(
+        globalDependencies: _globalDependencies,
+        helpersUsed: _helpersUsed,
+        needToInitializeIsolateAffinityTag: _needToInitializeIsolateAffinityTag,
+        needToInitializeDispatchProperty: _needToInitializeDispatchProperty,
+        requiresPreamble: requiresPreamble,
+        isInvokeOnUsed: isInvokeOnUsed,
+        isRuntimeTypeUsed: isRuntimeTypeUsed,
+        isIsolateInUse: isIsolateInUse,
+        isFunctionApplyUsed: isFunctionApplyUsed,
+        isNoSuchMethodUsed: isNoSuchMethodUsed);
+  }
+}
+
+class BackendUsageImpl implements BackendUsage {
+  // TODO(johnniwinther): Remove the need for this.
+  final Set<Element> _globalDependencies;
+
+  /// List of elements that the backend may use.
+  final Set<Element> _helpersUsed;
+
+  bool needToInitializeIsolateAffinityTag;
+  bool needToInitializeDispatchProperty;
+
+  /// `true` if a core-library function requires the preamble file to function.
+  final bool requiresPreamble;
+
+  /// `true` if [BackendHelpers.invokeOnMethod] is used.
+  final bool isInvokeOnUsed;
+
+  /// `true` of `Object.runtimeType` is used.
+  final bool isRuntimeTypeUsed;
+
+  /// `true` if the `dart:isolate` library is in use.
+  final bool isIsolateInUse;
+
+  /// `true` if `Function.apply` is used.
+  final bool isFunctionApplyUsed;
+
+  /// `true` if `noSuchMethod` is used.
+  final bool isNoSuchMethodUsed;
+
+  BackendUsageImpl(
+      {Set<Element> globalDependencies,
+      Set<Element> helpersUsed,
+      this.needToInitializeIsolateAffinityTag,
+      this.needToInitializeDispatchProperty,
+      this.requiresPreamble,
+      this.isInvokeOnUsed,
+      this.isRuntimeTypeUsed,
+      this.isIsolateInUse,
+      this.isFunctionApplyUsed,
+      this.isNoSuchMethodUsed})
+      : this._globalDependencies = globalDependencies,
+        this._helpersUsed = helpersUsed;
+
+  bool usedByBackend(Element element) {
+    if (element.isRegularParameter ||
+        element.isInitializingFormal ||
+        element.isField) {
+      if (usedByBackend(element.enclosingElement)) return true;
+    }
+    return _helpersUsed.contains(element.declaration);
   }
 
   Iterable<Element> get globalDependencies => _globalDependencies;

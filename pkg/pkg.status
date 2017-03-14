@@ -33,6 +33,9 @@ front_end/test/fasta/bootstrap_test: Pass, Slow
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
 
+[ $compiler != dart2analyzer ]
+analyzer/test/src/summary/summarize_fasta_test: RuntimeError
+
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
 
@@ -193,6 +196,7 @@ kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
 [ $runtime == vm ]
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
+analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 # Skip tests on the VM if the package depends on dart:html
 mutation_observer: Skip
 
@@ -211,3 +215,4 @@ kernel/test/closures_test: Fail
 
 [ $runtime == vm && $system == windows ]
 analyzer_cli/test/driver_test: Pass, Slow
+analyzer/test/src/task/strong/checker_test: Pass, Slow

@@ -6,7 +6,7 @@ library dart2js.constants.evaluation;
 
 import '../common.dart';
 import '../common/backend_api.dart' show BackendClasses;
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;

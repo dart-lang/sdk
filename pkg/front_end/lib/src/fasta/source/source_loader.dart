@@ -22,7 +22,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../errors.dart' show inputError, printUnexpected;
+import '../errors.dart' show inputError;
 
 import '../messages.dart' show warning;
 
@@ -75,7 +75,8 @@ class SourceLoader<L> extends Loader<L> {
       while (token is ErrorToken) {
         if (!suppressLexicalErrors) {
           ErrorToken error = token;
-          printUnexpected(uri, token.charOffset, error.assertionMessage);
+          library.addCompileTimeError(token.charOffset, error.assertionMessage,
+              fileUri: uri);
         }
         token = token.next;
       }

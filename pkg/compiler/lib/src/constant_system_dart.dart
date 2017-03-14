@@ -7,7 +7,7 @@ library dart2js.constant_system.dart;
 import 'common/backend_api.dart' show BackendClasses;
 import 'constants/constant_system.dart';
 import 'constants/values.dart';
-import 'core_types.dart' show CommonElements;
+import 'common_elements.dart' show CommonElements;
 import 'elements/types.dart';
 import 'elements/resolution_types.dart' show DartTypes;
 import 'tree/dartstring.dart' show DartString;

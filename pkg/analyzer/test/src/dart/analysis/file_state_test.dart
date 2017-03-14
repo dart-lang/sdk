@@ -91,7 +91,7 @@ class B {
         r'''
 class A {}
 class B = Object with A;
-typedef C {}
+typedef C();
 D() {}
 get E => null;
 set F(_) {}

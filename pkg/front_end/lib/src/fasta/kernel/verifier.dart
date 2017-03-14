@@ -23,12 +23,11 @@ import '../errors.dart' show printUnexpected;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
-void verifyProgram(Program program, {bool isOutline: false}) {
+List<VerificationError> verifyProgram(Program program,
+    {bool isOutline: false}) {
   FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(isOutline);
   program.accept(verifier);
-  if (verifier.errors.isNotEmpty) {
-    throw verifier.errors.first;
-  }
+  return verifier.errors;
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor {
@@ -42,10 +41,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   problem(TreeNode node, String details) {
-    // TODO(karlklose): Remove this when underlying problem is fixed.
-    if (details.startsWith("Type parameter 'dart.collection::MapView::")) {
-      return;
-    }
     VerificationError error = new VerificationError(context, node, details);
     printUnexpected(Uri.parse(fileUri), node.fileOffset, "$error");
     errors.add(error);

@@ -125,6 +125,103 @@ static uint8_t* zone_allocator(uint8_t* ptr,
 }
 
 
+class CatchEntryStateMapBuilder::TrieNode : public ZoneAllocated {
+ public:
+  TrieNode() : pair_(), entry_state_offset_(-1) {}
+  TrieNode(CatchEntryStatePair pair, intptr_t index)
+      : pair_(pair), entry_state_offset_(index) {}
+
+  intptr_t Offset() { return entry_state_offset_; }
+
+  TrieNode* Insert(TrieNode* node) {
+    children_.Add(node);
+    return node;
+  }
+
+  TrieNode* Follow(CatchEntryStatePair next) {
+    for (intptr_t i = 0; i < children_.length(); i++) {
+      if (children_[i]->pair_ == next) return children_[i];
+    }
+    return NULL;
+  }
+
+ private:
+  CatchEntryStatePair pair_;
+  const intptr_t entry_state_offset_;
+  GrowableArray<TrieNode*> children_;
+};
+
+CatchEntryStateMapBuilder::CatchEntryStateMapBuilder()
+    : zone_(Thread::Current()->zone()),
+      root_(new TrieNode()),
+      current_pc_offset_(0),
+      buffer_(NULL),
+      stream_(&buffer_, zone_allocator, 64) {}
+
+
+void CatchEntryStateMapBuilder::AppendMove(intptr_t src_slot,
+                                           intptr_t dest_slot) {
+  moves_.Add(CatchEntryStatePair::FromMove(src_slot, dest_slot));
+}
+
+
+void CatchEntryStateMapBuilder::AppendConstant(intptr_t pool_id,
+                                               intptr_t dest_slot) {
+  moves_.Add(CatchEntryStatePair::FromConstant(pool_id, dest_slot));
+}
+
+
+void CatchEntryStateMapBuilder::NewMapping(intptr_t pc_offset) {
+  moves_.Clear();
+  current_pc_offset_ = pc_offset;
+}
+
+
+void CatchEntryStateMapBuilder::EndMapping() {
+  intptr_t suffix_length = 0;
+  TrieNode* suffix = root_;
+  // Find the largest common suffix, get the last node of the path.
+  for (intptr_t i = moves_.length() - 1; i >= 0; i--) {
+    TrieNode* n = suffix->Follow(moves_[i]);
+    if (n == NULL) break;
+    suffix_length++;
+    suffix = n;
+  }
+  intptr_t length = moves_.length() - suffix_length;
+  intptr_t current_offset = stream_.bytes_written();
+
+  typedef WriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
+  Writer::Write(&stream_, current_pc_offset_);
+  Writer::Write(&stream_, length);
+  Writer::Write(&stream_, suffix_length);
+  Writer::Write(&stream_, suffix->Offset());
+
+  // Write the unshared part, adding it to the trie.
+  TrieNode* node = suffix;
+  for (intptr_t i = length - 1; i >= 0; i--) {
+    Writer::Write(&stream_, moves_[i].src);
+    Writer::Write(&stream_, moves_[i].dest);
+
+    TrieNode* child = new (zone_) TrieNode(moves_[i], current_offset);
+    node->Insert(child);
+    node = child;
+  }
+}
+
+
+RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
+  TypedData& td = TypedData::Handle(TypedData::New(
+      kTypedDataInt8ArrayCid, stream_.bytes_written(), Heap::kOld));
+  NoSafepointScope no_safepoint;
+  uint8_t* dest = reinterpret_cast<uint8_t*>(td.DataAddr(0));
+  uint8_t* src = stream_.buffer();
+  for (intptr_t i = 0; i < stream_.bytes_written(); i++) {
+    dest[i] = src[i];
+  }
+  return td.raw();
+}
+
+
 const TokenPosition CodeSourceMapBuilder::kInitialPosition =
     TokenPosition::kDartCodePrologue;
 

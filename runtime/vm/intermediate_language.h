@@ -2409,7 +2409,9 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit RedefinitionInstr(Value* value) { SetInputAt(0, value); }
+  explicit RedefinitionInstr(Value* value) : type_(NULL) {
+    SetInputAt(0, value);
+  }
 
   DECLARE_INSTRUCTION(Redefinition)
 
@@ -2418,11 +2420,15 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
+  void set_type(CompileType* type) { type_ = type; }
+  CompileType* type() const { return type_; }
+
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
+  CompileType* type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 
@@ -2745,6 +2751,8 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
   PRINT_OPERANDS_TO_SUPPORT
+
+  bool MatchesCoreName(const String& name);
 
  protected:
   friend class JitOptimizer;

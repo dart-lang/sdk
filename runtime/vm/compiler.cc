@@ -583,6 +583,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeStackMaps(code);
   graph_compiler->FinalizeVarDescriptors(code);
   graph_compiler->FinalizeExceptionHandlers(code);
+  graph_compiler->FinalizeCatchEntryStateMap(code);
   graph_compiler->FinalizeStaticCallTargetsTable(code);
   graph_compiler->FinalizeCodeSourceMap(code);
 
@@ -1098,6 +1099,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // to be later used by the inliner.
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
 
+        flow_graph->RemoveRedefinitions();
         {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
                                                     "AllocateRegisters"));

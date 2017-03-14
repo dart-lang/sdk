@@ -261,12 +261,16 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
   SSLFilter* filter = GetFilter(args);
-  // The SSLFilter is deleted in the finalizer for the Dart object created by
-  // SetFilter. There is no need to NULL-out the native field for the SSLFilter
-  // here because the SSLFilter won't be deleted until the finalizer for the
-  // Dart object runs while the Dart object is being GCd. This approach avoids a
-  // leak if Destroy isn't called, and avoids a NULL-dereference if Destroy is
-  // called more than once.
+  // There are two paths that can clean up an SSLFilter object. First,
+  // there is this explicit call to Destroy(), called from
+  // _SecureFilter.destroy() in Dart code. After a call to destroy(), the Dart
+  // code maintains the invariant that there will be no futher SSLFilter
+  // requests sent to the IO Service. Therefore, the internals of the SSLFilter
+  // are safe to deallocate, but not the SSLFilter itself, which is already
+  // set up to be cleaned up by the finalizer.
+  //
+  // The second path is through the finalizer, which we have to do in case
+  // some mishap prevents a call to _SecureFilter.destroy().
   filter->Destroy();
 }
 
@@ -1661,7 +1665,7 @@ void SSLFilter::Renegotiate(bool use_session_cache,
 }
 
 
-SSLFilter::~SSLFilter() {
+void SSLFilter::FreeResources() {
   if (ssl_ != NULL) {
     SSL_free(ssl_);
     ssl_ = NULL;
@@ -1680,6 +1684,11 @@ SSLFilter::~SSLFilter() {
       buffers_[i] = NULL;
     }
   }
+}
+
+
+SSLFilter::~SSLFilter() {
+  FreeResources();
 }
 
 
@@ -1706,6 +1715,7 @@ void SSLFilter::Destroy() {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
     bad_certificate_callback_ = NULL;
   }
+  FreeResources();
 }
 
 

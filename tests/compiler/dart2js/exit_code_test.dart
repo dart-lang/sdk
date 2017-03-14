@@ -267,6 +267,8 @@ void main() {
   bool isCheckedMode = false;
   assert((isCheckedMode = true));
 
+  entry.enableWriteString = false;
+
   Map _expectedExitCode({bool beforeRun: false, bool fatalWarnings: false}) {
     if (beforeRun) {
       return {

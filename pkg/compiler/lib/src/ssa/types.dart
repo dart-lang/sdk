@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../native/native.dart' as native;
 import '../types/types.dart';

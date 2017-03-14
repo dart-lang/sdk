@@ -2,19 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.outline;
+library fasta;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show exitCode;
+import 'dart:convert' show JSON;
 
-import 'kernel/verifier.dart' show verifyProgram;
+import 'dart:io' show BytesBuilder, Directory, File, exitCode;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+
+import 'package:kernel/kernel.dart' show Program;
+
+import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show InputError, inputError;
+import 'errors.dart' show InputError, formatUnexpected, inputError, reportCrash;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
@@ -24,14 +30,29 @@ import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
 
+import 'vm.dart' show CompilationResult;
+
+const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 compileEntryPoint(List<String> arguments) async {
+  // Timing results for each iteration
+  List<double> elapsedTimes = <double>[];
+
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
-      print("\n");
+      print("\n\n=== Iteration ${i+1} of $iterations");
     }
+    var stopwatch = new Stopwatch()..start();
     await compile(arguments);
+    stopwatch.stop();
+
+    elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
+  }
+
+  if (summary) {
+    var json = JSON.encode(<String, dynamic>{'elapsedTimes': elapsedTimes});
+    print('\nSummary: $json');
   }
 }
 
@@ -121,22 +142,69 @@ class CompileTask {
     KernelTarget kernelTarget = await buildOutline();
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
-    await kernelTarget.writeProgram(uri);
-    if (c.options.dumpIr) {
-      kernelTarget.dumpIr();
-    }
-    if (c.options.verify) {
-      try {
-        verifyProgram(kernelTarget.program);
-        ticker.logMs("Verified program");
-      } catch (e, s) {
-        exitCode = 1;
-        print("Verification of program failed: $e");
-        if (s != null && c.options.verbose) {
-          print(s);
-        }
-      }
-    }
+    await kernelTarget.writeProgram(uri,
+        dumpIr: c.options.dumpIr, verify: c.options.verify);
     return uri;
+  }
+}
+
+Future<CompilationResult> parseScript(
+    Uri fileName, Uri packages, Uri patchedSdk, bool verbose) async {
+  try {
+    if (!await new File.fromUri(fileName).exists()) {
+      return new CompilationResult.error(
+          formatUnexpected(fileName, -1, "No such file."));
+    }
+    if (!await new Directory.fromUri(patchedSdk).exists()) {
+      return new CompilationResult.error(
+          formatUnexpected(patchedSdk, -1, "Patched sdk directory not found."));
+    }
+
+    Target target = getTarget("vm", new TargetFlags(strongMode: false));
+
+    Program program;
+    final uriTranslator = await TranslateUri.parse(null, packages);
+    final Ticker ticker = new Ticker(isVerbose: verbose);
+    final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+    dillTarget.read(patchedSdk.resolve('platform.dill'));
+    final KernelTarget kernelTarget =
+        new KernelTarget(dillTarget, uriTranslator);
+    try {
+      kernelTarget.read(fileName);
+      await dillTarget.writeOutline(null);
+      program = await kernelTarget.writeOutline(null);
+      program = await kernelTarget.writeProgram(null);
+      if (kernelTarget.errors.isNotEmpty) {
+        return new CompilationResult.errors(kernelTarget.errors
+            .map((err) => err.toString())
+            .toList(growable: false));
+      }
+    } on InputError catch (e) {
+      return new CompilationResult.error(e.format());
+    }
+
+    // Perform target-specific transformations.
+    target.performModularTransformations(program);
+    target.performGlobalTransformations(program);
+
+    // Write the program to a list of bytes and return it.
+    var sink = new ByteSink();
+    new BinaryPrinter(sink).writeProgramFile(program);
+    return new CompilationResult.ok(sink.builder.takeBytes());
+  } catch (e, s) {
+    return reportCrash(e, s, fileName);
+  }
+}
+
+// TODO(ahe): https://github.com/dart-lang/sdk/issues/28316
+class ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
+
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  void close() {
+    // Nothing to do.
   }
 }

@@ -460,7 +460,7 @@ class Parser {
         return token;
       }
       return reportUnrecoverableError(
-          token, ErrorKind.ExpectedButGot, {"expected": "("});
+          token, ErrorKind.ExpectedButGot, {"expected": "("})?.next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endToken = beginGroupToken.endGroup;
@@ -491,6 +491,11 @@ class Parser {
       } else if (identical(value, '{')) {
         token = parseOptionalFormalParameters(token, true,
             inFunctionType: inFunctionType);
+        break;
+      } else if (identical(value, '[]')) {
+        --parameterCount;
+        reportRecoverableError(token, ErrorKind.EmptyOptionalParameterList);
+        token = token.next;
         break;
       }
       token = parseFormalParameter(token, FormalParameterType.REQUIRED,
@@ -752,16 +757,17 @@ class Parser {
 
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
-      return reportUnrecoverableError(token, ErrorKind.ExpectedBlockToSkip);
+      return reportUnrecoverableError(token, ErrorKind.ExpectedBlockToSkip)
+          ?.next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     }
     return beginGroupToken.endGroup;
   }
@@ -870,7 +876,7 @@ class Parser {
 
   Token parseStringPart(Token token) {
     if (token.kind != STRING_TOKEN) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedString);
+      token = reportUnrecoverableError(token, ErrorKind.ExpectedString)?.next;
     }
     listener.handleStringPart(token);
     return token.next;
@@ -878,7 +884,8 @@ class Parser {
 
   Token parseIdentifier(Token token, IdentifierContext context) {
     if (!token.isIdentifier()) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedIdentifier);
+      token =
+          reportUnrecoverableError(token, ErrorKind.ExpectedIdentifier)?.next;
     }
     listener.handleIdentifier(token, context);
     return token.next;
@@ -887,7 +894,7 @@ class Parser {
   Token expect(String string, Token token) {
     if (!identical(string, token.stringValue)) {
       return reportUnrecoverableError(
-          token, ErrorKind.ExpectedButGot, {"expected": string});
+          token, ErrorKind.ExpectedButGot, {"expected": string})?.next;
     }
     return token.next;
   }
@@ -957,7 +964,7 @@ class Parser {
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
       } else {
-        token = reportUnrecoverableError(token, ErrorKind.ExpectedType);
+        token = reportUnrecoverableError(token, ErrorKind.ExpectedType)?.next;
         listener.handleInvalidTypeReference(token);
       }
       token = parseTypeArgumentsOpt(token);
@@ -1033,13 +1040,15 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -1084,7 +1093,8 @@ class Parser {
         }
         break;
       } else {
-        token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+        token =
+            reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
         if (identical(token.kind, EOF_TOKEN)) return token;
       }
     }
@@ -1621,16 +1631,17 @@ class Parser {
 
   Token skipClassBody(Token token) {
     if (!optional('{', token)) {
-      return reportUnrecoverableError(token, ErrorKind.ExpectedClassBodyToSkip);
+      return reportUnrecoverableError(token, ErrorKind.ExpectedClassBodyToSkip)
+          ?.next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnrecoverableError(
-          beginGroupToken, ErrorKind.UnmatchedToken);
+      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
+          ?.next;
     }
     return endGroup;
   }
@@ -1639,7 +1650,8 @@ class Parser {
     Token begin = token;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedClassBody);
+      token =
+          reportUnrecoverableError(token, ErrorKind.ExpectedClassBody)?.next;
     }
     token = token.next;
     int count = 0;
@@ -1676,13 +1688,15 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration);
+      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
+          ?.next;
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -1734,7 +1748,8 @@ class Parser {
         isField = true;
         break;
       } else {
-        token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+        token =
+            reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
         if (identical(token.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
           listener.endFields(1, null, start, token);
@@ -1858,7 +1873,7 @@ class Parser {
     } else {
       token = parseFunctionBody(token, false, isExternal);
     }
-    listener.endFactoryMethod(start, token);
+    listener.endFactoryMethod(start, factoryKeyword, token);
     return token.next;
   }
 
@@ -2007,14 +2022,16 @@ class Parser {
       if (identical(value, '=>')) {
         token = parseExpression(token.next);
         expectSemicolon(token);
+        listener.handleFunctionBodySkipped(token, true);
       } else if (identical(value, '=')) {
         reportRecoverableError(token, ErrorKind.ExpectedBody);
         token = parseExpression(token.next);
         expectSemicolon(token);
+        listener.handleFunctionBodySkipped(token, true);
       } else {
         token = skipBlock(token);
+        listener.handleFunctionBodySkipped(token, false);
       }
-      listener.handleFunctionBodySkipped(token);
     }
     return token;
   }
@@ -2024,7 +2041,7 @@ class Parser {
       if (!allowAbstract) {
         reportRecoverableError(token, ErrorKind.ExpectedBody);
       }
-      listener.endFunctionBody(0, null, token);
+      listener.endEmptyFunctionBody(token);
       return token;
     } else if (optional('=>', token)) {
       Token begin = token;
@@ -2052,7 +2069,8 @@ class Parser {
     Token begin = token;
     int statementCount = 0;
     if (!optional('{', token)) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedFunctionBody);
+      token =
+          reportUnrecoverableError(token, ErrorKind.ExpectedFunctionBody)?.next;
       listener.handleInvalidFunctionBody(token);
       return token;
     }
@@ -2121,7 +2139,7 @@ class Parser {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
       // example, provokes this.
-      return reportUnrecoverableError(token, ErrorKind.StackOverflow);
+      return reportUnrecoverableError(token, ErrorKind.StackOverflow)?.next;
     }
     Token result = parseStatementX(token);
     statementDepth--;
@@ -2426,7 +2444,7 @@ class Parser {
         BeginGroupToken begin = token;
         token = (begin.endGroup != null) ? begin.endGroup : token;
       } else if (token is ErrorToken) {
-        reportErrorToken(token, false);
+        reportErrorToken(token, false)?.next;
       }
       token = token.next;
     }
@@ -2441,7 +2459,7 @@ class Parser {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for examaple, the language test
       // deep_nesting1_negative_test.
-      return reportUnrecoverableError(token, ErrorKind.StackOverflow);
+      return reportUnrecoverableError(token, ErrorKind.StackOverflow)?.next;
     }
     listener.beginExpression(token);
     Token result = optional('throw', token)
@@ -2508,7 +2526,8 @@ class Parser {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else {
-            token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+            token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken)
+                ?.next;
           }
         } else if (identical(info, IS_INFO)) {
           token = parseIsOperatorRest(token);
@@ -2548,7 +2567,7 @@ class Parser {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.handleBinaryExpression(cascadeOperator);
     } else {
-      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
     }
     Token mark;
     do {
@@ -2603,6 +2622,7 @@ class Parser {
   }
 
   Token parseArgumentOrIndexStar(Token token) {
+    Token beginToken = token;
     while (true) {
       if (optional('[', token)) {
         Token openSquareBracket = token;
@@ -2615,7 +2635,7 @@ class Parser {
       } else if (optional('(', token)) {
         listener.handleNoTypeArguments(token);
         token = parseArguments(token);
-        listener.endSend(token);
+        listener.endSend(beginToken, token);
       } else {
         break;
       }
@@ -2675,7 +2695,7 @@ class Parser {
   }
 
   Token expressionExpected(Token token) {
-    token = reportUnrecoverableError(token, ErrorKind.ExpectedExpression);
+    token = reportUnrecoverableError(token, ErrorKind.ExpectedExpression)?.next;
     listener.handleInvalidExpression(token);
     return token;
   }
@@ -2689,7 +2709,7 @@ class Parser {
         (identical(kind, FUNCTION_TOKEN) ||
             identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
             (identical(kind, KEYWORD_TOKEN) &&
-                (nextToken.value == 'async' || nextToken.value == 'sync')))) {
+                (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync')))) {
       listener.handleNoTypeVariables(token);
       return parseUnnamedFunction(token);
     } else {
@@ -2709,7 +2729,7 @@ class Parser {
     // [begin] is now known to have type [BeginGroupToken].
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {
-      reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
       token = begin.endGroup;
     }
     listener.handleParenthesizedExpression(begin);
@@ -2717,25 +2737,27 @@ class Parser {
   }
 
   Token parseThisExpression(Token token) {
+    Token beginToken = token;
     listener.handleThisExpression(token);
     token = token.next;
     if (optional('(', token)) {
       // Constructor forwarding.
       listener.handleNoTypeArguments(token);
       token = parseArguments(token);
-      listener.endSend(token);
+      listener.endSend(beginToken, token);
     }
     return token;
   }
 
   Token parseSuperExpression(Token token) {
+    Token beginToken = token;
     listener.handleSuperExpression(token);
     token = token.next;
     if (optional('(', token)) {
       // Super constructor.
       listener.handleNoTypeArguments(token);
       token = parseArguments(token);
-      listener.endSend(token);
+      listener.endSend(beginToken, token);
     }
     return token;
   }
@@ -2806,7 +2828,7 @@ class Parser {
       if (identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
           (identical(kind, KEYWORD_TOKEN) &&
-              (nextToken.value == 'async' || nextToken.value == 'sync'))) {
+              (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync'))) {
         return parseUnnamedFunction(token);
       }
       // Fall through.
@@ -2896,7 +2918,7 @@ class Parser {
       token = parseArguments(token);
     } else {
       listener.handleNoArguments(token);
-      token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
     }
     return token;
   }
@@ -3009,7 +3031,7 @@ class Parser {
       token = parseStringPart(token);
       kind = token.kind;
     }
-    listener.endLiteralString(interpolationCount);
+    listener.endLiteralString(interpolationCount, token);
     return token;
   }
 
@@ -3024,6 +3046,7 @@ class Parser {
   }
 
   Token parseSend(Token token, IdentifierContext context) {
+    Token beginToken = token;
     listener.beginSend(token);
     token = parseIdentifier(token, context);
     if (isValidMethodTypeArguments(token)) {
@@ -3032,7 +3055,7 @@ class Parser {
       listener.handleNoTypeArguments(token);
     }
     token = parseArgumentsOpt(token);
-    listener.endSend(token);
+    listener.endSend(beginToken, token);
     return token;
   }
 
@@ -3150,10 +3173,11 @@ class Parser {
   }
 
   Token parseOptionallyInitializedIdentifier(Token token) {
+    Token nameToken = token;
     listener.beginInitializedIdentifier(token);
     token = parseIdentifier(token, IdentifierContext.localVariableDeclaration);
     token = parseVariableInitializerOpt(token);
-    listener.endInitializedIdentifier();
+    listener.endInitializedIdentifier(nameToken);
     return token;
   }
 
@@ -3524,7 +3548,7 @@ class Parser {
       next = reportErrorToken(token, false);
     } else {
       arguments ??= {};
-      arguments.putIfAbsent("actual", () => token.value);
+      arguments.putIfAbsent("actual", () => token.lexeme);
       next = listener.handleUnrecoverableError(token, kind, arguments);
     }
     return next ?? skipToEof(token);
@@ -3560,7 +3584,7 @@ class Parser {
         break;
 
       case ErrorKind.UnmatchedToken:
-        String begin = token.begin.value;
+        String begin = token.begin.lexeme;
         String end = closeBraceFor(begin);
         arguments = {'begin': begin, 'end': end};
         break;

@@ -13,7 +13,10 @@ import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/command_line/arguments.dart'
-    show applyAnalysisOptionFlags;
+    show
+        applyAnalysisOptionFlags,
+        bazelAnalysisOptionsPath,
+        flutterAnalysisOptionsPath;
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler, PerformanceLog;
@@ -398,23 +401,24 @@ class ContextBuilder {
       }
     } else {
       // Search for the default analysis options
+      // unless explicitly directed not to do so.
       Source source;
-      // TODO(danrubel) determine if bazel or gn project depends upon flutter
-      if (workspace.hasFlutterDependency) {
-        source =
-            sourceFactory.forUri('package:flutter/analysis_options_user.yaml');
-      }
-      if (source == null || !source.exists()) {
-        source =
-            sourceFactory.forUri('package:dart.analysis_options/default.yaml');
-      }
-      if (source.exists()) {
-        try {
-          optionMap = optionsProvider.getOptionsFromSource(source);
-          verbose('Loaded analysis options from ${source.fullName}');
-        } catch (e) {
-          // Ignore exceptions thrown while trying to load the options file.
-          verbose('Exception: $e\n  when loading ${source.fullName}');
+      if (builderOptions.packageDefaultAnalysisOptions) {
+        // TODO(danrubel) determine if bazel or gn project depends upon flutter
+        if (workspace.hasFlutterDependency) {
+          source = sourceFactory.forUri(flutterAnalysisOptionsPath);
+        }
+        if (source == null || !source.exists()) {
+          source = sourceFactory.forUri(bazelAnalysisOptionsPath);
+        }
+        if (source.exists()) {
+          try {
+            optionMap = optionsProvider.getOptionsFromSource(source);
+            verbose('Loaded analysis options from ${source.fullName}');
+          } catch (e) {
+            // Ignore exceptions thrown while trying to load the options file.
+            verbose('Exception: $e\n  when loading ${source.fullName}');
+          }
         }
       }
     }
@@ -626,6 +630,11 @@ class ContextBuilderOptions {
    * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
+
+  /**
+   * Allow Flutter and bazel default analysis options to be used.
+   */
+  bool packageDefaultAnalysisOptions = true;
 
   /**
    * Initialize a newly created set of options

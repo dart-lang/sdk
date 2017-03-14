@@ -9,7 +9,7 @@ import '../compiler.dart' show Compiler;
 import '../compile_time_constants.dart' show ConstantEnvironment;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';

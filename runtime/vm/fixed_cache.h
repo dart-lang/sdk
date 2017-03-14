@@ -12,25 +12,21 @@ namespace dart {
 
 // A simple sorted fixed size Key-Value storage.
 //
-// Assumes both Key and Value are POD-like objects.
+// Assumes both Key and Value are default-constructible objects.
 //
 // Keys must be comparable with operator<.
 //
 // Duplicates are not allowed - check with Lookup before insertion.
 //
-// Optionally Values may have cleanup function to delete
-// any resources they point to.
 template <class K, class V, intptr_t kCapacity>
 class FixedCache {
  public:
-  typedef void (*Deleter)(V*);
-
   struct Entry {
     K key;
     V value;
   };
 
-  explicit FixedCache(Deleter deleter = NULL) : deleter_(deleter), length_(0) {}
+  FixedCache() : length_(0) {}
 
   ~FixedCache() { Clear(); }
 
@@ -44,7 +40,6 @@ class FixedCache {
     intptr_t i = LowerBound(key);
 
     if (length_ == kCapacity) {
-      if (deleter_) deleter_(&pairs_[length_ - 1].value);
       length_ = kCapacity - 1;
       if (i == kCapacity) i = kCapacity - 1;
     }
@@ -59,11 +54,6 @@ class FixedCache {
   }
 
   void Clear() {
-    if (deleter_) {
-      for (intptr_t i = 0; i < length_; i++) {
-        deleter_(&pairs_[i].value);
-      }
-    }
     length_ = 0;
   }
 
@@ -84,7 +74,6 @@ class FixedCache {
   }
 
   Entry pairs_[kCapacity];  // Sorted array of pairs.
-  Deleter deleter_;
   intptr_t length_;
 };
 

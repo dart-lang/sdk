@@ -8,7 +8,9 @@ import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 
 import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show internalError;
+import '../errors.dart' show inputError, internalError;
+
+import '../export.dart' show Export;
 
 import '../messages.dart' show warning;
 
@@ -320,17 +322,23 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void validatePart() {
     if (parts.isNotEmpty) {
-      internalError("Part with parts: $uri");
+      inputError(fileUri, -1,
+          "A file that's a part of a library can't have parts itself.");
     }
     if (exporters.isNotEmpty) {
-      internalError(
-          "${exporters.first.exporter.uri} attempts to export the part $uri.");
+      Export export = exporters.first;
+      inputError(
+          export.fileUri, export.charOffset, "A part can't be exported.");
     }
   }
 
   void includeParts() {
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
-      includePart(part);
+      if (part == this) {
+        addCompileTimeError(-1, "A file can't be a part of itself.");
+      } else {
+        includePart(part);
+      }
     }
   }
 

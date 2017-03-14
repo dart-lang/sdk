@@ -535,7 +535,7 @@ class ElementListener extends Listener {
             reportErrorFromToken(preceding,
                 MessageKind.MISSING_TOKEN_AFTER_THIS, {'token': expected});
           }
-          return token;
+          return preceding;
         } else {
           reportFatalError(
               reporter.spanFromToken(token),
@@ -550,37 +550,37 @@ class ElementListener extends Listener {
           reportErrorFromToken(
               token,
               MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
-              {'keyword': token.value});
+              {'keyword': token.lexeme});
         } else if (token is ErrorToken) {
           // TODO(ahe): This is dead code.
-          return synthesizeIdentifier(token);
+          return newSyntheticToken(synthesizeIdentifier(token));
         } else {
           reportFatalError(reporter.spanFromToken(token),
-              "Expected identifier, but got '${token.value}'.");
+              "Expected identifier, but got '${token.lexeme}'.");
         }
-        return token;
+        return newSyntheticToken(token);
 
       case ErrorKind.ExpectedType:
         reportFatalError(reporter.spanFromToken(token),
-            "Expected a type, but got '${token.value}'.");
+            "Expected a type, but got '${token.lexeme}'.");
         return null;
 
       case ErrorKind.ExpectedExpression:
         reportFatalError(reporter.spanFromToken(token),
-            "Expected an expression, but got '${token.value}'.");
+            "Expected an expression, but got '${token.lexeme}'.");
         return null;
 
       case ErrorKind.UnexpectedToken:
-        String message = "Unexpected token '${token.value}'.";
+        String message = "Unexpected token '${token.lexeme}'.";
         if (token.info == Precedence.BAD_INPUT_INFO) {
-          message = token.value;
+          message = token.lexeme;
         }
         reportFatalError(reporter.spanFromToken(token), message);
         return null;
 
       case ErrorKind.ExpectedBlockToSkip:
         if (optional("native", token)) {
-          return native.handleNativeBlockToSkip(this, token);
+          return newSyntheticToken(native.handleNativeBlockToSkip(this, token));
         } else {
           errorCode = MessageKind.BODY_EXPECTED;
         }
@@ -589,28 +589,29 @@ class ElementListener extends Listener {
       case ErrorKind.ExpectedFunctionBody:
         if (optional("native", token)) {
           lastErrorWasNativeFunctionBody = true;
-          return native.handleNativeFunctionBody(this, token);
+          return newSyntheticToken(
+              native.handleNativeFunctionBody(this, token));
         } else {
           reportFatalError(reporter.spanFromToken(token),
-              "Expected a function body, but got '${token.value}'.");
+              "Expected a function body, but got '${token.lexeme}'.");
         }
         return null;
 
       case ErrorKind.ExpectedClassBodyToSkip:
       case ErrorKind.ExpectedClassBody:
         reportFatalError(reporter.spanFromToken(token),
-            "Expected a class body, but got '${token.value}'.");
+            "Expected a class body, but got '${token.lexeme}'.");
         return null;
 
       case ErrorKind.ExpectedDeclaration:
         reportFatalError(reporter.spanFromToken(token),
-            "Expected a declaration, but got '${token.value}'.");
+            "Expected a declaration, but got '${token.lexeme}'.");
         return null;
 
       case ErrorKind.UnmatchedToken:
         reportErrorFromToken(token, MessageKind.UNMATCHED_TOKEN, arguments);
-        Token next = token.next;
-        while (next is ErrorToken) {
+        Token next = token;
+        while (next.next is ErrorToken) {
           next = next.next;
         }
         return next;
@@ -638,7 +639,7 @@ class ElementListener extends Listener {
 
       case ErrorKind.ExpectedString:
         reportFatalError(reporter.spanFromToken(token),
-            "Expected a String, but got '${token.value}'.");
+            "Expected a String, but got '${token.lexeme}'.");
         return null;
 
       case ErrorKind.ExtraneousModifier:
@@ -849,7 +850,7 @@ class ElementListener extends Listener {
 
   @override
   void beginLiteralString(Token token) {
-    String source = token.value;
+    String source = token.lexeme;
     StringQuoting quoting = StringValidator.quotingFromString(source);
     pushQuoting(quoting);
     // Just wrap the token for now. At the end of the interpolation,
@@ -865,7 +866,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endLiteralString(int count) {
+  void endLiteralString(int count, Token endToken) {
     StringQuoting quoting = popQuoting();
 
     Link<StringInterpolationPart> parts = const Link<StringInterpolationPart>();

@@ -18,7 +18,7 @@ import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'dart2js.dart' as dart2js;
 import 'elements/resolution_types.dart' as dart_types;
-import 'deferred_load.dart' as deferred;
+import 'deferred_load.dart' as deferred_load;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
@@ -299,6 +299,6 @@ useSemanticVisitor() {
   new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
 }
 
-useDeferred([deferred.DeferredLoadTask task]) {
+useDeferred([deferred_load.DeferredLoadTask task]) {
   task.dump();
 }

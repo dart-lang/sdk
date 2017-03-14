@@ -56,7 +56,11 @@ void checkElementText(LibraryElement library, String expected,
     {bool withOffsets: false}) {
   var writer = new _ElementWriter(withOffsets: withOffsets);
   writer.writeLibraryElement(library);
+
   String actualText = writer.buffer.toString();
+  actualText =
+      actualText.split('\n').map((line) => line.trimRight()).join('\n');
+
   if (_testPath != null && actualText != expected) {
     if (_testCode == null) {
       _testCode = new File(_testPath).readAsStringSync();
@@ -99,10 +103,10 @@ void checkElementText(LibraryElement library, String expected,
   }
 
   // Print the actual text to simplify copy/paste into the expectation.
-  if (actualText != expected) {
-    print('-------- Actual --------');
-    print(actualText + '------------------------');
-  }
+//  if (actualText != expected) {
+//    print('-------- Actual --------');
+//    print(actualText + '------------------------');
+//  }
 
   expect(actualText, expected);
 }
@@ -112,9 +116,10 @@ void checkElementText(LibraryElement library, String expected,
  */
 class _ElementWriter {
   final bool withOffsets;
+  final bool withConstElements;
   final StringBuffer buffer = new StringBuffer();
 
-  _ElementWriter({this.withOffsets: false});
+  _ElementWriter({this.withOffsets: false, this.withConstElements: true});
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
@@ -360,7 +365,17 @@ class _ElementWriter {
       writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
           includeEmpty: true);
     } else if (e is SimpleIdentifier) {
-      buffer.write(e.name);
+      if (withConstElements) {
+        buffer.writeln();
+        buffer.write('  ' * 4);
+        buffer.write(e.name);
+        buffer.write('/*');
+        buffer.write('location: ');
+        buffer.write(_getElementLocationString(e.staticElement));
+        buffer.write('*/');
+      } else {
+        buffer.write(e.name);
+      }
     } else if (e is SimpleStringLiteral) {
       buffer.write("'");
       buffer.write(e.value.replaceAll("'", r"\'"));
@@ -738,6 +753,30 @@ class _ElementWriter {
       buffer.write('${e.uriEnd})');
       buffer.write(')');
     }
+  }
+
+  String _getElementLocationString(Element element) {
+    if (element == null) {
+      return 'null';
+    }
+
+    String onlyName(String uri) {
+      if (uri.startsWith('file:///')) {
+        return uri.substring(uri.lastIndexOf('/') + 1);
+      }
+      return uri;
+    }
+
+    ElementLocation location = element.location;
+    List<String> components = location.components.toList();
+    if (components.length > 2) {
+      components[0] = onlyName(components[0]);
+      components[1] = onlyName(components[1]);
+      if (components[0] == components[1]) {
+        components.removeAt(0);
+      }
+    }
+    return components.join(';');
   }
 }
 

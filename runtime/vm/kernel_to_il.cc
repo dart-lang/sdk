@@ -2271,7 +2271,8 @@ Fragment FlowGraphBuilder::BranchIfStrictEqual(
 
 
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
-                                           intptr_t handler_index) {
+                                           intptr_t handler_index,
+                                           bool needs_stacktrace) {
   ASSERT(CurrentException()->is_captured() ==
          CurrentStackTrace()->is_captured());
   const bool should_restore_closure_context =
@@ -2281,7 +2282,7 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
       false,                     // Not an artifact of compilation.
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
-      /* needs_stacktrace = */ true, H.thread()->GetNextDeoptId(),
+      needs_stacktrace, H.thread()->GetNextDeoptId(),
       should_restore_closure_context);
   graph_entry_->AddCatchEntry(entry);
   Fragment instructions(entry);
@@ -6020,7 +6021,9 @@ void FlowGraphBuilder::VisitTryFinally(TryFinally* node) {
   ++catch_depth_;
   const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
   handler_types.SetAt(0, Object::dynamic_type());
-  Fragment finally_body = CatchBlockEntry(handler_types, try_handler_index);
+  // Note: rethrow will actually force mark the handler as needing a stacktrace.
+  Fragment finally_body = CatchBlockEntry(handler_types, try_handler_index,
+                                          /* needs_stacktrace = */ false);
   finally_body += TranslateStatement(node->finalizer());
   if (finally_body.is_open()) {
     finally_body += LoadLocal(CurrentException());
@@ -6056,7 +6059,15 @@ void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
   ++catch_depth_;
   const Array& handler_types =
       Array::ZoneHandle(Z, Array::New(node->catches().length(), Heap::kOld));
-  Fragment catch_body = CatchBlockEntry(handler_types, try_handler_index);
+  bool needs_stacktrace = false;
+  for (intptr_t i = 0; i < node->catches().length(); i++) {
+    if (node->catches()[i]->stack_trace() != NULL) {
+      needs_stacktrace = true;
+      break;
+    }
+  }
+  Fragment catch_body =
+      CatchBlockEntry(handler_types, try_handler_index, needs_stacktrace);
   // Fill in the body of the catch.
   for (intptr_t i = 0; i < node->catches().length(); i++) {
     Catch* catch_clause = node->catches()[i];

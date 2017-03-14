@@ -74,9 +74,8 @@ Future<String> compile(String code,
     lego.Element element = compiler.mainApp.find(entry);
     if (element == null) return null;
     compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.enqueuer.resolution
-        .applyImpact(compiler.backend.computeHelpersImpact());
-    compiler.processQueue(compiler.enqueuer.resolution, element);
+    compiler.processQueue(compiler.enqueuer.resolution, element,
+        compiler.libraryLoader.libraries);
     ResolutionWorkItem resolutionWork =
         new ResolutionWorkItem(compiler.resolution, element);
     resolutionWork.run();
@@ -159,12 +158,14 @@ Future<String> compileAll(String code,
   });
 }
 
-Future compileAndCheck(String code, String name,
+Future analyzeAndCheck(String code, String name,
     check(MockCompiler compiler, lego.Element element),
     {int expectedErrors, int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri,
-      expectedErrors: expectedErrors, expectedWarnings: expectedWarnings);
+      expectedErrors: expectedErrors,
+      expectedWarnings: expectedWarnings,
+      analyzeOnly: true);
   return compiler.run(uri).then((_) {
     lego.Element element = findElement(compiler, name);
     return check(compiler, element);

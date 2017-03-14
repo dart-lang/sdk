@@ -14,7 +14,7 @@ import '../compiler_context.dart' show CompilerContext;
 
 import '../ticker.dart' show Ticker;
 
-import '../outline.dart' show CompileTask;
+import '../fasta.dart' show CompileTask;
 
 import '../errors.dart' show InputError;
 

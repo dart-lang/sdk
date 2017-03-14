@@ -414,7 +414,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Map<int, int> localClosureIndexMap = null;
       _ConstExprSerializer serializer =
           new _ConstExprSerializer(this, localClosureIndexMap, null);
-      serializer.serializeAnnotation(a);
+      try {
+        serializer.serializeAnnotation(a);
+      } on StateError {
+        return new UnlinkedExprBuilder()..isValidConst = false;
+      }
       return serializer.toBuilder();
     }).toList();
   }
@@ -1104,7 +1108,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.isConst = true;
       b.constCycleSlot = assignSlot();
     }
-    b.isExternal = node.externalKeyword != null;
+    b.isExternal = node.externalKeyword != null || node.body is NativeFunctionBody;
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
@@ -1226,7 +1230,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.documentationComment,
         node.metadata,
         node.functionExpression.typeParameters,
-        node.externalKeyword != null,
+        node.externalKeyword != null || node.functionExpression.body is NativeFunctionBody,
         false,
         node.parent is FunctionDeclarationStatement));
   }
@@ -1353,7 +1357,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.documentationComment,
         node.metadata,
         node.typeParameters,
-        node.externalKeyword != null,
+        node.externalKeyword != null || node.body is NativeFunctionBody,
         false,
         false));
   }
@@ -1368,7 +1372,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    isCoreLibrary = node.libraryName.name == 'dart.core';
+    isCoreLibrary = node.libraryName?.name == 'dart.core';
     isPartOf = true;
   }
 

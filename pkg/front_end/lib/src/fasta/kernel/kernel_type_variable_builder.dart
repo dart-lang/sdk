@@ -28,6 +28,8 @@ class KernelTypeVariableBuilder
       : parameter = new TypeParameter(name, null),
         super(name, bound, compilationUnit, charOffset);
 
+  TypeParameter get target => parameter;
+
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     if (arguments != null) {

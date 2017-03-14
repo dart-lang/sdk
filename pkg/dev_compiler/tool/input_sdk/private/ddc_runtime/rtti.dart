@@ -208,9 +208,14 @@ void tagLazy(value, compute) {
 }
 
 var _loadedModules = JS('', 'new Map()');
+var _loadedSourceMaps = JS('', 'new Map()');
 
 List getModuleNames() {
   return JS('', 'Array.from(#.keys())', _loadedModules);
+}
+
+String getSourceMap(module) {
+  return JS('String', '#.get(#)', _loadedSourceMaps, module);
 }
 
 /// Return all library objects in the specified module.
@@ -222,6 +227,7 @@ getModuleLibraries(String name) {
 }
 
 /// Track all libraries
-void trackLibraries(String moduleName, libraries) {
+void trackLibraries(String moduleName, libraries, sourceMap) {
+  JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
   JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
 }

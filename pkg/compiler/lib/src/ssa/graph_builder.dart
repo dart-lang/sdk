@@ -204,7 +204,7 @@ abstract class GraphBuilder {
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(ResolutionDartType type,
       List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!backend.classNeedsRti(type.element)) {
+    if (!backend.rtiNeed.classNeedsRti(type.element)) {
       return newObject;
     }
 

@@ -426,6 +426,16 @@ abstract class ClassElementForLink extends Object
     return null;
   }
 
+  @override
+  PropertyAccessorElement getGetter(String getterName) {
+    for (PropertyAccessorElement accessor in accessors) {
+      if (accessor.isGetter && accessor.name == getterName) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
   /**
    * Perform type inference and cycle detection on this class and
    * store the resulting information in [compilationUnit].
@@ -634,16 +644,6 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
-  PropertyAccessorElement getGetter(String getterName) {
-    for (PropertyAccessorElement accessor in accessors) {
-      if (accessor.isGetter && accessor.name == getterName) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
   MethodElement getMethod(String methodName) {
     for (MethodElement method in methods) {
       if (method.name == methodName) {
@@ -704,7 +704,7 @@ class ClassElementForLink_Enum extends ClassElementForLink
   final UnlinkedEnum _unlinkedEnum;
 
   InterfaceType _type;
-  List<FieldElementForLink_EnumField> _fields;
+  List<FieldElementForLink> _fields;
   List<PropertyAccessorElementForLink> _accessors;
   DartType _valuesType;
 
@@ -716,7 +716,7 @@ class ClassElementForLink_Enum extends ClassElementForLink
   List<PropertyAccessorElementForLink> get accessors {
     if (_accessors == null) {
       _accessors = <PropertyAccessorElementForLink>[];
-      for (FieldElementForLink_EnumField field in fields) {
+      for (FieldElementForLink field in fields) {
         _accessors.add(field.getter);
       }
     }
@@ -730,13 +730,14 @@ class ClassElementForLink_Enum extends ClassElementForLink
   String get displayName => _unlinkedEnum.name;
 
   @override
-  List<FieldElementForLink_EnumField> get fields {
+  List<FieldElementForLink> get fields {
     if (_fields == null) {
-      _fields = <FieldElementForLink_EnumField>[];
-      _fields.add(new FieldElementForLink_EnumField(null, this));
+      _fields = <FieldElementForLink>[];
+      _fields.add(new FieldElementForLink_EnumField_values(this));
       for (UnlinkedEnumValue value in _unlinkedEnum.values) {
-        _fields.add(new FieldElementForLink_EnumField(value, this));
+        _fields.add(new FieldElementForLink_EnumField_value(this, value));
       }
+      _fields.add(new FieldElementForLink_EnumField_index(this));
     }
     return _fields;
   }
@@ -2781,43 +2782,87 @@ class FieldElementForLink_ClassField extends VariableElementForLink
  */
 class FieldElementForLink_EnumField extends FieldElementForLink
     implements FieldElement {
-  /**
-   * The unlinked representation of the field in the summary, or `null` if this
-   * is an enum's `values` field.
-   */
-  final UnlinkedEnumValue unlinkedEnumValue;
-
   PropertyAccessorElementForLink_EnumField _getter;
 
   @override
   final ClassElementForLink_Enum enclosingElement;
 
-  FieldElementForLink_EnumField(this.unlinkedEnumValue, this.enclosingElement);
+  FieldElementForLink_EnumField(this.enclosingElement);
 
   @override
   PropertyAccessorElementForLink_EnumField get getter =>
       _getter ??= new PropertyAccessorElementForLink_EnumField(this);
 
   @override
-  bool get isStatic => true;
-
-  @override
   bool get isSynthetic => false;
-
-  @override
-  String get name =>
-      unlinkedEnumValue == null ? 'values' : unlinkedEnumValue.name;
-
-  @override
-  DartType get type => unlinkedEnumValue == null
-      ? enclosingElement.valuesType
-      : enclosingElement.type;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   String toString() => '$enclosingElement.$name';
+}
+
+/**
+ * Specialization of [FieldElementForLink] for the 'index' enum field.
+ */
+class FieldElementForLink_EnumField_index
+    extends FieldElementForLink_EnumField {
+  FieldElementForLink_EnumField_index(ClassElementForLink_Enum enclosingElement)
+      : super(enclosingElement);
+
+  @override
+  bool get isStatic => false;
+
+  @override
+  String get name => 'index';
+
+  @override
+  DartType get type =>
+      enclosingElement.enclosingElement.library._linker.typeProvider.intType;
+}
+
+/**
+ * Specialization of [FieldElementForLink] for enum fields.
+ */
+class FieldElementForLink_EnumField_value
+    extends FieldElementForLink_EnumField {
+  /**
+   * The unlinked representation of the field in the summary.
+   */
+  final UnlinkedEnumValue unlinkedEnumValue;
+
+  FieldElementForLink_EnumField_value(
+      ClassElementForLink_Enum enclosingElement, this.unlinkedEnumValue)
+      : super(enclosingElement);
+
+  @override
+  bool get isStatic => true;
+
+  @override
+  String get name => unlinkedEnumValue.name;
+
+  @override
+  DartType get type => enclosingElement.type;
+}
+
+/**
+ * Specialization of [FieldElementForLink] for the 'values' enum field.
+ */
+class FieldElementForLink_EnumField_values
+    extends FieldElementForLink_EnumField {
+  FieldElementForLink_EnumField_values(
+      ClassElementForLink_Enum enclosingElement)
+      : super(enclosingElement);
+
+  @override
+  bool get isStatic => true;
+
+  @override
+  String get name => 'values';
+
+  @override
+  DartType get type => enclosingElement.valuesType;
 }
 
 class FieldFormalParameterElementForLink extends ParameterElementForLink

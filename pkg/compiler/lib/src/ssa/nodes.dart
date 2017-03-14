@@ -1715,7 +1715,7 @@ class HFieldGet extends HFieldAccess {
     if (sourceElement is ThisLocal) {
       ThisLocal thisLocal = sourceElement;
       return closedWorld.interceptorData
-          .isInterceptorClass(thisLocal.enclosingClass);
+          .isInterceptedClass(thisLocal.enclosingClass);
     }
     return false;
   }
@@ -2361,7 +2361,7 @@ class HThis extends HParameterValue {
 
   bool isInterceptor(ClosedWorld closedWorld) {
     return closedWorld.interceptorData
-        .isInterceptorClass(sourceElement.enclosingClass);
+        .isInterceptedClass(sourceElement.enclosingClass);
   }
 
   String toString() => 'this';

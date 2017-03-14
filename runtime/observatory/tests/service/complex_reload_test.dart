@@ -10,24 +10,29 @@ import 'dart:isolate' as I;
 import 'dart:io';
 import 'service_test_common.dart';
 import 'package:observatory/service.dart';
+import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
+// Chop off the file name.
+String baseDirectory =
+    path.dirname(Platform.script.path) + '/';
+
+Uri baseUri = Platform.script.replace(path: baseDirectory);
+Uri spawnUri = baseUri.resolveUri(Uri.parse('complex_reload/v1/main.dart'));
+Uri v2Uri = baseUri.resolveUri(Uri.parse('complex_reload/v2/main.dart'));
+Uri v3Uri = baseUri.resolveUri(Uri.parse('complex_reload/v3/main.dart'));
+
 testMain() async {
+  print(baseUri);
   debugger();  // Stop here.
   // Spawn the child isolate.
   I.Isolate isolate =
-      await I.Isolate.spawnUri(Uri.parse('complex_reload/v1/main.dart'),
+      await I.Isolate.spawnUri(spawnUri,
                                [],
                                null);
   print(isolate);
   debugger();
 }
-
-// Directory that we are running in.
-String directory = (Platform.isWindows ? '' : Platform.pathSeparator) +
-    Platform.script.pathSegments.sublist(
-        0,
-        Platform.script.pathSegments.length - 1).join(Platform.pathSeparator);
 
 Future<String> invokeTest(Isolate isolate) async {
   await isolate.reload();
@@ -46,10 +51,6 @@ var tests = [
   // Stop at 'debugger' statement.
   hasStoppedAtBreakpoint,
   (Isolate mainIsolate) async {
-    for (var i = 0; i < Platform.script.pathSegments.length; i++) {
-      print('segment $i: "${Platform.script.pathSegments[i]}"');
-    }
-    print('Directory: $directory');
     // Grab the VM.
     VM vm = mainIsolate.vm;
     await vm.reloadIsolates();
@@ -66,10 +67,7 @@ var tests = [
 
     // Reload to v2.
     var response = await slaveIsolate.reloadSources(
-       rootLibUri: '$directory${Platform.pathSeparator}'
-                  'complex_reload${Platform.pathSeparator}'
-                  'v2${Platform.pathSeparator}'
-                  'main.dart',
+       rootLibUri: v2Uri.toString(),
     );
     expect(response['success'], isTrue);
 
@@ -79,10 +77,7 @@ var tests = [
 
     // Reload to v3.
     response = await slaveIsolate.reloadSources(
-      rootLibUri: '$directory${Platform.pathSeparator}'
-                  'complex_reload${Platform.pathSeparator}'
-                  'v3${Platform.pathSeparator}'
-                  'main.dart',
+      rootLibUri: v3Uri.toString(),
     );
     expect(response['success'], isTrue);
 

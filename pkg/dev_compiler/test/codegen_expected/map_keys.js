@@ -15,7 +15,7 @@ define(['dart_sdk'], function(dart_sdk) {
     core.print(dart.map(['1', 2, null, 4, '5', 6], core.String, core.int));
   };
   dart.fn(map_keys.main, VoidTodynamic());
-  dart.trackLibraries("map_keys", {"map_keys.dart": map_keys});
+  dart.trackLibraries("map_keys", {"map_keys.dart": map_keys}, null);
   // Exports:
   return {
     map_keys: map_keys

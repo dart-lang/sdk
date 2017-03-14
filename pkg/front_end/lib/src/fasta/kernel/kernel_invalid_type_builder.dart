@@ -14,7 +14,7 @@ import 'kernel_builder.dart'
 class KernelInvalidTypeBuilder
     extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {
   KernelInvalidTypeBuilder(String name, int charOffset, Uri fileUri)
-      : super(name, null, charOffset, fileUri);
+      : super(name, charOffset, fileUri);
 
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {

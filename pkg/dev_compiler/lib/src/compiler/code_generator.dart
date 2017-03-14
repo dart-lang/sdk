@@ -323,7 +323,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
-    _moduleItems.add(js.statement('#.trackLibraries(#, #);',
+    _moduleItems.add(js.statement(
+        '#.trackLibraries(#, #, ${JSModuleFile.sourceMapHoleID});',
         [_runtimeModule, js.string(name), _librariesDebuggerObject()]));
 
     // Add the module's code (produced by visiting compilation units, above)
@@ -5662,14 +5663,70 @@ class CodeGenerator extends GeneralizingAstVisitor
       while (baseType is TypeParameterType) {
         baseType = (baseType.element as TypeParameterElement).bound;
       }
-      useExtension = baseType != null &&
-          _extensionTypes.hasNativeSubtype(baseType) &&
-          !isObjectMember(name);
+      useExtension =
+          baseType is InterfaceType && _isSymbolizedMember(baseType, name);
     }
 
     return useExtension
         ? js.call('#.#', [_extensionSymbolsModule, result])
         : result;
+  }
+
+  var _forwardingCache = new HashMap<Element, Map<String, ExecutableElement>>();
+  Element _lookupForwardedMember(ClassElement element, String name) {
+    // We only care about public methods.
+    if (name.startsWith('_')) return null;
+
+    var map = _forwardingCache.putIfAbsent(element, () => {});
+    if (map.containsKey(name)) return map[name];
+
+    // Note, for a public member, the library should not matter.
+    var library = element.library;
+    var member = element.lookUpMethod(name, library) ??
+        element.lookUpGetter(name, library) ??
+        element.lookUpSetter(name, library);
+    member = (member != null &&
+            member.isSynthetic &&
+            member is PropertyAccessorElement)
+        ? member.variable
+        : member;
+    map[name] = member;
+    return member;
+  }
+
+  /// Don't symbolize native members that just forward to the underlying
+  /// native member.  We limit this to non-renamed members as the receiver
+  /// may be a mock type.
+  ///
+  /// Note, this is an underlying assumption here that, if another native type
+  /// subtypes this one, it also forwards this member to its underlying native
+  /// one without renaming.
+  bool _isSymbolizedMember(InterfaceType type, String name) {
+    // Object members are handled separately.
+    if (isObjectMember(name)) {
+      return false;
+    }
+
+    var element = type.element;
+    if (_extensionTypes.isNativeClass(element)) {
+      var member = _lookupForwardedMember(element, name);
+
+      // Fields on a native class are implicitly native.
+      // Methods/getters/setters are marked external/native.
+      if (member is FieldElement ||
+          member is ExecutableElement && member.isExternal) {
+        var jsName = getAnnotationName(member, isJsName);
+        return jsName != null && jsName != name;
+      } else {
+        // Non-external members must be symbolized.
+        return true;
+      }
+    }
+    // If the receiver *may* be a native type (i.e., an interface allowed to
+    // be implemented by a native class), conservatively symbolize - we don't
+    // whether it'll be implemented via forwarding.
+    // TODO(vsm): Consider CHA here to be less conservative.
+    return _extensionTypes.isNativeInterface(element);
   }
 
   JS.TemporaryId _emitPrivateNameSymbol(LibraryElement library, String name) {

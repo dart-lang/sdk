@@ -12,7 +12,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -492,6 +492,19 @@ class Namer {
   final ClosedWorld closedWorld;
   final CodegenWorldBuilder codegenWorldBuilder;
 
+  RuntimeTypesEncoder _rtiEncoder;
+  RuntimeTypesEncoder get rtiEncoder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder != null,
+        message: "Namer.rtiEncoder has not been set."));
+    return _rtiEncoder;
+  }
+
+  void set rtiEncoder(RuntimeTypesEncoder value) {
+    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder == null,
+        message: "Namer.rtiEncoder has already been set."));
+    _rtiEncoder = value;
+  }
+
   /// Used disambiguated names in the global namespace, issued by
   /// [_disambiguateGlobal], and [_disambiguateInternalGlobal].
   ///
@@ -531,7 +544,7 @@ class Namer {
       new HashMap<ConstantValue, jsAst.Name>();
   final Map<ConstantValue, String> constantLongNames =
       <ConstantValue, String>{};
-  ConstantCanonicalHasher constantHasher;
+  ConstantCanonicalHasher _constantHasher;
 
   /// Maps private names to a library that may use that name without prefixing
   /// itself. Used for building proposed names.
@@ -550,10 +563,7 @@ class Namer {
   Namer(JavaScriptBackend backend, this.closedWorld,
       CodegenWorldBuilder codegenWorldBuilder)
       : this.backend = backend,
-        this.codegenWorldBuilder = codegenWorldBuilder,
-        constantHasher = new ConstantCanonicalHasher(
-            backend.rtiEncoder, backend.reporter, codegenWorldBuilder),
-        functionTypeNamer = new FunctionTypeNamer(backend.rtiEncoder) {
+        this.codegenWorldBuilder = codegenWorldBuilder {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
@@ -687,8 +697,10 @@ class Namer {
   String constantLongName(ConstantValue constant) {
     String longName = constantLongNames[constant];
     if (longName == null) {
+      _constantHasher ??= new ConstantCanonicalHasher(
+          rtiEncoder, reporter, codegenWorldBuilder);
       longName = new ConstantNamingVisitor(
-              backend.rtiEncoder, reporter, codegenWorldBuilder, constantHasher)
+              rtiEncoder, reporter, codegenWorldBuilder, _constantHasher)
           .getName(constant);
       constantLongNames[constant] = longName;
     }
@@ -1390,7 +1402,7 @@ class Namer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   jsAst.Name nameForGetOneShotInterceptor(
-      Selector selector, Iterable<ClassElement> classes) {
+      Selector selector, Iterable<ClassEntity> classes) {
     // The one-shot name is a global name derived from the invocation name.  To
     // avoid instability we would like the names to be unique and not clash with
     // other global names.
@@ -1578,11 +1590,13 @@ class Namer {
 
   Map<ResolutionFunctionType, jsAst.Name> functionTypeNameMap =
       new HashMap<ResolutionFunctionType, jsAst.Name>();
-  final FunctionTypeNamer functionTypeNamer;
+
+  FunctionTypeNamer _functionTypeNamer;
 
   jsAst.Name getFunctionTypeName(ResolutionFunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
-      String proposedName = functionTypeNamer.computeName(functionType);
+      _functionTypeNamer ??= new FunctionTypeNamer(rtiEncoder);
+      String proposedName = _functionTypeNamer.computeName(functionType);
       return getFreshName(instanceScope, proposedName);
     });
   }

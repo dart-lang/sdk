@@ -35,6 +35,7 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitPolymorphicInstanceCall(
       PolymorphicInstanceCallInstr* instr);
+  virtual void VisitBranch(BranchInstr* instr);
 
   // Current reaching type of the definition. Valid only during dominator tree
   // traversal.

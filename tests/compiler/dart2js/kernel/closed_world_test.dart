@@ -15,6 +15,7 @@ import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -97,9 +98,9 @@ main(List<String> args) {
         new ResolutionWorkItemBuilder(compiler.resolution),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(compiler, enqueuer);
-
-    checkResolutionEnqueuers(compiler.backend.backendUsage,
-        compiler.backend.backendUsage, compiler.enqueuer.resolution, enqueuer,
+    BackendUsage backendUsage = compiler.backend.backendUsageBuilder.close();
+    checkResolutionEnqueuers(
+        backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: (Element element) {
@@ -130,16 +131,16 @@ ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
   // TODO(johnniwinther): Store backend info separately. This replacement is
   // made to reset a field in [TypeVariableHandler] that prevents it from
   // enqueuing twice.
-  backend.typeVariableHandler = new TypeVariableHandler(compiler);
+  backend.typeVariableAnalysis = new TypeVariableAnalysis(
+      compiler.elementEnvironment,
+      backend.impacts,
+      backend.backendUsageBuilder);
 
   if (compiler.deferredLoadTask.isProgramSplit) {
     enqueuer.applyImpact(backend.computeDeferredLoadingImpact());
   }
-  enqueuer.applyImpact(backend.computeHelpersImpact());
-  enqueuer.applyImpact(enqueuer.nativeEnqueuer
-      .processNativeClasses(compiler.libraryLoader.libraries));
-  enqueuer.applyImpact(
-      backend.computeMainImpact(compiler.mainFunction, forResolution: true));
+  enqueuer.open(const ImpactStrategy(), compiler.mainFunction,
+      compiler.libraryLoader.libraries);
   enqueuer.forEach((work) {
     AstElement element = work.element;
     ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);

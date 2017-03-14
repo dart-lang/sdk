@@ -31,7 +31,9 @@ class VerificationError {
       return "$file:${location.line}:${location.column}: Verification error:"
           " $details";
     } else {
-      return "Verification error: $details\nContext: '$context'.\nNode: '$node'.";
+      return "Verification error: $details\n"
+          "Context: '$context'.\n"
+          "Node: '$node'.";
     }
   }
 }
@@ -427,6 +429,21 @@ class VerifyingVisitor extends RecursiveVisitor {
       return false;
     }
     return true;
+  }
+
+  @override
+  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    if (node.target == null) {
+      problem(node, "No target.");
+    } else if (node.target.parent == null) {
+      problem(node, "Target has no parent.");
+    } else {
+      SwitchStatement statement = node.target.parent;
+      for (SwitchCase switchCase in statement.cases) {
+        if (switchCase == node.target) return;
+      }
+      problem(node, "Switch case isn't child of parent.");
+    }
   }
 
   @override

@@ -59,34 +59,37 @@ abstract class Accessor {
 
   /// Returns an [Expression] representing a compound assignment (e.g. `+=`)
   /// with the accessor on the LHS and [value] on the RHS.
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+  Expression buildCompoundAssignment(
+      Name binaryOperator, Expression value, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return _finish(_makeWrite(
-        makeBinary(_makeRead(), binaryOperator, interfaceTarget, value),
+        makeBinary(
+            _makeRead(), binaryOperator, interfaceTarget, value, charOffset),
         voidContext));
   }
 
   /// Returns an [Expression] representing a pre-increment or pre-decrement
   /// of the accessor.
-  Expression buildPrefixIncrement(Name binaryOperator,
+  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return buildCompoundAssignment(binaryOperator, new IntLiteral(1),
+    return buildCompoundAssignment(
+        binaryOperator, new IntLiteral(1), charOffset,
         voidContext: voidContext, interfaceTarget: interfaceTarget);
   }
 
   /// Returns an [Expression] representing a post-increment or post-decrement
   /// of the accessor.
-  Expression buildPostfixIncrement(Name binaryOperator,
+  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator,
+      return buildPrefixIncrement(binaryOperator, charOffset,
           voidContext: true, interfaceTarget: interfaceTarget);
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        makeBinary(
-            valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1)),
+        makeBinary(valueAccess(), binaryOperator, interfaceTarget,
+            new IntLiteral(1), charOffset),
         true));
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
   }
@@ -117,18 +120,20 @@ abstract class Accessor {
 
 class VariableAccessor extends Accessor {
   VariableDeclaration variable;
+  int charOffset;
   DartType promotedType;
 
   VariableAccessor(this.variable, [this.promotedType]);
 
-  VariableAccessor.internal(this.variable, this.promotedType);
+  VariableAccessor.internal(this.variable, this.charOffset, this.promotedType);
 
-  _makeRead() => new VariableGet(variable, promotedType);
+  _makeRead() =>
+      new VariableGet(variable, promotedType)..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
     return variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
-        : new VariableSet(variable, value);
+        : new VariableSet(variable, value)..fileOffset = charOffset;
   }
 }
 
@@ -137,32 +142,39 @@ class PropertyAccessor extends Accessor {
   Expression receiver;
   Name name;
   Member getter, setter;
+  int charOffset;
 
-  static Accessor make(
-      Expression receiver, Name name, Member getter, Member setter) {
+  static Accessor make(Expression receiver, Name name, Member getter,
+      Member setter, int charOffset) {
     if (receiver is ThisExpression) {
       return new ThisPropertyAccessor(name, getter, setter);
     } else {
-      return new PropertyAccessor.internal(receiver, name, getter, setter);
+      return new PropertyAccessor.internal(
+          receiver, name, getter, setter, charOffset);
     }
   }
 
-  PropertyAccessor.internal(this.receiver, this.name, this.getter, this.setter);
+  PropertyAccessor.internal(
+      this.receiver, this.name, this.getter, this.setter, this.charOffset);
 
-  _makeSimpleRead() => new PropertyGet(receiver, name, getter);
+  _makeSimpleRead() =>
+      new PropertyGet(receiver, name, getter)..fileOffset = charOffset;
   _makeSimpleWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiver, name, value, setter);
+    return new PropertySet(receiver, name, value, setter)
+      ..fileOffset = charOffset;
   }
 
   receiverAccess() {
     _receiverVariable ??= new VariableDeclaration.forValue(receiver);
-    return new VariableGet(_receiverVariable);
+    return new VariableGet(_receiverVariable)..fileOffset = charOffset;
   }
 
-  _makeRead() => new PropertyGet(receiverAccess(), name, getter);
+  _makeRead() =>
+      new PropertyGet(receiverAccess(), name, getter)..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiverAccess(), name, value, setter);
+    return new PropertySet(receiverAccess(), name, value, setter)
+      ..fileOffset = charOffset;
   }
 
   _finish(Expression body) => makeLet(_receiverVariable, body);
@@ -240,48 +252,59 @@ class IndexAccessor extends Accessor {
   VariableDeclaration receiverVariable;
   VariableDeclaration indexVariable;
   Procedure getter, setter;
+  int charOffset;
 
   static Accessor make(Expression receiver, Expression index, Procedure getter,
-      Procedure setter) {
+      Procedure setter, int charOffset) {
     if (receiver is ThisExpression) {
       return new ThisIndexAccessor(index, getter, setter);
     } else {
-      return new IndexAccessor.internal(receiver, index, getter, setter);
+      return new IndexAccessor.internal(
+          receiver, index, getter, setter, charOffset);
     }
   }
 
-  IndexAccessor.internal(this.receiver, this.index, this.getter, this.setter);
+  IndexAccessor.internal(
+      this.receiver, this.index, this.getter, this.setter, this.charOffset);
 
   _makeSimpleRead() => new MethodInvocation(
-      receiver, _indexGet, new Arguments(<Expression>[index]), getter);
+      receiver, _indexGet, new Arguments(<Expression>[index]), getter)
+    ..fileOffset = charOffset;
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(
-        receiver, _indexSet, new Arguments(<Expression>[index, value]), setter);
+        receiver, _indexSet, new Arguments(<Expression>[index, value]), setter)
+      ..fileOffset = charOffset;
   }
 
   receiverAccess() {
     // We cannot reuse the receiver if it is a variable since it might be
     // reassigned in the index expression.
     receiverVariable ??= new VariableDeclaration.forValue(receiver);
-    return new VariableGet(receiverVariable);
+    return new VariableGet(receiverVariable)..fileOffset = charOffset;
   }
 
   indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
-    return new VariableGet(indexVariable);
+    return new VariableGet(indexVariable)..fileOffset = charOffset;
   }
 
   _makeRead() {
-    return new MethodInvocation(receiverAccess(), _indexGet,
-        new Arguments(<Expression>[indexAccess()]), getter);
+    return new MethodInvocation(
+        receiverAccess(),
+        _indexGet,
+        new Arguments(<Expression>[indexAccess()]),
+        getter)..fileOffset = charOffset;
   }
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new MethodInvocation(receiverAccess(), _indexSet,
-        new Arguments(<Expression>[indexAccess(), value]), setter);
+    return new MethodInvocation(
+        receiverAccess(),
+        _indexSet,
+        new Arguments(<Expression>[indexAccess(), value]),
+        setter)..fileOffset = charOffset;
   }
 
   _makeWriteAndReturn(Expression value) {
@@ -293,7 +316,7 @@ class IndexAccessor extends Accessor {
         _indexSet,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
-        setter));
+        setter)..fileOffset = charOffset);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -440,15 +463,17 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
 }
 
 Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
-    Expression right) {
+    Expression right, int charOffset) {
   return new MethodInvocation(
-      left, operator, new Arguments(<Expression>[right]), interfaceTarget);
+      left, operator, new Arguments(<Expression>[right]), interfaceTarget)
+    ..fileOffset = charOffset;
 }
 
 final Name _equalOperator = new Name('==');
 
 Expression buildIsNull(Expression value) {
-  return makeBinary(value, _equalOperator, null, new NullLiteral());
+  return makeBinary(
+      value, _equalOperator, null, new NullLiteral(), TreeNode.noOffset);
 }
 
 VariableDeclaration makeOrReuseVariable(Expression value) {

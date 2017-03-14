@@ -96,10 +96,10 @@ abstract class BuilderAccessor implements Accessor {
   buildPropertyAccess(IncompleteSend send, bool isNullAware) {
     if (send is SendAccessor) {
       return buildMethodInvocation(
-          buildSimpleRead(), send.name, send.arguments, charOffset,
+          buildSimpleRead(), send.name, send.arguments, send.charOffset,
           isNullAware: isNullAware);
     } else {
-      return PropertyAccessor.make(helper, charOffset, buildSimpleRead(),
+      return PropertyAccessor.make(helper, send.charOffset, buildSimpleRead(),
           send.name, null, null, isNullAware);
     }
   }
@@ -142,17 +142,18 @@ abstract class CompileTimeErrorAccessor implements Accessor {
     return buildError();
   }
 
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+  Expression buildCompoundAssignment(
+      Name binaryOperator, Expression value, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return buildError();
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator,
+  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return buildError();
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator,
+  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return buildError();
   }
@@ -250,27 +251,34 @@ class ThisAccessor extends BuilderAccessor {
   }
 
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+  Expression buildCompoundAssignment(
+      Name binaryOperator, Expression value, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator,
+  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
+    return buildAssignmentError();
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator,
+  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
+    return buildAssignmentError();
+  }
+
+  Expression buildAssignmentError() {
+    String message =
+        isSuper ? "Can't assign to 'super'." : "Can't assign to 'this'.";
+    return helper.buildCompileTimeError(message, charOffset);
   }
 
   toString() => "ThisAccessor($charOffset${isSuper ? ', super' : ''})";
@@ -364,20 +372,21 @@ class SendAccessor extends IncompleteSend {
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
-    return internalError("");
+    return internalError("Unhandled");
   }
 
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {bool voidContext: false, Procedure interfaceTarget}) {
-    return internalError("");
-  }
-
-  Expression buildPrefixIncrement(Name binaryOperator,
+  Expression buildCompoundAssignment(
+      Name binaryOperator, Expression value, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return internalError("Unhandled");
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator,
+  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
+      {bool voidContext: false, Procedure interfaceTarget}) {
+    return internalError("Unhandled");
+  }
+
+  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return internalError("Unhandled");
   }
@@ -426,6 +435,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
         if (builder == null) {
           return buildThrowNoSuchMethodError(null);
         }
+        setter = builder.target;
       }
       if (builder.hasProblem) {
         return helper.buildProblemExpression(builder, name.name)
@@ -444,8 +454,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
           }
         }
       }
-      if (getter == null) {
-        return internalError("no getter for $name");
+      if (getter == null && setter == null) {
+        return internalError("No accessor for '$name'.");
       }
       return new StaticAccessor(helper, charOffset, getter, setter);
     }
@@ -458,17 +468,18 @@ class IncompletePropertyAccessor extends IncompleteSend {
     return internalError("Unhandled");
   }
 
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+  Expression buildCompoundAssignment(
+      Name binaryOperator, Expression value, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return internalError("Unhandled");
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator,
+  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return internalError("Unhandled");
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator,
+  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return internalError("Unhandled");
   }
@@ -483,11 +494,9 @@ class IncompletePropertyAccessor extends IncompleteSend {
 class IndexAccessor extends kernel.IndexAccessor with BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
-  IndexAccessor.internal(this.helper, this.charOffset, Expression receiver,
+  IndexAccessor.internal(this.helper, int charOffset, Expression receiver,
       Expression index, Procedure getter, Procedure setter)
-      : super.internal(receiver, index, getter, setter);
+      : super.internal(receiver, index, getter, setter, charOffset);
 
   String get plainNameForRead => "[]";
 
@@ -519,11 +528,9 @@ class IndexAccessor extends kernel.IndexAccessor with BuilderAccessor {
 class PropertyAccessor extends kernel.PropertyAccessor with BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
-  PropertyAccessor.internal(this.helper, this.charOffset, Expression receiver,
+  PropertyAccessor.internal(this.helper, int charOffset, Expression receiver,
       Name name, Member getter, Member setter)
-      : super.internal(receiver, name, getter, setter);
+      : super.internal(receiver, name, getter, setter, charOffset);
 
   String get plainNameForRead => name.name;
 
@@ -699,17 +706,17 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
 class VariableAccessor extends kernel.VariableAccessor with BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
-  VariableAccessor(this.helper, this.charOffset, VariableDeclaration variable,
+  VariableAccessor(this.helper, int charOffset, VariableDeclaration variable,
       [DartType promotedType])
-      : super.internal(variable, promotedType);
+      : super.internal(variable, charOffset, promotedType);
 
   String get plainNameForRead => variable.name;
 
   Expression doInvocation(int charOffset, Arguments arguments) {
-    return buildMethodInvocation(
-        buildSimpleRead(), new Name("call"), arguments, charOffset);
+    // Normally the offset is at the start of the token, but in this case,
+    // because we insert a '.call', we want it at the end instead.
+    return buildMethodInvocation(buildSimpleRead(), new Name("call"), arguments,
+        charOffset + (variable.name?.length ?? 0));
   }
 
   toString() => "VariableAccessor()";

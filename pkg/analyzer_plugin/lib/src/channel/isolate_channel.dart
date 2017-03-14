@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 
@@ -50,6 +52,7 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
       {Function onError, void onDone()}) {
     void onData(data) {
       Map<String, Object> requestMap = data;
+//      print('[plugin] Received request: ${JSON.encode(requestMap)}');
       Request request = new Request.fromJson(requestMap);
       if (request != null) {
         onRequest(request);
@@ -65,12 +68,16 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
 
   @override
   void sendNotification(Notification notification) {
-    _sendPort.send(notification.toJson());
+    Map<String, Object> json = notification.toJson();
+//    print('[plugin] Send notification: ${JSON.encode(json)}');
+    _sendPort.send(json);
   }
 
   @override
   void sendResponse(Response response) {
-    _sendPort.send(response.toJson());
+    Map<String, Object> json = response.toJson();
+//    print('[plugin] Send response: ${JSON.encode(json)}');
+    _sendPort.send(json);
   }
 }
 
@@ -80,10 +87,21 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
  */
 class ServerIsolateChannel implements ServerCommunicationChannel {
   /**
-   * The URI for the plugin that will be run in the isolate that this channel
+   * The URI for the Dart file that will be run in the isolate that this channel
    * communicates with.
    */
-  final Uri uri;
+  final Uri pluginUri;
+
+  /**
+   * The URI for the '.packages' file that will control how 'package:' URIs are
+   * resolved.
+   */
+  final Uri packagesUri;
+
+  /**
+   * The instrumentation service that is being used by the analysis server.
+   */
+  final InstrumentationService instrumentationService;
 
   /**
    * The isolate in which the plugin is running, or `null` if the plugin has
@@ -98,16 +116,32 @@ class ServerIsolateChannel implements ServerCommunicationChannel {
   SendPort _sendPort;
 
   /**
+   * The port used to receive responses and notifications from the plugin.
+   */
+  ReceivePort _receivePort;
+
+  /**
+   * The port used to receive unhandled exceptions thrown in the plugin.
+   */
+  ReceivePort _errorPort;
+
+  /**
+   * The port used to receive notification when the plugin isolate has exited.
+   */
+  ReceivePort _exitPort;
+
+  /**
    * Initialize a newly created channel to communicate with an isolate running
    * the code at the given [uri].
    */
-  ServerIsolateChannel(this.uri);
-
+  ServerIsolateChannel(
+      this.pluginUri, this.packagesUri, this.instrumentationService);
   @override
   void close() {
-    // TODO(brianwilkerson) Is there anything useful to do here?
+    _receivePort?.close();
+    _errorPort?.close();
+    _exitPort?.close();
     _isolate = null;
-    _sendPort = null;
   }
 
   @override
@@ -117,39 +151,53 @@ class ServerIsolateChannel implements ServerCommunicationChannel {
     if (_isolate != null) {
       throw new StateError('Cannot listen to the same channel more than once.');
     }
-    ReceivePort receivePort = new ReceivePort();
-    ReceivePort errorPort;
+    _receivePort = new ReceivePort();
     if (onError != null) {
-      errorPort = new ReceivePort();
-      errorPort.listen((error) {
+      _errorPort = new ReceivePort();
+      _errorPort.listen((error) {
         onError(error);
       });
     }
-    ReceivePort exitPort;
     if (onDone != null) {
-      exitPort = new ReceivePort();
-      exitPort.listen((_) {
+      _exitPort = new ReceivePort();
+      _exitPort.listen((_) {
         onDone();
       });
     }
-    _isolate = await Isolate.spawnUri(uri, <String>[], receivePort.sendPort,
-        automaticPackageResolution: true,
-        onError: errorPort?.sendPort,
-        onExit: exitPort?.sendPort);
-    _sendPort = await receivePort.first as SendPort;
-    receivePort.listen((dynamic input) {
-      if (input is Map) {
+    _isolate = await Isolate.spawnUri(
+        pluginUri, <String>[], _receivePort.sendPort,
+        onError: _errorPort?.sendPort,
+        onExit: _exitPort?.sendPort,
+        packageConfig: packagesUri);
+    Completer<Null> channelReady = new Completer<Null>();
+    _receivePort.listen((dynamic input) {
+      if (input is SendPort) {
+//        print('[server] Received send port');
+        _sendPort = input;
+        channelReady.complete(null);
+      } else if (input is Map) {
         if (input.containsKey('id') != null) {
+          String encodedInput = JSON.encode(input);
+//          print('[server] Received response: $encodedInput');
+          instrumentationService.logPluginResponse(pluginUri, encodedInput);
           onResponse(new Response.fromJson(input));
         } else if (input.containsKey('event')) {
+          String encodedInput = JSON.encode(input);
+//          print('[server] Received notification: $encodedInput');
+          instrumentationService.logPluginNotification(pluginUri, encodedInput);
           onNotification(new Notification.fromJson(input));
         }
       }
     });
+    return channelReady.future;
   }
 
   @override
   void sendRequest(Request request) {
-    _sendPort.send(request.toJson());
+    Map<String, Object> json = request.toJson();
+    String encodedRequest = JSON.encode(json);
+//    print('[server] Send request: $encodedRequest');
+    instrumentationService.logPluginRequest(pluginUri, encodedRequest);
+    _sendPort.send(json);
   }
 }

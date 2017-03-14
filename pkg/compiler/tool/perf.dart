@@ -209,7 +209,7 @@ class DirectiveListener extends Listener {
 
   void beginLiteralString(Token token) {
     if (inDirective) {
-      var quotedString = token.value;
+      var quotedString = token.lexeme;
       targets.add(quotedString.substring(1, quotedString.length - 1));
     }
   }
@@ -367,10 +367,9 @@ class MyCompiler extends CompilerImpl {
           enqueuer.resolution
               .applyImpact(backend.computeDeferredLoadingImpact());
         }
-        enqueuer.resolution.applyImpact(backend.computeHelpersImpact());
         resolveLibraryMetadata();
         reporter.log('Resolving...');
-        processQueue(enqueuer.resolution, mainFunction);
+        processQueue(enqueuer.resolution, mainFunction, libraryLoader.libraries);
         enqueuer.resolution.logSummary(reporter.log);
 
         (reporter as CompilerDiagnosticReporter)

@@ -216,10 +216,10 @@ class ToAnalyzerTokenStreamConverter {
 analyzer.CommentToken toAnalyzerCommentToken(Token token) {
   // TODO(paulberry,ahe): It would be nice if the scanner gave us an
   // easier way to distinguish between the two types of comment.
-  var type = token.value.startsWith('/*')
+  var type = token.lexeme.startsWith('/*')
       ? TokenType.MULTI_LINE_COMMENT
       : TokenType.SINGLE_LINE_COMMENT;
-  return new analyzer.CommentToken(type, token.value, token.charOffset);
+  return new analyzer.CommentToken(type, token.lexeme, token.charOffset);
 }
 
 /// Converts a stream of Analyzer tokens (starting with [token] and continuing
@@ -506,10 +506,10 @@ analyzer.Token toAnalyzerToken(Token token,
   if (token == null) return null;
   analyzer.Token makeStringToken(TokenType tokenType) {
     if (commentToken == null) {
-      return new analyzer.StringToken(tokenType, token.value, token.charOffset);
+      return new analyzer.StringToken(tokenType, token.lexeme, token.charOffset);
     } else {
       return new analyzer.StringTokenWithComment(
-          tokenType, token.value, token.charOffset, commentToken);
+          tokenType, token.lexeme, token.charOffset, commentToken);
     }
   }
 

@@ -9,15 +9,15 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart'
     show
+        AsyncMarker,
         JumpTarget,
         LabelDefinition,
+        MethodElement,
         Name,
-        AsyncMarker,
-        ResolvedAst,
-        FunctionElement;
+        ResolvedAst;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -51,7 +51,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   js.Fun buildJavaScriptFunction(
       ResolvedAst resolvedAst, List<js.Parameter> parameters, js.Block body) {
-    FunctionElement element = resolvedAst.element;
+    MethodElement element = resolvedAst.element;
     js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
         ? (element.asyncMarker.isYielding
             ? const js.AsyncModifier.asyncStar()
@@ -93,7 +93,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Expression generateMethod(
       CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
-      FunctionElement element = work.element;
+      MethodElement element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
         work.registry.registerAsyncMarker(element);
       }
@@ -2319,7 +2319,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.Throw(value).withSourceInformation(sourceInformation));
     } else {
       Entity element = work.element;
-      if (element is FunctionElement && element.asyncMarker.isYielding) {
+      if (element is MethodElement && element.asyncMarker.isYielding) {
         // `return <expr>;` is illegal in a sync* or async* function.
         // To have the async-translator working, we avoid introducing
         // `return` nodes.
@@ -2971,7 +2971,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // should iterate over all the concrete classes in [receiverMask].
     ClassEntity receiverClass = receiverMask.singleClass(closedWorld);
     if (receiverClass != null) {
-      if (backend.rti.isTrivialSubstitution(receiverClass, cls)) {
+      if (backend.rtiSubstitutions.isTrivialSubstitution(receiverClass, cls)) {
         return false;
       }
     }
@@ -2979,7 +2979,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (closedWorld.isUsedAsMixin(cls)) return true;
 
     return closedWorld.anyStrictSubclassOf(cls, (ClassEntity subclass) {
-      return !backend.rti.isTrivialSubstitution(subclass, cls);
+      return !backend.rtiSubstitutions.isTrivialSubstitution(subclass, cls);
     });
   }
 

@@ -22,7 +22,6 @@ assignable_expression_test/32: MissingCompileTimeError
 assignable_expression_test/33: MissingCompileTimeError
 assignable_expression_test/42: MissingCompileTimeError
 assignable_expression_test/43: MissingCompileTimeError
-assignable_expression_test/50: MissingCompileTimeError
 async_await_syntax_test/a01b: MissingCompileTimeError
 async_await_syntax_test/a01c: MissingCompileTimeError
 async_await_syntax_test/a05f: MissingCompileTimeError
@@ -31,9 +30,6 @@ async_await_syntax_test/a05h: MissingCompileTimeError
 async_await_syntax_test/a06b: MissingCompileTimeError
 async_await_syntax_test/a12e: MissingCompileTimeError
 async_await_syntax_test/a12f: MissingCompileTimeError
-async_await_syntax_test/b00a: DartkCrash
-async_await_syntax_test/b00b: DartkCrash
-async_await_syntax_test/b00c: DartkCrash
 async_await_syntax_test/b01b: MissingCompileTimeError
 async_await_syntax_test/b01c: MissingCompileTimeError
 async_await_syntax_test/b10b: MissingCompileTimeError
@@ -50,10 +46,10 @@ async_await_syntax_test/e2: MissingCompileTimeError
 async_await_syntax_test/e3: MissingCompileTimeError
 async_return_types_test/return_value_sync_star: MissingCompileTimeError
 async_star_pause_test: Crash
-async_test/constructor2: DartkCrash
 async_test/constructor3: MissingCompileTimeError
 async_test/setter1: MissingCompileTimeError
 await_backwards_compatibility_test/await1: MissingCompileTimeError
+await_for_test: Crash, Fail
 await_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
@@ -76,9 +72,9 @@ built_in_identifier_illegal_test/18: MissingCompileTimeError
 built_in_identifier_illegal_test/19: MissingCompileTimeError
 built_in_identifier_illegal_test/20: MissingCompileTimeError
 built_in_identifier_test/01: CompileTimeError
-call_nonexistent_static_test/01: RuntimeError
-call_nonexistent_static_test/04: RuntimeError
-call_nonexistent_static_test/06: RuntimeError
+call_nonexistent_static_test/01: CompileTimeError
+call_nonexistent_static_test/04: CompileTimeError
+call_nonexistent_static_test/06: CompileTimeError
 cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
@@ -88,10 +84,7 @@ class_cycle_test/00: MissingCompileTimeError
 class_cycle_test/01: MissingCompileTimeError
 compile_time_constant10_test/01: Crash
 compile_time_constant10_test/02: Crash
-compile_time_constant13_test/02: Crash
 compile_time_constant13_test/03: MissingCompileTimeError
-compile_time_constant13_test/04: Crash
-compile_time_constant13_test/05: Crash
 compile_time_constant_arguments_test/01: MissingCompileTimeError
 compile_time_constant_arguments_test/02: MissingCompileTimeError
 compile_time_constant_arguments_test/03: MissingCompileTimeError
@@ -161,6 +154,8 @@ const_syntax_test/04: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/06: MissingCompileTimeError
 const_syntax_test/07: MissingCompileTimeError
+const_syntax_test/08: MissingCompileTimeError
+const_syntax_test/09: MissingCompileTimeError
 const_syntax_test/10: Crash
 const_syntax_test/11: MissingCompileTimeError
 const_syntax_test/12: MissingCompileTimeError
@@ -228,6 +223,7 @@ covariant_test/54: RuntimeError
 covariant_test/56: RuntimeError
 covariant_test/59: MissingCompileTimeError
 covariant_test/none: RuntimeError
+crash_6725_test/01: CompileTimeError
 cyclic_class_member_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_type_test/00: RuntimeError
@@ -252,7 +248,16 @@ cyclic_typedef_test/11: MissingCompileTimeError
 deferred_call_empty_before_load_test: RuntimeError # Deferred Loading Issue 28335
 deferred_closurize_load_library_test: RuntimeError
 deferred_constant_list_test: RuntimeError
+deferred_constraints_constants_test/constructor1: MissingCompileTimeError
+deferred_constraints_constants_test/constructor2: MissingCompileTimeError
+deferred_constraints_constants_test/default_argument1: MissingCompileTimeError
+deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
+deferred_constraints_constants_test/metadata1: MissingCompileTimeError
+deferred_constraints_constants_test/metadata2: MissingCompileTimeError
+deferred_constraints_constants_test/metadata3: MissingCompileTimeError
 deferred_constraints_constants_test/none: RuntimeError
+deferred_constraints_constants_test/reference1: MissingCompileTimeError
+deferred_constraints_constants_test/reference2: MissingCompileTimeError
 deferred_constraints_constants_test/reference_after_load: RuntimeError
 deferred_constraints_type_annotation_test/as_operation: RuntimeError
 deferred_constraints_type_annotation_test/catch_check: RuntimeError
@@ -308,7 +313,6 @@ deferred_type_dependency_test/as: RuntimeError
 deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
 deferred_type_dependency_test/type_annotation: RuntimeError
-duplicate_export_negative_test: DartkCrash
 dynamic2_test/00: MissingCompileTimeError
 dynamic2_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
@@ -334,8 +338,6 @@ external_test/24: MissingCompileTimeError
 external_test/25: MissingCompileTimeError
 external_test/30: MissingCompileTimeError
 external_test/31: MissingCompileTimeError
-factory2_negative_test: DartkCrash
-factory_negative_test: DartkCrash
 factory_redirection_test/07: MissingCompileTimeError
 field_decl_missing_var_type_test/01: MissingCompileTimeError
 final_initializer_instance_reference_test/01: MissingCompileTimeError
@@ -345,7 +347,7 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
-first_class_types_literals_test/08: RuntimeError
+first_class_types_literals_test/08: CompileTimeError
 for2_test: RuntimeError
 for_variable_capture_test: RuntimeError
 function_subtype0_test: RuntimeError
@@ -368,7 +370,6 @@ function_syntax_test/69: MissingCompileTimeError
 function_syntax_test/71: MissingCompileTimeError
 function_syntax_test/73: MissingCompileTimeError
 function_syntax_test/74: MissingCompileTimeError
-function_type/function_type*: DartkCrash # Issue 27969
 function_type_alias2_test: RuntimeError
 function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
@@ -382,19 +383,17 @@ function_type_alias9_test/00: MissingCompileTimeError
 function_type_parameter2_negative_test: Crash
 function_type_parameter_negative_test: Crash
 generic_closure_test: RuntimeError
-generic_constructor_mixin3_test: Crash
 generic_field_mixin2_test: RuntimeError
 generic_field_mixin3_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
 generic_field_mixin5_test: RuntimeError
 generic_field_mixin_test: RuntimeError
-generic_local_functions_test: DartkCrash
 generic_metadata_test/02: MissingCompileTimeError
 generic_metadata_test/03: MissingCompileTimeError
 generic_method_types_test: Pass, RuntimeError
-generic_methods_generic_function_parameter_test: DartkCrash
 getter_closure_execution_order_test: RuntimeError
 getter_parameters_test/01: MissingCompileTimeError
+getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 getter_setter_in_lib_test: RuntimeError
@@ -418,10 +417,8 @@ is_malformed_type_test/97: RuntimeError
 is_malformed_type_test/98: RuntimeError
 is_malformed_type_test/99: RuntimeError
 is_not_class2_test: RuntimeError
-is_not_class4_negative_test: Fail
 isnot_malformed_type_test: RuntimeError
 issue_1751477_test: RuntimeError
-label6_negative_test: DartkCrash
 large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 library_ambiguous_test/00: MissingRuntimeError
 library_ambiguous_test/04: MissingRuntimeError
@@ -446,7 +443,7 @@ missing_const_constructor_test/04: Crash
 missing_const_constructor_test/05: MissingCompileTimeError
 missing_const_constructor_test/06: MissingCompileTimeError
 missing_part_of_tag_test/01: MissingCompileTimeError
-mixin_black_listed_test/08: DartkCrash
+mixin_black_listed_test/08: MissingCompileTimeError
 mixin_cyclic_test/01: MissingCompileTimeError
 mixin_cyclic_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -472,7 +469,6 @@ mixin_illegal_cycles_test/05: MissingCompileTimeError
 mixin_illegal_cycles_test/06: MissingCompileTimeError
 mixin_illegal_object_test/01: MissingCompileTimeError
 mixin_illegal_object_test/02: MissingCompileTimeError
-mixin_invalid_inheritance2_test/03: DartkCrash
 mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
@@ -509,8 +505,6 @@ named_parameters_default_eq_test/02: MissingCompileTimeError
 no_main_test/01: Crash
 not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301
-number_identifier_test/02: MissingCompileTimeError
-number_identifier_test/04: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
 parameter_initializer6_negative_test: Fail
 part2_test: RuntimeError
@@ -522,17 +516,23 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/02: Crash
 redirecting_factory_long_test: RuntimeError
-regress_13494_test: RuntimeError
+ref_before_declaration_test/00: MissingCompileTimeError
+ref_before_declaration_test/01: MissingCompileTimeError
+ref_before_declaration_test/02: MissingCompileTimeError
+ref_before_declaration_test/03: MissingCompileTimeError
+ref_before_declaration_test/04: MissingCompileTimeError
+ref_before_declaration_test/05: MissingCompileTimeError
+ref_before_declaration_test/06: MissingCompileTimeError
+ref_before_declaration_test/07: MissingCompileTimeError
+regress_13494_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
 regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
 regress_27617_test/1: MissingCompileTimeError
-regress_27957_test: RuntimeError
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28278_test: RuntimeError  # Mirrors Issue
-reify_typevar_static_test/00: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 scope_variable_test/01: MissingCompileTimeError
 script1_negative_test: Fail
@@ -542,7 +542,8 @@ setter4_test: CompileTimeError
 setter_override_test/01: RuntimeError
 setter_override_test/02: RuntimeError
 setter_override_test/none: RuntimeError
-source_self_negative_test: DartkCrash
+static_field3_test/03: CompileTimeError
+static_field3_test/04: CompileTimeError
 static_final_field2_test/02: MissingCompileTimeError
 static_parameter_test/01: MissingCompileTimeError
 static_parameter_test/02: MissingCompileTimeError
@@ -581,13 +582,11 @@ super_no_such_method3_test/01: RuntimeError
 super_no_such_method4_test/01: RuntimeError
 super_no_such_method5_test/01: RuntimeError
 switch1_negative_test: Fail
-switch4_negative_test: DartkCrash
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-switch_label_test: DartkCrash
 sync_generator2_test/01: MissingCompileTimeError
 sync_generator2_test/02: MissingCompileTimeError
 sync_generator2_test/03: MissingCompileTimeError
@@ -605,14 +604,11 @@ sync_generator2_test/52: MissingCompileTimeError
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
-syntax_test/50: MissingCompileTimeError
-syntax_test/51: MissingCompileTimeError
-syntax_test/64: MissingCompileTimeError
-syntax_test/65: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
 try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
 try_catch_syntax_test/01: MissingCompileTimeError
+try_catch_syntax_test/05: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
 try_catch_syntax_test/10: MissingCompileTimeError
@@ -629,12 +625,10 @@ type_variable_conflict_test/05: MissingCompileTimeError
 type_variable_conflict_test/06: MissingCompileTimeError
 type_variable_function_type_test: RuntimeError
 type_variable_scope3_test/00: MissingCompileTimeError
-vm/causal_async_exception_stack_test: RuntimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_27671_test: RuntimeError
-vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
 
 # dartk: JIT & AOT failures (debug)
@@ -659,42 +653,20 @@ language/regress_22728_test: Fail # Dartk Issue 28498
 const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
 const_string_test: RuntimeError  # Dartk Issue 28306
-const_syntax_test/08: MissingCompileTimeError
-const_syntax_test/09: MissingCompileTimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 ct_const2_test: Pass, Crash # Flaky
-deferred_constraints_constants_test/constructor1: MissingCompileTimeError
-deferred_constraints_constants_test/constructor2: MissingCompileTimeError
-deferred_constraints_constants_test/default_argument1: MissingCompileTimeError
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
-deferred_constraints_constants_test/metadata1: MissingCompileTimeError
-deferred_constraints_constants_test/metadata2: MissingCompileTimeError
-deferred_constraints_constants_test/metadata3: MissingCompileTimeError
-deferred_constraints_constants_test/reference1: MissingCompileTimeError
-deferred_constraints_constants_test/reference2: MissingCompileTimeError
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 final_syntax_test/09: Crash
 getter_declaration_negative_test: Fail
-getter_parameters_test/02: MissingCompileTimeError
 hello_dart_test: Crash
 instance_creation_in_function_annotation_test: RuntimeError
-label_test: CompileTimeError
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
-ref_before_declaration_test/00: MissingCompileTimeError
-ref_before_declaration_test/01: MissingCompileTimeError
-ref_before_declaration_test/02: MissingCompileTimeError
-ref_before_declaration_test/03: MissingCompileTimeError
-ref_before_declaration_test/04: MissingCompileTimeError
-ref_before_declaration_test/05: MissingCompileTimeError
-ref_before_declaration_test/06: MissingCompileTimeError
-ref_before_declaration_test/07: MissingCompileTimeError
 setter_declaration2_negative_test: Fail
 setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
-try_catch_syntax_test/05: MissingCompileTimeError
 vm/lazy_deopt_vm_test: Pass, Slow, Timeout
 vm/optimized_stacktrace_test: Skip # Issue 28788
 
@@ -719,49 +691,11 @@ vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
-assignable_expression_test/01: MissingCompileTimeError
-assignable_expression_test/11: MissingCompileTimeError
-assignable_expression_test/21: MissingCompileTimeError
-assignable_expression_test/31: MissingCompileTimeError
-assignable_expression_test/41: MissingCompileTimeError
-bad_raw_string_test/03: Skip # Issue 28680
-bad_raw_string_test/none: Skip # Issue 28680
 const_syntax_test/08: Crash
 const_syntax_test/09: Crash
-constructor_duplicate_final_test/03: MissingCompileTimeError
-constructor_duplicate_initializers_test/01: MissingCompileTimeError
-constructor_duplicate_initializers_test/02: MissingCompileTimeError
-constructor_return_test/01: MissingCompileTimeError
-constructor_return_test/02: MissingCompileTimeError
-constructor_return_test/03: MissingCompileTimeError
-constructor_return_test/04: MissingCompileTimeError
-constructor_return_test/05: MissingCompileTimeError
-factory_redirection3_cyclic_test/01: MissingCompileTimeError
-factory_redirection_test/04: MissingCompileTimeError
 final_syntax_test/09: MissingCompileTimeError
 getter_declaration_negative_test: Crash
-getter_no_setter2_test/02: MissingCompileTimeError
-getter_no_setter_test/02: MissingCompileTimeError
 getter_parameters_test/02: Crash
-if_null_assignment_behavior_test/29: MissingCompileTimeError
-if_null_assignment_behavior_test/30: MissingCompileTimeError
-illegal_initializer_test/01: MissingCompileTimeError
-illegal_initializer_test/02: MissingCompileTimeError
-illegal_initializer_test/03: MissingCompileTimeError
-illegal_initializer_test/04: MissingCompileTimeError
-illegal_invocation_test/01: MissingCompileTimeError
-label_test: RuntimeError
-named_constructor_test/05: MissingCompileTimeError
-named_constructor_test/08: MissingCompileTimeError
-prefix_assignment_test/01: MissingCompileTimeError
-prefix_assignment_test/02: MissingCompileTimeError
-prefix_identifier_reference_test/01: MissingCompileTimeError
-prefix_identifier_reference_test/02: MissingCompileTimeError
-prefix_identifier_reference_test/03: MissingCompileTimeError
-prefix_identifier_reference_test/04: MissingCompileTimeError
-prefix_identifier_reference_test/05: MissingCompileTimeError
-prefix_unqualified_invocation_test/01: MissingCompileTimeError
-prefix_unqualified_invocation_test/02: MissingCompileTimeError
 ref_before_declaration_test/00: Crash
 ref_before_declaration_test/01: Crash
 ref_before_declaration_test/02: Crash
@@ -771,29 +705,9 @@ ref_before_declaration_test/05: Crash
 ref_before_declaration_test/06: Crash
 ref_before_declaration_test/07: Crash
 ref_before_declaration_test/none: Crash
-regress_23038_test/01: MissingCompileTimeError
 setter_declaration2_negative_test: Crash
 setter_declaration_negative_test: Crash
-this_test/01: MissingCompileTimeError
-this_test/02: MissingCompileTimeError
-this_test/03: MissingCompileTimeError
-this_test/04: MissingCompileTimeError
-this_test/05: MissingCompileTimeError
-this_test/06: MissingCompileTimeError
-this_test/07: MissingCompileTimeError
-this_test/08: MissingCompileTimeError
 try_catch_syntax_test/05: Crash
-try_catch_syntax_test/13: MissingCompileTimeError
-try_catch_syntax_test/14: MissingCompileTimeError
-try_catch_syntax_test/15: MissingCompileTimeError
-type_variable_conflict2_test/02: MissingCompileTimeError
-type_variable_conflict2_test/06: MissingCompileTimeError
-type_variable_conflict2_test/08: MissingCompileTimeError
-type_variable_conflict2_test/10: MissingCompileTimeError
-unsupported_operators_test/01: MissingCompileTimeError
-unsupported_operators_test/02: MissingCompileTimeError
-unsupported_operators_test/03: MissingCompileTimeError
-unsupported_operators_test/04: MissingCompileTimeError
 vm/closure_memory_retention_test: Skip  # Hits OOM
 
 # dartk: precompilation failures (debug)
@@ -802,3 +716,10 @@ external_test/13: Crash
 final_syntax_test/09: Crash
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
+
+[$compiler == dartk && $runtime == vm]
+part_of_uri_test: DartkCrash
+part_of_uri2_test: Crash
+[$compiler == dartkp && $runtime == dart_precompiled]
+part_of_uri_test: DartkCrash
+part_of_uri2_test: Crash

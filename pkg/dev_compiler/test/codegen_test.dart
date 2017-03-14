@@ -164,6 +164,8 @@ main(List<String> arguments) {
         trace = t;
       }
 
+      bool expectedCompileTimeError =
+          contents.contains(': compile-time error\n');
       bool notStrong = notYetStrongTests.contains(name);
       bool crashing = _crashingTests.contains(name);
 
@@ -179,12 +181,17 @@ main(List<String> arguments) {
             module);
 
         expect(crashing, isFalse, reason: "test $name no longer crashes.");
+        // TODO(vsm): We don't seem to trip on non-strong errors?
+        // expect(expectedCompileTimeError, isFalse,
+        //    reason: "test $name expected compilation errors, but compiled.");
         expect(notStrong, isFalse,
             reason: "test $name expected strong mode errors, but compiled.");
       } else {
         expect(crashing, isFalse, reason: "test $name no longer crashes.");
-        expect(notStrong, isTrue,
-            reason: "test $name failed to compile due to strong mode errors:"
+        var reason =
+            expectedCompileTimeError ? "expected" : "untriaged strong mode";
+        expect(expectedCompileTimeError || notStrong, isTrue,
+            reason: "test $name failed to compile due to $reason errors:"
                 "\n\n${module.errors.join('\n')}.");
       }
     });
@@ -379,6 +386,11 @@ String _resolveDirective(UriBasedDirective directive) {
 }
 
 final _crashingTests = new Set<String>.from([
+  'language/generic_methods_generic_class_tearoff_test',
+  'language/generic_methods_named_parameters_test',
+  'language/generic_methods_optional_parameters_test',
+  'language/generic_methods_tearoff_specialization_test',
+  'language/generic_methods_unused_parameter_test',
   'language/mixin_illegal_syntax_test_none_multi',
   'language/mixin_illegal_syntax_test_01_multi',
   'language/mixin_illegal_syntax_test_02_multi',

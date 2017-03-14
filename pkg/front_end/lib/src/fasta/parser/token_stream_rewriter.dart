@@ -44,11 +44,13 @@ class TokenStreamRewriter {
     _lastPreviousToken = previous;
     newToken.next = insertionPoint;
     previous.next = newToken;
-    // Note: even though previousToken is deprecated, we need to hook it up in
-    // case any uses of it remain.  Once previousToken is removed it should be
-    // safe to remove the code below.
-    insertionPoint.previousToken = newToken;
-    newToken.previousToken = previous;
+    {
+      // Note: even though previousToken is deprecated, we need to hook it up in
+      // case any uses of it remain.  Once previousToken is removed it should be
+      // safe to remove this block of code.
+      insertionPoint.previousToken = newToken;
+      newToken.previousToken = previous;
+    }
   }
 
   /// Finds the token that immediately precedes [target].
@@ -81,7 +83,7 @@ class TokenStreamRewriter {
   /// Searches for the token that immediately precedes [target], using [pos] as
   /// a starting point.
   ///
-  /// Uses heuristics to skip matching {}, [], (), and <> if possible.
+  /// Uses heuristics to skip matching `{}`, `[]`, `()`, and `<>` if possible.
   ///
   /// If no such token is found, returns `null`.
   Token _scanForPreviousToken(Token target, Token pos) {

@@ -39,14 +39,18 @@ typedef void ReadyCallback();
 external set dartStackTraceUtility(DartStackTraceUtility value);
 
 typedef String StackTraceMapper(String stackTrace);
-typedef dynamic LoadSourceMaps(List<String> scripts, ReadyCallback callback);
+typedef dynamic SourceMapProvider(String modulePath);
+typedef String SetSourceMapProvider(SourceMapProvider provider);
 
 @JS()
 @anonymous
 class DartStackTraceUtility {
   external factory DartStackTraceUtility(
-      {StackTraceMapper mapper, LoadSourceMaps loadSourceMaps});
+      {StackTraceMapper mapper, SetSourceMapProvider setSourceMapProvider});
 }
+
+@JS('JSON.stringify')
+external String _stringify(dynamic json);
 
 /// Source mapping that is waits to parse source maps until they match the uri
 /// of a requested source map.
@@ -56,11 +60,9 @@ class DartStackTraceUtility {
 /// LazyMapping is used.
 class LazyMapping extends Mapping {
   MappingBundle _bundle = new MappingBundle();
+  SourceMapProvider _provider;
 
-  /// Map from url to unparsed source map.
-  Map<String, String> _sourceMaps;
-
-  LazyMapping(this._sourceMaps) {}
+  LazyMapping(this._provider);
 
   List toJson() => _bundle.toJson();
 
@@ -69,17 +71,28 @@ class LazyMapping extends Mapping {
     if (uri == null) {
       throw new ArgumentError.notNull('uri');
     }
-    var rawMap = _sourceMaps[uri];
 
-    if (rawMap != null && rawMap.isNotEmpty && !_bundle.containsMapping(uri)) {
-      SingleMapping mapping = parse(rawMap);
-      mapping
-        ..targetUrl = uri
-        ..sourceRoot = '${path.dirname(uri)}/';
-      _bundle.addMapping(mapping);
+    if (!_bundle.containsMapping(uri)) {
+      var rawMap = _provider(uri);
+      if (rawMap != null) {
+        if (rawMap is! String) {
+          // The sourcemap was passed as regular JavaScript JSON.
+          rawMap = _stringify(rawMap);
+        }
+        SingleMapping mapping = parse(rawMap);
+        mapping
+          ..targetUrl = uri
+          ..sourceRoot = '${path.dirname(uri)}/';
+        _bundle.addMapping(mapping);
+      }
     }
-
-    return _bundle.spanFor(line, column, files: files, uri: uri);
+    var span = _bundle.spanFor(line, column, files: files, uri: uri);
+    // TODO(jacobr): we shouldn't have to filter out invalid sourceUrl entries
+    // here.
+    if (span == null || span.start.sourceUrl == null) return null;
+    var pathSegments = span.start.sourceUrl.pathSegments;
+    if (pathSegments.isNotEmpty && pathSegments.last == 'null') return null;
+    return span;
   }
 }
 
@@ -94,18 +107,6 @@ String _toSourceMapLocation(String url) {
   return uri.replace(path: '${uri.path}.map').toString();
 }
 
-/// Load a source map for the specified url.
-///
-/// Returns a null string rather than reporting an error if the file cannot be
-/// found as we don't want to throw errors if a few source maps are missing.
-Future<String> loadSourceMap(String url) async {
-  try {
-    return await HttpRequest.getString(_toSourceMapLocation(url));
-  } catch (e) {
-    return null;
-  }
-}
-
 LazyMapping _mapping;
 
 String mapper(String rawStackTrace) {
@@ -117,18 +118,13 @@ String mapper(String rawStackTrace) {
   return mapStackTrace(_mapping, new Trace.parse(rawStackTrace)).toString();
 }
 
-Future<Null> loadSourceMaps(
-    List<String> scripts, ReadyCallback callback) async {
-  List<Future<String>> sourceMapFutures =
-      scripts.map((script) => loadSourceMap(script)).toList();
-  List<String> sourceMaps = await Future.wait(sourceMapFutures);
-  _mapping = new LazyMapping(new Map.fromIterables(scripts, sourceMaps));
-  callback();
+void setSourceMapProvider(SourceMapProvider provider) async {
+  _mapping = new LazyMapping(provider);
 }
 
 main() {
   // Register with DDC.
   dartStackTraceUtility = new DartStackTraceUtility(
       mapper: allowInterop(mapper),
-      loadSourceMaps: allowInterop(loadSourceMaps));
+      setSourceMapProvider: allowInterop(setSourceMapProvider));
 }

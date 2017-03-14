@@ -153,6 +153,12 @@ class KernelLibraryBuilder
         charOffset);
   }
 
+  String computeConstructorName(String name) {
+    assert(isConstructorName(name, currentDeclaration.name));
+    int index = name.indexOf(".");
+    return index == -1 ? "" : name.substring(index + 1);
+  }
+
   void addProcedure(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -171,8 +177,7 @@ class KernelLibraryBuilder
     endNestedDeclaration().resolveTypes(typeVariables, this);
     ProcedureBuilder procedure;
     if (!isTopLevel && isConstructorName(name, currentDeclaration.name)) {
-      int index = name.indexOf(".");
-      name = index == -1 ? "" : name.substring(index + 1);
+      name = computeConstructorName(name);
       procedure = new KernelConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
@@ -219,8 +224,9 @@ class KernelLibraryBuilder
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration();
     String name = constructorName.name;
-    int index = name.indexOf(".");
-    name = index == -1 ? "" : name.substring(index + 1);
+    if (isConstructorName(name, currentDeclaration.name)) {
+      name = computeConstructorName(name);
+    }
     assert(constructorName.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         metadata,

@@ -246,10 +246,11 @@ Future testSwitch() {
         "switch (null) { case '': break; case 2: break; } } }");
     compiler.resolveStatement("Foo foo;");
     ClassElement fooElement = compiler.mainApp.find("Foo");
-    FunctionElement funElement = fooElement.lookupLocalMember("foo");
+    MethodElement funElement = fooElement.lookupLocalMember("foo");
     compiler.enqueuer.resolution.applyImpact(new WorldImpactBuilderImpl()
       ..registerStaticUse(new StaticUse.foreignUse(funElement)));
-    compiler.processQueue(compiler.enqueuer.resolution, null);
+    compiler.processQueue(
+        compiler.enqueuer.resolution, null, compiler.libraryLoader.libraries);
     DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(0, collector.warnings.length);
     Expect.equals(1, collector.errors.length);

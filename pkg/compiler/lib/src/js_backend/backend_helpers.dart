@@ -7,7 +7,7 @@ library dart2js.js_backend.helpers;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Uris;
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart' show PublicName;
 import '../elements/entities.dart';
 import '../library_loader.dart' show LoadedLibraries;
@@ -296,6 +296,10 @@ class BackendHelpers {
   ClassEntity _typeVariableClass;
   ClassEntity get typeVariableClass =>
       _typeVariableClass ??= _findHelperClass('TypeVariable');
+
+  ConstructorEntity _typeVariableConstructor;
+  ConstructorEntity get typeVariableConstructor => _typeVariableConstructor ??=
+      _env.lookupConstructor(typeVariableClass, '');
 
   ClassEntity _noSideEffectsClass;
   ClassEntity get noSideEffectsClass =>
@@ -724,8 +728,10 @@ class BackendHelpers {
   FunctionEntity get callInIsolate =>
       _findLibraryMember(isolateHelperLibrary, '_callInIsolate');
 
+  FunctionEntity _findIndexForNativeSubclassType;
   FunctionEntity get findIndexForNativeSubclassType =>
-      _findLibraryMember(interceptorsLibrary, 'findIndexForNativeSubclassType');
+      _findIndexForNativeSubclassType ??= _findLibraryMember(
+          interceptorsLibrary, 'findIndexForNativeSubclassType');
 
   FunctionEntity get convertRtiToRuntimeType =>
       _findHelperFunction('convertRtiToRuntimeType');

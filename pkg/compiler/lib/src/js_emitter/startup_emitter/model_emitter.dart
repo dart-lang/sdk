@@ -34,7 +34,7 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../core_types.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements;
 import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';

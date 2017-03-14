@@ -3188,7 +3188,8 @@ int foo() => 42;
           library,
           r'''
 class C {
-  static const int f = $$invalidConstExpr$$;
+  static const int f =
+        $$invalidConstExpr$$/*location: null*/;
 }
 int foo() {}
 ''');
@@ -3197,7 +3198,8 @@ int foo() {}
           library,
           r'''
 class C {
-  static const dynamic f = $$invalidConstExpr$$;
+  static const dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
 }
 int foo() {}
 ''');
@@ -3219,7 +3221,8 @@ int foo() => 42;
           library,
           r'''
 class C {
-  final int f = $$invalidConstExpr$$;
+  final int f =
+        $$invalidConstExpr$$/*location: null*/;
 }
 int foo() {}
 ''');
@@ -3228,7 +3231,8 @@ int foo() {}
           library,
           r'''
 class C {
-  final dynamic f = $$invalidConstExpr$$;
+  final dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
 }
 int foo() {}
 ''');
@@ -3247,14 +3251,16 @@ int foo() => 42;
       checkElementText(
           library,
           r'''
-const int v = $$invalidConstExpr$$;
+const int v =
+        $$invalidConstExpr$$/*location: null*/;
 int foo() {}
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic v = $$invalidConstExpr$$;
+const dynamic v =
+        $$invalidConstExpr$$/*location: null*/;
 int foo() {}
 ''');
     }
@@ -3274,7 +3280,11 @@ const V = const C<int, String>.named(1, '222');
 class C<K, V> {
   const C.named(K k, V v);
 }
-const C<int, String> V = const C<int, String>.named(1, '222');
+const C<int, String> V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: test.dart;C;named*/(1, '222');
 ''');
     } else {
       checkElementText(
@@ -3283,7 +3293,11 @@ const C<int, String> V = const C<int, String>.named(1, '222');
 class C<K, V> {
   const C.named(K k, V v);
 }
-const dynamic V = const C<int, String>.named(1, '222');
+const dynamic V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: test.dart;C;named*/(1, '222');
 ''');
     }
   }
@@ -3305,14 +3319,22 @@ const V = const C<int, String>.named(1, '222');
           library,
           r'''
 import 'a.dart';
-const C<int, String> V = const C<int, String>.named(1, '222');
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic V = const C<int, String>.named(1, '222');
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
 ''');
     }
   }
@@ -3334,14 +3356,22 @@ const V = const p.C<int, String>.named(1, '222');
           library,
           r'''
 import 'a.dart' as p;
-const C<int, String> V = const C<int, String>.named(1, '222');
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const C<int, String>.named(1, '222');
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
 ''');
     }
   }
@@ -3360,7 +3390,8 @@ const V = const C();
 class C<K, V> {
   const C();
 }
-const C<dynamic, dynamic> V = const C();
+const C<dynamic, dynamic> V = const
+        C/*location: test.dart;C*/();
 ''');
     } else {
       checkElementText(
@@ -3369,7 +3400,8 @@ const C<dynamic, dynamic> V = const C();
 class C<K, V> {
   const C();
 }
-const dynamic V = const C();
+const dynamic V = const
+        C/*location: test.dart;C*/();
 ''');
     }
   }
@@ -3388,7 +3420,10 @@ const V = const C<int, String>();
 class C<K, V> {
   const C();
 }
-const C<int, String> V = const C<int, String>();
+const C<int, String> V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
 ''');
     } else {
       checkElementText(
@@ -3397,7 +3432,10 @@ const C<int, String> V = const C<int, String>();
 class C<K, V> {
   const C();
 }
-const dynamic V = const C<int, String>();
+const dynamic V = const
+        C/*location: test.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
 ''');
     }
   }
@@ -3419,14 +3457,20 @@ const V = const C<int, String>();
           library,
           r'''
 import 'a.dart';
-const C<int, String> V = const C<int, String>();
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic V = const C<int, String>();
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
 ''');
     }
   }
@@ -3448,14 +3492,20 @@ const V = const p.C<int, String>();
           library,
           r'''
 import 'a.dart' as p;
-const C<int, String> V = const C<int, String>();
+const C<int, String> V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const C<int, String>();
+const dynamic V = const
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
 ''');
     }
   }
@@ -3474,7 +3524,11 @@ const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 class C {
   const C.named(bool a, int b, int c, {String d}, {double e});
 }
-const C V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
+const C V = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(true, 1, 2,
+        d/*location: null*/: 'ccc',
+        e/*location: null*/: 3.4);
 ''');
     } else {
       checkElementText(
@@ -3483,7 +3537,11 @@ const C V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 class C {
   const C.named(bool a, int b, int c, {String d}, {double e});
 }
-const dynamic V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(true, 1, 2,
+        d/*location: null*/: 'ccc',
+        e/*location: null*/: 3.4);
 ''');
     }
   }
@@ -3505,14 +3563,18 @@ const V = const C.named();
           library,
           r'''
 import 'a.dart';
-const C V = const C.named();
+const C V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic V = const C.named();
+const dynamic V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
 ''');
     }
   }
@@ -3534,14 +3596,18 @@ const V = const p.C.named();
           library,
           r'''
 import 'a.dart' as p;
-const C V = const C.named();
+const C V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const C.named();
+const dynamic V = const
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
 ''');
     }
   }
@@ -3559,7 +3625,9 @@ const V = const C.named();
           r'''
 class C {
 }
-const C V = const C.named();
+const C V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
 ''');
     } else {
       checkElementText(
@@ -3567,7 +3635,9 @@ const C V = const C.named();
           r'''
 class C {
 }
-const dynamic V = const C.named();
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
 ''');
     }
   }
@@ -3582,13 +3652,17 @@ const V = const C.named();
       checkElementText(
           library,
           r'''
-const dynamic V = const C.named();
+const dynamic V = const
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic V = const C.named();
+const dynamic V = const
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
     }
   }
@@ -3611,14 +3685,20 @@ const V = const p.C.named();
           library,
           r'''
 import 'a.dart' as p;
-const C V = const p.C.named();
+const C V = const
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: null*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const p.C.named();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: null*/();
 ''');
     }
   }
@@ -3636,14 +3716,20 @@ const V = const p.C.named();
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const p.C.named();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const p.C.named();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
     }
   }
@@ -3658,13 +3744,19 @@ const V = const p.C.named();
       checkElementText(
           library,
           r'''
-const dynamic V = const p.C.named();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic V = const p.C.named();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/.
+        named/*location: null*/();
 ''');
     }
   }
@@ -3682,7 +3774,9 @@ const V = const C.named();
           r'''
 class C<T> {
 }
-const C<dynamic> V = const C.named();
+const C<dynamic> V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
 ''');
     } else {
       checkElementText(
@@ -3690,7 +3784,9 @@ const C<dynamic> V = const C.named();
           r'''
 class C<T> {
 }
-const dynamic V = const C.named();
+const dynamic V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
 ''');
     }
   }
@@ -3709,7 +3805,8 @@ const V = const C();
 class C {
   const C();
 }
-const C V = const C();
+const C V = const
+        C/*location: test.dart;C*/();
 ''');
     } else {
       checkElementText(
@@ -3718,7 +3815,8 @@ const C V = const C();
 class C {
   const C();
 }
-const dynamic V = const C();
+const dynamic V = const
+        C/*location: test.dart;C*/();
 ''');
     }
   }
@@ -3740,14 +3838,16 @@ const V = const C();
           library,
           r'''
 import 'a.dart';
-const C V = const C();
+const C V = const
+        C/*location: a.dart;C*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic V = const C();
+const dynamic V = const
+        C/*location: a.dart;C*/();
 ''');
     }
   }
@@ -3769,14 +3869,16 @@ const V = const p.C();
           library,
           r'''
 import 'a.dart' as p;
-const C V = const C();
+const C V = const
+        C/*location: a.dart;C*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const C();
+const dynamic V = const
+        C/*location: a.dart;C*/();
 ''');
     }
   }
@@ -3791,13 +3893,15 @@ const V = const C();
       checkElementText(
           library,
           r'''
-const dynamic V = const C();
+const dynamic V = const
+        C/*location: null*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic V = const C();
+const dynamic V = const
+        C/*location: null*/();
 ''');
     }
   }
@@ -3815,14 +3919,18 @@ const V = const p.C();
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const p.C();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = const p.C();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
 ''');
     }
   }
@@ -3837,13 +3945,17 @@ const V = const p.C();
       checkElementText(
           library,
           r'''
-const dynamic V = const p.C();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic V = const p.C();
+const dynamic V = const
+        p/*location: null*/.
+        C/*location: null*/();
 ''');
     }
   }
@@ -3862,7 +3974,10 @@ const int v = C.F.length;
 class C {
   static const String F = '';
 }
-const int v = C.F.length;
+const int v =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     } else {
       checkElementText(
@@ -3871,7 +3986,10 @@ const int v = C.F.length;
 class C {
   static const String F = '';
 }
-const int v = C.F.length;
+const int v =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     }
   }
@@ -3893,14 +4011,20 @@ const int v = C.F.length;
           library,
           r'''
 import 'a.dart';
-const int v = C.F.length;
+const int v =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const int v = C.F.length;
+const int v =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     }
   }
@@ -3922,14 +4046,22 @@ const int v = p.C.F.length;
           library,
           r'''
 import 'a.dart' as p;
-const int v = p.C.F.length;
+const int v =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const int v = p.C.F.length;
+const int v =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     }
   }
@@ -3942,13 +4074,15 @@ const v = 'abc'.length;
       checkElementText(
           library,
           r'''
-const int v = 'abc'.length;
+const int v = 'abc'.
+        length/*location: dart:core;String;length?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic v = 'abc'.length;
+const dynamic v = 'abc'.
+        length/*location: dart:core;String;length?*/;
 ''');
     }
   }
@@ -3963,14 +4097,18 @@ const v = S.length;
           library,
           r'''
 const String S = 'abc';
-const int v = S.length;
+const int v =
+        S/*location: test.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 const String S = 'abc';
-const dynamic v = S.length;
+const dynamic v =
+        S/*location: test.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     }
   }
@@ -3990,14 +4128,18 @@ const v = S.length;
           library,
           r'''
 import 'a.dart';
-const int v = S.length;
+const int v =
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic v = S.length;
+const dynamic v =
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     }
   }
@@ -4017,14 +4159,20 @@ const v = p.S.length;
           library,
           r'''
 import 'a.dart' as p;
-const int v = p.S.length;
+const int v =
+        p/*location: null*/.
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic v = p.S.length;
+const dynamic v =
+        p/*location: null*/.
+        S/*location: a.dart;S?*/.
+        length/*location: dart:core;String;length?*/;
 ''');
     }
   }
@@ -4043,7 +4191,9 @@ const v = C.length;
 class C {
   static int length() {}
 }
-const () → int v = C.length;
+const () → int v =
+        C/*location: test.dart;C*/.
+        length/*location: test.dart;C;length*/;
 ''');
     } else {
       checkElementText(
@@ -4052,7 +4202,9 @@ const () → int v = C.length;
 class C {
   static int length() {}
 }
-const dynamic v = C.length;
+const dynamic v =
+        C/*location: test.dart;C*/.
+        length/*location: test.dart;C;length*/;
 ''');
     }
   }
@@ -4198,7 +4350,9 @@ const V = C.F;
 class C {
   static const int F = 42;
 }
-const int V = C.F;
+const int V =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/;
 ''');
     } else {
       checkElementText(
@@ -4207,7 +4361,9 @@ const int V = C.F;
 class C {
   static const int F = 42;
 }
-const dynamic V = C.F;
+const dynamic V =
+        C/*location: test.dart;C*/.
+        F/*location: test.dart;C;F?*/;
 ''');
     }
   }
@@ -4229,14 +4385,18 @@ const V = C.F;
           library,
           r'''
 import 'a.dart';
-const int V = C.F;
+const int V =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic V = C.F;
+const dynamic V =
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
 ''');
     }
   }
@@ -4258,14 +4418,20 @@ const V = p.C.F;
           library,
           r'''
 import 'a.dart' as p;
-const int V = p.C.F;
+const int V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = p.C.F;
+const dynamic V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        F/*location: a.dart;C;F?*/;
 ''');
     }
   }
@@ -4284,7 +4450,9 @@ const V = C.m;
 class C {
   static int m(int a, String b) {}
 }
-const (int, String) → int V = C.m;
+const (int, String) → int V =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
 ''');
     } else {
       checkElementText(
@@ -4293,7 +4461,9 @@ const (int, String) → int V = C.m;
 class C {
   static int m(int a, String b) {}
 }
-const dynamic V = C.m;
+const dynamic V =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
 ''');
     }
   }
@@ -4315,14 +4485,18 @@ const V = C.m;
           library,
           r'''
 import 'a.dart';
-const (int, String) → int V = C.m;
+const (int, String) → int V =
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic V = C.m;
+const dynamic V =
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
 ''');
     }
   }
@@ -4344,14 +4518,20 @@ const V = p.C.m;
           library,
           r'''
 import 'a.dart' as p;
-const (int, String) → int V = p.C.m;
+const (int, String) → int V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = p.C.m;
+const dynamic V =
+        p/*location: null*/.
+        C/*location: a.dart;C*/.
+        m/*location: a.dart;C;m*/;
 ''');
     }
   }
@@ -4365,14 +4545,16 @@ const V = foo;
       checkElementText(
           library,
           r'''
-const () → dynamic V = foo;
+const () → dynamic V =
+        foo/*location: test.dart;foo*/;
 dynamic foo() {}
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic V = foo;
+const dynamic V =
+        foo/*location: test.dart;foo*/;
 dynamic foo() {}
 ''');
     }
@@ -4393,14 +4575,16 @@ const V = foo;
           library,
           r'''
 import 'a.dart';
-const () → dynamic V = foo;
+const () → dynamic V =
+        foo/*location: a.dart;foo*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic V = foo;
+const dynamic V =
+        foo/*location: a.dart;foo*/;
 ''');
     }
   }
@@ -4420,14 +4604,18 @@ const V = p.foo;
           library,
           r'''
 import 'a.dart' as p;
-const () → dynamic V = p.foo;
+const () → dynamic V =
+        p/*location: null*/.
+        foo/*location: a.dart;foo*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic V = p.foo;
+const dynamic V =
+        p/*location: null*/.
+        foo/*location: a.dart;foo*/;
 ''');
     }
   }
@@ -4442,14 +4630,16 @@ const B = A + 2;
           library,
           r'''
 const int A = 1;
-const int B = A + 2;
+const int B =
+        A/*location: test.dart;A?*/ + 2;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 const dynamic A = 1;
-const dynamic B = A + 2;
+const dynamic B =
+        A/*location: test.dart;A?*/ + 2;
 ''');
     }
   }
@@ -4469,14 +4659,16 @@ const B = A + 2;
           library,
           r'''
 import 'a.dart';
-const int B = A + 2;
+const int B =
+        A/*location: a.dart;A?*/ + 2;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic B = A + 2;
+const dynamic B =
+        A/*location: a.dart;A?*/ + 2;
 ''');
     }
   }
@@ -4496,14 +4688,18 @@ const B = p.A + 2;
           library,
           r'''
 import 'a.dart' as p;
-const int B = p.A + 2;
+const int B =
+        p/*location: null*/.
+        A/*location: a.dart;A?*/ + 2;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic B = p.A + 2;
+const dynamic B =
+        p/*location: null*/.
+        A/*location: a.dart;A?*/ + 2;
 ''');
     }
   }
@@ -4538,13 +4734,20 @@ class C {
 }
 class D<T> {
 }
-const Type vDynamic = dynamic;
-const Type vNull = Null;
-const Type vObject = Object;
-const Type vClass = C;
-const Type vGenericClass = D;
-const Type vEnum = E;
-const Type vFunctionTypeAlias = F;
+const Type vDynamic =
+        dynamic/*location: dynamic*/;
+const Type vNull =
+        Null/*location: dart:core;Null*/;
+const Type vObject =
+        Object/*location: dart:core;Object*/;
+const Type vClass =
+        C/*location: test.dart;C*/;
+const Type vGenericClass =
+        D/*location: test.dart;D*/;
+const Type vEnum =
+        E/*location: test.dart;E*/;
+const Type vFunctionTypeAlias =
+        F/*location: test.dart;F*/;
 ''');
     } else {
       checkElementText(
@@ -4562,13 +4765,20 @@ class C {
 }
 class D<T> {
 }
-const dynamic vDynamic = dynamic;
-const dynamic vNull = Null;
-const dynamic vObject = Object;
-const dynamic vClass = C;
-const dynamic vGenericClass = D;
-const dynamic vEnum = E;
-const dynamic vFunctionTypeAlias = F;
+const dynamic vDynamic =
+        dynamic/*location: dynamic*/;
+const dynamic vNull =
+        Null/*location: dart:core;Null*/;
+const dynamic vObject =
+        Object/*location: dart:core;Object*/;
+const dynamic vClass =
+        C/*location: test.dart;C*/;
+const dynamic vGenericClass =
+        D/*location: test.dart;D*/;
+const dynamic vEnum =
+        E/*location: test.dart;E*/;
+const dynamic vFunctionTypeAlias =
+        F/*location: test.dart;F*/;
 ''');
     }
   }
@@ -4586,7 +4796,8 @@ class C {
           r'''
 typedef dynamic F();
 class C {
-  final List<F> f = const <F>[];
+  final List<F> f = const <
+        F/*location: test.dart;F*/>[];
 }
 ''');
     } else {
@@ -4595,7 +4806,8 @@ class C {
           r'''
 typedef dynamic F();
 class C {
-  final dynamic f = const <F>[];
+  final dynamic f = const <
+        F/*location: test.dart;F*/>[];
 }
 ''');
     }
@@ -4620,18 +4832,24 @@ const vFunctionTypeAlias = F;
           library,
           r'''
 import 'a.dart';
-const Type vClass = C;
-const Type vEnum = E;
-const Type vFunctionTypeAlias = F;
+const Type vClass =
+        C/*location: a.dart;C*/;
+const Type vEnum =
+        E/*location: a.dart;E*/;
+const Type vFunctionTypeAlias =
+        F/*location: a.dart;F*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic vClass = C;
-const dynamic vEnum = E;
-const dynamic vFunctionTypeAlias = F;
+const dynamic vClass =
+        C/*location: a.dart;C*/;
+const dynamic vEnum =
+        E/*location: a.dart;E*/;
+const dynamic vFunctionTypeAlias =
+        F/*location: a.dart;F*/;
 ''');
     }
   }
@@ -4655,18 +4873,30 @@ const vFunctionTypeAlias = p.F;
           library,
           r'''
 import 'a.dart' as p;
-const Type vClass = p.C;
-const Type vEnum = p.E;
-const Type vFunctionTypeAlias = p.F;
+const Type vClass =
+        p/*location: null*/.
+        C/*location: a.dart;C*/;
+const Type vEnum =
+        p/*location: null*/.
+        E/*location: a.dart;E*/;
+const Type vFunctionTypeAlias =
+        p/*location: null*/.
+        F/*location: a.dart;F*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic vClass = p.C;
-const dynamic vEnum = p.E;
-const dynamic vFunctionTypeAlias = p.F;
+const dynamic vClass =
+        p/*location: null*/.
+        C/*location: a.dart;C*/;
+const dynamic vEnum =
+        p/*location: null*/.
+        E/*location: a.dart;E*/;
+const dynamic vFunctionTypeAlias =
+        p/*location: null*/.
+        F/*location: a.dart;F*/;
 ''');
     }
   }
@@ -4682,7 +4912,8 @@ class C<T> {
           library,
           r'''
 class C<T> {
-  final List<T> f = const <T>[];
+  final List<T> f = const <
+        T/*location: test.dart;C;T*/>[];
 }
 ''');
     } else {
@@ -4690,7 +4921,8 @@ class C<T> {
           library,
           r'''
 class C<T> {
-  final dynamic f = const <T>[];
+  final dynamic f = const <
+        T/*location: test.dart;C;T*/>[];
 }
 ''');
     }
@@ -4706,13 +4938,15 @@ const V = foo;
       checkElementText(
           library,
           r'''
-const dynamic V = foo;
+const dynamic V =
+        foo/*location: null*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic V = foo;
+const dynamic V =
+        foo/*location: null*/;
 ''');
     }
   }
@@ -4730,7 +4964,9 @@ const v = C.foo;
           r'''
 class C {
 }
-const dynamic v = C.foo;
+const dynamic v =
+        C/*location: test.dart;C*/.
+        foo/*location: null*/;
 ''');
     } else {
       checkElementText(
@@ -4738,7 +4974,9 @@ const dynamic v = C.foo;
           r'''
 class C {
 }
-const dynamic v = C.foo;
+const dynamic v =
+        C/*location: test.dart;C*/.
+        foo/*location: null*/;
 ''');
     }
   }
@@ -4760,14 +4998,20 @@ const v = p.C.foo;
           library,
           r'''
 import 'foo.dart' as p;
-const dynamic v = p.C.foo;
+const dynamic v =
+        p/*location: null*/.
+        C/*location: foo.dart;C*/.
+        foo/*location: null*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'foo.dart' as p;
-const dynamic v = p.C.foo;
+const dynamic v =
+        p/*location: null*/.
+        C/*location: foo.dart;C*/.
+        foo/*location: null*/;
 ''');
     }
   }
@@ -5024,23 +5268,43 @@ const vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
       checkElementText(
           library,
           r'''
-const List<Null> vNull = const <Null>[];
-const List<dynamic> vDynamic = const <dynamic>[1, 2, 3];
-const List<int> vInterfaceNoTypeParameters = const <int>[1, 2, 3];
-const List<List<dynamic>> vInterfaceNoTypeArguments = const <List>[];
-const List<List<String>> vInterfaceWithTypeArguments = const <List<String>>[];
-const List<Map<int, List<String>>> vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
+const List<Null> vNull = const <
+        Null/*location: dart:core;Null*/>[];
+const List<dynamic> vDynamic = const <
+        dynamic/*location: dynamic*/>[1, 2, 3];
+const List<int> vInterfaceNoTypeParameters = const <
+        int/*location: dart:core;int*/>[1, 2, 3];
+const List<List<dynamic>> vInterfaceNoTypeArguments = const <
+        List/*location: dart:core;List*/>[];
+const List<List<String>> vInterfaceWithTypeArguments = const <
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>[];
+const List<Map<int, List<String>>> vInterfaceWithTypeArguments2 = const <
+        Map/*location: dart:core;Map*/<
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>>[];
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic vNull = const <Null>[];
-const dynamic vDynamic = const <dynamic>[1, 2, 3];
-const dynamic vInterfaceNoTypeParameters = const <int>[1, 2, 3];
-const dynamic vInterfaceNoTypeArguments = const <List>[];
-const dynamic vInterfaceWithTypeArguments = const <List<String>>[];
-const dynamic vInterfaceWithTypeArguments2 = const <Map<int, List<String>>>[];
+const dynamic vNull = const <
+        Null/*location: dart:core;Null*/>[];
+const dynamic vDynamic = const <
+        dynamic/*location: dynamic*/>[1, 2, 3];
+const dynamic vInterfaceNoTypeParameters = const <
+        int/*location: dart:core;int*/>[1, 2, 3];
+const dynamic vInterfaceNoTypeArguments = const <
+        List/*location: dart:core;List*/>[];
+const dynamic vInterfaceWithTypeArguments = const <
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>[];
+const dynamic vInterfaceWithTypeArguments2 = const <
+        Map/*location: dart:core;Map*/<
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>>[];
 ''');
     }
   }
@@ -5056,14 +5320,16 @@ const v = const <C>[];
           library,
           r'''
 import 'a.dart';
-const List<C> v = const <C>[];
+const List<C> v = const <
+        C/*location: a.dart;C*/>[];
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart';
-const dynamic v = const <C>[];
+const dynamic v = const <
+        C/*location: a.dart;C*/>[];
 ''');
     }
   }
@@ -5079,14 +5345,16 @@ const v = const <p.C>[];
           library,
           r'''
 import 'a.dart' as p;
-const List<C> v = const <C>[];
+const List<C> v = const <
+        C/*location: a.dart;C*/>[];
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'a.dart' as p;
-const dynamic v = const <C>[];
+const dynamic v = const <
+        C/*location: a.dart;C*/>[];
 ''');
     }
   }
@@ -5102,19 +5370,37 @@ const vInterfaceWithTypeArguments = const <int, List<String>>{};
       checkElementText(
           library,
           r'''
-const Map<dynamic, int> vDynamic1 = const <dynamic, int>{};
-const Map<int, dynamic> vDynamic2 = const <int, dynamic>{};
-const Map<int, String> vInterface = const <int, String>{};
-const Map<int, List<String>> vInterfaceWithTypeArguments = const <int, List<String>>{};
+const Map<dynamic, int> vDynamic1 = const <
+        dynamic/*location: dynamic*/,
+        int/*location: dart:core;int*/>{};
+const Map<int, dynamic> vDynamic2 = const <
+        int/*location: dart:core;int*/,
+        dynamic/*location: dynamic*/>{};
+const Map<int, String> vInterface = const <
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>{};
+const Map<int, List<String>> vInterfaceWithTypeArguments = const <
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>{};
 ''');
     } else {
       checkElementText(
           library,
           r'''
-const dynamic vDynamic1 = const <dynamic, int>{};
-const dynamic vDynamic2 = const <int, dynamic>{};
-const dynamic vInterface = const <int, String>{};
-const dynamic vInterfaceWithTypeArguments = const <int, List<String>>{};
+const dynamic vDynamic1 = const <
+        dynamic/*location: dynamic*/,
+        int/*location: dart:core;int*/>{};
+const dynamic vDynamic2 = const <
+        int/*location: dart:core;int*/,
+        dynamic/*location: dynamic*/>{};
+const dynamic vInterface = const <
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>{};
+const dynamic vInterfaceWithTypeArguments = const <
+        int/*location: dart:core;int*/,
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>{};
 ''');
     }
   }
@@ -5157,6 +5443,46 @@ const dynamic v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
     }
   }
 
+  test_constExpr_pushReference_enum_field() {
+    var library = checkLibrary('''
+enum E {a, b, c}
+final vValue = E.a;
+final vValues = E.values;
+final vIndex = E.a.index;
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  final int index;
+  static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+final E vValue;
+final List<E> vValues;
+final int vIndex;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  final int index;
+  static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+}
+final dynamic vValue;
+final dynamic vValues;
+final dynamic vIndex;
+''');
+    }
+  }
+
   test_constExpr_pushReference_field_simpleIdentifier() {
     var library = checkLibrary('''
 class C {
@@ -5169,7 +5495,9 @@ class C {
           library,
           r'''
 class C {
-  static const dynamic a = C.b;
+  static const dynamic a =
+        C/*location: test.dart;C*/.
+        b/*location: test.dart;C;b?*/;
   static const dynamic b = null;
 }
 ''');
@@ -5178,7 +5506,9 @@ class C {
           library,
           r'''
 class C {
-  static const dynamic a = C.b;
+  static const dynamic a =
+        C/*location: test.dart;C*/.
+        b/*location: test.dart;C;b?*/;
   static const dynamic b = null;
 }
 ''');
@@ -5197,7 +5527,9 @@ class C {
           library,
           r'''
 class C {
-  static const () → dynamic a = C.m;
+  static const () → dynamic a =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
   static dynamic m() {}
 }
 ''');
@@ -5206,7 +5538,9 @@ class C {
           library,
           r'''
 class C {
-  static const dynamic a = C.m;
+  static const dynamic a =
+        C/*location: test.dart;C*/.
+        m/*location: test.dart;C;m*/;
   static dynamic m() {}
 }
 ''');
@@ -5257,7 +5591,8 @@ class C {
           library,
           r'''
 class C {
-  const C(int x) : assert(x >= 42);
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42);
 }
 ''');
     } else {
@@ -5265,7 +5600,8 @@ class C {
           library,
           r'''
 class C {
-  const C(int x) : assert(x >= 42);
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42);
 }
 ''');
     }
@@ -5282,7 +5618,8 @@ class C {
           library,
           r'''
 class C {
-  const C(int x) : assert(x >= 42, 'foo');
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42, 'foo');
 }
 ''');
     } else {
@@ -5290,7 +5627,8 @@ class C {
           library,
           r'''
 class C {
-  const C(int x) : assert(x >= 42, 'foo');
+  const C(int x) : assert(
+        x/*location: test.dart;C;;x*/ >= 42, 'foo');
 }
 ''');
     }
@@ -5309,7 +5647,8 @@ class C {
           r'''
 class C {
   final dynamic x;
-  const C() : x = 42;
+  const C() :
+        x/*location: test.dart;C;x*/ = 42;
 }
 ''');
     } else {
@@ -5318,7 +5657,8 @@ class C {
           r'''
 class C {
   final dynamic x;
-  const C() : x = 42;
+  const C() :
+        x/*location: test.dart;C;x*/ = 42;
 }
 ''');
     }
@@ -5341,7 +5681,9 @@ int foo() => 42;
           r'''
 class C {
   final dynamic x;
-  const C() : x = $$invalidConstExpr$$;
+  const C() :
+        x/*location: test.dart;C;x*/ =
+        $$invalidConstExpr$$/*location: null*/;
 }
 int foo() {}
 ''');
@@ -5351,7 +5693,9 @@ int foo() {}
           r'''
 class C {
   final dynamic x;
-  const C() : x = $$invalidConstExpr$$;
+  const C() :
+        x/*location: test.dart;C;x*/ =
+        $$invalidConstExpr$$/*location: null*/;
 }
 int foo() {}
 ''');
@@ -5371,7 +5715,9 @@ class C {
           r'''
 class C {
   final dynamic x;
-  const C(int p) : x = 1 + p;
+  const C(int p) :
+        x/*location: test.dart;C;x*/ = 1 +
+        p/*location: test.dart;C;;p*/;
 }
 ''');
     } else {
@@ -5380,7 +5726,9 @@ class C {
           r'''
 class C {
   final dynamic x;
-  const C(int p) : x = 1 + p;
+  const C(int p) :
+        x/*location: test.dart;C;x*/ = 1 +
+        p/*location: test.dart;C;;p*/;
 }
 ''');
     }
@@ -5403,7 +5751,8 @@ class A {
   const A.aaa(int p);
 }
 class C extends A {
-  const C() : super.aaa(42);
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(42);
 }
 ''');
     } else {
@@ -5414,7 +5763,8 @@ class A {
   const A.aaa(int p);
 }
 class C extends A {
-  const C() : super.aaa(42);
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(42);
 }
 ''');
     }
@@ -5437,7 +5787,9 @@ class A {
   const A.aaa(dynamic a, {int b});
 }
 class C extends A {
-  const C() : super.aaa(1, b: 2);
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(1,
+        b/*location: null*/: 2);
 }
 ''');
     } else {
@@ -5448,7 +5800,9 @@ class A {
   const A.aaa(dynamic a, {int b});
 }
 class C extends A {
-  const C() : super.aaa(1, b: 2);
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(1,
+        b/*location: null*/: 2);
 }
 ''');
     }
@@ -5500,7 +5854,8 @@ class C {
           library,
           r'''
 class C {
-  const C() = C.named : this.named(1, 'bbb');
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1, 'bbb');
   const C.named(int a, String b);
 }
 ''');
@@ -5509,7 +5864,8 @@ class C {
           library,
           r'''
 class C {
-  const C() = C.named : this.named(1, 'bbb');
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1, 'bbb');
   const C.named(int a, String b);
 }
 ''');
@@ -5528,7 +5884,9 @@ class C {
           library,
           r'''
 class C {
-  const C() = C.named : this.named(1, b: 2);
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1,
+        b/*location: null*/: 2);
   const C.named(dynamic a, {int b});
 }
 ''');
@@ -5537,7 +5895,9 @@ class C {
           library,
           r'''
 class C {
-  const C() = C.named : this.named(1, b: 2);
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1,
+        b/*location: null*/: 2);
   const C.named(dynamic a, {int b});
 }
 ''');
@@ -6247,11 +6607,15 @@ class D {
           r'''
 class C {
   final dynamic x;
-  const C() : x = const D();
+  const C() :
+        x/*location: test.dart;C;x*/ = const
+        D/*location: test.dart;D*/();
 }
 class D {
   final dynamic x;
-  const D() : x = const C();
+  const D() :
+        x/*location: test.dart;D;x*/ = const
+        C/*location: test.dart;C*/();
 }
 ''');
     } else {
@@ -6260,11 +6624,15 @@ class D {
           r'''
 class C {
   final dynamic x;
-  const C() : x = const D();
+  const C() :
+        x/*location: test.dart;C;x*/ = const
+        D/*location: test.dart;D*/();
 }
 class D {
   final dynamic x;
-  const D() : x = const C();
+  const D() :
+        x/*location: test.dart;D;x*/ = const
+        C/*location: test.dart;C*/();
 }
 ''');
     }
@@ -6327,7 +6695,8 @@ class B<T> {
   const B();
 }
 class C<T> {
-  const C([B<T> b = const B()]);
+  const C([B<T> b = const
+        B/*location: test.dart;B*/()]);
 }
 ''');
     } else {
@@ -6338,7 +6707,8 @@ class B<T> {
   const B();
 }
 class C<T> {
-  const C([B<T> b = const B()]);
+  const C([B<T> b = const
+        B/*location: test.dart;B*/()]);
 }
 ''');
     }
@@ -6364,7 +6734,8 @@ class B<T> implements A<T> {
   const B();
 }
 class C<T> implements A<Iterable<T>> {
-  const C([A<T> a = const B()]);
+  const C([A<T> a = const
+        B/*location: test.dart;B*/()]);
 }
 ''');
     } else {
@@ -6377,7 +6748,8 @@ class B<T> implements A<T> {
   const B();
 }
 class C<T> implements A<Iterable<T>> {
-  const C([A<T> a = const B()]);
+  const C([A<T> a = const
+        B/*location: test.dart;B*/()]);
 }
 ''');
     }
@@ -6397,7 +6769,8 @@ void foo<T>([B<T> b = const B()]) {}
 class B<T> {
   const B();
 }
-void foo<T>([B<T> b = const B()]) {}
+void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
 ''');
     } else {
       checkElementText(
@@ -6406,7 +6779,8 @@ void foo<T>([B<T> b = const B()]) {}
 class B<T> {
   const B();
 }
-void foo<T>([B<T> b = const B()]) {}
+void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
 ''');
     }
   }
@@ -6428,7 +6802,8 @@ class B<T> {
   const B();
 }
 class C {
-  void foo<T>([B<T> b = const B()]) {}
+  void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
 }
 ''');
     } else {
@@ -6439,7 +6814,8 @@ class B<T> {
   const B();
 }
 class C {
-  void foo<T>([B<T> b = const B()]) {}
+  void foo<T>([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
 }
 ''');
     }
@@ -6462,7 +6838,8 @@ class B<T1, T2> {
   const B();
 }
 class C<E1> {
-  void foo<E2>([B<E1, E2> b = const B()]) {}
+  void foo<E2>([B<E1, E2> b = const
+        B/*location: test.dart;B*/()]) {}
 }
 ''');
     } else {
@@ -6473,7 +6850,8 @@ class B<T1, T2> {
   const B();
 }
 class C<E1> {
-  void foo<E2>([B<E1, E2> b = const B()]) {}
+  void foo<E2>([B<E1, E2> b = const
+        B/*location: test.dart;B*/()]) {}
 }
 ''');
     }
@@ -6496,7 +6874,8 @@ class B<T> {
   const B();
 }
 class C<T> {
-  void foo([B<T> b = const B()]) {}
+  void foo([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
 }
 ''');
     } else {
@@ -6507,7 +6886,8 @@ class B<T> {
   const B();
 }
 class C<T> {
-  void foo([B<T> b = const B()]) {}
+  void foo([B<T> b = const
+        B/*location: test.dart;B*/()]) {}
 }
 ''');
     }
@@ -7156,7 +7536,8 @@ class C<T> {
           library,
           r'''
 class C<T> {
-  final dynamic f = $$invalidConstExpr$$;
+  final dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
 }
 ''');
     } else {
@@ -7164,7 +7545,8 @@ class C<T> {
           library,
           r'''
 class C<T> {
-  final dynamic f = $$invalidConstExpr$$;
+  final dynamic f =
+        $$invalidConstExpr$$/*location: null*/;
 }
 ''');
     }
@@ -7385,7 +7767,8 @@ class C {
           r'''
 import 'a.dart';
 class C {
-  final num b = a / 2;
+  final num b =
+        a/*location: a.dart;a?*/ / 2;
 }
 ''');
     } else {
@@ -7394,7 +7777,8 @@ class C {
           r'''
 import 'a.dart';
 class C {
-  final dynamic b = a / 2;
+  final dynamic b =
+        a/*location: a.dart;a?*/ / 2;
 }
 ''');
     }
@@ -7415,7 +7799,8 @@ class C {
 library lib;
 part 'a.dart';
 class C {
-  final num b = a / 2;
+  final num b =
+        a/*location: test.dart;a.dart;a?*/ / 2;
 }
 --------------------
 unit: a.dart
@@ -7429,7 +7814,8 @@ final int a;
 library lib;
 part 'a.dart';
 class C {
-  final dynamic b = a / 2;
+  final dynamic b =
+        a/*location: test.dart;a.dart;a?*/ / 2;
 }
 --------------------
 unit: a.dart
@@ -7985,14 +8371,16 @@ dynamic x;
           library,
           r'''
 import 'dart:async';
-const Type x = FutureOr;
+const Type x =
+        FutureOr/*location: dart:async;FutureOr*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'dart:async';
-const dynamic x = FutureOr;
+const dynamic x =
+        FutureOr/*location: dart:async;FutureOr*/;
 ''');
     }
     var variables = library.definingCompilationUnit.topLevelVariables;
@@ -9404,7 +9792,10 @@ class D {}
           library,
           r'''
 import 'a.dart' as a;
-@a.C.named
+@
+        a/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -9413,7 +9804,10 @@ class D {
           library,
           r'''
 import 'a.dart' as a;
-@a.C.named
+@
+        a/*location: null*/.
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -9438,7 +9832,9 @@ class D {}
           library,
           r'''
 import 'a.dart';
-@C.named
+@
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -9447,7 +9843,9 @@ class D {
           library,
           r'''
 import 'a.dart';
-@C.named
+@
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/
 class D {
 }
 ''');
@@ -9497,7 +9895,8 @@ foo([p = V]) {}
           r'''
 import 'a.dart';
 import 'b.dart';
-dynamic foo([dynamic p = V]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 ''');
     } else {
       checkElementText(
@@ -9505,7 +9904,8 @@ dynamic foo([dynamic p = V]) {}
           r'''
 import 'a.dart';
 import 'b.dart';
-dynamic foo([dynamic p = V]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 ''');
     }
   }
@@ -9529,14 +9929,16 @@ foo([p = V]) {}
           library,
           r'''
 import 'c.dart';
-dynamic foo([dynamic p = V]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 ''');
     } else {
       checkElementText(
           library,
           r'''
 import 'c.dart';
-dynamic foo([dynamic p = V]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 ''');
     }
   }
@@ -9553,7 +9955,8 @@ var V;
           library,
           r'''
 dynamic V;
-dynamic foo([dynamic p = V]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 dynamic V() {}
 ''');
     } else {
@@ -9561,7 +9964,8 @@ dynamic V() {}
           library,
           r'''
 dynamic V;
-dynamic foo([dynamic p = V]) {}
+dynamic foo([dynamic p =
+        V/*location: null*/]) {}
 dynamic V() {}
 ''');
     }
@@ -10313,8 +10717,10 @@ class C {}''');
       checkElementText(
           library,
           r'''
-@a
-@b
+@
+        a/*location: test.dart;a?*/
+@
+        b/*location: test.dart;b?*/
 class C {
 }
 const dynamic a = null;
@@ -10324,8 +10730,10 @@ const dynamic b = null;
       checkElementText(
           library,
           r'''
-@a
-@b
+@
+        a/*location: test.dart;a?*/
+@
+        b/*location: test.dart;b?*/
 class C {
 }
 const dynamic a = null;
@@ -10341,7 +10749,8 @@ const dynamic b = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 class alias C extends D with E {
   synthetic C() = D;
 }
@@ -10355,7 +10764,8 @@ const dynamic a = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 class alias C extends D with E {
   synthetic C() = D;
 }
@@ -10378,7 +10788,9 @@ const dynamic a = null;
 class A {
   const A.named();
 }
-@A.named()
+@
+        A/*location: test.dart;A*/.
+        named/*location: test.dart;A;named*/()
 class C {
 }
 ''');
@@ -10389,7 +10801,9 @@ class C {
 class A {
   const A.named();
 }
-@A.named()
+@
+        A/*location: test.dart;A*/.
+        named/*location: test.dart;A;named*/()
 class C {
 }
 ''');
@@ -10405,7 +10819,9 @@ class C {
           library,
           r'''
 import 'foo.dart' as foo;
-@A.named()
+@
+        A/*location: foo.dart;A*/.
+        named/*location: foo.dart;A;named*/()
 class C {
 }
 ''');
@@ -10414,7 +10830,9 @@ class C {
           library,
           r'''
 import 'foo.dart' as foo;
-@A.named()
+@
+        A/*location: foo.dart;A*/.
+        named/*location: foo.dart;A;named*/()
 class C {
 }
 ''');
@@ -10430,7 +10848,8 @@ class C {
 class A {
   const A();
 }
-@A()
+@
+        A/*location: test.dart;A*/()
 class C {
 }
 ''');
@@ -10441,7 +10860,8 @@ class C {
 class A {
   const A();
 }
-@A()
+@
+        A/*location: test.dart;A*/()
 class C {
 }
 ''');
@@ -10456,7 +10876,8 @@ class C {
           library,
           r'''
 import 'foo.dart' as foo;
-@A()
+@
+        A/*location: foo.dart;A*/()
 class C {
 }
 ''');
@@ -10465,7 +10886,8 @@ class C {
           library,
           r'''
 import 'foo.dart' as foo;
-@A()
+@
+        A/*location: foo.dart;A*/()
 class C {
 }
 ''');
@@ -10481,7 +10903,8 @@ class C {
 class A {
   const A(dynamic x);
 }
-@A(null)
+@
+        A/*location: test.dart;A*/(null)
 class C {
 }
 ''');
@@ -10492,7 +10915,8 @@ class C {
 class A {
   const A(dynamic x);
 }
-@A(null)
+@
+        A/*location: test.dart;A*/(null)
 class C {
 }
 ''');
@@ -10506,7 +10930,8 @@ class C {
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   C.named();
 }
 const dynamic a = null;
@@ -10516,7 +10941,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   C.named();
 }
 const dynamic a = null;
@@ -10531,7 +10957,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   C();
 }
 const dynamic a = null;
@@ -10541,7 +10968,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   C();
 }
 const dynamic a = null;
@@ -10555,7 +10983,8 @@ const dynamic a = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 enum E {
   final int index;
   static const List<E> values;
@@ -10567,7 +10996,8 @@ const dynamic a = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 enum E {
   final int index;
   static const List<E> values;
@@ -10585,7 +11015,8 @@ const dynamic a = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 export 'foo.dart';
 const dynamic a = null;
 ''');
@@ -10593,7 +11024,8 @@ const dynamic a = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 export 'foo.dart';
 const dynamic a = null;
 ''');
@@ -10607,7 +11039,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   int x;
 }
 const dynamic a = null;
@@ -10617,7 +11050,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   int x;
 }
 const dynamic a = null;
@@ -10634,7 +11068,8 @@ const dynamic a = null;
           r'''
 class C {
   dynamic x;
-  C(@a dynamic this.x);
+  C(@
+        a/*location: test.dart;a?*/ dynamic this.x);
 }
 const dynamic a = null;
 ''');
@@ -10644,7 +11079,8 @@ const dynamic a = null;
           r'''
 class C {
   dynamic x;
-  C(@a dynamic this.x);
+  C(@
+        a/*location: test.dart;a?*/ dynamic this.x);
 }
 const dynamic a = null;
 ''');
@@ -10660,7 +11096,8 @@ const dynamic a = null;
           r'''
 class C {
   dynamic x;
-  C([@a dynamic this.x]);
+  C([@
+        a/*location: test.dart;a?*/ dynamic this.x]);
 }
 const dynamic a = null;
 ''');
@@ -10670,7 +11107,8 @@ const dynamic a = null;
           r'''
 class C {
   dynamic x;
-  C([@a dynamic this.x]);
+  C([@
+        a/*location: test.dart;a?*/ dynamic this.x]);
 }
 const dynamic a = null;
 ''');
@@ -10703,7 +11141,8 @@ dynamic f() {}
           library,
           r'''
 const dynamic a = null;
-@a
+@
+        a/*location: test.dart;a?*/
 dynamic get f {}
 ''');
     } else {
@@ -10711,7 +11150,8 @@ dynamic get f {}
           library,
           r'''
 const dynamic a = null;
-@a
+@
+        a/*location: test.dart;a?*/
 dynamic get f {}
 ''');
     }
@@ -10724,7 +11164,8 @@ dynamic get f {}
           library,
           r'''
 const dynamic a = null;
-@a
+@
+        a/*location: test.dart;a?*/
 void set f(dynamic value) {}
 ''');
     } else {
@@ -10732,7 +11173,8 @@ void set f(dynamic value) {}
           library,
           r'''
 const dynamic a = null;
-@a
+@
+        a/*location: test.dart;a?*/
 dynamic set f(dynamic value) {}
 ''');
     }
@@ -10744,7 +11186,8 @@ dynamic set f(dynamic value) {}
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 typedef dynamic F();
 const dynamic a = null;
 ''');
@@ -10752,7 +11195,8 @@ const dynamic a = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 typedef dynamic F();
 const dynamic a = null;
 ''');
@@ -10766,14 +11210,16 @@ const dynamic a = null;
           library,
           r'''
 const dynamic a = null;
-dynamic f(@a () → dynamic g) {}
+dynamic f(@
+        a/*location: test.dart;a?*/ () → dynamic g) {}
 ''');
     } else {
       checkElementText(
           library,
           r'''
 const dynamic a = null;
-dynamic f(@a () → dynamic g) {}
+dynamic f(@
+        a/*location: test.dart;a?*/ () → dynamic g) {}
 ''');
     }
   }
@@ -10785,14 +11231,16 @@ dynamic f(@a () → dynamic g) {}
           library,
           r'''
 const dynamic a = null;
-dynamic f([@a () → dynamic g = null]) {}
+dynamic f([@
+        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
 ''');
     } else {
       checkElementText(
           library,
           r'''
 const dynamic a = null;
-dynamic f([@a () → dynamic g = null]) {}
+dynamic f([@
+        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
 ''');
     }
   }
@@ -10804,17 +11252,21 @@ dynamic f([@a () → dynamic g = null]) {}
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 import 'foo.dart';
-const dynamic a = b;
+const dynamic a =
+        b/*location: foo.dart;b?*/;
 ''');
     } else {
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 import 'foo.dart';
-const dynamic a = b;
+const dynamic a =
+        b/*location: foo.dart;b?*/;
 ''');
     }
   }
@@ -10825,7 +11277,8 @@ const dynamic a = b;
       checkElementText(
           library,
           r'''
-@f(42)
+@
+        f/*location: test.dart;f*/(42)
 class C {
 }
 dynamic f(dynamic _) {}
@@ -10834,7 +11287,8 @@ dynamic f(dynamic _) {}
       checkElementText(
           library,
           r'''
-@f(42)
+@
+        f/*location: test.dart;f*/(42)
 class C {
 }
 dynamic f(dynamic _) {}
@@ -10848,7 +11302,8 @@ dynamic f(dynamic _) {}
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 library L;
 const dynamic a = null;
 ''');
@@ -10856,7 +11311,8 @@ const dynamic a = null;
       checkElementText(
           library,
           r'''
-@a
+@
+        a/*location: test.dart;a?*/
 library L;
 const dynamic a = null;
 ''');
@@ -10870,7 +11326,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   dynamic get m {}
 }
 const dynamic a = null;
@@ -10880,7 +11337,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   dynamic get m {}
 }
 const dynamic a = null;
@@ -10903,8 +11361,10 @@ class C {
           library,
           r'''
 class C {
-  @a
-  @b
+  @
+        a/*location: test.dart;a?*/
+  @
+        b/*location: test.dart;b?*/
   dynamic m() {}
 }
 const dynamic a = null;
@@ -10915,8 +11375,10 @@ const dynamic b = null;
           library,
           r'''
 class C {
-  @a
-  @b
+  @
+        a/*location: test.dart;a?*/
+  @
+        b/*location: test.dart;b?*/
   dynamic m() {}
 }
 const dynamic a = null;
@@ -10933,7 +11395,8 @@ const dynamic b = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   void set m(dynamic value) {}
 }
 const dynamic a = null;
@@ -10943,7 +11406,8 @@ const dynamic a = null;
           library,
           r'''
 class C {
-  @a
+  @
+        a/*location: test.dart;a?*/
   dynamic set m(dynamic value) {}
 }
 const dynamic a = null;
@@ -10960,7 +11424,8 @@ const dynamic a = null;
           library,
           r'''
 library L;
-@a
+@
+        a/*location: test.dart;a?*/
 part 'foo.dart';
 const dynamic a = null;
 --------------------
@@ -10972,7 +11437,8 @@ unit: foo.dart
           library,
           r'''
 library L;
-@a
+@
+        a/*location: test.dart;a?*/
 part 'foo.dart';
 const dynamic a = null;
 --------------------
@@ -10990,7 +11456,9 @@ unit: foo.dart
           library,
           r'''
 import 'a.dart' as a;
-@a.b
+@
+        a/*location: null*/.
+        b/*location: a.dart;b?*/
 class C {
 }
 ''');
@@ -10999,7 +11467,9 @@ class C {
           library,
           r'''
 import 'a.dart' as a;
-@a.b
+@
+        a/*location: null*/.
+        b/*location: a.dart;b?*/
 class C {
 }
 ''');
@@ -11013,14 +11483,16 @@ class C {
           library,
           r'''
 const dynamic a = null;
-dynamic f(@a dynamic x) {}
+dynamic f(@
+        a/*location: test.dart;a?*/ dynamic x) {}
 ''');
     } else {
       checkElementText(
           library,
           r'''
 const dynamic a = null;
-dynamic f(@a dynamic x) {}
+dynamic f(@
+        a/*location: test.dart;a?*/ dynamic x) {}
 ''');
     }
   }
@@ -11032,14 +11504,16 @@ dynamic f(@a dynamic x) {}
           library,
           r'''
 const dynamic a = null;
-dynamic f([@a dynamic x = null]) {}
+dynamic f([@
+        a/*location: test.dart;a?*/ dynamic x = null]) {}
 ''');
     } else {
       checkElementText(
           library,
           r'''
 const dynamic a = null;
-dynamic f([@a dynamic x = null]) {}
+dynamic f([@
+        a/*location: test.dart;a?*/ dynamic x = null]) {}
 ''');
     }
   }
@@ -11051,7 +11525,8 @@ dynamic f([@a dynamic x = null]) {}
           library,
           r'''
 const dynamic a = null;
-@a
+@
+        a/*location: test.dart;a?*/
 int v;
 ''');
     } else {
@@ -11059,7 +11534,8 @@ int v;
           library,
           r'''
 const dynamic a = null;
-@a
+@
+        a/*location: test.dart;a?*/
 int v;
 ''');
     }
@@ -11725,7 +12201,8 @@ class A<T> {
           r'''
 library meta;
 class A<T> {
-  void f(@checked covariant T t) {}
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
 }
 const dynamic checked = null;
 ''');
@@ -11735,7 +12212,8 @@ const dynamic checked = null;
           r'''
 library meta;
 class A<T> {
-  void f(@checked covariant T t) {}
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
 }
 const dynamic checked = null;
 ''');
@@ -11762,7 +12240,8 @@ class B<T> extends A<T> {
           r'''
 library meta;
 class A<T> {
-  void f(@checked covariant T t) {}
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
 }
 class B<T> extends A<T> {
   void f(covariant T t) {}
@@ -11775,7 +12254,8 @@ const dynamic checked = null;
           r'''
 library meta;
 class A<T> {
-  void f(@checked covariant T t) {}
+  void f(@
+        checked/*location: test.dart;checked?*/ covariant T t) {}
 }
 class B<T> extends A<T> {
   void f(T t) {}
@@ -13621,7 +14101,8 @@ class C {}
 class A {
   const A(dynamic _);
 }
-@A(this)
+@
+        A/*location: test.dart;A*/(this)
 class C {
 }
 ''');
@@ -13632,7 +14113,8 @@ class C {
 class A {
   const A(dynamic _);
 }
-@A(this)
+@
+        A/*location: test.dart;A*/(this)
 class C {
 }
 ''');
@@ -13645,7 +14127,9 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar()
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13653,7 +14137,9 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar()
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13666,7 +14152,9 @@ class C {
       checkElementText(
           library,
           r'''
-@String.foo()
+@
+        String/*location: dart:core;String*/.
+        foo/*location: null*/()
 class C {
 }
 ''');
@@ -13674,7 +14162,9 @@ class C {
       checkElementText(
           library,
           r'''
-@String.foo()
+@
+        String/*location: dart:core;String*/.
+        foo/*location: null*/()
 class C {
 }
 ''');
@@ -13687,7 +14177,9 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar
+@
+        foo/*location: null*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -13695,7 +14187,9 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar
+@
+        foo/*location: null*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -13711,7 +14205,9 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.bar
+@
+        foo/*location: null*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -13720,7 +14216,9 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.bar
+@
+        foo/*location: null*/.
+        bar/*location: null*/
 class C {
 }
 ''');
@@ -13733,7 +14231,10 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar.baz()
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
 class C {
 }
 ''');
@@ -13741,7 +14242,10 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar.baz()
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
 class C {
 }
 ''');
@@ -13757,7 +14261,10 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.bar.baz()
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
 class C {
 }
 ''');
@@ -13766,7 +14273,10 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.bar.baz()
+@
+        foo/*location: null*/.
+        bar/*location: null*/.
+        baz/*location: null*/()
 class C {
 }
 ''');
@@ -13782,7 +14292,10 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.Future.bar()
+@
+        foo/*location: null*/.
+        Future/*location: dart:async;Future*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13791,7 +14304,10 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.Future.bar()
+@
+        foo/*location: null*/.
+        Future/*location: dart:async;Future*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13804,7 +14320,9 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar()
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13812,7 +14330,9 @@ class C {
       checkElementText(
           library,
           r'''
-@foo.bar()
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13828,7 +14348,9 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.bar()
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13837,7 +14359,9 @@ class C {
           library,
           r'''
 import 'dart:async' as foo;
-@foo.bar()
+@
+        foo/*location: null*/.
+        bar/*location: null*/()
 class C {
 }
 ''');
@@ -13850,7 +14374,8 @@ class C {
       checkElementText(
           library,
           r'''
-@foo
+@
+        foo/*location: null*/
 class C {
 }
 ''');
@@ -13858,7 +14383,8 @@ class C {
       checkElementText(
           library,
           r'''
-@foo
+@
+        foo/*location: null*/
 class C {
 }
 ''');
@@ -13871,7 +14397,8 @@ class C {
       checkElementText(
           library,
           r'''
-@foo()
+@
+        foo/*location: null*/()
 class C {
 }
 ''');
@@ -13879,7 +14406,8 @@ class C {
       checkElementText(
           library,
           r'''
-@foo()
+@
+        foo/*location: null*/()
 class C {
 }
 ''');

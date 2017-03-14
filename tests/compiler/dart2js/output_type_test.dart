@@ -68,6 +68,7 @@ Future<Null> test(List<String> arguments, List<String> expectedOutput,
 }
 
 main() {
+  enableWriteString = false;
   oldCompileFunc = compileFunc;
   asyncTest(() async {
     PRINT_GRAPH = true;

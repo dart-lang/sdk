@@ -44,7 +44,8 @@ void testTypeRepresentations() {
         var closedWorld = env.compiler.closeResolution();
         env.compiler.backend.onCodegenStart(closedWorld);
         TypeRepresentationGenerator typeRepresentation =
-            new TypeRepresentationGenerator(env.compiler);
+            new TypeRepresentationGenerator(
+                env.compiler.backend.namer, env.compiler.backend.emitter);
 
         Expression onVariable(ResolutionTypeVariableType variable) {
           return new VariableUse(variable.name);

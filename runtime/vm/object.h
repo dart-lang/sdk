@@ -4708,6 +4708,16 @@ class Code : public Object {
   }
   void set_deopt_info_array(const Array& array) const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+  RawSmi* variables() const { return raw_ptr()->catch_entry_.variables_; }
+  void set_variables(const Smi& smi) const;
+#else
+  RawTypedData* catch_entry_state_maps() const {
+    return raw_ptr()->catch_entry_.catch_entry_state_maps_;
+  }
+  void set_catch_entry_state_maps(const TypedData& maps) const;
+#endif
+
   RawArray* stackmaps() const { return raw_ptr()->stackmaps_; }
   void set_stackmaps(const Array& maps) const;
   RawStackMap* GetStackMap(uint32_t pc_offset,
