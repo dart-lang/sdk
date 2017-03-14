@@ -3204,10 +3204,11 @@ class Parser {
     Token forToken = token;
     listener.beginForStatement(forToken);
     token = expect('for', token);
+    Token leftParenthesis = token;
     token = expect('(', token);
     token = parseVariablesDeclarationOrExpressionOpt(token);
     if (optional('in', token)) {
-      return parseForInRest(awaitToken, forToken, token);
+      return parseForInRest(awaitToken, forToken, leftParenthesis, token);
     } else {
       if (awaitToken != null) {
         reportRecoverableError(awaitToken, ErrorKind.InvalidAwaitFor);
@@ -3260,18 +3261,21 @@ class Parser {
     return token;
   }
 
-  Token parseForInRest(Token awaitToken, Token forToken, Token token) {
+  Token parseForInRest(
+      Token awaitToken, Token forToken, Token leftParenthesis, Token token) {
     assert(optional('in', token));
     Token inKeyword = token;
     token = token.next;
     listener.beginForInExpression(token);
     token = parseExpression(token);
     listener.endForInExpression(token);
+    Token rightParenthesis = token;
     token = expect(')', token);
     listener.beginForInBody(token);
     token = parseStatement(token);
     listener.endForInBody(token);
-    listener.endForIn(awaitToken, forToken, inKeyword, token);
+    listener.endForIn(awaitToken, forToken, leftParenthesis, inKeyword,
+        rightParenthesis, token);
     return token;
   }
 

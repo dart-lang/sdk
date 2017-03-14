@@ -1106,26 +1106,8 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseForStatement_each_identifier() {
-    super.test_parseForStatement_each_identifier();
-  }
-
-  @override
-  @failingTest
   void test_parseForStatement_each_noType_metadata() {
     super.test_parseForStatement_each_noType_metadata();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_each_type() {
-    super.test_parseForStatement_each_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_each_var() {
-    super.test_parseForStatement_each_var();
   }
 
   @override

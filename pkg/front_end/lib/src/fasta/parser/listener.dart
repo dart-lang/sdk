@@ -212,8 +212,8 @@ class Listener {
     logEvent("ForStatementBody");
   }
 
-  void endForIn(
-      Token awaitToken, Token forToken, Token inKeyword, Token endToken) {
+  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
+      Token inKeyword, Token rightParenthesis, Token endToken) {
     logEvent("ForIn");
   }
 

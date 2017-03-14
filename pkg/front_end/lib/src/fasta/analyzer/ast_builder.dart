@@ -688,6 +688,51 @@ class AstBuilder extends ScopeListener {
     push(NullValue.ParameterDefaultValue);
   }
 
+  @override
+  void endForInExpression(Token token) {
+    debugEvent("ForInExpression");
+  }
+
+  @override
+  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
+      Token inKeyword, Token rightParenthesis, Token endToken) {
+    debugEvent("ForInExpression");
+    Statement body = pop();
+    Expression iterator = pop();
+    Object variableOrDeclaration = pop();
+    pop(); // local scope
+    pop(); // continue target
+    pop(); // break target
+    if (variableOrDeclaration is SimpleIdentifier) {
+      push(ast.forEachStatementWithReference(
+          toAnalyzerToken(awaitToken),
+          toAnalyzerToken(forToken),
+          toAnalyzerToken(leftParenthesis),
+          variableOrDeclaration,
+          toAnalyzerToken(inKeyword),
+          iterator,
+          toAnalyzerToken(rightParenthesis),
+          body));
+    } else {
+      var statement = variableOrDeclaration as VariableDeclarationStatement;
+      VariableDeclarationList variableList = statement.variables;
+      push(ast.forEachStatementWithDeclaration(
+          toAnalyzerToken(awaitToken),
+          toAnalyzerToken(forToken),
+          toAnalyzerToken(leftParenthesis),
+          ast.declaredIdentifier(
+              variableList.documentationComment,
+              variableList.metadata,
+              variableList.keyword,
+              variableList.type,
+              variableList.variables.single.name),
+          toAnalyzerToken(inKeyword),
+          iterator,
+          toAnalyzerToken(rightParenthesis),
+          body));
+    }
+  }
+
   void endFormalParameter(
       Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     debugEvent("FormalParameter");
