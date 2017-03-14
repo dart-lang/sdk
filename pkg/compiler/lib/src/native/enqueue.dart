@@ -12,6 +12,7 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionElementX;
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/js_backend.dart';
@@ -29,7 +30,7 @@ import 'behavior.dart';
  */
 class NativeEnqueuer {
   /// Called when a [type] has been instantiated natively.
-  void onInstantiatedType(ResolutionInterfaceType type) {}
+  void onInstantiatedType(InterfaceType type) {}
 
   /// Initial entry point to native enqueuer.
   WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) =>

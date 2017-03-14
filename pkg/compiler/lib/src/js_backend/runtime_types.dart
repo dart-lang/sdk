@@ -159,17 +159,15 @@ abstract class _RuntimeTypesBase {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
-    Set<ResolutionDartType> instantiatedTypes = worldBuilder.instantiatedTypes;
+    Set<InterfaceType> instantiatedTypes = worldBuilder.instantiatedTypes;
     if (cannotDetermineInstantiatedTypesPrecisely) {
-      for (ResolutionDartType type in instantiatedTypes) {
-        if (type.kind != ResolutionTypeKind.INTERFACE) continue;
-        ResolutionInterfaceType interface = type;
+      for (ResolutionInterfaceType type in instantiatedTypes) {
         do {
-          for (ResolutionDartType argument in interface.typeArguments) {
+          for (ResolutionDartType argument in type.typeArguments) {
             worldBuilder.registerIsCheck(argument);
           }
-          interface = interface.element.supertype;
-        } while (interface != null && !instantiatedTypes.contains(interface));
+          type = type.element.supertype;
+        } while (type != null && !instantiatedTypes.contains(type));
       }
     } else {
       // Find all instantiated types that are a subtype of a class that uses
@@ -177,22 +175,19 @@ abstract class _RuntimeTypesBase {
       // set of is-checks.
       // TODO(karlklose): replace this with code that uses a subtype lookup
       // datastructure in the world.
-      for (ResolutionDartType type in instantiatedTypes) {
-        if (type.kind != ResolutionTypeKind.INTERFACE) continue;
-        ResolutionInterfaceType classType = type;
+      for (ResolutionInterfaceType type in instantiatedTypes) {
         for (ClassElement cls in classesUsingChecks) {
-          ResolutionInterfaceType current = classType;
           do {
             // We need the type as instance of its superclass anyway, so we just
             // try to compute the substitution; if the result is [:null:], the
             // classes are not related.
-            ResolutionInterfaceType instance = current.asInstanceOf(cls);
+            ResolutionInterfaceType instance = type.asInstanceOf(cls);
             if (instance == null) break;
             for (ResolutionDartType argument in instance.typeArguments) {
               worldBuilder.registerIsCheck(argument);
             }
-            current = current.element.supertype;
-          } while (current != null && !instantiatedTypes.contains(current));
+            type = type.element.supertype;
+          } while (type != null && !instantiatedTypes.contains(type));
         }
       }
     }
@@ -503,14 +498,11 @@ class _RuntimeTypes extends _RuntimeTypesBase
       CodegenWorldBuilder worldBuilder) {
     Set<ResolutionDartType> instantiatedTypes =
         new Set<ResolutionDartType>.from(worldBuilder.instantiatedTypes);
-    for (ResolutionDartType instantiatedType
+    for (ResolutionInterfaceType instantiatedType
         in worldBuilder.instantiatedTypes) {
-      if (instantiatedType.isInterfaceType) {
-        ResolutionInterfaceType interface = instantiatedType;
-        ResolutionFunctionType callType = interface.callType;
-        if (callType != null) {
-          instantiatedTypes.add(callType);
-        }
+      ResolutionFunctionType callType = instantiatedType.callType;
+      if (callType != null) {
+        instantiatedTypes.add(callType);
       }
     }
     for (FunctionElement element in worldBuilder.staticFunctionsNeedingGetter) {

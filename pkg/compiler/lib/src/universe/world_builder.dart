@@ -156,17 +156,18 @@ abstract class WorldBuilder {
   /// constructor that has been called directly and not only through a
   /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ClassElement> get directlyInstantiatedClasses;
+  Iterable<ClassEntity> get directlyInstantiatedClasses;
 
   /// All types that are checked either through is, as or checked mode checks.
-  Iterable<ResolutionDartType> get isChecks;
+  Iterable<DartType> get isChecks;
+
+  /// All directly instantiated types, that is, the types of the directly
 
   /// Registers that [type] is checked in this world builder. The unaliased type
   /// is returned.
-  ResolutionDartType registerIsCheck(ResolutionDartType type);
+  void registerIsCheck(DartType type);
 
-  /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ResolutionDartType> get instantiatedTypes;
+  Iterable<InterfaceType> get instantiatedTypes;
 }

@@ -312,7 +312,7 @@ class MirrorsData {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
                 // assert(invariant(member.element,
-                //    resolution.hasBeenProcessed(member.element)));
+                //    worldBuilder.isMemberUsed(member.element)));
                 if (worldBuilder.isMemberUsed(member.element)) {
                   reflectableMembers.add(member.element);
                 }

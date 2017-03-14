@@ -944,7 +944,7 @@ abstract class Compiler implements LibraryLoaderListener {
     void checkLive(member) {
       if (member.isMalformed) return;
       if (member.isFunction) {
-        if (!enqueuer.resolution.hasBeenProcessed(member)) {
+        if (!resolutionWorldBuilder.isMemberUsed(member)) {
           reporter.reportHintMessage(
               member, MessageKind.UNUSED_METHOD, {'name': member.name});
         }

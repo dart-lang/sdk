@@ -1152,9 +1152,9 @@ Future compileScript(String source) {
 
 checkMemberResolved(compiler, className, memberName) {
   ClassElement cls = findElement(compiler, className);
-  Element memberElement = cls.lookupLocalMember(memberName);
+  MemberElement memberElement = cls.lookupLocalMember(memberName);
   Expect.isNotNull(memberElement);
-  Expect.isTrue(compiler.enqueuer.resolution.hasBeenProcessed(memberElement));
+  Expect.isTrue(compiler.resolutionWorldBuilder.isMemberUsed(memberElement));
 }
 
 testToString() {

@@ -69,8 +69,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   /// directly instantiated classes.
   ///
   /// See [_directlyInstantiatedClasses].
-  final Set<ResolutionDartType> _instantiatedTypes =
-      new Set<ResolutionDartType>();
+  final Set<InterfaceType> _instantiatedTypes = new Set<InterfaceType>();
 
   /// Classes implemented by directly instantiated classes.
   final Set<ClassElement> _implementedClasses = new Set<ClassElement>();
@@ -168,7 +167,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ResolutionDartType> get instantiatedTypes => _instantiatedTypes;
+  Iterable<InterfaceType> get instantiatedTypes => _instantiatedTypes;
 
   /// Register [type] as (directly) instantiated.
   ///
@@ -325,13 +324,13 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     _invokedSetters.forEach(f);
   }
 
-  ResolutionDartType registerIsCheck(ResolutionDartType type) {
+  void registerIsCheck(ResolutionDartType type) {
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
+    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
     isChecks.add(type);
-    return type;
   }
 
   void _registerStaticUse(StaticUse staticUse) {

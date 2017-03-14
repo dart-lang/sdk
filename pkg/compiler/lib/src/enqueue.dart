@@ -13,16 +13,10 @@ import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'options.dart';
 import 'elements/elements.dart'
-    show
-        AnalyzableElement,
-        ClassElement,
-        ConstructorElement,
-        Element,
-        MemberElement;
+    show AnalyzableElement, ClassElement, MemberElement;
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
-import 'elements/types.dart' show InterfaceType;
+import 'elements/resolution_types.dart' show ResolutionTypedefType;
+import 'elements/types.dart';
 import 'native/native.dart' as native;
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
@@ -233,8 +227,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         impactSource, worldImpact, _impactVisitor, impactUse);
   }
 
-  void _registerInstantiatedType(ResolutionInterfaceType type,
-      {ConstructorElement constructor,
+  void _registerInstantiatedType(InterfaceType type,
+      {ConstructorEntity constructor,
       bool mirrorUsage: false,
       bool nativeUsage: false,
       bool globalDependency: false,
@@ -322,7 +316,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void processTypeUse(TypeUse typeUse) {
-    ResolutionDartType type = typeUse.type;
+    DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
         _registerInstantiatedType(type, globalDependency: false);
@@ -347,21 +341,18 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.TYPE_LITERAL:
         if (type.isTypedef) {
-          worldBuilder.registerTypedef(type.element);
+          ResolutionTypedefType typedef = type;
+          worldBuilder.registerTypedef(typedef.element);
         }
         break;
     }
   }
 
-  void _registerIsCheck(ResolutionDartType type) {
-    type = _worldBuilder.registerIsCheck(type);
-    // Even in checked mode, type annotations for return type and argument
-    // types do not imply type checks, so there should never be a check
-    // against the type variable of a typedef.
-    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
+  void _registerIsCheck(DartType type) {
+    _worldBuilder.registerIsCheck(type);
   }
 
-  void _registerClosurizedMember(MemberElement element) {
+  void _registerClosurizedMember(MemberEntity element) {
     assert(element.isInstanceMember);
     applyImpact(listener.registerClosurizedMember(element));
     _worldBuilder.registerClosurizedMember(element);
@@ -401,7 +392,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   bool get isResolutionQueue => true;
 
   /// Returns `true` if [element] has been processed by the resolution enqueuer.
-  // TODO(johnniwinther): Move this to the [OpenWorld]/[ResolutionWorldBuilder].
+  // TODO(johnniwinther): Remove this together with the resolver.
   bool hasBeenProcessed(MemberElement element) {
     assert(invariant(element, element == element.analyzableElement.declaration,
         message: "Unexpected element $element"));
@@ -417,7 +408,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// Create a [WorkItem] for [entity] and add it to the work list if it has not
   /// already been processed.
   void _addToWorkList(MemberEntity entity) {
-    if (hasBeenProcessed(entity)) return;
+    if (_processedEntities.contains(entity)) return;
     WorkItem workItem = _workItemBuilder.createWorkItem(entity);
     if (workItem == null) return;
 
@@ -560,7 +551,7 @@ class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
 typedef void _DeferredActionFunction();
 
 class _DeferredAction {
-  final Element element;
+  final Entity element;
   final _DeferredActionFunction action;
 
   _DeferredAction(this.element, this.action);

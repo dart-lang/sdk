@@ -390,7 +390,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ResolutionDartType> get instantiatedTypes {
+  Iterable<InterfaceType> get instantiatedTypes {
     Set<ResolutionInterfaceType> types = new Set<ResolutionInterfaceType>();
     getInstantiationMap().forEach((_, InstantiationInfo info) {
       if (info.instantiationMap != null) {
@@ -596,14 +596,14 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     return constraints.addReceiverConstraint(mask);
   }
 
-  ResolutionDartType registerIsCheck(ResolutionDartType type) {
+  void registerIsCheck(ResolutionDartType type) {
     type.computeUnaliased(_resolution);
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
+    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
     isChecks.add(type);
-    return type;
   }
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {

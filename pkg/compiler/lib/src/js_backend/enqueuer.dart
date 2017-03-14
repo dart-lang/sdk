@@ -202,11 +202,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void _registerIsCheck(ResolutionDartType type) {
-    type = _universe.registerIsCheck(type);
-    // Even in checked mode, type annotations for return type and argument
-    // types do not imply type checks, so there should never be a check
-    // against the type variable of a typedef.
-    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
+    _universe.registerIsCheck(type);
   }
 
   void _registerClosurizedMember(MemberElement element) {
