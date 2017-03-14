@@ -716,7 +716,7 @@ var A2 = B1;
 
     // Update the file, but don't notify the driver.
     allResults.clear();
-    provider.updateFile(testFile, 'var V = 1.2');
+    provider.updateFile(testFile, 'var V = 1.2;');
 
     // No new results.
     await pumpEventQueue();
@@ -1470,7 +1470,7 @@ var A2 = B1;
     var d = _p('/test/lib/d.dart');
 
     provider.newFile(a, 'class A {}');
-    provider.newFile(b, 'export "a.dart", class B {}');
+    provider.newFile(b, 'export "a.dart"; class B {}');
     provider.newFile(c, 'import "d.dart"; class C {}');
     provider.newFile(d, 'class D {}');
 
