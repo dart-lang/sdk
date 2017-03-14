@@ -31,25 +31,36 @@ names.forEach(print);
 
 ''';
 
+bool _containsNullAwareInvocationInChain(AstNode node) =>
+    node != null &&
+    ((node is PropertyAccess &&
+            (node.operator?.type == TokenType.QUESTION_PERIOD ||
+                _containsNullAwareInvocationInChain(node.target))) ||
+        (node is MethodInvocation &&
+            (node.operator?.type == TokenType.QUESTION_PERIOD ||
+                _containsNullAwareInvocationInChain(node.target))) ||
+        (node is IndexExpression &&
+            _containsNullAwareInvocationInChain(node.target)));
+
 Iterable<Element> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     DartTypeUtilities
         .traverseNodesInDFS(node)
         .where((e) => e is SimpleIdentifier)
         .map((e) => (e as SimpleIdentifier).bestElement);
 
-bool _hasRecursivelyQuestionPeriod(AstNode node) {
-  if (node == null) {
-    return false;
-  }
-  return (node is PropertyAccess &&
-          (node.operator?.type == TokenType.QUESTION_PERIOD ||
-              _hasRecursivelyQuestionPeriod(node.target))) ||
-      (node is IndexExpression &&
-              _hasRecursivelyQuestionPeriod(node.target)) ||
-      (node is MethodInvocation &&
-          (node.operator?.type == TokenType.QUESTION_PERIOD ||
-              _hasRecursivelyQuestionPeriod(node.target)));
-}
+bool _isInvocationExpression(AstNode node) => node is InvocationExpression;
+
+bool _isNonFinalElement(Element element) =>
+    (element is PropertyAccessorElement &&
+        (!element.isSynthetic || !element.variable.isFinal)) ||
+    (element is VariableElement && !element.isFinal);
+
+bool _isNonFinalField(AstNode node) =>
+    (node is PropertyAccess &&
+        _isNonFinalElement(node.propertyName.bestElement)) ||
+    (node is MethodInvocation &&
+        (_isNonFinalElement(node.methodName.bestElement))) ||
+    (node is SimpleIdentifier && _isNonFinalElement(node.bestElement));
 
 class UnnecessaryLambdas extends LintRule {
   _Visitor _visitor;
@@ -114,13 +125,22 @@ class _Visitor extends SimpleAstVisitor {
     Iterable<Element> restOfElements = [];
     if (node is FunctionExpressionInvocation) {
       restOfElements = _extractElementsOfSimpleIdentifiers(node.function);
-    } else if (node is MethodInvocation && node.target != null) {
-      if (_hasRecursivelyQuestionPeriod(node)) {
+    } else if (node is MethodInvocation) {
+      var nodesInTarget = <AstNode>[];
+      if (node.target != null) {
+        nodesInTarget = DartTypeUtilities.traverseNodesInDFS(node.target);
+        restOfElements = node.target is SimpleIdentifier
+            ? [(node.target as SimpleIdentifier).bestElement]
+            : _extractElementsOfSimpleIdentifiers(node.target);
+      }
+      if (_isNonFinalField(node) ||
+          _isNonFinalField(node.target) ||
+          _isInvocationExpression(node.target) ||
+          _containsNullAwareInvocationInChain(node) ||
+          nodesInTarget.any(_isNonFinalField) ||
+          nodesInTarget.any(_isInvocationExpression)) {
         return;
       }
-      restOfElements = node.target is SimpleIdentifier
-          ? [(node.target as SimpleIdentifier).bestElement]
-          : _extractElementsOfSimpleIdentifiers(node.target);
     }
     if (restOfElements.any(parameters.contains)) {
       return;
