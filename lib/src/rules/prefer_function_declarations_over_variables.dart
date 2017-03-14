@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.use_function_declaration_instead_variable;
+library linter.src.rules.prefer_function_declarations_over_variables;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -34,11 +34,11 @@ void main() {
 
 ''';
 
-class UseFunctionDeclarationInsteadOfVariable extends LintRule {
+class PreferFunctionDeclarationsOverVariables extends LintRule {
   _Visitor _visitor;
-  UseFunctionDeclarationInsteadOfVariable()
+  PreferFunctionDeclarationsOverVariables()
       : super(
-            name: 'use_function_declaration_instead_of_variable',
+            name: 'prefer_function_declarations_over_variables',
             description: _desc,
             details: _details,
             group: Group.style) {

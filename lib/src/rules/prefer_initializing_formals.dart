@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.use_initializing_formals_when_possible;
+library linter.src.rules.prefer_initializing_formals;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -72,11 +72,11 @@ Element _getRightElement(AssignmentExpression assignment) {
   return rightPart is SimpleIdentifier ? rightPart.bestElement : null;
 }
 
-class UseInitializingFormalsWhenPossible extends LintRule {
+class PreferInitializingFormals extends LintRule {
   _Visitor _visitor;
-  UseInitializingFormalsWhenPossible()
+  PreferInitializingFormals()
       : super(
-            name: 'use_initializing_formals_when_possible',
+            name: 'prefer_initializing_formals',
             description: _desc,
             details: _details,
             group: Group.style) {

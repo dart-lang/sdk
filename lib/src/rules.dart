@@ -10,7 +10,7 @@ import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/annotate_overrides.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
-import 'package:linter/src/rules/avoid_function_literal_in_foreach_method.dart';
+import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/avoid_slow_async_io.dart';
@@ -44,10 +44,15 @@ import 'package:linter/src/rules/overridden_fields.dart';
 import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/parameter_assignments.dart';
+import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
+import 'package:linter/src/rules/prefer_collection_literals.dart';
 import 'package:linter/src/rules/prefer_const_constructors.dart';
 import 'package:linter/src/rules/prefer_contains.dart';
+import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
 import 'package:linter/src/rules/prefer_final_locals.dart';
+import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
+import 'package:linter/src/rules/prefer_initializing_formals.dart';
 import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
 import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
@@ -69,11 +74,6 @@ import 'package:linter/src/rules/unnecessary_lambdas.dart';
 import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
 import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
-import 'package:linter/src/rules/use_adjacent_strings_to_concatenate_literals.dart';
-import 'package:linter/src/rules/use_collection_literals_when_possible.dart';
-import 'package:linter/src/rules/use_expression_function_body_when_possible.dart';
-import 'package:linter/src/rules/use_function_declaration_instead_of_variable.dart';
-import 'package:linter/src/rules/use_initializing_formals_when_possible.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
 void registerLintRules() {
@@ -117,10 +117,15 @@ void registerLintRules() {
     ..register(new PackageApiDocs())
     ..register(new PackagePrefixedLibraryNames())
     ..register(new ParameterAssignments())
+    ..register(new PreferAdjacentStringConcatenation())
+    ..register(new PreferCollectionLiterals())
     ..register(new PreferConstConstructors())
     ..register(new PreferContainsOverIndexOf())
+    ..register(new PreferExpressionFunctionbBodies())
     ..register(new PreferFinalFields())
     ..register(new PreferFinalLocals())
+    ..register(new PreferFunctionDeclarationsOverVariables())
+    ..register(new PreferInitializingFormals())
     ..register(new PreferInterpolationToComposeStrings())
     ..register(new PreferIsEmpty())
     ..register(new PreferIsNotEmpty())
@@ -144,10 +149,5 @@ void registerLintRules() {
     ..register(new UnnecessaryGettersSetters())
     ..register(new UnnecessaryLambdas())
     ..register(new UnrelatedTypeEqualityChecks())
-    ..register(new UseAdjacentStringsToConcatenateLiterals())
-    ..register(new UseCollectionLiteralsWhenPossible())
-    ..register(new UseExpressionFunctionBodyWhenPossible())
-    ..register(new UseFunctionDeclarationInsteadOfVariable())
-    ..register(new UseInitializingFormalsWhenPossible())
     ..register(new ValidRegExps());
 }

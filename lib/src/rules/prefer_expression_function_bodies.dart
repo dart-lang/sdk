@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.use_equal_and_higher_in_single_return_statement;
+library linter.src.rules.prefer_expression_function_bodies;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -53,11 +53,11 @@ containsValue(String value) => getValues().contains(value);
 
 ''';
 
-class UseExpressionFunctionBodyWhenPossible extends LintRule {
+class PreferExpressionFunctionbBodies extends LintRule {
   _Visitor _visitor;
-  UseExpressionFunctionBodyWhenPossible()
+  PreferExpressionFunctionbBodies()
       : super(
-            name: 'use_expression_function_body_when_possible',
+            name: 'prefer_expression_function_bodies',
             description: _desc,
             details: _details,
             group: Group.style) {

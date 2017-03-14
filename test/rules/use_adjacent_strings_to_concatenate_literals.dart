@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N adjacent_strings_to_concatenate_literals`
+// test w/ `pub run test -N prefer_adjacent_string_concatentation`
 
 main() {
   String string1 = 'hola means' + // LINT

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.adjacent_strings_to_concatenate_literals;
+library linter.src.rules.prefer_adjacent_string_concatentation;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -30,11 +30,11 @@ raiseAlarm(
 
 ''';
 
-class UseAdjacentStringsToConcatenateLiterals extends LintRule {
+class PreferAdjacentStringConcatenation extends LintRule {
   _Visitor _visitor;
-  UseAdjacentStringsToConcatenateLiterals()
+  PreferAdjacentStringConcatenation()
       : super(
-            name: 'use_adjacent_strings_to_concatenate_literals',
+            name: 'prefer_adjacent_string_concatenation',
             description: _desc,
             details: _details,
             group: Group.style) {

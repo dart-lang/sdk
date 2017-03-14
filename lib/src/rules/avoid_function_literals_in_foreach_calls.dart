@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.avoid_function_literal_in_foreach_method;
+library linter.src.rules.avoid_function_literals_in_foreach_calls;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -42,7 +42,7 @@ class AvoidFunctionLiteralInForeachMethod extends LintRule {
   _Visitor _visitor;
   AvoidFunctionLiteralInForeachMethod()
       : super(
-            name: 'avoid_function_literal_in_foreach_method',
+            name: 'avoid_function_literals_in_foreach_calls',
             description: _desc,
             details: _details,
             group: Group.style) {

@@ -418,7 +418,7 @@ defineTests() {
       });
     });
 
-    group('use_collection_literals_when_possible', () {
+    group('prefer_collection_literals', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
       setUp(() {
@@ -431,13 +431,13 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('use_collection_literals_when_possible', () {
+      test('prefer_collection_literals', () {
         var packagesFilePath = new File('.packages').absolute.path;
         dartlint.main([
           '--packages',
           packagesFilePath,
-          'test/_data/use_collection_literals_when_possible',
-          '--rules=use_collection_literals_when_possible'
+          'test/_data/prefer_collection_literals',
+          '--rules=prefer_collection_literals'
         ]);
         expect(exitCode, 1);
         expect(

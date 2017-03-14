@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N use_equal_and_higher_in_single_return_statement`
+// test w/ `pub run test -N prefer_expression_function_bodies`
 
 int bad() { // LINT
   return 1;
