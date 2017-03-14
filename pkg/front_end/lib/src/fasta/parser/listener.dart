@@ -241,10 +241,20 @@ class Listener {
     logEvent("FunctionDeclaration");
   }
 
-  void beginFunctionBody(Token token) {}
+  /// This method is invoked when the parser sees that a function has a
+  /// block function body.  This method is not invoked for empty or expression
+  /// function bodies, see the corresponding methods [handleEmptyFunctionBody]
+  /// and [handleExpressionFunctionBody].
+  void beginBlockFunctionBody(Token token) {}
 
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
-    logEvent("FunctionBody");
+  /// This method is invoked by the parser after it finished parsing a block
+  /// function body.  This method is not invoked for empty or expression
+  /// function bodies, see the corresponding methods [handleEmptyFunctionBody]
+  /// and [handleExpressionFunctionBody].  The [beginToken] is the '{' token,
+  /// and the [endToken] is the '}' token of the block.  The number of
+  /// statements is given as the [count] parameter.
+  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
+    logEvent("BlockFunctionBody");
   }
 
   void handleNoFunctionBody(Token token) {
@@ -564,11 +574,14 @@ class Listener {
 
   void beginReturnStatement(Token token) {}
 
-  void endEmptyFunctionBody(Token semicolon) {
+  /// This method is invoked when a function has the empty body.
+  void handleEmptyFunctionBody(Token semicolon) {
     logEvent("EmptyFunctionBody");
   }
 
-  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+  /// This method is invoked when parser finishes parsing the corresponding
+  /// expression of the expression function body.
+  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     logEvent("ExpressionFunctionBody");
   }
 

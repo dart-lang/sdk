@@ -235,7 +235,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endEmptyFunctionBody(Token semicolon) {
+  void handleEmptyFunctionBody(Token semicolon) {
     debugEvent("EmptyFunctionBody");
     // TODO(scheglov) Change the parser to not produce these modifiers.
     pop(); // star
@@ -243,8 +243,8 @@ class AstBuilder extends ScopeListener {
     push(ast.emptyFunctionBody(toAnalyzerToken(semicolon)));
   }
 
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
-    debugEvent("FunctionBody");
+  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
+    debugEvent("BlockFunctionBody");
     List statements = popList(count);
     if (beginToken != null) {
       exitLocalScope();
@@ -347,7 +347,7 @@ class AstBuilder extends ScopeListener {
     push(ast.integerLiteral(toAnalyzerToken(token), int.parse(token.lexeme)));
   }
 
-  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     debugEvent("ExpressionFunctionBody");
     Expression expression = pop();
     analyzer.Token star = pop();

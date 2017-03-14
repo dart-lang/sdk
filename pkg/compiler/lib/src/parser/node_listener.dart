@@ -302,11 +302,11 @@ class NodeListener extends ElementListener {
     pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
-  void endEmptyFunctionBody(Token semicolon) {
-    endFunctionBody(0, null, semicolon);
+  void handleEmptyFunctionBody(Token semicolon) {
+    endBlockFunctionBody(0, null, semicolon);
   }
 
-  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     endReturnStatement(true, arrowToken, endToken);
   }
 
@@ -460,7 +460,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
+  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
     if (count == 0 && beginToken == null) {
       pushNode(new EmptyStatement(endToken));
     } else {

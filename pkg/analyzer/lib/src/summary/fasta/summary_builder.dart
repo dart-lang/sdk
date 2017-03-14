@@ -273,8 +273,8 @@ abstract class ExpressionListener extends StackListener {
     assert(ignore);
   }
 
-  void endFunctionBody(int count, Token begin, Token end) {
-    debugEvent("FunctionBody");
+  void endBlockFunctionBody(int count, Token begin, Token end) {
+    debugEvent("BlockFunctionBody");
     assert(ignore);
   }
 

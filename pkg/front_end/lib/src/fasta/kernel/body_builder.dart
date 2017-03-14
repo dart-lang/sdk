@@ -350,8 +350,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
-    debugEvent("FunctionBody");
+  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
+    debugEvent("BlockFunctionBody");
     if (beginToken == null) {
       assert(count == 0);
       push(NullValue.Block);
@@ -869,13 +869,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endEmptyFunctionBody(Token semicolon) {
+  void handleEmptyFunctionBody(Token semicolon) {
     debugEvent("ExpressionFunctionBody");
-    endFunctionBody(0, null, semicolon);
+    endBlockFunctionBody(0, null, semicolon);
   }
 
   @override
-  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     debugEvent("ExpressionFunctionBody");
     endReturnStatement(true, arrowToken, endToken);
   }

@@ -2041,16 +2041,16 @@ class Parser {
       if (!allowAbstract) {
         reportRecoverableError(token, ErrorKind.ExpectedBody);
       }
-      listener.endEmptyFunctionBody(token);
+      listener.handleEmptyFunctionBody(token);
       return token;
     } else if (optional('=>', token)) {
       Token begin = token;
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
-        listener.endExpressionFunctionBody(begin, token);
+        listener.handleExpressionFunctionBody(begin, token);
       } else {
-        listener.endExpressionFunctionBody(begin, null);
+        listener.handleExpressionFunctionBody(begin, null);
       }
       return token;
     } else if (optional('=', token)) {
@@ -2060,9 +2060,9 @@ class Parser {
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
-        listener.endExpressionFunctionBody(begin, token);
+        listener.handleExpressionFunctionBody(begin, token);
       } else {
-        listener.endExpressionFunctionBody(begin, null);
+        listener.handleExpressionFunctionBody(begin, null);
       }
       return token;
     }
@@ -2075,13 +2075,13 @@ class Parser {
       return token;
     }
 
-    listener.beginFunctionBody(begin);
+    listener.beginBlockFunctionBody(begin);
     token = token.next;
     while (notEofOrValue('}', token)) {
       token = parseStatement(token);
       ++statementCount;
     }
-    listener.endFunctionBody(statementCount, begin, token);
+    listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
     return token;
   }
