@@ -82,6 +82,8 @@ final subpackageRules = {
       new SubpackageRules(allowSubdirs: true, allowedDependencies: [
     'lib/src/fasta',
     'lib/src/fasta/parser',
+    // fasta scanner produces analyzer scanner tokens
+    'lib/src/scanner',
     'lib/src/fasta/util',
   ]),
   'lib/src/fasta/source': new SubpackageRules(allowedDependencies: [
@@ -104,6 +106,8 @@ final subpackageRules = {
   'lib/src/fasta/util': new SubpackageRules(),
   'lib/src/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/base',
+    // fasta scanner produces analyzer scanner tokens
+    'lib/src/fasta/scanner',
   ]),
 };
 

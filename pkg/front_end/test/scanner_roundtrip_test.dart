@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/fasta/analyzer/token_utils.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'scanner_fasta_test.dart';
@@ -89,5 +90,31 @@ class ScannerTest_RoundTrip extends ScannerTest {
   void test_scriptTag_withSpace() {
     // TODO(paulberry,ahe): Fasta scanner doesn't support script tag
     super.test_scriptTag_withSpace();
+  }
+
+  void test_pseudo_keywords() {
+    var pseudoAnalyzerKeywords = new Set<Keyword>.from([
+      Keyword.ABSTRACT,
+      Keyword.AS,
+      Keyword.COVARIANT,
+      Keyword.DEFERRED,
+      Keyword.DYNAMIC,
+      Keyword.EXPORT,
+      Keyword.EXTERNAL,
+      Keyword.FACTORY,
+      Keyword.GET,
+      Keyword.IMPLEMENTS,
+      Keyword.IMPORT,
+      Keyword.LIBRARY,
+      Keyword.OPERATOR,
+      Keyword.PART,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.TYPEDEF,
+    ]);
+    for (Keyword keyword in Keyword.values) {
+      expect(keyword.isPseudoKeyword, pseudoAnalyzerKeywords.contains(keyword),
+          reason: keyword.name);
+    }
   }
 }
