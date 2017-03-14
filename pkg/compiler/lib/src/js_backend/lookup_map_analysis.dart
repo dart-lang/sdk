@@ -8,7 +8,8 @@ library compiler.src.js_backend.lookup_map_analysis;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart';
+import '../common/backend_api.dart';
 import '../constants/values.dart'
     show
         ConstantValue,
@@ -17,9 +18,11 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
+import '../options.dart';
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
@@ -69,18 +72,26 @@ class LookupMapAnalysis {
 
   /// Reference to [JavaScriptBackend] to be able to enqueue work when we
   /// discover that a key in a map is potentially used.
-  final JavaScriptBackend backend;
+  final JavaScriptBackend _backend;
+
+  final CompilerOptions _options;
 
   /// Reference the diagnostic reporting system for logging and reporting issues
   /// to the end-user.
-  final DiagnosticReporter reporter;
+  final DiagnosticReporter _reporter;
+
+  final ElementEnvironment _elementEnvironment;
+
+  final CommonElements _commonElements;
+
+  final BackendClasses _backendClasses;
 
   /// The resolved [VariableElement] associated with the top-level `_version`.
   FieldElement lookupMapVersionVariable;
 
   /// The resolved [LibraryElement] associated with
   /// `package:lookup_map/lookup_map.dart`.
-  LibraryElement lookupMapLibrary;
+  LibraryEntity lookupMapLibrary;
 
   /// The resolved [ClassElement] associated with `LookupMap`.
   ClassElement typeLookupMapClass;
@@ -127,7 +138,8 @@ class LookupMapAnalysis {
   /// Whether the backend is currently processing the codegen queue.
   bool _inCodegen = false;
 
-  LookupMapAnalysis(this.backend, this.reporter);
+  LookupMapAnalysis(this._backend, this._options, this._reporter,
+      this._elementEnvironment, this._commonElements, this._backendClasses);
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
   WorldImpact flush({bool forResolution}) {
@@ -147,13 +159,14 @@ class LookupMapAnalysis {
 
   /// Initializes this analysis by providing the resolved library. This is
   /// invoked during resolution when the `lookup_map` library is discovered.
-  void init(LibraryElement library) {
+  void init(LibraryEntity library) {
     lookupMapLibrary = library;
     // We will enable the lookupMapAnalysis as long as we get a known version of
     // the lookup_map package. We otherwise produce a warning.
-    lookupMapVersionVariable = library.implementation.findLocal('_version');
+    lookupMapVersionVariable =
+        _elementEnvironment.lookupLibraryMember(lookupMapLibrary, '_version');
     if (lookupMapVersionVariable == null) {
-      reporter.reportInfo(
+      _reporter.reportHintMessage(
           library, MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
     } else {
       impactBuilderForResolution.registerStaticUse(
@@ -170,9 +183,9 @@ class LookupMapAnalysis {
     // At this point, the lookupMapVersionVariable should be resolved and it's
     // constant value should be available.
     StringConstantValue value =
-        backend.constants.getConstantValue(lookupMapVersionVariable.constant);
+        _backend.constants.getConstantValue(lookupMapVersionVariable.constant);
     if (value == null) {
-      reporter.reportInfo(lookupMapVersionVariable,
+      _reporter.reportHintMessage(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
       return;
     }
@@ -185,16 +198,16 @@ class LookupMapAnalysis {
     } catch (e) {}
 
     if (version == null || !_validLookupMapVersionConstraint.allows(version)) {
-      reporter.reportInfo(lookupMapVersionVariable,
+      _reporter.reportHintMessage(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
       return;
     }
 
-    ClassElement cls = lookupMapLibrary.findLocal('LookupMap');
-    cls.computeType(backend.resolution);
-    entriesField = cls.lookupMember('_entries');
-    keyField = cls.lookupMember('_key');
-    valueField = cls.lookupMember('_value');
+    ClassEntity cls =
+        _elementEnvironment.lookupClass(lookupMapLibrary, 'LookupMap');
+    entriesField = _elementEnvironment.lookupClassMember(cls, '_entries');
+    keyField = _elementEnvironment.lookupClassMember(cls, '_key');
+    valueField = _elementEnvironment.lookupClassMember(cls, '_value');
     // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
     typeLookupMapClass = cls;
   }
@@ -235,8 +248,8 @@ class LookupMapAnalysis {
   void _addClassUse(ClassElement cls) {
     ConstantValue key = _typeConstants.putIfAbsent(
         cls,
-        () => backend.constantSystem.createType(
-            backend.commonElements, backend.backendClasses, cls.rawType));
+        () => _backend.constantSystem
+            .createType(_commonElements, _backendClasses, cls.rawType));
     _addUse(key);
   }
 
@@ -285,8 +298,8 @@ class LookupMapAnalysis {
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
-        backend.computeImpactForInstantiatedConstantType(
-            backend.backendClasses.typeType, impactBuilderForCodegen,
+        _backend.computeImpactForInstantiatedConstantType(
+            _backendClasses.typeType, impactBuilderForCodegen,
             forResolution: false);
         _addGenerics(arg);
       }
@@ -321,8 +334,7 @@ class LookupMapAnalysis {
 
     // When --verbose is passed, we show the total number and set of keys that
     // were tree-shaken from lookup maps.
-    Compiler compiler = backend.compiler;
-    if (compiler.options.verbose) {
+    if (_options.verbose) {
       var sb = new StringBuffer();
       int count = 0;
       for (var info in _lookupMaps.values) {
@@ -332,7 +344,7 @@ class LookupMapAnalysis {
           count++;
         }
       }
-      reporter.log(count == 0
+      _reporter.log(count == 0
           ? 'lookup-map: nothing was tree-shaken'
           : 'lookup-map: found $count unused keys ($sb)');
     }
@@ -427,7 +439,7 @@ class _LookupMapInfo {
     assert(!usedEntries.containsKey(key));
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
-    analysis.backend.computeImpactForCompileTimeConstant(
+    analysis._backend.computeImpactForCompileTimeConstant(
         constant, analysis.impactBuilderForCodegen,
         forResolution: false);
   }

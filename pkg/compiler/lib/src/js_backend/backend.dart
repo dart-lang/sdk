@@ -484,6 +484,8 @@ class JavaScriptBackend extends Target {
         this.compiler = compiler {
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
+    backendClasses = new JavaScriptBackendClasses(
+        compiler.elementEnvironment, helpers, nativeData);
     mirrorsData = new MirrorsData(
         compiler, compiler.options, commonElements, helpers, constants);
     _backendUsageBuilder = new BackendUsageBuilderImpl(
@@ -491,11 +493,25 @@ class JavaScriptBackend extends Target {
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-    typeVariableHandler = new TypeVariableHandler(compiler);
-    customElementsAnalysis = new CustomElementsAnalysis(this);
-    lookupMapAnalysis = new LookupMapAnalysis(this, reporter);
+    typeVariableHandler = new TypeVariableHandler(
+        this,
+        compiler.elementEnvironment,
+        helpers,
+        impacts,
+        backendUsageBuilder,
+        mirrorsData);
+    customElementsAnalysis = new CustomElementsAnalysis(
+        this,
+        compiler.resolution,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeData,
+        backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
+    lookupMapAnalysis = new LookupMapAnalysis(this, compiler.options, reporter,
+        compiler.elementEnvironment, commonElements, backendClasses);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     kernelTask = new KernelTask(compiler);
@@ -503,11 +519,9 @@ class JavaScriptBackend extends Target {
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
-    serialization = new JavaScriptBackendSerialization(this);
+    serialization = new JavaScriptBackendSerialization(nativeData);
     _interceptorDataBuilder =
         new InterceptorDataBuilderImpl(nativeData, helpers, commonElements);
-    backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, helpers, nativeData);
     _resolutionEnqueuerListener = new ResolutionEnqueuerListener(
         this,
         compiler.options,

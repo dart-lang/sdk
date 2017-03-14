@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
@@ -13,15 +13,22 @@ import '../js_emitter/js_emitter.dart'
     show CodeEmitterTask, MetadataCollector, Placeholder;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/world_impact.dart';
-import '../util/util.dart';
 import 'backend.dart';
 import 'backend_usage.dart' show BackendUsageBuilder;
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
+import 'mirrors_data.dart';
 
 /**
  * Handles construction of TypeVariable constants needed at runtime.
  */
 class TypeVariableHandler {
-  final Compiler _compiler;
+  final JavaScriptBackend _backend;
+  final ElementEnvironment _elementEnvironment;
+  final BackendHelpers _helpers;
+  final BackendImpacts _impacts;
+  final BackendUsageBuilder _backendUsageBuilder;
+  final MirrorsData _mirrorsData;
 
   /**
    * Set to 'true' on first encounter of a class with type variables.
@@ -50,13 +57,11 @@ class TypeVariableHandler {
   final StagedWorldImpactBuilder impactBuilderForCodegen =
       new StagedWorldImpactBuilder();
 
-  TypeVariableHandler(this._compiler);
+  TypeVariableHandler(this._backend, this._elementEnvironment, this._helpers,
+      this._impacts, this._backendUsageBuilder, this._mirrorsData);
 
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
-  JavaScriptBackend get _backend => _compiler.backend;
-  BackendUsageBuilder get _backendUsageBuilder => _backend.backendUsageBuilder;
-  DiagnosticReporter get reporter => _compiler.reporter;
 
   /// Compute the [WorldImpact] for the type variables registered since last
   /// flush.
@@ -73,14 +78,13 @@ class TypeVariableHandler {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
       if (!_seenClassesWithTypeVariables) {
-        _backend.impacts.typeVariableMirror.registerImpact(
-            impactBuilderForResolution, _compiler.elementEnvironment);
-        _backendUsageBuilder
-            .processBackendImpact(_backend.impacts.typeVariableMirror);
+        _impacts.typeVariableMirror
+            .registerImpact(impactBuilderForResolution, _elementEnvironment);
+        _backendUsageBuilder.processBackendImpact(_impacts.typeVariableMirror);
         _seenClassesWithTypeVariables = true;
       }
     } else {
-      if (_backend.mirrorsData.isAccessibleByReflection(cls)) {
+      if (_mirrorsData.isAccessibleByReflection(cls)) {
         processTypeVariablesOf(cls);
       }
     }
@@ -99,10 +103,10 @@ class TypeVariableHandler {
           _metadataCollector.reifyType(typeVariableElement.bound);
       ConstantValue boundValue = new SyntheticConstantValue(
           SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
-      ClassElement typeVariableClass = _backend.helpers.typeVariableClass;
+      ClassElement typeVariableClass = _helpers.typeVariableClass;
       ConstantExpression constant = new ConstructedConstantExpression(
           typeVariableClass.thisType,
-          _backend.helpers.typeVariableConstructor,
+          _helpers.typeVariableConstructor,
           const CallStructure.unnamed(3), [
         new TypeConstantExpression(cls.rawType, cls.name),
         new StringConstantExpression(currentTypeVariable.name),
