@@ -4,12 +4,13 @@
 
 import "package:expect/expect.dart";
 
-// Characters with Whitespace property (Unicode 6.3).
+// Characters with Whitespace property (Unicode 6.2).
 // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
 // 0020          ; White_Space # Zs       SPACE
 // 0085          ; White_Space # Cc       <control-0085>
 // 00A0          ; White_Space # Zs       NO-BREAK SPACE
 // 1680          ; White_Space # Zs       OGHAM SPACE MARK
+// 180E          ; White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
 // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
 // 2028          ; White_Space # Zl       LINE SEPARATOR
 // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
@@ -28,6 +29,7 @@ const WHITESPACE = const [
   0x85,
   0xA0,
   0x1680,
+  0x180E,
   0x2000,
   0x2001,
   0x2002,
@@ -87,25 +89,15 @@ main() {
       j++;
       continue;
     }
-    // See below for these exceptions.
-    if (i == 0x180E) continue;
-    if (i == 0x200B) continue;
+    // U+200b is currently being treated as whitespace by some JS engines.
+    // Should be fixed in tip-of-tree V8 per 2014-02-10.
+    // This line makes string_trimlr_test/none fail but /01 succeede where
+    // this bug is in the JS. Both succeede on the VM and where the bug is
+    // not. Remove this line and comment if all JS engines fix it.
+    if (i == 0x200b) continue;              /// 01: ok
 
     var s = new String.fromCharCode(i);
     Expect.identical(s, s.trimLeft());
     Expect.identical(s, s.trimRight());
   }
-
-  // U+200b is currently being treated as whitespace by some JS engines.
-  // string_trimlr_test/01 fails on these engines.
-  // Should be fixed in tip-of-tree V8 per 2014-02-10.
-  var s200B = new String.fromCharCode(0x200B);
-  Expect.identical(s200B, s200B.trimLeft());     /// 01: ok
-  Expect.identical(s200B, s200B.trimRight());    /// 01: ok
-
-  // U+180E ceased to be whitespace in Unicode version 6.3.0
-  // string_trimlr_test/02 fails on implementations using earlier versions.
-  var s180E = new String.fromCharCode(0x180E);
-  Expect.identical(s180E, s180E.trimLeft());     /// 02: ok
-  Expect.identical(s180E, s180E.trimRight());    /// 02: ok
 }

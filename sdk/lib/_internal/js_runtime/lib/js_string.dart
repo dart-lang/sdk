@@ -170,12 +170,13 @@ class JSString extends Interceptor implements String, JSIndexable {
         r'#.toUpperCase()', this);
   }
 
-  // Characters with Whitespace property (Unicode 6.3).
+  // Characters with Whitespace property (Unicode 6.2).
   // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
   // 0020          ; White_Space # Zs       SPACE
   // 0085          ; White_Space # Cc       <control-0085>
   // 00A0          ; White_Space # Zs       NO-BREAK SPACE
   // 1680          ; White_Space # Zs       OGHAM SPACE MARK
+  // 180E          ; White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
   // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
   // 2028          ; White_Space # Zl       LINE SEPARATOR
   // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
@@ -204,6 +205,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
     switch (codeUnit) {
       case 0x1680:
+      case 0x180E:
       case 0x2000:
       case 0x2001:
       case 0x2002:

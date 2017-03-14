@@ -26,6 +26,7 @@ void runTest(double expected, String input) {
   Expect.equals(expected, double.parse("\xA0 +$input\xA0 "));
   Expect.equals(expected, double.parse("+$input\xA0 "));
   Expect.equals(expected, double.parse("\u205F $input\u205F "));
+  Expect.equals(expected, double.parse(" \u180E$input"));
   Expect.equals(expected, double.parse("$input \u2006"));
   Expect.equals(expected, double.parse("\u1680 +$input\u1680 "));
   Expect.equals(-expected, double.parse("-$input"));
