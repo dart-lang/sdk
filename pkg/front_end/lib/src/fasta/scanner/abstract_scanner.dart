@@ -134,12 +134,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * Returns the first token scanned by this [Scanner].
    */
-  Token firstToken();
-
-  /**
-   * Returns the last token scanned by this [Scanner].
-   */
-  Token previousToken();
+  Token firstToken() => tokens.next;
 
   /**
    * Notifies that a new token starts at current offset.
