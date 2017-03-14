@@ -468,6 +468,7 @@ class Listener {
   void beginLibraryName(Token token) {}
 
   /// Handle the end of a library directive.  Substructures:
+  /// - Metadata
   /// - Library name (a qualified identifier)
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     logEvent("LibraryName");
