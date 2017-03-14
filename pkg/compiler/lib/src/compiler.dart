@@ -70,6 +70,7 @@ import 'tokens/token_map.dart' show TokenMap;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
+import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
@@ -531,8 +532,8 @@ abstract class Compiler implements LibraryLoaderListener {
               Identifiers.main,
               parameter);
           // Don't warn about main not being used:
-          impactBuilder
-              .registerStaticUse(new StaticUse.foreignUse(mainFunction));
+          impactBuilder.registerStaticUse(
+              new StaticUse.staticInvoke(mainFunction, CallStructure.NO_ARGS));
 
           mainFunction = backend.helperForMainArity();
         });

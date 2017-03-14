@@ -249,7 +249,7 @@ class MirrorsHandler {
       ClassElement cls = constructor.enclosingClass;
       impactBuilder
           .registerTypeUse(new TypeUse.mirrorInstantiation(cls.rawType));
-      impactBuilder.registerStaticUse(new StaticUse.foreignUse(constructor));
+      impactBuilder.registerStaticUse(new StaticUse.mirrorUse(constructor));
     }
   }
 
@@ -264,7 +264,7 @@ class MirrorsHandler {
         includedEnclosing: enclosingWasIncluded)) {
       _logEnqueueReflectiveAction(element);
       if (Elements.isStaticOrTopLevel(element)) {
-        impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
+        impactBuilder.registerStaticUse(new StaticUse.mirrorUse(element));
       } else if (element.isInstanceMember) {
         // We need to enqueue all members matching this one in subclasses, as
         // well.

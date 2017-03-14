@@ -248,7 +248,7 @@ Future testSwitch() {
     ClassElement fooElement = compiler.mainApp.find("Foo");
     MethodElement funElement = fooElement.lookupLocalMember("foo");
     compiler.enqueuer.resolution.applyImpact(new WorldImpactBuilderImpl()
-      ..registerStaticUse(new StaticUse.foreignUse(funElement)));
+      ..registerStaticUse(new StaticUse.implicitInvoke(funElement)));
     compiler.processQueue(
         compiler.enqueuer.resolution, null, compiler.libraryLoader.libraries);
     DiagnosticCollector collector = compiler.diagnosticCollector;

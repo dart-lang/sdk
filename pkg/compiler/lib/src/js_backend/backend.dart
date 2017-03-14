@@ -684,12 +684,23 @@ class JavaScriptBackend extends Target {
         : new Namer(this, closedWorld, codegenWorldBuilder);
   }
 
-  /// Returns true if global optimizations such as type inferencing
-  /// can apply to this element. One category of elements that do not
-  /// apply is runtime helpers that the backend calls, but the
-  /// optimizations don't see those calls.
-  bool canBeUsedForGlobalOptimizations(Element element) {
-    return !backendUsage.usedByBackend(element) &&
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the field [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canFieldBeUsedForGlobalOptimizations(FieldElement element) {
+    return !backendUsage.isFieldUsedByBackend(element) &&
+        !mirrorsData.invokedReflectively(element);
+  }
+
+  /// Returns true if global optimizations such as type inferencing can apply to
+  /// the parameter [element].
+  ///
+  /// One category of elements that do not apply is runtime helpers that the
+  /// backend calls, but the optimizations don't see those calls.
+  bool canParameterBeUsedForGlobalOptimizations(ParameterElement element) {
+    return !backendUsage.isParameterUsedByBackend(element) &&
         !mirrorsData.invokedReflectively(element);
   }
 
@@ -863,7 +874,7 @@ class JavaScriptBackend extends Target {
             // TODO(johnniwinther): Find the right [CallStructure].
             helper,
             null));
-        backendUsageBuilder.registerBackendUse(helper);
+        backendUsageBuilder.registerBackendFunctionUse(helper);
       }
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(backendClasses.typeType));

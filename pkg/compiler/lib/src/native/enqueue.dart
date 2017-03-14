@@ -446,7 +446,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
     void staticUse(MethodElement element) {
-      impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
+      impactBuilder.registerStaticUse(new StaticUse.implicitInvoke(element));
       registerBackendUse(element);
     }
 
@@ -477,7 +477,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   BackendUsageBuilder get _backendUsageBuilder => backend.backendUsageBuilder;
 
   void registerBackendUse(MethodElement element) {
-    _backendUsageBuilder.registerBackendUse(element);
+    _backendUsageBuilder.registerBackendFunctionUse(element);
     _backendUsageBuilder.registerGlobalFunctionDependency(element);
   }
 

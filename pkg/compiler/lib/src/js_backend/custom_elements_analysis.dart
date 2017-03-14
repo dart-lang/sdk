@@ -5,10 +5,10 @@
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../common_elements.dart';
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../universe/call_structure.dart';
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
@@ -208,8 +208,8 @@ class CustomElementsAnalysisJoin {
         Iterable<ConstructorElement> escapingConstructors =
             computeEscapingConstructors(classElement);
         for (ConstructorElement constructor in escapingConstructors) {
-          impactBuilder
-              .registerStaticUse(new StaticUse.foreignUse(constructor));
+          impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
+              constructor, CallStructure.NO_ARGS));
         }
         if (forResolution) {
           escapingConstructors

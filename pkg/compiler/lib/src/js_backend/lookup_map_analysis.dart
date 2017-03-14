@@ -74,8 +74,8 @@ class LookupMapLibraryAccess {
       _reporter.reportHintMessage(
           library, MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
     } else {
-      impactBuilder.registerStaticUse(
-          new StaticUse.foreignUse(lookupMapVersionVariable));
+      impactBuilder
+          .registerStaticUse(new StaticUse.staticGet(lookupMapVersionVariable));
     }
   }
 }

@@ -463,7 +463,7 @@ class MemberTypeInformation extends ElementTypeInformation
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (element.isField &&
-        (!inferrer.backend.canBeUsedForGlobalOptimizations(element) ||
+        (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(element) ||
             inferrer.annotations.assumeDynamic(element))) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
@@ -615,7 +615,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (!inferrer.backend.canBeUsedForGlobalOptimizations(element) ||
+    if (!inferrer.backend.canParameterBeUsedForGlobalOptimizations(element) ||
         inferrer.annotations.assumeDynamic(declaration)) {
       // Do not infer types for parameters that have a correspondign annotation
       // or that are assigned by synthesized calls.

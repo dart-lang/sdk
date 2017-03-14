@@ -90,7 +90,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     cls.ensureResolved(_resolution);
     _interceptorData.addInterceptors(cls);
     impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
-    _backendUsage.registerBackendUse(cls);
+    _backendUsage.registerBackendClassUse(cls);
   }
 
   @override
@@ -408,7 +408,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the _helpers in the _resolution queue.
     // TODO(13155): Find a way to register fewer _helpers.
-    List<MemberEntity> staticUses = <MemberEntity>[];
+    List<FunctionEntity> staticUses = <FunctionEntity>[];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
       staticUses.add(helper.getStaticUse(_helpers).element);
     }

@@ -322,12 +322,14 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.CLOSURE);
   }
 
-  /// Unknown use of [element].
-  ///
-  /// Avoid using this, if possible: Use one of the other constructor which more
-  /// precisely capture why [element] is used.
-  @deprecated
-  factory StaticUse.foreignUse(MemberEntity element) {
+  /// Use of [element] through reflection.
+  factory StaticUse.mirrorUse(MemberEntity element) {
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Implicit method/constructor invocation of [element] created by the
+  /// backend.
+  factory StaticUse.implicitInvoke(FunctionEntity element) {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 

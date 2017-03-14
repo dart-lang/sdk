@@ -24,8 +24,8 @@ enum BackendFeature {
 
 /// A set of JavaScript backend dependencies.
 class BackendImpact {
-  final List<MemberEntity> staticUses;
-  final List<MemberEntity> globalUses;
+  final List<FunctionEntity> staticUses;
+  final List<FunctionEntity> globalUses;
   final List<Selector> dynamicUses;
   final List<InterfaceType> instantiatedTypes;
   final List<ClassEntity> instantiatedClasses;
@@ -34,8 +34,8 @@ class BackendImpact {
   final EnumSet<BackendFeature> _features;
 
   const BackendImpact(
-      {this.staticUses: const <MemberEntity>[],
-      this.globalUses: const <MemberEntity>[],
+      {this.staticUses: const <FunctionEntity>[],
+      this.globalUses: const <FunctionEntity>[],
       this.dynamicUses: const <Selector>[],
       this.instantiatedTypes: const <InterfaceType>[],
       this.instantiatedClasses: const <ClassEntity>[],
@@ -56,17 +56,15 @@ class BackendImpact {
   /// Register this backend impact to the [worldImpactBuilder].
   void registerImpact(WorldImpactBuilder worldImpactBuilder,
       ElementEnvironment elementEnvironment) {
-    for (MemberEntity staticUse in staticUses) {
+    for (FunctionEntity staticUse in staticUses) {
       assert(staticUse != null);
-      worldImpactBuilder.registerStaticUse(
-          // TODO(johnniwinther): Store the correct use in impacts.
-          new StaticUse.foreignUse(staticUse));
+      worldImpactBuilder
+          .registerStaticUse(new StaticUse.implicitInvoke(staticUse));
     }
-    for (MemberEntity staticUse in globalUses) {
+    for (FunctionEntity staticUse in globalUses) {
       assert(staticUse != null);
-      worldImpactBuilder.registerStaticUse(
-          // TODO(johnniwinther): Store the correct use in impacts.
-          new StaticUse.foreignUse(staticUse));
+      worldImpactBuilder
+          .registerStaticUse(new StaticUse.implicitInvoke(staticUse));
     }
     for (Selector selector in dynamicUses) {
       assert(selector != null);

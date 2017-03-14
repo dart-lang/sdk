@@ -1811,10 +1811,6 @@ class SsaBuilder extends ast.Visitor
     ClosureClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     MethodElement callElement = nestedClosureData.callElement;
-    // TODO(ahe): This should be registered in codegen, not here.
-    // TODO(johnniwinther): Is [registerStaticUse] equivalent to
-    // [addToWorkList]?
-    registry?.registerStaticUse(new StaticUse.foreignUse(callElement));
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.closureFields.forEach((ClosureFieldElement field) {
@@ -1825,10 +1821,9 @@ class SsaBuilder extends ast.Visitor
     });
 
     TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
-    push(new HCreate(closureClassElement, capturedVariables, type)
+    push(new HCreate(closureClassElement, capturedVariables, type,
+        callMethod: callElement, localFunction: methodElement)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
-
-    registry?.registerInstantiatedClosure(methodElement);
   }
 
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
@@ -2916,13 +2911,13 @@ class SsaBuilder extends ast.Visitor
           closure, '"$name" does not handle closure with optional parameters.');
     }
 
-    registry?.registerStaticUse(new StaticUse.foreignUse(function));
     push(new HForeignCode(
         js.js.expressionTemplateYielding(
             backend.emitter.staticFunctionAccess(function)),
         commonMasks.dynamicType,
         <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.PURE));
+        nativeBehavior: native.NativeBehavior.PURE,
+        foreignFunction: function));
     return params;
   }
 

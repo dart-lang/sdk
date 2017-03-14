@@ -1490,8 +1490,19 @@ class HCreate extends HInstruction {
   /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
   List<DartType> instantiatedTypes;
 
+  /// If this node creates a closure class, [callMethod] is the call method of
+  /// the closure class.
+  FunctionEntity callMethod;
+
+  /// If this node creates a closure class, [closure] is the closurized local
+  /// function.
+  Local localFunction;
+
   HCreate(this.element, List<HInstruction> inputs, TypeMask type,
-      {this.instantiatedTypes, this.hasRtiInput: false})
+      {this.instantiatedTypes,
+      this.hasRtiInput: false,
+      this.callMethod,
+      this.localFunction})
       : super(inputs, type);
 
   bool get isAllocation => true;
@@ -1886,12 +1897,14 @@ class HForeignCode extends HForeign {
   final bool isStatement;
   final native.NativeBehavior nativeBehavior;
   native.NativeThrowBehavior throwBehavior;
+  final FunctionEntity foreignFunction;
 
   HForeignCode(this.codeTemplate, TypeMask type, List<HInstruction> inputs,
       {this.isStatement: false,
       SideEffects effects,
       native.NativeBehavior nativeBehavior,
-      native.NativeThrowBehavior throwBehavior})
+      native.NativeThrowBehavior throwBehavior,
+      this.foreignFunction})
       : this.nativeBehavior = nativeBehavior,
         this.throwBehavior = throwBehavior,
         super(type, inputs) {

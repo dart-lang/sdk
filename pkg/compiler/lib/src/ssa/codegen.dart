@@ -2030,6 +2030,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
     registerForeignTypes(node);
+
+    if (node.foreignFunction != null) {
+      registry?.registerStaticUse(
+          new StaticUse.implicitInvoke(node.foreignFunction));
+    }
   }
 
   visitCreate(HCreate node) {
@@ -2045,6 +2050,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       registry.registerInstantiatedClass(node.element);
     }
     node.instantiatedTypes?.forEach(registry.registerInstantiation);
+    if (node.callMethod != null) {
+      registry
+          ?.registerStaticUse(new StaticUse.implicitInvoke(node.callMethod));
+    }
+    if (node.localFunction != null) {
+      registry?.registerInstantiatedClosure(node.localFunction);
+    }
   }
 
   js.Expression newLiteralBool(
