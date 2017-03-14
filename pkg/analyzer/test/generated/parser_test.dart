@@ -10665,26 +10665,6 @@ void''');
     expect(name.name, isNull);
   }
 
-  void test_parseContinueStatement_label() {
-    createParser('continue foo;');
-    ContinueStatement statement = parser.parseContinueStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
-    expect(statement.continueKeyword, isNotNull);
-    expect(statement.label, isNotNull);
-    expect(statement.semicolon, isNotNull);
-  }
-
-  void test_parseContinueStatement_noLabel() {
-    createParser('continue;');
-    ContinueStatement statement = parser.parseContinueStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
-    expect(statement.continueKeyword, isNotNull);
-    expect(statement.label, isNull);
-    expect(statement.semicolon, isNotNull);
-  }
-
   void test_parseDocumentationComment_block() {
     createParser('/** */ class');
     Comment comment = parser
@@ -12210,6 +12190,22 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     var statement = parseStatement('break;') as BreakStatement;
     assertErrorsWithCodes([ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
     expect(statement.breakKeyword, isNotNull);
+    expect(statement.label, isNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseContinueStatement_label() {
+    var statement = parseStatement('continue foo;') as ContinueStatement;
+    assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    expect(statement.continueKeyword, isNotNull);
+    expect(statement.label, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseContinueStatement_noLabel() {
+    var statement = parseStatement('continue;') as ContinueStatement;
+    assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    expect(statement.continueKeyword, isNotNull);
     expect(statement.label, isNull);
     expect(statement.semicolon, isNotNull);
   }

@@ -1100,14 +1100,20 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseBreakStatement_label() {
-    super.test_parseBreakStatement_label();
+  void test_parseBreakStatement_noLabel() {
+    super.test_parseBreakStatement_noLabel();
   }
 
   @override
   @failingTest
-  void test_parseBreakStatement_noLabel() {
-    super.test_parseBreakStatement_noLabel();
+  void test_parseContinueStatement_label() {
+    super.test_parseContinueStatement_label();
+  }
+
+  @override
+  @failingTest
+  void test_parseContinueStatement_noLabel() {
+    super.test_parseContinueStatement_noLabel();
   }
 
   @override

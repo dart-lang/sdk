@@ -586,6 +586,24 @@ class AstBuilder extends ScopeListener {
     push(ast.asExpression(expression, toAnalyzerToken(operator), type));
   }
 
+  @override
+  void handleBreakStatement(
+      bool hasTarget, Token breakKeyword, Token semicolon) {
+    debugEvent("BreakStatement");
+    SimpleIdentifier label = hasTarget ? pop() : null;
+    push(ast.breakStatement(
+        toAnalyzerToken(breakKeyword), label, toAnalyzerToken(semicolon)));
+  }
+
+  @override
+  void handleContinueStatement(
+      bool hasTarget, Token continueKeyword, Token semicolon) {
+    debugEvent("ContinueStatement");
+    SimpleIdentifier label = hasTarget ? pop() : null;
+    push(ast.continueStatement(
+        toAnalyzerToken(continueKeyword), label, toAnalyzerToken(semicolon)));
+  }
+
   void handleIsOperator(Token operator, Token not, Token endToken) {
     debugEvent("IsOperator");
     TypeAnnotation type = pop();
