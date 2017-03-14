@@ -464,6 +464,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'mediasource_test': 'fail',
       'media_stream_test': 'fail',
 
+      // https://github.com/dart-lang/sdk/issues/29071
+      'messageevent_test': firefox_fail,
+
       'mutationobserver_test': async_unittest,
       'native_gc_test': async_unittest,
       'postmessage_structured_test': async_unittest,
@@ -473,6 +476,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
       'rtc_test': is.chrome('<=55') ? fail : pass,
+
+      // https://github.com/dart-lang/sdk/issues/29071
+      'serialized_script_value_test': firefox_fail,
+
       'shadow_dom_test': firefox_fail,
 
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
