@@ -390,9 +390,13 @@ class JavaScriptBackend extends Target {
   /// Codegen handler for reflective access to type variables.
   TypeVariableHandler typeVariableHandler;
 
-  /// Resolution and codegen support for generating table of interceptors and
+  /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsAnalysis customElementsAnalysis;
+  CustomElementsResolutionAnalysis customElementsResolutionAnalysis;
+
+  /// Codegen support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsCodegenAnalysis customElementsCodegenAnalysis;
 
   /// Resolution support for tree-shaking entries of `LookupMap`.
   LookupMapLibraryAccess lookupMapLibraryAccess;
@@ -503,7 +507,7 @@ class JavaScriptBackend extends Target {
     typeVariableAnalysis = new TypeVariableAnalysis(
         compiler.elementEnvironment, impacts, backendUsageBuilder);
     typeVariableHandler = new TypeVariableHandler(this, helpers, mirrorsData);
-    customElementsAnalysis = new CustomElementsAnalysis(
+    customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
         this,
         compiler.resolution,
         commonElements,
@@ -511,6 +515,13 @@ class JavaScriptBackend extends Target {
         helpers,
         nativeData,
         backendUsageBuilder);
+    customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
+        this,
+        compiler.resolution,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeData);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
     lookupMapLibraryAccess =
@@ -540,7 +551,7 @@ class JavaScriptBackend extends Target {
         _rtiNeedBuilder,
         mirrorsData,
         noSuchMethodRegistry,
-        customElementsAnalysis,
+        customElementsResolutionAnalysis,
         lookupMapLibraryAccess,
         mirrorsAnalysis);
     _codegenEnqueuerListener = new CodegenEnqueuerListener(
@@ -550,7 +561,7 @@ class JavaScriptBackend extends Target {
         helpers,
         impacts,
         mirrorsData,
-        customElementsAnalysis,
+        customElementsCodegenAnalysis,
         typeVariableHandler,
         lookupMapAnalysis,
         mirrorsAnalysis);

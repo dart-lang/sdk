@@ -35,7 +35,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   final MirrorsData _mirrorsData;
 
-  final CustomElementsAnalysis _customElementsAnalysis;
+  final CustomElementsCodegenAnalysis _customElementsAnalysis;
   final TypeVariableHandler _typeVariableHandler;
   final LookupMapAnalysis _lookupMapAnalysis;
   final MirrorsAnalysis _mirrorsAnalysis;
@@ -138,7 +138,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: false));
+    enqueuer.applyImpact(_customElementsAnalysis.flush());
     enqueuer.applyImpact(_lookupMapAnalysis.flush());
     enqueuer.applyImpact(_typeVariableHandler.flush());
 
@@ -158,7 +158,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     _mirrorsData.registerUsedMember(member);
-    _customElementsAnalysis.registerStaticUse(member, forResolution: false);
+    _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
       MethodElement method = member;
@@ -243,8 +243,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
           .registerImpact(impactBuilder, _elementEnvironment);
     }
 
-    _customElementsAnalysis.registerInstantiatedClass(cls,
-        forResolution: false);
+    _customElementsAnalysis.registerInstantiatedClass(cls);
     _lookupMapAnalysis.registerInstantiatedClass(cls);
     return impactBuilder;
   }

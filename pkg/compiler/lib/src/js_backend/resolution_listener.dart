@@ -48,7 +48,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final MirrorsData _mirrorsData;
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
-  final CustomElementsAnalysis _customElementsAnalysis;
+  final CustomElementsResolutionAnalysis _customElementsAnalysis;
   final LookupMapLibraryAccess _lookupMapLibraryAccess;
   final MirrorsAnalysis _mirrorsAnalysis;
 
@@ -181,7 +181,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: true));
+    enqueuer.applyImpact(_customElementsAnalysis.flush());
     enqueuer.applyImpact(_lookupMapLibraryAccess.flush());
     enqueuer.applyImpact(_typeVariableAnalysis.flush());
 
@@ -216,7 +216,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     _mirrorsData.registerUsedMember(member);
-    _customElementsAnalysis.registerStaticUse(member, forResolution: true);
+    _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
       MethodElement method = member;
@@ -365,7 +365,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.jsIndexingBehavior);
     }
 
-    _customElementsAnalysis.registerInstantiatedClass(cls, forResolution: true);
+    _customElementsAnalysis.registerInstantiatedClass(cls);
     return impactBuilder;
   }
 

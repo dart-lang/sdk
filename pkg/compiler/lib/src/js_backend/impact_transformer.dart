@@ -150,7 +150,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           onIsCheck(type, transformed);
           break;
         case TypeUseKind.TYPE_LITERAL:
-          backend.customElementsAnalysis.registerTypeLiteral(type);
+          backend.customElementsResolutionAnalysis.registerTypeLiteral(type);
           if (type.isTypeVariable && type is! MethodTypeVariableType) {
             // GENERIC_METHODS: The `is!` test above filters away method type
             // variables, because they have the value `dynamic` with the
@@ -412,7 +412,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (ClassElement element in impact.typeConstants) {
-      backend.customElementsAnalysis.registerTypeConstant(element);
+      backend.customElementsCodegenAnalysis.registerTypeConstant(element);
       backend.lookupMapAnalysis.registerTypeConstant(element);
     }
 

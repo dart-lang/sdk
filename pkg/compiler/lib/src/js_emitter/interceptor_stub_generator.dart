@@ -13,7 +13,7 @@ import '../js/js.dart' show js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart'
     show
-        CustomElementsAnalysis,
+        CustomElementsCodegenAnalysis,
         JavaScriptBackend,
         JavaScriptConstantCompiler,
         Namer;
@@ -374,7 +374,8 @@ class InterceptorStubGenerator {
 
   jsAst.ArrayInitializer generateTypeToInterceptorMap() {
     // TODO(sra): Perhaps inject a constant instead?
-    CustomElementsAnalysis analysis = backend.customElementsAnalysis;
+    CustomElementsCodegenAnalysis analysis =
+        backend.customElementsCodegenAnalysis;
     if (!analysis.needsTable) return null;
 
     List<jsAst.Expression> elements = <jsAst.Expression>[];

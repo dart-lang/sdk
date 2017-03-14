@@ -728,8 +728,10 @@ class BackendHelpers {
   FunctionEntity get callInIsolate =>
       _findLibraryMember(isolateHelperLibrary, '_callInIsolate');
 
+  FunctionEntity _findIndexForNativeSubclassType;
   FunctionEntity get findIndexForNativeSubclassType =>
-      _findLibraryMember(interceptorsLibrary, 'findIndexForNativeSubclassType');
+      _findIndexForNativeSubclassType ??= _findLibraryMember(
+          interceptorsLibrary, 'findIndexForNativeSubclassType');
 
   FunctionEntity get convertRtiToRuntimeType =>
       _findHelperFunction('convertRtiToRuntimeType');

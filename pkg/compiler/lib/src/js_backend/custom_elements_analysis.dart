@@ -54,42 +54,16 @@ import 'native_data.dart';
  *
  * In these cases we conservatively generate all viable entries in the table.
  */
-class CustomElementsAnalysis {
+abstract class CustomElementsAnalysisBase {
   final NativeData _nativeData;
   final BackendHelpers _helpers;
   final Resolution _resolution;
-  final CustomElementsAnalysisJoin resolutionJoin;
-  final CustomElementsAnalysisJoin codegenJoin;
-  bool fetchedTableAccessorMethod = false;
-  MethodElement tableAccessorMethod;
 
-  CustomElementsAnalysis(
-      JavaScriptBackend backend,
-      this._resolution,
-      CommonElements commonElements,
-      BackendClasses backendClasses,
-      this._helpers,
-      this._nativeData,
-      BackendUsageBuilder backendUsageBuilder)
-      : resolutionJoin = new CustomElementsAnalysisJoin(
-            backend, _resolution, commonElements, backendClasses, _nativeData,
-            backendUsageBuilder: backendUsageBuilder),
-        codegenJoin = new CustomElementsAnalysisJoin(
-            backend, _resolution, commonElements, backendClasses, _nativeData) {
-    // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
-    // both joins only when we see a construct generating an unknown [Type] but
-    // we can't currently recognize all cases.  In particular, the work-around
-    // for the unimplemented `ClassMirror.reflectedType` is not recognizable.
-    // TODO(12607): Match on [ClassMirror.reflectedType]
-    resolutionJoin.allClassesSelected = true;
-    codegenJoin.allClassesSelected = true;
-  }
+  CustomElementsAnalysisBase(this._resolution, this._helpers, this._nativeData);
 
-  CustomElementsAnalysisJoin joinFor({bool forResolution}) =>
-      forResolution ? resolutionJoin : codegenJoin;
+  CustomElementsAnalysisJoin get join;
 
-  void registerInstantiatedClass(ClassElement classElement,
-      {bool forResolution}) {
+  void registerInstantiatedClass(ClassElement classElement) {
     classElement.ensureResolved(_resolution);
     if (!_nativeData.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
@@ -97,7 +71,41 @@ class CustomElementsAnalysis {
     // JsInterop classes are opaque interfaces without a concrete
     // implementation.
     if (_nativeData.isJsInterop(classElement)) return;
-    joinFor(forResolution: forResolution).instantiatedClasses.add(classElement);
+    join.instantiatedClasses.add(classElement);
+  }
+
+  void registerStaticUse(Element element) {
+    assert(element != null);
+    if (element == _helpers.findIndexForNativeSubclassType) {
+      join.demanded = true;
+    }
+  }
+
+  /// Computes the [WorldImpact] of the classes registered since last flush.
+  WorldImpact flush() => join.flush();
+}
+
+class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
+  final CustomElementsAnalysisJoin join;
+
+  CustomElementsResolutionAnalysis(
+      JavaScriptBackend backend,
+      Resolution resolution,
+      CommonElements commonElements,
+      BackendClasses backendClasses,
+      BackendHelpers helpers,
+      NativeData nativeData,
+      BackendUsageBuilder backendUsageBuilder)
+      : join = new CustomElementsAnalysisJoin(
+            backend, resolution, commonElements, backendClasses, nativeData,
+            backendUsageBuilder: backendUsageBuilder),
+        super(resolution, helpers, nativeData) {
+    // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
+    // both joins only when we see a construct generating an unknown [Type] but
+    // we can't currently recognize all cases.  In particular, the work-around
+    // for the unimplemented `ClassMirror.reflectedType` is not recognizable.
+    // TODO(12607): Match on [ClassMirror.reflectedType]
+    join.allClassesSelected = true;
   }
 
   void registerTypeLiteral(ResolutionDartType type) {
@@ -105,43 +113,49 @@ class CustomElementsAnalysis {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
       // literal is really a demand for the metadata.
-      resolutionJoin.selectedClasses.add(type.element);
+      join.selectedClasses.add(type.element);
     } else if (type.isTypeVariable) {
       // This is a type parameter of a parameterized class.
       // TODO(sra): Is there a way to determine which types are bound to the
       // parameter?
-      resolutionJoin.allClassesSelected = true;
+      join.allClassesSelected = true;
     }
+  }
+}
+
+class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
+  final CustomElementsAnalysisJoin join;
+
+  CustomElementsCodegenAnalysis(
+      JavaScriptBackend backend,
+      Resolution resolution,
+      CommonElements commonElements,
+      BackendClasses backendClasses,
+      BackendHelpers helpers,
+      NativeData nativeData)
+      : join = new CustomElementsAnalysisJoin(
+            backend, resolution, commonElements, backendClasses, nativeData),
+        super(resolution, helpers, nativeData) {
+    // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
+    // both joins only when we see a construct generating an unknown [Type] but
+    // we can't currently recognize all cases.  In particular, the work-around
+    // for the unimplemented `ClassMirror.reflectedType` is not recognizable.
+    // TODO(12607): Match on [ClassMirror.reflectedType]
+    join.allClassesSelected = true;
   }
 
   void registerTypeConstant(Element element) {
     assert(element.isClass);
-    codegenJoin.selectedClasses.add(element);
+    join.selectedClasses.add(element);
   }
 
-  void registerStaticUse(Element element, {bool forResolution}) {
-    assert(element != null);
-    if (!fetchedTableAccessorMethod) {
-      fetchedTableAccessorMethod = true;
-      tableAccessorMethod = _helpers.findIndexForNativeSubclassType;
-    }
-    if (element == tableAccessorMethod) {
-      joinFor(forResolution: forResolution).demanded = true;
-    }
-  }
-
-  /// Computes the [WorldImpact] of the classes registered since last flush.
-  WorldImpact flush({bool forResolution}) {
-    return joinFor(forResolution: forResolution).flush();
-  }
-
-  bool get needsTable => codegenJoin.demanded;
+  bool get needsTable => join.demanded;
 
   bool needsClass(ClassElement classElement) =>
-      codegenJoin.activeClasses.contains(classElement);
+      join.activeClasses.contains(classElement);
 
   List<ConstructorElement> constructors(ClassElement classElement) =>
-      codegenJoin.computeEscapingConstructors(classElement);
+      join.computeEscapingConstructors(classElement);
 }
 
 class CustomElementsAnalysisJoin {
