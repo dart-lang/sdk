@@ -1082,24 +1082,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
   @override
   @failingTest
-  void test_parseAssertStatement() {
-    super.test_parseAssertStatement();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssertStatement_messageLowPrecedence() {
-    super.test_parseAssertStatement_messageLowPrecedence();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssertStatement_messageString() {
-    super.test_parseAssertStatement_messageString();
-  }
-
-  @override
-  @failingTest
   void test_parseBreakStatement_noLabel() {
     super.test_parseBreakStatement_noLabel();
   }

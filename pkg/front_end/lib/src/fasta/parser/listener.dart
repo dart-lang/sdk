@@ -832,8 +832,8 @@ class Listener {
     logEvent("EmptyStatement");
   }
 
-  void handleAssertStatement(
-      Token assertKeyword, Token commaToken, Token semicolonToken) {
+  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Token commaToken, Token rightParenthesis, Token semicolonToken) {
     logEvent("AssertStatement");
   }
 

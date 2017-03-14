@@ -3507,6 +3507,7 @@ class Parser {
     Token assertKeyword = token;
     Token commaToken = null;
     token = expect('assert', token);
+    Token leftParenthesis = token;
     token = expect('(', token);
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
@@ -3516,9 +3517,11 @@ class Parser {
       token = token.next;
       token = parseExpression(token);
     }
+    Token rightParenthesis = token;
     token = expect(')', token);
     mayParseFunctionExpressions = old;
-    listener.handleAssertStatement(assertKeyword, commaToken, token);
+    listener.handleAssertStatement(
+        assertKeyword, leftParenthesis, commaToken, rightParenthesis, token);
     return expectSemicolon(token);
   }
 

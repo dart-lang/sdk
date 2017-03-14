@@ -579,6 +579,22 @@ class AstBuilder extends ScopeListener {
     push(ast.typeName(name, arguments)..type = cls?.rawType);
   }
 
+  @override
+  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Token comma, Token rightParenthesis, Token semicolon) {
+    debugEvent("AssertStatement");
+    Expression message = popIfNotNull(comma);
+    Expression condition = pop();
+    push(ast.assertStatement(
+        toAnalyzerToken(assertKeyword),
+        toAnalyzerToken(leftParenthesis),
+        condition,
+        toAnalyzerToken(comma),
+        message,
+        toAnalyzerToken(rightParenthesis),
+        toAnalyzerToken(semicolon)));
+  }
+
   void handleAsOperator(Token operator, Token endToken) {
     debugEvent("AsOperator");
     TypeAnnotation type = pop();

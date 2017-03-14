@@ -2022,8 +2022,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleAssertStatement(
-      Token assertKeyword, Token commaToken, Token semicolonToken) {
+  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Token commaToken, Token rightParenthesis, Token semicolonToken) {
     debugEvent("AssertStatement");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();

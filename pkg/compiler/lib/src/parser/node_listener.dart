@@ -329,8 +329,8 @@ class NodeListener extends ElementListener {
   }
 
   void handleOnError(Token token, var errorInformation) {
-    reporter.internalError(
-        reporter.spanFromToken(token), "'${token.lexeme}': ${errorInformation}");
+    reporter.internalError(reporter.spanFromToken(token),
+        "'${token.lexeme}': ${errorInformation}");
   }
 
   @override
@@ -959,8 +959,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleAssertStatement(
-      Token assertKeyword, Token commaToken, Token semicolonToken) {
+  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Token commaToken, Token rightParenthesis, Token semicolonToken) {
     Node message;
     Node condition;
     if (commaToken != null) {
