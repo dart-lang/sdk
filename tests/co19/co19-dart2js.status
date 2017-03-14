@@ -911,6 +911,7 @@ LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage thi
 LayoutTests/fast/canvas/webgl/error-reporting_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure (issue 29065)
 LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
