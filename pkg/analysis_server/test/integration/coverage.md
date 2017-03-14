@@ -42,10 +42,10 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 - [x] execution.setSubscriptions
 
 ## search domain
-- [ ] search.findElementReferences
-- [ ] search.findMemberDeclarations
-- [ ] search.findMemberReferences
-- [ ] search.findTopLevelDeclarations
+- [x] search.findElementReferences
+- [x] search.findMemberDeclarations
+- [x] search.findMemberReferences
+- [x] search.findTopLevelDeclarations
 - [x] search.getTypeHierarchy
 
 ## server domain
