@@ -388,6 +388,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateInstanceOf(TokenPosition token_pos,
                           intptr_t deopt_id,
                           const AbstractType& type,
+                          bool negate_result,
                           LocationSummary* locs);
 
   void GenerateInstanceCall(intptr_t deopt_id,

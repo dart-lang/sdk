@@ -2009,7 +2009,8 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == EAX);  // Value.
   ASSERT(locs()->in(1).reg() == EDX);  // Instantiator type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), negate_result(),
+                               locs());
   ASSERT(locs()->out(0).reg() == EAX);
 }
 

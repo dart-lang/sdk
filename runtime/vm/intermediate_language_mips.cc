@@ -2246,7 +2246,8 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == A1);  // Instantiator type arguments.
 
   __ Comment("InstanceOfInstr");
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), negate_result(),
+                               locs());
   ASSERT(locs()->out(0).reg() == V0);
 }
 

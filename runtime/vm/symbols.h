@@ -347,6 +347,11 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
+  V(_instanceOfSmi, "_instanceOfSmi")                                          \
+  V(_instanceOfNum, "_instanceOfNum")                                          \
+  V(_instanceOfInt, "_instanceOfInt")                                          \
+  V(_instanceOfDouble, "_instanceOfDouble")                                    \
+  V(_instanceOfString, "_instanceOfString")                                    \
   V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
   V(ClosurizePrefix, "get:#")                                                  \

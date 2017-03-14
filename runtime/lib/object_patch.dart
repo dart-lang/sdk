@@ -57,13 +57,19 @@
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
-  bool _instanceOf(instantiator_type_arguments, type)
+  bool _instanceOf(instantiator_type_arguments, type, bool negate)
       native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
   bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
   bool _simpleInstanceOfTrue(type) => true;
   bool _simpleInstanceOfFalse(type) => false;
+
+  bool _instanceOfDouble(bool negate) native "Object_instanceOfDouble";
+  bool _instanceOfNum(bool negate) native "Object_instanceOfNum";
+  bool _instanceOfInt(bool negate) native "Object_instanceOfInt";
+  bool _instanceOfSmi(bool negate) native "Object_instanceOfSmi";
+  bool _instanceOfString(bool negate) native "Object_instanceOfString";
 
   // Call this function instead of inlining 'as', thus collecting type
   // feedback. Returns receiver.

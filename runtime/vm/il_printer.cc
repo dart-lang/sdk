@@ -574,7 +574,8 @@ void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(" IS %s", String::Handle(type().Name()).ToCString());
+  f->Print(" %s %s", negate_result() ? "ISNOT" : "IS",
+           String::Handle(type().Name()).ToCString());
   f->Print(" type-arg(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");

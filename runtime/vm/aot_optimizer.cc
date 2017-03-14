@@ -1443,6 +1443,10 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
   return true;  // May deoptimize since we have not identified all 'true' tests.
 }
 
+// Tells whether the function of the call matches the core private name.
+static bool matches_core(InstanceCallInstr* call, const String& name) {
+  return call->function_name().raw() == Library::PrivateCoreLibName(name).raw();
+}
 
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
@@ -1450,13 +1454,39 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
+  bool negate = false;
   if (call->ArgumentCount() == 2) {
     type_args = flow_graph()->constant_null();
-    ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
-    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+    if (matches_core(call, Symbols::_simpleInstanceOf())) {
+      type =
+          AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+      negate = false;  // Just to be sure.
+    } else {
+      if (matches_core(call, Symbols::_instanceOfNum())) {
+        type = Type::Number();
+      } else if (matches_core(call, Symbols::_instanceOfInt())) {
+        type = Type::IntType();
+      } else if (matches_core(call, Symbols::_instanceOfSmi())) {
+        type = Type::SmiType();
+      } else if (matches_core(call, Symbols::_instanceOfDouble())) {
+        type = Type::Double();
+      } else if (matches_core(call, Symbols::_instanceOfString())) {
+        type = Type::StringType();
+      } else {
+        UNIMPLEMENTED();
+      }
+      negate =
+          Bool::Cast(
+              call->ArgumentAt(1)->OriginalDefinition()->AsConstant()->value())
+              .value();
+    }
   } else {
     type_args = call->ArgumentAt(1);
     type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
+    negate =
+        Bool::Cast(
+            call->ArgumentAt(3)->OriginalDefinition()->AsConstant()->value())
+            .value();
   }
 
   if (TypeCheckAsClassEquality(type)) {
@@ -1466,10 +1496,10 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
-    StrictCompareInstr* check_cid =
-        new (Z) StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
-                                   new (Z) Value(left_cid), new (Z) Value(cid),
-                                   false);  // No number check.
+    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
+        call->token_pos(), negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
+        new (Z) Value(left_cid), new (Z) Value(cid),
+        false);  // No number check.
     ReplaceCall(call, check_cid);
     return;
   }
@@ -1505,7 +1535,8 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
       const Library& dart_internal =
           Library::Handle(Z, Library::InternalLibrary());
-      const String& target_name = Symbols::_classRangeCheck();
+      const String& target_name = negate ? Symbols::_classRangeCheckNegative()
+                                         : Symbols::_classRangeCheck();
       const Function& target = Function::ZoneHandle(
           Z, dart_internal.LookupFunctionAllowPrivate(target_name));
       ASSERT(!target.IsNull());
@@ -1540,18 +1571,19 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         // Guard against repeated speculative inlining.
         return;
       }
-      TestCidsInstr* test_cids = new (Z) TestCidsInstr(
-          call->token_pos(), Token::kIS, new (Z) Value(left), *results,
-          can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
+      TestCidsInstr* test_cids = new (Z)
+          TestCidsInstr(call->token_pos(), negate ? Token::kISNOT : Token::kIS,
+                        new (Z) Value(left), *results,
+                        can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
       // Remove type.
       ReplaceCall(call, test_cids);
       return;
     }
   }
 
-  InstanceOfInstr* instance_of =
-      new (Z) InstanceOfInstr(call->token_pos(), new (Z) Value(left),
-                              new (Z) Value(type_args), type, call->deopt_id());
+  InstanceOfInstr* instance_of = new (Z)
+      InstanceOfInstr(call->token_pos(), new (Z) Value(left),
+                      new (Z) Value(type_args), type, negate, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
