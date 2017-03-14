@@ -406,7 +406,8 @@ class SsaBuilder extends ast.Visitor
     registry.addImpact(
         backend.codegenEnqueuerListener.registerUsedElement(element));
 
-    if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
+    if (backend.nativeData.isJsInterop(element) &&
+        !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
       return false;
     }
@@ -442,7 +443,7 @@ class SsaBuilder extends ast.Visitor
         }
       }
 
-      if (backend.isJsInterop(function)) return false;
+      if (backend.nativeData.isJsInterop(function)) return false;
 
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
@@ -684,7 +685,7 @@ class SsaBuilder extends ast.Visitor
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
     String name = functionElement.name;
-    if (backend.isJsInterop(functionElement)) {
+    if (backend.nativeData.isJsInterop(functionElement)) {
       push(invokeJsInteropFunction(functionElement, parameters.values.toList(),
           sourceInformationBuilder.buildGeneric(function)));
       var value = pop();
@@ -1171,7 +1172,7 @@ class SsaBuilder extends ast.Visitor
     ClassElement classElement = functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
         backend.nativeData.isNativeOrExtendsNative(classElement) &&
-            !backend.isJsInterop(classElement);
+            !backend.nativeData.isJsInterop(classElement);
     ast.FunctionExpression function;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       function = resolvedAst.node;
@@ -2503,7 +2504,7 @@ class SsaBuilder extends ast.Visitor
         arguments,
         element,
         compileArgument,
-        backend.isJsInterop(element)
+        backend.nativeData.isJsInterop(element)
             ? handleConstantForOptionalParameterJsInterop
             : handleConstantForOptionalParameter);
   }
@@ -3307,9 +3308,9 @@ class SsaBuilder extends ast.Visitor
         isFixedList = true;
         TypeMask inferred = _inferredTypeOfNewList(send);
         ClassElement cls = element.enclosingClass;
-        assert(backend.isNative(cls.thisType.element));
+        assert(backend.nativeData.isNativeClass(cls));
         return inferred.containsAll(closedWorld)
-            ? new TypeMask.nonNullExact(cls.thisType.element, closedWorld)
+            ? new TypeMask.nonNullExact(cls, closedWorld)
             : inferred;
       } else if (element.isGenerativeConstructor) {
         ClassElement cls = element.enclosingClass;
@@ -3317,7 +3318,7 @@ class SsaBuilder extends ast.Visitor
           // An error will be thrown.
           return new TypeMask.nonNullEmpty();
         } else {
-          return new TypeMask.nonNullExact(cls.thisType.element, closedWorld);
+          return new TypeMask.nonNullExact(cls, closedWorld);
         }
       } else {
         return TypeMaskFactory.inferredReturnTypeForElement(
@@ -3397,7 +3398,7 @@ class SsaBuilder extends ast.Visitor
     if (constructor.isGenerativeConstructor &&
         backend.nativeData
             .isNativeOrExtendsNative(constructor.enclosingClass) &&
-        !backend.isJsInterop(constructor)) {
+        !backend.nativeData.isJsInterop(constructor)) {
       // Native class generative constructors take a pre-constructed object.
       inputs.add(graph.addConstantNull(closedWorld));
     }
@@ -4004,7 +4005,7 @@ class SsaBuilder extends ast.Visitor
 
   HForeignCode invokeJsInteropFunction(MethodElement element,
       List<HInstruction> arguments, SourceInformation sourceInformation) {
-    assert(backend.isJsInterop(element));
+    assert(backend.nativeData.isJsInterop(element));
     nativeEmitter.nativeMethods.add(element);
 
     if (element.isFactoryConstructor &&
@@ -4073,7 +4074,8 @@ class SsaBuilder extends ast.Visitor
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
-    if (type.element != null && backend.isNative(type.element)) {
+    if (type is ResolutionInterfaceType &&
+        backend.nativeData.isNativeClass(type.element)) {
       nativeBehavior.typesInstantiated.add(type);
     }
 
@@ -4121,7 +4123,7 @@ class SsaBuilder extends ast.Visitor
     bool targetCanThrow = !closedWorld.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     var instruction;
-    if (backend.isJsInterop(element)) {
+    if (backend.nativeData.isJsInterop(element)) {
       instruction =
           invokeJsInteropFunction(element, arguments, sourceInformation);
     } else {

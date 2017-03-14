@@ -212,7 +212,7 @@ class GlobalTypeInferenceResults {
             element,
             _inferrer.inferrer.inTreeData[key],
             _inferrer,
-            _compiler.backend.isJsInterop(element),
+            _compiler.backend.nativeData.isJsInterop(element),
             dynamicType));
   }
 

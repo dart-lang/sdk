@@ -304,7 +304,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     if (type is ResolutionFunctionType) {
       registerImpact(impacts.functionTypeCheck);
     }
-    if (type.element != null && backend.isNative(type.element)) {
+    if (type is ResolutionInterfaceType &&
+        backend.nativeData.isNativeClass(type.element)) {
       registerImpact(impacts.nativeTypeCheck);
     }
   }
@@ -340,7 +341,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     if (!type.treatAsRaw || type.containsTypeVariables) {
       impacts.genericIsCheck.registerImpact(transformed, elementEnvironment);
     }
-    if (type.element != null && backend.isNative(type.element)) {
+    if (type is ResolutionInterfaceType &&
+        backend.nativeData.isNativeClass(type.element)) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.

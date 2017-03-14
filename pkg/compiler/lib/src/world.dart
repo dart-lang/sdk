@@ -711,7 +711,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   @override
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
     assert(isClosed);
-    if (_backend.isJsInterop(cls)) {
+    if (_backend.nativeData.isJsInterop(cls)) {
       return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
@@ -723,7 +723,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
     assert(isClosed);
-    if (_backend.isJsInterop(cls)) {
+    if (_backend.nativeData.isJsInterop(cls)) {
       return _backend.helpers.jsJavaScriptObjectClass;
     }
     ClassSet classSet = _classSets[cls.declaration];
@@ -1093,7 +1093,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
   bool fieldNeverChanges(MemberElement element) {
     if (!element.isField) return false;
-    if (_backend.isNative(element)) {
+    if (_backend.nativeData.isNativeMember(element)) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
       // TODO(sra): Refine the effect classification so that native effects are

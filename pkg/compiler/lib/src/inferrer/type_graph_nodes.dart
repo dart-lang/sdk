@@ -471,7 +471,7 @@ class MemberTypeInformation extends ElementTypeInformation
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.isNativeElement(element)) {
+    if (inferrer.isNativeMember(element)) {
       // Use the type annotation as the type for native elements. We
       // also give up on inferring to make sure this element never
       // goes in the work queue.
@@ -479,7 +479,7 @@ class MemberTypeInformation extends ElementTypeInformation
       if (element.isField) {
         return inferrer
             .typeOfNativeBehavior(
-                inferrer.backend.getNativeFieldLoadBehavior(element))
+                inferrer.backend.nativeData.getNativeFieldLoadBehavior(element))
             .type;
       } else {
         assert(element.isFunction ||
@@ -493,7 +493,7 @@ class MemberTypeInformation extends ElementTypeInformation
         } else {
           return inferrer
               .typeOfNativeBehavior(
-                  inferrer.backend.getNativeMethodBehavior(element))
+                  inferrer.backend.nativeData.getNativeMethodBehavior(element))
               .type;
         }
       }

@@ -11,7 +11,9 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../js_backend/interceptor_data.dart';
+import '../js_backend/native_data.dart';
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
@@ -43,6 +45,12 @@ class NativeEmitter {
   BackendHelpers get helpers => backend.helpers;
 
   CodegenWorldBuilder get worldBuilder => compiler.codegenWorldBuilder;
+
+  NativeData get nativeData => backend.nativeData;
+
+  InterceptorData get interceptorData => backend.interceptorData;
+
+  Namer get namer => backend.namer;
 
   /**
    * Prepares native classes for emission. Returns the unneeded classes.
@@ -141,10 +149,10 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
       }
-      if (backend.isJsInteropClass(classElement)) {
+      if (nativeData.isJsInteropClass(classElement)) {
         needed = true; // TODO(jacobr): we don't need all interop classes.
       } else if (cls.isNative &&
-          backend.nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
+          nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonLeafClasses.add(cls);
       }
@@ -164,9 +172,8 @@ class NativeEmitter {
     for (Class cls in classes) {
       if (!cls.isNative) continue;
       ClassEntity element = cls.element;
-      if (backend.isJsInteropClass(element)) continue;
-      List<String> nativeTags =
-          backend.nativeData.getNativeTagsOfClass(cls.element);
+      if (nativeData.isJsInteropClass(element)) continue;
+      List<String> nativeTags = nativeData.getNativeTagsOfClass(cls.element);
 
       if (nonLeafClasses.contains(cls) || extensionPoints.containsKey(cls)) {
         nonleafTags
@@ -313,7 +320,7 @@ class NativeEmitter {
     assert(invariant(member, nativeMethods.contains(member)));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = backend.nativeData.getFixedBackendName(member);
+    target = nativeData.getFixedBackendName(member);
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];
@@ -324,7 +331,7 @@ class NativeEmitter {
       assert(invariant(member, member.isStatic));
       arguments = argumentsBuffer.sublist(
           0, indexOfLastOptionalArgumentInParameters + 1);
-      if (backend.isJsInteropMethod(member)) {
+      if (nativeData.isJsInteropMethod(member)) {
         // fixedBackendPath is allowed to have the form foo.bar.baz for
         // interop. This template is uncached to avoid possibly running out of
         // memory when Dart2Js is run in server mode. In reality the risk of
@@ -332,8 +339,7 @@ class NativeEmitter {
         // and library that uses typed JavaScript interop will create only 1
         // unique template.
         receiver = js
-            .uncachedExpressionTemplate(
-                backend.namer.fixedBackendMethodPath(member))
+            .uncachedExpressionTemplate(namer.fixedBackendMethodPath(member))
             .instantiate([]);
       } else {
         receiver = js('this');
@@ -346,7 +352,7 @@ class NativeEmitter {
   }
 
   bool isSupertypeOfNativeClass(ClassEntity element) {
-    if (backend.interceptorData.isMixedIntoInterceptedClass(element)) {
+    if (interceptorData.isMixedIntoInterceptedClass(element)) {
       return true;
     }
 
@@ -361,7 +367,7 @@ class NativeEmitter {
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
     ClassEntity cls = element;
-    if (backend.nativeData.isNativeOrExtendsNative(cls)) return true;
+    if (nativeData.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
   }
 }

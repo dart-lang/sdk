@@ -113,9 +113,9 @@ abstract class Target {
   /// Returns the default superclass for the given [element] in this target.
   ClassElement defaultSuperclass(ClassElement element);
 
-  /// Returns `true` if [element] is a native element, that is, that the
+  /// Returns `true` if [element] is a native class, that is, that the
   /// corresponding entity already exists in the target language.
-  bool isNative(Entity element) => false;
+  bool isNativeClass(ClassEntity element) => false;
 
   /// Returns `true` if [element] is a foreign element, that is, that the
   /// backend has specialized handling for the element.

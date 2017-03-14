@@ -33,7 +33,7 @@ class PatchResolverTask extends CompilerTask {
       });
       checkMatchingPatchSignatures(element, patch);
       element = patch;
-    } else if (!compiler.backend.isJsInterop(element)) {
+    } else if (!compiler.backend.nativeData.isJsInterop(element)) {
       reporter.reportErrorMessage(
           element, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
     }

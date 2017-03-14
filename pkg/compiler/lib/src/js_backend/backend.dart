@@ -12,7 +12,7 @@ import '../common.dart';
 import '../common/backend_api.dart'
     show BackendClasses, ForeignResolver, NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
-import '../common/names.dart' show Identifiers, Uris;
+import '../common/names.dart' show Uris;
 import '../common/resolution.dart'
     show Frontend, Resolution, ResolutionImpact, Target;
 import '../common/tasks.dart' show CompilerTask;
@@ -47,7 +47,6 @@ import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/task.dart';
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
-import '../options.dart' show CompilerOptions;
 import '../patch_parser.dart'
     show checkNativeAnnotation, checkJsInteropAnnotation;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
@@ -84,7 +83,7 @@ import 'lookup_map_analysis.dart'
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
-import 'native_data.dart' show NativeData;
+import 'native_data.dart';
 import 'no_such_method_registry.dart';
 import 'patch_resolver.dart';
 import 'resolution_listener.dart';
@@ -310,7 +309,7 @@ enum SyntheticConstantKind {
   NAME
 }
 
-class JavaScriptBackend extends Target {
+class JavaScriptBackend {
   final Compiler compiler;
 
   String get patchVersion => emitter.patchVersion;
@@ -431,7 +430,9 @@ class JavaScriptBackend extends Target {
   /// Interface for serialization of backend specific data.
   JavaScriptBackendSerialization serialization;
 
-  final NativeData nativeData = new NativeData();
+  final NativeDataImpl _nativeData = new NativeDataImpl();
+  NativeData get nativeData => _nativeData;
+  NativeDataBuilder get nativeDataBuilder => _nativeData;
   InterceptorDataBuilder _interceptorDataBuilder;
   InterceptorData _interceptorData;
   OneShotInterceptorData _oneShotInterceptorData;
@@ -451,6 +452,8 @@ class JavaScriptBackend extends Target {
 
   /// Backend access to the front-end.
   final JSFrontendAccess frontend;
+
+  Target _target;
 
   Tracer tracer;
 
@@ -493,6 +496,7 @@ class JavaScriptBackend extends Target {
         frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         this.compiler = compiler {
+    _target = new JavaScriptBackendTarget(this);
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
     backendClasses = new JavaScriptBackendClasses(
@@ -577,6 +581,8 @@ class JavaScriptBackend extends Target {
 
   Resolution get resolution => compiler.resolution;
 
+  Target get target => _target;
+
   InterceptorData get interceptorData {
     assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData != null,
         message: "InterceptorData has not been computed yet."));
@@ -646,7 +652,6 @@ class JavaScriptBackend extends Target {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  @override
   bool isDefaultNoSuchMethod(MethodElement element) {
     return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
   }
@@ -655,7 +660,7 @@ class JavaScriptBackend extends Target {
     if (isForeign(element)) {
       return element;
     }
-    if (isJsInterop(element)) {
+    if (nativeData.isJsInterop(element)) {
       if (element.memberName == const PublicName('[]') ||
           element.memberName == const PublicName('[]=')) {
         reporter.reportErrorMessage(
@@ -729,62 +734,31 @@ class JavaScriptBackend extends Target {
     return aliasedSuperMembers.contains(member);
   }
 
-  /// Returns `true` if [element] is implemented via typed JavaScript interop.
-  @override
-  bool isJsInterop(Element element) => nativeData.isJsInterop(element);
-
-  /// Returns `true` if [element] is a JsInterop class.
-  bool isJsInteropClass(ClassElement element) => isJsInterop(element);
-
-  /// Returns `true` if [element] is a JsInterop method.
-  bool isJsInteropMethod(MethodElement element) => isJsInterop(element);
-
-  /// Whether [element] corresponds to a native JavaScript construct either
-  /// through the native mechanism (`@Native(...)` or the `native` pseudo
-  /// keyword) which is only allowed for internal libraries or via the typed
-  /// JavaScriptInterop mechanism which is allowed for user libraries.
-  @override
-  bool isNative(Entity element) => nativeData.isNative(element);
-
-  /// Returns the [NativeBehavior] for calling the native [method].
-  native.NativeBehavior getNativeMethodBehavior(MethodElement method) {
-    return nativeData.getNativeMethodBehavior(method);
-  }
-
-  /// Returns the [NativeBehavior] for reading from the native [field].
-  native.NativeBehavior getNativeFieldLoadBehavior(FieldElement field) {
-    return nativeData.getNativeFieldLoadBehavior(field);
-  }
-
-  /// Returns the [NativeBehavior] for writing to the native [field].
-  native.NativeBehavior getNativeFieldStoreBehavior(FieldElement field) {
-    return nativeData.getNativeFieldStoreBehavior(field);
-  }
-
-  @override
-  void resolveNativeElement(Element element, NativeRegistry registry) {
+  void resolveNativeElement(MemberElement element, NativeRegistry registry) {
     if (element.isFunction ||
         element.isConstructor ||
         element.isGetter ||
         element.isSetter) {
       compiler.enqueuer.resolution.nativeEnqueuer
           .handleMethodAnnotations(element);
-      if (isNative(element)) {
+      if (nativeData.isNativeMember(element)) {
         native.NativeBehavior behavior =
             native.NativeBehavior.ofMethodElement(element, compiler);
-        nativeData.setNativeMethodBehavior(element, behavior);
+        nativeDataBuilder.setNativeMethodBehavior(element, behavior);
         registry.registerNativeData(behavior);
       }
     } else if (element.isField) {
       compiler.enqueuer.resolution.nativeEnqueuer
           .handleFieldAnnotations(element);
-      if (isNative(element)) {
+      if (nativeData.isNativeMember(element)) {
         native.NativeBehavior fieldLoadBehavior =
             native.NativeBehavior.ofFieldElementLoad(element, compiler);
         native.NativeBehavior fieldStoreBehavior =
             native.NativeBehavior.ofFieldElementStore(element, compiler);
-        nativeData.setNativeFieldLoadBehavior(element, fieldLoadBehavior);
-        nativeData.setNativeFieldStoreBehavior(element, fieldStoreBehavior);
+        nativeDataBuilder.setNativeFieldLoadBehavior(
+            element, fieldLoadBehavior);
+        nativeDataBuilder.setNativeFieldStoreBehavior(
+            element, fieldStoreBehavior);
 
         // TODO(sra): Process fields for storing separately.
         // We have to handle both loading and storing to the field because we
@@ -1076,11 +1050,11 @@ class JavaScriptBackend extends Target {
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
-    if (isJsInterop(element)) {
+    if (nativeData.isJsInterop(element)) {
       return helpers.jsJavaScriptObjectClass;
     }
     // Native classes inherit from Interceptor.
-    return isNative(element)
+    return nativeData.isNativeClass(element)
         ? helpers.jsInterceptorClass
         : commonElements.objectClass;
   }
@@ -1179,7 +1153,7 @@ class JavaScriptBackend extends Target {
       checkJsInteropAnnotation(compiler, library);
       library.forEachLocalMember((Element element) {
         checkJsInteropAnnotation(compiler, element);
-        if (element.isClass && isJsInterop(element)) {
+        if (element.isClass && nativeData.isJsInterop(element)) {
           ClassElement classElement = element;
           classElement.forEachMember((_, memberElement) {
             checkJsInteropAnnotation(compiler, memberElement);
@@ -1301,7 +1275,6 @@ class JavaScriptBackend extends Target {
     return native.maybeEnableNative(compiler, library);
   }
 
-  @override
   bool isTargetSpecificLibrary(LibraryElement library) {
     Uri canonicalUri = library.canonicalUri;
     if (canonicalUri == BackendHelpers.DART_JS_HELPER ||
@@ -1610,13 +1583,13 @@ class JavaScriptBackendClasses implements BackendClasses {
   }
 
   @override
-  bool isNativeClass(ClassElement element) {
-    return _nativeData.isNative(element);
+  bool isNativeClass(ClassEntity element) {
+    return _nativeData.isNativeClass(element);
   }
 
   @override
-  bool isNativeMember(MemberElement element) {
-    return _nativeData.isNative(element);
+  bool isNativeMember(MemberEntity element) {
+    return _nativeData.isNativeMember(element);
   }
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
@@ -1641,4 +1614,48 @@ class JavaScriptBackendClasses implements BackendClasses {
   InterfaceType get symbolType {
     return _env.getRawType(helpers.symbolImplementationClass);
   }
+}
+
+class JavaScriptBackendTarget extends Target {
+  final JavaScriptBackend _backend;
+
+  JavaScriptBackendTarget(this._backend);
+
+  @override
+  bool isTargetSpecificLibrary(LibraryElement element) {
+    return _backend.isTargetSpecificLibrary(element);
+  }
+
+  @override
+  void resolveNativeElement(MemberElement element, NativeRegistry registry) {
+    return _backend.resolveNativeElement(element, registry);
+  }
+
+  @override
+  MethodElement resolveExternalFunction(MethodElement element) {
+    return _backend.resolveExternalFunction(element);
+  }
+
+  @override
+  dynamic resolveForeignCall(Send node, Element element,
+      CallStructure callStructure, ForeignResolver resolver) {
+    return _backend.resolveForeignCall(node, element, callStructure, resolver);
+  }
+
+  @override
+  bool isDefaultNoSuchMethod(MethodElement element) {
+    return _backend.isDefaultNoSuchMethod(element);
+  }
+
+  @override
+  ClassElement defaultSuperclass(ClassElement element) {
+    return _backend.defaultSuperclass(element);
+  }
+
+  @override
+  bool isNativeClass(ClassEntity element) =>
+      _backend.nativeData.isNativeClass(element);
+
+  @override
+  bool isForeign(Element element) => _backend.isForeign(element);
 }

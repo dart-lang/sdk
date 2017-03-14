@@ -1665,7 +1665,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
         registry.registerInstantiatedClass(commonElements.listClass);
-      } else if (backend.isNative(target) &&
+      } else if (backend.nativeData.isNativeMember(target) &&
           target.isFunction &&
           !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of

@@ -560,7 +560,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
     Instantiation kind = Instantiation.UNINSTANTIATED;
-    bool isNative = _backend.isNative(cls);
+    bool isNative = _backend.nativeData.isNativeClass(cls);
     if (!cls.isAbstract ||
         // We can't use the closed-world assumption with native abstract
         // classes; a native abstract class may have non-abstract subclasses
@@ -871,7 +871,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
     _instanceMemberUsage.putIfAbsent(member, () {
-      bool isNative = _backend.isNative(cls);
+      bool isNative = _backend.nativeData.isNativeClass(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
@@ -1260,7 +1260,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       ResolutionInterfaceType type, ClassUsedCallback classUsed,
       {bool byMirrors: false}) {
     ClassElement cls = type.element;
-    bool isNative = _backend.isNative(cls);
+    bool isNative = _backend.nativeData.isNativeClass(cls);
     _instantiatedTypes.add(type);
     if (!cls.isAbstract
         // We can't use the closed-world assumption with native abstract
@@ -1502,7 +1502,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     return _instanceMemberUsage.putIfAbsent(member, () {
       String memberName = member.name;
       ClassElement cls = member.enclosingClass;
-      bool isNative = _backend.isNative(cls);
+      bool isNative = _backend.nativeData.isNativeClass(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);

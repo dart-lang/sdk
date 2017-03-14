@@ -592,7 +592,7 @@ class Emitter implements js_emitter.Emitter {
       if (element == null) continue;
       ClassBuilder builder = new ClassBuilder.forStatics(element, namer);
       containerBuilder.addMemberMethod(method, builder);
-      getElementDescriptor(element, fragment)
+      getStaticMethodDescriptor(element, fragment)
           .properties
           .addAll(builder.properties);
     }
@@ -1151,7 +1151,7 @@ class Emitter implements js_emitter.Emitter {
       jsAst.Node declaration = builder.toObjectInitializer();
       jsAst.Name mangledName = namer.globalPropertyName(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
-      getElementDescriptor(library, mainFragment)
+      getLibraryDescriptor(library, mainFragment)
         ..addProperty(mangledName, declaration)
         ..addPropertyByName("+$reflectionName", js.string(''));
       // Also emit a trivial constructor for CSP mode.
@@ -1302,7 +1302,7 @@ class Emitter implements js_emitter.Emitter {
     assembleStaticFunctions(library.statics, fragment);
 
     ClassBuilder libraryBuilder =
-        getElementDescriptor(libraryElement, fragment);
+        getLibraryDescriptor(libraryElement, fragment);
     for (Class cls in library.classes) {
       assembleClass(cls, libraryBuilder, fragment);
     }
@@ -1646,23 +1646,31 @@ class Emitter implements js_emitter.Emitter {
     return outputBuffers.values.fold(0, (a, b) => a + b.length);
   }
 
-  ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
+  ClassBuilder getStaticMethodDescriptor(
+      MethodElement element, Fragment fragment) {
     Element owner = element.library;
-    if (!element.isLibrary &&
-        !element.isTopLevel &&
-        !backend.isNative(element)) {
+    if (!backend.nativeData.isNativeMember(element)) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
-      ClassElement cls = element.enclosingClassOrCompilationUnit.declaration;
+      ClassElement cls = element.enclosingClass;
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
               .contains(cls) &&
-          !backend.isNative(cls) &&
+          !backend.nativeData.isNativeClass(cls) &&
           compiler.deferredLoadTask.outputUnitForElement(element) ==
               compiler.deferredLoadTask.outputUnitForElement(cls)) {
         owner = cls;
       }
     }
+    return _getElementDescriptor(element, owner, fragment);
+  }
+
+  ClassBuilder getLibraryDescriptor(LibraryElement element, Fragment fragment) {
+    return _getElementDescriptor(element, element, fragment);
+  }
+
+  ClassBuilder _getElementDescriptor(
+      Element element, Element owner, Fragment fragment) {
     if (owner == null) {
       reporter.internalError(element, 'Owner is null.');
     }

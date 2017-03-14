@@ -3,15 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
-import '../universe/selector.dart';
-import '../universe/use.dart';
-import '../universe/world_impact.dart'
-    show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import '../util/util.dart' show Setlet;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';

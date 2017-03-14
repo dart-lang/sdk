@@ -43,7 +43,7 @@ import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
-import 'js_backend/js_backend.dart' as js_backend show JavaScriptBackend;
+import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'library_loader.dart'
     show
         ElementScanner,
@@ -151,7 +151,7 @@ abstract class Compiler implements LibraryLoaderListener {
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
-  js_backend.JavaScriptBackend backend;
+  JavaScriptBackend backend;
 
   GenericTask selfTask;
 
@@ -250,8 +250,8 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Creates the backend.
   ///
   /// Override this to mock the backend for testing.
-  js_backend.JavaScriptBackend createBackend() {
-    return new js_backend.JavaScriptBackend(this,
+  JavaScriptBackend createBackend() {
+    return new JavaScriptBackend(this,
         generateSourceMap: options.generateSourceMap,
         useStartupEmitter: options.useStartupEmitter,
         useMultiSourceInfo: options.useMultiSourceInfo,
@@ -1639,7 +1639,7 @@ class CompilerResolution implements Resolution {
   Types get types => _compiler.types;
 
   @override
-  Target get target => _compiler.backend;
+  Target get target => _compiler.backend.target;
 
   @override
   ResolverTask get resolver => _compiler.resolver;

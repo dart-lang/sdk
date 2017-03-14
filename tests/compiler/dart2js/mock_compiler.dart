@@ -221,7 +221,7 @@ class MockCompiler extends Compiler {
         this.resolution,
         element,
         new ResolutionRegistry(
-            this.backend, new CollectingTreeElements(element)),
+            this.backend.target, new CollectingTreeElements(element)),
         scope:
             new MockTypeVariablesScope(element.enclosingElement.buildScope()));
     if (visitor.scope is LibraryScope ||
@@ -239,7 +239,7 @@ class MockCompiler extends Compiler {
         this.resolution,
         mockElement,
         new ResolutionRegistry(
-            this.backend, new CollectingTreeElements(mockElement)),
+            this.backend.target, new CollectingTreeElements(mockElement)),
         scope: mockElement.enclosingElement.buildScope());
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;

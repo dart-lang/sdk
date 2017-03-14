@@ -196,7 +196,7 @@ class CustomElementsAnalysisJoin {
     if (!demanded) return const WorldImpact();
     var newActiveClasses = new Set<ClassElement>();
     for (ClassElement classElement in instantiatedClasses) {
-      bool isNative = _nativeData.isNative(classElement);
+      bool isNative = _nativeData.isNativeClass(classElement);
       bool isExtension =
           !isNative && _nativeData.isNativeOrExtendsNative(classElement);
       // Generate table entries for native classes that are explicitly named and
@@ -240,7 +240,7 @@ class CustomElementsAnalysisJoin {
     // Only classes that extend native classes have constructors in the table.
     // We could refine this to classes that extend Element, but that would break
     // the tests and there is no sane reason to subclass other native classes.
-    if (_nativeData.isNative(classElement)) return result;
+    if (_nativeData.isNativeClass(classElement)) return result;
 
     void selectGenerativeConstructors(ClassElement enclosing, Element member) {
       if (member.isGenerativeConstructor) {

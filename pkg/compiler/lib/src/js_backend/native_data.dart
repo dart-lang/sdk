@@ -6,13 +6,110 @@ library js_backend.native_data;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show ClassElement, Element, FieldElement, FunctionElement, MemberElement;
+    show
+        ClassElement,
+        Element,
+        FieldElement,
+        FunctionElement,
+        MemberElement,
+        MethodElement;
 import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
 
 /// Additional element information for native classes and methods and js-interop
 /// methods.
-class NativeData {
+abstract class NativeData {
+  /// Returns `true` if [cls] corresponds to a native JavaScript class.
+  ///
+  /// A class is marked as native either through the `@Native(...)` annotation
+  /// allowed for internal libraries or via the typed JavaScriptInterop
+  /// mechanism allowed for user libraries.
+  bool isNativeClass(ClassEntity element);
+
+  /// Returns `true` if [element] corresponds to a native JavaScript member.
+  ///
+  /// A member is marked as native either through the native mechanism
+  /// (`@Native(...)` or the `native` pseudo keyword) allowed for internal
+  /// libraries or via the typed JavaScriptInterop mechanism allowed for user
+  /// libraries.
+  bool isNativeMember(MemberEntity element);
+
+  /// Returns `true` if [element] or any of its superclasses is native.
+  bool isNativeOrExtendsNative(ClassElement element);
+
+  /// Returns `true` if the name of [element] is fixed for the generated
+  /// JavaScript.
+  bool hasFixedBackendName(Element element);
+
+  /// Computes the name for [element] to use in the generated JavaScript. This
+  /// is either given through a native annotation or a js interop annotation.
+  String getFixedBackendName(Entity entity);
+
+  /// Returns the list of non-directive native tag words for [cls].
+  List<String> getNativeTagsOfClass(ClassElement cls);
+
+  /// Returns `true` if [cls] has a `!nonleaf` tag word.
+  bool hasNativeTagsForcedNonLeaf(ClassElement cls);
+
+  /// Returns the [NativeBehavior] for calling the native [method].
+  NativeBehavior getNativeMethodBehavior(MethodElement method);
+
+  /// Returns the [NativeBehavior] for reading from the native [field].
+  NativeBehavior getNativeFieldLoadBehavior(FieldElement field);
+
+  /// Returns the [NativeBehavior] for writing to the native [field].
+  NativeBehavior getNativeFieldStoreBehavior(FieldElement field);
+
+  /// Returns `true` if [element] is part of JsInterop.
+  bool isJsInterop(Element element);
+
+  /// Returns `true` if [element] is a JsInterop class.
+  bool isJsInteropClass(ClassElement element);
+
+  /// Returns `true` if [element] is a JsInterop method.
+  bool isJsInteropMethod(MethodElement element);
+
+  /// Returns the explicit js interop name for [element].
+  String getJsInteropName(Element element);
+
+  /// Apply JS$ escaping scheme to convert possible escaped Dart names into
+  /// JS names.
+  String getUnescapedJSInteropName(String name);
+}
+
+abstract class NativeDataBuilder {
+  /// Sets the native tag info for [cls].
+  ///
+  /// The tag info string contains comma-separated 'words' which are either
+  /// dispatch tags (having JavaScript identifier syntax) and directives that
+  /// begin with `!`.
+  void setNativeClassTagInfo(ClassElement cls, String tagInfo);
+
+  /// Returns the list of native tag words for [cls].
+  List<String> getNativeTagsOfClassRaw(ClassElement cls);
+
+  /// Sets the native [name] for the member [element]. This name is used for
+  /// [element] in the generated JavaScript.
+  void setNativeMemberName(MemberElement element, String name);
+
+  /// Registers the [behavior] for calling the native [method].
+  void setNativeMethodBehavior(MethodElement method, NativeBehavior behavior);
+
+  /// Registers the [behavior] for reading from the native [field].
+  void setNativeFieldLoadBehavior(FieldElement field, NativeBehavior behavior);
+
+  /// Registers the [behavior] for writing to the native [field].
+  void setNativeFieldStoreBehavior(FieldElement field, NativeBehavior behavior);
+
+  /// Marks [element] as an explicit part of JsInterop. The js interop name is
+  /// expected to be computed later.
+  void markAsJsInterop(Element element);
+
+  /// Sets the explicit js interop [name] for [element].
+  void setJsInteropName(Element element, String name);
+}
+
+class NativeDataImpl implements NativeData, NativeDataBuilder {
   /// The JavaScript names for elements implemented via typed JavaScript
   /// interop.
   Map<Element, String> jsInteropNames = <Element, String>{};
@@ -25,8 +122,8 @@ class NativeData {
   Map<ClassElement, String> nativeClassTagInfo = <ClassElement, String>{};
 
   /// Cache for [NativeBehavior]s for calling native methods.
-  Map<FunctionElement, NativeBehavior> nativeMethodBehavior =
-      <FunctionElement, NativeBehavior>{};
+  Map<MethodElement, NativeBehavior> nativeMethodBehavior =
+      <MethodElement, NativeBehavior>{};
 
   /// Cache for [NativeBehavior]s for reading from native fields.
   Map<MemberElement, NativeBehavior> nativeFieldLoadBehavior =
@@ -82,6 +179,12 @@ class NativeData {
     }
   }
 
+  /// Returns `true` if [element] is a JsInterop class.
+  bool isJsInteropClass(ClassElement element) => isJsInterop(element);
+
+  /// Returns `true` if [element] is a JsInterop method.
+  bool isJsInteropMethod(MethodElement element) => isJsInterop(element);
+
   /// Returns `true` if the name of [element] is fixed for the generated
   /// JavaScript.
   bool hasFixedBackendName(Element element) {
@@ -131,10 +234,16 @@ class NativeData {
     }
   }
 
+  /// Returns `true` if [cls] is a native class.
+  bool isNativeClass(ClassElement element) => isNative(element);
+
+  /// Returns `true` if [element] is a native member of a native class.
+  bool isNativeMember(MemberElement element) => isNative(element);
+
   /// Returns `true` if [element] or any of its superclasses is native.
   bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
-    if (isNative(element) || isJsInterop(element)) {
+    if (isNativeClass(element) || isJsInteropClass(element)) {
       return true;
     }
     assert(element.isResolved);
@@ -196,7 +305,7 @@ class NativeData {
   }
 
   /// Returns the [NativeBehavior] for calling the native [method].
-  NativeBehavior getNativeMethodBehavior(FunctionElement method) {
+  NativeBehavior getNativeMethodBehavior(MethodElement method) {
     assert(invariant(method, nativeMethodBehavior.containsKey(method),
         message: "No native method behavior has been computed for $method."));
     return nativeMethodBehavior[method];
@@ -219,8 +328,7 @@ class NativeData {
   }
 
   /// Registers the [behavior] for calling the native [method].
-  void setNativeMethodBehavior(
-      FunctionElement method, NativeBehavior behavior) {
+  void setNativeMethodBehavior(MethodElement method, NativeBehavior behavior) {
     nativeMethodBehavior[method] = behavior;
   }
 

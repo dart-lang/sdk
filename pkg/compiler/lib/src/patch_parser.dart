@@ -409,7 +409,7 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
       String native = getNativeAnnotation(annotation);
       if (native != null) {
         JavaScriptBackend backend = compiler.backend;
-        backend.nativeData.setNativeClassTagInfo(element, native);
+        backend.nativeDataBuilder.setNativeClassTagInfo(element, native);
         return native;
       }
     }
@@ -442,7 +442,7 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
     bool hasJsInterop = hasJsNameAnnotation(annotation);
     if (hasJsInterop) {
       JavaScriptBackend backend = compiler.backend;
-      backend.nativeData.markAsJsInterop(element);
+      backend.nativeDataBuilder.markAsJsInterop(element);
     }
     // Due to semantics of apply in the baseclass we have to return null to
     // indicate that no match was found.

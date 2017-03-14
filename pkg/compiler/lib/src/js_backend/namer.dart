@@ -803,7 +803,7 @@ class Namer {
   }
 
   String _fixedBackendPath(Element element) {
-    if (!backend.isJsInterop(element)) return null;
+    if (!backend.nativeData.isJsInterop(element)) return null;
     if (element.isInstanceMember) return 'this';
     if (element.isConstructor) return _fixedBackendPath(element.enclosingClass);
     if (element.isLibrary) return 'self';
@@ -978,7 +978,7 @@ class Namer {
 
   /// True if [class_] is a non-native class that inherits from a native class.
   bool _isUserClassExtendingNative(ClassElement class_) {
-    return !backend.isNative(class_) &&
+    return !backend.nativeData.isNativeClass(class_) &&
         backend.nativeData.isNativeOrExtendsNative(class_.superclass);
   }
 

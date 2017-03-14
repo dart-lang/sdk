@@ -47,7 +47,7 @@ const Key NATIVE_FIELD_LOAD_BEHAVIOR = const Key('nativeFieldLoadBehavior');
 const Key NATIVE_FIELD_STORE_BEHAVIOR = const Key('nativeFieldStoreBehavior');
 
 class JavaScriptBackendSerializer implements SerializerPlugin {
-  final NativeData nativeData;
+  final NativeDataImpl nativeData;
 
   JavaScriptBackendSerializer(this.nativeData);
 
@@ -99,7 +99,7 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
 }
 
 class JavaScriptBackendDeserializer implements DeserializerPlugin {
-  final NativeData nativeData;
+  final NativeDataImpl nativeData;
 
   JavaScriptBackendDeserializer(this.nativeData);
 

@@ -6,7 +6,6 @@ library dart2js.js_backend.helpers;
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Uris;
-import '../compiler.dart' show Compiler;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart' show PublicName;
 import '../elements/entities.dart';
