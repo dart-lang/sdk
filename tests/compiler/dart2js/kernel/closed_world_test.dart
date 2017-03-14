@@ -76,7 +76,7 @@ main(List<String> args) {
           Flags.useKernel,
           Flags.enableAssertMessage
         ]);
-    ResolutionWorldBuilderImpl worldBuilder =
+    ElementResolutionWorldBuilder worldBuilder =
         compiler.enqueuer.resolution.worldBuilder;
     worldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
@@ -93,7 +93,7 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         backend.resolutionEnqueuerListener,
         backend.nativeResolutionEnqueuer(),
-        new ResolutionWorldBuilderImpl(
+        new ElementResolutionWorldBuilder(
             compiler.backend, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution),
         'enqueuer from kernel');

@@ -124,8 +124,8 @@ void checkResolutionEnqueuers(
       "Processed element mismatch", areElementsEquivalent,
       elementFilter: elementFilter, verbose: verbose);
 
-  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.worldBuilder;
-  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.worldBuilder;
+  ElementResolutionWorldBuilder worldBuilder1 = enqueuer1.worldBuilder;
+  ElementResolutionWorldBuilder worldBuilder2 = enqueuer2.worldBuilder;
 
   checkMaps(
       worldBuilder1.getInstantiationMap(),

@@ -214,6 +214,43 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   ClosedWorld get closedWorldForTesting;
 }
 
+/// Extended [ResolutionWorldBuilder] interface used by the
+/// [ResolutionEnqueuer].
+abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
+  /// Returns the classes registered as directly or indirectly instantiated.
+  Iterable<ClassEntity> get processedClasses;
+
+  /// Registers that the generic [element] has been closurized.
+  void registerClosureWithFreeTypeVariables(MemberEntity element);
+
+  /// Registers that [element] has been closurized.
+  void registerClosurizedMember(MemberEntity element);
+
+  /// Register [type] as (directly) instantiated.
+  ///
+  /// If [byMirrors] is `true`, the instantiation is through mirrors.
+  // TODO(johnniwinther): Fully enforce the separation between exact, through
+  // subclass and through subtype instantiated types/classes.
+  // TODO(johnniwinther): Support unknown type arguments for generic types.
+  void registerTypeInstantiation(
+      InterfaceType type, ClassUsedCallback classUsed,
+      {ConstructorEntity constructor,
+      bool byMirrors: false,
+      bool isRedirection: false});
+
+  /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
+  /// the usage changes for each member.
+  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed);
+
+  /// Applies the [dynamicUse] to applicable instance members. Calls
+  /// [membersUsed] with the usage changes for each member.
+  void registerDynamicUse(DynamicUse dynamicUse, MemberUsedCallback memberUsed);
+
+  /// Applies the [staticUse] to applicable members. Calls [membersUsed] with
+  /// the usage changes for each member.
+  void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed);
+}
+
 /// The type and kind of an instantiation registered through
 /// `ResolutionWorldBuilder.registerTypeInstantiation`.
 class Instance {
@@ -374,7 +411,8 @@ class InstantiationInfo {
   }
 }
 
-class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
+/// [ResolutionEnqueuerWorldBuilder] based on the [Element] model.
+class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   /// Instantiation information for all classes with instantiated types.
   ///
   /// Invariant: Elements are declaration elements.
@@ -484,7 +522,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   bool get isClosed => _closed;
 
-  ResolutionWorldBuilderImpl(
+  ElementResolutionWorldBuilder(
       this._backend, this._resolution, this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
@@ -542,6 +580,14 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // TODO(johnniwinther): Improve semantic precision.
   bool isImplemented(ClassElement cls) {
     return _implementedClasses.contains(cls.declaration);
+  }
+
+  void registerClosureWithFreeTypeVariables(MemberElement element) {
+    closuresWithFreeTypeVariables.add(element);
+  }
+
+  void registerClosurizedMember(MemberElement element) {
+    closurizedMembers.add(element);
   }
 
   /// Register [type] as (directly) instantiated.

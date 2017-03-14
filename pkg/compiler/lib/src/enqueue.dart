@@ -51,7 +51,7 @@ class EnqueueTask extends CompilerTask {
             : const TreeShakingEnqueuerStrategy(),
         compiler.backend.resolutionEnqueuerListener,
         compiler.backend.nativeResolutionEnqueuer(),
-        new ResolutionWorldBuilderImpl(
+        new ElementResolutionWorldBuilder(
             compiler.backend, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution));
     _codegen = compiler.backend.createCodegenEnqueuer(this, compiler);
@@ -188,7 +188,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   final EnqueuerStrategy strategy;
   final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
-  final ResolutionWorldBuilderImpl _universe;
+  final ResolutionEnqueuerWorldBuilder _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
   final DiagnosticReporter _reporter;
 
@@ -205,13 +205,20 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// has been emptied.
   final Queue<_DeferredAction> _deferredQueue = new Queue<_DeferredAction>();
 
-  ResolutionEnqueuer(this.task, this._options, this._reporter, this.strategy,
-      this.listener, this.nativeEnqueuer, this._universe, this._workItemBuilder,
+  ResolutionEnqueuer(
+      this.task,
+      this._options,
+      this._reporter,
+      this.strategy,
+      this.listener,
+      this.nativeEnqueuer,
+      this._worldBuilder,
+      this._workItemBuilder,
       [this.name = 'resolution enqueuer']) {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
-  ResolutionWorldBuilder get worldBuilder => _universe;
+  ResolutionWorldBuilder get worldBuilder => _worldBuilder;
 
   bool get queueIsEmpty => _queue.isEmpty;
 
@@ -223,7 +230,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
-  Iterable<ClassEntity> get processedClasses => _universe.processedClasses;
+  Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
 
   void applyImpact(WorldImpact worldImpact, {var impactSource}) {
     if (worldImpact.isEmpty) return;
@@ -238,7 +245,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       bool globalDependency: false,
       bool isRedirection: false}) {
     task.measure(() {
-      _universe.registerTypeInstantiation(type, _applyClassUse,
+      _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
           constructor: constructor,
           byMirrors: mirrorUsage,
           isRedirection: isRedirection);
@@ -255,7 +262,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void checkClass(ClassEntity cls) {
-    _universe.processClassMembers(cls,
+    _worldBuilder.processClassMembers(cls,
         (MemberEntity member, EnumSet<MemberUse> useSet) {
       if (useSet.isNotEmpty) {
         _reporter.internalError(member,
@@ -281,7 +288,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void _applyClassUse(ClassEntity cls, EnumSet<ClassUse> useSet) {
     if (useSet.contains(ClassUse.INSTANTIATED)) {
       _recentClasses.add(cls);
-      _universe.processClassMembers(cls, _applyMemberUse);
+      _worldBuilder.processClassMembers(cls, _applyMemberUse);
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
@@ -294,12 +301,12 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      _universe.registerDynamicUse(dynamicUse, _applyMemberUse);
+      _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
   void processStaticUse(StaticUse staticUse) {
-    _universe.registerStaticUse(staticUse, _applyMemberUse);
+    _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
     // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
     // for these:
     switch (staticUse.kind) {
@@ -352,7 +359,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   void _registerIsCheck(ResolutionDartType type) {
-    type = _universe.registerIsCheck(type);
+    type = _worldBuilder.registerIsCheck(type);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
@@ -363,10 +370,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     assert(element.isInstanceMember);
     if (element.type.containsTypeVariables) {
       applyImpact(listener.registerClosureWithFreeTypeVariables(element));
-      _universe.closuresWithFreeTypeVariables.add(element);
+      _worldBuilder.registerClosureWithFreeTypeVariables(element);
     }
     applyImpact(listener.registerBoundClosure());
-    _universe.closurizedMembers.add(element);
+    _worldBuilder.registerClosurizedMember(element);
   }
 
   void forEach(void f(WorkItem work)) {
@@ -429,7 +436,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
 
     applyImpact(listener.registerUsedElement(entity));
-    _universe.registerUsedElement(entity);
+    _worldBuilder.registerUsedElement(entity);
     _queue.add(workItem);
   }
 
