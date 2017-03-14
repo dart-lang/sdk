@@ -243,6 +243,12 @@ class AstBuilder extends ScopeListener {
     push(ast.emptyFunctionBody(toAnalyzerToken(semicolon)));
   }
 
+  @override
+  void handleEmptyStatement(Token token) {
+    debugEvent("EmptyStatement");
+    push(ast.emptyStatement(toAnalyzerToken(token)));
+  }
+
   void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
     debugEvent("BlockFunctionBody");
     List statements = popList(count);

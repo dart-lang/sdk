@@ -1100,12 +1100,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseBlock_nonEmpty() {
-    super.test_parseBlock_nonEmpty();
-  }
-
-  @override
-  @failingTest
   void test_parseBreakStatement_label() {
     super.test_parseBreakStatement_label();
   }
@@ -1120,12 +1114,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseDoStatement() {
     super.test_parseDoStatement();
-  }
-
-  @override
-  @failingTest
-  void test_parseEmptyStatement() {
-    super.test_parseEmptyStatement();
   }
 
   @override
