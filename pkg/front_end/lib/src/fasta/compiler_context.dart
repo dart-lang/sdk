@@ -10,6 +10,8 @@ import 'package:kernel/ast.dart' show Source;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
+import 'colors.dart' show computeEnableColors;
+
 final Object compilerContextKey = new Object();
 
 final CompilerContext rootContext =
@@ -19,6 +21,8 @@ class CompilerContext {
   final CompilerCommandLine options;
 
   final Map<String, Source> uriToSource = <String, Source>{};
+
+  bool enableColorsCached = null;
 
   CompilerContext(this.options);
 
@@ -32,5 +36,9 @@ class CompilerContext {
       CompilerCommandLine cl, dynamic action(CompilerContext c)) {
     CompilerContext c = new CompilerContext(cl);
     return runZoned(() => action(c), zoneValues: {compilerContextKey: c});
+  }
+
+  static bool get enableColors {
+    return current.enableColorsCached ??= computeEnableColors(current);
   }
 }
