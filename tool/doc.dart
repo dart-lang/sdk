@@ -76,12 +76,19 @@ String get enumerateStyleRules => rules
 
 List<String> get sortedRules => rules.map((r) => r.name).toList()..sort();
 
-void generateDocs(String outDir) {
+void generateDocs(String dir) {
+  String outDir = dir;
   if (outDir != null) {
     Directory d = new Directory(outDir);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
+    }
+    if (!new File('$outDir/options').existsSync()) {
+      Directory lintsChildDir = new Directory('$outDir/lints');
+      if (lintsChildDir.existsSync()) {
+        outDir = lintsChildDir.path;
+      }
     }
   }
 
