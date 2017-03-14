@@ -348,13 +348,17 @@ class Driver implements ServerStarter {
 
   /**
    * Use the given command-line [arguments] to start this server.
+   *
+   * At least temporarily returns AnalysisServer so that consumers of the
+   * starter API can then use the server, this is done as a stopgap for the
+   * angular plugin until the official plugin API is finished.
    */
-  void start(List<String> arguments) {
+  AnalysisServer start(List<String> arguments) {
     CommandLineParser parser = _createArgParser();
     ArgResults results = parser.parse(arguments, <String, String>{});
     if (results[HELP_OPTION]) {
       _printUsage(parser.parser);
-      return;
+      return null;
     }
 
     // TODO (danrubel) Remove this workaround
@@ -375,7 +379,7 @@ class Driver implements ServerStarter {
         print('');
         _printUsage(parser.parser);
         exitCode = 1;
-        return;
+        return null;
       }
     }
 
@@ -484,6 +488,8 @@ class Driver implements ServerStarter {
     },
         print:
             results[INTERNAL_PRINT_TO_CONSOLE] ? null : httpServer.recordPrint);
+
+    return socketServer.analysisServer;
   }
 
   /**

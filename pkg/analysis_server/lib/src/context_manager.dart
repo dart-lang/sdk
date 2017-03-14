@@ -301,6 +301,20 @@ abstract class ContextManager {
   AnalysisDriver getDriverFor(String path);
 
   /**
+   * Return the [ContextInfo] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no context contains the given path, `null` is returned.
+   *
+   * This is public at least temporarily, for plugin support until the new API
+   * is ready.
+   */
+  ContextInfo getInnermostContextInfoFor(String path);
+
+  /**
    * Return a list of all of the analysis drivers reachable from the given
    * [analysisRoot] (the driver associated with [analysisRoot] and all of its
    * descendants).
@@ -568,7 +582,7 @@ class ContextManagerImpl implements ContextManager {
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
     List<AnalysisContext> contexts = <AnalysisContext>[];
     ContextInfo innermostContainingInfo =
-        _getInnermostContextInfoFor(analysisRoot.path);
+        getInnermostContextInfoFor(analysisRoot.path);
     void addContextAndDescendants(ContextInfo info) {
       contexts.add(info.context);
       info.children.forEach(addContextAndDescendants);
@@ -595,14 +609,14 @@ class ContextManagerImpl implements ContextManager {
 
   @override
   AnalysisContext getContextFor(String path) {
-    return _getInnermostContextInfoFor(path)?.context;
+    return getInnermostContextInfoFor(path)?.context;
   }
 
   /**
    * For testing: get the [ContextInfo] object for the given [folder], if any.
    */
   ContextInfo getContextInfoFor(Folder folder) {
-    ContextInfo info = _getInnermostContextInfoFor(folder.path);
+    ContextInfo info = getInnermostContextInfoFor(folder.path);
     if (info != null && folder == info.folder) {
       return info;
     }
@@ -611,7 +625,7 @@ class ContextManagerImpl implements ContextManager {
 
   @override
   AnalysisDriver getDriverFor(String path) {
-    return _getInnermostContextInfoFor(path)?.analysisDriver;
+    return getInnermostContextInfoFor(path)?.analysisDriver;
   }
 
   @override
@@ -623,7 +637,7 @@ class ContextManagerImpl implements ContextManager {
     }
 
     ContextInfo innermostContainingInfo =
-        _getInnermostContextInfoFor(analysisRoot.path);
+        getInnermostContextInfoFor(analysisRoot.path);
     if (innermostContainingInfo != null) {
       if (analysisRoot == innermostContainingInfo.folder) {
         addContextAndDescendants(innermostContainingInfo);
@@ -1338,7 +1352,7 @@ class ContextManagerImpl implements ContextManager {
    *
    * If no context contains the given path, `null` is returned.
    */
-  ContextInfo _getInnermostContextInfoFor(String path) {
+  ContextInfo getInnermostContextInfoFor(String path) {
     ContextInfo info = rootInfo.findChildInfoFor(path);
     if (info == null) {
       return null;
@@ -1356,7 +1370,7 @@ class ContextManagerImpl implements ContextManager {
    * Return the parent for a new [ContextInfo] with the given [path] folder.
    */
   ContextInfo _getParentForNewContext(String path) {
-    ContextInfo parent = _getInnermostContextInfoFor(path);
+    ContextInfo parent = getInnermostContextInfoFor(path);
     if (parent != null) {
       return parent;
     }
@@ -1369,7 +1383,7 @@ class ContextManagerImpl implements ContextManager {
     // but implicitly referenced in another context, we will only send a
     // changeSet to the context that explicitly includes the file (because
     // that's the only context that's watching the file).
-    ContextInfo info = _getInnermostContextInfoFor(event.path);
+    ContextInfo info = getInnermostContextInfoFor(event.path);
     if (info == null) {
       // This event doesn't apply to any context.  This could happen due to a
       // race condition (e.g. a context was removed while one of its events was
