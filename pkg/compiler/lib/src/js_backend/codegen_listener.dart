@@ -139,7 +139,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: false));
-    enqueuer.applyImpact(_lookupMapAnalysis.flush(forResolution: false));
+    enqueuer.applyImpact(_lookupMapAnalysis.flush());
     enqueuer.applyImpact(_typeVariableHandler.flush());
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {

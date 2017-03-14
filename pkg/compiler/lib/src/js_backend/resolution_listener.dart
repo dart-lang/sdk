@@ -24,7 +24,7 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'lookup_map_analysis.dart' show LookupMapLibraryAccess;
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
 import 'native_data.dart' show NativeData;
@@ -49,7 +49,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsAnalysis _customElementsAnalysis;
-  final LookupMapAnalysis _lookupMapAnalysis;
+  final LookupMapLibraryAccess _lookupMapLibraryAccess;
   final MirrorsAnalysis _mirrorsAnalysis;
 
   /// True when we enqueue the loadLibrary code.
@@ -68,7 +68,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._mirrorsData,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
-      this._lookupMapAnalysis,
+      this._lookupMapLibraryAccess,
       this._mirrorsAnalysis);
 
   // TODO(johnniwinther): Avoid the need for these.
@@ -182,7 +182,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: true));
-    enqueuer.applyImpact(_lookupMapAnalysis.flush(forResolution: true));
+    enqueuer.applyImpact(_lookupMapLibraryAccess.flush());
     enqueuer.applyImpact(_typeVariableAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {

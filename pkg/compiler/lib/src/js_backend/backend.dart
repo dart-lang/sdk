@@ -63,7 +63,6 @@ import '../universe/world_impact.dart'
         ImpactUseCase,
         WorldImpact,
         WorldImpactBuilder,
-        WorldImpactBuilderImpl,
         WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
@@ -80,7 +79,8 @@ import 'enqueuer.dart';
 import 'impact_transformer.dart';
 import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'lookup_map_analysis.dart'
+    show LookupMapLibraryAccess, LookupMapAnalysis;
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
@@ -394,6 +394,9 @@ class JavaScriptBackend extends Target {
   /// constructors for custom elements.
   CustomElementsAnalysis customElementsAnalysis;
 
+  /// Resolution support for tree-shaking entries of `LookupMap`.
+  LookupMapLibraryAccess lookupMapLibraryAccess;
+
   /// Codegen support for tree-shaking entries of `LookupMap`.
   LookupMapAnalysis lookupMapAnalysis;
 
@@ -510,6 +513,8 @@ class JavaScriptBackend extends Target {
         backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
+    lookupMapLibraryAccess =
+        new LookupMapLibraryAccess(reporter, compiler.elementEnvironment);
     lookupMapAnalysis = new LookupMapAnalysis(this, compiler.options, reporter,
         compiler.elementEnvironment, commonElements, backendClasses);
 
@@ -536,7 +541,7 @@ class JavaScriptBackend extends Target {
         mirrorsData,
         noSuchMethodRegistry,
         customElementsAnalysis,
-        lookupMapAnalysis,
+        lookupMapLibraryAccess,
         mirrorsAnalysis);
     _codegenEnqueuerListener = new CodegenEnqueuerListener(
         this,
@@ -1175,8 +1180,8 @@ class JavaScriptBackend extends Target {
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
       htmlLibraryIsLoaded = true;
-    } else if (uri == LookupMapAnalysis.PACKAGE_LOOKUP_MAP) {
-      lookupMapAnalysis.init(library);
+    } else if (uri == LookupMapLibraryAccess.PACKAGE_LOOKUP_MAP) {
+      lookupMapLibraryAccess.init(library);
     }
     annotations.onLibraryScanned(library);
     return new Future.value();
@@ -1256,7 +1261,7 @@ class JavaScriptBackend extends Target {
     _rtiEncoder =
         _namer.rtiEncoder = new _RuntimeTypesEncoder(_namer, emitter, helpers);
 
-    lookupMapAnalysis.onCodegenStart();
+    lookupMapAnalysis.onCodegenStart(lookupMapLibraryAccess);
     return const WorldImpact();
   }
 
