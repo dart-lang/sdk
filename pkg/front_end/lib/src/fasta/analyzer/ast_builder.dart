@@ -1470,6 +1470,21 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  @override
+  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+    debugEvent("Metadata");
+    MethodInvocation invocation = pop();
+    SimpleIdentifier constructorName = periodBeforeName != null ? pop() : null;
+    pop(); // Type arguments, not allowed.
+    Identifier name = pop();
+    push(ast.annotation(
+        toAnalyzerToken(beginToken),
+        name,
+        toAnalyzerToken(periodBeforeName),
+        constructorName,
+        invocation?.argumentList));
+  }
+
   ParameterKind _toAnalyzerParameterKind(FormalParameterType type) {
     if (type == FormalParameterType.POSITIONAL) {
       return ParameterKind.POSITIONAL;
