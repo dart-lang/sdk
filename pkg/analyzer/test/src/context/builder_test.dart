@@ -910,6 +910,26 @@ analyzer:
     _expectEqualOptions(options, expected);
   }
 
+  void test_getAnalysisOptions_gnWorkspace() {
+    String _p(String path) => resourceProvider.convertPath(path);
+    String projectPath = _p('/workspace/some/path');
+    resourceProvider.newFolder(_p('/workspace/.jiri_root'));
+    resourceProvider.newFile(
+        _p('/workspace/out/debug/gen/dart.sources/foo_pkg'),
+        _p('/workspace/foo_pkg/lib'));
+    resourceProvider.newFolder(projectPath);
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse([]);
+    builderOptions = createContextBuilderOptions(argResults);
+    expect(builderOptions.packageDefaultAnalysisOptions, isTrue);
+    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: builderOptions);
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    AnalysisOptions options = builder.getAnalysisOptions(projectPath);
+    _expectEqualOptions(options, expected);
+  }
+
   void test_getOptionsFile_explicit() {
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath = resourceProvider.convertPath('/options/analysis.yaml');

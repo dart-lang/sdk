@@ -411,7 +411,7 @@ class ContextBuilder {
         if (source == null || !source.exists()) {
           source = sourceFactory.forUri(bazelAnalysisOptionsPath);
         }
-        if (source.exists()) {
+        if (source != null && source.exists()) {
           try {
             optionMap = optionsProvider.getOptionsFromSource(source);
             verbose('Loaded analysis options from ${source.fullName}');
