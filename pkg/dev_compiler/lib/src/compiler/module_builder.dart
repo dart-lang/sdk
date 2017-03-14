@@ -196,7 +196,7 @@ class LegacyModuleBuilder extends _ModuleBuilder {
     var functionName =
         'load__' + pathToJSIdentifier(module.name.replaceAll('.', '_'));
     resultModule =
-        new NamedFunction(new Identifier(functionName), resultModule);
+        new NamedFunction(new Identifier(functionName), resultModule, true);
 
     var moduleDef = js.statement("dart_library.library(#, #, #, #)", [
       js.string(module.name, "'"),
@@ -302,6 +302,8 @@ class AmdModuleBuilder extends _ModuleBuilder {
           new Return(new ObjectInitializer(exportedProps, multiline: true)));
     }
 
+    // TODO(vsm): Consider using an immediately invoked named function pattern
+    // (see legacy code above).
     var block = singleOutFile
         ? js.statement("define(#, #, function(#) { 'use strict'; #; });", [
             js.string(module.name, "'"),
