@@ -10,6 +10,7 @@ library codegen.matchers;
 import 'dart:convert';
 
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 
 import 'api.dart';
 import 'from_html.dart';

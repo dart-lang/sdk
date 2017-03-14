@@ -31,6 +31,7 @@ final subpackageRules = {
       allowedDependencies: ['lib', 'lib/src/base', 'lib/src/scanner']),
   'lib/src/base': new SubpackageRules(
       mayImportAnalyzer: true, allowedDependencies: ['lib']),
+  'lib/src/codegen': new SubpackageRules(),
   'lib/src/fasta':
       new SubpackageRules(mayImportAnalyzer: false, allowedDependencies: [
     'lib/src/fasta/builder',

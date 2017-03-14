@@ -6,7 +6,7 @@ library generate.all;
 
 import 'dart:io';
 
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
 import 'codegen_analysis_server.dart' as codegen_analysis_server;

@@ -20,11 +20,9 @@
 library analyzer.tool.summary.generate;
 
 import 'dart:convert';
-import 'dart:io' hide File;
+import 'dart:io';
 
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:path/path.dart';
@@ -80,11 +78,10 @@ class _CodeGenerator {
 
   _CodeGenerator(String pkgPath) {
     // Parse the input "IDL" file.
-    PhysicalResourceProvider provider = new PhysicalResourceProvider(
-        PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
     String idlPath = join(pkgPath, 'lib', 'src', 'summary', 'idl.dart');
-    File idlFile = provider.getFile(idlPath);
-    String idlText = idlFile.readAsStringSync();
+    File idlFile = new File(idlPath);
+    String idlText =
+        idlFile.readAsStringSync().replaceAll(new RegExp('\r\n?'), '\n');
     // Extract a description of the IDL and make sure it is valid.
     var scanner = new StringScanner(idlText, includeComments: true);
     var startingToken = scanner.tokenize();
