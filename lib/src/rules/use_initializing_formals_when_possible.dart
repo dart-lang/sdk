@@ -109,7 +109,8 @@ class _Visitor extends SimpleAstVisitor {
     bool isConstructorFieldInitializerToLint(
         ConstructorFieldInitializer constructorFieldInitializer) {
       final expression = constructorFieldInitializer.expression;
-      return !constructorFieldInitializer.fieldName.bestElement.isPrivate &&
+      return !(constructorFieldInitializer.fieldName.bestElement?.isPrivate ??
+              true) &&
           expression is SimpleIdentifier &&
           parameters.contains(expression.bestElement);
     }

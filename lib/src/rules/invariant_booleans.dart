@@ -313,7 +313,8 @@ class _Visitor extends SimpleAstVisitor {
 
   _reportExpressionIfConstantValue(Expression node) {
     // Right part discards reporting a subexpression already reported.
-    if (resolutionMap.bestTypeForExpression(node).name != 'bool' ||
+    if (node == null ||
+        resolutionMap.bestTypeForExpression(node).name != 'bool' ||
         !_isAnalyzedNode(node.parent)) {
       return;
     }
