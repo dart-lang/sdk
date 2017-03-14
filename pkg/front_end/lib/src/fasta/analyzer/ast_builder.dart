@@ -785,32 +785,35 @@ class AstBuilder extends ScopeListener {
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     debugEvent("CatchBlock");
     Block body = pop();
-    FormalParameterList catchParameters = popIfNotNull(catchKeyword);
-    if (catchKeyword != null) {
-      exitLocalScope();
-    }
+    FormalParameterList catchParameterList = popIfNotNull(catchKeyword);
     TypeAnnotation type = popIfNotNull(onKeyword);
     SimpleIdentifier exception;
     SimpleIdentifier stackTrace;
-    if (catchParameters != null) {
+    if (catchParameterList != null) {
+      List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.length > 0) {
-        exception = catchParameters.parameters[0].identifier;
+        exception = catchParameters[0].identifier;
       }
       if (catchParameters.length > 1) {
-        stackTrace = catchParameters.parameters[1].identifier;
+        stackTrace = catchParameters[1].identifier;
       }
     }
-    BeginGroupToken leftParenthesis = catchKeyword.next;
     push(ast.catchClause(
         toAnalyzerToken(onKeyword),
         type,
         toAnalyzerToken(catchKeyword),
-        toAnalyzerToken(leftParenthesis),
+        catchParameterList?.leftParenthesis,
         exception,
         null,
         stackTrace,
-        toAnalyzerToken(leftParenthesis.endGroup),
+        catchParameterList?.rightParenthesis,
         body));
+  }
+
+  @override
+  void handleFinallyBlock(Token finallyKeyword) {
+    debugEvent("FinallyBlock");
+    // The finally block is popped in "endTryStatement".
   }
 
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {

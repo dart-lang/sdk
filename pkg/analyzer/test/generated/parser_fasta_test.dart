@@ -1288,32 +1288,8 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseTryStatement_catch() {
-    super.test_parseTryStatement_catch();
-  }
-
-  @override
-  @failingTest
   void test_parseTryStatement_catch_finally() {
     super.test_parseTryStatement_catch_finally();
-  }
-
-  @override
-  @failingTest
-  void test_parseTryStatement_finally() {
-    super.test_parseTryStatement_finally();
-  }
-
-  @override
-  @failingTest
-  void test_parseTryStatement_multiple() {
-    super.test_parseTryStatement_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseTryStatement_on() {
-    super.test_parseTryStatement_on();
   }
 
   @override
