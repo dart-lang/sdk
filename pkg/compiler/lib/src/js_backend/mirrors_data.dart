@@ -115,7 +115,7 @@ class MirrorsData {
   }
 
   bool invokedReflectively(Element element) {
-    if (element.isRegularParameter || element.isInitializingFormal) {
+    if (element.isParameter) {
       ParameterElement parameter = element;
       if (invokedReflectively(parameter.functionDeclaration)) return true;
     }

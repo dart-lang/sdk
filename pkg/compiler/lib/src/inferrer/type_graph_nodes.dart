@@ -615,7 +615,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (!inferrer.backend.canParameterBeUsedForGlobalOptimizations(element) ||
+    if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
+            element.functionDeclaration) ||
         inferrer.annotations.assumeDynamic(declaration)) {
       // Do not infer types for parameters that have a correspondign annotation
       // or that are assigned by synthesized calls.

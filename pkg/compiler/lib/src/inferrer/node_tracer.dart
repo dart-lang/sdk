@@ -395,7 +395,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend
-        .canParameterBeUsedForGlobalOptimizations(info.element)) {
+        .canFunctionParametersBeUsedForGlobalOptimizations(
+            element.functionDeclaration)) {
       bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(info.element) ||

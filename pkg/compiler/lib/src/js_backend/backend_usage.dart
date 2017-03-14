@@ -5,7 +5,8 @@
 import '../common.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
-import '../elements/resolution_types.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../util/util.dart' show Setlet;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
@@ -14,15 +15,16 @@ abstract class BackendUsage {
   bool needToInitializeIsolateAffinityTag;
   bool needToInitializeDispatchProperty;
 
-  /// Returns `true` if [element] is the parameter of a function called by the
-  /// backend.
-  bool isParameterUsedByBackend(ParameterElement element);
+  /// Returns `true` if [element] is a function called by the backend.
+  bool isFunctionUsedByBackend(FunctionEntity element);
 
   /// Returns `true` if [element] is an instance field of a class instantiated
   /// by the backend.
-  bool isFieldUsedByBackend(FieldElement element);
+  bool isFieldUsedByBackend(FieldEntity element);
 
-  Iterable<Element> get globalDependencies;
+  Iterable<FunctionEntity> get globalFunctionDependencies;
+
+  Iterable<ClassEntity> get globalClassDependencies;
 
   /// `true` if a core-library function requires the preamble file to function.
   bool get requiresPreamble;
@@ -51,7 +53,7 @@ abstract class BackendUsageBuilder {
   /// call.
   // TODO(johnniwinther): Replace this with a more precise modelling; type
   // inference of parameters of these functions is disabled.
-  void registerBackendFunctionUse(MethodElement element);
+  void registerBackendFunctionUse(FunctionEntity element);
 
   /// The backend must *always* call this method when instantiating a class.
   /// Instantiations done by the backend are not seen by global optimizations,
@@ -59,15 +61,15 @@ abstract class BackendUsageBuilder {
   /// collect the list of classes the backend may instantiate.
   // TODO(johnniwinther): Replace this with a more precise modelling; type
   // inference of the instance fields of these classes is disabled.
-  void registerBackendClassUse(ClassElement element);
+  void registerBackendClassUse(ClassEntity element);
 
-  void registerGlobalFunctionDependency(MethodElement element);
-  void registerGlobalClassDependency(ClassElement element);
+  void registerGlobalFunctionDependency(FunctionEntity element);
+  void registerGlobalClassDependency(ClassEntity element);
 
   /// Collect backend use from [backendImpact].
   void processBackendImpact(BackendImpact backendImpact);
 
-  void registerUsedMember(MemberElement member);
+  void registerUsedMember(MemberEntity member);
 
   /// `true` of `Object.runtimeType` is used.
   bool isRuntimeTypeUsed;
@@ -88,14 +90,15 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
-  // TODO(johnniwinther): Remove the need for this.
-  Setlet<Element> _globalDependencies;
+  // TODO(johnniwinther): Remove the need for these.
+  Setlet<FunctionEntity> _globalFunctionDependencies;
+  Setlet<ClassElement> _globalClassDependencies;
 
   /// List of methods that the backend may use.
-  final Set<MethodElement> _helperFunctionsUsed = new Set<MethodElement>();
+  final Set<FunctionEntity> _helperFunctionsUsed = new Set<FunctionEntity>();
 
   /// List of classes that the backend may use.
-  final Set<ClassElement> _helperClassesUsed = new Set<ClassElement>();
+  final Set<ClassEntity> _helperClassesUsed = new Set<ClassEntity>();
 
   bool _needToInitializeIsolateAffinityTag = false;
   bool _needToInitializeDispatchProperty = false;
@@ -123,8 +126,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   @override
   void registerBackendFunctionUse(MethodElement element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Backend use $element must be the declaration."));
     assert(invariant(element, _isValidBackendUse(element),
         message: "Backend use of $element is not allowed."));
     _helperFunctionsUsed.add(element);
@@ -132,8 +133,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   @override
   void registerBackendClassUse(ClassElement element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Backend use $element must be the declaration."));
     assert(invariant(element, _isValidBackendUse(element),
         message: "Backend use of $element is not allowed."));
     _helperClassesUsed.add(element);
@@ -141,7 +140,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   bool _isValidBackendUse(Element element) {
     assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+        message: "Backend use $element must be the declaration."));
     if (element is ConstructorElement &&
         (element == _helpers.streamIteratorConstructor ||
             _commonElements.isSymbolConstructor(element) ||
@@ -178,14 +177,15 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     return false;
   }
 
-  void _processBackendStaticUse(MethodElement element, {bool isGlobal: false}) {
+  void _processBackendStaticUse(FunctionEntity element,
+      {bool isGlobal: false}) {
     registerBackendFunctionUse(element);
     if (isGlobal) {
       registerGlobalFunctionDependency(element);
     }
   }
 
-  void _processBackendInstantiation(ClassElement cls, {bool isGlobal: false}) {
+  void _processBackendInstantiation(ClassEntity cls, {bool isGlobal: false}) {
     registerBackendClassUse(cls);
     if (isGlobal) {
       registerGlobalClassDependency(cls);
@@ -193,22 +193,21 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   }
 
   void processBackendImpact(BackendImpact backendImpact) {
-    for (MethodElement staticUse in backendImpact.staticUses) {
+    for (FunctionEntity staticUse in backendImpact.staticUses) {
       assert(staticUse != null);
       _processBackendStaticUse(staticUse);
     }
-    for (MethodElement staticUse in backendImpact.globalUses) {
+    for (FunctionEntity staticUse in backendImpact.globalUses) {
       assert(staticUse != null);
       _processBackendStaticUse(staticUse, isGlobal: true);
     }
-    for (ResolutionInterfaceType instantiatedType
-        in backendImpact.instantiatedTypes) {
+    for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
       registerBackendClassUse(instantiatedType.element);
     }
-    for (ClassElement cls in backendImpact.instantiatedClasses) {
+    for (ClassEntity cls in backendImpact.instantiatedClasses) {
       _processBackendInstantiation(cls);
     }
-    for (ClassElement cls in backendImpact.globalClasses) {
+    for (ClassEntity cls in backendImpact.globalClasses) {
       _processBackendInstantiation(cls, isGlobal: true);
     }
     for (BackendImpact otherImpact in backendImpact.otherImpacts) {
@@ -238,25 +237,26 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
-  void registerGlobalFunctionDependency(MethodElement element) {
-    _registerGlobalDependency(element);
-  }
-
-  void registerGlobalClassDependency(ClassElement element) {
-    _registerGlobalDependency(element);
-  }
-
-  void _registerGlobalDependency(Element element) {
-    if (element == null) return;
-    if (_globalDependencies == null) {
-      _globalDependencies = new Setlet<Element>();
+  void registerGlobalFunctionDependency(FunctionEntity element) {
+    assert(element != null);
+    if (_globalFunctionDependencies == null) {
+      _globalFunctionDependencies = new Setlet<MethodElement>();
     }
-    _globalDependencies.add(element.implementation);
+    _globalFunctionDependencies.add(element);
+  }
+
+  void registerGlobalClassDependency(ClassEntity element) {
+    assert(element != null);
+    if (_globalClassDependencies == null) {
+      _globalClassDependencies = new Setlet<ClassElement>();
+    }
+    _globalClassDependencies.add(element);
   }
 
   BackendUsage close() {
     return new BackendUsageImpl(
-        globalDependencies: _globalDependencies,
+        globalFunctionDependencies: _globalFunctionDependencies,
+        globalClassDependencies: _globalClassDependencies,
         helperFunctionsUsed: _helperFunctionsUsed,
         helperClassesUsed: _helperClassesUsed,
         needToInitializeIsolateAffinityTag: _needToInitializeIsolateAffinityTag,
@@ -271,14 +271,15 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 }
 
 class BackendUsageImpl implements BackendUsage {
-  // TODO(johnniwinther): Remove the need for this.
-  final Set<Element> _globalDependencies;
+  // TODO(johnniwinther): Remove the need for these.
+  final Set<FunctionEntity> _globalFunctionDependencies;
+  final Set<ClassEntity> _globalClassDependencies;
 
   /// Set of functions called by the backend.
-  final Set<Element> _helperFunctionsUsed;
+  final Set<FunctionEntity> _helperFunctionsUsed;
 
   /// Set of classes instantiated by the backend.
-  final Set<Element> _helperClassesUsed;
+  final Set<ClassEntity> _helperClassesUsed;
 
   bool needToInitializeIsolateAffinityTag;
   bool needToInitializeDispatchProperty;
@@ -302,9 +303,10 @@ class BackendUsageImpl implements BackendUsage {
   final bool isNoSuchMethodUsed;
 
   BackendUsageImpl(
-      {Set<Element> globalDependencies,
-      Set<MethodElement> helperFunctionsUsed,
-      Set<ClassElement> helperClassesUsed,
+      {Set<FunctionEntity> globalFunctionDependencies,
+      Set<ClassEntity> globalClassDependencies,
+      Set<FunctionEntity> helperFunctionsUsed,
+      Set<ClassEntity> helperClassesUsed,
       this.needToInitializeIsolateAffinityTag,
       this.needToInitializeDispatchProperty,
       this.requiresPreamble,
@@ -313,13 +315,14 @@ class BackendUsageImpl implements BackendUsage {
       this.isIsolateInUse,
       this.isFunctionApplyUsed,
       this.isNoSuchMethodUsed})
-      : this._globalDependencies = globalDependencies,
+      : this._globalFunctionDependencies = globalFunctionDependencies,
+        this._globalClassDependencies = globalClassDependencies,
         this._helperFunctionsUsed = helperFunctionsUsed,
         this._helperClassesUsed = helperClassesUsed;
 
   @override
-  bool isParameterUsedByBackend(ParameterElement element) {
-    return _helperFunctionsUsed.contains(element.functionDeclaration);
+  bool isFunctionUsedByBackend(MethodElement element) {
+    return _helperFunctionsUsed.contains(element);
   }
 
   @override
@@ -327,5 +330,10 @@ class BackendUsageImpl implements BackendUsage {
     return _helperClassesUsed.contains(element.enclosingClass);
   }
 
-  Iterable<Element> get globalDependencies => _globalDependencies;
+  @override
+  Iterable<FunctionEntity> get globalFunctionDependencies =>
+      _globalFunctionDependencies;
+
+  @override
+  Iterable<ClassEntity> get globalClassDependencies => _globalClassDependencies;
 }

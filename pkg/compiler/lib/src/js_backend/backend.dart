@@ -704,9 +704,12 @@ class JavaScriptBackend {
   ///
   /// One category of elements that do not apply is runtime helpers that the
   /// backend calls, but the optimizations don't see those calls.
-  bool canParameterBeUsedForGlobalOptimizations(ParameterElement element) {
-    return !backendUsage.isParameterUsedByBackend(element) &&
-        !mirrorsData.invokedReflectively(element);
+  bool canFunctionParametersBeUsedForGlobalOptimizations(
+      FunctionElement element) {
+    if (element.isLocal) return true;
+    MethodElement method = element;
+    return !backendUsage.isFunctionUsedByBackend(method) &&
+        !mirrorsData.invokedReflectively(method);
   }
 
   /**
