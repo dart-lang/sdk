@@ -1,3 +1,28 @@
+# 0.1.30
+
+* New `avoid_function_literals_in_foreach_calls` lint.
+* New `avoid_slow_async_io` lint.
+* New `cascade_invocations` lint.
+* New `directives_ordering` lint.
+* New `no_adjacent_strings_in_list` lint.
+* New `no_duplicate_case_values` lint.
+* New `omit_local_variable_types` lint.
+* New `prefer_adjacent_string_concatenation` lint.
+* New `prefer_collection_literals` lint.
+* New `prefer_const_constructors` lint.
+* New `prefer_contains` lint.
+* New `prefer_expression_function_bodies` lint.
+* New `prefer_function_declarations_over_variables` lint.
+* New `prefer_initializing_formals` lint.
+* New `prefer_interpolation_to_compose_strings` lint.
+* New `prefer_is_empty` lint.
+* New `recursive_getters` lint.
+* New `unnecessary_brace_in_string_interps` lint.
+* New `unnecessary_lambdas` lint.
+* New `unnecessary_null_aware_assignments` lint.
+* New `unnecessary_null_in_if_null_operators` lint.
+* Miscellaneous bug fixes and codegen improvements.
+
 # 0.1.29
 
 * New `cascade_invocations` lint.
