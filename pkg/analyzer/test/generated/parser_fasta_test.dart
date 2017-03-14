@@ -1112,12 +1112,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseDoStatement() {
-    super.test_parseDoStatement();
-  }
-
-  @override
-  @failingTest
   void test_parseForStatement_each_await() {
     super.test_parseForStatement_each_await();
   }
@@ -1332,12 +1326,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseTryStatement_on_catch_finally() {
     super.test_parseTryStatement_on_catch_finally();
-  }
-
-  @override
-  @failingTest
-  void test_parseWhileStatement() {
-    super.test_parseWhileStatement();
   }
 
   @override

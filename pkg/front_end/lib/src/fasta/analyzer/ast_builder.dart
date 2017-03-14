@@ -410,6 +410,21 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void endWhileStatement(Token whileKeyword, Token endToken) {
+    debugEvent("WhileStatement");
+    Statement body = pop();
+    ParenthesizedExpression condition = pop();
+    pop(); // continue target
+    pop(); // break target
+    push(ast.whileStatement(
+        toAnalyzerToken(whileKeyword),
+        condition.leftParenthesis,
+        condition.expression,
+        condition.rightParenthesis,
+        body));
+  }
+
+  @override
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer");
   }
@@ -962,6 +977,24 @@ class AstBuilder extends ScopeListener {
     debugEvent("DottedName");
     List<SimpleIdentifier> components = popList(count);
     push(ast.dottedName(components));
+  }
+
+  @override
+  void endDoWhileStatement(
+      Token doKeyword, Token whileKeyword, Token semicolon) {
+    debugEvent("DoWhileStatement");
+    ParenthesizedExpression condition = pop();
+    Statement body = pop();
+    pop(); // continue target
+    pop(); // break target
+    push(ast.doStatement(
+        toAnalyzerToken(doKeyword),
+        body,
+        toAnalyzerToken(whileKeyword),
+        condition.leftParenthesis,
+        condition.expression,
+        condition.rightParenthesis,
+        toAnalyzerToken(semicolon)));
   }
 
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
