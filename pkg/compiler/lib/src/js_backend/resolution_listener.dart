@@ -94,9 +94,15 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  WorldImpact registerBoundClosure() {
+  WorldImpact registerClosurizedMember(MemberElement element) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     _backendUsage.processBackendImpact(_impacts.memberClosure);
-    return _impacts.memberClosure.createImpact(_elementEnvironment);
+    impactBuilder
+        .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
+    if (element.type.containsTypeVariables) {
+      impactBuilder.addImpact(_registerComputeSignature());
+    }
+    return impactBuilder;
   }
 
   @override
@@ -276,10 +282,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   WorldImpact _registerRuntimeType() {
     _backendUsage.processBackendImpact(_impacts.runtimeTypeSupport);
     return _impacts.runtimeTypeSupport.createImpact(_elementEnvironment);
-  }
-
-  WorldImpact registerClosureWithFreeTypeVariables(MemberEntity closure) {
-    return _registerComputeSignature();
   }
 
   WorldImpact _processClass(ClassElement cls) {

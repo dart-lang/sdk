@@ -960,10 +960,6 @@ class JavaScriptBackend {
   bool isComplexNoSuchMethod(FunctionElement element) =>
       noSuchMethodRegistry.isComplex(element);
 
-  bool methodNeedsRti(FunctionElement function) {
-    return rtiNeed.methodNeedsRti(function);
-  }
-
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
   /// Creates an [Enqueuer] for code generation specific to this backend.

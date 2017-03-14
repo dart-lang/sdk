@@ -60,8 +60,15 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   BackendUsage get _backendUsage => _backend.backendUsage;
 
   @override
-  WorldImpact registerBoundClosure() {
-    return _impacts.memberClosure.createImpact(_elementEnvironment);
+  WorldImpact registerClosurizedMember(MemberElement element) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    impactBuilder
+        .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
+    if (element.type.containsTypeVariables &&
+        _rtiNeed.methodNeedsRti(element)) {
+      impactBuilder.addImpact(_registerComputeSignature());
+    }
+    return impactBuilder;
   }
 
   @override
@@ -171,13 +178,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     }
 
     return worldImpact;
-  }
-
-  WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure) {
-    if (_rtiNeed.methodNeedsRti(closure)) {
-      return _registerComputeSignature();
-    }
-    return const WorldImpact();
   }
 
   WorldImpact _processClass(ClassElement cls) {

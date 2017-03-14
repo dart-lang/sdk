@@ -1104,10 +1104,13 @@ class ClosureTranslator extends Visitor {
     insideClosure = outermostElement != null;
     LocalFunctionElement closure;
     executableContext = element;
+    bool needsRti = false;
     if (insideClosure) {
       closure = element;
       closures.add(closure);
       closureData = globalizeClosure(node, closure);
+      needsRti = compiler.options.enableTypeAssertions ||
+          compiler.backend.rtiNeed.localFunctionNeedsRti(closure);
     } else {
       outermostElement = element;
       ThisLocal thisElement = null;
@@ -1115,6 +1118,10 @@ class ClosureTranslator extends Visitor {
         thisElement = new ThisLocal(element);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
+      if (element is MethodElement) {
+        needsRti = compiler.options.enableTypeAssertions ||
+            compiler.backend.rtiNeed.methodNeedsRti(element);
+      }
     }
     closureMappingCache[element.declaration] = closureData;
     if (closureData.callElement != null) {
@@ -1122,13 +1129,10 @@ class ClosureTranslator extends Visitor {
     }
 
     inNewScope(node, () {
-      ResolutionDartType type = element.type;
       // If the method needs RTI, or checked mode is set, we need to
       // escape the potential type variables used in that closure.
-      if (element is FunctionElement &&
-          (compiler.backend.rtiNeed.methodNeedsRti(element) ||
-              compiler.options.enableTypeAssertions)) {
-        analyzeTypeVariables(type);
+      if (needsRti) {
+        analyzeTypeVariables(element.type);
       }
 
       visitChildren();

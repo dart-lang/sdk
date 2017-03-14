@@ -5,23 +5,24 @@
 part of world_builder;
 
 abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
+  /// Set of all local functions in the program. Used by the mirror tracking
+  /// system to find all live closure instances.
+  Iterable<LocalFunctionElement> get localFunctions;
+
   /// Set of (live) local functions (closures) whose signatures reference type
   /// variables.
   ///
   /// A live function is one whose enclosing member function has been enqueued.
-  Iterable<Element> get closuresWithFreeTypeVariables;
-
-  /// Set of (live) `call` methods whose signatures reference type variables.
-  ///
-  /// A live `call` method is one whose enclosing class has been instantiated.
-  Iterable<Element> get callMethodsWithFreeTypeVariables;
-
-  /// Set of all closures in the program. Used by the mirror tracking system
-  /// to find all live closure instances.
-  Iterable<LocalFunctionElement> get allClosures;
+  Iterable<LocalFunctionElement> get localFunctionsWithFreeTypeVariables;
 
   /// Set of methods in instantiated classes that are potentially closurized.
-  Iterable<Element> get closurizedMembers;
+  Iterable<MethodElement> get closurizedMembers;
+
+  /// Set of live closurized members whose signatures reference type variables.
+  ///
+  /// A closurized method is considered live if the enclosing class has been
+  /// instantiated.
+  Iterable<MethodElement> get closurizedMembersWithFreeTypeVariables;
 
   /// Returns `true` if [cls] is considered to be implemented by an
   /// instantiated class, either directly, through subclasses or through
@@ -56,9 +57,6 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
 abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   /// Returns the classes registered as directly or indirectly instantiated.
   Iterable<ClassEntity> get processedClasses;
-
-  /// Registers that the generic [element] has been closurized.
-  void registerClosureWithFreeTypeVariables(MemberEntity element);
 
   /// Registers that [element] has been closurized.
   void registerClosurizedMember(MemberEntity element);
@@ -303,32 +301,28 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   final Set<Element> fieldSetters = new Set<Element>();
   final Set<ResolutionDartType> isChecks = new Set<ResolutionDartType>();
 
-  /**
-   * Set of (live) [:call:] methods whose signatures reference type variables.
-   *
-   * A live [:call:] method is one whose enclosing class has been instantiated.
-   */
-  final Set<Element> callMethodsWithFreeTypeVariables = new Set<Element>();
+  /// Set of all closures in the program. Used by the mirror tracking system
+  /// to find all live closure instances.
+  final Set<LocalFunctionElement> localFunctions =
+      new Set<LocalFunctionElement>();
 
-  /**
-   * Set of (live) local functions (closures) whose signatures reference type
-   * variables.
-   *
-   * A live function is one whose enclosing member function has been enqueued.
-   */
-  final Set<Element> closuresWithFreeTypeVariables = new Set<Element>();
+  /// Set of live local functions (closures) whose signatures reference type
+  /// variables.
+  ///
+  /// A local function is considered live if the enclosing member function is
+  /// live.
+  final Set<LocalFunctionElement> localFunctionsWithFreeTypeVariables =
+      new Set<LocalFunctionElement>();
 
-  /**
-   * Set of all closures in the program. Used by the mirror tracking system
-   * to find all live closure instances.
-   */
-  final Set<LocalFunctionElement> allClosures = new Set<LocalFunctionElement>();
+  /// Set of methods in instantiated classes that are potentially closurized.
+  final Set<MethodElement> closurizedMembers = new Set<MethodElement>();
 
-  /**
-   * Set of methods in instantiated classes that are potentially
-   * closurized.
-   */
-  final Set<Element> closurizedMembers = new Set<Element>();
+  /// Set of live closurized members whose signatures reference type variables.
+  ///
+  /// A closurized method is considered live if the enclosing class has been
+  /// instantiated.
+  final Set<MethodElement> closurizedMembersWithFreeTypeVariables =
+      new Set<MethodElement>();
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -419,12 +413,11 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     return _implementedClasses.contains(cls.declaration);
   }
 
-  void registerClosureWithFreeTypeVariables(MemberElement element) {
-    closuresWithFreeTypeVariables.add(element);
-  }
-
   void registerClosurizedMember(MemberElement element) {
     closurizedMembers.add(element);
+    if (element.type.containsTypeVariables) {
+      closurizedMembersWithFreeTypeVariables.add(element);
+    }
   }
 
   /// Register [type] as (directly) instantiated.
@@ -640,11 +633,11 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
         fieldSetters.add(element);
         break;
       case StaticUseKind.CLOSURE:
-        LocalFunctionElement closure = staticUse.element;
-        if (closure.type.containsTypeVariables) {
-          closuresWithFreeTypeVariables.add(closure);
+        LocalFunctionElement localFunction = staticUse.element;
+        if (localFunction.type.containsTypeVariables) {
+          localFunctionsWithFreeTypeVariables.add(localFunction);
         }
-        allClosures.add(element);
+        localFunctions.add(element);
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
         useSet.addAll(usage.tearOff());
@@ -672,16 +665,6 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     if (useSet.isNotEmpty) {
       memberUsed(usage.entity, useSet);
     }
-  }
-
-  // TODO(ahe): Replace this method with something that is O(1), for example,
-  // by using a map.
-  List<LocalFunctionElement> slowDirectlyNestedClosures(Element element) {
-    // Return new list to guard against concurrent modifications.
-    return new List<LocalFunctionElement>.from(
-        allClosures.where((LocalFunctionElement closure) {
-      return closure.executableContext == element;
-    }));
   }
 
   /// Return the canonical [_ClassUsage] for [cls].
@@ -764,7 +747,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
       if (member.isFunction &&
           member.name == Identifiers.call &&
           !cls.typeVariables.isEmpty) {
-        callMethodsWithFreeTypeVariables.add(member);
+        closurizedMembersWithFreeTypeVariables.add(member);
       }
 
       if (_hasInvokedGetter(member)) {

@@ -405,7 +405,9 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         useSet.addAll(usage.normalUse());
         break;
     }
-    memberUsed(usage.entity, useSet);
+    if (useSet.isNotEmpty) {
+      memberUsed(usage.entity, useSet);
+    }
   }
 
   void processClassMembers(ClassElement cls, MemberUsedCallback memberUsed) {

@@ -21,7 +21,8 @@ typedef bool ShouldEncodeTypedefCallback(ResolutionTypedefType variable);
 abstract class RuntimeTypesNeed {
   bool classNeedsRti(ClassElement cls);
   bool classNeedsRtiField(ClassElement cls);
-  bool methodNeedsRti(FunctionElement function);
+  bool methodNeedsRti(MethodElement function);
+  bool localFunctionNeedsRti(LocalFunctionElement function);
   bool classUsesTypeVariableExpression(ClassElement cls);
 }
 
@@ -202,13 +203,18 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   final BackendUsage _backendUsage;
   final Set<ClassElement> classesNeedingRti;
   final Set<Element> methodsNeedingRti;
+  final Set<Element> localFunctionsNeedingRti;
 
   /// The set of classes that use one of their type variables as expressions
   /// to get the runtime type.
   final Set<ClassElement> classesUsingTypeVariableExpression;
 
-  _RuntimeTypesNeed(this._backendUsage, this.classesNeedingRti,
-      this.methodsNeedingRti, this.classesUsingTypeVariableExpression);
+  _RuntimeTypesNeed(
+      this._backendUsage,
+      this.classesNeedingRti,
+      this.methodsNeedingRti,
+      this.localFunctionsNeedingRti,
+      this.classesUsingTypeVariableExpression);
 
   bool classNeedsRti(ClassElement cls) {
     if (_backendUsage.isRuntimeTypeUsed) return true;
@@ -221,8 +227,13 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
     return classesNeedingRti.contains(cls.declaration);
   }
 
-  bool methodNeedsRti(FunctionElement function) {
+  bool methodNeedsRti(MethodElement function) {
     return methodsNeedingRti.contains(function) ||
+        _backendUsage.isRuntimeTypeUsed;
+  }
+
+  bool localFunctionNeedsRti(LocalFunctionElement function) {
+    return localFunctionsNeedingRti.contains(function) ||
         _backendUsage.isRuntimeTypeUsed;
   }
 
@@ -236,10 +247,6 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
   final Map<ClassElement, Set<ClassElement>> rtiDependencies =
       <ClassElement, Set<ClassElement>>{};
-
-  final Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
-
-  final Set<Element> methodsNeedingRti = new Set<Element>();
 
   final Set<ClassElement> classesUsingTypeVariableExpression =
       new Set<ClassElement>();
@@ -267,6 +274,11 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
       BackendHelpers helpers,
       BackendUsage backendUsage,
       {bool enableTypeAssertions}) {
+    Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
+    Set<MethodElement> methodsNeedingRti = new Set<MethodElement>();
+    Set<LocalFunctionElement> localFunctionsNeedingRti =
+        new Set<LocalFunctionElement>();
+
     // Find the classes that need runtime type information. Such
     // classes are:
     // (1) used in a is check with type variables,
@@ -316,6 +328,23 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
       ClassElement listClass = commonElements.listClass;
       registerRtiDependency(helpers.jsArrayClass, listClass);
     }
+
+    // Check local functions and closurized members.
+    void checkClosures(bool analyzeFunction(FunctionElement function)) {
+      for (LocalFunctionElement function
+          in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
+        if (analyzeFunction(function)) {
+          localFunctionsNeedingRti.add(function);
+        }
+      }
+      for (MethodElement function
+          in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
+        if (analyzeFunction(function)) {
+          methodsNeedingRti.add(function);
+        }
+      }
+    }
+
     // Compute the set of all classes and methods that need runtime type
     // information.
     resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
@@ -333,45 +362,45 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
           potentiallyAddForRti(contextClass);
         }
         if (type.isFunctionType) {
-          void analyzeMethod(TypedElement method) {
+          bool analyzeMethod(FunctionElement method) {
             ResolutionDartType memberType = method.type;
             ClassElement contextClass = Types.getClassContext(memberType);
             if (contextClass != null &&
                 types.isPotentialSubtype(memberType, type)) {
               potentiallyAddForRti(contextClass);
-              methodsNeedingRti.add(method);
+              return true;
             }
+            return false;
           }
 
-          resolutionWorldBuilder.closuresWithFreeTypeVariables
-              .forEach(analyzeMethod);
-          resolutionWorldBuilder.callMethodsWithFreeTypeVariables
-              .forEach(analyzeMethod);
+          checkClosures(analyzeMethod);
         }
       }
     });
     if (enableTypeAssertions) {
-      void analyzeMethod(TypedElement method) {
+      bool analyzeMethod(FunctionElement method) {
         ResolutionDartType memberType = method.type;
         ClassElement contextClass = Types.getClassContext(memberType);
         if (contextClass != null) {
           potentiallyAddForRti(contextClass);
-          methodsNeedingRti.add(method);
+          return true;
         }
+        return false;
       }
 
-      resolutionWorldBuilder.closuresWithFreeTypeVariables
-          .forEach(analyzeMethod);
-      resolutionWorldBuilder.callMethodsWithFreeTypeVariables
-          .forEach(analyzeMethod);
+      checkClosures(analyzeMethod);
     }
 
     // Add the classes that need RTI because they use a type variable as
     // expression.
     classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
 
-    return new _RuntimeTypesNeed(backendUsage, classesNeedingRti,
-        methodsNeedingRti, classesUsingTypeVariableExpression);
+    return new _RuntimeTypesNeed(
+        backendUsage,
+        classesNeedingRti,
+        methodsNeedingRti,
+        localFunctionsNeedingRti,
+        classesUsingTypeVariableExpression);
   }
 }
 
@@ -491,7 +520,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     // [neededClasses] computed in the emitter instead of storing it and pulling
     // it from resolution, but currently it would introduce a cyclic dependency
     // between [computeRequiredChecks] and [computeNeededClasses].
-    for (TypedElement element
+    for (MethodElement element
         in compiler.resolutionWorldBuilder.closurizedMembers) {
       instantiatedTypes.add(element.type);
     }

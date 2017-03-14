@@ -143,7 +143,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   /// Callback for applying the use of a [member].
-  void _applyMemberUse(Entity member, EnumSet<MemberUse> useSet) {
+  void _applyMemberUse(MemberEntity member, EnumSet<MemberUse> useSet) {
     if (useSet.contains(MemberUse.NORMAL)) {
       _addToWorkList(member);
     }
@@ -209,13 +209,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
     assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
   }
 
-  void _registerClosurizedMember(TypedElement element) {
+  void _registerClosurizedMember(MemberElement element) {
     assert(element.isInstanceMember);
-    if (element.type.containsTypeVariables) {
-      MemberElement member = element;
-      applyImpact(listener.registerClosureWithFreeTypeVariables(member));
-    }
-    applyImpact(listener.registerBoundClosure());
+    applyImpact(listener.registerClosurizedMember(element));
   }
 
   void forEach(void f(WorkItem work)) {

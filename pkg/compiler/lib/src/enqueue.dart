@@ -113,14 +113,9 @@ abstract class EnqueuerListener {
   /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction();
 
-  /// Called to instruct the backend to register that a closure exists for a
-  /// function on an instantiated generic class. Any backend specific
+  /// Called to register that [member] has been closurized. Any backend specific
   /// [WorldImpact] of this is returned.
-  WorldImpact registerClosureWithFreeTypeVariables(MemberEntity member);
-
-  /// Called to register that a member has been closurized. Any backend specific
-  /// [WorldImpact] of this is returned.
-  WorldImpact registerBoundClosure();
+  WorldImpact registerClosurizedMember(MemberEntity member);
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -368,11 +363,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void _registerClosurizedMember(MemberElement element) {
     assert(element.isInstanceMember);
-    if (element.type.containsTypeVariables) {
-      applyImpact(listener.registerClosureWithFreeTypeVariables(element));
-      _worldBuilder.registerClosureWithFreeTypeVariables(element);
-    }
-    applyImpact(listener.registerBoundClosure());
+    applyImpact(listener.registerClosurizedMember(element));
     _worldBuilder.registerClosurizedMember(element);
   }
 

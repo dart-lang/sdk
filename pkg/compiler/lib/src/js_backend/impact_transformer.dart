@@ -382,7 +382,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       switch (staticUse.kind) {
         case StaticUseKind.CLOSURE:
           LocalFunctionElement closure = staticUse.element;
-          if (backend.rtiNeed.methodNeedsRti(closure)) {
+          if (backend.rtiNeed.localFunctionNeedsRti(closure)) {
             impacts.computeSignature
                 .registerImpact(transformed, elementEnvironment);
           }

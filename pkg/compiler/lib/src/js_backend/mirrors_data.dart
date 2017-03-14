@@ -273,7 +273,7 @@ class MirrorsData {
     // can include the correct ones when including the class.
     Map<ClassElement, List<LocalFunctionElement>> closureMap =
         new Map<ClassElement, List<LocalFunctionElement>>();
-    for (LocalFunctionElement closure in worldBuilder.allClosures) {
+    for (LocalFunctionElement closure in worldBuilder.localFunctions) {
       closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
     }
     bool foundClosure = false;
@@ -384,7 +384,7 @@ class MirrorsData {
       ClassElement cls = _helpers.closureClass;
       reflectableMembers.add(cls);
     }
-    Set<Element> closurizedMembers = worldBuilder.closurizedMembers;
+    Set<MethodElement> closurizedMembers = worldBuilder.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
       ClassElement cls = _helpers.boundClosureClass;
       reflectableMembers.add(cls);
