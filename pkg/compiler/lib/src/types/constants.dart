@@ -22,7 +22,7 @@ class ConstantValueTypeMasks
   @override
   TypeMask visitConstructed(
       ConstructedConstantValue constant, ClosedWorld closedWorld) {
-    if (closedWorld.interceptorData.isInterceptorClass(constant.type.element)) {
+    if (closedWorld.interceptorData.isInterceptedClass(constant.type.element)) {
       return closedWorld.commonMasks.nonNullType;
     }
     return new TypeMask.nonNullExact(constant.type.element, closedWorld);

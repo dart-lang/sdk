@@ -57,7 +57,7 @@ class SsaKernelBuilderTask extends CompilerTask {
 
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
-      AstElement element = work.element.implementation;
+      MemberElement element = work.element.implementation;
       Kernel kernel = backend.kernelTask.kernel;
       KernelSsaBuilder builder = new KernelSsaBuilder(
           element,
@@ -93,7 +93,7 @@ class SsaKernelBuilderTask extends CompilerTask {
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
   bool _targetIsConstructorBody = false;
-  final AstElement targetElement;
+  final MemberElement targetElement;
   final ResolvedAst resolvedAst;
   final ClosedWorld closedWorld;
   final CodegenRegistry registry;

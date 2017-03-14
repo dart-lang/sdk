@@ -1120,7 +1120,7 @@ class JavaScriptBackend extends Target {
 
     if (!type.isRaw) return false;
     ClassElement classElement = type.element;
-    if (interceptorData.isInterceptorClass(classElement)) return false;
+    if (interceptorData.isInterceptedClass(classElement)) return false;
     return _closedWorld.hasOnlySubclasses(classElement);
   }
 

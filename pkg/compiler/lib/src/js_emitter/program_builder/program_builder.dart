@@ -29,6 +29,7 @@ import '../../elements/elements.dart'
         ParameterElement,
         TypedefElement,
         VariableElement;
+import '../../elements/entities.dart';
 import '../../elements/types.dart' show DartType;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -485,7 +486,8 @@ class ProgramBuilder {
         .toList(growable: false);
 
     bool visitStatics = true;
-    List<Field> staticFieldsForReflection = _buildFields(library, visitStatics);
+    List<Field> staticFieldsForReflection =
+        _buildFields(library, visitStatics: visitStatics);
 
     return new Library(
         library, uri, statics, classes, staticFieldsForReflection);
@@ -563,11 +565,16 @@ class ProgramBuilder {
     if (!onlyForRti && !element.isMixinApplication) {
       implementation.forEachMember(visitMember, includeBackendMembers: true);
     }
-
-    List<Field> instanceFields =
-        onlyForRti ? const <Field>[] : _buildFields(element, false);
-    List<Field> staticFieldsForReflection =
-        onlyForRti ? const <Field>[] : _buildFields(element, true);
+    bool isInterceptedClass =
+        backend.interceptorData.isInterceptedClass(element);
+    List<Field> instanceFields = onlyForRti
+        ? const <Field>[]
+        : _buildFields(element,
+            visitStatics: false, isHolderInterceptedClass: isInterceptedClass);
+    List<Field> staticFieldsForReflection = onlyForRti
+        ? const <Field>[]
+        : _buildFields(element,
+            visitStatics: true, isHolderInterceptedClass: isInterceptedClass);
 
     TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(element,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
@@ -831,7 +838,8 @@ class ProgramBuilder {
     });
   }
 
-  List<Field> _buildFields(Element holder, bool visitStatics) {
+  List<Field> _buildFields(Element holder,
+      {bool visitStatics, bool isHolderInterceptedClass: false}) {
     List<Field> fields = <Field>[];
     new FieldVisitor(_compiler, namer, closedWorld)
         .visitFields(holder, visitStatics, (FieldElement field,
@@ -849,10 +857,10 @@ class ProgramBuilder {
           getterFlags = 1;
         } else {
           getterFlags += 2;
-          // TODO(sra): 'isInterceptorClass' might not be the correct test
+          // TODO(sra): 'isInterceptedClass' might not be the correct test
           // for methods forced to use the interceptor convention because
           // the method's class was elsewhere mixed-in to an interceptor.
-          if (!backend.interceptorData.isInterceptorClass(holder)) {
+          if (!isHolderInterceptedClass) {
             getterFlags += 1;
           }
         }
@@ -865,7 +873,7 @@ class ProgramBuilder {
           setterFlags = 1;
         } else {
           setterFlags += 2;
-          if (!backend.interceptorData.isInterceptorClass(holder)) {
+          if (!isHolderInterceptedClass) {
             setterFlags += 1;
           }
         }

@@ -1370,7 +1370,7 @@ class SsaBuilder extends ast.Visitor
    *
    * Invariant: [functionElement] must be the implementation element.
    */
-  void openFunction(Element element, ast.Node node) {
+  void openFunction(MemberElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
@@ -1395,8 +1395,8 @@ class SsaBuilder extends ast.Visitor
       });
     }
 
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
+    if (element is MethodElement) {
+      MethodElement functionElement = element;
       FunctionSignature signature = functionElement.functionSignature;
 
       // Put the type checks in the first successor of the entry,

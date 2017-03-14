@@ -1402,7 +1402,7 @@ class Namer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   jsAst.Name nameForGetOneShotInterceptor(
-      Selector selector, Iterable<ClassElement> classes) {
+      Selector selector, Iterable<ClassEntity> classes) {
     // The one-shot name is a global name derived from the invocation name.  To
     // avoid instability we would like the names to be unique and not clash with
     // other global names.

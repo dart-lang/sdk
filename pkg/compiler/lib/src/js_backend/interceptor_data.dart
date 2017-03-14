@@ -7,6 +7,7 @@ library js_backend.interceptor_data;
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart';
@@ -17,27 +18,26 @@ import 'native_data.dart';
 
 abstract class InterceptorData {
   /// Returns `true` if [cls] is an intercepted class.
-  // TODO(johnniwinther): Rename this to `isInterceptedClass`.
-  bool isInterceptorClass(ClassElement element);
+  bool isInterceptedClass(ClassEntity element);
 
-  bool isInterceptedMethod(MemberElement element);
-  bool fieldHasInterceptedGetter(Element element);
-  bool fieldHasInterceptedSetter(Element element);
+  bool isInterceptedMethod(MemberEntity element);
+  bool fieldHasInterceptedGetter(FieldEntity element);
+  bool fieldHasInterceptedSetter(FieldEntity element);
   bool isInterceptedName(String name);
   bool isInterceptedSelector(Selector selector);
   bool isInterceptedMixinSelector(Selector selector, TypeMask mask);
-  Iterable<ClassElement> get interceptedClasses;
-  bool isMixedIntoInterceptedClass(ClassElement element);
+  Iterable<ClassEntity> get interceptedClasses;
+  bool isMixedIntoInterceptedClass(ClassEntity element);
 
   /// Returns a set of interceptor classes that contain a member named [name]
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
-  Set<ClassElement> getInterceptedClassesOn(String name);
+  Set<ClassEntity> getInterceptedClassesOn(String name);
 }
 
 abstract class InterceptorDataBuilder {
-  void addInterceptors(ClassElement cls);
-  void addInterceptorsForNativeClassMembers(ClassElement cls);
+  void addInterceptors(ClassEntity cls);
+  void addInterceptorsForNativeClassMembers(ClassEntity cls);
   InterceptorData onResolutionComplete(ClosedWorld closedWorld);
 }
 
@@ -92,13 +92,11 @@ class InterceptorDataImpl implements InterceptorData {
     return _interceptedElements[element.name] != null;
   }
 
-  bool fieldHasInterceptedGetter(Element element) {
-    assert(element.isField);
+  bool fieldHasInterceptedGetter(FieldElement element) {
     return _interceptedElements[element.name] != null;
   }
 
-  bool fieldHasInterceptedSetter(Element element) {
-    assert(element.isField);
+  bool fieldHasInterceptedSetter(FieldElement element) {
     return _interceptedElements[element.name] != null;
   }
 
@@ -186,7 +184,7 @@ class InterceptorDataImpl implements InterceptorData {
     return result;
   }
 
-  bool isInterceptorClass(ClassElement element) {
+  bool isInterceptedClass(ClassElement element) {
     if (element == null) return false;
     if (_nativeData.isNativeOrExtendsNative(element)) return true;
     if (interceptedClasses.contains(element)) return true;
@@ -291,17 +289,17 @@ class OneShotInterceptorData {
   /// specializing it based on the incoming type. The keys in the map are the
   /// names of these specialized versions. Note that the generic version that
   /// contains all possible type checks is also stored in this map.
-  final Map<jsAst.Name, Set<ClassElement>> _specializedGetInterceptors =
-      <jsAst.Name, Set<ClassElement>>{};
+  final Map<jsAst.Name, Set<ClassEntity>> _specializedGetInterceptors =
+      <jsAst.Name, Set<ClassEntity>>{};
 
   Iterable<jsAst.Name> get specializedGetInterceptorNames =>
       _specializedGetInterceptors.keys.toList()..sort();
 
-  Set<ClassElement> getSpecializedGetInterceptorsFor(jsAst.Name name) =>
+  Set<ClassEntity> getSpecializedGetInterceptorsFor(jsAst.Name name) =>
       _specializedGetInterceptors[name];
 
   jsAst.Name registerOneShotInterceptor(Selector selector, Namer namer) {
-    Set<ClassElement> classes =
+    Set<ClassEntity> classes =
         _interceptorData.getInterceptedClassesOn(selector.name);
     jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);
     if (!_oneShotInterceptors.containsKey(name)) {
@@ -312,7 +310,7 @@ class OneShotInterceptorData {
   }
 
   void registerSpecializedGetInterceptor(
-      Set<ClassElement> classes, Namer namer) {
+      Set<ClassEntity> classes, Namer namer) {
     jsAst.Name name = namer.nameForGetInterceptor(classes);
     if (classes.contains(_helpers.jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make

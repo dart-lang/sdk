@@ -46,7 +46,7 @@ class InterceptorStubGenerator {
      */
     jsAst.Statement buildInterceptorCheck(ClassEntity cls) {
       jsAst.Expression condition;
-      assert(backend.interceptorData.isInterceptorClass(cls));
+      assert(backend.interceptorData.isInterceptedClass(cls));
       if (cls == helpers.jsBoolClass) {
         condition = js('(typeof receiver) == "boolean"');
       } else if (cls == helpers.jsIntClass ||
