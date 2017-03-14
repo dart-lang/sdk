@@ -19,21 +19,47 @@ import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'mirrors_data.dart';
 
-/**
- * Handles construction of TypeVariable constants needed at runtime.
- */
-class TypeVariableHandler {
-  final JavaScriptBackend _backend;
+/// Resolution analysis that prepares for the construction of TypeVariable
+/// constants needed at runtime.
+class TypeVariableAnalysis {
   final ElementEnvironment _elementEnvironment;
-  final BackendHelpers _helpers;
   final BackendImpacts _impacts;
   final BackendUsageBuilder _backendUsageBuilder;
-  final MirrorsData _mirrorsData;
 
   /**
    * Set to 'true' on first encounter of a class with type variables.
    */
   bool _seenClassesWithTypeVariables = false;
+
+  /// Impact builder used for the resolution world computation.
+  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+
+  TypeVariableAnalysis(
+      this._elementEnvironment, this._impacts, this._backendUsageBuilder);
+
+  /// Compute the [WorldImpact] for the type variables registered since last
+  /// flush.
+  WorldImpact flush() {
+    return impactBuilder.flush();
+  }
+
+  void registerClassWithTypeVariables(ClassElement cls) {
+    // On first encounter, we have to ensure that the support classes get
+    // resolved.
+    if (!_seenClassesWithTypeVariables) {
+      _impacts.typeVariableMirror
+          .registerImpact(impactBuilder, _elementEnvironment);
+      _backendUsageBuilder.processBackendImpact(_impacts.typeVariableMirror);
+      _seenClassesWithTypeVariables = true;
+    }
+  }
+}
+
+/// Codegen handler that creates TypeVariable constants needed at runtime.
+class TypeVariableHandler {
+  final JavaScriptBackend _backend;
+  final BackendHelpers _helpers;
+  final MirrorsData _mirrorsData;
 
   /**
    *  Maps a class element to a list with indices that point to type variables
@@ -49,44 +75,24 @@ class TypeVariableHandler {
   Map<TypeVariableElement, jsAst.Expression> _typeVariableConstants =
       new Map<TypeVariableElement, jsAst.Expression>();
 
-  /// Impact builder used for the resolution world computation.
-  final StagedWorldImpactBuilder impactBuilderForResolution =
-      new StagedWorldImpactBuilder();
-
   /// Impact builder used for the codegen world computation.
   final StagedWorldImpactBuilder impactBuilderForCodegen =
       new StagedWorldImpactBuilder();
 
-  TypeVariableHandler(this._backend, this._elementEnvironment, this._helpers,
-      this._impacts, this._backendUsageBuilder, this._mirrorsData);
+  TypeVariableHandler(this._backend, this._helpers, this._mirrorsData);
 
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
 
   /// Compute the [WorldImpact] for the type variables registered since last
   /// flush.
-  WorldImpact flush({bool forResolution}) {
-    if (forResolution) {
-      return impactBuilderForResolution.flush();
-    } else {
-      return impactBuilderForCodegen.flush();
-    }
+  WorldImpact flush() {
+    return impactBuilderForCodegen.flush();
   }
 
-  void registerClassWithTypeVariables(ClassElement cls, {bool forResolution}) {
-    if (forResolution) {
-      // On first encounter, we have to ensure that the support classes get
-      // resolved.
-      if (!_seenClassesWithTypeVariables) {
-        _impacts.typeVariableMirror
-            .registerImpact(impactBuilderForResolution, _elementEnvironment);
-        _backendUsageBuilder.processBackendImpact(_impacts.typeVariableMirror);
-        _seenClassesWithTypeVariables = true;
-      }
-    } else {
-      if (_mirrorsData.isAccessibleByReflection(cls)) {
-        processTypeVariablesOf(cls);
-      }
+  void registerClassWithTypeVariables(ClassElement cls) {
+    if (_mirrorsData.isAccessibleByReflection(cls)) {
+      processTypeVariablesOf(cls);
     }
   }
 

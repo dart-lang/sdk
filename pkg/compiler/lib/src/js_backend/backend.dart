@@ -384,6 +384,10 @@ class JavaScriptBackend extends Target {
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
 
+  /// Resolution analysis for tracking reflective access to type variables.
+  TypeVariableAnalysis typeVariableAnalysis;
+
+  /// Codegen handler for reflective access to type variables.
   TypeVariableHandler typeVariableHandler;
 
   /// Resolution and codegen support for generating table of interceptors and
@@ -493,13 +497,9 @@ class JavaScriptBackend extends Target {
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-    typeVariableHandler = new TypeVariableHandler(
-        this,
-        compiler.elementEnvironment,
-        helpers,
-        impacts,
-        backendUsageBuilder,
-        mirrorsData);
+    typeVariableAnalysis = new TypeVariableAnalysis(
+        compiler.elementEnvironment, impacts, backendUsageBuilder);
+    typeVariableHandler = new TypeVariableHandler(this, helpers, mirrorsData);
     customElementsAnalysis = new CustomElementsAnalysis(
         this,
         compiler.resolution,

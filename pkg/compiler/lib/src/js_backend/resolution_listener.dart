@@ -77,7 +77,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   // TODO(johnniwinther): Change this to a final field. Currently breaks
   // `kernel/closed_world_test`.
-  TypeVariableHandler get _typeVariableHandler => _backend.typeVariableHandler;
+  TypeVariableAnalysis get _typeVariableAnalysis =>
+      _backend.typeVariableAnalysis;
 
   void _registerBackendImpact(
       WorldImpactBuilder builder, BackendImpact impact) {
@@ -182,7 +183,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: true));
     enqueuer.applyImpact(_lookupMapAnalysis.flush(forResolution: true));
-    enqueuer.applyImpact(_typeVariableHandler.flush(forResolution: true));
+    enqueuer.applyImpact(_typeVariableAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {
       MemberEntity element =
@@ -284,8 +285,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   WorldImpact _processClass(ClassElement cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      _typeVariableHandler.registerClassWithTypeVariables(cls,
-          forResolution: true);
+      _typeVariableAnalysis.registerClassWithTypeVariables(cls);
     }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
     // for these into [BackendHelpers] or [BackendImpacts].

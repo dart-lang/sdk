@@ -131,13 +131,10 @@ ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
   // TODO(johnniwinther): Store backend info separately. This replacement is
   // made to reset a field in [TypeVariableHandler] that prevents it from
   // enqueuing twice.
-  backend.typeVariableHandler = new TypeVariableHandler(
-      backend,
+  backend.typeVariableAnalysis = new TypeVariableAnalysis(
       compiler.elementEnvironment,
-      backend.helpers,
       backend.impacts,
-      backend.backendUsageBuilder,
-      backend.mirrorsData);
+      backend.backendUsageBuilder);
 
   if (compiler.deferredLoadTask.isProgramSplit) {
     enqueuer.applyImpact(backend.computeDeferredLoadingImpact());

@@ -140,7 +140,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush(forResolution: false));
     enqueuer.applyImpact(_lookupMapAnalysis.flush(forResolution: false));
-    enqueuer.applyImpact(_typeVariableHandler.flush(forResolution: false));
+    enqueuer.applyImpact(_typeVariableHandler.flush());
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
       enqueuer.applyImpact(
@@ -183,8 +183,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   WorldImpact _processClass(ClassElement cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      _typeVariableHandler.registerClassWithTypeVariables(cls,
-          forResolution: false);
+      _typeVariableHandler.registerClassWithTypeVariables(cls);
     }
     if (cls == _helpers.closureClass) {
       _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);
