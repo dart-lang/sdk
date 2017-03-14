@@ -1335,39 +1335,13 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
-  bool negate = false;
   if (call->ArgumentCount() == 2) {
     type_args = flow_graph()->constant_null();
-    if (call->MatchesCoreName(Symbols::_simpleInstanceOf())) {
-      type =
-          AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
-      negate = false;  // Just to be sure.
-    } else {
-      if (call->MatchesCoreName(Symbols::_instanceOfNum())) {
-        type = Type::Number();
-      } else if (call->MatchesCoreName(Symbols::_instanceOfInt())) {
-        type = Type::IntType();
-      } else if (call->MatchesCoreName(Symbols::_instanceOfSmi())) {
-        type = Type::SmiType();
-      } else if (call->MatchesCoreName(Symbols::_instanceOfDouble())) {
-        type = Type::Double();
-      } else if (call->MatchesCoreName(Symbols::_instanceOfString())) {
-        type = Type::StringType();
-      } else {
-        UNIMPLEMENTED();
-      }
-      negate =
-          Bool::Cast(
-              call->ArgumentAt(1)->OriginalDefinition()->AsConstant()->value())
-              .value();
-    }
+    ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
+    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
   } else {
     type_args = call->ArgumentAt(1);
     type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
-    negate =
-        Bool::Cast(
-            call->ArgumentAt(3)->OriginalDefinition()->AsConstant()->value())
-            .value();
   }
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
@@ -1382,8 +1356,7 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       if (results->length() == number_of_checks * 2) {
         const bool can_deopt = TryExpandTestCidsResult(results, type);
         TestCidsInstr* test_cids = new (Z) TestCidsInstr(
-            call->token_pos(), negate ? Token::kISNOT : Token::kIS,
-            new (Z) Value(left), *results,
+            call->token_pos(), Token::kIS, new (Z) Value(left), *results,
             can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
         // Remove type.
         ReplaceCall(call, test_cids);
@@ -1393,9 +1366,6 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       // TODO(srdjan): Use TestCidsInstr also for this case.
       // One result only.
       AddReceiverCheck(call);
-      if (negate) {
-        as_bool = Bool::Get(!as_bool.value()).raw();
-      }
       ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
       for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
         PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -1416,17 +1386,17 @@ void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
 
-    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
-        call->token_pos(), negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
-        new (Z) Value(left_cid), new (Z) Value(cid),
-        false);  // No number check.
+    StrictCompareInstr* check_cid =
+        new (Z) StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+                                   new (Z) Value(left_cid), new (Z) Value(cid),
+                                   false);  // No number check.
     ReplaceCall(call, check_cid);
     return;
   }
 
-  InstanceOfInstr* instance_of = new (Z)
-      InstanceOfInstr(call->token_pos(), new (Z) Value(left),
-                      new (Z) Value(type_args), type, negate, call->deopt_id());
+  InstanceOfInstr* instance_of =
+      new (Z) InstanceOfInstr(call->token_pos(), new (Z) Value(left),
+                              new (Z) Value(type_args), type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 

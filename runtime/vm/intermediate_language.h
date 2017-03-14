@@ -3947,12 +3947,8 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
                   Value* value,
                   Value* instantiator_type_arguments,
                   const AbstractType& type,
-                  bool negate_result,
                   intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        token_pos_(token_pos),
-        type_(type),
-        negate_result_(negate_result) {
+      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
@@ -3964,7 +3960,6 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
   Value* value() const { return inputs_[0]; }
   Value* instantiator_type_arguments() const { return inputs_[1]; }
 
-  bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -3979,7 +3974,6 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
   Value* value_;
   Value* type_arguments_;
   const AbstractType& type_;
-  const bool negate_result_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfInstr);
 };

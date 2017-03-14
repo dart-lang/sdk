@@ -5027,13 +5027,10 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
     instructions += Constant(type);
     instructions += PushArgument();  // Type.
 
-    instructions += Constant(Bool::False());
-    instructions += PushArgument();  // Negate?.
-
     instructions +=
         InstanceCall(node->position(),
                      dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
-                     Token::kIS, 4);
+                     Token::kIS, 3);
   }
 
   fragment_ = instructions;
@@ -6123,12 +6120,10 @@ void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
         catch_body += PushArgument();  // type arguments
         catch_body += Constant(*type_guard);
         catch_body += PushArgument();  // guard type
-        catch_body += Constant(Object::bool_false());
-        catch_body += PushArgument();  // negate
         catch_body += InstanceCall(
             TokenPosition::kNoSource,
             dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
-            Token::kIS, 4);
+            Token::kIS, 3);
 
         TargetEntryInstr* catch_entry;
         TargetEntryInstr* next_catch_entry;
