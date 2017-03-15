@@ -175,6 +175,11 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     return true;
   }
 
+  @override
+  void onQueueClosed() {
+    _lookupMapAnalysis.onQueueClosed();
+  }
+
   /// Adds the impact of [constant] to [impactBuilder].
   void _computeImpactForCompileTimeConstant(
       ConstantValue constant, WorldImpactBuilder impactBuilder) {
@@ -338,7 +343,9 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     return _processClass(cls);
   }
 
+  @override
   void logSummary(void log(String message)) {
+    _lookupMapAnalysis.logSummary(log);
     _nativeEnqueuer.logSummary(log);
   }
 }

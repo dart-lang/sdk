@@ -221,6 +221,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     return true;
   }
 
+  @override
+  void onQueueClosed() {}
+
   /// Adds the impact of [constant] to [impactBuilder].
   void _computeImpactForCompileTimeConstant(
       ConstantValue constant, WorldImpactBuilder impactBuilder) {
@@ -475,6 +478,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         impactBuilder, new BackendImpact(globalUses: staticUses));
   }
 
+  @override
   void logSummary(void log(String message)) {
     _nativeEnqueuer.logSummary(log);
   }

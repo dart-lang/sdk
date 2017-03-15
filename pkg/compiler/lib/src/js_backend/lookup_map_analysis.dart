@@ -10,6 +10,8 @@ import 'package:pub_semver/pub_semver.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
+import '../compile_time_constants.dart';
+import '../constants/constant_system.dart';
 import '../constants/values.dart'
     show
         ConstantValue,
@@ -25,7 +27,6 @@ import '../options.dart';
 import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
-import 'backend.dart' show JavaScriptBackend;
 import 'backend_helpers.dart';
 
 /// Lookup map handling for resolution.
@@ -120,20 +121,90 @@ class LookupMapLibraryAccess {
 // ClassElement of a type to refer to keys we need to discover).
 // TODO(sigmund): detect uses of mirrors
 class LookupMapAnalysis {
+  const LookupMapAnalysis._();
+
+  factory LookupMapAnalysis(
+      DiagnosticReporter reporter,
+      ConstantSystem constantSystem,
+      ConstantEnvironment constants,
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      BackendHelpers helpers,
+      BackendClasses backendClasses,
+      LookupMapLibraryAccess analysis) {
+    /// Checks if the version of lookup_map is valid, and if so, enable this
+    /// analysis during codegen.
+    FieldElement lookupMapVersionVariable = analysis.lookupMapVersionVariable;
+    if (lookupMapVersionVariable == null) return const LookupMapAnalysis._();
+
+    // At this point, the lookupMapVersionVariable should be resolved and it's
+    // constant value should be available.
+    StringConstantValue value =
+        constants.getConstantValue(lookupMapVersionVariable.constant);
+    if (value == null) {
+      reporter.reportHintMessage(lookupMapVersionVariable,
+          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
+      return const LookupMapAnalysis._();
+    }
+
+    // TODO(sigmund): add proper version resolution using the pub_semver package
+    // when we introduce the next version.
+    Version version;
+    try {
+      version = new Version.parse(value.primitiveValue.slowToString());
+    } catch (e) {}
+
+    if (version == null || !_validLookupMapVersionConstraint.allows(version)) {
+      reporter.reportHintMessage(lookupMapVersionVariable,
+          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
+      return const LookupMapAnalysis._();
+    }
+
+    ClassEntity typeLookupMapClass =
+        elementEnvironment.lookupClass(analysis.lookupMapLibrary, 'LookupMap');
+    FieldElement entriesField =
+        elementEnvironment.lookupClassMember(typeLookupMapClass, '_entries');
+    FieldElement keyField =
+        elementEnvironment.lookupClassMember(typeLookupMapClass, '_key');
+    FieldElement valueField =
+        elementEnvironment.lookupClassMember(typeLookupMapClass, '_value');
+    // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
+
+    return new _LookupMapAnalysis(constantSystem, commonElements, helpers,
+        backendClasses, entriesField, keyField, valueField, typeLookupMapClass);
+  }
+
+  /// Compute the [WorldImpact] for the constants registered since last flush.
+  WorldImpact flush() => const WorldImpact();
+
+  /// Whether [constant] is an instance of a `LookupMap`.
+  bool isLookupMap(ConstantValue constant) => false;
+
+  /// Registers an instance of a lookup-map with the analysis.
+  void registerLookupMapReference(ConstantValue lookupMap) {}
+
+  /// Callback from the enqueuer, invoked when [element] is instantiated.
+  void registerInstantiatedClass(ClassElement element) {}
+
+  /// Callback from the enqueuer, invoked when [type] is instantiated.
+  void registerInstantiatedType(ResolutionInterfaceType type) {}
+
+  /// Callback from the codegen enqueuer, invoked when a constant (which is
+  /// possibly a const key or a type literal) is used in the program.
+  void registerTypeConstant(ClassElement element) {}
+
+  void registerConstantKey(ConstantValue constant) {}
+
+  void logSummary(void log(String message)) {}
+
+  void onQueueClosed() {}
+}
+
+class _LookupMapAnalysis implements LookupMapAnalysis {
   static final Uri PACKAGE_LOOKUP_MAP =
       new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
 
-  /// Reference to [JavaScriptBackend] to be able to enqueue work when we
-  /// discover that a key in a map is potentially used.
-  final JavaScriptBackend _backend;
-
-  final CompilerOptions _options;
-
-  /// Reference the diagnostic reporting system for logging and reporting issues
-  /// to the end-user.
-  final DiagnosticReporter _reporter;
-
-  final ElementEnvironment _elementEnvironment;
+  final ConstantSystem _constantSystem;
 
   final CommonElements _commonElements;
 
@@ -142,16 +213,16 @@ class LookupMapAnalysis {
   final BackendClasses _backendClasses;
 
   /// The resolved [ClassElement] associated with `LookupMap`.
-  ClassElement typeLookupMapClass;
+  final ClassElement _typeLookupMapClass;
 
   /// The resolved [FieldElement] for `LookupMap._entries`.
-  FieldElement entriesField;
+  final FieldElement _entriesField;
 
   /// The resolved [FieldElement] for `LookupMap._key`.
-  FieldElement keyField;
+  final FieldElement _keyField;
 
   /// The resolved [FieldElement] for `LookupMap._value`.
-  FieldElement valueField;
+  final FieldElement _valueField;
 
   /// Constant instances of `LookupMap` and information about them tracked by
   /// this analysis.
@@ -181,81 +252,32 @@ class LookupMapAnalysis {
   final StagedWorldImpactBuilder _impactBuilder =
       new StagedWorldImpactBuilder();
 
-  /// Whether the backend is currently processing the codegen queue.
-  bool _inCodegen = false;
-
-  LookupMapAnalysis(
-      this._backend,
-      this._options,
-      this._reporter,
-      this._elementEnvironment,
+  _LookupMapAnalysis(
+      this._constantSystem,
       this._commonElements,
       this._helpers,
-      this._backendClasses);
+      this._backendClasses,
+      this._entriesField,
+      this._keyField,
+      this._valueField,
+      this._typeLookupMapClass);
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
   WorldImpact flush() {
     return _impactBuilder.flush();
   }
 
-  /// Whether this analysis and optimization is enabled.
-  bool get _isEnabled {
-    // `lookupMap==off` kept here to make it easy to test disabling this feature
-    if (const String.fromEnvironment('lookupMap') == 'off') return false;
-    return typeLookupMapClass != null;
-  }
-
-  /// Checks if the version of lookup_map is valid, and if so, enable this
-  /// analysis during codegen.
-  void onCodegenStart(LookupMapLibraryAccess analysis) {
-    _inCodegen = true;
-    FieldElement lookupMapVersionVariable = analysis.lookupMapVersionVariable;
-    if (lookupMapVersionVariable == null) return;
-
-    // At this point, the lookupMapVersionVariable should be resolved and it's
-    // constant value should be available.
-    StringConstantValue value =
-        _backend.constants.getConstantValue(lookupMapVersionVariable.constant);
-    if (value == null) {
-      _reporter.reportHintMessage(lookupMapVersionVariable,
-          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
-      return;
-    }
-
-    // TODO(sigmund): add proper version resolution using the pub_semver package
-    // when we introduce the next version.
-    Version version;
-    try {
-      version = new Version.parse(value.primitiveValue.slowToString());
-    } catch (e) {}
-
-    if (version == null || !_validLookupMapVersionConstraint.allows(version)) {
-      _reporter.reportHintMessage(lookupMapVersionVariable,
-          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
-      return;
-    }
-
-    ClassEntity cls =
-        _elementEnvironment.lookupClass(analysis.lookupMapLibrary, 'LookupMap');
-    entriesField = _elementEnvironment.lookupClassMember(cls, '_entries');
-    keyField = _elementEnvironment.lookupClassMember(cls, '_key');
-    valueField = _elementEnvironment.lookupClassMember(cls, '_value');
-    // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
-    typeLookupMapClass = cls;
-  }
-
   /// Whether [constant] is an instance of a `LookupMap`.
   bool isLookupMap(ConstantValue constant) {
-    if (_isEnabled && constant is ConstructedConstantValue) {
+    if (constant is ConstructedConstantValue) {
       ResolutionInterfaceType type = constant.type;
-      return type.element.isSubclassOf(typeLookupMapClass);
+      return type.element.isSubclassOf(_typeLookupMapClass);
     }
     return false;
   }
 
   /// Registers an instance of a lookup-map with the analysis.
   void registerLookupMapReference(ConstantValue lookupMap) {
-    if (!_isEnabled || !_inCodegen) return;
     assert(isLookupMap(lookupMap));
     _lookupMaps.putIfAbsent(
         lookupMap, () => new _LookupMapInfo(lookupMap, this).._updateUsed());
@@ -280,8 +302,8 @@ class LookupMapAnalysis {
   void _addClassUse(ClassElement cls) {
     ConstantValue key = _typeConstants.putIfAbsent(
         cls,
-        () => _backend.constantSystem
-            .createType(_commonElements, _backendClasses, cls.rawType));
+        () => _constantSystem.createType(
+            _commonElements, _backendClasses, cls.rawType));
     _addUse(key);
   }
 
@@ -306,14 +328,12 @@ class LookupMapAnalysis {
 
   /// Callback from the enqueuer, invoked when [element] is instantiated.
   void registerInstantiatedClass(ClassElement element) {
-    if (!_isEnabled || !_inCodegen) return;
     // TODO(sigmund): only add if .runtimeType is ever used
     _addClassUse(element);
   }
 
   /// Callback from the enqueuer, invoked when [type] is instantiated.
   void registerInstantiatedType(ResolutionInterfaceType type) {
-    if (!_isEnabled || !_inCodegen) return;
     // TODO(sigmund): only add if .runtimeType is ever used
     _addClassUse(type.element);
     // TODO(sigmund): only do this when type-argument expressions are used?
@@ -342,14 +362,29 @@ class LookupMapAnalysis {
   /// Callback from the codegen enqueuer, invoked when a constant (which is
   /// possibly a const key or a type literal) is used in the program.
   void registerTypeConstant(ClassElement element) {
-    if (!_isEnabled || !_inCodegen) return;
     _addClassUse(element);
   }
 
   void registerConstantKey(ConstantValue constant) {
-    if (!_isEnabled || !_inCodegen) return;
     if (constant.isPrimitive || _overridesEquals(constant)) return;
     _addUse(constant);
+  }
+
+  void logSummary(void log(String message)) {
+    // When --verbose is passed, we show the total number and set of keys that
+    // were tree-shaken from lookup maps.
+    var sb = new StringBuffer();
+    int count = 0;
+    for (var info in _lookupMaps.values) {
+      for (var key in info.unusedEntries.keys) {
+        if (count != 0) sb.write(',');
+        sb.write(key.toDartText());
+        count++;
+      }
+    }
+    log(count == 0
+        ? 'lookup-map: nothing was tree-shaken'
+        : 'lookup-map: found $count unused keys ($sb)');
   }
 
   /// Callback from the backend, invoked when reaching the end of the enqueuing
@@ -357,30 +392,11 @@ class LookupMapAnalysis {
   /// all types used in the program and we can tree-shake anything that is
   /// unused.
   void onQueueClosed() {
-    if (!_isEnabled || !_inCodegen) return;
-
     _lookupMaps.values.forEach((info) {
       assert(!info.emitted);
       info.emitted = true;
       info._prepareForEmission();
     });
-
-    // When --verbose is passed, we show the total number and set of keys that
-    // were tree-shaken from lookup maps.
-    if (_options.verbose) {
-      var sb = new StringBuffer();
-      int count = 0;
-      for (var info in _lookupMaps.values) {
-        for (var key in info.unusedEntries.keys) {
-          if (count != 0) sb.write(',');
-          sb.write(key.toDartText());
-          count++;
-        }
-      }
-      _reporter.log(count == 0
-          ? 'lookup-map: nothing was tree-shaken'
-          : 'lookup-map: found $count unused keys ($sb)');
-    }
 
     // Release resources.
     _lookupMaps.clear();
@@ -404,7 +420,7 @@ class _LookupMapInfo {
 
   /// Reference to the lookup map analysis to be able to refer to data shared
   /// accross infos.
-  final LookupMapAnalysis analysis;
+  final _LookupMapAnalysis analysis;
 
   /// Whether we have already emitted this constant.
   bool emitted = false;
@@ -425,17 +441,17 @@ class _LookupMapInfo {
   /// Creates and initializes the information containing all keys of the
   /// original map marked as unused.
   _LookupMapInfo(this.original, this.analysis) {
-    ConstantValue key = original.fields[analysis.keyField];
+    ConstantValue key = original.fields[analysis._keyField];
     singlePair = !key.isNull;
 
     if (singlePair) {
-      unusedEntries[key] = original.fields[analysis.valueField];
+      unusedEntries[key] = original.fields[analysis._valueField];
 
       // Note: we modify the constant in-place, see comment in [original].
-      original.fields[analysis.keyField] = new NullConstantValue();
-      original.fields[analysis.valueField] = new NullConstantValue();
+      original.fields[analysis._keyField] = new NullConstantValue();
+      original.fields[analysis._valueField] = new NullConstantValue();
     } else {
-      ListConstantValue list = original.fields[analysis.entriesField];
+      ListConstantValue list = original.fields[analysis._entriesField];
       List<ConstantValue> keyValuePairs = list.entries;
       for (int i = 0; i < keyValuePairs.length; i += 2) {
         ConstantValue key = keyValuePairs[i];
@@ -443,7 +459,7 @@ class _LookupMapInfo {
       }
 
       // Note: we modify the constant in-place, see comment in [original].
-      original.fields[analysis.entriesField] =
+      original.fields[analysis._entriesField] =
           new ListConstantValue(list.type, []);
     }
   }
@@ -478,7 +494,7 @@ class _LookupMapInfo {
 
   /// Restores [original] to contain all of the entries marked as possibly used.
   void _prepareForEmission() {
-    ListConstantValue originalEntries = original.fields[analysis.entriesField];
+    ListConstantValue originalEntries = original.fields[analysis._entriesField];
     ResolutionInterfaceType listType = originalEntries.type;
     List<ConstantValue> keyValuePairs = <ConstantValue>[];
     usedEntries.forEach((key, value) {
@@ -490,11 +506,11 @@ class _LookupMapInfo {
     if (singlePair) {
       assert(keyValuePairs.length == 0 || keyValuePairs.length == 2);
       if (keyValuePairs.length == 2) {
-        original.fields[analysis.keyField] = keyValuePairs[0];
-        original.fields[analysis.valueField] = keyValuePairs[1];
+        original.fields[analysis._keyField] = keyValuePairs[0];
+        original.fields[analysis._valueField] = keyValuePairs[1];
       }
     } else {
-      original.fields[analysis.entriesField] =
+      original.fields[analysis._entriesField] =
           new ListConstantValue(listType, keyValuePairs);
     }
   }

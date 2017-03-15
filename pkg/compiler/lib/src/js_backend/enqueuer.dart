@@ -248,7 +248,8 @@ class CodegenEnqueuer extends EnqueuerImpl {
     return listener.onQueueEmpty(this, recentClasses);
   }
 
-  void logSummary(log(message)) {
+  @override
+  void logSummary(void log(String message)) {
     log('Compiled ${_processedEntities.length} methods.');
     listener.logSummary(log);
   }

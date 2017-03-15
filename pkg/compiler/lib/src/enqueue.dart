@@ -147,6 +147,9 @@ abstract class EnqueuerListener {
   /// [recentClasses] at least once.
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses);
 
+  /// Called when to the queue has been closed.
+  void onQueueClosed();
+
   /// Called after the queue has been emptied.
   void logSummary(void log(String message));
 }
@@ -176,6 +179,7 @@ abstract class EnqueuerImpl extends Enqueuer {
     // TODO(johnniwinther): Set [_impactStrategy] to `null` and [queueIsClosed]
     // to `true` here.
     _impactStrategy = const ImpactStrategy();
+    listener.onQueueClosed();
   }
 }
 

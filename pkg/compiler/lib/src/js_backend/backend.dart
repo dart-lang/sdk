@@ -397,7 +397,7 @@ class JavaScriptBackend {
   LookupMapLibraryAccess lookupMapLibraryAccess;
 
   /// Codegen support for tree-shaking entries of `LookupMap`.
-  LookupMapAnalysis lookupMapAnalysis;
+  LookupMapAnalysis _lookupMapAnalysis;
 
   /// Codegen support for typed JavaScript interop.
   JsInteropAnalysis jsInteropAnalysis;
@@ -537,8 +537,6 @@ class JavaScriptBackend {
     mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
     lookupMapLibraryAccess =
         new LookupMapLibraryAccess(reporter, compiler.elementEnvironment);
-    lookupMapAnalysis = new LookupMapAnalysis(this, compiler.options, reporter,
-        compiler.elementEnvironment, commonElements, helpers, backendClasses);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     kernelTask = new KernelTask(compiler);
@@ -574,6 +572,13 @@ class JavaScriptBackend {
   Resolution get resolution => compiler.resolution;
 
   Target get target => _target;
+
+  /// Codegen support for tree-shaking entries of `LookupMap`.
+  LookupMapAnalysis get lookupMapAnalysis {
+    assert(invariant(NO_LOCATION_SPANNABLE, _lookupMapAnalysis != null,
+        message: "LookupMapAnalysis has not been created yet."));
+    return _lookupMapAnalysis;
+  }
 
   InterceptorData get interceptorData {
     assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData != null,
@@ -884,6 +889,15 @@ class JavaScriptBackend {
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
+    _lookupMapAnalysis = new LookupMapAnalysis(
+        reporter,
+        constantSystem,
+        constants,
+        compiler.elementEnvironment,
+        commonElements,
+        helpers,
+        backendClasses,
+        lookupMapLibraryAccess);
     return new CodegenEnqueuer(
         task,
         compiler.options,
@@ -1141,7 +1155,6 @@ class JavaScriptBackend {
   /// Called after the queue is closed. [onQueueEmpty] may be called multiple
   /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {
-    lookupMapAnalysis.onQueueClosed();
     jsInteropAnalysis.onQueueClosed();
   }
 
@@ -1184,7 +1197,6 @@ class JavaScriptBackend {
         lookupMapAnalysis,
         customElementsCodegenAnalysis,
         rtiChecksBuilder);
-    lookupMapAnalysis.onCodegenStart(lookupMapLibraryAccess);
     return const WorldImpact();
   }
 
