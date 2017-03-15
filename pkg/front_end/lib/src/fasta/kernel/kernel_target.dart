@@ -216,6 +216,30 @@ class KernelTarget extends TargetImplementation {
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
   }
 
+  Future<Program> writeOutline(Uri uri) async {
+    if (loader.first == null) return null;
+    try {
+      await loader.buildOutlines();
+      loader.resolveParts();
+      loader.computeLibraryScopes();
+      loader.resolveTypes();
+      loader.buildProgram();
+      loader.checkSemantics();
+      List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();
+      installDefaultSupertypes();
+      installDefaultConstructors(sourceClasses);
+      loader.resolveConstructors();
+      loader.finishTypeVariables(objectClassBuilder);
+      program = link(new List<Library>.from(loader.libraries));
+      if (uri == null) return program;
+      return await writeLinkedProgram(uri, program, isFullProgram: false);
+    } on InputError catch (e) {
+      return handleInputError(uri, e, isFullProgram: false);
+    } catch (e, s) {
+      return reportCrash(e, s, loader?.currentUriForCrashReporting);
+    }
+  }
+
   Future<Program> writeProgram(Uri uri,
       {bool dumpIr: false, bool verify: false}) async {
     if (loader.first == null) return null;
@@ -242,30 +266,6 @@ class KernelTarget extends TargetImplementation {
       return await writeLinkedProgram(uri, program, isFullProgram: true);
     } on InputError catch (e) {
       return handleInputError(uri, e, isFullProgram: true);
-    } catch (e, s) {
-      return reportCrash(e, s, loader?.currentUriForCrashReporting);
-    }
-  }
-
-  Future<Program> writeOutline(Uri uri) async {
-    if (loader.first == null) return null;
-    try {
-      await loader.buildOutlines();
-      loader.resolveParts();
-      loader.computeLibraryScopes();
-      loader.resolveTypes();
-      loader.buildProgram();
-      loader.checkSemantics();
-      List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();
-      installDefaultSupertypes();
-      installDefaultConstructors(sourceClasses);
-      loader.resolveConstructors();
-      loader.finishTypeVariables(objectClassBuilder);
-      program = link(new List<Library>.from(loader.libraries));
-      if (uri == null) return program;
-      return await writeLinkedProgram(uri, program, isFullProgram: false);
-    } on InputError catch (e) {
-      return handleInputError(uri, e, isFullProgram: false);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
