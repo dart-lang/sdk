@@ -14,6 +14,7 @@
 * `dart:io`: Added functions `File.lastAccessed`, `File.lastAccessedSync`,
   `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
   and `File.setLastAccessedSync`.
+* `dart:io`: Added `Platform.ansiSupported`.
 
 ### Dart VM
 * Calls to `print()` and `Stdout.write*()` now correctly print unicode
@@ -27,15 +28,15 @@
   * The `dartanalyzer` now follows the same rules as the analysis server to find an analysis options file,
     stopping when an analysis options file is found:
     * Search up the directory hierarchy looking for an analysis options file.
-    * If analyzing a project referencing the [Flutter](https://flutter.io/) package, then use the 
+    * If analyzing a project referencing the [Flutter](https://flutter.io/) package, then use the
       [default Flutter analysis options](https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml)
       found in `package:flutter`.
     * If in a Bazel workspace, then use the analysis options in `package:dart.analysis_options/default.yaml` if it exists.
     * Use the default analysis options rules.
   * In addition, specific to `dartanalyzer`:
-    * an analysis options file can be specified on the command line via `--options` 
+    * an analysis options file can be specified on the command line via `--options`
       and that file will be used instead of searching for an analysis options file.
-    * any analysis option specified on the command line (e.g. `--strong` or `--no-strong`) 
+    * any analysis option specified on the command line (e.g. `--strong` or `--no-strong`)
       takes precedence over any corresponding value specified in the analysis options file.
 
 
