@@ -18,11 +18,13 @@ class KLibrary implements LibraryEntity {
 }
 
 class KClass implements ClassEntity {
+  final KLibrary library;
+
   /// Class index used for fast lookup in [KernelWorldBuilder].
   final int classIndex;
   final String name;
 
-  KClass(this.classIndex, this.name);
+  KClass(this.library, this.classIndex, this.name);
 
   @override
   bool get isClosure => false;
@@ -31,11 +33,12 @@ class KClass implements ClassEntity {
 }
 
 abstract class KMember implements MemberEntity {
+  final KLibrary library;
   final KClass enclosingClass;
   final Name _name;
   final bool _isStatic;
 
-  KMember(this.enclosingClass, this._name, {bool isStatic: false})
+  KMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
       : _isStatic = isStatic;
 
   String get name => _name.text;
@@ -74,16 +77,21 @@ abstract class KMember implements MemberEntity {
 }
 
 abstract class KFunction extends KMember implements FunctionEntity {
-  KFunction(KClass enclosingClass, Name name, {bool isStatic: false})
-      : super(enclosingClass, name, isStatic: isStatic);
+  final bool isExternal;
+
+  KFunction(KLibrary library, KClass enclosingClass, Name name,
+      {bool isStatic: false, this.isExternal: false})
+      : super(library, enclosingClass, name, isStatic: isStatic);
 }
 
 abstract class KConstructor extends KFunction implements ConstructorEntity {
   /// Constructor index used for fast lookup in [KernelWorldBuilder].
   final int constructorIndex;
 
-  KConstructor(this.constructorIndex, KClass enclosingClass, Name name)
-      : super(enclosingClass, name);
+  KConstructor(this.constructorIndex, KClass enclosingClass, Name name,
+      {bool isExternal})
+      : super(enclosingClass.library, enclosingClass, name,
+            isExternal: isExternal);
 
   @override
   bool get isConstructor => true;
@@ -101,8 +109,9 @@ abstract class KConstructor extends KFunction implements ConstructorEntity {
 }
 
 class KGenerativeConstructor extends KConstructor {
-  KGenerativeConstructor(int constructorIndex, KClass enclosingClass, Name name)
-      : super(constructorIndex, enclosingClass, name);
+  KGenerativeConstructor(int constructorIndex, KClass enclosingClass, Name name,
+      {bool isExternal})
+      : super(constructorIndex, enclosingClass, name, isExternal: isExternal);
 
   @override
   bool get isFactoryConstructor => false;
@@ -112,8 +121,9 @@ class KGenerativeConstructor extends KConstructor {
 }
 
 class KFactoryConstructor extends KConstructor {
-  KFactoryConstructor(int constructorIndex, KClass enclosingClass, Name name)
-      : super(constructorIndex, enclosingClass, name);
+  KFactoryConstructor(int constructorIndex, KClass enclosingClass, Name name,
+      {bool isExternal})
+      : super(constructorIndex, enclosingClass, name, isExternal: isExternal);
 
   @override
   bool get isFactoryConstructor => true;
@@ -123,8 +133,10 @@ class KFactoryConstructor extends KConstructor {
 }
 
 class KMethod extends KFunction {
-  KMethod(KClass enclosingClass, Name name, {bool isStatic})
-      : super(enclosingClass, name, isStatic: isStatic);
+  KMethod(KLibrary library, KClass enclosingClass, Name name,
+      {bool isStatic, bool isExternal})
+      : super(library, enclosingClass, name,
+            isStatic: isStatic, isExternal: isExternal);
 
   @override
   bool get isFunction => true;
@@ -133,8 +145,10 @@ class KMethod extends KFunction {
 }
 
 class KGetter extends KFunction {
-  KGetter(KClass enclosingClass, Name name, {bool isStatic})
-      : super(enclosingClass, name, isStatic: isStatic);
+  KGetter(KLibrary library, KClass enclosingClass, Name name,
+      {bool isStatic, bool isExternal})
+      : super(library, enclosingClass, name,
+            isStatic: isStatic, isExternal: isExternal);
 
   @override
   bool get isGetter => true;
@@ -143,8 +157,10 @@ class KGetter extends KFunction {
 }
 
 class KSetter extends KFunction {
-  KSetter(KClass enclosingClass, Name name, {bool isStatic})
-      : super(enclosingClass, name, isStatic: isStatic);
+  KSetter(KLibrary library, KClass enclosingClass, Name name,
+      {bool isStatic, bool isExternal})
+      : super(library, enclosingClass, name,
+            isStatic: isStatic, isExternal: isExternal);
 
   @override
   bool get isAssignable => true;
@@ -160,9 +176,9 @@ class KField extends KMember implements FieldEntity {
   final int fieldIndex;
   final bool isAssignable;
 
-  KField(this.fieldIndex, KClass enclosingClass, Name name,
+  KField(this.fieldIndex, KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, this.isAssignable})
-      : super(enclosingClass, name, isStatic: isStatic);
+      : super(library, enclosingClass, name, isStatic: isStatic);
 
   @override
   bool get isField => true;

@@ -117,50 +117,59 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(_BACKEND_DATA_TAG);
     if (decoder != null) {
-      String jsInteropLibraryName =
-          decoder.getString(JS_INTEROP_LIBRARY_NAME, isOptional: true);
-      if (jsInteropLibraryName != null) {
-        nativeData.jsInteropLibraryNames[element] = jsInteropLibraryName;
-      }
-      String jsInteropClassName =
-          decoder.getString(JS_INTEROP_CLASS_NAME, isOptional: true);
-      if (jsInteropClassName != null) {
-        nativeData.jsInteropClassNames[element] = jsInteropClassName;
-      }
-      String jsInteropMemberName =
-          decoder.getString(JS_INTEROP_MEMBER_NAME, isOptional: true);
-      if (jsInteropMemberName != null) {
-        nativeData.jsInteropMemberNames[element] = jsInteropMemberName;
-      }
-      String nativeMemberName =
-          decoder.getString(NATIVE_MEMBER_NAME, isOptional: true);
-      if (nativeMemberName != null) {
-        nativeData.nativeMemberName[element] = nativeMemberName;
-      }
-      String nativeClassTagInfo =
-          decoder.getString(NATIVE_CLASS_TAG_INFO, isOptional: true);
-      if (nativeClassTagInfo != null) {
-        nativeData.nativeClassTagInfo[element] = nativeClassTagInfo;
-      }
-      ObjectDecoder nativeMethodBehavior =
-          decoder.getObject(NATIVE_METHOD_BEHAVIOR, isOptional: true);
-      if (nativeMethodBehavior != null) {
-        nativeData.nativeMethodBehavior[element] = NativeBehaviorSerialization
-            .deserializeNativeBehavior(nativeMethodBehavior);
-      }
-      ObjectDecoder nativeFieldLoadBehavior =
-          decoder.getObject(NATIVE_FIELD_LOAD_BEHAVIOR, isOptional: true);
-      if (nativeFieldLoadBehavior != null) {
-        nativeData.nativeFieldLoadBehavior[element] =
-            NativeBehaviorSerialization
-                .deserializeNativeBehavior(nativeFieldLoadBehavior);
-      }
-      ObjectDecoder nativeFieldStoreBehavior =
-          decoder.getObject(NATIVE_FIELD_STORE_BEHAVIOR, isOptional: true);
-      if (nativeFieldStoreBehavior != null) {
-        nativeData.nativeFieldStoreBehavior[element] =
-            NativeBehaviorSerialization
-                .deserializeNativeBehavior(nativeFieldStoreBehavior);
+      if (element is LibraryElement) {
+        String jsInteropLibraryName =
+            decoder.getString(JS_INTEROP_LIBRARY_NAME, isOptional: true);
+        if (jsInteropLibraryName != null) {
+          nativeData.jsInteropLibraryNames[element] = jsInteropLibraryName;
+        }
+      } else if (element is ClassElement) {
+        String jsInteropClassName =
+            decoder.getString(JS_INTEROP_CLASS_NAME, isOptional: true);
+        if (jsInteropClassName != null) {
+          nativeData.jsInteropClassNames[element] = jsInteropClassName;
+        }
+        String nativeClassTagInfo =
+            decoder.getString(NATIVE_CLASS_TAG_INFO, isOptional: true);
+        if (nativeClassTagInfo != null) {
+          nativeData.nativeClassTagInfo[element] = nativeClassTagInfo;
+        }
+      } else if (element is MemberElement) {
+        String jsInteropMemberName =
+            decoder.getString(JS_INTEROP_MEMBER_NAME, isOptional: true);
+        if (jsInteropMemberName != null) {
+          nativeData.jsInteropMemberNames[element] = jsInteropMemberName;
+        }
+        String nativeMemberName =
+            decoder.getString(NATIVE_MEMBER_NAME, isOptional: true);
+        if (nativeMemberName != null) {
+          nativeData.nativeMemberName[element] = nativeMemberName;
+        }
+
+        if (element is MethodElement) {
+          ObjectDecoder nativeMethodBehavior =
+              decoder.getObject(NATIVE_METHOD_BEHAVIOR, isOptional: true);
+          if (nativeMethodBehavior != null) {
+            nativeData.nativeMethodBehavior[element] =
+                NativeBehaviorSerialization
+                    .deserializeNativeBehavior(nativeMethodBehavior);
+          }
+        } else if (element is FieldElement) {
+          ObjectDecoder nativeFieldLoadBehavior =
+              decoder.getObject(NATIVE_FIELD_LOAD_BEHAVIOR, isOptional: true);
+          if (nativeFieldLoadBehavior != null) {
+            nativeData.nativeFieldLoadBehavior[element] =
+                NativeBehaviorSerialization
+                    .deserializeNativeBehavior(nativeFieldLoadBehavior);
+          }
+          ObjectDecoder nativeFieldStoreBehavior =
+              decoder.getObject(NATIVE_FIELD_STORE_BEHAVIOR, isOptional: true);
+          if (nativeFieldStoreBehavior != null) {
+            nativeData.nativeFieldStoreBehavior[element] =
+                NativeBehaviorSerialization
+                    .deserializeNativeBehavior(nativeFieldStoreBehavior);
+          }
+        }
       }
     }
   }

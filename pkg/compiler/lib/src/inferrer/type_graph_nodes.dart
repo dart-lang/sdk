@@ -477,23 +477,24 @@ class MemberTypeInformation extends ElementTypeInformation
       // goes in the work queue.
       giveUp(inferrer);
       if (element.isField) {
+        FieldElement field = element;
         return inferrer
             .typeOfNativeBehavior(
-                inferrer.backend.nativeData.getNativeFieldLoadBehavior(element))
+                inferrer.backend.nativeData.getNativeFieldLoadBehavior(field))
             .type;
       } else {
         assert(element.isFunction ||
             element.isGetter ||
             element.isSetter ||
             element.isConstructor);
-        TypedElement typedElement = element;
-        var elementType = typedElement.type;
+        MethodElement methodElement = element;
+        var elementType = methodElement.type;
         if (elementType.kind != ResolutionTypeKind.FUNCTION) {
           return safeType(inferrer);
         } else {
           return inferrer
-              .typeOfNativeBehavior(
-                  inferrer.backend.nativeData.getNativeMethodBehavior(element))
+              .typeOfNativeBehavior(inferrer.backend.nativeData
+                  .getNativeMethodBehavior(methodElement))
               .type;
         }
       }

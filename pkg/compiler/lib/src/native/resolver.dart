@@ -12,6 +12,7 @@ import '../elements/elements.dart'
     show
         ClassElement,
         Element,
+        FieldElement,
         LibraryElement,
         MemberElement,
         MetadataAnnotation,
@@ -70,24 +71,25 @@ class NativeDataResolverImpl implements NativeDataResolver {
         element.isConstructor ||
         element.isGetter ||
         element.isSetter) {
-      bool isNative = _processMethodAnnotations(element);
+      MethodElement method = element;
+      bool isNative = _processMethodAnnotations(method);
       if (isNative || isJsInterop) {
         NativeBehavior behavior = NativeBehavior
-            .ofMethodElement(element, _compiler, isJsInterop: isJsInterop);
-        _nativeDataBuilder.setNativeMethodBehavior(element, behavior);
+            .ofMethodElement(method, _compiler, isJsInterop: isJsInterop);
+        _nativeDataBuilder.setNativeMethodBehavior(method, behavior);
         registry.registerNativeData(behavior);
       }
     } else if (element.isField) {
-      bool isNative = _processFieldAnnotations(element);
+      FieldElement field = element;
+      bool isNative = _processFieldAnnotations(field);
       if (isNative || isJsInterop) {
         NativeBehavior fieldLoadBehavior = NativeBehavior
-            .ofFieldElementLoad(element, _compiler, isJsInterop: isJsInterop);
+            .ofFieldElementLoad(field, _compiler, isJsInterop: isJsInterop);
         NativeBehavior fieldStoreBehavior =
-            NativeBehavior.ofFieldElementStore(element, _compiler);
-        _nativeDataBuilder.setNativeFieldLoadBehavior(
-            element, fieldLoadBehavior);
+            NativeBehavior.ofFieldElementStore(field, _compiler);
+        _nativeDataBuilder.setNativeFieldLoadBehavior(field, fieldLoadBehavior);
         _nativeDataBuilder.setNativeFieldStoreBehavior(
-            element, fieldStoreBehavior);
+            field, fieldStoreBehavior);
 
         // TODO(sra): Process fields for storing separately.
         // We have to handle both loading and storing to the field because we
@@ -247,9 +249,10 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
   String apply(
       Compiler compiler, Element element, MetadataAnnotation annotation) {
     if (element.isClass) {
+      ClassElement cls = element;
       String native = getNativeAnnotation(annotation);
       if (native != null) {
-        _nativeClassDataBuilder.setNativeClassTagInfo(element, native);
+        _nativeClassDataBuilder.setNativeClassTagInfo(cls, native);
         return native;
       }
     }
@@ -280,8 +283,9 @@ void checkJsInteropClassAnnotations(Compiler compiler, LibraryElement library,
   }
   library.forEachLocalMember((Element element) {
     if (element.isClass) {
+      ClassElement cls = element;
       if (checkJsInteropAnnotation(element)) {
-        nativeClassDataBuilder.markAsJsInteropClass(element);
+        nativeClassDataBuilder.markAsJsInteropClass(cls);
       }
     }
   });

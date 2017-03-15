@@ -154,7 +154,7 @@ class JsInteropAnalysis {
           .forEachMember((ClassElement classElement, MemberElement member) {
         String memberName = processJsInteropAnnotation(member);
         if (memberName != null) {
-          backend.nativeDataBuilder.setJsInteropMemberName(element, memberName);
+          backend.nativeDataBuilder.setJsInteropMemberName(member, memberName);
         }
 
         if (!member.isSynthesized &&

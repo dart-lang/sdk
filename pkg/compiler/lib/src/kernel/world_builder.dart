@@ -148,12 +148,12 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KClass _getClass(ir.Class node, [KClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
+      KLibrary library = _getLibrary(node.enclosingLibrary);
       if (classEnv == null) {
-        KLibrary library = _getLibrary(node.enclosingLibrary);
         classEnv = _libraryEnvs[library.libraryIndex].lookupClass(node.name);
       }
       _classEnvs.add(classEnv);
-      return new KClass(_classMap.length, node.name);
+      return new KClass(library, _classMap.length, node.name);
     });
   }
 
@@ -190,12 +190,17 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     return _constructorMap.putIfAbsent(node, () {
       int constructorIndex = _constructorList.length;
       KConstructor constructor;
+      KClass enclosingClass = _getClass(node.enclosingClass);
+      Name name = getName(node.name);
+      bool isExternal = node.isExternal;
       if (node is ir.Constructor) {
-        constructor = new KGenerativeConstructor(constructorIndex,
-            _getClass(node.enclosingClass), getName(node.name));
+        constructor = new KGenerativeConstructor(
+            constructorIndex, enclosingClass, name,
+            isExternal: isExternal);
       } else {
-        constructor = new KFactoryConstructor(constructorIndex,
-            _getClass(node.enclosingClass), getName(node.name));
+        constructor = new KFactoryConstructor(
+            constructorIndex, enclosingClass, name,
+            isExternal: isExternal);
       }
       _constructorList.add(node);
       return constructor;
@@ -204,21 +209,30 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KFunction _getMethod(ir.Procedure node) {
     return _methodMap.putIfAbsent(node, () {
-      KClass enclosingClass =
-          node.enclosingClass != null ? _getClass(node.enclosingClass) : null;
+      KLibrary library;
+      KClass enclosingClass;
+      if (node.enclosingClass != null) {
+        enclosingClass = _getClass(node.enclosingClass);
+        library = enclosingClass.library;
+      } else {
+        library = _getLibrary(node.enclosingLibrary);
+      }
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
+      bool isExternal = node.isExternal;
       switch (node.kind) {
         case ir.ProcedureKind.Factory:
           throw new UnsupportedError("Cannot create method from factory.");
         case ir.ProcedureKind.Getter:
-          return new KGetter(enclosingClass, name, isStatic: isStatic);
+          return new KGetter(library, enclosingClass, name,
+              isStatic: isStatic, isExternal: isExternal);
         case ir.ProcedureKind.Method:
         case ir.ProcedureKind.Operator:
-          return new KMethod(enclosingClass, name, isStatic: isStatic);
+          return new KMethod(library, enclosingClass, name,
+              isStatic: isStatic, isExternal: isExternal);
         case ir.ProcedureKind.Setter:
-          return new KSetter(enclosingClass, getName(node.name).setter,
-              isStatic: isStatic);
+          return new KSetter(library, enclosingClass, getName(node.name).setter,
+              isStatic: isStatic, isExternal: isExternal);
       }
     });
   }
@@ -226,12 +240,18 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   KField _getField(ir.Field node) {
     return _fieldMap.putIfAbsent(node, () {
       int fieldIndex = _fieldList.length;
-      KClass enclosingClass =
-          node.enclosingClass != null ? _getClass(node.enclosingClass) : null;
+      KLibrary library;
+      KClass enclosingClass;
+      if (node.enclosingClass != null) {
+        enclosingClass = _getClass(node.enclosingClass);
+        library = enclosingClass.library;
+      } else {
+        library = _getLibrary(node.enclosingLibrary);
+      }
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
       _fieldList.add(node);
-      return new KField(fieldIndex, enclosingClass, name,
+      return new KField(fieldIndex, library, enclosingClass, name,
           isStatic: isStatic, isAssignable: node.isMutable);
     });
   }
