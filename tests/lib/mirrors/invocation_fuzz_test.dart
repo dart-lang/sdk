@@ -96,12 +96,26 @@ checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
   queue.add(task);
 }
 
+checkField(VariableMirror v, ObjectMirror target, [origin]) {
+  if (isBlacklisted(v.qualifiedName)) return;
+
+  var task = new Task();
+  task.name = '${MirrorSystem.getName(v.qualifiedName)} from $origin';
+
+  task.action = () => target.getField(v.simpleName);
+
+  queue.add(task);
+}
+
 checkInstance(instanceMirror, origin) {
   ClassMirror klass = instanceMirror.type;
   while (klass != null) {
     instanceMirror.type.declarations.values
         .where((d) => d is MethodMirror && !d.isStatic)
         .forEach((m) => checkMethod(m, instanceMirror, origin));
+    instanceMirror.type.declarations.values
+        .where((d) => d is VariableMirror)
+        .forEach((v) => checkField(v, instanceMirror, origin));
     klass = klass.superclass;
   }
 }
@@ -177,7 +191,7 @@ main() {
 
   var valueObjects =
     [true, false, null, [], {}, dynamic,
-     0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 3.14159,
+     0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 3.14159, () {},
      "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ', "\u{1D11E}", #symbol];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
