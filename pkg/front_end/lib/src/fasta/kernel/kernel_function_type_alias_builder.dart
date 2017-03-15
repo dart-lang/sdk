@@ -97,7 +97,8 @@ class KernelFunctionTypeAliasBuilder
     if (thisType is DynamicType) return thisType;
     FunctionType result = thisType;
     if (result.typeParameters.isEmpty && arguments == null) return result;
-    arguments = computeDefaultTypeArguments(result.typeParameters, arguments);
+    arguments =
+        computeDefaultTypeArguments(library, result.typeParameters, arguments);
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < result.typeParameters.length; i++) {
       substitution[result.typeParameters[i]] = arguments[i];
