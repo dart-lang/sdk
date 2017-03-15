@@ -436,6 +436,16 @@ abstract class ClassElementForLink extends Object
     return null;
   }
 
+  @override
+  MethodElement getMethod(String methodName) {
+    for (MethodElement method in methods) {
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    return null;
+  }
+
   /**
    * Perform type inference and cycle detection on this class and
    * store the resulting information in [compilationUnit].
@@ -641,16 +651,6 @@ class ClassElementForLink_Class extends ClassElementForLink
     } else {
       return _type ??= new InterfaceTypeImpl(this);
     }
-  }
-
-  @override
-  MethodElement getMethod(String methodName) {
-    for (MethodElement method in methods) {
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    return null;
   }
 
   @override
