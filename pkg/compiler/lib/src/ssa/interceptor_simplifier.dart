@@ -352,7 +352,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // See if we can rewrite the is-check to use 'instanceof', i.e. rewrite
       // "getInterceptor(x).$isT" to "x instanceof T".
       if (node == user.interceptor) {
-        if (backend.mayGenerateInstanceofCheck(user.typeExpression)) {
+        if (backend.interceptorData
+            .mayGenerateInstanceofCheck(user.typeExpression)) {
           HInstruction instanceofCheck = new HIs.instanceOf(
               user.typeExpression, user.expression, user.instructionType);
           instanceofCheck.sourceInformation = user.sourceInformation;

@@ -6,8 +6,6 @@
 
 library compiler.null_api;
 
-import 'dart:async';
-
 import '../compiler_new.dart';
 
 /// Null pattern implementation of the [CompilerOutput] interface.

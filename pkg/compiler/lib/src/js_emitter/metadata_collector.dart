@@ -23,7 +23,7 @@ import '../elements/elements.dart'
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_backend.dart'
-    show JavaScriptBackend, TypeVariableHandler;
+    show JavaScriptBackend, TypeVariableCodegenAnalysis;
 
 import 'code_emitter_task.dart' show Emitter;
 
@@ -160,7 +160,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   JavaScriptBackend get _backend => _compiler.backend;
-  TypeVariableHandler get _typeVariableHandler => _backend.typeVariableHandler;
+  TypeVariableCodegenAnalysis get _typeVariableCodegenAnalysis =>
+      _backend.typeVariableCodegenAnalysis;
   DiagnosticReporter get reporter => _compiler.reporter;
 
   bool _mustEmitMetadataFor(Element element) {
@@ -322,7 +323,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     jsAst.Expression representation =
         _backend.rtiEncoder.getTypeRepresentation(type, (variable) {
       if (ignoreTypeVariables) return new jsAst.LiteralNull();
-      return _typeVariableHandler.reifyTypeVariable(variable.element);
+      return _typeVariableCodegenAnalysis.reifyTypeVariable(variable.element);
     }, (ResolutionTypedefType typedef) {
       return _backend.mirrorsData.isAccessibleByReflection(typedef.element);
     });

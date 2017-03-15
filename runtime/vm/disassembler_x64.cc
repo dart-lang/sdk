@@ -357,8 +357,8 @@ class DisassemblerX64 : public ValueObject {
   int PrintRightByteOperand(uint8_t* modrmp);
   int PrintRightXMMOperand(uint8_t* modrmp);
   void PrintDisp(int disp, const char* after);
-  int PrintImmediate(uint8_t* data, OperandSize size);
-  void PrintImmediateValue(int64_t value);
+  int PrintImmediate(uint8_t* data, OperandSize size, bool sign_extend = false);
+  void PrintImmediateValue(int64_t value, bool signed_value = false);
   int PrintImmediateOp(uint8_t* data);
   const char* TwoByteMnemonic(uint8_t opcode);
   int TwoByteOpcodeInstruction(uint8_t* data);
@@ -492,24 +492,35 @@ int DisassemblerX64::PrintRightOperandHelper(
 }
 
 
-int DisassemblerX64::PrintImmediate(uint8_t* data, OperandSize size) {
+int DisassemblerX64::PrintImmediate(uint8_t* data,
+                                    OperandSize size,
+                                    bool sign_extend) {
   int64_t value;
   int count;
   switch (size) {
     case BYTE_SIZE:
-      value = *data;
+      if (sign_extend) {
+        value = *reinterpret_cast<int8_t*>(data);
+      } else {
+        value = *data;
+      }
       count = 1;
       break;
     case WORD_SIZE:
-      value = *reinterpret_cast<int16_t*>(data);
+      if (sign_extend) {
+        value = *reinterpret_cast<int16_t*>(data);
+      } else {
+        value = *reinterpret_cast<uint16_t*>(data);
+      }
       count = 2;
       break;
     case DOUBLEWORD_SIZE:
-      value = *reinterpret_cast<uint32_t*>(data);
-      count = 4;
-      break;
     case QUADWORD_SIZE:
-      value = *reinterpret_cast<int32_t*>(data);
+      if (sign_extend) {
+        value = *reinterpret_cast<int32_t*>(data);
+      } else {
+        value = *reinterpret_cast<uint32_t*>(data);
+      }
       count = 4;
       break;
     default:
@@ -517,15 +528,19 @@ int DisassemblerX64::PrintImmediate(uint8_t* data, OperandSize size) {
       value = 0;  // Initialize variables on all paths to satisfy the compiler.
       count = 0;
   }
-  PrintImmediateValue(value);
+  PrintImmediateValue(value, sign_extend);
   return count;
 }
 
-void DisassemblerX64::PrintImmediateValue(int64_t value) {
+void DisassemblerX64::PrintImmediateValue(int64_t value, bool signed_value) {
   if ((value >= 0) && (value <= 9)) {
     Print("%" Pd64 "", value);
   } else {
-    Print("%#" Px64 "", value);
+    if (value < 0 && signed_value) {
+      Print("-%#" Px64 "", -value);
+    } else {
+      Print("%#" Px64 "", value);
+    }
   }
 }
 
@@ -579,7 +594,8 @@ int DisassemblerX64::PrintImmediateOp(uint8_t* data) {
   int count = PrintRightOperand(data + 1);
   Print(",");
   OperandSize immediate_size = byte_size_immediate ? BYTE_SIZE : operand_size();
-  count += PrintImmediate(data + 1 + count, immediate_size);
+  count +=
+      PrintImmediate(data + 1 + count, immediate_size, byte_size_immediate);
   return 1 + count;
 }
 

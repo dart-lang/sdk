@@ -87,7 +87,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon) {
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     Expression name = popNode(); // name
     pushNode(new PartOf(
         partKeyword,
@@ -302,11 +302,11 @@ class NodeListener extends ElementListener {
     pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
-  void endEmptyFunctionBody(Token semicolon) {
-    endFunctionBody(0, null, semicolon);
+  void handleEmptyFunctionBody(Token semicolon) {
+    endBlockFunctionBody(0, null, semicolon);
   }
 
-  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     endReturnStatement(true, arrowToken, endToken);
   }
 
@@ -329,8 +329,8 @@ class NodeListener extends ElementListener {
   }
 
   void handleOnError(Token token, var errorInformation) {
-    reporter.internalError(
-        reporter.spanFromToken(token), "'${token.lexeme}': ${errorInformation}");
+    reporter.internalError(reporter.spanFromToken(token),
+        "'${token.lexeme}': ${errorInformation}");
   }
 
   @override
@@ -460,7 +460,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
+  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
     if (count == 0 && beginToken == null) {
       pushNode(new EmptyStatement(endToken));
     } else {
@@ -898,8 +898,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endForIn(
-      Token awaitToken, Token forToken, Token inKeyword, Token endToken) {
+  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
+      Token inKeyword, Token rightParenthesis, Token endToken) {
     Statement body = popNode();
     Expression expression = popNode();
     Node declaredIdentifier = popNode();
@@ -959,8 +959,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleAssertStatement(
-      Token assertKeyword, Token commaToken, Token semicolonToken) {
+  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Token commaToken, Token rightParenthesis, Token semicolonToken) {
     Node message;
     Node condition;
     if (commaToken != null) {

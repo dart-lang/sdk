@@ -273,8 +273,8 @@ abstract class ExpressionListener extends StackListener {
     assert(ignore);
   }
 
-  void endFunctionBody(int count, Token begin, Token end) {
-    debugEvent("FunctionBody");
+  void endBlockFunctionBody(int count, Token begin, Token end) {
+    debugEvent("BlockFunctionBody");
     assert(ignore);
   }
 
@@ -1319,7 +1319,7 @@ class SummaryBuilder extends StackListener {
     checkEmpty();
   }
 
-  void endPartOf(Token partKeyword, Token semicolon) {
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     debugEvent("endPartOf");
     String name = pop();
     pop(); // metadata

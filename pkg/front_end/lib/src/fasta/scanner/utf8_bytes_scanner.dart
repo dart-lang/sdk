@@ -195,9 +195,6 @@ class Utf8BytesScanner extends ArrayBasedScanner {
     }
   }
 
-  Token firstToken() => tokens.next;
-  Token previousToken() => tail;
-
   @override
   StringToken createSubstringToken(
       PrecedenceInfo info, int start, bool asciiOnly,

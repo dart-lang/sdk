@@ -1747,8 +1747,7 @@ class FormalElementX extends ElementX
         super(identifier.source, elementKind, enclosingElement);
 
   FormalElementX.unnamed(ElementKind elementKind,
-      FunctionTypedElement enclosingElement,
-      this.definitions)
+      FunctionTypedElement enclosingElement, this.definitions)
       : this.identifier = null,
         super("<unnamed>", elementKind, enclosingElement);
 

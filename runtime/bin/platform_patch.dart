@@ -21,6 +21,8 @@
       native "Platform_ExecutableArguments";
   @patch static String _version()
       native "Platform_GetVersion";
+  @patch static bool _ansiSupported()
+      native "Platform_AnsiSupported";
 
   @patch static String _packageRoot()
       => VMLibraryHooks.packageRootString;

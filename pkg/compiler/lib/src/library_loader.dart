@@ -27,6 +27,7 @@ import 'elements/modelx.dart'
         LibraryDependencyElementX,
         PrefixElementX,
         SyntheticImportElement;
+import 'enqueue.dart' show DeferredAction;
 import 'environment.dart';
 import 'resolved_uri_translator.dart';
 import 'script.dart';
@@ -171,6 +172,14 @@ abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
   /// Similar to [resetAsync] but [reuseLibrary] maps all libraries to a list
   /// of libraries that can be reused.
   Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries);
+
+  // TODO(johnniwinther): Move these to a separate interface.
+  /// Register a deferred action to be performed during resolution.
+  void registerDeferredAction(DeferredAction action);
+
+  /// Returns the deferred actions registered since the last call to
+  /// [pullDeferredActions].
+  Iterable<DeferredAction> pullDeferredActions();
 }
 
 /// Interface for an entity that provide libraries. For instance from normal
@@ -301,6 +310,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   /// Definitions provided via the `-D` command line flags. Used to resolve
   /// conditional imports.
   final Environment environment;
+
+  List<DeferredAction> _deferredActions = <DeferredAction>[];
 
   final DiagnosticReporter reporter;
 
@@ -759,6 +770,16 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       }
     });
     return unit;
+  }
+
+  void registerDeferredAction(DeferredAction action) {
+    _deferredActions.add(action);
+  }
+
+  Iterable<DeferredAction> pullDeferredActions() {
+    Iterable<DeferredAction> actions = _deferredActions.toList();
+    _deferredActions.clear();
+    return actions;
   }
 }
 

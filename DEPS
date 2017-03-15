@@ -181,9 +181,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_tag"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
-      (Var("github_dartlang") % "bazel_worker") + Var("bazel_worker_tag"),
+      (Var("github_mirror") % "bazel_worker") + Var("bazel_worker_tag"),
   Var("dart_root") + "/third_party/pkg/boolean_selector":
-      (Var("github_dartlang") % "boolean_selector") +
+      (Var("github_mirror") % "boolean_selector") +
       Var("boolean_selector_tag"),
   Var("dart_root") + "/third_party/pkg/charcode":
       (Var("github_mirror") % "charcode") + Var("charcode_tag"),
@@ -198,7 +198,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg/code_transformers":
-      (Var("github_dartlang") % "code_transformers") +
+      (Var("github_mirror") % "code_transformers") +
       Var("code_transformers_tag"),
   Var("dart_root") + "/third_party/dart-services":
       (Var("github_mirror") % "dart-services") +
@@ -209,10 +209,10 @@ deps = {
       (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       (Var("github_mirror") % "dartdoc") + Var("dartdoc_tag"),
-  Var("dart_root") + "/third_party/pkg/func":
-      (Var("github_dartlang") % "func") + Var("func_tag"),
   Var("dart_root") + "/third_party/pkg/fixnum":
-      "https://github.com/dart-lang/fixnum.git" + Var("fixnum_tag"),
+      (Var("github_mirror") % "fixnum") + Var("fixnum_tag"),
+  Var("dart_root") + "/third_party/pkg/func":
+      (Var("github_mirror") % "func") + Var("func_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_tag"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -228,11 +228,11 @@ deps = {
       (Var("github_mirror") % "http_throttle") +
       Var("http_throttle_rev"),
   Var("dart_root") + "/third_party/pkg/initialize":
-      (Var("github_dartlang") % "initialize") + Var("initialize_tag"),
+      (Var("github_mirror") % "initialize") + Var("initialize_tag"),
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_tag"),
   Var("dart_root") + "/third_party/pkg/isolate":
-      (Var("github_dartlang") % "isolate") + Var("isolate_tag"),
+      (Var("github_mirror") % "isolate") + Var("isolate_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
@@ -264,8 +264,7 @@ deps = {
       (Var("github_mirror") % "package_config") +
       Var("package_config_tag"),
   Var("dart_root") + "/third_party/pkg_tested/package_resolver":
-      "https://github.com/dart-lang/package_resolver.git" +
-      Var("package_resolver_tag"),
+      (Var("github_mirror") % "package_resolver") + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       (Var("github_mirror") % "path") + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/plugin":
@@ -273,7 +272,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/pool":
       (Var("github_mirror") % "pool") + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
-      (Var("github_dartlang") % "dart-protobuf") + Var("protobuf_tag"),
+      (Var("github_mirror") % "dart-protobuf") + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
@@ -308,7 +307,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/stack_trace":
       (Var("github_mirror") % "stack_trace") + Var("stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
-      (Var("github_dartlang") % "stream_channel") +
+      (Var("github_mirror") % "stream_channel") +
       Var("stream_channel_tag"),
   Var("dart_root") + "/third_party/pkg/string_scanner":
       (Var("github_mirror") % "string_scanner") +
@@ -322,7 +321,7 @@ deps = {
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
-      (Var("github_dartlang") % "typed_data") + Var("typed_data_tag"),
+      (Var("github_mirror") % "typed_data") + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
       (Var("github_mirror") % "usage") + Var("usage_tag"),
   Var("dart_root") + "/third_party/pkg/utf":
@@ -333,7 +332,7 @@ deps = {
       (Var("github_mirror") % "web-components") +
       Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
-      (Var("github_dartlang") % "web_socket_channel") +
+      (Var("github_mirror") % "web_socket_channel") +
       Var("web_socket_channel_tag"),
   Var("dart_root") + "/third_party/pkg/when":
       (Var("github_mirror") % "when") + Var("when_tag"),

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';

@@ -2009,8 +2009,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == EAX);  // Value.
   ASSERT(locs()->in(1).reg() == EDX);  // Instantiator type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), negate_result(),
-                               locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == EAX);
 }
 
@@ -5801,12 +5800,17 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
   }
-  __ LoadClassId(temp, value);
+  Register biased_cid = temp;
+  __ LoadClassId(biased_cid, value);
+
+  GrowableArray<CidRangeTarget> sorted_ic_data;
+  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
+                                       /* drop_smi = */ true);
 
   if (IsDenseSwitch()) {
     ASSERT(cids_[0] < cids_[cids_.length() - 1]);
-    __ subl(temp, Immediate(cids_[0]));
-    __ cmpl(temp, Immediate(cids_[cids_.length() - 1] - cids_[0]));
+    __ subl(biased_cid, Immediate(cids_[0]));
+    __ cmpl(biased_cid, Immediate(cids_[cids_.length() - 1] - cids_[0]));
     __ j(ABOVE, deopt);
 
     intptr_t mask = ComputeCidMask();
@@ -5815,26 +5819,39 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(cids_.length() > 2);
       Register mask_reg = locs()->temp(1).reg();
       __ movl(mask_reg, Immediate(mask));
-      __ bt(mask_reg, temp);
+      __ bt(mask_reg, biased_cid);
       __ j(NOT_CARRY, deopt);
     }
   } else {
-    GrowableArray<CidTarget> sorted_ic_data;
-    FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                         /* drop_smi = */ true);
     const intptr_t num_checks = sorted_ic_data.length();
     const bool use_near_jump = num_checks < 5;
+    int bias = 0;
     for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid = sorted_ic_data[i].cid;
-      ASSERT(cid != kSmiCid);
-      __ cmpl(temp, Immediate(cid));
-      if (i == (num_checks - 1)) {
-        __ j(NOT_EQUAL, deopt);
+      const intptr_t cid_start = sorted_ic_data[i].cid_start;
+      const intptr_t cid_end = sorted_ic_data[i].cid_end;
+      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
+      Condition no_match, match;
+      if (cid_start == cid_end) {
+        __ cmpl(biased_cid, Immediate(cid_start - bias));
+        no_match = NOT_EQUAL;
+        match = EQUAL;
+      } else {
+        // For class ID ranges use a subtract followed by an unsigned
+        // comparison to check both ends of the ranges with one comparison.
+        __ addl(biased_cid, Immediate(bias - cid_start));
+        bias = cid_start;
+        __ cmpl(biased_cid, Immediate(cid_end - cid_start));
+        no_match = ABOVE;
+        match = BELOW_EQUAL;
+      }
+
+      if (i == num_checks - 1) {
+        __ j(no_match, deopt);
       } else {
         if (use_near_jump) {
-          __ j(EQUAL, &is_ok, Assembler::kNearJump);
+          __ j(match, &is_ok, Assembler::kNearJump);
         } else {
-          __ j(EQUAL, &is_ok);
+          __ j(match, &is_ok);
         }
       }
     }

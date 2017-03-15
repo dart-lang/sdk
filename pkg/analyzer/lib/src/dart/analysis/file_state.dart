@@ -28,6 +28,13 @@ import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:front_end/src/fasta/analyzer/ast_builder.dart' as fasta;
+import 'package:front_end/src/fasta/analyzer/element_store.dart' as fasta;
+import 'package:front_end/src/fasta/analyzer/mock_element.dart' as fasta;
+import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
+import 'package:front_end/src/fasta/builder/scope.dart' as fasta;
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:meta/meta.dart';
 
 /**
@@ -68,6 +75,8 @@ class FileContentOverlay {
  * should be called.
  */
 class FileState {
+  static const bool USE_FASTA_PARSER = false;
+
   final FileSystemState _fsState;
 
   /**
@@ -86,6 +95,7 @@ class FileState {
   Source source;
 
   bool _exists;
+  List<int> _contentBytes;
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
@@ -345,18 +355,38 @@ class FileState {
   CompilationUnit parse(AnalysisErrorListener errorListener) {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
 
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = analysisOptions.strongMode;
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    if (USE_FASTA_PARSER) {
+      try {
+        fasta.ScannerResult scanResult = fasta.scan(_contentBytes);
 
-    Parser parser = new Parser(source, errorListener);
-    parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
-    parser.parseGenericMethodComments = analysisOptions.strongMode;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-    return unit;
+        var listener = new fasta.AstBuilder(null, null,
+            new _FastaElementStoreProxy(), new _FastaEmptyScope(), uri);
+        var parser = new fasta.Parser(listener);
+        parser.parseUnit(scanResult.tokens);
+        var unit = listener.pop() as CompilationUnit;
+
+        LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
+        unit.lineInfo = lineInfo;
+        return unit;
+      } catch (e, st) {
+        print(e);
+        print(st);
+        rethrow;
+      }
+    } else {
+      CharSequenceReader reader = new CharSequenceReader(content);
+      Scanner scanner = new Scanner(source, reader, errorListener);
+      scanner.scanGenericMethodComments = analysisOptions.strongMode;
+      Token token = scanner.tokenize();
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+      Parser parser = new Parser(source, errorListener);
+      parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
+      parser.parseGenericMethodComments = analysisOptions.strongMode;
+      CompilationUnit unit = parser.parseCompilationUnit(token);
+      unit.lineInfo = lineInfo;
+      return unit;
+    }
   }
 
   /**
@@ -374,6 +404,13 @@ class FileState {
     } catch (_) {
       _content = '';
       _exists = false;
+    }
+
+    if (USE_FASTA_PARSER) {
+      var bytes = UTF8.encode(_content);
+      _contentBytes = new Uint8List(bytes.length + 1);
+      _contentBytes.setRange(0, bytes.length, bytes);
+      _contentBytes[_contentBytes.length - 1] = 0;
     }
 
     // Compute the content hash.
@@ -739,4 +776,30 @@ class FileSystemStateTestView {
         .where((f) => f._transitiveSignature == null)
         .toSet();
   }
+}
+
+class _FastaElementProxy implements fasta.KernelClassElement {
+  @override
+  final fasta.KernelInterfaceType rawType = new _FastaInterfaceTypeProxy();
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FastaElementStoreProxy implements fasta.ElementStore {
+  final _elements = <fasta.Builder, _FastaElementProxy>{};
+
+  @override
+  _FastaElementProxy operator [](fasta.Builder builder) =>
+      _elements.putIfAbsent(builder, () => new _FastaElementProxy());
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FastaEmptyScope extends fasta.Scope {
+  _FastaEmptyScope() : super({}, null);
+}
+
+class _FastaInterfaceTypeProxy implements fasta.KernelInterfaceType {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

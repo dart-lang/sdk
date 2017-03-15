@@ -59,7 +59,6 @@ rasta/issue_000004: Crash
 rasta/issue_000006: Crash
 rasta/issue_000007: Fail
 rasta/issue_000008: Crash
-rasta/issue_000011: Crash
 rasta/issue_000012: Crash
 rasta/issue_000025: Crash
 rasta/issue_000026: Crash
@@ -82,7 +81,6 @@ rasta/issue_000052: Crash
 rasta/issue_000053: Crash
 rasta/issue_000067: Crash
 rasta/issue_000068: Crash
-rasta/issue_000069: Crash
 rasta/issue_000070: Crash
 rasta/issue_000080: Crash
 rasta/issue_000081: Crash

@@ -30,11 +30,22 @@ abstract class LibraryEntity extends Entity {}
 /// Currently only [ClassElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
 abstract class ClassEntity extends Entity {
+  /// If this is a normal class, the enclosing library for this class. If this
+  /// is a closure class, the enclosing class of the closure for which it was
+  /// created.
+  LibraryEntity get library;
+
+  /// Whether this is a synthesized class for a closurized method or local
+  /// function.
   bool get isClosure;
 }
 
 abstract class TypeVariableEntity extends Entity {
+  /// The class or generic method that declared this type variable.
   Entity get typeDeclaration;
+
+  /// The index of this type variable in the type variables of its
+  /// [typeDeclaration].
   int get index;
 }
 
@@ -44,16 +55,41 @@ abstract class TypeVariableEntity extends Entity {
 /// Currently only [MemberElement] but later also kernel based Dart members
 /// and/or Dart-in-JS properties.
 abstract class MemberEntity extends Entity {
+  /// Whether this is a member of a library.
   bool get isTopLevel;
+
+  /// Whether this is a static member of a class.
   bool get isStatic;
+
+  /// Whether this is an instance member of a class.
   bool get isInstanceMember;
+
+  /// Whether this is a constructor.
   bool get isConstructor;
+
+  /// Whether this is a field.
   bool get isField;
+
+  /// Whether this is a normal method (neither constructor, getter or setter)
+  /// or operator method.
   bool get isFunction;
+
+  /// Whether this is a getter.
   bool get isGetter;
+
+  /// Whether this is a setter.
   bool get isSetter;
+
+  /// Whether this member is assignable, i.e. a non-final field.
   bool get isAssignable;
+
+  /// The enclosing class if this is a constuctor, instance member or
+  /// static member of a class.
   ClassEntity get enclosingClass;
+
+  /// The enclosing library if this is a library member, otherwise the
+  /// enclosing library of the [enclosingClass].
+  LibraryEntity get library;
 }
 
 /// Stripped down super interface for field like entities.
@@ -66,7 +102,11 @@ abstract class FieldEntity extends MemberEntity {}
 ///
 /// Currently only [MethodElement] but later also kernel based Dart constructors
 /// and methods and/or Dart-in-JS function-like properties.
-abstract class FunctionEntity extends MemberEntity {}
+abstract class FunctionEntity extends MemberEntity {
+  /// Whether this function is external, i.e. the body is not defined in terms
+  /// of Dart code.
+  bool get isExternal;
+}
 
 /// Stripped down super interface for constructor like entities.
 ///
@@ -75,7 +115,10 @@ abstract class FunctionEntity extends MemberEntity {}
 // TODO(johnniwinther): Remove factory constructors from the set of
 // constructors.
 abstract class ConstructorEntity extends FunctionEntity {
+  /// Whether this is a generative constructor, possibly redirecting.
   bool get isGenerativeConstructor;
+
+  /// Whether this is a factory constructor, possibly redirecting.
   bool get isFactoryConstructor;
 }
 

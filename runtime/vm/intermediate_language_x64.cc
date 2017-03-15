@@ -2045,8 +2045,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == RAX);  // Value.
   ASSERT(locs()->in(1).reg() == RDX);  // Instantiator type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), negate_result(),
-                               locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == RAX);
 }
 
@@ -5818,6 +5817,10 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ LoadClassId(temp, value);
 
+  GrowableArray<CidRangeTarget> sorted_ic_data;
+  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
+                                       /* drop_smi = */ true);
+
   if (IsDenseSwitch()) {
     ASSERT(cids_[0] < cids_[cids_.length() - 1]);
     __ subq(temp, Immediate(cids_[0]));
@@ -5834,21 +5837,35 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(NOT_CARRY, deopt);
     }
   } else {
-    GrowableArray<CidTarget> sorted_ic_data;
-    FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                         /* drop_smi = */ true);
     const intptr_t num_checks = sorted_ic_data.length();
     const bool use_near_jump = num_checks < 5;
+    int bias = 0;
     for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid = sorted_ic_data[i].cid;
-      __ cmpl(temp, Immediate(cid));
-      if (i == (num_checks - 1)) {
-        __ j(NOT_EQUAL, deopt);
+      const intptr_t cid_start = sorted_ic_data[i].cid_start;
+      const intptr_t cid_end = sorted_ic_data[i].cid_end;
+      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
+      Condition no_match, match;
+      if (cid_start == cid_end) {
+        __ cmpl(temp, Immediate(cid_start - bias));
+        no_match = NOT_EQUAL;
+        match = EQUAL;
+      } else {
+        // For class ID ranges use a subtract followed by an unsigned
+        // comparison to check both ends of the ranges with one comparison.
+        __ addl(temp, Immediate(bias - cid_start));
+        bias = cid_start;
+        __ cmpl(temp, Immediate(cid_end - cid_start));
+        no_match = ABOVE;
+        match = BELOW_EQUAL;
+      }
+
+      if (i == num_checks - 1) {
+        __ j(no_match, deopt);
       } else {
         if (use_near_jump) {
-          __ j(EQUAL, &is_ok, Assembler::kNearJump);
+          __ j(match, &is_ok, Assembler::kNearJump);
         } else {
-          __ j(EQUAL, &is_ok);
+          __ j(match, &is_ok);
         }
       }
     }

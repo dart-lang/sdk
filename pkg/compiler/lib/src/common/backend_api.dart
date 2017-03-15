@@ -37,18 +37,17 @@ abstract class ForeignResolver {
   ResolutionDartType resolveTypeFromString(Node node, String typeName);
 }
 
-/// Backend transformation methods for the world impacts.
+/// Target-specific transformation for resolution world impacts.
+///
+/// This processes target-agnostic [ResolutionImpact]s and creates [WorldImpact]
+/// in which backend/target specific impact data is added, for example: if
+/// certain feature is used that requires some helper code from the backend
+/// libraries, this will be included by the impact transformer.
 class ImpactTransformer {
   /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
   /// backend dependencies for features used in [worldImpact].
   WorldImpact transformResolutionImpact(
       ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
-    return worldImpact;
-  }
-
-  /// Transform the [CodegenImpact] into a [WorldImpact] adding the
-  /// backend dependencies for features used in [worldImpact].
-  WorldImpact transformCodegenImpact(CodegenImpact worldImpact) {
     return worldImpact;
   }
 }
@@ -175,9 +174,6 @@ abstract class BackendClasses {
 
   /// Returns `true` if [cls] is a native class.
   bool isNativeClass(ClassEntity element);
-
-  /// Returns `true` if [element] is a native member of a native class.
-  bool isNativeMember(MemberEntity element);
 
   /// Returns the type of the constant map implementation for a const map
   /// literal of [sourceType]. If [hasProtoKey] the map contains key of value

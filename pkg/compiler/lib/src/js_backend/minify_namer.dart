@@ -12,9 +12,9 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(JavaScriptBackend backend, ClosedWorld closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder)
-      : super(backend, closedWorld, codegenWorldBuilder) {
+  MinifyNamer(BackendHelpers helpers, NativeData nativeData,
+      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
+      : super(helpers, nativeData, closedWorld, codegenWorldBuilder) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
@@ -292,7 +292,7 @@ class MinifyNamer extends Namer
   }
 
   @override
-  jsAst.Name instanceFieldPropertyName(Element element) {
+  jsAst.Name instanceFieldPropertyName(FieldElement element) {
     jsAst.Name proposed = _minifiedInstanceFieldPropertyName(element);
     if (proposed != null) {
       return proposed;

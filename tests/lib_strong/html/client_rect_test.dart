@@ -23,4 +23,10 @@ main() {
     var rects = range.getClientRects();
     expect(rects, isRectList);
   });
+
+  test("ClientRect ==", () {
+    var rect1 = document.body.getBoundingClientRect();
+    var rect2 = document.body.getBoundingClientRect();
+    expect(rect1, equals(rect2));
+  });
 }

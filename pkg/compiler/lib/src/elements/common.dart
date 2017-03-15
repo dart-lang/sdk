@@ -611,6 +611,8 @@ enum _FromEnvironmentState {
 }
 
 abstract class ConstructorElementCommon implements ConstructorElement {
+  LibraryElement get library;
+
   _FromEnvironmentState _fromEnvironmentState;
 
   _FromEnvironmentState get fromEnvironmentState {

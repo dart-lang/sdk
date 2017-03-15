@@ -41,9 +41,6 @@ class StringScanner extends ArrayBasedScanner {
 
   void handleUnicode(int startScanOffset) {}
 
-  Token firstToken() => tokens.next;
-  Token previousToken() => tail;
-
   @override
   StringToken createSubstringToken(
       PrecedenceInfo info, int start, bool asciiOnly,

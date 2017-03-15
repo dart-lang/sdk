@@ -27,6 +27,7 @@ import 'elements/elements.dart'
         ImportElement,
         LibraryElement,
         MemberElement,
+        MethodElement,
         MetadataAnnotation,
         PrefixElement,
         ResolvedAstKind,
@@ -683,8 +684,15 @@ class DeferredLoadTask extends CompilerTask {
               // are things that the backend needs but cannot associate with a
               // particular element, for example, startRootIsolate.  This set
               // also contains elements for which we lack precise information.
-              for (Element element in _backendUsage.globalDependencies) {
-                _mapDependencies(element: element, import: _fakeMainImport);
+              for (MethodElement element
+                  in _backendUsage.globalFunctionDependencies) {
+                _mapDependencies(
+                    element: element.implementation, import: _fakeMainImport);
+              }
+              for (ClassElement element
+                  in _backendUsage.globalClassDependencies) {
+                _mapDependencies(
+                    element: element.implementation, import: _fakeMainImport);
               }
 
               // Now check to see if we have to add more elements due to

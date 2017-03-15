@@ -722,6 +722,7 @@ type ForStatement extends Statement {
 
 type ForInStatement extends Statement {
   Byte tag = 70;
+  FileOffset fileOffset; // note that this is actually the body offset
   VariableDeclaration variable;
   Expression iterable;
   Statement body;
@@ -729,6 +730,7 @@ type ForInStatement extends Statement {
 
 type AsyncForInStatement extends Statement {
   Byte tag = 80; // Note: tag is out of order.
+  FileOffset fileOffset; // note that this is actually the body offset
   VariableDeclaration variable;
   Expression iterable;
   Statement body;

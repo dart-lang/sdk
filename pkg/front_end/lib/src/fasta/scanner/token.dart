@@ -123,6 +123,9 @@ abstract class Token {
   int get charEnd => charOffset + charCount;
 
   bool get isEof => false;
+
+  @override
+  bool get isOperator => info.isOperator;
 }
 
 /**

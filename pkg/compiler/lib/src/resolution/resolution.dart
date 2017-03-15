@@ -207,14 +207,14 @@ class ResolverTask extends CompilerTask {
   bool _isNativeClassOrExtendsNativeClass(ClassElement classElement) {
     assert(classElement != null);
     while (classElement != null) {
-      if (target.isNative(classElement)) return true;
+      if (target.isNativeClass(classElement)) return true;
       classElement = classElement.superclass;
     }
     return false;
   }
 
   WorldImpact resolveMethodElementImplementation(
-      FunctionElement element, FunctionExpression tree) {
+      FunctionElementX element, FunctionExpression tree) {
     return reporter.withCurrentElement(element, () {
       if (element.isExternal && tree.hasBody) {
         reporter.reportErrorMessage(element, MessageKind.EXTERNAL_WITH_BODY,
@@ -286,7 +286,7 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
 
-      resolution.target.resolveNativeElement(element, registry.impactBuilder);
+      resolution.target.resolveNativeMember(element, registry.impactBuilder);
 
       return registry.impactBuilder;
     });
@@ -434,7 +434,7 @@ class ResolverTask extends CompilerTask {
       // Perform various checks as side effect of "computing" the type.
       element.computeType(resolution);
 
-      resolution.target.resolveNativeElement(element, registry.impactBuilder);
+      resolution.target.resolveNativeMember(element, registry.impactBuilder);
 
       return registry.impactBuilder;
     });

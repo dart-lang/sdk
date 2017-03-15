@@ -40,6 +40,7 @@ import 'elements/elements.dart'
         TypeDeclarationElement,
         TypedElement,
         VariableElement;
+import 'enqueue.dart' show DeferredAction;
 import 'resolution/class_members.dart' show MembersCreator, ErroneousMember;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
@@ -1992,7 +1993,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
     }
 
     if (!hasDefaultCase && expressionType.isEnumType) {
-      compiler.enqueuer.resolution.addDeferredAction(executableContext, () {
+      compiler.enqueuer.resolution
+          .addDeferredAction(new DeferredAction(executableContext, () {
         Map<ConstantValue, FieldElement> enumValues =
             <ConstantValue, FieldElement>{};
         List<FieldElement> unreferencedFields = <FieldElement>[];
@@ -2029,7 +2031,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
             'enumValues': unreferencedFields.map((e) => e.name).join(', ')
           });
         }
-      });
+      }));
     }
   }
 

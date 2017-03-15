@@ -64,44 +64,37 @@ abstract class KernelClassBuilder
   /// [arguments] have already been built.
   InterfaceType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
-    return arguments == null
-        ? cls.rawType
-        : new InterfaceType(
-            cls,
-            // TODO(ahe): Not sure what to do if `arguments.length !=
-            // cls.typeParameters.length`.
-            computeDefaultTypeArguments(cls.typeParameters, arguments));
+    assert(arguments == null || cls.typeParameters.length == arguments.length);
+    return arguments == null ? cls.rawType : new InterfaceType(cls, arguments);
+  }
+
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    List<DartType> typeArguments = <DartType>[];
+    for (KernelTypeBuilder builder in arguments) {
+      DartType type = builder.build(library);
+      if (type == null) {
+        internalError("Bad type: ${builder.runtimeType}");
+      }
+      typeArguments.add(type);
+    }
+    return computeDefaultTypeArguments(
+        library, cls.typeParameters, typeArguments);
   }
 
   InterfaceType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     List<DartType> typeArguments;
     if (arguments != null) {
-      typeArguments = <DartType>[];
-      for (KernelTypeBuilder builder in arguments) {
-        DartType type = builder.build(library);
-        if (type == null) {
-          internalError("Bad type: ${builder.runtimeType}");
-        }
-        typeArguments.add(type);
-      }
+      typeArguments = buildTypeArguments(library, arguments);
     }
     return buildTypesWithBuiltArguments(library, typeArguments);
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
-    List<DartType> typeArguments;
     if (arguments != null) {
-      typeArguments = <DartType>[];
-      for (KernelTypeBuilder builder in arguments) {
-        DartType type = builder.build(library);
-        if (type == null) {
-          internalError("Bad type: ${builder.runtimeType}");
-        }
-        typeArguments.add(type);
-      }
-      return new Supertype(cls, typeArguments);
+      return new Supertype(cls, buildTypeArguments(library, arguments));
     } else {
       return cls.asRawSupertype;
     }

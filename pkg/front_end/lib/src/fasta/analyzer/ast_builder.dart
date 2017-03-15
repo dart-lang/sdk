@@ -235,7 +235,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endEmptyFunctionBody(Token semicolon) {
+  void handleEmptyFunctionBody(Token semicolon) {
     debugEvent("EmptyFunctionBody");
     // TODO(scheglov) Change the parser to not produce these modifiers.
     pop(); // star
@@ -243,8 +243,14 @@ class AstBuilder extends ScopeListener {
     push(ast.emptyFunctionBody(toAnalyzerToken(semicolon)));
   }
 
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
-    debugEvent("FunctionBody");
+  @override
+  void handleEmptyStatement(Token token) {
+    debugEvent("EmptyStatement");
+    push(ast.emptyStatement(toAnalyzerToken(token)));
+  }
+
+  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
+    debugEvent("BlockFunctionBody");
     List statements = popList(count);
     if (beginToken != null) {
       exitLocalScope();
@@ -347,7 +353,7 @@ class AstBuilder extends ScopeListener {
     push(ast.integerLiteral(toAnalyzerToken(token), int.parse(token.lexeme)));
   }
 
-  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     debugEvent("ExpressionFunctionBody");
     Expression expression = pop();
     analyzer.Token star = pop();
@@ -401,6 +407,21 @@ class AstBuilder extends ScopeListener {
     // TODO(ahe): Don't push initializers, instead install them.
     push(ast.variableDeclaration(
         identifier, toAnalyzerToken(assignmentOperator), initializer));
+  }
+
+  @override
+  void endWhileStatement(Token whileKeyword, Token endToken) {
+    debugEvent("WhileStatement");
+    Statement body = pop();
+    ParenthesizedExpression condition = pop();
+    pop(); // continue target
+    pop(); // break target
+    push(ast.whileStatement(
+        toAnalyzerToken(whileKeyword),
+        condition.leftParenthesis,
+        condition.expression,
+        condition.rightParenthesis,
+        body));
   }
 
   @override
@@ -558,11 +579,45 @@ class AstBuilder extends ScopeListener {
     push(ast.typeName(name, arguments)..type = cls?.rawType);
   }
 
+  @override
+  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Token comma, Token rightParenthesis, Token semicolon) {
+    debugEvent("AssertStatement");
+    Expression message = popIfNotNull(comma);
+    Expression condition = pop();
+    push(ast.assertStatement(
+        toAnalyzerToken(assertKeyword),
+        toAnalyzerToken(leftParenthesis),
+        condition,
+        toAnalyzerToken(comma),
+        message,
+        toAnalyzerToken(rightParenthesis),
+        toAnalyzerToken(semicolon)));
+  }
+
   void handleAsOperator(Token operator, Token endToken) {
     debugEvent("AsOperator");
     TypeAnnotation type = pop();
     Expression expression = pop();
     push(ast.asExpression(expression, toAnalyzerToken(operator), type));
+  }
+
+  @override
+  void handleBreakStatement(
+      bool hasTarget, Token breakKeyword, Token semicolon) {
+    debugEvent("BreakStatement");
+    SimpleIdentifier label = hasTarget ? pop() : null;
+    push(ast.breakStatement(
+        toAnalyzerToken(breakKeyword), label, toAnalyzerToken(semicolon)));
+  }
+
+  @override
+  void handleContinueStatement(
+      bool hasTarget, Token continueKeyword, Token semicolon) {
+    debugEvent("ContinueStatement");
+    SimpleIdentifier label = hasTarget ? pop() : null;
+    push(ast.continueStatement(
+        toAnalyzerToken(continueKeyword), label, toAnalyzerToken(semicolon)));
   }
 
   void handleIsOperator(Token operator, Token not, Token endToken) {
@@ -631,6 +686,51 @@ class AstBuilder extends ScopeListener {
   void handleFormalParameterWithoutValue(Token token) {
     debugEvent("FormalParameterWithoutValue");
     push(NullValue.ParameterDefaultValue);
+  }
+
+  @override
+  void endForInExpression(Token token) {
+    debugEvent("ForInExpression");
+  }
+
+  @override
+  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
+      Token inKeyword, Token rightParenthesis, Token endToken) {
+    debugEvent("ForInExpression");
+    Statement body = pop();
+    Expression iterator = pop();
+    Object variableOrDeclaration = pop();
+    pop(); // local scope
+    pop(); // continue target
+    pop(); // break target
+    if (variableOrDeclaration is SimpleIdentifier) {
+      push(ast.forEachStatementWithReference(
+          toAnalyzerToken(awaitToken),
+          toAnalyzerToken(forToken),
+          toAnalyzerToken(leftParenthesis),
+          variableOrDeclaration,
+          toAnalyzerToken(inKeyword),
+          iterator,
+          toAnalyzerToken(rightParenthesis),
+          body));
+    } else {
+      var statement = variableOrDeclaration as VariableDeclarationStatement;
+      VariableDeclarationList variableList = statement.variables;
+      push(ast.forEachStatementWithDeclaration(
+          toAnalyzerToken(awaitToken),
+          toAnalyzerToken(forToken),
+          toAnalyzerToken(leftParenthesis),
+          ast.declaredIdentifier(
+              variableList.documentationComment,
+              variableList.metadata,
+              variableList.keyword,
+              variableList.type,
+              variableList.variables.single.name),
+          toAnalyzerToken(inKeyword),
+          iterator,
+          toAnalyzerToken(rightParenthesis),
+          body));
+    }
   }
 
   void endFormalParameter(
@@ -764,32 +864,35 @@ class AstBuilder extends ScopeListener {
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     debugEvent("CatchBlock");
     Block body = pop();
-    FormalParameterList catchParameters = popIfNotNull(catchKeyword);
-    if (catchKeyword != null) {
-      exitLocalScope();
-    }
+    FormalParameterList catchParameterList = popIfNotNull(catchKeyword);
     TypeAnnotation type = popIfNotNull(onKeyword);
     SimpleIdentifier exception;
     SimpleIdentifier stackTrace;
-    if (catchParameters != null) {
+    if (catchParameterList != null) {
+      List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.length > 0) {
-        exception = catchParameters.parameters[0].identifier;
+        exception = catchParameters[0].identifier;
       }
       if (catchParameters.length > 1) {
-        stackTrace = catchParameters.parameters[1].identifier;
+        stackTrace = catchParameters[1].identifier;
       }
     }
-    BeginGroupToken leftParenthesis = catchKeyword.next;
     push(ast.catchClause(
         toAnalyzerToken(onKeyword),
         type,
         toAnalyzerToken(catchKeyword),
-        toAnalyzerToken(leftParenthesis),
+        catchParameterList?.leftParenthesis,
         exception,
         null,
         stackTrace,
-        toAnalyzerToken(leftParenthesis.endGroup),
+        catchParameterList?.rightParenthesis,
         body));
+  }
+
+  @override
+  void handleFinallyBlock(Token finallyKeyword) {
+    debugEvent("FinallyBlock");
+    // The finally block is popped in "endTryStatement".
   }
 
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
@@ -956,6 +1059,24 @@ class AstBuilder extends ScopeListener {
     debugEvent("DottedName");
     List<SimpleIdentifier> components = popList(count);
     push(ast.dottedName(components));
+  }
+
+  @override
+  void endDoWhileStatement(
+      Token doKeyword, Token whileKeyword, Token semicolon) {
+    debugEvent("DoWhileStatement");
+    ParenthesizedExpression condition = pop();
+    Statement body = pop();
+    pop(); // continue target
+    pop(); // break target
+    push(ast.doStatement(
+        toAnalyzerToken(doKeyword),
+        body,
+        toAnalyzerToken(whileKeyword),
+        condition.leftParenthesis,
+        condition.expression,
+        condition.rightParenthesis,
+        toAnalyzerToken(semicolon)));
   }
 
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
@@ -1162,7 +1283,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon) {
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);

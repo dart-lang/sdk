@@ -20,21 +20,15 @@
 library analyzer.tool.summary.generate;
 
 import 'dart:convert';
-import 'dart:io' hide File;
+import 'dart:io';
 
-import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/codegen/tools.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/codegen/tools.dart';
+import 'package:front_end/src/fasta/scanner/string_scanner.dart';
+import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:path/path.dart';
 
 import 'idl_model.dart' as idlModel;
+import 'mini_ast.dart';
 
 main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
@@ -84,21 +78,17 @@ class _CodeGenerator {
 
   _CodeGenerator(String pkgPath) {
     // Parse the input "IDL" file.
-    PhysicalResourceProvider provider = new PhysicalResourceProvider(
-        PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
     String idlPath = join(pkgPath, 'lib', 'src', 'summary', 'idl.dart');
-    File idlFile = provider.getFile(idlPath);
-    Source idlSource = provider.getFile(idlPath).createSource();
-    String idlText = idlFile.readAsStringSync();
-    BooleanErrorListener errorListener = new BooleanErrorListener();
-    CharacterReader idlReader = new CharSequenceReader(idlText);
-    Scanner scanner = new Scanner(idlSource, idlReader, errorListener);
-    Token tokenStream = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-    Parser parser = new Parser(idlSource, new BooleanErrorListener());
-    CompilationUnit idlParsed = parser.parseCompilationUnit(tokenStream);
+    File idlFile = new File(idlPath);
+    String idlText =
+        idlFile.readAsStringSync().replaceAll(new RegExp('\r\n?'), '\n');
     // Extract a description of the IDL and make sure it is valid.
-    extractIdl(lineInfo, idlParsed);
+    var scanner = new StringScanner(idlText, includeComments: true);
+    var startingToken = scanner.tokenize();
+    var listener = new MiniAstBuilder();
+    var parser = new MiniAstParser(listener);
+    parser.parseUnit(startingToken);
+    extractIdl(listener.compilationUnit);
     checkIdl();
   }
 
@@ -220,16 +210,16 @@ class _CodeGenerator {
    * Process the AST in [idlParsed] and store the resulting semantic model in
    * [_idl].  Also perform some error checking.
    */
-  void extractIdl(LineInfo lineInfo, CompilationUnit idlParsed) {
+  void extractIdl(CompilationUnit idlParsed) {
     _idl = new idlModel.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
         bool isTopLevel = false;
         String fileIdentifier;
-        String clsName = decl.name.name;
+        String clsName = decl.name;
         for (Annotation annotation in decl.metadata) {
           if (annotation.arguments != null &&
-              annotation.name.name == 'TopLevel' &&
+              annotation.name == 'TopLevel' &&
               annotation.constructorName == null) {
             isTopLevel = true;
             if (annotation.arguments == null) {
@@ -240,8 +230,8 @@ class _CodeGenerator {
               throw new Exception(
                   "Class `$clsName`: TopLevel doesn't have named constructors");
             }
-            if (annotation.arguments.arguments.length == 1) {
-              Expression arg = annotation.arguments.arguments[0];
+            if (annotation.arguments.length == 1) {
+              Expression arg = annotation.arguments[0];
               if (arg is StringLiteral) {
                 fileIdentifier = arg.stringValue;
               } else {
@@ -249,38 +239,34 @@ class _CodeGenerator {
                     'Class `$clsName`: TopLevel argument must be a string'
                     ' literal');
               }
-            } else if (annotation.arguments.arguments.length != 0) {
+            } else if (annotation.arguments.length != 0) {
               throw new Exception(
                   'Class `$clsName`: TopLevel requires 0 or 1 arguments');
             }
           }
         }
-        String doc = _getNodeDoc(lineInfo, decl);
+        String doc = _getNodeDoc(decl);
         idlModel.ClassDeclaration cls = new idlModel.ClassDeclaration(
             doc, clsName, isTopLevel, fileIdentifier);
         _idl.classes[clsName] = cls;
         String expectedBase = 'base.SummaryClass';
-        if (decl.extendsClause == null ||
-            decl.extendsClause.superclass.name.name != expectedBase) {
+        if (decl.superclass == null || decl.superclass.name != expectedBase) {
           throw new Exception(
               'Class `$clsName` needs to extend `$expectedBase`');
         }
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
-            String desc = '$clsName.${classMember.name.name}';
-            if (classMember.returnType is! TypeName) {
-              if (classMember.returnType == null) {
-                throw new Exception('Class member needs a type: $desc');
-              }
-              throw new Exception('Class member needs a class type: $desc');
+            String desc = '$clsName.${classMember.name}';
+            if (classMember.returnType == null) {
+              throw new Exception('Class member needs a type: $desc');
             }
             TypeName type = classMember.returnType;
             bool isList = false;
-            if (type.name.name == 'List' &&
+            if (type.name == 'List' &&
                 type.typeArguments != null &&
-                type.typeArguments.arguments.length == 1) {
+                type.typeArguments.length == 1) {
               isList = true;
-              type = type.typeArguments.arguments[0];
+              type = type.typeArguments[0];
             }
             if (type.typeArguments != null) {
               throw new Exception('Cannot handle type arguments in `$type`');
@@ -289,46 +275,44 @@ class _CodeGenerator {
             bool isDeprecated = false;
             bool isInformative = false;
             for (Annotation annotation in classMember.metadata) {
-              if (annotation.name.name == 'Id') {
+              if (annotation.name == 'Id') {
                 if (id != null) {
                   throw new Exception(
                       'Duplicate @id annotation ($classMember)');
                 }
-                if (annotation.arguments.arguments.length != 1) {
+                if (annotation.arguments == null) {
+                  throw new Exception('@Id must be passed an argument');
+                }
+                if (annotation.arguments.length != 1) {
                   throw new Exception(
                       '@Id must be passed exactly one argument ($desc)');
                 }
-                Expression expression = annotation.arguments.arguments[0];
+                Expression expression = annotation.arguments[0];
                 if (expression is IntegerLiteral) {
                   id = expression.value;
                 } else {
                   throw new Exception(
                       '@Id parameter must be an integer literal ($desc)');
                 }
-              } else if (annotation.name.name == 'deprecated') {
+              } else if (annotation.name == 'deprecated') {
                 if (annotation.arguments != null) {
                   throw new Exception('@deprecated does not take args ($desc)');
                 }
                 isDeprecated = true;
-              } else if (annotation.name.name == 'informative') {
+              } else if (annotation.name == 'informative') {
                 isInformative = true;
               }
             }
             if (id == null) {
               throw new Exception('Missing @id annotation ($desc)');
             }
-            String doc = _getNodeDoc(lineInfo, classMember);
+            String doc = _getNodeDoc(classMember);
             idlModel.FieldType fieldType =
-                new idlModel.FieldType(type.name.name, isList);
-            cls.allFields.add(new idlModel.FieldDeclaration(
-                doc,
-                classMember.name.name,
-                fieldType,
-                id,
-                isDeprecated,
-                isInformative));
+                new idlModel.FieldType(type.name, isList);
+            cls.allFields.add(new idlModel.FieldDeclaration(doc,
+                classMember.name, fieldType, id, isDeprecated, isInformative));
           } else if (classMember is ConstructorDeclaration &&
-              classMember.name.name == 'fromBuffer') {
+              classMember.name.name.endsWith('fromBuffer')) {
             // Ignore `fromBuffer` declarations; they simply forward to the
             // read functions generated by [_generateReadFunction].
           } else {
@@ -336,18 +320,15 @@ class _CodeGenerator {
           }
         }
       } else if (decl is EnumDeclaration) {
-        String doc = _getNodeDoc(lineInfo, decl);
+        String doc = _getNodeDoc(decl);
         idlModel.EnumDeclaration enm =
-            new idlModel.EnumDeclaration(doc, decl.name.name);
+            new idlModel.EnumDeclaration(doc, decl.name);
         _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
-          String doc = _getNodeDoc(lineInfo, constDecl);
+          String doc = _getNodeDoc(constDecl);
           enm.values
-              .add(new idlModel.EnumValueDeclaration(doc, constDecl.name.name));
+              .add(new idlModel.EnumValueDeclaration(doc, constDecl.name));
         }
-      } else if (decl is TopLevelVariableDeclaration) {
-        // Ignore top level variable declarations; they are present just to make
-        // the IDL analyze without warnings.
       } else {
         throw new Exception('Unexpected declaration `$decl`');
       }
@@ -1015,19 +996,16 @@ class _CodeGenerator {
    * Return the documentation text of the given [node], or `null` if the [node]
    * does not have a comment.  Each line is `\n` separated.
    */
-  String _getNodeDoc(LineInfo lineInfo, AnnotatedNode node) {
+  String _getNodeDoc(AnnotatedNode node) {
     Comment comment = node.documentationComment;
     if (comment != null &&
         comment.isDocumentation &&
         comment.tokens.length == 1 &&
-        comment.tokens.first.type == TokenType.MULTI_LINE_COMMENT) {
+        comment.tokens.first.lexeme.startsWith('/*')) {
       Token token = comment.tokens.first;
-      int column = lineInfo.getLocation(token.offset).columnNumber;
-      String indent = ' ' * (column - 1);
       return token.lexeme.split('\n').map((String line) {
-        if (line.startsWith(indent)) {
-          line = line.substring(indent.length);
-        }
+        line = line.trimLeft();
+        if (line.startsWith('*')) line = ' ' + line;
         return line;
       }).join('\n');
     }

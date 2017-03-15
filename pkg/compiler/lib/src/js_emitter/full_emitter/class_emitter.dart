@@ -312,7 +312,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (backend.mirrorsData.isAccessibleByReflection(classElement)) {
       List<ResolutionDartType> typeVars = classElement.typeVariables;
       Iterable typeVariableProperties =
-          emitter.typeVariableHandler.typeVariablesOf(classElement);
+          emitter.typeVariableCodegenAnalysis.typeVariablesOf(classElement);
 
       ClassElement superclass = classElement.superclass;
       bool hasSuper = superclass != null;

@@ -58,8 +58,12 @@ import 'package:kernel/ast.dart'
 
 import '../errors.dart' show inputError;
 
-List<DartType> computeDefaultTypeArguments(
+import '../builder/builder.dart' show LibraryBuilder;
+
+List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
     List<TypeParameter> typeParameters, List<DartType> arguments) {
+  // TODO(ahe): Not sure what to do if `arguments.length !=
+  // cls.typeParameters.length`.
   if (arguments == null) {
     return new List<DartType>.filled(
         typeParameters.length, const DynamicType());

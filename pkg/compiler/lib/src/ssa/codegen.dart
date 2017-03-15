@@ -29,7 +29,7 @@ import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
+import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'codegen_helpers.dart';
@@ -198,8 +198,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   BackendHelpers get helpers => backend.helpers;
 
-  native.NativeEnqueuer get nativeEnqueuer {
-    return compiler.enqueuer.codegen.nativeEnqueuer;
+  native.NativeCodegenEnqueuer get nativeEnqueuer {
+    return backend.nativeCodegenEnqueuer;
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -1665,7 +1665,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
         registry.registerInstantiatedClass(commonElements.listClass);
-      } else if (backend.isNative(target) &&
+      } else if (backend.nativeData.isNativeMember(target) &&
           target.isFunction &&
           !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
@@ -2030,6 +2030,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
     registerForeignTypes(node);
+
+    if (node.foreignFunction != null) {
+      registry?.registerStaticUse(
+          new StaticUse.implicitInvoke(node.foreignFunction));
+    }
   }
 
   visitCreate(HCreate node) {
@@ -2045,6 +2050,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       registry.registerInstantiatedClass(node.element);
     }
     node.instantiatedTypes?.forEach(registry.registerInstantiation);
+    if (node.callMethod != null) {
+      registry
+          ?.registerStaticUse(new StaticUse.implicitInvoke(node.callMethod));
+    }
+    if (node.localFunction != null) {
+      registry?.registerInstantiatedClosure(node.localFunction);
+    }
   }
 
   js.Expression newLiteralBool(
@@ -2060,19 +2072,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void generateConstant(
       ConstantValue constant, SourceInformation sourceInformation) {
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
-      registry.registerStaticUse(new StaticUse.staticTearOff(function.element));
-    }
-    if (constant.isType) {
-      // If the type is a web component, we need to ensure the constructors are
-      // available to 'upgrade' the native object.
-      TypeConstantValue type = constant;
-      if (type.representedType.isInterfaceType) {
-        InterfaceType representedType = type.representedType;
-        registry.registerTypeConstant(representedType.element);
-      }
-    }
     js.Expression expression = backend.emitter.constantReference(constant);
     if (!constant.isDummy) {
       // TODO(johnniwinther): Support source information on synthetic constants.
@@ -2085,7 +2084,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant, node.sourceInformation);
 
-    registry.registerCompileTimeConstant(node.constant);
+    registry.registerConstantUse(new ConstantUse.literal(node.constant));
   }
 
   visitNot(HNot node) {

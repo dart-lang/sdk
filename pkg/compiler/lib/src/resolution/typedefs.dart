@@ -29,14 +29,8 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.templateParameters);
 
-    FunctionSignature signature = SignatureResolver.analyze(
-        resolution,
-        scope,
-        node.typeParameters,
-        node.formals,
-        node.returnType,
-        element,
-        registry,
+    FunctionSignature signature = SignatureResolver.analyze(resolution, scope,
+        node.typeParameters, node.formals, node.returnType, element, registry,
         defaultValuesError: MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
     element.functionSignature = signature;
 

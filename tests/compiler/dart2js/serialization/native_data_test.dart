@@ -47,19 +47,37 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
 
   JavaScriptBackend backend1 = compiler1.backend;
   JavaScriptBackend backend2 = compiler2.backend;
-  NativeData nativeData1 = backend1.nativeData;
-  NativeData nativeData2 = backend2.nativeData;
+  NativeBasicDataImpl nativeBaseData1 = backend1.nativeBaseData;
+  NativeBasicDataImpl nativeBaseData2 = backend2.nativeBaseData;
+  NativeDataImpl nativeData1 = backend1.nativeData;
+  NativeDataImpl nativeData2 = backend2.nativeData;
 
-  checkMaps(nativeData1.jsInteropNames, nativeData2.jsInteropNames,
-      "NativeData.jsInteropNames", areElementsEquivalent, equality,
+  checkMaps(
+      nativeData1.jsInteropLibraryNames,
+      nativeData2.jsInteropLibraryNames,
+      "NativeData.jsInteropLibraryNames",
+      areElementsEquivalent,
+      equality,
+      verbose: verbose);
+
+  checkMaps(nativeData1.jsInteropClassNames, nativeData2.jsInteropClassNames,
+      "NativeData.jsInteropClassNames", areElementsEquivalent, equality,
+      verbose: verbose);
+
+  checkMaps(nativeData1.jsInteropMemberNames, nativeData2.jsInteropMemberNames,
+      "NativeData.jsInteropMemberNames", areElementsEquivalent, equality,
       verbose: verbose);
 
   checkMaps(nativeData1.nativeMemberName, nativeData2.nativeMemberName,
       "NativeData.nativeMemberName", areElementsEquivalent, equality,
       verbose: verbose);
 
-  checkMaps(nativeData1.nativeClassTagInfo, nativeData2.nativeClassTagInfo,
-      "NativeData.nativeClassTagInfo", areElementsEquivalent, equality,
+  checkMaps(
+      nativeBaseData1.nativeClassTagInfo,
+      nativeBaseData2.nativeClassTagInfo,
+      "NativeData.nativeClassTagInfo",
+      areElementsEquivalent,
+      equality,
       verbose: verbose);
 
   checkMaps(

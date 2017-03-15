@@ -13,6 +13,7 @@ import 'dart:convert';
 
 import 'package:analyzer/src/codegen/html.dart';
 import 'package:analyzer/src/codegen/tools.dart';
+import 'package:front_end/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
@@ -139,6 +140,11 @@ final GeneratedFile target =
   }
   return document.outerHtml;
 });
+
+String _toTitleCase(String str) {
+  if (str.isEmpty) return str;
+  return str.substring(0, 1).toUpperCase() + str.substring(1);
+}
 
 /**
  * Visitor that records the mapping from HTML elements to various kinds of API
@@ -269,22 +275,6 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     }
   }
 
-  void generateTableOfContents() {
-    ul(() {
-      writeln();
-
-      for (var domain in api.domains.where((domain) => !domain.experimental)) {
-        write('      ');
-        li(() {
-          link('domain_${domain.name}', () {
-            write(_toTitleCase(domain.name));
-          });
-        });
-        writeln();
-      }
-    });
-  }
-
   void generateIndex() {
     h3(() => write('Domains'));
     for (var domain in api.domains) {
@@ -344,6 +334,22 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             {},
             () => link(
                 'request_${request.longMethod}', () => write(request.method)));
+      }
+    });
+  }
+
+  void generateTableOfContents() {
+    ul(() {
+      writeln();
+
+      for (var domain in api.domains.where((domain) => !domain.experimental)) {
+        write('      ');
+        li(() {
+          link('domain_${domain.name}', () {
+            write(_toTitleCase(domain.name));
+          });
+        });
+        writeln();
       }
     });
   }
@@ -423,9 +429,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
               translateHtml(node, squashParagraphs: squashParagraphs);
               element('link', {
                 'rel': 'stylesheet',
-                'href': 'https://fonts.googleapis.com/css?family=Source+Code+Pro|Roboto:500,400italic,300,400',
+                'href':
+                    'https://fonts.googleapis.com/css?family=Source+Code+Pro|Roboto:500,400italic,300,400',
                 'type': 'text/css'
-                });
+              });
               element('style', {}, () {
                 writeln(stylesheet);
               });
@@ -786,9 +793,4 @@ class TypeVisitor extends HierarchicalApiVisitor
       verticalBarNeeded = true;
     }
   }
-}
-
-String _toTitleCase(String str) {
-  if (str.isEmpty) return str;
-  return str.substring(0, 1).toUpperCase() + str.substring(1);
 }

@@ -116,6 +116,10 @@ library dart2js.patchparser;
 
 import 'dart:async';
 
+import 'package:front_end/src/fasta/parser.dart'
+    show Listener, Parser, ParserError;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
@@ -130,18 +134,15 @@ import 'elements/modelx.dart'
         LibraryElementX,
         MetadataAnnotationX,
         SetterElementX;
+import 'enqueue.dart' show DeferredAction;
 import 'id_generator.dart';
-import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'library_loader.dart' show LibraryLoader;
 import 'parser/element_listener.dart' show ElementListener;
-import 'package:front_end/src/fasta/parser.dart'
-    show Listener, Parser, ParserError;
 import 'parser/member_listener.dart' show MemberListener;
 import 'parser/partial_elements.dart'
     show ClassElementParser, PartialClassElement;
-import 'script.dart';
-import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
 import 'parser/diet_parser_task.dart' show PartialParser;
+import 'script.dart';
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
@@ -333,19 +334,6 @@ void patchClass(Compiler compiler, DiagnosticReporter reporter,
     reporter.internalError(origin, "Patching the same class more than once.");
   }
   origin.applyPatch(patch);
-  checkNativeAnnotation(compiler, patch);
-}
-
-/// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-/// native name from the annotation.
-checkNativeAnnotation(Compiler compiler, ClassElement cls) {
-  EagerAnnotationHandler.checkAnnotation(
-      compiler, cls, const NativeAnnotationHandler());
-}
-
-checkJsInteropAnnotation(Compiler compiler, element) {
-  EagerAnnotationHandler.checkAnnotation(
-      compiler, element, const JsInteropAnnotationHandler());
 }
 
 /// Abstract interface for pre-resolution detection of metadata.
@@ -356,6 +344,8 @@ checkJsInteropAnnotation(Compiler compiler, element) {
 /// - setup a deferred action to check that the annotation has a valid constant
 ///   value and report an internal error if not.
 abstract class EagerAnnotationHandler<T> {
+  const EagerAnnotationHandler();
+
   /// Checks that [annotation] looks like a matching annotation and optionally
   /// applies actions on [element]. Returns a non-null annotation marker if the
   /// annotation matched and should be validated.
@@ -367,102 +357,31 @@ abstract class EagerAnnotationHandler<T> {
 
   /// Checks [element] for metadata matching the [handler]. Return a non-null
   /// annotation marker matching metadata was found.
-  static checkAnnotation(
-      Compiler compiler, Element element, EagerAnnotationHandler handler) {
+  static T checkAnnotation<T>(
+      Compiler compiler, Element element, EagerAnnotationHandler<T> handler) {
     for (MetadataAnnotation annotation in element.implementation.metadata) {
-      var result = handler.apply(compiler, element, annotation);
-      if (result != null) {
+      T result = handler.apply(compiler, element, annotation);
+      if (result != handler.defaultResult) {
         // TODO(johnniwinther): Perform this check in
         // [Compiler.onLibrariesLoaded].
-        compiler.enqueuer.resolution.addDeferredAction(element, () {
+        compiler.libraryLoader
+            .registerDeferredAction(new DeferredAction(element, () {
           annotation.ensureResolved(compiler.resolution);
           handler.validate(compiler, element, annotation,
               compiler.constants.getConstantValue(annotation.constant));
-        });
+        }));
         return result;
       }
     }
-    return null;
-  }
-}
-
-/// Annotation handler for pre-resolution detection of `@Native(...)`
-/// annotations.
-class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
-  const NativeAnnotationHandler();
-
-  String getNativeAnnotation(MetadataAnnotationX annotation) {
-    if (annotation.beginToken != null &&
-        annotation.beginToken.next.lexeme == 'Native') {
-      // Skipping '@', 'Native', and '('.
-      Token argument = annotation.beginToken.next.next.next;
-      if (argument is StringToken) {
-        return argument.lexeme;
-      }
-    }
-    return null;
+    return handler.defaultResult;
   }
 
-  String apply(
-      Compiler compiler, Element element, MetadataAnnotation annotation) {
-    if (element.isClass) {
-      String native = getNativeAnnotation(annotation);
-      if (native != null) {
-        JavaScriptBackend backend = compiler.backend;
-        backend.nativeData.setNativeClassTagInfo(element, native);
-        return native;
-      }
-    }
-    return null;
-  }
-
-  void validate(Compiler compiler, Element element,
-      MetadataAnnotation annotation, ConstantValue constant) {
-    ResolutionDartType annotationType =
-        constant.getType(compiler.commonElements);
-    if (annotationType.element !=
-        compiler.backend.helpers.nativeAnnotationClass) {
-      DiagnosticReporter reporter = compiler.reporter;
-      reporter.internalError(annotation, 'Invalid @Native(...) annotation.');
-    }
-  }
-}
-
-/// Annotation handler for pre-resolution detection of `@JS(...)`
-/// annotations.
-class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
-  const JsInteropAnnotationHandler();
-
-  bool hasJsNameAnnotation(MetadataAnnotationX annotation) =>
-      annotation.beginToken != null &&
-      annotation.beginToken.next.lexeme == 'JS';
-
-  bool apply(
-      Compiler compiler, Element element, MetadataAnnotation annotation) {
-    bool hasJsInterop = hasJsNameAnnotation(annotation);
-    if (hasJsInterop) {
-      JavaScriptBackend backend = compiler.backend;
-      backend.nativeData.markAsJsInterop(element);
-    }
-    // Due to semantics of apply in the baseclass we have to return null to
-    // indicate that no match was found.
-    return hasJsInterop ? true : null;
-  }
-
-  @override
-  void validate(Compiler compiler, Element element,
-      MetadataAnnotation annotation, ConstantValue constant) {
-    JavaScriptBackend backend = compiler.backend;
-    ResolutionDartType type = constant.getType(compiler.commonElements);
-    if (type.element != backend.helpers.jsAnnotationClass) {
-      compiler.reporter
-          .internalError(annotation, 'Invalid @JS(...) annotation.');
-    }
-  }
+  /// Result that signals the absence of annotations.
+  T get defaultResult => null;
 }
 
 /// Annotation handler for pre-resolution detection of `@patch` annotations.
-class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
+class PatchAnnotationHandler extends EagerAnnotationHandler<PatchVersion> {
   const PatchAnnotationHandler();
 
   PatchVersion getPatchVersion(MetadataAnnotationX annotation) {

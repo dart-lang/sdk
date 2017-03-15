@@ -226,7 +226,7 @@ Future testSuperCalls() {
         compiler.resolution,
         fooB,
         new ResolutionRegistry(
-            compiler.backend, new CollectingTreeElements(fooB)),
+            compiler.backend.target, new CollectingTreeElements(fooB)),
         scope: new MockTypeVariablesScope(classB.buildScope()));
     FunctionExpression node =
         (fooB as FunctionElementX).parseNode(compiler.parsingContext);
@@ -248,7 +248,7 @@ Future testSwitch() {
     ClassElement fooElement = compiler.mainApp.find("Foo");
     MethodElement funElement = fooElement.lookupLocalMember("foo");
     compiler.enqueuer.resolution.applyImpact(new WorldImpactBuilderImpl()
-      ..registerStaticUse(new StaticUse.foreignUse(funElement)));
+      ..registerStaticUse(new StaticUse.implicitInvoke(funElement)));
     compiler.processQueue(
         compiler.enqueuer.resolution, null, compiler.libraryLoader.libraries);
     DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -275,7 +275,7 @@ Future testThis() {
           compiler.resolution,
           funElement,
           new ResolutionRegistry(
-              compiler.backend, new CollectingTreeElements(funElement)),
+              compiler.backend.target, new CollectingTreeElements(funElement)),
           scope: new MockTypeVariablesScope(fooElement.buildScope()));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler.parsingContext);
@@ -303,7 +303,7 @@ Future testThis() {
           compiler.resolution,
           funElement,
           new ResolutionRegistry(
-              compiler.backend, new CollectingTreeElements(funElement)),
+              compiler.backend.target, new CollectingTreeElements(funElement)),
           scope: new MockTypeVariablesScope(fooElement.buildScope()));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler.parsingContext);
@@ -622,7 +622,7 @@ Future testOneInterface() {
         compiler.resolution,
         null,
         new ResolutionRegistry(
-            compiler.backend, new CollectingTreeElements(null)));
+            compiler.backend.target, new CollectingTreeElements(null)));
     compiler.resolveStatement("Foo bar;");
 
     ClassElement fooElement = compiler.mainApp.find('Foo');
@@ -741,7 +741,7 @@ Future resolveConstructor(String script, String statement, String className,
         compiler.resolution,
         element,
         new ResolutionRegistry(
-            compiler.backend, new CollectingTreeElements(element)),
+            compiler.backend.target, new CollectingTreeElements(element)),
         scope: classElement.buildScope());
     new InitializerResolver(visitor, element, tree).resolveInitializers();
     visitor.visit(tree.body);
@@ -1152,9 +1152,9 @@ Future compileScript(String source) {
 
 checkMemberResolved(compiler, className, memberName) {
   ClassElement cls = findElement(compiler, className);
-  Element memberElement = cls.lookupLocalMember(memberName);
+  MemberElement memberElement = cls.lookupLocalMember(memberName);
   Expect.isNotNull(memberElement);
-  Expect.isTrue(compiler.enqueuer.resolution.hasBeenProcessed(memberElement));
+  Expect.isTrue(compiler.resolutionWorldBuilder.isMemberUsed(memberElement));
 }
 
 testToString() {

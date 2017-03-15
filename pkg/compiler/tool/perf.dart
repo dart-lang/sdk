@@ -16,6 +16,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
     show Message, MessageTemplate;
+import 'package:compiler/src/enqueue.dart' show ResolutionEnqueuer;
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/parser/element_listener.dart' show ScannerOptions;
@@ -346,6 +347,7 @@ class MyCompiler extends CompilerImpl {
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() =>
       selfTask.measureSubtask('KernelCompiler.compileLoadedLibraries', () {
+        ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpact mainImpact = computeMain();
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
@@ -356,21 +358,21 @@ class MyCompiler extends CompilerImpl {
             supportSerialization: serialization.supportSerialization);
 
         phase = Compiler.PHASE_RESOLVING;
-        enqueuer.resolution.applyImpact(mainImpact);
+        resolutionEnqueuer.applyImpact(mainImpact);
         // Note: we enqueue everything in the program so we measure generating
         // kernel for the entire code, not just what's reachable from main.
         libraryLoader.libraries.forEach((LibraryElement library) {
-          enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
+          resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
         if (deferredLoadTask.isProgramSplit) {
-          enqueuer.resolution
+          resolutionEnqueuer
               .applyImpact(backend.computeDeferredLoadingImpact());
         }
         resolveLibraryMetadata();
         reporter.log('Resolving...');
-        processQueue(enqueuer.resolution, mainFunction, libraryLoader.libraries);
-        enqueuer.resolution.logSummary(reporter.log);
+        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);
+        resolutionEnqueuer.logSummary(reporter.log);
 
         (reporter as CompilerDiagnosticReporter)
             .reportSuppressedMessagesSummary();

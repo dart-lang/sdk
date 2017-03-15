@@ -206,13 +206,20 @@ class GlobalTypeInferenceResults {
     var key = (element is SynthesizedCallMethodElementX)
         ? element.memberContext
         : element;
+    bool isJsInterop = false;
+    if (element is MemberElement) {
+      isJsInterop = _compiler.backend.nativeData.isJsInteropMember(element);
+    } else if (element is ClassElement) {
+      // TODO(johnniwinther): Can we meet classes here?
+      isJsInterop = _compiler.backend.nativeData.isJsInteropClass(element);
+    }
     return _elementResults.putIfAbsent(
         element,
         () => new GlobalTypeInferenceElementResultImpl(
             element,
             _inferrer.inferrer.inTreeData[key],
             _inferrer,
-            _compiler.backend.isJsInterop(element),
+            isJsInterop,
             dynamicType));
   }
 

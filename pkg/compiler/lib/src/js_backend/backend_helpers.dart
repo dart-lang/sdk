@@ -6,7 +6,6 @@ library dart2js.js_backend.helpers;
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Uris;
-import '../compiler.dart' show Compiler;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart' show PublicName;
 import '../elements/entities.dart';
@@ -95,7 +94,9 @@ class BackendHelpers {
     assert(loadedLibraries.containsLibrary(Uris.dart_core));
     assert(loadedLibraries.containsLibrary(DART_INTERCEPTORS));
     assert(loadedLibraries.containsLibrary(DART_JS_HELPER));
+  }
 
+  void onResolutionStart() {
     // TODO(johnniwinther): Avoid these. Currently needed to ensure resolution
     // of the classes for various queries in native behavior computation,
     // inference and codegen.

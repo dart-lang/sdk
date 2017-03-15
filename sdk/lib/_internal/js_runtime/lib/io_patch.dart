@@ -218,6 +218,10 @@ class _Platform {
   static String _version() {
     throw new UnsupportedError("Platform._version");
   }
+  @patch
+  static bool _ansiSupported() {
+    throw new UnsupportedError("Platform._ansiSupported");
+  }
 }
 
 @patch

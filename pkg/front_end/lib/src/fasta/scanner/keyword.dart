@@ -4,6 +4,8 @@
 
 library fasta.scanner.keywords;
 
+import '../../scanner/token.dart' as analyzer;
+
 import 'characters.dart' show $a, $z, $A, $Z;
 
 import 'precedence.dart' show PrecedenceInfo;
@@ -13,75 +15,141 @@ import 'precedence.dart' show AS_INFO, IS_INFO, KEYWORD_INFO;
 /**
  * A keyword in the Dart programming language.
  */
-class Keyword {
+class Keyword implements analyzer.Keyword {
+  static const ASSERT = const Keyword("assert");
+  static const BREAK = const Keyword("break");
+  static const CASE = const Keyword("case");
+  static const CATCH = const Keyword("catch");
+  static const CLASS = const Keyword("class");
+  static const CONST = const Keyword("const");
+  static const CONTINUE = const Keyword("continue");
+  static const DEFAULT = const Keyword("default");
+  static const DO = const Keyword("do");
+  static const ELSE = const Keyword("else");
+  static const ENUM = const Keyword("enum");
+  static const EXTENDS = const Keyword("extends");
+  static const FALSE = const Keyword("false");
+  static const FINAL = const Keyword("final");
+  static const FINALLY = const Keyword("finally");
+  static const FOR = const Keyword("for");
+  static const IF = const Keyword("if");
+  static const IN = const Keyword("in");
+  static const NEW = const Keyword("new");
+  static const NULL = const Keyword("null");
+  static const RETHROW = const Keyword("rethrow");
+  static const RETURN = const Keyword("return");
+  static const SUPER = const Keyword("super");
+  static const SWITCH = const Keyword("switch");
+  static const THIS = const Keyword("this");
+  static const THROW = const Keyword("throw");
+  static const TRUE = const Keyword("true");
+  static const TRY = const Keyword("try");
+  static const VAR = const Keyword("var");
+  static const VOID = const Keyword("void");
+  static const WHILE = const Keyword("while");
+  static const WITH = const Keyword("with");
+
+  // TODO(ahe): Don't think this is a reserved word.
+  // See: http://dartbug.com/5579
+  static const IS = const Keyword("is", info: IS_INFO);
+
+  static const ABSTRACT = const Keyword("abstract", isBuiltIn: true);
+  static const AS = const Keyword("as", info: AS_INFO, isBuiltIn: true);
+  static const COVARIANT = const Keyword("covariant", isBuiltIn: true);
+  static const DYNAMIC = const Keyword("dynamic", isBuiltIn: true);
+  static const EXPORT = const Keyword("export", isBuiltIn: true);
+  static const EXTERNAL = const Keyword("external", isBuiltIn: true);
+  static const FACTORY = const Keyword("factory", isBuiltIn: true);
+  static const GET = const Keyword("get", isBuiltIn: true);
+  static const IMPLEMENTS = const Keyword("implements", isBuiltIn: true);
+  static const IMPORT = const Keyword("import", isBuiltIn: true);
+  static const LIBRARY = const Keyword("library", isBuiltIn: true);
+  static const OPERATOR = const Keyword("operator", isBuiltIn: true);
+  static const PART = const Keyword("part", isBuiltIn: true);
+  static const SET = const Keyword("set", isBuiltIn: true);
+  static const STATIC = const Keyword("static", isBuiltIn: true);
+  static const TYPEDEF = const Keyword("typedef", isBuiltIn: true);
+
+  static const ASYNC = const Keyword("async", isPseudo: true);
+  static const AWAIT = const Keyword("await", isPseudo: true);
+  static const DEFERRED = const Keyword("deferred", isPseudo: true);
+  static const FUNCTION = const Keyword("Function", isPseudo: true);
+  static const HIDE = const Keyword("hide", isPseudo: true);
+  static const NATIVE = const Keyword("native", isPseudo: true);
+  static const OF = const Keyword("of", isPseudo: true);
+  static const ON = const Keyword("on", isPseudo: true);
+  static const PATCH = const Keyword("patch", isPseudo: true);
+  static const SHOW = const Keyword("show", isPseudo: true);
+  static const SOURCE = const Keyword("source", isPseudo: true);
+  static const SYNC = const Keyword("sync", isPseudo: true);
+  static const YIELD = const Keyword("yield", isPseudo: true);
+
   static const List<Keyword> values = const <Keyword>[
-    const Keyword("assert"),
-    const Keyword("break"),
-    const Keyword("case"),
-    const Keyword("catch"),
-    const Keyword("class"),
-    const Keyword("const"),
-    const Keyword("continue"),
-    const Keyword("default"),
-    const Keyword("do"),
-    const Keyword("else"),
-    const Keyword("enum"),
-    const Keyword("extends"),
-    const Keyword("false"),
-    const Keyword("final"),
-    const Keyword("finally"),
-    const Keyword("for"),
-    const Keyword("if"),
-    const Keyword("in"),
-    const Keyword("new"),
-    const Keyword("null"),
-    const Keyword("rethrow"),
-    const Keyword("return"),
-    const Keyword("super"),
-    const Keyword("switch"),
-    const Keyword("this"),
-    const Keyword("throw"),
-    const Keyword("true"),
-    const Keyword("try"),
-    const Keyword("var"),
-    const Keyword("void"),
-    const Keyword("while"),
-    const Keyword("with"),
-
-    // TODO(ahe): Don't think this is a reserved word.
-    // See: http://dartbug.com/5579
-    const Keyword("is", info: IS_INFO),
-
-    const Keyword("abstract", isBuiltIn: true),
-    const Keyword("as", info: AS_INFO, isBuiltIn: true),
-    const Keyword("covariant", isBuiltIn: true),
-    const Keyword("dynamic", isBuiltIn: true),
-    const Keyword("export", isBuiltIn: true),
-    const Keyword("external", isBuiltIn: true),
-    const Keyword("factory", isBuiltIn: true),
-    const Keyword("get", isBuiltIn: true),
-    const Keyword("implements", isBuiltIn: true),
-    const Keyword("import", isBuiltIn: true),
-    const Keyword("library", isBuiltIn: true),
-    const Keyword("operator", isBuiltIn: true),
-    const Keyword("part", isBuiltIn: true),
-    const Keyword("set", isBuiltIn: true),
-    const Keyword("static", isBuiltIn: true),
-    const Keyword("typedef", isBuiltIn: true),
-
-    const Keyword("async", isPseudo: true),
-    const Keyword("await", isPseudo: true),
-    const Keyword("deferred", isPseudo: true),
-    const Keyword("Function", isPseudo: true),
-    const Keyword("hide", isPseudo: true),
-    const Keyword("native", isPseudo: true),
-    const Keyword("of", isPseudo: true),
-    const Keyword("on", isPseudo: true),
-    const Keyword("patch", isPseudo: true),
-    const Keyword("show", isPseudo: true),
-    const Keyword("source", isPseudo: true),
-    const Keyword("sync", isPseudo: true),
-    const Keyword("yield", isPseudo: true),
+    ASSERT,
+    BREAK,
+    CASE,
+    CATCH,
+    CLASS,
+    CONST,
+    CONTINUE,
+    DEFAULT,
+    DO,
+    ELSE,
+    ENUM,
+    EXTENDS,
+    FALSE,
+    FINAL,
+    FINALLY,
+    FOR,
+    IF,
+    IN,
+    NEW,
+    NULL,
+    RETHROW,
+    RETURN,
+    SUPER,
+    SWITCH,
+    THIS,
+    THROW,
+    TRUE,
+    TRY,
+    VAR,
+    VOID,
+    WHILE,
+    WITH,
+    // ====
+    IS,
+    // ==== Built In
+    ABSTRACT,
+    AS,
+    COVARIANT,
+    DYNAMIC,
+    EXPORT,
+    EXTERNAL,
+    FACTORY,
+    GET,
+    IMPLEMENTS,
+    IMPORT,
+    LIBRARY,
+    OPERATOR,
+    PART,
+    SET,
+    STATIC,
+    TYPEDEF,
+    // ==== Pseudo
+    ASYNC,
+    AWAIT,
+    DEFERRED,
+    FUNCTION,
+    HIDE,
+    NATIVE,
+    OF,
+    ON,
+    PATCH,
+    SHOW,
+    SOURCE,
+    SYNC,
+    YIELD,
   ];
 
   final String syntax;
@@ -109,6 +177,20 @@ class Keyword {
   }
 
   String toString() => syntax;
+
+  @override
+  bool get isPseudoKeyword {
+    // The term "pseudo-keyword" doesn't exist in the spec, and
+    // Analyzer and Fasta have different notions of what it means.
+    // Analyzer's notion of "pseudo-keyword" corresponds with Fasta's
+    // notion of "built-in keyword".
+
+    // TODO(danrubel) remove `this == DEFERRED` once dartbug.com/29069 is fixed.
+    return isBuiltIn || this == DEFERRED;
+  }
+
+  @override
+  String get name => syntax.toUpperCase();
 }
 
 /**

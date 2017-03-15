@@ -91,6 +91,11 @@ class ImpactSerializer implements WorldImpactVisitor {
     object.setEnum(Key.KIND, typeUse.kind);
     object.setType(Key.TYPE, typeUse.type);
   }
+
+  @override
+  void visitConstantUse(ConstantUse typeUse) {
+    throw new UnsupportedError("ConstantUse serialization is not supported.");
+  }
 }
 
 /// A deserialized [WorldImpact] object.

@@ -937,7 +937,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
-    if (compiler.backend.isNative(analyzedElement)) {
+    if (inferrer.isNativeMember(analyzedElement)) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
       return types.dynamicType;

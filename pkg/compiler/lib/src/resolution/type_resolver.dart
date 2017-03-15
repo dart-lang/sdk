@@ -76,8 +76,8 @@ class TypeResolver {
   ResolutionDartType resolveTypeAnnotation(
       MappingVisitor visitor, TypeAnnotation node,
       {bool malformedIsError: false, bool deferredIsMalformed: true}) {
-    return _resolveTypeAnnotation(
-        visitor, node, const [], malformedIsError: malformedIsError,
+    return _resolveTypeAnnotation(visitor, node, const [],
+        malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
   }
 
@@ -89,15 +89,12 @@ class TypeResolver {
   // `typedef F = Function(List<A> Function<A>(A x))`.
   //
   // They are resolved to `dynamic` until dart2js supports generic methods.
-  ResolutionDartType _resolveTypeAnnotation(
-      MappingVisitor visitor, TypeAnnotation node,
-      List<List<String>> visibleTypeParameterNames,
+  ResolutionDartType _resolveTypeAnnotation(MappingVisitor visitor,
+      TypeAnnotation node, List<List<String>> visibleTypeParameterNames,
       {bool malformedIsError: false, bool deferredIsMalformed: true}) {
-
     if (node.asNominalTypeAnnotation() != null) {
       return resolveNominalTypeAnnotation(
-          visitor, node,
-          visibleTypeParameterNames,
+          visitor, node, visibleTypeParameterNames,
           malformedIsError: malformedIsError,
           deferredIsMalformed: deferredIsMalformed);
     }
@@ -115,17 +112,15 @@ class TypeResolver {
   ///
   /// However, it does work with nested generalized function types:
   ///   `foo(int Function(String) x)`.
-  _FormalsTypeResolutionResult _resolveFormalTypes(
-      MappingVisitor visitor, NodeList formals,
-      List<List<String>> visibleTypeParameterNames) {
-
+  _FormalsTypeResolutionResult _resolveFormalTypes(MappingVisitor visitor,
+      NodeList formals, List<List<String>> visibleTypeParameterNames) {
     ResolutionDartType resolvePositionalType(VariableDefinitions node) {
       return _resolveTypeAnnotation(
           visitor, node.type, visibleTypeParameterNames);
     }
 
-    void fillNamedTypes(NodeList namedFormals,
-        List<String> names, List<ResolutionDartType> types) {
+    void fillNamedTypes(NodeList namedFormals, List<String> names,
+        List<ResolutionDartType> types) {
       List<Node> nodes = namedFormals.nodes.toList(growable: false);
 
       // Sort the named arguments first.
@@ -134,8 +129,10 @@ class TypeResolver {
         VariableDefinitions b = node2;
         assert(a.definitions.nodes.tail.isEmpty);
         assert(b.definitions.nodes.tail.isEmpty);
-        return a.definitions.nodes.head.asIdentifier().source.compareTo(
-            b.definitions.nodes.head.asIdentifier().source);
+        return a.definitions.nodes.head
+            .asIdentifier()
+            .source
+            .compareTo(b.definitions.nodes.head.asIdentifier().source);
       });
 
       for (VariableDefinitions node in nodes) {
@@ -159,7 +156,6 @@ class TypeResolver {
       requiredTypes.add(resolvePositionalType(link.head));
     }
 
-
     List<ResolutionDartType> orderedTypes = const <ResolutionDartType>[];
     List<String> names = const <String>[];
     List<ResolutionDartType> namedTypes = const <ResolutionDartType>[];
@@ -179,8 +175,8 @@ class TypeResolver {
       } else {
         orderedTypes = <ResolutionDartType>[];
         for (Link<Node> link = optionalFormals.nodes;
-             !link.isEmpty;
-             link = link.tail) {
+            !link.isEmpty;
+            link = link.tail) {
           orderedTypes.add(resolvePositionalType(link.head));
         }
       }
@@ -190,24 +186,22 @@ class TypeResolver {
   }
 
   ResolutionFunctionType _resolveFunctionTypeAnnotation(MappingVisitor visitor,
-      FunctionTypeAnnotation node,
-      List<List<String>> visibleTypeParameterNames,
+      FunctionTypeAnnotation node, List<List<String>> visibleTypeParameterNames,
       {bool malformedIsError: false, bool deferredIsMalformed: true}) {
-
     assert(visibleTypeParameterNames != null);
 
     if (node.typeParameters != null) {
       List<String> newTypeNames = node.typeParameters.map((TypeVariable node) {
         return node.name.asIdentifier().source;
       }).toList();
-      visibleTypeParameterNames =
-          visibleTypeParameterNames.toList()..add(newTypeNames);
+      visibleTypeParameterNames = visibleTypeParameterNames.toList()
+        ..add(newTypeNames);
     }
 
     ResolutionDartType returnType = node.returnType == null
         ? const ResolutionDynamicType()
-        : _resolveTypeAnnotation(visitor, node.returnType,
-              visibleTypeParameterNames);
+        : _resolveTypeAnnotation(
+            visitor, node.returnType, visibleTypeParameterNames);
     var formalTypes =
         _resolveFormalTypes(visitor, node.formals, visibleTypeParameterNames);
     var result = new ResolutionFunctionType.generalized(
@@ -221,8 +215,7 @@ class TypeResolver {
   }
 
   ResolutionDartType resolveNominalTypeAnnotation(MappingVisitor visitor,
-      NominalTypeAnnotation node,
-      List<List<String>> visibleTypeParameterNames,
+      NominalTypeAnnotation node, List<List<String>> visibleTypeParameterNames,
       {bool malformedIsError: false, bool deferredIsMalformed: true}) {
     ResolutionRegistry registry = visitor.registry;
 
@@ -231,9 +224,8 @@ class TypeResolver {
 
     ResolutionDartType checkNoTypeArguments(ResolutionDartType type) {
       List<ResolutionDartType> arguments = new List<ResolutionDartType>();
-      bool hasTypeArgumentMismatch = resolveTypeArguments(
-          visitor, node, const <ResolutionDartType>[], arguments,
-          visibleTypeParameterNames);
+      bool hasTypeArgumentMismatch = resolveTypeArguments(visitor, node,
+          const <ResolutionDartType>[], arguments, visibleTypeParameterNames);
       if (hasTypeArgumentMismatch) {
         return new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
@@ -345,9 +337,8 @@ class TypeResolver {
         resolver.ensureClassWillBeResolvedInternal(cls);
         cls.computeType(resolution);
         List<ResolutionDartType> arguments = <ResolutionDartType>[];
-        bool hasTypeArgumentMismatch = resolveTypeArguments(
-            visitor, node, cls.typeVariables, arguments,
-            visibleTypeParameterNames);
+        bool hasTypeArgumentMismatch = resolveTypeArguments(visitor, node,
+            cls.typeVariables, arguments, visibleTypeParameterNames);
         if (hasTypeArgumentMismatch) {
           type = new BadInterfaceType(
               cls.declaration,
@@ -369,9 +360,8 @@ class TypeResolver {
         typdef.ensureResolved(resolution);
         typdef.computeType(resolution);
         List<ResolutionDartType> arguments = <ResolutionDartType>[];
-        bool hasTypeArgumentMismatch = resolveTypeArguments(
-            visitor, node, typdef.typeVariables, arguments,
-            visibleTypeParameterNames);
+        bool hasTypeArgumentMismatch = resolveTypeArguments(visitor, node,
+            typdef.typeVariables, arguments, visibleTypeParameterNames);
         if (hasTypeArgumentMismatch) {
           type = new BadTypedefType(
               typdef,

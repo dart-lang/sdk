@@ -561,7 +561,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
-                                           bool negate_result,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType());
@@ -604,23 +603,15 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(4);
-    if (negate_result) {
-      __ popl(EDX);
-      __ LoadObject(EAX, Bool::True());
-      __ cmpl(EDX, EAX);
-      __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-      __ LoadObject(EAX, Bool::False());
-    } else {
-      __ popl(EAX);
-    }
+    __ popl(EAX);
     __ jmp(&done, Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
-  __ LoadObject(EAX, Bool::Get(negate_result));
+  __ LoadObject(EAX, Bool::Get(false));
   __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&is_instance);
-  __ LoadObject(EAX, Bool::Get(!negate_result));
+  __ LoadObject(EAX, Bool::Get(true));
   __ Bind(&done);
   __ popl(EDX);  // Remove pushed instantiator type arguments.
 }
@@ -1211,28 +1202,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into EBX.
   __ movl(EBX, Address(ESP, (argument_count - 1) * kWordSize));
-  Label done;
-  if (ShouldInlineSmiStringHashCode(ic_data)) {
-    Label megamorphic_call;
-    __ Comment("Inlined get:hashCode for Smi and OneByteString");
-    __ movl(EAX, EBX);  // Move Smi hashcode to EAX.
-    __ testl(EBX, Immediate(kSmiTagMask));
-    __ j(ZERO, &done, Assembler::kNearJump);  // It is Smi, we are done.
-
-    __ CompareClassId(EBX, kOneByteStringCid, EAX);
-    __ j(NOT_EQUAL, &megamorphic_call, Assembler::kNearJump);
-    __ movl(EAX, FieldAddress(EBX, String::hash_offset()));
-    __ cmpl(EAX, Immediate(0));
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-
-    __ Bind(&megamorphic_call);
-    __ Comment("Slow case: megamorphic call");
-  }
   __ LoadObject(ECX, cache);
   __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ call(EBX);
 
-  __ Bind(&done);
   AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
@@ -1428,7 +1401,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
                                         LocationSummary* locs,
-                                        bool complete) {
+                                        bool complete,
+                                        intptr_t total_ic_calls) {
   ASSERT(is_optimizing());
   ASSERT(!complete);
   __ Comment("EmitTestAndCall");
@@ -1472,39 +1446,65 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   __ Bind(&after_smi_test);
 
   ASSERT(!ic_data.IsNull() && (num_checks > 0));
-  GrowableArray<CidTarget> sorted(num_checks);
+  GrowableArray<CidRangeTarget> sorted(num_checks);
   SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
 
-  // Value is not Smi,
-  // LoadValueCid(this, EDI, EAX, failed);
-  const intptr_t kSortedLen = sorted.length();
-  // If kSortedLen is 0 then only a Smi check was needed; the Smi check above
+  const intptr_t sorted_len = sorted.length();
+  // If sorted_len is 0 then only a Smi check was needed; the Smi check above
   // will fail if there was only one check and receiver is not Smi.
-  if (kSortedLen == 0) return;
+  if (sorted_len == 0) return;
 
+  // Value is not Smi,
   __ LoadClassId(EDI, EAX);
-  for (intptr_t i = 0; i < kSortedLen; i++) {
-    const bool kIsLastCheck = (i == (kSortedLen - 1));
-    ASSERT(sorted[i].cid != kSmiCid);
+
+  bool add_megamorphic_call = false;
+  const int kMaxImmediateInInstruction = 127;
+  int bias =
+      ComputeGoodBiasForCidComparison(sorted, kMaxImmediateInInstruction);
+  if (bias != 0) __ addl(EDI, Immediate(-bias));
+
+  for (intptr_t i = 0; i < sorted_len; i++) {
+    const bool is_last_check = (i == (sorted_len - 1));
+    int cid_start = sorted[i].cid_start;
+    int cid_end = sorted[i].cid_end;
+    int count = sorted[i].count;
+    if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
+      // This case is hit too rarely to be worth writing class-id checks inline
+      // for.
+      add_megamorphic_call = true;
+      break;
+    }
+    ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
     Label next_test;
-    __ cmpl(EDI, Immediate(sorted[i].cid));
-    if (kIsLastCheck) {
-      __ j(NOT_EQUAL, failed);
-    } else {
-      __ j(NOT_EQUAL, &next_test);
+    if (!complete || !is_last_check) {
+      Label* next_label = is_last_check ? failed : &next_test;
+      if (cid_start == cid_end) {
+        __ cmpl(EDI, Immediate(cid_start - bias));
+        __ j(NOT_EQUAL, next_label);
+      } else {
+        __ addl(EDI, Immediate(bias - cid_start));
+        bias = cid_start;
+        __ cmpl(EDI, Immediate(cid_end - cid_start));
+        __ j(ABOVE, next_label);  // Unsigned higher.
+      }
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
+    const Function& function = *sorted[i].target;
     GenerateDartCall(deopt_id, token_index,
                      *StubCode::CallStaticFunction_entry(),
                      RawPcDescriptors::kOther, locs);
-    const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);
     __ Drop(argument_count);
-    if (!kIsLastCheck) {
+    if (!is_last_check) {
       __ jmp(match_found);
     }
     __ Bind(&next_test);
+  }
+  if (add_megamorphic_call) {
+    int try_index = CatchClauseNode::kInvalidTryIndex;
+    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id, token_index,
+                                locs, try_index, argument_count);
   }
 }
 

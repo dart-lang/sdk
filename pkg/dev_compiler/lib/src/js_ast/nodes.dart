@@ -1146,8 +1146,12 @@ class Super extends Expression {
 class NamedFunction extends Expression {
   final Identifier name;
   final Fun function;
+  // A heuristic to force extra parens around this function.  V8 and other
+  // engines use this IIFE (immediately invoked function expression) heuristic
+  // to eagerly parse a function.
+  final bool immediatelyInvoked;
 
-  NamedFunction(this.name, this.function);
+  NamedFunction(this.name, this.function, [this.immediatelyInvoked = false]);
 
   accept(NodeVisitor visitor) => visitor.visitNamedFunction(this);
 
@@ -1155,9 +1159,9 @@ class NamedFunction extends Expression {
     name.accept(visitor);
     function.accept(visitor);
   }
-  NamedFunction _clone() => new NamedFunction(name, function);
+  NamedFunction _clone() => new NamedFunction(name, function, immediatelyInvoked);
 
-  int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
+  int get precedenceLevel => immediatelyInvoked ? EXPRESSION : PRIMARY_LOW_PRECEDENCE;
 }
 
 abstract class FunctionExpression extends Expression {

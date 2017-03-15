@@ -350,8 +350,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
-    debugEvent("FunctionBody");
+  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
+    debugEvent("BlockFunctionBody");
     if (beginToken == null) {
       assert(count == 0);
       push(NullValue.Block);
@@ -869,13 +869,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endEmptyFunctionBody(Token semicolon) {
+  void handleEmptyFunctionBody(Token semicolon) {
     debugEvent("ExpressionFunctionBody");
-    endFunctionBody(0, null, semicolon);
+    endBlockFunctionBody(0, null, semicolon);
   }
 
   @override
-  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+  void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     debugEvent("ExpressionFunctionBody");
     endReturnStatement(true, arrowToken, endToken);
   }
@@ -1898,8 +1898,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endForIn(
-      Token awaitToken, Token forToken, Token inKeyword, Token endToken) {
+  void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
+      Token inKeyword, Token rightParenthesis, Token endToken) {
     debugEvent("ForIn");
     Statement body = popStatement();
     Expression expression = popForValue();
@@ -1935,7 +1935,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Expected lvalue, but got ${lvalue}", forToken.next.next.charOffset));
     }
     Statement result = new ForInStatement(variable, expression, body,
-        isAsync: awaitToken != null);
+        isAsync: awaitToken != null)..fileOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new LabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2022,8 +2022,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleAssertStatement(
-      Token assertKeyword, Token commaToken, Token semicolonToken) {
+  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Token commaToken, Token rightParenthesis, Token semicolonToken) {
     debugEvent("AssertStatement");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();

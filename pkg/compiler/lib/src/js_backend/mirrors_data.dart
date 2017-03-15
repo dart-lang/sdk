@@ -115,7 +115,7 @@ class MirrorsData {
   }
 
   bool invokedReflectively(Element element) {
-    if (element.isRegularParameter || element.isInitializingFormal) {
+    if (element.isParameter) {
       ParameterElement parameter = element;
       if (invokedReflectively(parameter.functionDeclaration)) return true;
     }
@@ -273,7 +273,7 @@ class MirrorsData {
     // can include the correct ones when including the class.
     Map<ClassElement, List<LocalFunctionElement>> closureMap =
         new Map<ClassElement, List<LocalFunctionElement>>();
-    for (LocalFunctionElement closure in worldBuilder.allClosures) {
+    for (LocalFunctionElement closure in worldBuilder.localFunctions) {
       closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
     }
     bool foundClosure = false;
@@ -312,7 +312,7 @@ class MirrorsData {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
                 // assert(invariant(member.element,
-                //    resolution.hasBeenProcessed(member.element)));
+                //    worldBuilder.isMemberUsed(member.element)));
                 if (worldBuilder.isMemberUsed(member.element)) {
                   reflectableMembers.add(member.element);
                 }
@@ -384,7 +384,7 @@ class MirrorsData {
       ClassElement cls = _helpers.closureClass;
       reflectableMembers.add(cls);
     }
-    Set<Element> closurizedMembers = worldBuilder.closurizedMembers;
+    Set<MethodElement> closurizedMembers = worldBuilder.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
       ClassElement cls = _helpers.boundClosureClass;
       reflectableMembers.add(cls);

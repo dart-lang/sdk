@@ -468,7 +468,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         node.selector.applies(element)) {
       MethodElement method = element;
 
-      if (backend.isNative(method)) {
+      if (backend.nativeData.isNativeMember(method)) {
         HInstruction folded = tryInlineNativeMethod(node, method);
         if (folded != null) return folded;
       } else {
@@ -494,7 +494,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         element.isField &&
         element.name == node.selector.name) {
       FieldEntity field = element;
-      if (!backend.isNative(field) && !node.isCallOnInterceptor(closedWorld)) {
+      if (!backend.nativeData.isNativeMember(field) &&
+          !node.isCallOnInterceptor(closedWorld)) {
         HInstruction receiver = node.getDartReceiver(closedWorld);
         TypeMask type = TypeMaskFactory.inferredTypeForElement(
             field as Entity, globalInferenceResults);
@@ -569,7 +570,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Strengthen instruction type from annotations to help optimize
     // dependent instructions.
     native.NativeBehavior nativeBehavior =
-        backend.getNativeMethodBehavior(method);
+        backend.nativeData.getNativeMethodBehavior(method);
     TypeMask returnType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
     HInvokeDynamicMethod result =
@@ -965,12 +966,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, FieldEntity field) {
-    bool isAssignable = !closedWorld.fieldNeverChanges(field as MemberEntity);
+    bool isAssignable = !closedWorld.fieldNeverChanges(field);
 
     TypeMask type;
-    if (backend.isNative(field.enclosingClass)) {
+    if (backend.nativeData.isNativeClass(field.enclosingClass)) {
       type = TypeMaskFactory.fromNativeBehavior(
-          backend.getNativeFieldLoadBehavior(field), closedWorld);
+          backend.nativeData.getNativeFieldLoadBehavior(field), closedWorld);
     } else {
       type = TypeMaskFactory.inferredTypeForElement(
           field as Entity, globalInferenceResults);
@@ -2558,7 +2559,7 @@ class MemorySet {
   void registerFieldValueUpdate(
       MemberEntity element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
-    if (closedWorld.backendClasses.isNativeMember(element)) {
+    if (closedWorld.nativeData.isNativeMember(element)) {
       return; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from
@@ -2578,7 +2579,7 @@ class MemorySet {
   void registerFieldValue(
       MemberEntity element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
-    if (closedWorld.backendClasses.isNativeMember(element)) {
+    if (closedWorld.nativeData.isNativeMember(element)) {
       return; // TODO(14955): Remove this restriction?
     }
     Map<HInstruction, HInstruction> map =

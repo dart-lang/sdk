@@ -1793,6 +1793,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # 
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t04: Pass, Slow # Issue 25940
 Language/Expressions/Bitwise_Expressions/method_invocation_super_t01: Pass, Slow # Issue 25940
+LayoutTests/fast/css-grid-layout/grid-element-shrink-to-fit_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system != macos ]
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure

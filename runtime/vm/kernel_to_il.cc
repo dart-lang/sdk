@@ -5027,13 +5027,10 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
     instructions += Constant(type);
     instructions += PushArgument();  // Type.
 
-    instructions += Constant(Bool::False());
-    instructions += PushArgument();  // Negate?.
-
     instructions +=
         InstanceCall(node->position(),
                      dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
-                     Token::kIS, 4);
+                     Token::kIS, 3);
   }
 
   fragment_ = instructions;
@@ -5600,8 +5597,8 @@ void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
 
   const dart::String& iterator_getter = dart::String::ZoneHandle(
       Z, dart::Field::GetterSymbol(Symbols::Iterator()));
-  instructions +=
-      InstanceCall(TokenPosition::kNoSource, iterator_getter, Token::kGET, 1);
+  instructions += InstanceCall(node->iterable()->position(), iterator_getter,
+                               Token::kGET, 1);
   LocalVariable* iterator = scopes_->iterator_variables[for_in_depth_];
   instructions += StoreLocal(TokenPosition::kNoSource, iterator);
   instructions += Drop();
@@ -5610,7 +5607,7 @@ void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
   ++loop_depth_;
   Fragment condition = LoadLocal(iterator);
   condition += PushArgument();
-  condition += InstanceCall(TokenPosition::kNoSource, Symbols::MoveNext(),
+  condition += InstanceCall(node->iterable()->position(), Symbols::MoveNext(),
                             Token::kILLEGAL, 1);
   TargetEntryInstr* body_entry;
   TargetEntryInstr* loop_exit;
@@ -5622,8 +5619,7 @@ void FlowGraphBuilder::VisitForInStatement(ForInStatement* node) {
   body += PushArgument();
   const dart::String& current_getter = dart::String::ZoneHandle(
       Z, dart::Field::GetterSymbol(Symbols::Current()));
-  body +=
-      InstanceCall(TokenPosition::kNoSource, current_getter, Token::kGET, 1);
+  body += InstanceCall(node->position(), current_getter, Token::kGET, 1);
   body +=
       StoreLocal(TokenPosition::kNoSource, LookupVariable(node->variable()));
   body += Drop();
@@ -6123,12 +6119,10 @@ void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
         catch_body += PushArgument();  // type arguments
         catch_body += Constant(*type_guard);
         catch_body += PushArgument();  // guard type
-        catch_body += Constant(Object::bool_false());
-        catch_body += PushArgument();  // negate
         catch_body += InstanceCall(
             TokenPosition::kNoSource,
             dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
-            Token::kIS, 4);
+            Token::kIS, 3);
 
         TargetEntryInstr* catch_entry;
         TargetEntryInstr* next_catch_entry;

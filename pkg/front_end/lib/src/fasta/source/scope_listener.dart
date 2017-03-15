@@ -82,8 +82,8 @@ abstract class ScopeListener<J> extends UnhandledListener {
   }
 
   @override
-  void beginFunctionBody(Token begin) {
-    debugEvent("beginFunctionBody");
+  void beginBlockFunctionBody(Token begin) {
+    debugEvent("beginBlockFunctionBody");
     enterLocalScope();
   }
 

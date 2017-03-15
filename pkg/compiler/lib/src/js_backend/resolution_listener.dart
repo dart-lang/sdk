@@ -4,14 +4,16 @@
 
 library js_backend.backend.resolution_listener;
 
+import '../common/backend_api.dart';
 import '../common/names.dart' show Identifiers, Uris;
-import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../kernel/task.dart';
+import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
@@ -24,24 +26,25 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'lookup_map_analysis.dart' show LookupMapLibraryAccess;
+import 'lookup_map_analysis.dart' show LookupMapResolutionAnalysis;
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
-import 'native_data.dart' show NativeData;
+import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
 import 'type_variable_handler.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
-  // TODO(johnniwinther): Avoid the need for accessing through [_backend].
-  final JavaScriptBackend _backend;
+  // TODO(johnniwinther): Avoid the need for this.
+  final KernelTask _kernelTask;
 
   final CompilerOptions _options;
+  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
   final BackendImpacts _impacts;
-  final ElementEnvironment _elementEnvironment;
+  final BackendClasses _backendClasses;
 
-  final NativeData _nativeData;
+  final NativeBasicData _nativeData;
   final InterceptorDataBuilder _interceptorData;
   final BackendUsageBuilder _backendUsage;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
@@ -49,18 +52,23 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
-  final LookupMapLibraryAccess _lookupMapLibraryAccess;
+  final LookupMapResolutionAnalysis _lookupMapResolutionAnalysis;
   final MirrorsAnalysis _mirrorsAnalysis;
+  final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
+
+  final NativeResolutionEnqueuer _nativeEnqueuer;
 
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
+
   ResolutionEnqueuerListener(
-      this._backend,
+      this._kernelTask,
       this._options,
       this._elementEnvironment,
       this._commonElements,
       this._helpers,
       this._impacts,
+      this._backendClasses,
       this._nativeData,
       this._interceptorData,
       this._backendUsage,
@@ -68,17 +76,10 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._mirrorsData,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
-      this._lookupMapLibraryAccess,
-      this._mirrorsAnalysis);
-
-  // TODO(johnniwinther): Avoid the need for these.
-  Resolution get _resolution => _backend.resolution;
-  KernelTask get _kernelTask => _backend.kernelTask;
-
-  // TODO(johnniwinther): Change this to a final field. Currently breaks
-  // `kernel/closed_world_test`.
-  TypeVariableAnalysis get _typeVariableAnalysis =>
-      _backend.typeVariableAnalysis;
+      this._lookupMapResolutionAnalysis,
+      this._mirrorsAnalysis,
+      this._typeVariableResolutionAnalysis,
+      this._nativeEnqueuer);
 
   void _registerBackendImpact(
       WorldImpactBuilder builder, BackendImpact impact) {
@@ -87,16 +88,21 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   void _addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder) {
-    cls.ensureResolved(_resolution);
     _interceptorData.addInterceptors(cls);
     impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
-    _backendUsage.registerBackendUse(cls);
+    _backendUsage.registerBackendClassUse(cls);
   }
 
   @override
-  WorldImpact registerBoundClosure() {
+  WorldImpact registerClosurizedMember(MemberElement element) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     _backendUsage.processBackendImpact(_impacts.memberClosure);
-    return _impacts.memberClosure.createImpact(_elementEnvironment);
+    impactBuilder
+        .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
+    if (element.type.containsTypeVariables) {
+      impactBuilder.addImpact(_registerComputeSignature());
+    }
+    return impactBuilder;
   }
 
   @override
@@ -111,9 +117,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerInstantiatedType(InterfaceType type, {bool isGlobal: false}) {
+  void registerInstantiatedType(InterfaceType type,
+      {bool isGlobal: false, bool nativeUsage: false}) {
     if (isGlobal) {
       _backendUsage.registerGlobalClassDependency(type.element);
+    }
+    if (nativeUsage) {
+      _nativeEnqueuer.onInstantiatedType(type);
     }
   }
 
@@ -164,8 +174,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   @override
   void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries) {
-    enqueuer
-        .applyImpact(enqueuer.nativeEnqueuer.processNativeClasses(libraries));
+    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
     if (mainMethod != null) {
       enqueuer.applyImpact(_computeMainImpact(mainMethod));
     }
@@ -182,8 +191,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
-    enqueuer.applyImpact(_lookupMapLibraryAccess.flush());
-    enqueuer.applyImpact(_typeVariableAnalysis.flush());
+    enqueuer.applyImpact(_lookupMapResolutionAnalysis.flush());
+    enqueuer.applyImpact(_typeVariableResolutionAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {
       MemberEntity element =
@@ -210,6 +219,68 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
+  }
+
+  @override
+  void onQueueClosed() {}
+
+  /// Adds the impact of [constant] to [impactBuilder].
+  void _computeImpactForCompileTimeConstant(
+      ConstantValue constant, WorldImpactBuilder impactBuilder) {
+    _computeImpactForCompileTimeConstantInternal(constant, impactBuilder);
+
+    for (ConstantValue dependency in constant.getDependencies()) {
+      _computeImpactForCompileTimeConstant(dependency, impactBuilder);
+    }
+  }
+
+  void _computeImpactForCompileTimeConstantInternal(
+      ConstantValue constant, WorldImpactBuilder impactBuilder) {
+    DartType type = constant.getType(_commonElements);
+    _computeImpactForInstantiatedConstantType(type, impactBuilder);
+
+    if (constant.isFunction) {
+      FunctionConstantValue function = constant;
+      impactBuilder
+          .registerStaticUse(new StaticUse.staticTearOff(function.element));
+    } else if (constant.isInterceptor) {
+      // An interceptor constant references the class's prototype chain.
+      InterceptorConstantValue interceptor = constant;
+      ClassElement cls = interceptor.cls;
+      _computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
+    } else if (constant.isType) {
+      MethodElement helper = _helpers.createRuntimeType;
+      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+          // TODO(johnniwinther): Find the right [CallStructure].
+          helper,
+          null));
+      _backendUsage.registerBackendFunctionUse(helper);
+      impactBuilder
+          .registerTypeUse(new TypeUse.instantiation(_backendClasses.typeType));
+    }
+  }
+
+  void _computeImpactForInstantiatedConstantType(
+      DartType type, WorldImpactBuilder impactBuilder) {
+    if (type is InterfaceType) {
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
+      if (type.element == _backendClasses.typeClass) {
+        // If we use a type literal in a constant, the compile time
+        // constant emitter will generate a call to the createRuntimeType
+        // helper so we register a use of that.
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            // TODO(johnniwinther): Find the right [CallStructure].
+            _helpers.createRuntimeType,
+            null));
+      }
+    }
+  }
+
+  @override
+  WorldImpact registerUsedConstant(ConstantValue constant) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    _computeImpactForCompileTimeConstant(constant, impactBuilder);
+    return impactBuilder;
   }
 
   @override
@@ -278,14 +349,10 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     return _impacts.runtimeTypeSupport.createImpact(_elementEnvironment);
   }
 
-  WorldImpact registerClosureWithFreeTypeVariables(MemberEntity closure) {
-    return _registerComputeSignature();
-  }
-
   WorldImpact _processClass(ClassElement cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      _typeVariableAnalysis.registerClassWithTypeVariables(cls);
+      _typeVariableResolutionAnalysis.registerClassWithTypeVariables(cls);
     }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
     // for these into [BackendHelpers] or [BackendImpacts].
@@ -360,18 +427,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     } else if (cls == _helpers.jsJavaScriptFunctionClass) {
       _addInterceptors(_helpers.jsJavaScriptFunctionClass, impactBuilder);
     } else if (_nativeData.isNativeOrExtendsNative(cls)) {
-      _addInterceptorsForNativeClassMembers(cls);
+      _interceptorData.addInterceptorsForNativeClassMembers(cls);
     } else if (cls == _helpers.jsIndexingBehaviorInterface) {
       _registerBackendImpact(impactBuilder, _impacts.jsIndexingBehavior);
     }
 
     _customElementsAnalysis.registerInstantiatedClass(cls);
     return impactBuilder;
-  }
-
-  void _addInterceptorsForNativeClassMembers(ClassElement cls) {
-    cls.ensureResolved(_resolution);
-    _interceptorData.addInterceptorsForNativeClassMembers(cls);
   }
 
   @override
@@ -406,13 +468,18 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
-    // We register all the _helpers in the _resolution queue.
+    // We register all the _helpers in the resolution queue.
     // TODO(13155): Find a way to register fewer _helpers.
-    List<MemberEntity> staticUses = <MemberEntity>[];
+    List<FunctionEntity> staticUses = <FunctionEntity>[];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
       staticUses.add(helper.getStaticUse(_helpers).element);
     }
     _registerBackendImpact(
         impactBuilder, new BackendImpact(globalUses: staticUses));
+  }
+
+  @override
+  void logSummary(void log(String message)) {
+    _nativeEnqueuer.logSummary(log);
   }
 }

@@ -3170,7 +3170,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->EmitPolymorphicInstanceCall(
       ic_data(), instance_call()->ArgumentCount(),
       instance_call()->argument_names(), deopt_id(),
-      instance_call()->token_pos(), locs(), complete());
+      instance_call()->token_pos(), locs(), complete(), total_call_count());
 }
 #endif
 

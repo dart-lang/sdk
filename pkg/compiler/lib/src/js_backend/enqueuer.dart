@@ -12,16 +12,20 @@ import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../elements/elements.dart' show MemberElement, TypedElement;
+import '../elements/elements.dart' show MemberElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../native/native.dart' as native;
 import '../options.dart';
-import '../types/types.dart' show TypeMaskStrategy;
 import '../universe/world_builder.dart';
 import '../universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+    show
+        ConstantUse,
+        DynamicUse,
+        StaticUse,
+        StaticUseKind,
+        TypeUse,
+        TypeUseKind;
 import '../universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/enumset.dart';
@@ -33,12 +37,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final EnqueuerStrategy strategy;
 
   Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
-  final CodegenWorldBuilderImpl _universe;
+  bool _recentConstants = false;
+  final CodegenWorldBuilderImpl _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
   bool queueIsClosed = false;
   final CompilerTask task;
-  final native.NativeEnqueuer nativeEnqueuer;
   final EnqueuerListener listener;
   final CompilerOptions _options;
 
@@ -52,19 +56,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(this.task, JavaScriptBackend backend, CompilerOptions options,
-      this.strategy)
-      : _universe =
-            new CodegenWorldBuilderImpl(backend, const TypeMaskStrategy()),
-        _workItemBuilder = new CodegenWorkItemBuilder(backend, options),
-        nativeEnqueuer = backend.nativeCodegenEnqueuer(),
-        this.listener = backend.codegenEnqueuerListener,
-        this._options = options,
-        this.name = 'codegen enqueuer' {
+  CodegenEnqueuer(this.task, this._options, this.strategy, this._worldBuilder,
+      this._workItemBuilder, this.listener)
+      : this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
-  CodegenWorldBuilder get worldBuilder => _universe;
+  CodegenWorldBuilder get worldBuilder => _worldBuilder;
 
   bool get queueIsEmpty => _queue.isEmpty;
 
@@ -105,12 +103,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void _registerInstantiatedType(ResolutionInterfaceType type,
       {bool mirrorUsage: false, bool nativeUsage: false}) {
     task.measure(() {
-      _universe.registerTypeInstantiation(type, _applyClassUse,
+      _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
           byMirrors: mirrorUsage);
-      if (nativeUsage) {
-        nativeEnqueuer.onInstantiatedType(type);
-      }
-      listener.registerInstantiatedType(type);
+      listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
     });
   }
 
@@ -119,7 +114,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void checkClass(ClassEntity cls) {
-    _universe.processClassMembers(cls, (MemberEntity member, useSet) {
+    _worldBuilder.processClassMembers(cls, (MemberEntity member, useSet) {
       if (useSet.isNotEmpty) {
         throw new SpannableAssertionFailure(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
@@ -131,7 +126,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void _applyClassUse(ClassEntity cls, EnumSet<ClassUse> useSet) {
     if (useSet.contains(ClassUse.INSTANTIATED)) {
       _recentClasses.add(cls);
-      _universe.processClassMembers(cls, _applyMemberUse);
+      _worldBuilder.processClassMembers(cls, _applyMemberUse);
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
@@ -143,7 +138,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   /// Callback for applying the use of a [member].
-  void _applyMemberUse(Entity member, EnumSet<MemberUse> useSet) {
+  void _applyMemberUse(MemberEntity member, EnumSet<MemberUse> useSet) {
     if (useSet.contains(MemberUse.NORMAL)) {
       _addToWorkList(member);
     }
@@ -157,17 +152,21 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      _universe.registerDynamicUse(dynamicUse, _applyMemberUse);
+      _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
   void processStaticUse(StaticUse staticUse) {
-    _universe.registerStaticUse(staticUse, _applyMemberUse);
+    _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
     switch (staticUse.kind) {
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
         processTypeUse(new TypeUse.instantiation(staticUse.type));
+        break;
+      case StaticUseKind.INLINING:
+        // TODO(johnniwinther): Should this be tracked with _MemberUsage ?
+        listener.registerUsedElement(staticUse.element);
         break;
       default:
         break;
@@ -201,21 +200,22 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
-  void _registerIsCheck(ResolutionDartType type) {
-    type = _universe.registerIsCheck(type);
-    // Even in checked mode, type annotations for return type and argument
-    // types do not imply type checks, so there should never be a check
-    // against the type variable of a typedef.
-    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
+  void processConstantUse(ConstantUse constantUse) {
+    task.measure(() {
+      if (_worldBuilder.registerConstantUse(constantUse)) {
+        applyImpact(listener.registerUsedConstant(constantUse.value));
+        _recentConstants = true;
+      }
+    });
   }
 
-  void _registerClosurizedMember(TypedElement element) {
+  void _registerIsCheck(ResolutionDartType type) {
+    _worldBuilder.registerIsCheck(type);
+  }
+
+  void _registerClosurizedMember(MemberElement element) {
     assert(element.isInstanceMember);
-    if (element.type.containsTypeVariables) {
-      MemberElement member = element;
-      applyImpact(listener.registerClosureWithFreeTypeVariables(member));
-    }
-    applyImpact(listener.registerBoundClosure());
+    applyImpact(listener.registerClosurizedMember(element));
   }
 
   void forEach(void f(WorkItem work)) {
@@ -232,8 +232,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
       }
       List recents = _recentClasses.toList(growable: false);
       _recentClasses.clear();
+      _recentConstants = false;
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
-    } while (_queue.isNotEmpty || _recentClasses.isNotEmpty);
+    } while (
+        _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]
@@ -246,9 +248,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
     return listener.onQueueEmpty(this, recentClasses);
   }
 
-  void logSummary(log(message)) {
+  @override
+  void logSummary(void log(String message)) {
     log('Compiled ${_processedEntities.length} methods.');
-    nativeEnqueuer.logSummary(log);
+    listener.logSummary(log);
   }
 
   String toString() => 'Enqueuer($name)';
@@ -259,7 +262,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   Iterable<Entity> get processedEntities => _processedEntities;
 
   @override
-  Iterable<ClassEntity> get processedClasses => _universe.processedClasses;
+  Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
 }
 
 /// Builder that creates the work item necessary for the code generation of a

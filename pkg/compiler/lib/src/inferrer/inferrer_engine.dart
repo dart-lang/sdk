@@ -200,8 +200,9 @@ class InferrerEngine {
     }
   }
 
-  bool isNativeElement(Element element) {
-    return compiler.backend.isNative(element);
+  bool isNativeMember(Element element) {
+    return element is MemberElement &&
+        compiler.backend.nativeData.isNativeMember(element);
   }
 
   bool checkIfExposesThis(Element element) {

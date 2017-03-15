@@ -19,7 +19,12 @@ class _Closure implements Function {
   // from C++ code) and also here so that the offset-to-field map used by
   // deferred objects is properly initialized.
   // Caution: These fields are not Dart instances, but VM objects.
-  var instantiator_;
-  var function_;
-  var context_;
+  // The fields had to be renamed here so that they would be private fields
+  // in dart
+  // instantiator_ ===> _instantiator
+  // function_ ===> _function
+  // context_ ===> _context
+  var _instantiator;
+  var _function;
+  var _context;
 }

@@ -147,6 +147,14 @@ class SingleContextManager implements ContextManager {
   }
 
   @override
+  Folder getContextFolderFor(String path) {
+    if (isInAnalysisRoot(path)) {
+      return contextFolder;
+    }
+    return null;
+  }
+
+  @override
   AnalysisDriver getDriverFor(String path) {
     throw new UnimplementedError(
         'Unexpected invocation of getDriverFor in SingleContextManager');

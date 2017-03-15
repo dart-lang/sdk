@@ -12,6 +12,7 @@ import '../js/js.dart' as jsAst;
 import '../js_emitter/js_emitter.dart'
     show CodeEmitterTask, MetadataCollector, Placeholder;
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/use.dart' show ConstantUse;
 import '../universe/world_impact.dart';
 import 'backend.dart';
 import 'backend_usage.dart' show BackendUsageBuilder;
@@ -21,7 +22,7 @@ import 'mirrors_data.dart';
 
 /// Resolution analysis that prepares for the construction of TypeVariable
 /// constants needed at runtime.
-class TypeVariableAnalysis {
+class TypeVariableResolutionAnalysis {
   final ElementEnvironment _elementEnvironment;
   final BackendImpacts _impacts;
   final BackendUsageBuilder _backendUsageBuilder;
@@ -34,7 +35,7 @@ class TypeVariableAnalysis {
   /// Impact builder used for the resolution world computation.
   final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
 
-  TypeVariableAnalysis(
+  TypeVariableResolutionAnalysis(
       this._elementEnvironment, this._impacts, this._backendUsageBuilder);
 
   /// Compute the [WorldImpact] for the type variables registered since last
@@ -56,7 +57,7 @@ class TypeVariableAnalysis {
 }
 
 /// Codegen handler that creates TypeVariable constants needed at runtime.
-class TypeVariableHandler {
+class TypeVariableCodegenAnalysis {
   final JavaScriptBackend _backend;
   final BackendHelpers _helpers;
   final MirrorsData _mirrorsData;
@@ -76,10 +77,10 @@ class TypeVariableHandler {
       new Map<TypeVariableElement, jsAst.Expression>();
 
   /// Impact builder used for the codegen world computation.
-  final StagedWorldImpactBuilder impactBuilderForCodegen =
+  final StagedWorldImpactBuilder _impactBuilder =
       new StagedWorldImpactBuilder();
 
-  TypeVariableHandler(this._backend, this._helpers, this._mirrorsData);
+  TypeVariableCodegenAnalysis(this._backend, this._helpers, this._mirrorsData);
 
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
@@ -87,7 +88,7 @@ class TypeVariableHandler {
   /// Compute the [WorldImpact] for the type variables registered since last
   /// flush.
   WorldImpact flush() {
-    return impactBuilderForCodegen.flush();
+    return _impactBuilder.flush();
   }
 
   void registerClassWithTypeVariables(ClassElement cls) {
@@ -121,10 +122,8 @@ class TypeVariableHandler {
 
       _backend.constants.evaluate(constant);
       ConstantValue value = _backend.constants.getConstantValue(constant);
-      _backend.computeImpactForCompileTimeConstant(
-          value, impactBuilderForCodegen,
-          forResolution: false);
-      _backend.addCompileTimeConstantForEmission(value);
+      _impactBuilder
+          .registerConstantUse(new ConstantUse.typeVariableMirror(value));
       constants
           .add(_reifyTypeVariableConstant(value, currentTypeVariable.element));
     }

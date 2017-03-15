@@ -463,7 +463,7 @@ class MemberTypeInformation extends ElementTypeInformation
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (element.isField &&
-        (!inferrer.backend.canBeUsedForGlobalOptimizations(element) ||
+        (!inferrer.backend.canFieldBeUsedForGlobalOptimizations(element) ||
             inferrer.annotations.assumeDynamic(element))) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
@@ -471,29 +471,30 @@ class MemberTypeInformation extends ElementTypeInformation
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.isNativeElement(element)) {
+    if (inferrer.isNativeMember(element)) {
       // Use the type annotation as the type for native elements. We
       // also give up on inferring to make sure this element never
       // goes in the work queue.
       giveUp(inferrer);
       if (element.isField) {
+        FieldElement field = element;
         return inferrer
             .typeOfNativeBehavior(
-                inferrer.backend.getNativeFieldLoadBehavior(element))
+                inferrer.backend.nativeData.getNativeFieldLoadBehavior(field))
             .type;
       } else {
         assert(element.isFunction ||
             element.isGetter ||
             element.isSetter ||
             element.isConstructor);
-        TypedElement typedElement = element;
-        var elementType = typedElement.type;
+        MethodElement methodElement = element;
+        var elementType = methodElement.type;
         if (elementType.kind != ResolutionTypeKind.FUNCTION) {
           return safeType(inferrer);
         } else {
           return inferrer
-              .typeOfNativeBehavior(
-                  inferrer.backend.getNativeMethodBehavior(element))
+              .typeOfNativeBehavior(inferrer.backend.nativeData
+                  .getNativeMethodBehavior(methodElement))
               .type;
         }
       }
@@ -615,7 +616,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    if (!inferrer.backend.canBeUsedForGlobalOptimizations(element) ||
+    if (!inferrer.backend.canFunctionParametersBeUsedForGlobalOptimizations(
+            element.functionDeclaration) ||
         inferrer.annotations.assumeDynamic(declaration)) {
       // Do not infer types for parameters that have a correspondign annotation
       // or that are assigned by synthesized calls.

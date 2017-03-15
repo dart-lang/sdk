@@ -622,11 +622,13 @@ addTypeTests(ctor) => JS(
   };
 })()''');
 
+// TODO(vsm): Consider optimizing this.  We may be able to statically
+// determine which == operation to invoke given the static types.
 equals(x, y) => JS(
     '',
     '''(() => {
   if ($x == null || $y == null) return $x == $y;
-  let eq = $x['=='];
+  let eq = $x[dartx['==']] || $x['=='];
   return eq ? eq.call($x, $y) : $x === $y;
 })()''');
 

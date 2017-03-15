@@ -80,6 +80,7 @@ Future<Compiler> newCompiler() async {
   // program. The mixin-full resolution transform run by the test expects to
   // find dart.core::Iterator.
   var core = await compiler.libraryLoader.loadLibrary(Uri.parse('dart:core'));
+  compiler.startResolution();
   var cls = core.implementation.localLookup('Iterator');
   cls.ensureResolved(compiler.resolution);
   return compiler;

@@ -47,7 +47,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   // 3) foo() native "return 42";
   //      hasBody = true
   bool hasBody = false;
-  assert(backend.isNative(element));
+  assert(backend.nativeData.isNativeMember(element));
   String nativeMethodName = backend.nativeData.getFixedBackendName(element);
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();

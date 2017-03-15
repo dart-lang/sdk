@@ -484,9 +484,6 @@ mixin_of_mixin_test/14: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_test: RuntimeError
-mixin_type_parameters_errors_test/01: DartkCrash
-mixin_type_parameters_errors_test/02: DartkCrash
-mixin_type_parameters_errors_test/05: DartkCrash
 mixin_type_parameters_super_extends_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 multiline_newline_test/01: RuntimeError
@@ -716,10 +713,3 @@ external_test/13: Crash
 final_syntax_test/09: Crash
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
-
-[$compiler == dartk && $runtime == vm]
-part_of_uri_test: DartkCrash
-part_of_uri2_test: Crash
-[$compiler == dartkp && $runtime == dart_precompiled]
-part_of_uri_test: DartkCrash
-part_of_uri2_test: Crash

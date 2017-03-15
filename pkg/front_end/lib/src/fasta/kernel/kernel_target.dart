@@ -216,6 +216,30 @@ class KernelTarget extends TargetImplementation {
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
   }
 
+  Future<Program> writeOutline(Uri uri) async {
+    if (loader.first == null) return null;
+    try {
+      await loader.buildOutlines();
+      loader.resolveParts();
+      loader.computeLibraryScopes();
+      loader.resolveTypes();
+      loader.buildProgram();
+      loader.checkSemantics();
+      List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();
+      installDefaultSupertypes();
+      installDefaultConstructors(sourceClasses);
+      loader.resolveConstructors();
+      loader.finishTypeVariables(objectClassBuilder);
+      program = link(new List<Library>.from(loader.libraries));
+      if (uri == null) return program;
+      return await writeLinkedProgram(uri, program, isFullProgram: false);
+    } on InputError catch (e) {
+      return handleInputError(uri, e, isFullProgram: false);
+    } catch (e, s) {
+      return reportCrash(e, s, loader?.currentUriForCrashReporting);
+    }
+  }
+
   Future<Program> writeProgram(Uri uri,
       {bool dumpIr: false, bool verify: false}) async {
     if (loader.first == null) return null;
@@ -247,42 +271,29 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  Future<Program> writeOutline(Uri uri) async {
-    if (loader.first == null) return null;
-    try {
-      await loader.buildOutlines();
-      loader.resolveParts();
-      loader.computeLibraryScopes();
-      loader.resolveTypes();
-      loader.buildProgram();
-      loader.checkSemantics();
-      List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();
-      installDefaultSupertypes();
-      installDefaultConstructors(sourceClasses);
-      loader.resolveConstructors();
-      loader.finishTypeVariables(objectClassBuilder);
-      program = link(new List<Library>.from(loader.libraries));
-      if (uri == null) return program;
-      return await writeLinkedProgram(uri, program, isFullProgram: false);
-    } on InputError catch (e) {
-      return handleInputError(uri, e, isFullProgram: false);
-    } catch (e, s) {
-      return reportCrash(e, s, loader?.currentUriForCrashReporting);
+  Future writeDepsFile(Uri output, Uri depsFile,
+      {Iterable<Uri> extraDependencies}) async {
+    Uri base = depsFile.resolve(".");
+    String toRelativeFilePath(Uri uri) {
+      return Uri.parse(relativizeUri(uri, base: base)).toFilePath();
     }
-  }
 
-  Future writeDepsFile(Uri output, Uri depsFile) async {
     if (loader.first == null) return null;
     StringBuffer sb = new StringBuffer();
-    Uri base = depsFile.resolve(".");
-    sb.write(Uri.parse(relativizeUri(output, base: base)).toFilePath());
+    sb.write(toRelativeFilePath(output));
     sb.write(":");
-    for (Uri dependency in loader.getDependencies()) {
+    Set<String> allDependencies = new Set<String>();
+    allDependencies.addAll(loader.getDependencies().map(toRelativeFilePath));
+    if (extraDependencies != null) {
+      allDependencies.addAll(extraDependencies.map(toRelativeFilePath));
+    }
+    for (String path in allDependencies) {
       sb.write(" ");
-      sb.write(Uri.parse(relativizeUri(dependency, base: base)).toFilePath());
+      sb.write(path);
     }
     sb.writeln();
     await new File.fromUri(depsFile).writeAsString("$sb");
+    ticker.logMs("Wrote deps file");
   }
 
   Program erroneousProgram(bool isFullProgram) {

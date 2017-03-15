@@ -21,7 +21,8 @@ typedef bool ShouldEncodeTypedefCallback(ResolutionTypedefType variable);
 abstract class RuntimeTypesNeed {
   bool classNeedsRti(ClassElement cls);
   bool classNeedsRtiField(ClassElement cls);
-  bool methodNeedsRti(FunctionElement function);
+  bool methodNeedsRti(MethodElement function);
+  bool localFunctionNeedsRti(LocalFunctionElement function);
   bool classUsesTypeVariableExpression(ClassElement cls);
 }
 
@@ -158,17 +159,15 @@ abstract class _RuntimeTypesBase {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
-    Set<ResolutionDartType> instantiatedTypes = worldBuilder.instantiatedTypes;
+    Set<InterfaceType> instantiatedTypes = worldBuilder.instantiatedTypes;
     if (cannotDetermineInstantiatedTypesPrecisely) {
-      for (ResolutionDartType type in instantiatedTypes) {
-        if (type.kind != ResolutionTypeKind.INTERFACE) continue;
-        ResolutionInterfaceType interface = type;
+      for (ResolutionInterfaceType type in instantiatedTypes) {
         do {
-          for (ResolutionDartType argument in interface.typeArguments) {
+          for (ResolutionDartType argument in type.typeArguments) {
             worldBuilder.registerIsCheck(argument);
           }
-          interface = interface.element.supertype;
-        } while (interface != null && !instantiatedTypes.contains(interface));
+          type = type.element.supertype;
+        } while (type != null && !instantiatedTypes.contains(type));
       }
     } else {
       // Find all instantiated types that are a subtype of a class that uses
@@ -176,22 +175,19 @@ abstract class _RuntimeTypesBase {
       // set of is-checks.
       // TODO(karlklose): replace this with code that uses a subtype lookup
       // datastructure in the world.
-      for (ResolutionDartType type in instantiatedTypes) {
-        if (type.kind != ResolutionTypeKind.INTERFACE) continue;
-        ResolutionInterfaceType classType = type;
+      for (ResolutionInterfaceType type in instantiatedTypes) {
         for (ClassElement cls in classesUsingChecks) {
-          ResolutionInterfaceType current = classType;
           do {
             // We need the type as instance of its superclass anyway, so we just
             // try to compute the substitution; if the result is [:null:], the
             // classes are not related.
-            ResolutionInterfaceType instance = current.asInstanceOf(cls);
+            ResolutionInterfaceType instance = type.asInstanceOf(cls);
             if (instance == null) break;
             for (ResolutionDartType argument in instance.typeArguments) {
               worldBuilder.registerIsCheck(argument);
             }
-            current = current.element.supertype;
-          } while (current != null && !instantiatedTypes.contains(current));
+            type = type.element.supertype;
+          } while (type != null && !instantiatedTypes.contains(type));
         }
       }
     }
@@ -202,13 +198,18 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
   final BackendUsage _backendUsage;
   final Set<ClassElement> classesNeedingRti;
   final Set<Element> methodsNeedingRti;
+  final Set<Element> localFunctionsNeedingRti;
 
   /// The set of classes that use one of their type variables as expressions
   /// to get the runtime type.
   final Set<ClassElement> classesUsingTypeVariableExpression;
 
-  _RuntimeTypesNeed(this._backendUsage, this.classesNeedingRti,
-      this.methodsNeedingRti, this.classesUsingTypeVariableExpression);
+  _RuntimeTypesNeed(
+      this._backendUsage,
+      this.classesNeedingRti,
+      this.methodsNeedingRti,
+      this.localFunctionsNeedingRti,
+      this.classesUsingTypeVariableExpression);
 
   bool classNeedsRti(ClassElement cls) {
     if (_backendUsage.isRuntimeTypeUsed) return true;
@@ -221,8 +222,13 @@ class _RuntimeTypesNeed implements RuntimeTypesNeed {
     return classesNeedingRti.contains(cls.declaration);
   }
 
-  bool methodNeedsRti(FunctionElement function) {
+  bool methodNeedsRti(MethodElement function) {
     return methodsNeedingRti.contains(function) ||
+        _backendUsage.isRuntimeTypeUsed;
+  }
+
+  bool localFunctionNeedsRti(LocalFunctionElement function) {
+    return localFunctionsNeedingRti.contains(function) ||
         _backendUsage.isRuntimeTypeUsed;
   }
 
@@ -236,10 +242,6 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
   final Map<ClassElement, Set<ClassElement>> rtiDependencies =
       <ClassElement, Set<ClassElement>>{};
-
-  final Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
-
-  final Set<Element> methodsNeedingRti = new Set<Element>();
 
   final Set<ClassElement> classesUsingTypeVariableExpression =
       new Set<ClassElement>();
@@ -267,6 +269,11 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
       BackendHelpers helpers,
       BackendUsage backendUsage,
       {bool enableTypeAssertions}) {
+    Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
+    Set<MethodElement> methodsNeedingRti = new Set<MethodElement>();
+    Set<LocalFunctionElement> localFunctionsNeedingRti =
+        new Set<LocalFunctionElement>();
+
     // Find the classes that need runtime type information. Such
     // classes are:
     // (1) used in a is check with type variables,
@@ -316,6 +323,23 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
       ClassElement listClass = commonElements.listClass;
       registerRtiDependency(helpers.jsArrayClass, listClass);
     }
+
+    // Check local functions and closurized members.
+    void checkClosures(bool analyzeFunction(FunctionElement function)) {
+      for (LocalFunctionElement function
+          in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
+        if (analyzeFunction(function)) {
+          localFunctionsNeedingRti.add(function);
+        }
+      }
+      for (MethodElement function
+          in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
+        if (analyzeFunction(function)) {
+          methodsNeedingRti.add(function);
+        }
+      }
+    }
+
     // Compute the set of all classes and methods that need runtime type
     // information.
     resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
@@ -333,45 +357,45 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
           potentiallyAddForRti(contextClass);
         }
         if (type.isFunctionType) {
-          void analyzeMethod(TypedElement method) {
+          bool analyzeMethod(FunctionElement method) {
             ResolutionDartType memberType = method.type;
             ClassElement contextClass = Types.getClassContext(memberType);
             if (contextClass != null &&
                 types.isPotentialSubtype(memberType, type)) {
               potentiallyAddForRti(contextClass);
-              methodsNeedingRti.add(method);
+              return true;
             }
+            return false;
           }
 
-          resolutionWorldBuilder.closuresWithFreeTypeVariables
-              .forEach(analyzeMethod);
-          resolutionWorldBuilder.callMethodsWithFreeTypeVariables
-              .forEach(analyzeMethod);
+          checkClosures(analyzeMethod);
         }
       }
     });
     if (enableTypeAssertions) {
-      void analyzeMethod(TypedElement method) {
+      bool analyzeMethod(FunctionElement method) {
         ResolutionDartType memberType = method.type;
         ClassElement contextClass = Types.getClassContext(memberType);
         if (contextClass != null) {
           potentiallyAddForRti(contextClass);
-          methodsNeedingRti.add(method);
+          return true;
         }
+        return false;
       }
 
-      resolutionWorldBuilder.closuresWithFreeTypeVariables
-          .forEach(analyzeMethod);
-      resolutionWorldBuilder.callMethodsWithFreeTypeVariables
-          .forEach(analyzeMethod);
+      checkClosures(analyzeMethod);
     }
 
     // Add the classes that need RTI because they use a type variable as
     // expression.
     classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
 
-    return new _RuntimeTypesNeed(backendUsage, classesNeedingRti,
-        methodsNeedingRti, classesUsingTypeVariableExpression);
+    return new _RuntimeTypesNeed(
+        backendUsage,
+        classesNeedingRti,
+        methodsNeedingRti,
+        localFunctionsNeedingRti,
+        classesUsingTypeVariableExpression);
   }
 }
 
@@ -474,14 +498,11 @@ class _RuntimeTypes extends _RuntimeTypesBase
       CodegenWorldBuilder worldBuilder) {
     Set<ResolutionDartType> instantiatedTypes =
         new Set<ResolutionDartType>.from(worldBuilder.instantiatedTypes);
-    for (ResolutionDartType instantiatedType
+    for (ResolutionInterfaceType instantiatedType
         in worldBuilder.instantiatedTypes) {
-      if (instantiatedType.isInterfaceType) {
-        ResolutionInterfaceType interface = instantiatedType;
-        ResolutionFunctionType callType = interface.callType;
-        if (callType != null) {
-          instantiatedTypes.add(callType);
-        }
+      ResolutionFunctionType callType = instantiatedType.callType;
+      if (callType != null) {
+        instantiatedTypes.add(callType);
       }
     }
     for (FunctionElement element in worldBuilder.staticFunctionsNeedingGetter) {
@@ -491,7 +512,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     // [neededClasses] computed in the emitter instead of storing it and pulling
     // it from resolution, but currently it would introduce a cyclic dependency
     // between [computeRequiredChecks] and [computeNeededClasses].
-    for (TypedElement element
+    for (MethodElement element
         in compiler.resolutionWorldBuilder.closurizedMembers) {
       instantiatedTypes.add(element.type);
     }

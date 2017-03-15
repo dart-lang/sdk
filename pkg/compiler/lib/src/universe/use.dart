@@ -18,6 +18,7 @@ library dart2js.universe.use;
 
 import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
+import '../constants/values.dart';
 import '../elements/types.dart';
 import '../elements/elements.dart' show ConstructorBodyElement, Element;
 import '../elements/entities.dart';
@@ -81,6 +82,7 @@ enum StaticUseKind {
   REDIRECTION,
   DIRECT_INVOKE,
   DIRECT_USE,
+  INLINING,
 }
 
 /// Statically known use of an [Element].
@@ -322,18 +324,25 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.CLOSURE);
   }
 
-  /// Unknown use of [element].
-  ///
-  /// Avoid using this, if possible: Use one of the other constructor which more
-  /// precisely capture why [element] is used.
-  @deprecated
-  factory StaticUse.foreignUse(MemberEntity element) {
+  /// Use of [element] through reflection.
+  factory StaticUse.mirrorUse(MemberEntity element) {
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Implicit method/constructor invocation of [element] created by the
+  /// backend.
+  factory StaticUse.implicitInvoke(FunctionEntity element) {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
   /// Direct use of [element] as done with `--analyze-all` and `--analyze-main`.
   factory StaticUse.directUse(Entity element) {
     return new StaticUse.internal(element, StaticUseKind.DIRECT_USE);
+  }
+
+  /// Inlining of [element].
+  factory StaticUse.inlining(FunctionEntity element) {
+    return new StaticUse.internal(element, StaticUseKind.INLINING);
   }
 
   bool operator ==(other) {
@@ -414,4 +423,54 @@ class TypeUse {
   }
 
   String toString() => 'TypeUse($type,$kind)';
+}
+
+enum ConstantUseKind {
+  // A constant that is directly accessible in code.
+  DIRECT,
+  // A constant that is only accessible through other constants.
+  INDIRECT,
+}
+
+/// Use of a [ConstantValue].
+class ConstantUse {
+  final ConstantValue value;
+  final ConstantUseKind kind;
+  final int hashCode;
+
+  ConstantUse._(this.value, this.kind)
+      : this.hashCode = Hashing.objectHash(value, kind.hashCode);
+
+  /// Constant used as the initial value of a field.
+  ConstantUse.init(ConstantValue value) : this._(value, ConstantUseKind.DIRECT);
+
+  /// Type constant used for registration of custom elements.
+  ConstantUse.customElements(TypeConstantValue value)
+      : this._(value, ConstantUseKind.DIRECT);
+
+  /// Constant used through a lookup map.
+  ConstantUse.lookupMap(ConstantValue value)
+      : this._(value, ConstantUseKind.INDIRECT);
+
+  /// Constant used through mirrors.
+  // TODO(johnniwinther): Maybe if this is `DIRECT` and we can avoid the
+  // extra calls to `addCompileTimeConstantForEmission`.
+  ConstantUse.mirrors(ConstantValue value)
+      : this._(value, ConstantUseKind.INDIRECT);
+
+  /// Constant used for accessing type variables through mirrors.
+  ConstantUse.typeVariableMirror(ConstantValue value)
+      : this._(value, ConstantUseKind.DIRECT);
+
+  /// Constant literal used on code.
+  ConstantUse.literal(ConstantValue value)
+      : this._(value, ConstantUseKind.DIRECT);
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! ConstantUse) return false;
+    return value == other.value;
+  }
+
+  String toString() => 'ConstantUse(${value.toStructuredText()},$kind)';
 }

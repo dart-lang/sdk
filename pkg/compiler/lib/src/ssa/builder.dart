@@ -36,7 +36,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show DynamicUse, StaticUse;
+import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -89,7 +89,7 @@ class SsaBuilderTask extends CompilerTask {
             // This ensures the default value will be computed.
             ConstantValue constant =
                 backend.constants.getConstantValue(parameter.constant);
-            work.registry.registerCompileTimeConstant(constant);
+            work.registry.registerConstantUse(new ConstantUse.init(constant));
           });
         }
         if (backend.tracer.isEnabled) {
@@ -403,10 +403,10 @@ class SsaBuilder extends ast.Visitor
   bool tryInlineMethod(MethodElement element, Selector selector, TypeMask mask,
       List<HInstruction> providedArguments, ast.Node currentNode,
       {ResolutionInterfaceType instanceType}) {
-    registry.addImpact(
-        backend.codegenEnqueuerListener.registerUsedElement(element));
+    registry.registerStaticUse(new StaticUse.inlining(element));
 
-    if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
+    if (backend.nativeData.isJsInteropMember(element) &&
+        !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
       return false;
     }
@@ -442,7 +442,7 @@ class SsaBuilder extends ast.Visitor
         }
       }
 
-      if (backend.isJsInterop(function)) return false;
+      if (backend.nativeData.isJsInteropMember(function)) return false;
 
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
@@ -684,7 +684,7 @@ class SsaBuilder extends ast.Visitor
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
     String name = functionElement.name;
-    if (backend.isJsInterop(functionElement)) {
+    if (backend.nativeData.isJsInteropMember(functionElement)) {
       push(invokeJsInteropFunction(functionElement, parameters.values.toList(),
           sourceInformationBuilder.buildGeneric(function)));
       var value = pop();
@@ -1067,7 +1067,7 @@ class SsaBuilder extends ast.Visitor
           ast.Send call = link.head;
           assert(ast.Initializers.isSuperConstructorCall(call) ||
               ast.Initializers.isConstructorRedirect(call));
-          FunctionElement target = elements[call].implementation;
+          ConstructorElement target = elements[call];
           CallStructure callStructure =
               elements.getSelector(call).callStructure;
           Link<ast.Node> arguments = call.arguments;
@@ -1171,7 +1171,7 @@ class SsaBuilder extends ast.Visitor
     ClassElement classElement = functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
         backend.nativeData.isNativeOrExtendsNative(classElement) &&
-            !backend.isJsInterop(classElement);
+            !backend.nativeData.isJsInteropClass(classElement);
     ast.FunctionExpression function;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       function = resolvedAst.node;
@@ -1811,10 +1811,6 @@ class SsaBuilder extends ast.Visitor
     ClosureClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     MethodElement callElement = nestedClosureData.callElement;
-    // TODO(ahe): This should be registered in codegen, not here.
-    // TODO(johnniwinther): Is [registerStaticUse] equivalent to
-    // [addToWorkList]?
-    registry?.registerStaticUse(new StaticUse.foreignUse(callElement));
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.closureFields.forEach((ClosureFieldElement field) {
@@ -1825,10 +1821,9 @@ class SsaBuilder extends ast.Visitor
     });
 
     TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
-    push(new HCreate(closureClassElement, capturedVariables, type)
+    push(new HCreate(closureClassElement, capturedVariables, type,
+        callMethod: callElement, localFunction: methodElement)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
-
-    registry?.registerInstantiatedClosure(methodElement);
   }
 
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
@@ -2495,8 +2490,8 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [element] must be an implementation element.
    */
   List<HInstruction> makeStaticArgumentList(CallStructure callStructure,
-      Link<ast.Node> arguments, FunctionElement element) {
-    assert(invariant(element, element.isImplementation));
+      Link<ast.Node> arguments, MethodElement element) {
+    assert(invariant(element, element.isDeclaration));
 
     HInstruction compileArgument(ast.Node argument) {
       visit(argument);
@@ -2506,9 +2501,9 @@ class SsaBuilder extends ast.Visitor
     return Elements.makeArgumentsList<HInstruction>(
         callStructure,
         arguments,
-        element,
+        element.implementation,
         compileArgument,
-        backend.isJsInterop(element)
+        backend.nativeData.isJsInteropMember(element)
             ? handleConstantForOptionalParameterJsInterop
             : handleConstantForOptionalParameter);
   }
@@ -2916,13 +2911,13 @@ class SsaBuilder extends ast.Visitor
           closure, '"$name" does not handle closure with optional parameters.');
     }
 
-    registry?.registerStaticUse(new StaticUse.foreignUse(function));
     push(new HForeignCode(
         js.js.expressionTemplateYielding(
             backend.emitter.staticFunctionAccess(function)),
         commonMasks.dynamicType,
         <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.PURE));
+        nativeBehavior: native.NativeBehavior.PURE,
+        foreignFunction: function));
     return params;
   }
 
@@ -3074,8 +3069,8 @@ class SsaBuilder extends ast.Visitor
     Selector selector = elements.getSelector(node);
     assert(invariant(node, selector.applies(method.implementation),
         message: "$selector does not apply to ${method.implementation}"));
-    List<HInstruction> inputs = makeStaticArgumentList(
-        selector.callStructure, node.arguments, method.implementation);
+    List<HInstruction> inputs =
+        makeStaticArgumentList(selector.callStructure, node.arguments, method);
     push(buildInvokeSuper(selector, method, inputs, sourceInformation));
   }
 
@@ -3312,9 +3307,9 @@ class SsaBuilder extends ast.Visitor
         isFixedList = true;
         TypeMask inferred = _inferredTypeOfNewList(send);
         ClassElement cls = element.enclosingClass;
-        assert(backend.isNative(cls.thisType.element));
+        assert(backend.nativeData.isNativeClass(cls));
         return inferred.containsAll(closedWorld)
-            ? new TypeMask.nonNullExact(cls.thisType.element, closedWorld)
+            ? new TypeMask.nonNullExact(cls, closedWorld)
             : inferred;
       } else if (element.isGenerativeConstructor) {
         ClassElement cls = element.enclosingClass;
@@ -3322,7 +3317,7 @@ class SsaBuilder extends ast.Visitor
           // An error will be thrown.
           return new TypeMask.nonNullEmpty();
         } else {
-          return new TypeMask.nonNullExact(cls.thisType.element, closedWorld);
+          return new TypeMask.nonNullExact(cls, closedWorld);
         }
       } else {
         return TypeMaskFactory.inferredReturnTypeForElement(
@@ -3402,12 +3397,12 @@ class SsaBuilder extends ast.Visitor
     if (constructor.isGenerativeConstructor &&
         backend.nativeData
             .isNativeOrExtendsNative(constructor.enclosingClass) &&
-        !backend.isJsInterop(constructor)) {
+        !backend.nativeData.isJsInteropMember(constructor)) {
       // Native class generative constructors take a pre-constructed object.
       inputs.add(graph.addConstantNull(closedWorld));
     }
     inputs.addAll(makeStaticArgumentList(
-        callStructure, send.arguments, constructorImplementation));
+        callStructure, send.arguments, constructorImplementation.declaration));
 
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
@@ -3567,9 +3562,9 @@ class SsaBuilder extends ast.Visitor
 
   /// Generate an invocation to the static or top level [function].
   void generateStaticFunctionInvoke(
-      ast.Send node, FunctionElement function, CallStructure callStructure) {
-    List<HInstruction> inputs = makeStaticArgumentList(
-        callStructure, node.arguments, function.implementation);
+      ast.Send node, MethodElement function, CallStructure callStructure) {
+    List<HInstruction> inputs =
+        makeStaticArgumentList(callStructure, node.arguments, function);
 
     pushInvokeStatic(node, function, inputs,
         sourceInformation:
@@ -4009,7 +4004,7 @@ class SsaBuilder extends ast.Visitor
 
   HForeignCode invokeJsInteropFunction(MethodElement element,
       List<HInstruction> arguments, SourceInformation sourceInformation) {
-    assert(backend.isJsInterop(element));
+    assert(backend.nativeData.isJsInteropMember(element));
     nativeEmitter.nativeMethods.add(element);
 
     if (element.isFactoryConstructor &&
@@ -4031,7 +4026,7 @@ class SsaBuilder extends ast.Visitor
         if (argument != null) {
           filteredArguments.add(argument);
           var jsName =
-              backend.nativeData.getUnescapedJSInteropName(parameter.name);
+              backend.nativeData.computeUnescapedJSInteropName(parameter.name);
           parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
         }
         i++;
@@ -4050,7 +4045,8 @@ class SsaBuilder extends ast.Visitor
         ..sourceInformation = sourceInformation;
     }
     var target = new HForeignCode(
-        js.js.parseForeignJS("${backend.namer.fixedBackendMethodPath(element)}."
+        js.js.parseForeignJS(
+            "${backend.nativeData.getFixedBackendMethodPath(element)}."
             "${backend.nativeData.getFixedBackendName(element)}"),
         commonMasks.dynamicType,
         <HInstruction>[]);
@@ -4078,7 +4074,8 @@ class SsaBuilder extends ast.Visitor
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
-    if (type.element != null && backend.isNative(type.element)) {
+    if (type is ResolutionInterfaceType &&
+        backend.nativeData.isNativeClass(type.element)) {
       nativeBehavior.typesInstantiated.add(type);
     }
 
@@ -4126,7 +4123,7 @@ class SsaBuilder extends ast.Visitor
     bool targetCanThrow = !closedWorld.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     var instruction;
-    if (backend.isJsInterop(element)) {
+    if (backend.nativeData.isJsInteropMember(element)) {
       instruction =
           invokeJsInteropFunction(element, arguments, sourceInformation);
     } else {

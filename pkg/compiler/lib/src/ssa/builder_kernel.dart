@@ -2287,14 +2287,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
               function.requiredParameterCount ==
                   function.positionalParameters.length &&
               function.namedParameters.isEmpty) {
-            registry?.registerStaticUse(
-                new StaticUse.foreignUse(astAdapter.getMethod(staticTarget)));
             push(new HForeignCode(
                 js.js.expressionTemplateYielding(backend.emitter
                     .staticFunctionAccess(astAdapter.getMethod(staticTarget))),
                 commonMasks.dynamicType,
                 <HInstruction>[],
-                nativeBehavior: native.NativeBehavior.PURE));
+                nativeBehavior: native.NativeBehavior.PURE,
+                foreignFunction: astAdapter.getMethod(staticTarget)));
             return;
           }
           problem = 'does not handle a closure with optional parameters';
@@ -2588,10 +2587,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ClosureClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     MethodElement callElement = nestedClosureData.callElement;
-    // TODO(ahe): This should be registered in codegen, not here.
-    // TODO(johnniwinther): Is [registerStaticUse] equivalent to
-    // [addToWorkList]?
-    registry?.registerStaticUse(new StaticUse.foreignUse(callElement));
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.closureFields.forEach((ClosureFieldElement field) {
@@ -2603,9 +2598,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
     // TODO(efortuna): Add source information here.
-    push(new HCreate(closureClassElement, capturedVariables, type));
-
-    registry?.registerInstantiatedClosure(methodElement);
+    push(new HCreate(closureClassElement, capturedVariables, type,
+        callMethod: callElement, localFunction: methodElement));
   }
 
   @override

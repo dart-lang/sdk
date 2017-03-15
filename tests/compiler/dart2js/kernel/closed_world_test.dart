@@ -17,6 +17,7 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
+import 'package:compiler/src/js_backend/resolution_listener.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -76,9 +77,7 @@ main(List<String> args) {
           Flags.useKernel,
           Flags.enableAssertMessage
         ]);
-    ResolutionWorldBuilderImpl worldBuilder =
-        compiler.enqueuer.resolution.worldBuilder;
-    worldBuilder.useInstantiationMap = true;
+    ElementResolutionWorldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);
@@ -91,10 +90,9 @@ main(List<String> args) {
         compiler.options,
         compiler.reporter,
         const TreeShakingEnqueuerStrategy(),
-        backend.resolutionEnqueuerListener,
-        backend.nativeResolutionEnqueuer(),
-        new ResolutionWorldBuilderImpl(
-            compiler.backend, compiler.resolution, const OpenWorldStrategy()),
+        createResolutionEnqueuerListener(compiler),
+        new ElementResolutionWorldBuilder(
+            backend, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(compiler, enqueuer);
@@ -125,16 +123,32 @@ main(List<String> args) {
   });
 }
 
+EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
+  JavaScriptBackend backend = compiler.backend;
+  return new ResolutionEnqueuerListener(
+      backend.kernelTask,
+      compiler.options,
+      compiler.elementEnvironment,
+      compiler.commonElements,
+      backend.helpers,
+      backend.impacts,
+      backend.backendClasses,
+      backend.nativeBaseData,
+      backend.interceptorDataBuilder,
+      backend.backendUsageBuilder,
+      backend.rtiNeedBuilder,
+      backend.mirrorsData,
+      backend.noSuchMethodRegistry,
+      backend.customElementsResolutionAnalysis,
+      backend.lookupMapResolutionAnalysis,
+      backend.mirrorsAnalysis,
+      new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
+          backend.impacts, backend.backendUsageBuilder),
+      backend.nativeResolutionEnqueuer);
+}
+
 ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
   JavaScriptBackend backend = compiler.backend;
-
-  // TODO(johnniwinther): Store backend info separately. This replacement is
-  // made to reset a field in [TypeVariableHandler] that prevents it from
-  // enqueuing twice.
-  backend.typeVariableAnalysis = new TypeVariableAnalysis(
-      compiler.elementEnvironment,
-      backend.impacts,
-      backend.backendUsageBuilder);
 
   if (compiler.deferredLoadTask.isProgramSplit) {
     enqueuer.applyImpact(backend.computeDeferredLoadingImpact());
@@ -142,7 +156,7 @@ ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
   enqueuer.open(const ImpactStrategy(), compiler.mainFunction,
       compiler.libraryLoader.libraries);
   enqueuer.forEach((work) {
-    AstElement element = work.element;
+    MemberElement element = work.element;
     ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
     WorldImpact worldImpact = compiler.backend.impactTransformer
         .transformResolutionImpact(enqueuer, resolutionImpact);

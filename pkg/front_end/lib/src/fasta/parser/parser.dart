@@ -348,7 +348,8 @@ class Parser {
     assert(optional('of', token.next));
     Token partKeyword = token;
     token = token.next.next;
-    if (token.isIdentifier()) {
+    bool hasName = token.isIdentifier();
+    if (hasName) {
       token = parseQualified(token, IdentifierContext.partName,
           IdentifierContext.partNameContinuation);
     } else {
@@ -356,7 +357,7 @@ class Parser {
     }
     Token semicolon = token;
     token = expect(';', token);
-    listener.endPartOf(partKeyword, semicolon);
+    listener.endPartOf(partKeyword, semicolon, hasName);
     return token;
   }
 
@@ -1326,6 +1327,13 @@ class Parser {
   ///     ['(', '*', 'operator']
   ///
   Link<Token> findMemberName(Token token) {
+    // TODO(ahe): This method is rather broken for examples like this:
+    //
+    //     get<T>(){}
+    //
+    // In addition, the loop below will include things that can't be
+    // identifiers. This may be desirable (for error recovery), or
+    // not. Regardless, this method probably needs an overhaul.
     Link<Token> identifiers = const Link<Token>();
 
     // `true` if 'get' has been seen.
@@ -1515,6 +1523,11 @@ class Parser {
   }
 
   Token parseModifiers(Token token) {
+    // TODO(ahe): The calling convention of this method probably needs to
+    // change. For example, this is parsed as a local variable declaration:
+    // `abstract foo;`. Ideally, this example should be handled as a local
+    // variable having the type `abstract` (which should be reported as
+    // `ErrorKind.BuiltInIdentifierAsType` by [parseIdentifier]).
     int count = 0;
     while (identical(token.kind, KEYWORD_TOKEN)) {
       if (!isModifier(token)) break;
@@ -2041,16 +2054,16 @@ class Parser {
       if (!allowAbstract) {
         reportRecoverableError(token, ErrorKind.ExpectedBody);
       }
-      listener.endEmptyFunctionBody(token);
+      listener.handleEmptyFunctionBody(token);
       return token;
     } else if (optional('=>', token)) {
       Token begin = token;
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
-        listener.endExpressionFunctionBody(begin, token);
+        listener.handleExpressionFunctionBody(begin, token);
       } else {
-        listener.endExpressionFunctionBody(begin, null);
+        listener.handleExpressionFunctionBody(begin, null);
       }
       return token;
     } else if (optional('=', token)) {
@@ -2060,9 +2073,9 @@ class Parser {
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
-        listener.endExpressionFunctionBody(begin, token);
+        listener.handleExpressionFunctionBody(begin, token);
       } else {
-        listener.endExpressionFunctionBody(begin, null);
+        listener.handleExpressionFunctionBody(begin, null);
       }
       return token;
     }
@@ -2075,13 +2088,13 @@ class Parser {
       return token;
     }
 
-    listener.beginFunctionBody(begin);
+    listener.beginBlockFunctionBody(begin);
     token = token.next;
     while (notEofOrValue('}', token)) {
       token = parseStatement(token);
       ++statementCount;
     }
-    listener.endFunctionBody(statementCount, begin, token);
+    listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
     return token;
   }
@@ -3204,10 +3217,11 @@ class Parser {
     Token forToken = token;
     listener.beginForStatement(forToken);
     token = expect('for', token);
+    Token leftParenthesis = token;
     token = expect('(', token);
     token = parseVariablesDeclarationOrExpressionOpt(token);
     if (optional('in', token)) {
-      return parseForInRest(awaitToken, forToken, token);
+      return parseForInRest(awaitToken, forToken, leftParenthesis, token);
     } else {
       if (awaitToken != null) {
         reportRecoverableError(awaitToken, ErrorKind.InvalidAwaitFor);
@@ -3260,18 +3274,21 @@ class Parser {
     return token;
   }
 
-  Token parseForInRest(Token awaitToken, Token forToken, Token token) {
+  Token parseForInRest(
+      Token awaitToken, Token forToken, Token leftParenthesis, Token token) {
     assert(optional('in', token));
     Token inKeyword = token;
     token = token.next;
     listener.beginForInExpression(token);
     token = parseExpression(token);
     listener.endForInExpression(token);
+    Token rightParenthesis = token;
     token = expect(')', token);
     listener.beginForInBody(token);
     token = parseStatement(token);
     listener.endForInBody(token);
-    listener.endForIn(awaitToken, forToken, inKeyword, token);
+    listener.endForIn(awaitToken, forToken, leftParenthesis, inKeyword,
+        rightParenthesis, token);
     return token;
   }
 
@@ -3507,6 +3524,7 @@ class Parser {
     Token assertKeyword = token;
     Token commaToken = null;
     token = expect('assert', token);
+    Token leftParenthesis = token;
     token = expect('(', token);
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
@@ -3516,9 +3534,11 @@ class Parser {
       token = token.next;
       token = parseExpression(token);
     }
+    Token rightParenthesis = token;
     token = expect(')', token);
     mayParseFunctionExpressions = old;
-    listener.handleAssertStatement(assertKeyword, commaToken, token);
+    listener.handleAssertStatement(
+        assertKeyword, leftParenthesis, commaToken, rightParenthesis, token);
     return expectSemicolon(token);
   }
 

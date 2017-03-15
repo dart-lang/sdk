@@ -83,6 +83,8 @@ class Platform {
   static int GetScriptIndex() { return script_index_; }
   static char** GetArgv() { return argv_; }
 
+  static bool AnsiSupported();
+
   static DART_NORETURN void Exit(int exit_code);
 
  private:

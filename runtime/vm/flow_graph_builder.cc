@@ -1524,38 +1524,6 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
 
-  if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType() ||
-      type.IsSmiType() || type.IsStringType()) {
-    String& method_name = String::ZoneHandle(Z);
-    if (type.IsNumberType()) {
-      method_name = Symbols::_instanceOfNum().raw();
-    } else if (type.IsIntType()) {
-      method_name = Symbols::_instanceOfInt().raw();
-    } else if (type.IsDoubleType()) {
-      method_name = Symbols::_instanceOfDouble().raw();
-    } else if (type.IsSmiType()) {
-      method_name = Symbols::_instanceOfSmi().raw();
-    } else if (type.IsStringType()) {
-      method_name = Symbols::_instanceOfString().raw();
-    }
-    ASSERT(!method_name.IsNull());
-    PushArgumentInstr* push_left = PushArgument(for_left_value.value());
-    ZoneGrowableArray<PushArgumentInstr*>* arguments =
-        new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
-    arguments->Add(push_left);
-    const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
-    Value* negate_arg = Bind(new (Z) ConstantInstr(negate));
-    arguments->Add(PushArgument(negate_arg));
-    const intptr_t kNumArgsChecked = 1;
-    InstanceCallInstr* call = new (Z) InstanceCallInstr(
-        node->token_pos(), Library::PrivateCoreLibName(method_name),
-        node->kind(), arguments,
-        Object::null_array(),  // No argument names.
-        kNumArgsChecked, owner()->ic_data_array());
-    ReturnDefinition(call);
-    return;
-  }
-
   // We now know type is a real class (!num, !int, !smi, !string)
   // and the type check could NOT be removed at compile time.
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
@@ -1587,22 +1555,22 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(4);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
   arguments->Add(push_left);
   arguments->Add(push_type_args);
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   Value* type_const = Bind(new (Z) ConstantInstr(type));
   arguments->Add(PushArgument(type_const));
-  const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
-  Value* negate_arg = Bind(new (Z) ConstantInstr(negate));
-  arguments->Add(PushArgument(negate_arg));
   const intptr_t kNumArgsChecked = 1;
-  InstanceCallInstr* call = new (Z) InstanceCallInstr(
+  Definition* result = new (Z) InstanceCallInstr(
       node->token_pos(), Library::PrivateCoreLibName(Symbols::_instanceOf()),
       node->kind(), arguments,
       Object::null_array(),  // No argument names.
       kNumArgsChecked, owner()->ic_data_array());
-  ReturnDefinition(call);
+  if (negate_result) {
+    result = new (Z) BooleanNegateInstr(Bind(result));
+  }
+  ReturnDefinition(result);
 }
 
 

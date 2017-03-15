@@ -381,8 +381,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (isClosure(info.element)) {
       bailout('Returned from a closure');
     }
-    if (!inferrer.compiler.backend
-        .canBeUsedForGlobalOptimizations(info.element)) {
+    if (info.element.isField &&
+        !inferrer.compiler.backend
+            .canFieldBeUsedForGlobalOptimizations(info.element)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
@@ -390,11 +391,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
     ParameterElement element = info.element;
-    if (inferrer.isNativeElement(element.functionDeclaration)) {
+    if (inferrer.isNativeMember(element.functionDeclaration)) {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend
-        .canBeUsedForGlobalOptimizations(info.element)) {
+        .canFunctionParametersBeUsedForGlobalOptimizations(
+            element.functionDeclaration)) {
       bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(info.element) ||

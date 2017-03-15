@@ -10,6 +10,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'src/buildbot_structures.dart';
+import 'src/util.dart';
+
 main(List<String> args) async {
   if (args.length != 1) {
     print('Usage: compare_failures <log-uri>');
@@ -36,7 +39,7 @@ Future<List<BuildResult>> readBuildResults(
   BuildResult firstSummary = await readBuildResult(client, buildUri);
   summaries.add(firstSummary);
   if (firstSummary.hasFailures) {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
       buildUri = buildUri.prev();
       summaries.add(await readBuildResult(client, buildUri));
     }
@@ -218,75 +221,6 @@ class BuildResult {
   }
 }
 
-/// The [Uri] of a build step stdio log split into its subparts.
-class BuildUri {
-  final String scheme;
-  final String host;
-  final String prefix;
-  final String botName;
-  final int buildNumber;
-  final String stepName;
-  final String suffix;
-
-  factory BuildUri(Uri uri) {
-    String scheme = uri.scheme;
-    String host = uri.host;
-    List<String> parts =
-        split(uri.path, ['/builders/', '/builds/', '/steps/', '/logs/']);
-    String prefix = parts[0];
-    String botName = parts[1];
-    int buildNumber = int.parse(parts[2]);
-    String stepName = parts[3];
-    String suffix = parts[4];
-    return new BuildUri.internal(
-        scheme, host, prefix, botName, buildNumber, stepName, suffix);
-  }
-
-  BuildUri.internal(this.scheme, this.host, this.prefix, this.botName,
-      this.buildNumber, this.stepName, this.suffix);
-
-  String get buildName =>
-      '/builders/$botName/builds/$buildNumber/steps/$stepName';
-
-  String get path => '$prefix$buildName/logs/$suffix';
-
-  /// Creates the [Uri] for this build step stdio log.
-  Uri toUri() {
-    return new Uri(scheme: scheme, host: host, path: path);
-  }
-
-  /// Returns the [BuildUri] the previous build of this build step.
-  BuildUri prev() {
-    return new BuildUri.internal(
-        scheme, host, prefix, botName, buildNumber - 1, stepName, suffix);
-  }
-
-  String toString() {
-    return buildName;
-  }
-}
-
-/// Id for a test on a specific configuration, for instance
-/// `dart2js-chrome release_x64/co19/Language/Metadata/before_function_t07`.
-class TestConfiguration {
-  final String configName;
-  final String testName;
-
-  TestConfiguration(this.configName, this.testName);
-
-  String toString() {
-    return '$configName $testName';
-  }
-
-  int get hashCode => configName.hashCode * 17 + testName.hashCode * 19;
-
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! TestConfiguration) return false;
-    return configName == other.configName && testName == other.testName;
-  }
-}
-
 /// Test failure data derived from the test failure summary in the build step
 /// stdio log.
 class TestFailure {
@@ -302,7 +236,7 @@ class TestFailure {
     String archName = parts[2];
     String testName = parts[3];
     TestConfiguration id =
-        new TestConfiguration(configName, '$archName/$testName');
+        new TestConfiguration(configName, archName, testName);
     String expected = split(lines[1], ['Expected: '])[1];
     String actual = split(lines[2], ['Actual: '])[1];
     return new TestFailure.internal(
@@ -365,37 +299,16 @@ List<Timing> parseTimings(BuildUri uri, String line) {
   String configName = parts[2];
   String testNames = parts[3];
   List<Timing> timings = <Timing>[];
-  for (String testName in testNames.split(',')) {
+  for (String name in testNames.split(',')) {
+    name = name.trim();
+    int slashPos = name.indexOf('/');
+    String archName = name.substring(0, slashPos);
+    String testName = name.substring(slashPos + 1);
     timings.add(new Timing(
         uri,
         time,
         new TestStep(
-            stepName, new TestConfiguration(configName, testName.trim()))));
+            stepName, new TestConfiguration(configName, archName, testName))));
   }
   return timings;
-}
-
-/// Split [text] using [infixes] as infix markers.
-List<String> split(String text, List<String> infixes) {
-  List<String> result = <String>[];
-  int start = 0;
-  for (String infix in infixes) {
-    int index = text.indexOf(infix, start);
-    if (index == -1)
-      throw "'$infix' not found in '$text' from offset ${start}.";
-    result.add(text.substring(start, index));
-    start = index + infix.length;
-  }
-  result.add(text.substring(start));
-  return result;
-}
-
-/// Pad [text] with spaces to the right to fit [length].
-String padRight(String text, int length) {
-  if (text.length < length) return '${text}${' ' * (length - text.length)}';
-  return text;
-}
-
-void log(String text) {
-  print(text);
 }

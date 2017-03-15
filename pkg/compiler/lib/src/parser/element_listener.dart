@@ -235,7 +235,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon) {
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     Expression name = popNode();
     addPartOfTag(
         new PartOf(partKeyword, name, popMetadata(compilationUnitElement)));
@@ -301,8 +301,8 @@ class ElementListener extends Listener {
       name = popNode();
       popNode(); // returnType
     } else {
-      popNode();  // Function type.
-      popNode();  // TODO(karlklose): do not throw away typeVariables.
+      popNode(); // Function type.
+      popNode(); // TODO(karlklose): do not throw away typeVariables.
       name = popNode();
     }
     pushElement(new PartialTypedefElement(
@@ -410,8 +410,8 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
-  }
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(
+      Token token) {}
 
   @override
   void handleNoType(Token token) {
@@ -459,8 +459,8 @@ class ElementListener extends Listener {
 
   @override
   void handleFunctionType(Token functionToken, Token endToken) {
-    popNode();  // Type parameters.
-    popNode();  // Return type.
+    popNode(); // Type parameters.
+    popNode(); // Return type.
     pushNode(null);
   }
 

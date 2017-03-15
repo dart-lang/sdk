@@ -17,7 +17,6 @@ import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_backend/backend_helpers.dart';
-import '../options.dart';
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -769,7 +768,8 @@ class NativeBehavior {
   }
 
   static NativeBehavior ofMethodElement(
-      FunctionElement element, Compiler compiler) {
+      MethodElement element, Compiler compiler,
+      {bool isJsInterop}) {
     ResolutionFunctionType type = element.computeType(compiler.resolution);
     List<ConstantExpression> metadata = <ConstantExpression>[];
     for (MetadataAnnotation annotation in element.implementation.metadata) {
@@ -780,11 +780,12 @@ class NativeBehavior {
     BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
     return builder.buildMethodBehavior(
         type, metadata, lookupFromElement(compiler.resolution, element),
-        isJsInterop: compiler.backend.isJsInterop(element));
+        isJsInterop: isJsInterop);
   }
 
   static NativeBehavior ofFieldElementLoad(
-      MemberElement element, Compiler compiler) {
+      MemberElement element, Compiler compiler,
+      {bool isJsInterop}) {
     Resolution resolution = compiler.resolution;
     ResolutionDartType type = element.computeType(resolution);
     List<ConstantExpression> metadata = <ConstantExpression>[];
@@ -796,7 +797,7 @@ class NativeBehavior {
     BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
     return builder.buildFieldLoadBehavior(
         type, metadata, lookupFromElement(resolution, element),
-        isJsInterop: compiler.backend.isJsInterop(element));
+        isJsInterop: isJsInterop);
   }
 
   static NativeBehavior ofFieldElementStore(

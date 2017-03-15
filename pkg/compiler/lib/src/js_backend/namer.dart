@@ -19,7 +19,6 @@ import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
-import '../js/js.dart' show js;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
@@ -30,6 +29,7 @@ import '../world.dart' show ClosedWorld;
 import 'backend.dart';
 import 'backend_helpers.dart';
 import 'constant_system_javascript.dart';
+import 'native_data.dart';
 
 part 'field_naming_mixin.dart';
 part 'frequency_namer.dart';
@@ -488,9 +488,10 @@ class Namer {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
-  final JavaScriptBackend backend;
-  final ClosedWorld closedWorld;
-  final CodegenWorldBuilder codegenWorldBuilder;
+  final BackendHelpers _helpers;
+  final NativeData _nativeData;
+  final ClosedWorld _closedWorld;
+  final CodegenWorldBuilder _codegenWorldBuilder;
 
   RuntimeTypesEncoder _rtiEncoder;
   RuntimeTypesEncoder get rtiEncoder {
@@ -560,21 +561,15 @@ class Namer {
   final Map<LibraryElement, String> _libraryKeys =
       new HashMap<LibraryElement, String>();
 
-  Namer(JavaScriptBackend backend, this.closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder)
-      : this.backend = backend,
-        this.codegenWorldBuilder = codegenWorldBuilder {
+  Namer(this._helpers, this._nativeData, this._closedWorld,
+      this._codegenWorldBuilder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
     _literalLazyGetterPrefix = new StringBackedName(lazyGetterPrefix);
   }
 
-  BackendHelpers get helpers => backend.helpers;
-
-  DiagnosticReporter get reporter => backend.reporter;
-
-  CommonElements get commonElements => closedWorld.commonElements;
+  CommonElements get _commonElements => _closedWorld.commonElements;
 
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
@@ -651,20 +646,19 @@ class Namer {
       case JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG:
         return asName(functionTypeNamedParametersTag);
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
-        return operatorIs(helpers.jsIndexingBehaviorInterface);
+        return operatorIs(_helpers.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        ClassElement nullClass = commonElements.nullClass;
+        ClassElement nullClass = _commonElements.nullClass;
         return runtimeTypeName(nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        ClassElement objectClass = commonElements.objectClass;
+        ClassElement objectClass = _commonElements.objectClass;
         return runtimeTypeName(objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        ClassElement functionClass = commonElements.functionClass;
+        ClassElement functionClass = _commonElements.functionClass;
         return runtimeTypeName(functionClass);
       default:
-        reporter.reportErrorMessage(node, MessageKind.GENERIC,
-            {'text': 'Error: Namer has no name for "$name".'});
-        return asName('BROKEN');
+        throw new SpannableAssertionFailure(
+            node, 'Error: Namer has no name for "$name".');
     }
   }
 
@@ -697,10 +691,10 @@ class Namer {
   String constantLongName(ConstantValue constant) {
     String longName = constantLongNames[constant];
     if (longName == null) {
-      _constantHasher ??= new ConstantCanonicalHasher(
-          rtiEncoder, reporter, codegenWorldBuilder);
+      _constantHasher ??=
+          new ConstantCanonicalHasher(rtiEncoder, _codegenWorldBuilder);
       longName = new ConstantNamingVisitor(
-              rtiEncoder, reporter, codegenWorldBuilder, _constantHasher)
+              rtiEncoder, _codegenWorldBuilder, _constantHasher)
           .getName(constant);
       constantLongNames[constant] = longName;
     }
@@ -784,38 +778,6 @@ class Namer {
     return invocationName(new Selector.fromElement(method));
   }
 
-  String _jsNameHelper(Element e) {
-    String jsInteropName = backend.nativeData.getJsInteropName(e);
-    if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
-    return e.isLibrary
-        ? 'self'
-        : backend.nativeData.getUnescapedJSInteropName(e.name);
-  }
-
-  /// Returns a JavaScript path specifying the context in which
-  /// [element.fixedBackendName] should be evaluated. Only applicable for
-  /// elements using typed JavaScript interop.
-  /// For example: fixedBackendPath for the static method createMap in the
-  /// Map class of the goog.map JavaScript library would have path
-  /// "goog.maps.Map".
-  String fixedBackendMethodPath(MethodElement element) {
-    return _fixedBackendPath(element);
-  }
-
-  String _fixedBackendPath(Element element) {
-    if (!backend.isJsInterop(element)) return null;
-    if (element.isInstanceMember) return 'this';
-    if (element.isConstructor) return _fixedBackendPath(element.enclosingClass);
-    if (element.isLibrary) return 'self';
-    var sb = new StringBuffer();
-    sb..write(_jsNameHelper(element.library));
-
-    if (element.enclosingClass != null && element.enclosingClass != element) {
-      sb..write('.')..write(_jsNameHelper(element.enclosingClass));
-    }
-    return sb.toString();
-  }
-
   /// Returns the annotated name for a variant of `call`.
   /// The result has the form:
   ///
@@ -885,9 +847,8 @@ class Namer {
         return disambiguatedName; // Methods other than call are not annotated.
 
       default:
-        reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
             'Unexpected selector kind: ${selector.kind}');
-        return null;
     }
   }
 
@@ -934,9 +895,8 @@ class Namer {
   jsAst.Name instanceFieldPropertyName(FieldElement element) {
     ClassElement enclosingClass = element.enclosingClass;
 
-    if (backend.nativeData.hasFixedBackendName(element)) {
-      return new StringBackedName(
-          backend.nativeData.getFixedBackendName(element));
+    if (_nativeData.hasFixedBackendName(element)) {
+      return new StringBackedName(_nativeData.getFixedBackendName(element));
     }
 
     // Some elements, like e.g. instances of BoxFieldElement are special.
@@ -959,7 +919,7 @@ class Namer {
     // mangle the field names of classes extending native classes.
     // Methods on such classes are stored on the interceptor, not the instance,
     // so only fields have the potential to clash with a native property name.
-    if (closedWorld.isUsedAsMixin(enclosingClass) ||
+    if (_closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
       String proposeName() => '${enclosingClass.name}_${element.name}';
@@ -978,8 +938,8 @@ class Namer {
 
   /// True if [class_] is a non-native class that inherits from a native class.
   bool _isUserClassExtendingNative(ClassElement class_) {
-    return !backend.isNative(class_) &&
-        backend.nativeData.isNativeOrExtendsNative(class_.superclass);
+    return !_nativeData.isNativeClass(class_) &&
+        _nativeData.isNativeOrExtendsNative(class_.superclass);
   }
 
   /// Annotated name for the setter of [element].
@@ -1357,24 +1317,24 @@ class Namer {
 
   String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
     String abbreviate(ClassElement cls) {
-      if (cls == commonElements.objectClass) return "o";
-      if (cls == helpers.jsStringClass) return "s";
-      if (cls == helpers.jsArrayClass) return "a";
-      if (cls == helpers.jsDoubleClass) return "d";
-      if (cls == helpers.jsIntClass) return "i";
-      if (cls == helpers.jsNumberClass) return "n";
-      if (cls == helpers.jsNullClass) return "u";
-      if (cls == helpers.jsBoolClass) return "b";
-      if (cls == helpers.jsInterceptorClass) return "I";
+      if (cls == _commonElements.objectClass) return "o";
+      if (cls == _helpers.jsStringClass) return "s";
+      if (cls == _helpers.jsArrayClass) return "a";
+      if (cls == _helpers.jsDoubleClass) return "d";
+      if (cls == _helpers.jsIntClass) return "i";
+      if (cls == _helpers.jsNumberClass) return "n";
+      if (cls == _helpers.jsNullClass) return "u";
+      if (cls == _helpers.jsBoolClass) return "b";
+      if (cls == _helpers.jsInterceptorClass) return "I";
       return cls.name;
     }
 
     List<String> names = classes
-        .where((cls) => !backend.nativeData.isNativeOrExtendsNative(cls))
+        .where((cls) => !_nativeData.isNativeOrExtendsNative(cls))
         .map(abbreviate)
         .toList();
     // There is one dispatch mechanism for all native classes.
-    if (classes.any((cls) => backend.nativeData.isNativeOrExtendsNative(cls))) {
+    if (classes.any((cls) => _nativeData.isNativeOrExtendsNative(cls))) {
       names.add("x");
     }
     // Sort the names of the classes after abbreviating them to ensure
@@ -1385,8 +1345,8 @@ class Namer {
 
   /// Property name used for `getInterceptor` or one of its specializations.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    MethodElement getInterceptor = helpers.getInterceptorMethod;
-    if (classes.contains(helpers.jsInterceptorClass)) {
+    MethodElement getInterceptor = _helpers.getInterceptorMethod;
+    if (classes.contains(_helpers.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass
       // of the base Interceptor could match.
@@ -1408,7 +1368,7 @@ class Namer {
     // other global names.
     jsAst.Name root = invocationName(selector);
 
-    if (classes.contains(helpers.jsInterceptorClass)) {
+    if (classes.contains(_helpers.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes,
       // this is the most general specialization which uses the generic
       // getInterceptor method.
@@ -1528,7 +1488,7 @@ class Namer {
 
   /// Returns the [reservedGlobalObjectNames] for [library].
   String globalObjectForLibrary(LibraryElement library) {
-    if (library == helpers.interceptorsLibrary) return 'J';
+    if (library == _helpers.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
     if (library.isPlatformLibrary) {
       if ('${library.canonicalUri}' == 'dart:html') return 'W';
@@ -1748,7 +1708,6 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   static const DEFAULT_TAG_LENGTH = 3;
 
   final RuntimeTypesEncoder rtiEncoder;
-  final DiagnosticReporter reporter;
   final CodegenWorldBuilder codegenWorldBuilder;
   final ConstantCanonicalHasher hasher;
 
@@ -1757,8 +1716,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   List<String> fragments = <String>[];
   int length = 0;
 
-  ConstantNamingVisitor(
-      this.rtiEncoder, this.reporter, this.codegenWorldBuilder, this.hasher);
+  ConstantNamingVisitor(this.rtiEncoder, this.codegenWorldBuilder, this.hasher);
 
   String getName(ConstantValue constant) {
     _visit(constant);
@@ -1952,7 +1910,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         add('name');
         break;
       default:
-        reporter.internalError(
+        throw new SpannableAssertionFailure(
             CURRENT_ELEMENT_SPANNABLE, "Unexpected SyntheticConstantValue");
     }
   }
@@ -1975,13 +1933,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
 
-  final DiagnosticReporter reporter;
   final RuntimeTypesEncoder rtiEncoder;
   final CodegenWorldBuilder codegenWorldBuilder;
   final Map<ConstantValue, int> hashes = new Map<ConstantValue, int>();
 
-  ConstantCanonicalHasher(
-      this.rtiEncoder, this.reporter, this.codegenWorldBuilder);
+  ConstantCanonicalHasher(this.rtiEncoder, this.codegenWorldBuilder);
 
   int getHash(ConstantValue constant) => _visit(constant);
 
@@ -2069,11 +2025,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
         // resolve to integer indexes, they're always part of a larger constant.
         return 0;
       default:
-        reporter.internalError(
+        throw new SpannableAssertionFailure(
             NO_LOCATION_SPANNABLE,
             'SyntheticConstantValue should never be named and '
             'never be subconstant');
-        return 0;
     }
   }
 
