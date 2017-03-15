@@ -671,12 +671,26 @@ class ClosureConverter extends Transformer {
       fields = <Field>[self];
       receiver = new PropertyGet(new ThisExpression(), self.name, self);
     }
-    Class closureClass = createClosureClass(procedure.function,
-        fields: fields, substitution: substitution);
-    closureClass.addMember(new Procedure(new Name("call"), ProcedureKind.Method,
-        forwardFunction(procedure, receiver, substitution),
-        fileUri: currentFileUri));
-    newLibraryMembers.add(closureClass);
+
+    // Find the closure class for the function. If there isn't one, create it.
+    String closureClassName = createNameForClosureClass(procedure.function);
+    Class closureClass = null;
+    for (TreeNode node in newLibraryMembers) {
+      if (node is Class && (node as Class).name == closureClassName) {
+        closureClass = node as Class;
+      }
+    }
+    if (closureClass == null) {
+      closureClass = createClosureClass(procedure.function,
+          fields: fields, substitution: substitution);
+      closureClass.addMember(new Procedure(
+          new Name("call"),
+          ProcedureKind.Method,
+          forwardFunction(procedure, receiver, substitution),
+          fileUri: currentFileUri));
+      newLibraryMembers.add(closureClass);
+    }
+
     Arguments constructorArguments = procedure.isInstanceMember
         ? new Arguments(<Expression>[new ThisExpression()])
         : new Arguments.empty();
@@ -747,13 +761,17 @@ class ClosureConverter extends Transformer {
     return substitution;
   }
 
+  String createNameForClosureClass(FunctionNode function) {
+    return 'Closure#${localNames[function]}';
+  }
+
   Class createClosureClass(FunctionNode function,
       {List<Field> fields, Map<TypeParameter, DartType> substitution}) {
     List<TypeParameter> typeParameters = new List<TypeParameter>.from(
         substitution.values
             .map((DartType t) => (t as TypeParameterType).parameter));
     Class closureClass = new Class(
-        name: 'Closure#${localNames[function]}',
+        name: createNameForClosureClass(function),
         supertype: new Supertype(coreTypes.objectClass, const <DartType>[]),
         typeParameters: typeParameters,
         implementedTypes: <Supertype>[
