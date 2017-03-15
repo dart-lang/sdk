@@ -213,6 +213,14 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     } else if (constant.isType) {
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(_backendClasses.typeType));
+      // If the type is a web component, we need to ensure the constructors are
+      // available to 'upgrade' the native object.
+      TypeConstantValue type = constant;
+      if (type.representedType.isInterfaceType) {
+        ResolutionInterfaceType representedType = type.representedType;
+        _customElementsAnalysis.registerTypeConstant(representedType.element);
+        _lookupMapAnalysis.registerTypeConstant(representedType.element);
+      }
     }
     _lookupMapAnalysis.registerConstantKey(constant);
   }

@@ -39,8 +39,6 @@ class CodegenImpact extends WorldImpact {
 
   bool get usesInterceptor => false;
 
-  Iterable<ClassElement> get typeConstants => const <ClassElement>[];
-
   Iterable<Element> get asyncMarkers => const <FunctionElement>[];
 }
 
@@ -50,7 +48,6 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Setlet<String> _constSymbols;
   List<Set<ClassElement>> _specializedGetInterceptors;
   bool _usesInterceptor = false;
-  Setlet<ClassElement> _typeConstants;
   Setlet<FunctionElement> _asyncMarkers;
 
   _CodegenImpact();
@@ -107,17 +104,6 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   }
 
   bool get usesInterceptor => _usesInterceptor;
-
-  void registerTypeConstant(ClassElement element) {
-    if (_typeConstants == null) {
-      _typeConstants = new Setlet<ClassElement>();
-    }
-    _typeConstants.add(element);
-  }
-
-  Iterable<ClassElement> get typeConstants {
-    return _typeConstants != null ? _typeConstants : const <ClassElement>[];
-  }
 
   void registerAsyncMarker(FunctionElement element) {
     if (_asyncMarkers == null) {
@@ -185,10 +171,6 @@ class CodegenRegistry {
 
   void registerUseInterceptor() {
     worldImpact.registerUseInterceptor();
-  }
-
-  void registerTypeConstant(ClassElement element) {
-    worldImpact.registerTypeConstant(element);
   }
 
   void registerInstantiation(ResolutionInterfaceType type) {

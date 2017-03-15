@@ -2072,19 +2072,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void generateConstant(
       ConstantValue constant, SourceInformation sourceInformation) {
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
-      registry.registerStaticUse(new StaticUse.staticTearOff(function.element));
-    }
-    if (constant.isType) {
-      // If the type is a web component, we need to ensure the constructors are
-      // available to 'upgrade' the native object.
-      TypeConstantValue type = constant;
-      if (type.representedType.isInterfaceType) {
-        InterfaceType representedType = type.representedType;
-        registry.registerTypeConstant(representedType.element);
-      }
-    }
     js.Expression expression = backend.emitter.constantReference(constant);
     if (!constant.isDummy) {
       // TODO(johnniwinther): Support source information on synthetic constants.

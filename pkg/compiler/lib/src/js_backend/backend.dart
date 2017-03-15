@@ -1195,7 +1195,6 @@ class JavaScriptBackend {
         mirrorsData,
         oneShotInterceptorData,
         lookupMapAnalysis,
-        customElementsCodegenAnalysis,
         rtiChecksBuilder);
     return const WorldImpact();
   }

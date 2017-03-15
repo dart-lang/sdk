@@ -347,7 +347,6 @@ class CodegenImpactTransformer {
   final MirrorsData _mirrorsData;
   final OneShotInterceptorData _oneShotInterceptorData;
   final LookupMapAnalysis _lookupMapAnalysis;
-  final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final RuntimeTypesChecksBuilder _rtiChecksBuilder;
 
   CodegenImpactTransformer(
@@ -364,7 +363,6 @@ class CodegenImpactTransformer {
       this._mirrorsData,
       this._oneShotInterceptorData,
       this._lookupMapAnalysis,
-      this._customElementsCodegenAnalysis,
       this._rtiChecksBuilder);
 
   void onIsCheckForCodegen(
@@ -407,7 +405,6 @@ class CodegenImpactTransformer {
     }
   }
 
-  @override
   WorldImpact transformCodegenImpact(CodegenImpact impact) {
     TransformedWorldImpact transformed = new TransformedWorldImpact(impact);
 
@@ -464,11 +461,6 @@ class CodegenImpactTransformer {
         _backendUsage.needToInitializeIsolateAffinityTag = true;
         _backendUsage.needToInitializeDispatchProperty = true;
       }
-    }
-
-    for (ClassElement element in impact.typeConstants) {
-      _customElementsCodegenAnalysis.registerTypeConstant(element);
-      _lookupMapAnalysis.registerTypeConstant(element);
     }
 
     for (FunctionElement element in impact.asyncMarkers) {
