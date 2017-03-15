@@ -1018,8 +1018,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endForStatement(
-      int updateExpressionCount, Token beginToken, Token endToken) {
+  void endForStatement(Token forKeyword, Token leftSeparator,
+      int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement");
     Statement body = popStatement();
     List<Expression> updates = popListForEffect(updateExpressionCount);

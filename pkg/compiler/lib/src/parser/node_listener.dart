@@ -541,13 +541,13 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endForStatement(
-      int updateExpressionCount, Token beginToken, Token endToken) {
+  void endForStatement(Token forKeyword, Token leftSeparator,
+      int updateExpressionCount, Token endToken) {
     Statement body = popNode();
     NodeList updates = makeNodeList(updateExpressionCount, null, null, ',');
     Statement condition = popNode();
     Node initializer = popNode();
-    pushNode(new For(initializer, condition, updates, body, beginToken));
+    pushNode(new For(initializer, condition, updates, body, forKeyword));
   }
 
   @override

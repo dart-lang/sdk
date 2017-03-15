@@ -201,8 +201,8 @@ class Listener {
 
   void beginForStatement(Token token) {}
 
-  void endForStatement(
-      int updateExpressionCount, Token beginToken, Token endToken) {
+  void endForStatement(Token forKeyword, Token leftSeparator,
+      int updateExpressionCount, Token endToken) {
     logEvent("ForStatement");
   }
 

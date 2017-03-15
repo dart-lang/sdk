@@ -1105,62 +1105,8 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseForStatement_loop_c() {
-    super.test_parseForStatement_loop_c();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_cu() {
-    super.test_parseForStatement_loop_cu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_ecu() {
-    super.test_parseForStatement_loop_ecu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_i() {
-    super.test_parseForStatement_loop_i();
-  }
-
-  @override
-  @failingTest
   void test_parseForStatement_loop_i_withMetadata() {
     super.test_parseForStatement_loop_i_withMetadata();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_ic() {
-    super.test_parseForStatement_loop_ic();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_icu() {
-    super.test_parseForStatement_loop_icu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_iicuu() {
-    super.test_parseForStatement_loop_iicuu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_iu() {
-    super.test_parseForStatement_loop_iu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_u() {
-    super.test_parseForStatement_loop_u();
   }
 
   @override

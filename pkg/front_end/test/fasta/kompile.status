@@ -51,7 +51,7 @@ rasta/duplicated_mixin: Crash
 rasta/export: Fail
 rasta/external_factory_redirection: Crash
 rasta/foo: Fail
-rasta/for_loop: Crash
+rasta/for_loop: Fail
 rasta/generic_factory: VerificationError
 rasta/issue_000001: Crash
 rasta/issue_000002: Crash
