@@ -95,13 +95,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseConstructor_with_pseudo_function_literal() {
-    // TODO(paulberry): Expected: an object with length of <1>
-    super.test_parseConstructor_with_pseudo_function_literal();
-  }
-
-  @override
-  @failingTest
   void test_parseConstructorFieldInitializer_qualified() {
     // TODO(paulberry): Unhandled event: ThisExpression
     super.test_parseConstructorFieldInitializer_qualified();

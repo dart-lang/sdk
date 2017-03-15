@@ -392,11 +392,12 @@ class AstBuilder extends ScopeListener {
 
   void handleNoInitializers() {
     debugEvent("NoInitializers");
+    push(NullValue.ConstructorInitializers);
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
-    popList(count);
+    push(popList(count));
   }
 
   void endVariableInitializer(Token assignmentOperator) {
@@ -1407,7 +1408,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Method");
     FunctionBody body = pop();
     ConstructorName redirectedConstructor = null; // TODO(paulberry)
-    List<ConstructorInitializer> initializers = null; // TODO(paulberry)
+    List<Object> initializerObjects = pop() ?? const [];
     Token separator = null; // TODO(paulberry)
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop(); // TODO(paulberry)
@@ -1416,6 +1417,30 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
+
+    var initializers = <ConstructorInitializer>[];
+    for (Object initializerObject in initializerObjects) {
+      if (initializerObject is AssignmentExpression) {
+        analyzer.Token thisKeyword;
+        analyzer.Token period;
+        SimpleIdentifier fieldName;
+        Expression left = initializerObject.leftHandSide;
+        if (left is PropertyAccess) {
+          var thisExpression = left.target as ThisExpression;
+          thisKeyword = thisExpression.thisKeyword;
+          period = left.operator;
+          fieldName = left.propertyName;
+        } else {
+          fieldName = left as SimpleIdentifier;
+        }
+        initializers.add(ast.constructorFieldInitializer(
+            thisKeyword,
+            period,
+            fieldName,
+            initializerObject.operator,
+            initializerObject.rightHandSide));
+      }
+    }
 
     void constructor(SimpleIdentifier returnType, analyzer.Token period,
         SimpleIdentifier name) {
