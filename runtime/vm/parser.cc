@@ -12503,11 +12503,9 @@ RawAbstractType* Parser::CanonicalizeType(const AbstractType& type) {
   // use the class scope of the class from which the function originates.
   if (current_class().IsMixinApplication()) {
     return ClassFinalizer::FinalizeType(
-        Class::Handle(Z, parsed_function()->function().origin()), type,
-        ClassFinalizer::kCanonicalize);
+        Class::Handle(Z, parsed_function()->function().origin()), type);
   }
-  return ClassFinalizer::FinalizeType(current_class(), type,
-                                      ClassFinalizer::kCanonicalize);
+  return ClassFinalizer::FinalizeType(current_class(), type);
 }
 
 
@@ -12556,8 +12554,7 @@ const AbstractType* Parser::ReceiverType(const Class& cls) {
   type = Type::New(cls, TypeArguments::Handle(Z, cls.type_parameters()),
                    cls.token_pos(), Heap::kOld);
   if (cls.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(
-        cls, type, ClassFinalizer::kCanonicalizeWellFormed);
+    type ^= ClassFinalizer::FinalizeType(cls, type);
     // Note that the receiver type may now be a malbounded type.
     cls.SetCanonicalType(type);
   }
@@ -13955,7 +13952,7 @@ void Parser::ParseConstructorClosurization(Function* constructor,
       (la3 == Token::kLT) || (la3 == Token::kPERIOD) || (la3 == Token::kHASH);
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
   AbstractType& type =
-      AbstractType::Handle(Z, ParseType(ClassFinalizer::kCanonicalizeWellFormed,
+      AbstractType::Handle(Z, ParseType(ClassFinalizer::kCanonicalize,
                                         true,  // allow deferred type
                                         consume_unresolved_prefix, &prefix));
   // A constructor tear-off closure can only have been created for a
@@ -14018,7 +14015,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
   AbstractType& type = AbstractType::ZoneHandle(
-      Z, ParseType(ClassFinalizer::kCanonicalizeWellFormed, allow_deferred_type,
+      Z, ParseType(ClassFinalizer::kCanonicalize, allow_deferred_type,
                    consume_unresolved_prefix, &prefix));
 
   if (FLAG_load_deferred_eagerly && !prefix.IsNull() &&

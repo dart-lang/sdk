@@ -1996,8 +1996,7 @@ bool Class::IsInFullSnapshot() const {
 RawAbstractType* Class::RareType() const {
   const Type& type = Type::Handle(Type::New(
       *this, Object::null_type_arguments(), TokenPosition::kNoSource));
-  return ClassFinalizer::FinalizeType(*this, type,
-                                      ClassFinalizer::kCanonicalize);
+  return ClassFinalizer::FinalizeType(*this, type);
 }
 
 
@@ -2005,8 +2004,7 @@ RawAbstractType* Class::DeclarationType() const {
   const TypeArguments& args = TypeArguments::Handle(type_parameters());
   const Type& type =
       Type::Handle(Type::New(*this, args, TokenPosition::kNoSource));
-  return ClassFinalizer::FinalizeType(*this, type,
-                                      ClassFinalizer::kCanonicalize);
+  return ClassFinalizer::FinalizeType(*this, type);
 }
 
 
@@ -3834,17 +3832,9 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     if (other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
-      Function& function = Function::Handle(
-          zone, thsi.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
-      if (function.IsNull()) {
-        // Walk up the super_class chain.
-        Class& cls = Class::Handle(zone, thsi.SuperClass());
-        while (!cls.IsNull() && function.IsNull()) {
-          function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
-          cls = cls.SuperClass();
-        }
-      }
-      if (!function.IsNull()) {
+      const Function& call_function =
+          Function::Handle(zone, thsi.LookupCallFunctionForTypeTest());
+      if (!call_function.IsNull()) {
         return true;
       }
     }
@@ -3866,8 +3856,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
           // runtime if this type test returns false at compile time.
           continue;
         }
-        ClassFinalizer::FinalizeType(thsi, interface,
-                                     ClassFinalizer::kCanonicalize);
+        ClassFinalizer::FinalizeType(thsi, interface);
         interfaces.SetAt(i, interface);
       }
       if (interface.IsMalbounded()) {
@@ -3999,6 +3988,32 @@ RawFunction* Class::LookupFunction(const String& name) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kAny);
+}
+
+
+RawFunction* Class::LookupCallFunctionForTypeTest() const {
+  // If this class is not compiled yet, it is too early to lookup a call
+  // function. This case should only occur during bounds checking at compile
+  // time. Return null as if the call method did not exist, so the type test
+  // may return false, but without a bound error, and the bound check will get
+  // postponed to runtime.
+  if (!is_finalized()) {
+    return Function::null();
+  }
+  Zone* zone = Thread::Current()->zone();
+  Class& cls = Class::Handle(zone, raw());
+  Function& call_function = Function::Handle(zone);
+  do {
+    ASSERT(cls.is_finalized());
+    call_function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
+    cls = cls.SuperClass();
+  } while (call_function.IsNull() && !cls.IsNull());
+  if (!call_function.IsNull()) {
+    // Make sure the signature is finalized before using it in a type test.
+    ClassFinalizer::FinalizeSignature(
+        cls, call_function, ClassFinalizer::kFinalize);  // No bounds checking.
+  }
+  return call_function.raw();
 }
 
 
@@ -6797,8 +6812,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
   const Type& signature_type = Type::Handle(closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
-    ClassFinalizer::FinalizeType(Class::Handle(Owner()), signature_type,
-                                 ClassFinalizer::kCanonicalize);
+    ClassFinalizer::FinalizeType(Class::Handle(Owner()), signature_type);
   }
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
@@ -15762,24 +15776,17 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
   if (other_is_dart_function || instantiated_other.IsFunctionType()) {
     // Check if this instance understands a call() method of a compatible type.
-    Function& call = Function::Handle(
-        zone, cls.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
-    if (call.IsNull()) {
-      // Walk up the super_class chain.
-      Class& super_cls = Class::Handle(zone, cls.SuperClass());
-      while (!super_cls.IsNull() && call.IsNull()) {
-        call = super_cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
-        super_cls = super_cls.SuperClass();
-      }
-    }
-    if (!call.IsNull()) {
+    const Function& call_function =
+        Function::Handle(zone, cls.LookupCallFunctionForTypeTest());
+    if (!call_function.IsNull()) {
       if (other_is_dart_function) {
         return true;
       }
       const Function& other_signature =
           Function::Handle(zone, Type::Cast(instantiated_other).signature());
-      if (call.IsSubtypeOf(type_arguments, other_signature,
-                           other_type_arguments, bound_error, Heap::kOld)) {
+      if (call_function.IsSubtypeOf(type_arguments, other_signature,
+                                    other_type_arguments, bound_error,
+                                    Heap::kOld)) {
         return true;
       }
     }
@@ -16581,19 +16588,11 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
           TypeArguments::Handle(zone, other.arguments()), bound_error, space);
     }
     // Check if type S has a call() method of function type T.
-    Function& function = Function::Handle(
-        zone, type_cls.LookupDynamicFunctionAllowAbstract(Symbols::Call()));
-    if (function.IsNull()) {
-      // Walk up the super_class chain.
-      Class& cls = Class::Handle(zone, type_cls.SuperClass());
-      while (!cls.IsNull() && function.IsNull()) {
-        function = cls.LookupDynamicFunctionAllowAbstract(Symbols::Call());
-        cls = cls.SuperClass();
-      }
-    }
-    if (!function.IsNull()) {
+    const Function& call_function =
+        Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
+    if (!call_function.IsNull()) {
       if (other_is_dart_function_type ||
-          function.TypeTest(
+          call_function.TypeTest(
               test_kind, TypeArguments::Handle(zone, arguments()),
               Function::Handle(zone, Type::Cast(other).signature()),
               TypeArguments::Handle(zone, other.arguments()), bound_error,
@@ -16884,7 +16883,8 @@ bool Type::IsInstantiated(TrailPtr trail) const {
     const Class& cls = Class::Handle(type_class());
     len = cls.NumTypeParameters();  // Check the type parameters only.
   }
-  return (len == 0) || args.IsSubvectorInstantiated(num_type_args - len, len);
+  return (len == 0) ||
+         args.IsSubvectorInstantiated(num_type_args - len, len, trail);
 }
 
 
@@ -17864,6 +17864,15 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
     // Report the bound error only if both the bounded type and the upper bound
     // are instantiated. Otherwise, we cannot tell yet it is a bound error.
     if (bounded_type.IsInstantiated() && upper_bound.IsInstantiated()) {
+      // There is another special case where we do not want to report a bound
+      // error yet: if the upper bound is a function type, but the bounded type
+      // is not and its class is not compiled yet, i.e. we cannot look for
+      // a call method yet.
+      if (!bounded_type.IsFunctionType() && upper_bound.IsFunctionType() &&
+          bounded_type.HasResolvedTypeClass() &&
+          !Class::Handle(bounded_type.type_class()).is_finalized()) {
+        return false;  // Not a subtype yet, but no bound error yet.
+      }
       const String& bounded_type_name =
           String::Handle(bounded_type.UserVisibleName());
       const String& upper_bound_name =
