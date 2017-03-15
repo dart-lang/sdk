@@ -77,9 +77,7 @@ main(List<String> args) {
           Flags.useKernel,
           Flags.enableAssertMessage
         ]);
-    ElementResolutionWorldBuilder worldBuilder =
-        compiler.enqueuer.resolution.worldBuilder;
-    worldBuilder.useInstantiationMap = true;
+    ElementResolutionWorldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);

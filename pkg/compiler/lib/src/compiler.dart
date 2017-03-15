@@ -39,7 +39,8 @@ import 'elements/resolution_types.dart'
         ResolutionDynamicType,
         ResolutionInterfaceType,
         Types;
-import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
+import 'enqueue.dart'
+    show DeferredAction, Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
@@ -575,17 +576,35 @@ abstract class Compiler implements LibraryLoaderListener {
         .loadLibrary(libraryUri, skipFileWithPartOfTag: true)
         .then((LibraryElement library) {
       if (library == null) return null;
-      enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
-      emptyQueue(enqueuer.resolution, onProgress: showResolutionProgress);
-      enqueuer.resolution.logSummary(reporter.log);
+      ResolutionEnqueuer resolutionEnqueuer = startResolution();
+      resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
+      emptyQueue(resolutionEnqueuer, onProgress: showResolutionProgress);
+      resolutionEnqueuer.logSummary(reporter.log);
       return library;
     });
+  }
+
+  /// Starts the resolution phase, creating the [ResolutionEnqueuer] if not
+  /// already created.
+  ///
+  /// During normal compilation resolution only started once, but through
+  /// [analyzeUri] resolution is started repeatedly.
+  ResolutionEnqueuer startResolution() {
+    ResolutionEnqueuer resolutionEnqueuer;
+    if (enqueuer.hasResolution) {
+      resolutionEnqueuer = enqueuer.resolution;
+    } else {
+      resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
+      backend.onResolutionStart(resolutionEnqueuer);
+    }
+    resolutionEnqueuer.addDeferredActions(libraryLoader.pullDeferredActions());
+    return resolutionEnqueuer;
   }
 
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() =>
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
-        Enqueuer resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
+        ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpact mainImpact = computeMain();
 
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);

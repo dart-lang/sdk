@@ -145,6 +145,7 @@ class MockCompiler extends Compiler {
     registerSource(uri, mainSource);
     return libraryLoader.loadLibrary(uri).then((LibraryElement library) {
       mainApp = library;
+      startResolution();
       // We need to make sure the Object class is resolved. When registering a
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
       // the interfaces of the Object class which would be 'null' if the class

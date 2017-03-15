@@ -332,7 +332,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
 
   /// Used for testing the new more precise computation of instantiated types
   /// and classes.
-  bool useInstantiationMap = false;
+  static bool useInstantiationMap = false;
 
   final JavaScriptBackend _backend;
   final Resolution _resolution;

@@ -134,6 +134,7 @@ import 'elements/modelx.dart'
         LibraryElementX,
         MetadataAnnotationX,
         SetterElementX;
+import 'enqueue.dart' show DeferredAction;
 import 'id_generator.dart';
 import 'library_loader.dart' show LibraryLoader;
 import 'parser/element_listener.dart' show ElementListener;
@@ -363,11 +364,12 @@ abstract class EagerAnnotationHandler<T> {
       if (result != handler.defaultResult) {
         // TODO(johnniwinther): Perform this check in
         // [Compiler.onLibrariesLoaded].
-        compiler.enqueuer.resolution.addDeferredAction(element, () {
+        compiler.libraryLoader
+            .registerDeferredAction(new DeferredAction(element, () {
           annotation.ensureResolved(compiler.resolution);
           handler.validate(compiler, element, annotation,
               compiler.constants.getConstantValue(annotation.constant));
-        });
+        }));
         return result;
       }
     }

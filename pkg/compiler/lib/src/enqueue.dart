@@ -34,10 +34,12 @@ class EnqueueTask extends CompilerTask {
 
   EnqueueTask(Compiler compiler)
       : this.compiler = compiler,
-        super(compiler.measurer) {
-    createResolutionEnqueuer();
-  }
+        super(compiler.measurer);
 
+  // TODO(johnniwinther): Remove the need for this.
+  bool get hasResolution => _resolution != null;
+
+  // TODO(johnniwinther): Remove the need for this.
   ResolutionEnqueuer get resolution {
     assert(invariant(NO_LOCATION_SPANNABLE, _resolution != null,
         message: "ResolutionEnqueuer has not been created yet."));
@@ -192,7 +194,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   /// Queue of deferred resolution actions to execute when the resolution queue
   /// has been emptied.
-  final Queue<_DeferredAction> _deferredQueue = new Queue<_DeferredAction>();
+  final Queue<DeferredAction> _deferredQueue = new Queue<DeferredAction>();
 
   ResolutionEnqueuer(this.task, this._options, this._reporter, this.strategy,
       this.listener, this._worldBuilder, this._workItemBuilder,
@@ -417,14 +419,18 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// emptied.
   ///
   /// The queue is processed in FIFO order.
-  void addDeferredAction(Entity entity, void action()) {
+  void addDeferredAction(DeferredAction deferredAction) {
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(
-          entity,
+          deferredAction.element,
           "Resolution work list is closed. "
-          "Trying to add deferred action for $entity");
+          "Trying to add deferred action for ${deferredAction.element}");
     }
-    _deferredQueue.add(new _DeferredAction(entity, action));
+    _deferredQueue.add(deferredAction);
+  }
+
+  void addDeferredActions(Iterable<DeferredAction> deferredActions) {
+    deferredActions.forEach(addDeferredAction);
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]
@@ -443,7 +449,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void _emptyDeferredQueue() {
     while (!_deferredQueue.isEmpty) {
-      _DeferredAction task = _deferredQueue.removeFirst();
+      DeferredAction task = _deferredQueue.removeFirst();
       _reporter.withCurrentElement(task.element, task.action);
     }
   }
@@ -538,13 +544,13 @@ class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
   }
 }
 
-typedef void _DeferredActionFunction();
+typedef void DeferredActionFunction();
 
-class _DeferredAction {
+class DeferredAction {
   final Entity element;
-  final _DeferredActionFunction action;
+  final DeferredActionFunction action;
 
-  _DeferredAction(this.element, this.action);
+  DeferredAction(this.element, this.action);
 }
 
 /// Interface for creating work items for enqueued member entities.

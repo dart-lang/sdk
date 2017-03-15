@@ -831,6 +831,14 @@ class JavaScriptBackend {
     }
   }
 
+  void onResolutionStart(ResolutionEnqueuer enqueuer) {
+    helpers.onResolutionStart();
+
+    validateInterceptorImplementsAllObjectMethods(helpers.jsInterceptorClass);
+    // The null-interceptor must also implement *all* methods.
+    validateInterceptorImplementsAllObjectMethods(helpers.jsNullClass);
+  }
+
   void onResolutionComplete(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
@@ -1176,10 +1184,6 @@ class JavaScriptBackend {
       ..add(commonElements.objectClass)
       ..add(helpers.jsInterceptorClass)
       ..add(helpers.jsNullClass);
-
-    validateInterceptorImplementsAllObjectMethods(helpers.jsInterceptorClass);
-    // The null-interceptor must also implement *all* methods.
-    validateInterceptorImplementsAllObjectMethods(helpers.jsNullClass);
 
     return new Future.value();
   }
