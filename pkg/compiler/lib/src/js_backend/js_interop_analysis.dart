@@ -68,11 +68,11 @@ class JsInteropAnalysis {
         ConstantValue value = constructedConstant.fields[nameField];
         if (value.isString) {
           StringConstantValue stringValue = value;
-          backend.nativeDataBuilder
+          backend.nativeClassDataBuilder
               .setJsInteropName(e, stringValue.primitiveValue.slowToString());
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          backend.nativeDataBuilder.setJsInteropName(e, '');
+          backend.nativeClassDataBuilder.setJsInteropName(e, '');
         }
         enabledJsInterop = true;
         return;

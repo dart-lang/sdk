@@ -117,7 +117,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     library.implementation.forEachLocalMember((Element element) {
       if (element.isClass) {
         ClassElement cls = element;
-        if (backend.nativeData.isNativeClass(cls)) {
+        if (backend.nativeClassData.isNativeClass(cls)) {
           processNativeClass(element);
         }
       }
@@ -158,7 +158,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     // fact a subclass of a native class.
 
     ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (backend.nativeData.isNativeClass(classElement)) return classElement;
+      if (backend.nativeClassData.isNativeClass(classElement))
+        return classElement;
       if (classElement.superclass == null) return null;
       return nativeSuperclassOf(classElement.superclass);
     }
@@ -304,7 +305,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       return;
     }
     if (element.isInstanceMember &&
-        backend.nativeData.isNativeClass(element.enclosingClass)) {
+        backend.nativeClassData.isNativeClass(element.enclosingClass)) {
       // Exclude non-instance (static) fields - they are not really native and
       // are compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
@@ -331,7 +332,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void _setNativeName(MemberElement element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
-    backend.nativeDataBuilder.setNativeMemberName(element, name);
+    backend.nativeClassDataBuilder.setNativeMemberName(element, name);
   }
 
   /// Sets the native name of the static native method [element], using the
@@ -346,7 +347,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
     if (isIdentifier(name)) {
-      List<String> nativeNames = backend.nativeDataBuilder
+      List<String> nativeNames = backend.nativeClassDataBuilder
           .getNativeTagsOfClassRaw(element.enclosingClass);
       if (nativeNames.length != 1) {
         reporter.internalError(
@@ -354,10 +355,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
-      backend.nativeDataBuilder
+      backend.nativeClassDataBuilder
           .setNativeMemberName(element, '${nativeNames[0]}.$name');
     } else {
-      backend.nativeDataBuilder.setNativeMemberName(element, name);
+      backend.nativeClassDataBuilder.setNativeMemberName(element, name);
     }
   }
 

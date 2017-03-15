@@ -432,7 +432,9 @@ class JavaScriptBackend {
   JavaScriptBackendSerialization serialization;
 
   final NativeDataImpl _nativeData = new NativeDataImpl();
+  NativeClassData get nativeClassData => _nativeData;
   NativeData get nativeData => _nativeData;
+  NativeClassDataBuilder get nativeClassDataBuilder => _nativeData;
   NativeDataBuilder get nativeDataBuilder => _nativeData;
   InterceptorDataBuilder _interceptorDataBuilder;
   InterceptorData _interceptorData;
@@ -503,7 +505,7 @@ class JavaScriptBackend {
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
     backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, helpers, nativeData);
+        compiler.elementEnvironment, helpers, nativeClassData);
     mirrorsData = new MirrorsData(
         compiler, compiler.options, commonElements, helpers, constants);
     _backendUsageBuilder = new BackendUsageBuilderImpl(
@@ -524,7 +526,7 @@ class JavaScriptBackend {
         commonElements,
         backendClasses,
         helpers,
-        nativeData,
+        nativeClassData,
         backendUsageBuilder);
     customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         this,
@@ -532,7 +534,7 @@ class JavaScriptBackend {
         commonElements,
         backendClasses,
         helpers,
-        nativeData);
+        nativeClassData);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
     lookupMapLibraryAccess =
@@ -548,7 +550,7 @@ class JavaScriptBackend {
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(nativeData);
     _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeData, helpers, commonElements, compiler.resolution);
+        nativeClassData, helpers, commonElements, compiler.resolution);
     _resolutionEnqueuerListener = new ResolutionEnqueuerListener(
         kernelTask,
         compiler.options,
@@ -556,7 +558,7 @@ class JavaScriptBackend {
         commonElements,
         helpers,
         impacts,
-        nativeData,
+        nativeClassData,
         _interceptorDataBuilder,
         _backendUsageBuilder,
         _rtiNeedBuilder,
@@ -686,9 +688,11 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(this, closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(this, closedWorld, codegenWorldBuilder)
-        : new Namer(this, closedWorld, codegenWorldBuilder);
+            ? new FrequencyBasedNamer(
+                helpers, nativeData, closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(
+                helpers, nativeData, closedWorld, codegenWorldBuilder)
+        : new Namer(helpers, nativeData, closedWorld, codegenWorldBuilder);
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -745,7 +749,7 @@ class JavaScriptBackend {
         element.isGetter ||
         element.isSetter) {
       _nativeResolutionEnqueuer.handleMethodAnnotations(element);
-      if (nativeData.isNativeMember(element)) {
+      if (nativeClassData.isNativeMember(element)) {
         native.NativeBehavior behavior =
             native.NativeBehavior.ofMethodElement(element, compiler);
         nativeDataBuilder.setNativeMethodBehavior(element, behavior);
@@ -753,7 +757,7 @@ class JavaScriptBackend {
       }
     } else if (element.isField) {
       _nativeResolutionEnqueuer.handleFieldAnnotations(element);
-      if (nativeData.isNativeMember(element)) {
+      if (nativeClassData.isNativeMember(element)) {
         native.NativeBehavior fieldLoadBehavior =
             native.NativeBehavior.ofFieldElementLoad(element, compiler);
         native.NativeBehavior fieldStoreBehavior =
@@ -967,7 +971,7 @@ class JavaScriptBackend {
         compiler.options,
         const TreeShakingEnqueuerStrategy(),
         new CodegenWorldBuilderImpl(
-            this, closedWorld, const TypeMaskStrategy()),
+            nativeClassData, closedWorld, const TypeMaskStrategy()),
         new CodegenWorkItemBuilder(this, compiler.options),
         new CodegenEnqueuerListener(
             compiler.dumpInfoTask,
@@ -1063,11 +1067,11 @@ class JavaScriptBackend {
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   ClassElement defaultSuperclass(ClassElement element) {
-    if (nativeData.isJsInterop(element)) {
+    if (nativeClassData.isJsInteropClass(element)) {
       return helpers.jsJavaScriptObjectClass;
     }
     // Native classes inherit from Interceptor.
-    return nativeData.isNativeClass(element)
+    return nativeClassData.isNativeClass(element)
         ? helpers.jsInterceptorClass
         : commonElements.objectClass;
   }
@@ -1546,7 +1550,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
 class JavaScriptBackendClasses implements BackendClasses {
   final ElementEnvironment _env;
   final BackendHelpers helpers;
-  final NativeData _nativeData;
+  final NativeClassData _nativeData;
 
   JavaScriptBackendClasses(this._env, this.helpers, this._nativeData);
 
@@ -1658,7 +1662,7 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isNativeClass(ClassEntity element) =>
-      _backend.nativeData.isNativeClass(element);
+      _backend.nativeClassData.isNativeClass(element);
 
   @override
   bool isForeign(Element element) => _backend.isForeign(element);

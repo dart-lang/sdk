@@ -305,7 +305,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       registerImpact(impacts.functionTypeCheck);
     }
     if (type is ResolutionInterfaceType &&
-        backend.nativeData.isNativeClass(type.element)) {
+        backend.nativeClassData.isNativeClass(type.element)) {
       registerImpact(impacts.nativeTypeCheck);
     }
   }

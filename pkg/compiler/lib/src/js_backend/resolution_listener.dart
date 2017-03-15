@@ -27,7 +27,7 @@ import 'interceptor_data.dart';
 import 'lookup_map_analysis.dart' show LookupMapLibraryAccess;
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
-import 'native_data.dart' show NativeData;
+import 'native_data.dart' show NativeClassData;
 import 'no_such_method_registry.dart';
 import 'type_variable_handler.dart';
 
@@ -41,7 +41,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final BackendImpacts _impacts;
   final ElementEnvironment _elementEnvironment;
 
-  final NativeData _nativeData;
+  final NativeClassData _nativeData;
   final InterceptorDataBuilder _interceptorData;
   final BackendUsageBuilder _backendUsage;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;

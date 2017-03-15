@@ -16,15 +16,20 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
 
-/// Additional element information for native classes and methods and js-interop
-/// methods.
-abstract class NativeData {
+/// Basic information for native classes and methods and js-interop
+/// classes.
+///
+/// This information is computed during loading using [NativeClassDataBuilder].
+abstract class NativeClassData {
   /// Returns `true` if [cls] corresponds to a native JavaScript class.
   ///
   /// A class is marked as native either through the `@Native(...)` annotation
   /// allowed for internal libraries or via the typed JavaScriptInterop
   /// mechanism allowed for user libraries.
   bool isNativeClass(ClassEntity element);
+
+  /// Returns `true` if [element] or any of its superclasses is native.
+  bool isNativeOrExtendsNative(ClassElement element);
 
   /// Returns `true` if [element] corresponds to a native JavaScript member.
   ///
@@ -34,8 +39,23 @@ abstract class NativeData {
   /// libraries.
   bool isNativeMember(MemberEntity element);
 
-  /// Returns `true` if [element] or any of its superclasses is native.
-  bool isNativeOrExtendsNative(ClassElement element);
+  /// Returns `true` if [element] is a JsInterop class.
+  bool isJsInteropClass(ClassElement element);
+}
+
+/// Additional element information for native classes and methods and js-interop
+/// methods.
+///
+/// This information is computed during resolution using [NativeDataBuilder].
+abstract class NativeData extends NativeClassData {
+  /// Returns the [NativeBehavior] for calling the native [method].
+  NativeBehavior getNativeMethodBehavior(MethodElement method);
+
+  /// Returns the [NativeBehavior] for reading from the native [field].
+  NativeBehavior getNativeFieldLoadBehavior(FieldElement field);
+
+  /// Returns the [NativeBehavior] for writing to the native [field].
+  NativeBehavior getNativeFieldStoreBehavior(FieldElement field);
 
   /// Returns `true` if the name of [element] is fixed for the generated
   /// JavaScript.
@@ -51,20 +71,8 @@ abstract class NativeData {
   /// Returns `true` if [cls] has a `!nonleaf` tag word.
   bool hasNativeTagsForcedNonLeaf(ClassElement cls);
 
-  /// Returns the [NativeBehavior] for calling the native [method].
-  NativeBehavior getNativeMethodBehavior(MethodElement method);
-
-  /// Returns the [NativeBehavior] for reading from the native [field].
-  NativeBehavior getNativeFieldLoadBehavior(FieldElement field);
-
-  /// Returns the [NativeBehavior] for writing to the native [field].
-  NativeBehavior getNativeFieldStoreBehavior(FieldElement field);
-
   /// Returns `true` if [element] is part of JsInterop.
   bool isJsInterop(Element element);
-
-  /// Returns `true` if [element] is a JsInterop class.
-  bool isJsInteropClass(ClassElement element);
 
   /// Returns `true` if [element] is a JsInterop method.
   bool isJsInteropMethod(MethodElement element);
@@ -77,7 +85,7 @@ abstract class NativeData {
   String getUnescapedJSInteropName(String name);
 }
 
-abstract class NativeDataBuilder {
+abstract class NativeClassDataBuilder {
   /// Sets the native tag info for [cls].
   ///
   /// The tag info string contains comma-separated 'words' which are either
@@ -92,15 +100,6 @@ abstract class NativeDataBuilder {
   /// [element] in the generated JavaScript.
   void setNativeMemberName(MemberElement element, String name);
 
-  /// Registers the [behavior] for calling the native [method].
-  void setNativeMethodBehavior(MethodElement method, NativeBehavior behavior);
-
-  /// Registers the [behavior] for reading from the native [field].
-  void setNativeFieldLoadBehavior(FieldElement field, NativeBehavior behavior);
-
-  /// Registers the [behavior] for writing to the native [field].
-  void setNativeFieldStoreBehavior(FieldElement field, NativeBehavior behavior);
-
   /// Marks [element] as an explicit part of JsInterop. The js interop name is
   /// expected to be computed later.
   void markAsJsInterop(Element element);
@@ -109,7 +108,19 @@ abstract class NativeDataBuilder {
   void setJsInteropName(Element element, String name);
 }
 
-class NativeDataImpl implements NativeData, NativeDataBuilder {
+abstract class NativeDataBuilder {
+  /// Registers the [behavior] for calling the native [method].
+  void setNativeMethodBehavior(MethodElement method, NativeBehavior behavior);
+
+  /// Registers the [behavior] for reading from the native [field].
+  void setNativeFieldLoadBehavior(FieldElement field, NativeBehavior behavior);
+
+  /// Registers the [behavior] for writing to the native [field].
+  void setNativeFieldStoreBehavior(FieldElement field, NativeBehavior behavior);
+}
+
+class NativeDataImpl
+    implements NativeData, NativeDataBuilder, NativeClassDataBuilder {
   /// The JavaScript names for elements implemented via typed JavaScript
   /// interop.
   Map<Element, String> jsInteropNames = <Element, String>{};

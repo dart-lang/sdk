@@ -46,7 +46,7 @@ void testTypeRepresentations() {
         var closedWorldRefiner = env.compiler.closeResolution();
         env.compiler.backend.onCodegenStart(
             closedWorldRefiner.closedWorld,
-            new CodegenWorldBuilderImpl(env.compiler.backend,
+            new CodegenWorldBuilderImpl(env.compiler.backend.nativeClassData,
                 closedWorldRefiner.closedWorld, const TypeMaskStrategy()));
         TypeRepresentationGenerator typeRepresentation =
             new TypeRepresentationGenerator(

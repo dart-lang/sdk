@@ -48,7 +48,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 }
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
-  final JavaScriptBackend _backend;
+  final NativeClassData _nativeData;
   final ClosedWorld _world;
 
   /// The set of all directly instantiated classes, that is, classes with a
@@ -117,7 +117,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
   CodegenWorldBuilderImpl(
-      this._backend, this._world, this.selectorConstraintsStrategy);
+      this._nativeData, this._world, this.selectorConstraintsStrategy);
 
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls].
@@ -164,7 +164,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       ResolutionInterfaceType type, ClassUsedCallback classUsed,
       {bool byMirrors: false}) {
     ClassElement cls = type.element;
-    bool isNative = _backend.nativeData.isNativeClass(cls);
+    bool isNative = _nativeData.isNativeClass(cls);
     _instantiatedTypes.add(type);
     if (!cls.isAbstract
         // We can't use the closed-world assumption with native abstract
@@ -411,7 +411,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     return _instanceMemberUsage.putIfAbsent(member, () {
       String memberName = member.name;
       ClassElement cls = member.enclosingClass;
-      bool isNative = _backend.nativeData.isNativeClass(cls);
+      bool isNative = _nativeData.isNativeClass(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);

@@ -55,7 +55,7 @@ import 'native_data.dart';
  * In these cases we conservatively generate all viable entries in the table.
  */
 abstract class CustomElementsAnalysisBase {
-  final NativeData _nativeData;
+  final NativeClassData _nativeData;
   final BackendHelpers _helpers;
   final Resolution _resolution;
 
@@ -70,7 +70,7 @@ abstract class CustomElementsAnalysisBase {
     if (classElement.isAbstract) return;
     // JsInterop classes are opaque interfaces without a concrete
     // implementation.
-    if (_nativeData.isJsInterop(classElement)) return;
+    if (_nativeData.isJsInteropClass(classElement)) return;
     join.instantiatedClasses.add(classElement);
   }
 
@@ -94,7 +94,7 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
       CommonElements commonElements,
       BackendClasses backendClasses,
       BackendHelpers helpers,
-      NativeData nativeData,
+      NativeClassData nativeData,
       BackendUsageBuilder backendUsageBuilder)
       : join = new CustomElementsAnalysisJoin(
             backend, resolution, commonElements, backendClasses, nativeData,
@@ -132,7 +132,7 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
       CommonElements commonElements,
       BackendClasses backendClasses,
       BackendHelpers helpers,
-      NativeData nativeData)
+      NativeClassData nativeData)
       : join = new CustomElementsAnalysisJoin(
             backend, resolution, commonElements, backendClasses, nativeData),
         super(resolution, helpers, nativeData) {
@@ -163,7 +163,7 @@ class CustomElementsAnalysisJoin {
   final Resolution _resolution;
   final CommonElements _commonElements;
   final BackendClasses _backendClasses;
-  final NativeData _nativeData;
+  final NativeClassData _nativeData;
   final BackendUsageBuilder _backendUsageBuilder;
 
   final bool forResolution;
