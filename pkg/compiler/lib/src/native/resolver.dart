@@ -157,7 +157,7 @@ class NativeDataResolverImpl implements NativeDataResolver {
     if (name == null) name = element.name;
     if (_isIdentifier(name)) {
       List<String> nativeNames =
-          _nativeDataBuilder.getNativeTagsOfClassRaw(element.enclosingClass);
+          _nativeClassData.getNativeTagsOfClass(element.enclosingClass);
       if (nativeNames.length != 1) {
         _reporter.internalError(
             element,

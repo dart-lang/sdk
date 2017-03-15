@@ -432,10 +432,11 @@ class JavaScriptBackend {
   /// Interface for serialization of backend specific data.
   JavaScriptBackendSerialization serialization;
 
-  final NativeDataImpl _nativeData = new NativeDataImpl();
-  NativeClassData get nativeClassData => _nativeData;
+  NativeDataImpl _nativeData;
+  final NativeClassDataImpl _nativeClassData = new NativeClassDataImpl();
+  NativeClassData get nativeClassData => _nativeClassData;
   NativeData get nativeData => _nativeData;
-  NativeClassDataBuilder get nativeClassDataBuilder => _nativeData;
+  NativeClassDataBuilder get nativeClassDataBuilder => _nativeClassData;
   NativeDataBuilder get nativeDataBuilder => _nativeData;
   final NativeDataResolver _nativeDataResolver;
   InterceptorDataBuilder _interceptorDataBuilder;
@@ -501,6 +502,7 @@ class JavaScriptBackend {
         frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
+    _nativeData = new NativeDataImpl(nativeClassData);
     _target = new JavaScriptBackendTarget(this);
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
@@ -548,7 +550,8 @@ class JavaScriptBackend {
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
-    serialization = new JavaScriptBackendSerialization(nativeData);
+    serialization =
+        new JavaScriptBackendSerialization(nativeClassData, nativeData);
     _interceptorDataBuilder = new InterceptorDataBuilderImpl(
         nativeClassData, helpers, commonElements, compiler.resolution);
   }

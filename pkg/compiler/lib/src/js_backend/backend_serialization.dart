@@ -34,9 +34,12 @@ class JavaScriptBackendSerialization implements BackendSerialization {
   final JavaScriptBackendSerializer serializer;
   final JavaScriptBackendDeserializer deserializer;
 
-  JavaScriptBackendSerialization(NativeData nativeData)
-      : serializer = new JavaScriptBackendSerializer(nativeData),
-        deserializer = new JavaScriptBackendDeserializer(nativeData);
+  JavaScriptBackendSerialization(
+      NativeClassData nativeClassData, NativeData nativeData)
+      : serializer =
+            new JavaScriptBackendSerializer(nativeClassData, nativeData),
+        deserializer =
+            new JavaScriptBackendDeserializer(nativeClassData, nativeData);
 }
 
 const Key JS_INTEROP_LIBRARY_NAME = const Key('jsInteropLibraryName');
@@ -49,9 +52,10 @@ const Key NATIVE_FIELD_LOAD_BEHAVIOR = const Key('nativeFieldLoadBehavior');
 const Key NATIVE_FIELD_STORE_BEHAVIOR = const Key('nativeFieldStoreBehavior');
 
 class JavaScriptBackendSerializer implements SerializerPlugin {
+  final NativeClassDataImpl nativeClassData;
   final NativeDataImpl nativeData;
 
-  JavaScriptBackendSerializer(this.nativeData);
+  JavaScriptBackendSerializer(this.nativeClassData, this.nativeData);
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
@@ -76,9 +80,10 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
     if (nativeMemberName != null) {
       getEncoder().setString(NATIVE_MEMBER_NAME, nativeMemberName);
     }
-    String nativeClassTagInfo = nativeData.nativeClassTagInfo[element];
+    NativeClassTag nativeClassTagInfo =
+        nativeClassData.nativeClassTagInfo[element];
     if (nativeClassTagInfo != null) {
-      getEncoder().setString(NATIVE_CLASS_TAG_INFO, nativeClassTagInfo);
+      getEncoder().setString(NATIVE_CLASS_TAG_INFO, nativeClassTagInfo.text);
     }
     NativeBehavior nativeMethodBehavior =
         nativeData.nativeMethodBehavior[element];
@@ -109,9 +114,10 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
 }
 
 class JavaScriptBackendDeserializer implements DeserializerPlugin {
+  final NativeClassDataImpl nativeClassData;
   final NativeDataImpl nativeData;
 
-  JavaScriptBackendDeserializer(this.nativeData);
+  JavaScriptBackendDeserializer(this.nativeClassData, this.nativeData);
 
   @override
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
@@ -132,7 +138,8 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
         String nativeClassTagInfo =
             decoder.getString(NATIVE_CLASS_TAG_INFO, isOptional: true);
         if (nativeClassTagInfo != null) {
-          nativeData.nativeClassTagInfo[element] = nativeClassTagInfo;
+          nativeClassData.nativeClassTagInfo[element] =
+              new NativeClassTag(nativeClassTagInfo);
         }
       } else if (element is MemberElement) {
         String jsInteropMemberName =

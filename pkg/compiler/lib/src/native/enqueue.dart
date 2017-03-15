@@ -367,10 +367,11 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     super.processNativeClass(classElement);
 
     // Js Interop interfaces do not have tags.
-    if (backend.nativeData.isJsInteropClass(classElement)) return;
+    if (backend.nativeClassData.isJsInteropClass(classElement)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
-    for (String tag in backend.nativeData.getNativeTagsOfClass(classElement)) {
+    for (String tag
+        in backend.nativeClassData.getNativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
         if (owner != classElement) {
