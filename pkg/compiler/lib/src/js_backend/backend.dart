@@ -10,7 +10,7 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
 import '../common.dart';
 import '../common/backend_api.dart'
-    show BackendClasses, ForeignResolver, NativeRegistry;
+    show BackendClasses, ForeignResolver, NativeRegistry, ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart'
@@ -31,7 +31,6 @@ import '../enqueue.dart'
     show
         DirectEnqueuerStrategy,
         Enqueuer,
-        EnqueuerListener,
         EnqueueTask,
         ResolutionEnqueuer,
         ResolutionWorkItemBuilder,
@@ -422,7 +421,9 @@ class JavaScriptBackend {
   final JavaScriptConstantTask constantCompilerTask;
 
   /// Backend transformation methods for the world impacts.
-  JavaScriptImpactTransformer impactTransformer;
+  ImpactTransformer impactTransformer;
+
+  CodegenImpactTransformer _codegenImpactTransformer;
 
   PatchResolverTask patchResolverTask;
 
@@ -546,7 +547,18 @@ class JavaScriptBackend {
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     kernelTask = new KernelTask(compiler);
-    impactTransformer = new JavaScriptImpactTransformer(this);
+    impactTransformer = new JavaScriptImpactTransformer(
+        compiler.options,
+        compiler.resolution,
+        compiler.elementEnvironment,
+        commonElements,
+        impacts,
+        nativeClassData,
+        nativeResolutionEnqueuer,
+        backendUsageBuilder,
+        mirrorsData,
+        customElementsResolutionAnalysis,
+        rtiNeedBuilder);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
@@ -1015,7 +1027,7 @@ class JavaScriptBackend {
           // variables. For instance variables, we may need to generate
           // the checked setter.
           if (Elements.isStaticOrTopLevel(element)) {
-            return impactTransformer
+            return _codegenImpactTransformer
                 .transformCodegenImpact(work.registry.worldImpact);
           }
         } else {
@@ -1043,8 +1055,8 @@ class JavaScriptBackend {
           sourceInformationStrategy.buildSourceMappedMarker());
     }
     generatedCode[element] = function;
-    WorldImpact worldImpact =
-        impactTransformer.transformCodegenImpact(work.registry.worldImpact);
+    WorldImpact worldImpact = _codegenImpactTransformer
+        .transformCodegenImpact(work.registry.worldImpact);
     compiler.dumpInfoTask.registerImpact(element, worldImpact);
     return worldImpact;
   }
@@ -1236,10 +1248,24 @@ class JavaScriptBackend {
     _closedWorld = closedWorld;
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
-    emitter.createEmitter(_namer, closedWorld);
+    emitter.createEmitter(namer, closedWorld);
     _rtiEncoder =
-        _namer.rtiEncoder = new _RuntimeTypesEncoder(_namer, emitter, helpers);
-
+        _namer.rtiEncoder = new _RuntimeTypesEncoder(namer, emitter, helpers);
+    _codegenImpactTransformer = new CodegenImpactTransformer(
+        this,
+        compiler.options,
+        compiler.elementEnvironment,
+        helpers,
+        impacts,
+        checkedModeHelpers,
+        nativeData,
+        rtiNeed,
+        nativeCodegenEnqueuer,
+        namer,
+        mirrorsData,
+        oneShotInterceptorData,
+        lookupMapAnalysis,
+        customElementsCodegenAnalysis);
     lookupMapAnalysis.onCodegenStart(lookupMapLibraryAccess);
     return const WorldImpact();
   }
