@@ -27,7 +27,7 @@ class SimpleGoodCase {
 
 class SimpleBadCaseWithOnlyOneLint {
   num x, y;
-  SimpleBadCaseWithOnlyOneLint (this.x, num y) {
+  SimpleBadCaseWithOnlyOneLint(this.x, num y) {
     this.y = y; // LINT
   }
 }
@@ -148,7 +148,7 @@ class BadCaseWithTwoFieldsOneArgument {
   num x, y;
   BadCaseWithTwoFieldsOneArgument(num x) {
     this.x = x; // LINT
-    this.y = x; // LINT
+    this.y = x; // OK
   }
 }
 
@@ -164,4 +164,26 @@ class GoodCaseWithTwoFieldsOneArgumentWithoutThis {
   GoodCaseWithTwoFieldsOneArgumentWithoutThis(this.x) {
     y = x; // OK
   }
+}
+
+class BadCaseWithOneParameterToTwoFields {
+  final int a, b;
+
+  BadCaseWithOneParameterToTwoFields(int b)
+      : a = b, // OK
+        this.b = b; // LINT
+}
+
+class GoodCaseWithOneParameterToTwoFields {
+  final int a, b;
+
+  GoodCaseWithOneParameterToTwoFields(this.b) : a = b; // OK
+}
+
+class GoodCaseWithOneParameterToTwoFieldsBecauseTheyHaveDifferentNames {
+  final int a, b;
+
+  GoodCaseWithOneParameterToTwoFieldsBecauseTheyHaveDifferentNames(int c)
+      : a = c, // OK
+        b = c; // OK
 }
