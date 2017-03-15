@@ -29,7 +29,7 @@ import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
+import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'codegen_helpers.dart';
@@ -2097,7 +2097,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant, node.sourceInformation);
 
-    registry.registerCompileTimeConstant(node.constant);
+    registry.registerConstantUse(new ConstantUse.literal(node.constant));
   }
 
   visitNot(HNot node) {

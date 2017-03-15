@@ -4,8 +4,10 @@
 
 library js_backend.backend.resolution_listener;
 
+import '../common/backend_api.dart';
 import '../common/names.dart' show Identifiers, Uris;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -36,10 +38,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final KernelTask _kernelTask;
 
   final CompilerOptions _options;
+  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
   final BackendImpacts _impacts;
-  final ElementEnvironment _elementEnvironment;
+  final BackendClasses _backendClasses;
 
   final NativeClassData _nativeData;
   final InterceptorDataBuilder _interceptorData;
@@ -65,6 +68,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._commonElements,
       this._helpers,
       this._impacts,
+      this._backendClasses,
       this._nativeData,
       this._interceptorData,
       this._backendUsage,
@@ -215,6 +219,65 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
+  }
+
+  /// Adds the impact of [constant] to [impactBuilder].
+  void _computeImpactForCompileTimeConstant(
+      ConstantValue constant, WorldImpactBuilder impactBuilder) {
+    _computeImpactForCompileTimeConstantInternal(constant, impactBuilder);
+
+    for (ConstantValue dependency in constant.getDependencies()) {
+      _computeImpactForCompileTimeConstant(dependency, impactBuilder);
+    }
+  }
+
+  void _computeImpactForCompileTimeConstantInternal(
+      ConstantValue constant, WorldImpactBuilder impactBuilder) {
+    DartType type = constant.getType(_commonElements);
+    _computeImpactForInstantiatedConstantType(type, impactBuilder);
+
+    if (constant.isFunction) {
+      FunctionConstantValue function = constant;
+      impactBuilder
+          .registerStaticUse(new StaticUse.staticTearOff(function.element));
+    } else if (constant.isInterceptor) {
+      // An interceptor constant references the class's prototype chain.
+      InterceptorConstantValue interceptor = constant;
+      ClassElement cls = interceptor.cls;
+      _computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
+    } else if (constant.isType) {
+      MethodElement helper = _helpers.createRuntimeType;
+      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+          // TODO(johnniwinther): Find the right [CallStructure].
+          helper,
+          null));
+      _backendUsage.registerBackendFunctionUse(helper);
+      impactBuilder
+          .registerTypeUse(new TypeUse.instantiation(_backendClasses.typeType));
+    }
+  }
+
+  void _computeImpactForInstantiatedConstantType(
+      DartType type, WorldImpactBuilder impactBuilder) {
+    if (type is InterfaceType) {
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
+      if (type.element == _backendClasses.typeClass) {
+        // If we use a type literal in a constant, the compile time
+        // constant emitter will generate a call to the createRuntimeType
+        // helper so we register a use of that.
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            // TODO(johnniwinther): Find the right [CallStructure].
+            _helpers.createRuntimeType,
+            null));
+      }
+    }
+  }
+
+  @override
+  WorldImpact registerUsedConstant(ConstantValue constant) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    _computeImpactForCompileTimeConstant(constant, impactBuilder);
+    return impactBuilder;
   }
 
   @override

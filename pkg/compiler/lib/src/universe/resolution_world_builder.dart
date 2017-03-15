@@ -84,6 +84,10 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   /// Applies the [staticUse] to applicable members. Calls [membersUsed] with
   /// the usage changes for each member.
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed);
+
+  /// Register the constant [use] with this world builder. Returns `true` if
+  /// the constant use was new to the world.
+  bool registerConstantUse(ConstantUse use);
 }
 
 /// The type and kind of an instantiation registered through
@@ -351,6 +355,8 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
       <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
 
+  final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
+
   bool get isClosed => _closed;
 
   ElementResolutionWorldBuilder(
@@ -604,6 +610,10 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     // against the type variable of a typedef.
     assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
     isChecks.add(type);
+  }
+
+  bool registerConstantUse(ConstantUse use) {
+    return _constantValues.add(use.value);
   }
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {

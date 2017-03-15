@@ -10,11 +10,14 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart';
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/constant_handler_javascript.dart'
+    show JavaScriptConstantCompiler;
 import '../js_backend/native_data.dart' show NativeClassData;
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
@@ -22,7 +25,14 @@ import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
 import 'selector.dart' show Selector;
-import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
+import 'use.dart'
+    show
+        ConstantUse,
+        ConstantUseKind,
+        DynamicUse,
+        DynamicUseKind,
+        StaticUse,
+        StaticUseKind;
 
 part 'codegen_world_builder.dart';
 part 'member_usage.dart';
@@ -163,12 +173,11 @@ abstract class WorldBuilder {
   Iterable<DartType> get isChecks;
 
   /// All directly instantiated types, that is, the types of the directly
+  /// instantiated classes.
+  // TODO(johnniwinther): Improve semantic precision.
+  Iterable<InterfaceType> get instantiatedTypes;
 
   /// Registers that [type] is checked in this world builder. The unaliased type
   /// is returned.
   void registerIsCheck(DartType type);
-
-  /// instantiated classes.
-  // TODO(johnniwinther): Improve semantic precision.
-  Iterable<InterfaceType> get instantiatedTypes;
 }

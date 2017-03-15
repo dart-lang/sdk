@@ -50,6 +50,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final NativeClassData _nativeData;
   final ClosedWorld _world;
+  final JavaScriptConstantCompiler _constants;
 
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
@@ -116,8 +117,10 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  CodegenWorldBuilderImpl(
-      this._nativeData, this._world, this.selectorConstraintsStrategy);
+  final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
+
+  CodegenWorldBuilderImpl(this._nativeData, this._world, this._constants,
+      this.selectorConstraintsStrategy);
 
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls].
@@ -481,5 +484,14 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     while (cls != null && processClass(cls)) {
       cls = cls.superclass;
     }
+  }
+
+  /// Register the constant [use] with this world builder. Returns `true` if
+  /// the constant use was new to the world.
+  bool registerConstantUse(ConstantUse use) {
+    if (use.kind == ConstantUseKind.DIRECT) {
+      _constants.addCompileTimeConstantForEmission(use.value);
+    }
+    return _constantValues.add(use.value);
   }
 }

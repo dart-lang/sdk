@@ -132,6 +132,7 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       compiler.commonElements,
       backend.helpers,
       backend.impacts,
+      backend.backendClasses,
       backend.nativeClassData,
       backend.interceptorDataBuilder,
       backend.backendUsageBuilder,
@@ -155,7 +156,7 @@ ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
   enqueuer.open(const ImpactStrategy(), compiler.mainFunction,
       compiler.libraryLoader.libraries);
   enqueuer.forEach((work) {
-    AstElement element = work.element;
+    MemberElement element = work.element;
     ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
     WorldImpact worldImpact = compiler.backend.impactTransformer
         .transformResolutionImpact(enqueuer, resolutionImpact);

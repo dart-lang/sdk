@@ -56,14 +56,9 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
-import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
-    show
-        ImpactStrategy,
-        ImpactUseCase,
-        WorldImpact,
-        WorldImpactBuilder,
-        WorldImpactVisitor;
+    show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'annotations.dart';
@@ -524,16 +519,16 @@ class JavaScriptBackend {
         compiler.elementEnvironment, impacts, backendUsageBuilder);
     typeVariableHandler = new TypeVariableHandler(this, helpers, mirrorsData);
     customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
-        this,
         compiler.resolution,
+        constantSystem,
         commonElements,
         backendClasses,
         helpers,
         nativeClassData,
         backendUsageBuilder);
     customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        this,
         compiler.resolution,
+        constantSystem,
         commonElements,
         backendClasses,
         helpers,
@@ -543,7 +538,7 @@ class JavaScriptBackend {
     lookupMapLibraryAccess =
         new LookupMapLibraryAccess(reporter, compiler.elementEnvironment);
     lookupMapAnalysis = new LookupMapAnalysis(this, compiler.options, reporter,
-        compiler.elementEnvironment, commonElements, backendClasses);
+        compiler.elementEnvironment, commonElements, helpers, backendClasses);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     kernelTask = new KernelTask(compiler);
@@ -768,84 +763,6 @@ class JavaScriptBackend {
     });
   }
 
-  /// Called during codegen when [constant] has been used.
-  void computeImpactForCompileTimeConstant(
-      ConstantValue constant, WorldImpactBuilder impactBuilder,
-      {bool forResolution}) {
-    computeImpactForCompileTimeConstantInternal(constant, impactBuilder,
-        forResolution: forResolution);
-
-    if (!forResolution && lookupMapAnalysis.isLookupMap(constant)) {
-      // Note: internally, this registration will temporarily remove the
-      // constant dependencies and add them later on-demand.
-      lookupMapAnalysis.registerLookupMapReference(constant);
-    }
-
-    for (ConstantValue dependency in constant.getDependencies()) {
-      computeImpactForCompileTimeConstant(dependency, impactBuilder,
-          forResolution: forResolution);
-    }
-  }
-
-  void addCompileTimeConstantForEmission(ConstantValue constant) {
-    constants.addCompileTimeConstantForEmission(constant);
-  }
-
-  void computeImpactForCompileTimeConstantInternal(
-      ConstantValue constant, WorldImpactBuilder impactBuilder,
-      {bool forResolution}) {
-    ResolutionDartType type = constant.getType(compiler.commonElements);
-    computeImpactForInstantiatedConstantType(type, impactBuilder,
-        forResolution: forResolution);
-
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
-      impactBuilder
-          .registerStaticUse(new StaticUse.staticTearOff(function.element));
-    } else if (constant.isInterceptor) {
-      // An interceptor constant references the class's prototype chain.
-      InterceptorConstantValue interceptor = constant;
-      ClassElement cls = interceptor.cls;
-      computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder,
-          forResolution: forResolution);
-    } else if (constant.isType) {
-      if (forResolution) {
-        MethodElement helper = helpers.createRuntimeType;
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            helper,
-            null));
-        backendUsageBuilder.registerBackendFunctionUse(helper);
-      }
-      impactBuilder
-          .registerTypeUse(new TypeUse.instantiation(backendClasses.typeType));
-    }
-    if (!forResolution) lookupMapAnalysis.registerConstantKey(constant);
-  }
-
-  void computeImpactForInstantiatedConstantType(
-      DartType type, WorldImpactBuilder impactBuilder,
-      {bool forResolution}) {
-    if (type is ResolutionInterfaceType) {
-      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
-      if (!forResolution && rtiNeed.classNeedsRtiField(type.element)) {
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            helpers.setRuntimeTypeInfo,
-            null));
-      }
-      if (type.element == backendClasses.typeClass) {
-        // If we use a type literal in a constant, the compile time
-        // constant emitter will generate a call to the createRuntimeType
-        // helper so we register a use of that.
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            // TODO(johnniwinther): Find the right [CallStructure].
-            helpers.createRuntimeType,
-            null));
-      }
-    }
-  }
-
   void onResolutionStart(ResolutionEnqueuer enqueuer) {
     helpers.onResolutionStart();
 
@@ -947,6 +864,7 @@ class JavaScriptBackend {
             commonElements,
             helpers,
             impacts,
+            backendClasses,
             nativeClassData,
             _interceptorDataBuilder,
             _backendUsageBuilder,
@@ -971,7 +889,7 @@ class JavaScriptBackend {
         compiler.options,
         const TreeShakingEnqueuerStrategy(),
         new CodegenWorldBuilderImpl(
-            nativeClassData, closedWorld, const TypeMaskStrategy()),
+            nativeClassData, closedWorld, constants, const TypeMaskStrategy()),
         new CodegenWorkItemBuilder(this, compiler.options),
         new CodegenEnqueuerListener(
             compiler.dumpInfoTask,
@@ -979,6 +897,7 @@ class JavaScriptBackend {
             commonElements,
             helpers,
             impacts,
+            backendClasses,
             backendUsage,
             rtiNeed,
             mirrorsData,
@@ -1019,10 +938,8 @@ class JavaScriptBackend {
       if (constant != null) {
         ConstantValue initialValue = constants.getConstantValue(constant);
         if (initialValue != null) {
-          computeImpactForCompileTimeConstant(
-              initialValue, work.registry.worldImpact,
-              forResolution: false);
-          addCompileTimeConstantForEmission(initialValue);
+          work.registry.worldImpact
+              .registerConstantUse(new ConstantUse.init(initialValue));
           // We don't need to generate code for static or top-level
           // variables. For instance variables, we may need to generate
           // the checked setter.
@@ -1252,20 +1169,21 @@ class JavaScriptBackend {
     _rtiEncoder =
         _namer.rtiEncoder = new _RuntimeTypesEncoder(namer, emitter, helpers);
     _codegenImpactTransformer = new CodegenImpactTransformer(
-        this,
         compiler.options,
         compiler.elementEnvironment,
         helpers,
         impacts,
         checkedModeHelpers,
         nativeData,
+        backendUsage,
         rtiNeed,
         nativeCodegenEnqueuer,
         namer,
         mirrorsData,
         oneShotInterceptorData,
         lookupMapAnalysis,
-        customElementsCodegenAnalysis);
+        customElementsCodegenAnalysis,
+        rtiChecksBuilder);
     lookupMapAnalysis.onCodegenStart(lookupMapLibraryAccess);
     return const WorldImpact();
   }

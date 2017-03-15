@@ -5,14 +5,14 @@
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../common_elements.dart';
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../universe/call_structure.dart';
-import '../universe/use.dart' show StaticUse;
+import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
-import 'backend.dart';
 import 'backend_usage.dart' show BackendUsageBuilder;
 import 'backend_helpers.dart';
 import 'native_data.dart';
@@ -89,15 +89,15 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
   final CustomElementsAnalysisJoin join;
 
   CustomElementsResolutionAnalysis(
-      JavaScriptBackend backend,
       Resolution resolution,
+      ConstantSystem constantSystem,
       CommonElements commonElements,
       BackendClasses backendClasses,
       BackendHelpers helpers,
       NativeClassData nativeData,
       BackendUsageBuilder backendUsageBuilder)
-      : join = new CustomElementsAnalysisJoin(
-            backend, resolution, commonElements, backendClasses, nativeData,
+      : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
+            commonElements, backendClasses, nativeData,
             backendUsageBuilder: backendUsageBuilder),
         super(resolution, helpers, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
@@ -127,14 +127,14 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
   final CustomElementsAnalysisJoin join;
 
   CustomElementsCodegenAnalysis(
-      JavaScriptBackend backend,
       Resolution resolution,
+      ConstantSystem constantSystem,
       CommonElements commonElements,
       BackendClasses backendClasses,
       BackendHelpers helpers,
       NativeClassData nativeData)
-      : join = new CustomElementsAnalysisJoin(
-            backend, resolution, commonElements, backendClasses, nativeData),
+      : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
+            commonElements, backendClasses, nativeData),
         super(resolution, helpers, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
@@ -144,7 +144,7 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
     join.allClassesSelected = true;
   }
 
-  void registerTypeConstant(Element element) {
+  void registerTypeConstant(ClassElement element) {
     assert(element.isClass);
     join.selectedClasses.add(element);
   }
@@ -159,8 +159,8 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
 }
 
 class CustomElementsAnalysisJoin {
-  final JavaScriptBackend _backend;
   final Resolution _resolution;
+  final ConstantSystem _constantSystem;
   final CommonElements _commonElements;
   final BackendClasses _backendClasses;
   final NativeClassData _nativeData;
@@ -186,7 +186,7 @@ class CustomElementsAnalysisJoin {
   // ClassesOutput: classes requiring metadata.
   final activeClasses = new Set<ClassElement>();
 
-  CustomElementsAnalysisJoin(this._backend, this._resolution,
+  CustomElementsAnalysisJoin(this._resolution, this._constantSystem,
       this._commonElements, this._backendClasses, this._nativeData,
       {BackendUsageBuilder backendUsageBuilder})
       : this._backendUsageBuilder = backendUsageBuilder,
@@ -218,9 +218,8 @@ class CustomElementsAnalysisJoin {
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = _makeTypeConstant(classElement);
-        _backend.computeImpactForCompileTimeConstant(constant, impactBuilder,
-            forResolution: forResolution);
-        _backend.addCompileTimeConstantForEmission(constant);
+        impactBuilder
+            .registerConstantUse(new ConstantUse.customElements(constant));
       }
     }
     activeClasses.addAll(newActiveClasses);
@@ -230,8 +229,8 @@ class CustomElementsAnalysisJoin {
 
   TypeConstantValue _makeTypeConstant(ClassElement element) {
     ResolutionDartType elementType = element.rawType;
-    return _backend.constantSystem
-        .createType(_commonElements, _backendClasses, elementType);
+    return _constantSystem.createType(
+        _commonElements, _backendClasses, elementType);
   }
 
   List<ConstructorElement> computeEscapingConstructors(

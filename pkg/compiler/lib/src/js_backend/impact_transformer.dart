@@ -20,7 +20,7 @@ import '../native/native.dart' as native;
 import '../options.dart';
 import '../universe/feature.dart';
 import '../universe/use.dart'
-    show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+    show ConstantUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
 import 'backend.dart';
@@ -334,15 +334,13 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 }
 
 class CodegenImpactTransformer {
-  // TODO(johnniwinther): Remove the need for this.
-  final JavaScriptBackend _backend;
-
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
   final BackendHelpers _helpers;
   final BackendImpacts _impacts;
   final CheckedModeHelpers _checkedModeHelpers;
   final NativeData _nativeData;
+  final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final Namer _namer;
@@ -350,22 +348,24 @@ class CodegenImpactTransformer {
   final OneShotInterceptorData _oneShotInterceptorData;
   final LookupMapAnalysis _lookupMapAnalysis;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+  final RuntimeTypesChecksBuilder _rtiChecksBuilder;
 
   CodegenImpactTransformer(
-      this._backend,
       this._options,
       this._elementEnvironment,
       this._helpers,
       this._impacts,
       this._checkedModeHelpers,
       this._nativeData,
+      this._backendUsage,
       this._rtiNeed,
       this._nativeCodegenEnqueuer,
       this._namer,
       this._mirrorsData,
       this._oneShotInterceptorData,
       this._lookupMapAnalysis,
-      this._customElementsCodegenAnalysis);
+      this._customElementsCodegenAnalysis,
+      this._rtiChecksBuilder);
 
   void onIsCheckForCodegen(
       ResolutionDartType type, TransformedWorldImpact transformed) {
@@ -424,15 +424,10 @@ class CodegenImpactTransformer {
       }
     }
 
-    for (ConstantValue constant in impact.compileTimeConstants) {
-      _backend.computeImpactForCompileTimeConstant(constant, transformed,
-          forResolution: false);
-      _backend.addCompileTimeConstantForEmission(constant);
-    }
-
     for (Pair<ResolutionDartType, ResolutionDartType> check
         in impact.typeVariableBoundsSubtypeChecks) {
-      _backend.registerTypeVariableBoundsSubtypeCheck(check.a, check.b);
+      _rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
+          check.a, check.b);
     }
 
     for (StaticUse staticUse in impact.staticUses) {
@@ -466,8 +461,8 @@ class CodegenImpactTransformer {
         _impacts.interceptorUse
             .registerImpact(transformed, _elementEnvironment);
         // TODO(johnniwinther): Avoid these workarounds.
-        _backend.backendUsage.needToInitializeIsolateAffinityTag = true;
-        _backend.backendUsage.needToInitializeDispatchProperty = true;
+        _backendUsage.needToInitializeIsolateAffinityTag = true;
+        _backendUsage.needToInitializeDispatchProperty = true;
       }
     }
 

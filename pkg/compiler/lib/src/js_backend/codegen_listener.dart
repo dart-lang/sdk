@@ -4,8 +4,11 @@
 
 library js_backend.backend.codegen_listener;
 
+import '../common.dart';
+import '../common/backend_api.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../constants/values.dart';
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -14,11 +17,13 @@ import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../native/enqueue.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
-import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
+import '../universe/world_impact.dart'
+    show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'backend.dart';
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
+import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
@@ -33,6 +38,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
   final BackendImpacts _impacts;
+  final BackendClasses _backendClasses;
 
   final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
@@ -45,6 +51,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
+  final JavaScriptConstantCompiler _constants;
+
   bool _isNoSuchMethodUsed = false;
 
   CodegenEnqueuerListener(
@@ -53,6 +61,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._commonElements,
       this._helpers,
       this._impacts,
+      this._backendClasses,
       this._backendUsage,
       this._rtiNeed,
       this._mirrorsData,
@@ -164,6 +173,72 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
     _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
+  }
+
+  /// Adds the impact of [constant] to [impactBuilder].
+  void _computeImpactForCompileTimeConstant(
+      ConstantValue constant, WorldImpactBuilder impactBuilder) {
+    _computeImpactForCompileTimeConstantInternal(constant, impactBuilder);
+
+    if (_lookupMapAnalysis.isLookupMap(constant)) {
+      // Note: internally, this registration will temporarily remove the
+      // constant dependencies and add them later on-demand.
+      _lookupMapAnalysis.registerLookupMapReference(constant);
+    }
+
+    for (ConstantValue dependency in constant.getDependencies()) {
+      _computeImpactForCompileTimeConstant(dependency, impactBuilder);
+    }
+  }
+
+  void _computeImpactForCompileTimeConstantInternal(
+      ConstantValue constant, WorldImpactBuilder impactBuilder) {
+    ResolutionDartType type = constant.getType(_commonElements);
+    _computeImpactForInstantiatedConstantType(type, impactBuilder);
+
+    if (constant.isFunction) {
+      FunctionConstantValue function = constant;
+      impactBuilder
+          .registerStaticUse(new StaticUse.staticTearOff(function.element));
+    } else if (constant.isInterceptor) {
+      // An interceptor constant references the class's prototype chain.
+      InterceptorConstantValue interceptor = constant;
+      ClassElement cls = interceptor.cls;
+      _computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
+    } else if (constant.isType) {
+      impactBuilder
+          .registerTypeUse(new TypeUse.instantiation(_backendClasses.typeType));
+    }
+    _lookupMapAnalysis.registerConstantKey(constant);
+  }
+
+  void _computeImpactForInstantiatedConstantType(
+      ResolutionDartType type, WorldImpactBuilder impactBuilder) {
+    if (type is ResolutionInterfaceType) {
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
+      if (_rtiNeed.classNeedsRtiField(type.element)) {
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            // TODO(johnniwinther): Find the right [CallStructure].
+            _helpers.setRuntimeTypeInfo,
+            null));
+      }
+      if (type.element == _backendClasses.typeClass) {
+        // If we use a type literal in a constant, the compile time
+        // constant emitter will generate a call to the createRuntimeType
+        // helper so we register a use of that.
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            // TODO(johnniwinther): Find the right [CallStructure].
+            _helpers.createRuntimeType,
+            null));
+      }
+    }
+  }
+
+  @override
+  WorldImpact registerUsedConstant(ConstantValue constant) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    _computeImpactForCompileTimeConstant(constant, impactBuilder);
+    return impactBuilder;
   }
 
   @override

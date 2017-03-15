@@ -17,10 +17,15 @@ import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../options.dart';
-import '../types/types.dart' show TypeMaskStrategy;
 import '../universe/world_builder.dart';
 import '../universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+    show
+        ConstantUse,
+        DynamicUse,
+        StaticUse,
+        StaticUseKind,
+        TypeUse,
+        TypeUseKind;
 import '../universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/enumset.dart';
@@ -32,6 +37,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final EnqueuerStrategy strategy;
 
   Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
+  bool _recentConstants = false;
   final CodegenWorldBuilderImpl _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
@@ -194,6 +200,15 @@ class CodegenEnqueuer extends EnqueuerImpl {
     }
   }
 
+  void processConstantUse(ConstantUse constantUse) {
+    task.measure(() {
+      if (_worldBuilder.registerConstantUse(constantUse)) {
+        applyImpact(listener.registerUsedConstant(constantUse.value));
+        _recentConstants = true;
+      }
+    });
+  }
+
   void _registerIsCheck(ResolutionDartType type) {
     _worldBuilder.registerIsCheck(type);
   }
@@ -217,8 +232,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
       }
       List recents = _recentClasses.toList(growable: false);
       _recentClasses.clear();
+      _recentConstants = false;
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
-    } while (_queue.isNotEmpty || _recentClasses.isNotEmpty);
+    } while (
+        _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]

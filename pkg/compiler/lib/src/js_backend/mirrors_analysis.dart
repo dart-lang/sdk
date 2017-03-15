@@ -151,9 +151,7 @@ class MirrorsAnalysis {
           Dependency dependency =
               new Dependency(constant, metadata.annotatedElement);
           metadataConstants.add(dependency);
-          backend.computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder,
-              forResolution: enqueuer.isResolutionQueue);
+          impactBuilder.registerConstantUse(new ConstantUse.mirrors(constant));
         }
 
         // TODO(johnniwinther): We should have access to all recently processed
@@ -161,9 +159,8 @@ class MirrorsAnalysis {
         processMetadata(enqueuer.processedEntities, registerMetadataConstant);
       } else {
         for (Dependency dependency in metadataConstants) {
-          backend.computeImpactForCompileTimeConstant(
-              dependency.constant, impactBuilder,
-              forResolution: enqueuer.isResolutionQueue);
+          impactBuilder.registerConstantUse(
+              new ConstantUse.mirrors(dependency.constant));
         }
         metadataConstants.clear();
       }

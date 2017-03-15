@@ -10,6 +10,7 @@ import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
+import 'constants/values.dart';
 import 'compiler.dart' show Compiler;
 import 'options.dart';
 import 'elements/elements.dart'
@@ -19,7 +20,13 @@ import 'elements/resolution_types.dart' show ResolutionTypedefType;
 import 'elements/types.dart';
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+    show
+        ConstantUse,
+        DynamicUse,
+        StaticUse,
+        StaticUseKind,
+        TypeUse,
+        TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import 'util/enumset.dart';
@@ -115,6 +122,10 @@ abstract class EnqueuerListener {
   /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerUsedElement(MemberEntity member);
 
+  /// Called to register that [value] is statically known to be used. Any
+  /// backend specific [WorldImpact] of this is returned.
+  WorldImpact registerUsedConstant(ConstantValue value);
+
   void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries);
 
@@ -147,6 +158,7 @@ abstract class EnqueuerImpl extends Enqueuer {
   void processStaticUse(StaticUse staticUse);
   void processTypeUse(TypeUse typeUse);
   void processDynamicUse(DynamicUse dynamicUse);
+  void processConstantUse(ConstantUse constantUse);
   EnqueuerListener get listener;
 
   // TODO(johnniwinther): Initialize [_impactStrategy] to `null`.
@@ -179,6 +191,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   final EnqueuerStrategy strategy;
   final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
+  bool _recentConstants = false;
   final ResolutionEnqueuerWorldBuilder _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
   final DiagnosticReporter _reporter;
@@ -286,6 +299,15 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     });
   }
 
+  void processConstantUse(ConstantUse constantUse) {
+    task.measure(() {
+      if (_worldBuilder.registerConstantUse(constantUse)) {
+        applyImpact(listener.registerUsedConstant(constantUse.value));
+        _recentConstants = true;
+      }
+    });
+  }
+
   void processStaticUse(StaticUse staticUse) {
     _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
     // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
@@ -362,12 +384,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       }
       List recents = _recentClasses.toList(growable: false);
       _recentClasses.clear();
+      _recentConstants = false;
       if (!_onQueueEmpty(recents)) {
         _recentClasses.addAll(recents);
       }
     } while (_queue.isNotEmpty ||
         _recentClasses.isNotEmpty ||
-        _deferredQueue.isNotEmpty);
+        _deferredQueue.isNotEmpty ||
+        _recentConstants);
   }
 
   void logSummary(void log(String message)) {
@@ -468,6 +492,9 @@ class EnqueuerStrategy {
   /// Process a dynamic use for a call site in live code.
   void processDynamicUse(EnqueuerImpl enqueuer, DynamicUse dynamicUse) {}
 
+  /// Process a constant use in live code.
+  void processConstantUse(EnqueuerImpl enqueuer, ConstantUse constantUse) {}
+
   /// Check enqueuer consistency after the queue has been closed.
   bool checkEnqueuerConsistency(EnqueuerImpl enqueuer) => true;
 
@@ -506,6 +533,11 @@ class TreeShakingEnqueuerStrategy extends EnqueuerStrategy {
     enqueuer.processDynamicUse(dynamicUse);
   }
 
+  @override
+  void processConstantUse(EnqueuerImpl enqueuer, ConstantUse constantUse) {
+    enqueuer.processConstantUse(constantUse);
+  }
+
   /// Check enqueuer consistency after the queue has been closed.
   bool checkEnqueuerConsistency(EnqueuerImpl enqueuer) {
     enqueuer.task.measure(() {
@@ -541,6 +573,11 @@ class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
   @override
   void visitTypeUse(TypeUse typeUse) {
     enqueuer.strategy.processTypeUse(enqueuer, typeUse);
+  }
+
+  @override
+  void visitConstantUse(ConstantUse constantUse) {
+    enqueuer.strategy.processConstantUse(enqueuer, constantUse);
   }
 }
 

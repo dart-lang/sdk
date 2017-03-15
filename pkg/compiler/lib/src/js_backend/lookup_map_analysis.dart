@@ -18,15 +18,15 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/elements.dart'
-    show ClassElement, FieldElement, LibraryElement, VariableElement;
+import '../elements/elements.dart' show ClassElement, FieldElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../options.dart';
-import '../universe/use.dart' show StaticUse;
+import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
-import 'js_backend.dart' show JavaScriptBackend;
+import 'backend.dart' show JavaScriptBackend;
+import 'backend_helpers.dart';
 
 /// Lookup map handling for resolution.
 ///
@@ -53,13 +53,14 @@ class LookupMapLibraryAccess {
   /// `package:lookup_map/lookup_map.dart`.
   LibraryEntity lookupMapLibrary;
 
-  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+  final StagedWorldImpactBuilder _impactBuilder =
+      new StagedWorldImpactBuilder();
 
   LookupMapLibraryAccess(this._reporter, this._elementEnvironment);
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
   WorldImpact flush() {
-    return impactBuilder.flush();
+    return _impactBuilder.flush();
   }
 
   /// Initializes this analysis by providing the resolved library. This is
@@ -74,7 +75,7 @@ class LookupMapLibraryAccess {
       _reporter.reportHintMessage(
           library, MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
     } else {
-      impactBuilder
+      _impactBuilder
           .registerStaticUse(new StaticUse.staticGet(lookupMapVersionVariable));
     }
   }
@@ -136,6 +137,8 @@ class LookupMapAnalysis {
 
   final CommonElements _commonElements;
 
+  final BackendHelpers _helpers;
+
   final BackendClasses _backendClasses;
 
   /// The resolved [ClassElement] associated with `LookupMap`.
@@ -175,18 +178,24 @@ class LookupMapAnalysis {
   /// entry with that key.
   final _pending = <ConstantValue, List<_LookupMapInfo>>{};
 
-  final StagedWorldImpactBuilder impactBuilderForCodegen =
+  final StagedWorldImpactBuilder _impactBuilder =
       new StagedWorldImpactBuilder();
 
   /// Whether the backend is currently processing the codegen queue.
   bool _inCodegen = false;
 
-  LookupMapAnalysis(this._backend, this._options, this._reporter,
-      this._elementEnvironment, this._commonElements, this._backendClasses);
+  LookupMapAnalysis(
+      this._backend,
+      this._options,
+      this._reporter,
+      this._elementEnvironment,
+      this._commonElements,
+      this._helpers,
+      this._backendClasses);
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
   WorldImpact flush() {
-    return impactBuilderForCodegen.flush();
+    return _impactBuilder.flush();
   }
 
   /// Whether this analysis and optimization is enabled.
@@ -321,9 +330,10 @@ class LookupMapAnalysis {
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
-        _backend.computeImpactForInstantiatedConstantType(
-            _backendClasses.typeType, impactBuilderForCodegen,
-            forResolution: false);
+        _impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            // TODO(johnniwinther): Find the right [CallStructure].
+            _helpers.createRuntimeType,
+            null));
         _addGenerics(arg);
       }
     }
@@ -462,9 +472,8 @@ class _LookupMapInfo {
     assert(!usedEntries.containsKey(key));
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
-    analysis._backend.computeImpactForCompileTimeConstant(
-        constant, analysis.impactBuilderForCodegen,
-        forResolution: false);
+    analysis._impactBuilder
+        .registerConstantUse(new ConstantUse.lookupMap(constant));
   }
 
   /// Restores [original] to contain all of the entries marked as possibly used.

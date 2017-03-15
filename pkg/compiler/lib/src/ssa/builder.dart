@@ -36,7 +36,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show DynamicUse, StaticUse;
+import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -89,7 +89,7 @@ class SsaBuilderTask extends CompilerTask {
             // This ensures the default value will be computed.
             ConstantValue constant =
                 backend.constants.getConstantValue(parameter.constant);
-            work.registry.registerCompileTimeConstant(constant);
+            work.registry.registerConstantUse(new ConstantUse.init(constant));
           });
         }
         if (backend.tracer.isEnabled) {
