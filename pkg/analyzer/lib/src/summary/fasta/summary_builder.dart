@@ -1319,7 +1319,7 @@ class SummaryBuilder extends StackListener {
     checkEmpty();
   }
 
-  void endPartOf(Token partKeyword, Token semicolon) {
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     debugEvent("endPartOf");
     String name = pop();
     pop(); // metadata

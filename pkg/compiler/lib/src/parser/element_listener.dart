@@ -235,7 +235,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon) {
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     Expression name = popNode();
     addPartOfTag(
         new PartOf(partKeyword, name, popMetadata(compilationUnitElement)));

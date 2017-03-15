@@ -348,7 +348,8 @@ class Parser {
     assert(optional('of', token.next));
     Token partKeyword = token;
     token = token.next.next;
-    if (token.isIdentifier()) {
+    bool hasName = token.isIdentifier();
+    if (hasName) {
       token = parseQualified(token, IdentifierContext.partName,
           IdentifierContext.partNameContinuation);
     } else {
@@ -356,7 +357,7 @@ class Parser {
     }
     Token semicolon = token;
     token = expect(';', token);
-    listener.endPartOf(partKeyword, semicolon);
+    listener.endPartOf(partKeyword, semicolon, hasName);
     return token;
   }
 

@@ -61,7 +61,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   String name;
 
-  String partOf;
+  String partOfName;
+
+  Uri partOfUri;
 
   List<MetadataBuilder> metadata;
 
@@ -79,7 +81,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   Uri get uri;
 
-  bool get isPart => partOf != null;
+  bool get isPart => partOfName != null || partOfUri != null;
 
   Map<String, Builder> get members => libraryDeclaration.members;
 
@@ -155,8 +157,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     parts.add(loader.read(resolvedUri, newFileUri));
   }
 
-  void addPartOf(List<MetadataBuilder> metadata, String name) {
-    partOf = name;
+  void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {
+    partOfName = name;
+    partOfUri = uri == null ? null : this.uri.resolve(uri);
   }
 
   void addClass(
@@ -344,7 +347,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void includePart(SourceLibraryBuilder<T, R> part) {
     if (name != null) {
-      if (part.partOf == null) {
+      if (!part.isPart) {
         warning(
             part.fileUri,
             -1,
@@ -353,12 +356,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         parts.remove(part);
         return;
       }
-      if (part.partOf != name) {
-        warning(
-            part.fileUri,
-            -1,
-            "Is part of '${part.partOf}' but is used as "
-            "a part by '${name}' ($uri).");
+      if (part.partOfName != name && part.partOfUri != uri) {
+        String partName = part.partOfName ?? "${part.partOfUri}";
+        String myName = name == null ? "'$uri'" : "'${name}' ($uri)";
+        warning(part.fileUri, -1,
+            "Is part of '$partName' but is used as a part by $myName.");
         parts.remove(part);
         return;
       }

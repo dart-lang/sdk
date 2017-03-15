@@ -576,11 +576,15 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endPartOf(Token partKeyword, Token semicolon) {
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     debugEvent("endPartOf");
-    String name = pop();
+    String containingLibrary = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addPartOf(metadata, name);
+    if (hasName) {
+      library.addPartOf(metadata, containingLibrary, null);
+    } else {
+      library.addPartOf(metadata, null, containingLibrary);
+    }
   }
 
   @override

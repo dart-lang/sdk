@@ -562,7 +562,10 @@ class Listener {
   /// Handle the end of a "part of" directive.  Substructures:
   /// - Metadata
   /// - Library name (a qualified identifier)
-  void endPartOf(Token partKeyword, Token semicolon) {
+  ///
+  /// If [hasName] is true, this part refers to its library by name, otherwise,
+  /// by URI.
+  void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     logEvent("PartOf");
   }
 
