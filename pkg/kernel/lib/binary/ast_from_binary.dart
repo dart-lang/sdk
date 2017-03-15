@@ -894,11 +894,13 @@ class BinaryBuilder {
       case Tag.AsyncForInStatement:
         bool isAsync = tag == Tag.AsyncForInStatement;
         int variableStackHeight = variableStack.length;
+        var offset = readOffset();
         var variable = readAndPushVariableDeclaration();
         var iterable = readExpression();
         var body = readStatement();
         variableStack.length = variableStackHeight;
-        return new ForInStatement(variable, iterable, body, isAsync: isAsync);
+        return new ForInStatement(variable, iterable, body, isAsync: isAsync)
+          ..fileOffset = offset;
       case Tag.SwitchStatement:
         var expression = readExpression();
         int count = readUInt();

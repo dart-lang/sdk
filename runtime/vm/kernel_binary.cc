@@ -1561,11 +1561,15 @@ ForInStatement* ForInStatement::ReadFrom(Reader* reader, bool is_async) {
 
   ForInStatement* forinstmt = new ForInStatement();
   forinstmt->is_async_ = is_async;
+  forinstmt->position_ = reader->ReadPosition();
   forinstmt->variable_ = VariableDeclaration::ReadFromImpl(reader);
   forinstmt->iterable_ = Expression::ReadFrom(reader);
   forinstmt->body_ = Statement::ReadFrom(reader);
   forinstmt->end_position_ = reader->max_position();
-  forinstmt->position_ = reader->min_position();
+  if (!forinstmt->position_.IsReal()) {
+    forinstmt->position_ = reader->min_position();
+  }
+  forinstmt->variable_->set_end_position(forinstmt->position_);
 
   return forinstmt;
 }

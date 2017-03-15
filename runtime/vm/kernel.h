@@ -2472,6 +2472,7 @@ class VariableDeclaration : public Statement {
   Expression* initializer() { return initializer_; }
   TokenPosition equals_position() { return equals_position_; }
   TokenPosition end_position() { return end_position_; }
+  void set_end_position(TokenPosition position) { end_position_ = position; }
 
  private:
   VariableDeclaration()

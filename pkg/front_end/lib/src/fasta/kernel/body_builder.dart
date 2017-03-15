@@ -1935,7 +1935,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Expected lvalue, but got ${lvalue}", forToken.next.next.charOffset));
     }
     Statement result = new ForInStatement(variable, expression, body,
-        isAsync: awaitToken != null);
+        isAsync: awaitToken != null)..fileOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new LabeledStatement(result);
       breakTarget.resolveBreaks(result);
