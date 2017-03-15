@@ -69,7 +69,7 @@ class WebCompileCommand extends Command {
   void requestSummaries(String summaryRoot, String sdkUrl, List<String> summaryUrls,
       Function onCompileReady, Function onError) {
     HttpRequest
-        .request(summaryRoot + sdkUrl,
+        .request(sdkUrl,
             responseType: "arraybuffer", mimeType: "application/octet-stream")
         .then((sdkRequest) {
       var sdkBytes = sdkRequest.response.asUint8List();
