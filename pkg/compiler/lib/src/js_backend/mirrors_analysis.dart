@@ -158,7 +158,7 @@ class MirrorsAnalysis {
 
         // TODO(johnniwinther): We should have access to all recently processed
         // elements and process these instead.
-        processMetadata(compiler.enqueuer.resolution.processedEntities,
+        processMetadata(enqueuer.processedEntities,
             registerMetadataConstant);
       } else {
         for (Dependency dependency in metadataConstants) {

@@ -24,10 +24,10 @@ import 'universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import 'util/enumset.dart';
 import 'util/util.dart' show Setlet;
+import 'world.dart' show ClosedWorld;
 
 class EnqueueTask extends CompilerTask {
   ResolutionEnqueuer _resolution;
-  Enqueuer _codegen;
   final Compiler compiler;
 
   String get name => 'Enqueue';
@@ -46,16 +46,17 @@ class EnqueueTask extends CompilerTask {
         new ElementResolutionWorldBuilder(
             compiler.backend, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution));
-    _codegen = compiler.backend.createCodegenEnqueuer(this, compiler);
   }
 
   ResolutionEnqueuer get resolution => _resolution;
-  Enqueuer get codegen => _codegen;
+
+  Enqueuer createCodegenEnqueuer(ClosedWorld closedWorld) {
+    return compiler.backend.createCodegenEnqueuer(this, compiler);
+  }
 }
 
 abstract class Enqueuer {
   WorldBuilder get worldBuilder;
-  ImpactStrategy get impactStrategy;
 
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries);

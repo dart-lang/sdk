@@ -8,6 +8,7 @@ import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart';
@@ -33,6 +34,11 @@ abstract class InterceptorData {
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassEntity> getInterceptedClassesOn(String name);
+
+  /// Whether the compiler can use the native `instanceof` check to test for
+  /// instances of [type]. This is true for types that are not used as mixins or
+  /// interfaces.
+  bool mayGenerateInstanceofCheck(DartType type);
 }
 
 abstract class InterceptorDataBuilder {
@@ -196,6 +202,17 @@ class InterceptorDataImpl implements InterceptorData {
       _classesMixedIntoInterceptedClasses.contains(element);
 
   Iterable<ClassElement> get interceptedClasses => _interceptedClasses;
+
+  bool mayGenerateInstanceofCheck(DartType type) {
+    // We can use an instanceof check for raw types that have no subclass that
+    // is mixed-in or in an implements clause.
+
+    if (!type.treatAsRaw) return false;
+    InterfaceType interfaceType = type;
+    ClassEntity classElement = interfaceType.element;
+    if (isInterceptedClass(classElement)) return false;
+    return _closedWorld.hasOnlySubclasses(classElement);
+  }
 }
 
 class InterceptorDataBuilderImpl implements InterceptorDataBuilder {

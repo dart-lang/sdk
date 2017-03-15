@@ -966,8 +966,6 @@ class JavaScriptBackend {
   bool isComplexNoSuchMethod(FunctionElement element) =>
       noSuchMethodRegistry.isComplex(element);
 
-  CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
-
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
     return new CodegenEnqueuer(
@@ -1131,16 +1129,6 @@ class JavaScriptBackend {
         element == helpers.jsUnmodifiableArrayClass;
   }
 
-  bool mayGenerateInstanceofCheck(ResolutionDartType type) {
-    // We can use an instanceof check for raw types that have no subclass that
-    // is mixed-in or in an implements clause.
-
-    if (!type.isRaw) return false;
-    ClassElement classElement = type.element;
-    if (interceptorData.isInterceptedClass(classElement)) return false;
-    return _closedWorld.hasOnlySubclasses(classElement);
-  }
-
   /// This method is called immediately after the [library] and its parts have
   /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
@@ -1251,11 +1239,12 @@ class JavaScriptBackend {
 
   /// Called when the compiler starts running the codegen enqueuer. The
   /// [WorldImpact] of enabled backend features is returned.
-  WorldImpact onCodegenStart(ClosedWorld closedWorld) {
+  WorldImpact onCodegenStart(
+      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     _closedWorld = closedWorld;
-    _namer = determineNamer(_closedWorld, compiler.codegenWorldBuilder);
-    tracer = new Tracer(_closedWorld, namer, compiler);
-    emitter.createEmitter(_namer, _closedWorld);
+    _namer = determineNamer(closedWorld, codegenWorldBuilder);
+    tracer = new Tracer(closedWorld, namer, compiler);
+    emitter.createEmitter(_namer, closedWorld);
     _rtiEncoder =
         _namer.rtiEncoder = new _RuntimeTypesEncoder(_namer, emitter, helpers);
 

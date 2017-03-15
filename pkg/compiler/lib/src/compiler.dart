@@ -152,6 +152,7 @@ abstract class Compiler implements LibraryLoaderListener {
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
+  CodegenWorldBuilder _codegenWorldBuilder;
 
   GenericTask selfTask;
 
@@ -280,7 +281,11 @@ abstract class Compiler implements LibraryLoaderListener {
 
   ResolutionWorldBuilder get resolutionWorldBuilder =>
       enqueuer.resolution.worldBuilder;
-  CodegenWorldBuilder get codegenWorldBuilder => enqueuer.codegen.worldBuilder;
+  CodegenWorldBuilder get codegenWorldBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _codegenWorldBuilder != null,
+        message: "CodegenWorldBuilder has not been created yet."));
+    return _codegenWorldBuilder;
+  }
 
   bool get analyzeAll => options.analyzeAll || compileAll;
 
@@ -682,16 +687,19 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        codegenWorldBuilder.open(closedWorld);
-        enqueuer.codegen.applyImpact(backend.onCodegenStart(closedWorld));
+        Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
+        _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
+        _codegenWorldBuilder.open(closedWorld);
+        codegenEnqueuer.applyImpact(
+            backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
-            enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
+            codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         }
-        processQueue(enqueuer.codegen, mainMethod, libraryLoader.libraries,
+        processQueue(codegenEnqueuer, mainMethod, libraryLoader.libraries,
             onProgress: showCodegenProgress);
-        enqueuer.codegen.logSummary(reporter.log);
+        codegenEnqueuer.logSummary(reporter.log);
 
         int programSize = backend.assembleProgram(closedWorld);
 
@@ -702,7 +710,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
         backend.onCodegenEnd();
 
-        checkQueues();
+        checkQueues(enqueuer.resolution, codegenEnqueuer);
       });
 
   /// Perform the steps needed to fully end the resolution phase.
@@ -792,11 +800,11 @@ abstract class Compiler implements LibraryLoaderListener {
   /**
    * Empty the [enqueuer] queue.
    */
-  void emptyQueue(Enqueuer enqueuer, {void onProgress()}) {
+  void emptyQueue(Enqueuer enqueuer, {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("Compiler.emptyQueue", () {
       enqueuer.forEach((WorkItem work) {
         if (onProgress != null) {
-          onProgress();
+          onProgress(enqueuer);
         }
         reporter.withCurrentElement(
             work.element,
@@ -811,7 +819,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
   void processQueue(Enqueuer enqueuer, MethodElement mainMethod,
       Iterable<LibraryEntity> libraries,
-      {void onProgress()}) {
+      {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
       enqueuer.open(impactStrategy, mainMethod, libraries);
       if (options.verbose) {
@@ -835,13 +843,13 @@ abstract class Compiler implements LibraryLoaderListener {
    * processing the queues). Also compute the number of methods that
    * were resolved, but not compiled (aka excess resolution).
    */
-  checkQueues() {
-    for (Enqueuer enqueuer in [enqueuer.resolution, enqueuer.codegen]) {
+  checkQueues(Enqueuer resolutionEnqueuer, Enqueuer codegenEnqueuer) {
+    for (Enqueuer enqueuer in [resolutionEnqueuer, codegenEnqueuer]) {
       enqueuer.checkQueueIsEmpty();
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.processedEntities);
-    for (Element e in enqueuer.codegen.processedEntities) {
+    var resolved = new Set.from(resolutionEnqueuer.processedEntities);
+    for (Element e in codegenEnqueuer.processedEntities) {
       resolved.remove(e);
     }
     for (Element e in new Set.from(resolved)) {
@@ -866,23 +874,22 @@ abstract class Compiler implements LibraryLoaderListener {
     }
   }
 
-  void showResolutionProgress() {
+  void showResolutionProgress(Enqueuer enqueuer) {
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       assert(phase == PHASE_RESOLVING);
-      reporter.log('Resolved ${enqueuer.resolution.processedEntities.length} '
+      reporter.log('Resolved ${enqueuer.processedEntities.length} '
           'elements.');
       progress.reset();
     }
   }
 
-  void showCodegenProgress() {
+  void showCodegenProgress(Enqueuer enqueuer) {
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      reporter.log(
-          'Compiled ${enqueuer.codegen.processedEntities.length} methods.');
+      reporter.log('Compiled ${enqueuer.processedEntities.length} methods.');
       progress.reset();
     }
   }
@@ -1826,8 +1833,7 @@ class CompilerResolution implements Resolution {
   WorldImpact transformResolutionImpact(
       Element element, ResolutionImpact resolutionImpact) {
     WorldImpact worldImpact = _compiler.backend.impactTransformer
-        .transformResolutionImpact(
-            _compiler.enqueuer.resolution, resolutionImpact);
+        .transformResolutionImpact(enqueuer, resolutionImpact);
     _worldImpactCache[element] = worldImpact;
     return worldImpact;
   }

@@ -12,6 +12,8 @@ import 'package:compiler/src/js/js.dart';
 import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend, TypeRepresentationGenerator;
+import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/universe/world_builder.dart';
 
 void main() {
   testTypeRepresentations();
@@ -41,8 +43,11 @@ void testTypeRepresentations() {
       m9(int a, String b, {List<int> c, d}) {}
       m10(void f(int a, [b])) {}
       """).then((env) {
-        var closedWorld = env.compiler.closeResolution();
-        env.compiler.backend.onCodegenStart(closedWorld);
+        var closedWorldRefiner = env.compiler.closeResolution();
+        env.compiler.backend.onCodegenStart(
+            closedWorldRefiner.closedWorld,
+            new CodegenWorldBuilderImpl(
+                env.compiler.backend, const TypeMaskStrategy()));
         TypeRepresentationGenerator typeRepresentation =
             new TypeRepresentationGenerator(
                 env.compiler.backend.namer, env.compiler.backend.emitter);
