@@ -29,10 +29,8 @@ Future mainEntryPoint(List<String> arguments) async {
     if (i > 0) {
       print("\n");
     }
-    Ticker ticker = new Ticker();
     try {
-      await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
-          (CompilerContext c) => compilePlatform(c, ticker));
+      await compilePlatform(arguments);
     } on InputError catch (e) {
       exitCode = 1;
       print(e.format());
@@ -41,11 +39,20 @@ Future mainEntryPoint(List<String> arguments) async {
   }
 }
 
-Future compilePlatform(CompilerContext c, Ticker ticker) async {
+Future compilePlatform(List<String> arguments) async {
+  Ticker ticker = new Ticker();
+  await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
+      (CompilerContext c) {
+    Uri patchedSdk = Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
+    Uri output = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
+    return compilePlatformInternal(c, ticker, patchedSdk, output);
+  });
+}
+
+Future compilePlatformInternal(
+    CompilerContext c, Ticker ticker, Uri patchedSdk, Uri output) async {
   ticker.isVerbose = c.options.verbose;
-  Uri output = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
-  Uri deps = Uri.base.resolveUri(new Uri.file("${c.options.arguments[1]}.d"));
-  Uri patchedSdk = Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
+  Uri deps = Uri.base.resolveUri(new Uri.file("${output.toFilePath()}.d"));
   ticker.logMs("Parsed arguments");
   if (ticker.isVerbose) {
     print("Compiling $patchedSdk to $output");

@@ -271,18 +271,29 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  Future writeDepsFile(Uri output, Uri depsFile) async {
+  Future writeDepsFile(Uri output, Uri depsFile,
+      {Iterable<Uri> extraDependencies}) async {
+    Uri base = depsFile.resolve(".");
+    String toRelativeFilePath(Uri uri) {
+      return Uri.parse(relativizeUri(uri, base: base)).toFilePath();
+    }
+
     if (loader.first == null) return null;
     StringBuffer sb = new StringBuffer();
-    Uri base = depsFile.resolve(".");
-    sb.write(Uri.parse(relativizeUri(output, base: base)).toFilePath());
+    sb.write(toRelativeFilePath(output));
     sb.write(":");
-    for (Uri dependency in loader.getDependencies()) {
+    Set<String> allDependencies = new Set<String>();
+    allDependencies.addAll(loader.getDependencies().map(toRelativeFilePath));
+    if (extraDependencies != null) {
+      allDependencies.addAll(extraDependencies.map(toRelativeFilePath));
+    }
+    for (String path in allDependencies) {
       sb.write(" ");
-      sb.write(Uri.parse(relativizeUri(dependency, base: base)).toFilePath());
+      sb.write(path);
     }
     sb.writeln();
     await new File.fromUri(depsFile).writeAsString("$sb");
+    ticker.logMs("Wrote deps file");
   }
 
   Program erroneousProgram(bool isFullProgram) {

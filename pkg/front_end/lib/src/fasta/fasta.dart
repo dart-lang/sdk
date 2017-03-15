@@ -26,6 +26,8 @@ import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'dill/dill_target.dart' show DillTarget;
 
+import 'compile_platform.dart' show compilePlatformInternal;
+
 import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
@@ -194,6 +196,47 @@ Future<CompilationResult> parseScript(
   } catch (e, s) {
     return reportCrash(e, s, fileName);
   }
+}
+
+Future compilePlatform(Uri patchedSdk, Uri output,
+    {Uri packages, bool verbose: false}) async {
+  Ticker ticker = new Ticker(isVerbose: verbose);
+  await CompilerCommandLine.withGlobalOptions("", [""], (CompilerContext c) {
+    c.options.options["--packages"] = packages;
+    if (verbose) {
+      c.options.options["--verbose"] = true;
+    }
+    return compilePlatformInternal(c, ticker, patchedSdk, output);
+  });
+}
+
+Future writeDepsFile(Uri script, Uri depsFile, Uri output,
+    {Uri packages,
+    Uri platform,
+    Iterable<Uri> extraDependencies,
+    bool verbose: false}) async {
+  Ticker ticker = new Ticker(isVerbose: verbose);
+  await CompilerCommandLine.withGlobalOptions("", [""],
+      (CompilerContext c) async {
+    c.options.options["--packages"] = packages;
+    if (verbose) {
+      c.options.options["--verbose"] = true;
+    }
+
+    TranslateUri uriTranslator =
+        await TranslateUri.parse(c.options.sdk, c.options.packages);
+    ticker.logMs("Read packages file");
+    DillTarget dillTarget = new DillTarget(ticker, uriTranslator)
+      ..read(platform);
+    KernelTarget kernelTarget =
+        new KernelTarget(dillTarget, uriTranslator, c.uriToSource);
+
+    kernelTarget.read(script);
+    await dillTarget.writeOutline(null);
+    await kernelTarget.loader.buildOutlines();
+    await kernelTarget.writeDepsFile(output, depsFile,
+        extraDependencies: extraDependencies);
+  });
 }
 
 // TODO(ahe): https://github.com/dart-lang/sdk/issues/28316

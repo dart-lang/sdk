@@ -4,7 +4,8 @@
 
 /// API for compiling Dart source code to .dill (Kernel IR) files.
 library front_end.vm;
-// TODO(ahe): Move this to lib/ once the API has matured.
+// TODO(ahe): Convert this file to use the API in `../../kernel_generator.dart`
+// and `../../compiler_options.dart`.
 
 import 'dart:async' show Future;
 
