@@ -109,6 +109,11 @@ void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewStringFromCString(Dart_VersionString()));
 }
 
+
+void FUNCTION_NAME(Platform_AnsiSupported)(Dart_NativeArguments args) {
+  Dart_SetBooleanReturnValue(args, Platform::AnsiSupported());
+}
+
 }  // namespace bin
 }  // namespace dart
 

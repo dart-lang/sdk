@@ -109,6 +109,11 @@ const char* Platform::ResolveExecutablePath() {
 }
 
 
+bool Platform::AnsiSupported() {
+  return true;
+}
+
+
 void Platform::Exit(int exit_code) {
   exit(exit_code);
 }
