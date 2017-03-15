@@ -177,7 +177,7 @@ class ProgramBuilder {
     List<Holder> holders = _registry.holders.toList(growable: false);
 
     bool needsNativeSupport =
-        _compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses;
+        backend.nativeCodegenEnqueuer.hasInstantiatedNativeClasses;
 
     assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 

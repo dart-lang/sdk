@@ -558,7 +558,10 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
 
   final Set<ClassElement> doneAddSubtypes = new Set<ClassElement>();
 
-  NativeCodegenEnqueuer(Compiler compiler, this.emitter)
+  final NativeResolutionEnqueuer _resolutionEnqueuer;
+
+  NativeCodegenEnqueuer(
+      Compiler compiler, this.emitter, this._resolutionEnqueuer)
       : super(compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   void _processNativeClasses(
@@ -566,9 +569,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     super._processNativeClasses(impactBuilder, libraries);
 
     // HACK HACK - add all the resolved classes.
-    NativeEnqueuerBase enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
     Set<ClassElement> matchingClasses = new Set<ClassElement>();
-    for (final classElement in enqueuer._registeredClasses) {
+    for (final classElement in _resolutionEnqueuer._registeredClasses) {
       if (_unusedClasses.contains(classElement)) {
         matchingClasses.add(classElement);
       }

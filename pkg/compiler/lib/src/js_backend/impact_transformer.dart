@@ -247,7 +247,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (native.NativeBehavior behavior in worldImpact.nativeData) {
-      enqueuer.nativeEnqueuer
+      backend.nativeResolutionEnqueuer
           .registerNativeBehavior(transformed, behavior, worldImpact);
     }
 
@@ -405,7 +405,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     if (impact.usesInterceptor) {
-      if (backend.codegenEnqueuer.nativeEnqueuer.hasInstantiatedNativeClasses) {
+      if (backend.nativeCodegenEnqueuer.hasInstantiatedNativeClasses) {
         impacts.interceptorUse.registerImpact(transformed, elementEnvironment);
         // TODO(johnniwinther): Avoid these workarounds.
         backend.backendUsage.needToInitializeIsolateAffinityTag = true;

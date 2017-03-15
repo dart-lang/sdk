@@ -444,6 +444,9 @@ class JavaScriptBackend {
   ResolutionEnqueuerListener _resolutionEnqueuerListener;
   CodegenEnqueuerListener _codegenEnqueuerListener;
 
+  native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
+
   BackendHelpers helpers;
   BackendImpacts impacts;
 
@@ -508,6 +511,10 @@ class JavaScriptBackend {
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
+    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(compiler);
+    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
+        compiler, emitter, _nativeResolutionEnqueuer);
+
     typeVariableAnalysis = new TypeVariableAnalysis(
         compiler.elementEnvironment, impacts, backendUsageBuilder);
     typeVariableHandler = new TypeVariableHandler(this, helpers, mirrorsData);
@@ -557,7 +564,8 @@ class JavaScriptBackend {
         noSuchMethodRegistry,
         customElementsResolutionAnalysis,
         lookupMapLibraryAccess,
-        mirrorsAnalysis);
+        mirrorsAnalysis,
+        _nativeResolutionEnqueuer);
     _codegenEnqueuerListener = new CodegenEnqueuerListener(
         this,
         compiler.elementEnvironment,
@@ -568,7 +576,8 @@ class JavaScriptBackend {
         customElementsCodegenAnalysis,
         typeVariableHandler,
         lookupMapAnalysis,
-        mirrorsAnalysis);
+        mirrorsAnalysis,
+        _nativeCodegenEnqueuer);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -742,8 +751,7 @@ class JavaScriptBackend {
         element.isConstructor ||
         element.isGetter ||
         element.isSetter) {
-      compiler.enqueuer.resolution.nativeEnqueuer
-          .handleMethodAnnotations(element);
+      _nativeResolutionEnqueuer.handleMethodAnnotations(element);
       if (nativeData.isNativeMember(element)) {
         native.NativeBehavior behavior =
             native.NativeBehavior.ofMethodElement(element, compiler);
@@ -751,8 +759,7 @@ class JavaScriptBackend {
         registry.registerNativeData(behavior);
       }
     } else if (element.isField) {
-      compiler.enqueuer.resolution.nativeEnqueuer
-          .handleFieldAnnotations(element);
+      _nativeResolutionEnqueuer.handleFieldAnnotations(element);
       if (nativeData.isNativeMember(element)) {
         native.NativeBehavior fieldLoadBehavior =
             native.NativeBehavior.ofFieldElementLoad(element, compiler);
@@ -926,14 +933,13 @@ class JavaScriptBackend {
   /// Called when resolving a call to a foreign function.
   native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
-    native.NativeResolutionEnqueuer nativeEnqueuer =
-        compiler.enqueuer.resolution.nativeEnqueuer;
     if (element.name == BackendHelpers.JS) {
-      return nativeEnqueuer.resolveJsCall(node, resolver);
+      return _nativeResolutionEnqueuer.resolveJsCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
-      return nativeEnqueuer.resolveJsEmbeddedGlobalCall(node, resolver);
+      return _nativeResolutionEnqueuer.resolveJsEmbeddedGlobalCall(
+          node, resolver);
     } else if (element.name == BackendHelpers.JS_BUILTIN) {
-      return nativeEnqueuer.resolveJsBuiltinCall(node, resolver);
+      return _nativeResolutionEnqueuer.resolveJsBuiltinCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
@@ -1040,13 +1046,10 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
-  native.NativeEnqueuer nativeResolutionEnqueuer() {
-    return new native.NativeResolutionEnqueuer(compiler);
-  }
+  native.NativeEnqueuer get nativeResolutionEnqueuer =>
+      _nativeResolutionEnqueuer;
 
-  native.NativeEnqueuer nativeCodegenEnqueuer() {
-    return new native.NativeCodegenEnqueuer(compiler, emitter);
-  }
+  native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   ClassElement defaultSuperclass(ClassElement element) {
     if (nativeData.isJsInterop(element)) {

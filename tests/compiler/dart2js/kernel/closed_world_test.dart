@@ -92,7 +92,6 @@ main(List<String> args) {
         compiler.reporter,
         const TreeShakingEnqueuerStrategy(),
         backend.resolutionEnqueuerListener,
-        backend.nativeResolutionEnqueuer(),
         new ElementResolutionWorldBuilder(
             compiler.backend, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution),

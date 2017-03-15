@@ -12,11 +12,10 @@ import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../elements/elements.dart' show MemberElement, TypedElement;
+import '../elements/elements.dart' show MemberElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/types.dart' show TypeMaskStrategy;
 import '../universe/world_builder.dart';
@@ -38,7 +37,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   bool queueIsClosed = false;
   final CompilerTask task;
-  final native.NativeEnqueuer nativeEnqueuer;
   final EnqueuerListener listener;
   final CompilerOptions _options;
 
@@ -57,7 +55,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
       : _universe =
             new CodegenWorldBuilderImpl(backend, const TypeMaskStrategy()),
         _workItemBuilder = new CodegenWorkItemBuilder(backend, options),
-        nativeEnqueuer = backend.nativeCodegenEnqueuer(),
         this.listener = backend.codegenEnqueuerListener,
         this._options = options,
         this.name = 'codegen enqueuer' {
@@ -107,10 +104,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     task.measure(() {
       _universe.registerTypeInstantiation(type, _applyClassUse,
           byMirrors: mirrorUsage);
-      if (nativeUsage) {
-        nativeEnqueuer.onInstantiatedType(type);
-      }
-      listener.registerInstantiatedType(type);
+      listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
     });
   }
 
@@ -240,7 +234,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   void logSummary(log(message)) {
     log('Compiled ${_processedEntities.length} methods.');
-    nativeEnqueuer.logSummary(log);
+    listener.logSummary(log);
   }
 
   String toString() => 'Enqueuer($name)';

@@ -11,6 +11,7 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
+import '../native/enqueue.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
@@ -40,6 +41,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final LookupMapAnalysis _lookupMapAnalysis;
   final MirrorsAnalysis _mirrorsAnalysis;
 
+  final NativeCodegenEnqueuer _nativeEnqueuer;
+
   bool _isNoSuchMethodUsed = false;
 
   CodegenEnqueuerListener(
@@ -52,7 +55,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._customElementsAnalysis,
       this._typeVariableHandler,
       this._lookupMapAnalysis,
-      this._mirrorsAnalysis);
+      this._mirrorsAnalysis,
+      this._nativeEnqueuer);
 
   // TODO(johnniwinther): Change these to final fields.
   DumpInfoTask get _dumpInfoTask => _backend.compiler.dumpInfoTask;
@@ -82,7 +86,10 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   @override
   void registerInstantiatedType(ResolutionInterfaceType type,
-      {bool isGlobal: false}) {
+      {bool isGlobal: false, bool nativeUsage: false}) {
+    if (nativeUsage) {
+      _nativeEnqueuer.onInstantiatedType(type);
+    }
     _lookupMapAnalysis.registerInstantiatedType(type);
   }
 
@@ -128,8 +135,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   @override
   void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries) {
-    enqueuer
-        .applyImpact(enqueuer.nativeEnqueuer.processNativeClasses(libraries));
+    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
     if (mainMethod != null) {
       enqueuer.applyImpact(_computeMainImpact(mainMethod));
     }
@@ -256,5 +262,9 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   @override
   WorldImpact registerInstantiatedClass(ClassEntity cls) {
     return _processClass(cls);
+  }
+
+  void logSummary(void log(String message)) {
+    _nativeEnqueuer.logSummary(log);
   }
 }

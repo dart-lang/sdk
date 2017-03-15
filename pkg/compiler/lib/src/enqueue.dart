@@ -17,7 +17,6 @@ import 'elements/elements.dart'
 import 'elements/entities.dart';
 import 'elements/resolution_types.dart' show ResolutionTypedefType;
 import 'elements/types.dart';
-import 'native/native.dart' as native;
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
@@ -44,7 +43,6 @@ class EnqueueTask extends CompilerTask {
             ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
         compiler.backend.resolutionEnqueuerListener,
-        compiler.backend.nativeResolutionEnqueuer(),
         new ElementResolutionWorldBuilder(
             compiler.backend, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution));
@@ -57,7 +55,6 @@ class EnqueueTask extends CompilerTask {
 
 abstract class Enqueuer {
   WorldBuilder get worldBuilder;
-  native.NativeEnqueuer get nativeEnqueuer;
   ImpactStrategy get impactStrategy;
 
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
@@ -83,7 +80,7 @@ abstract class Enqueuer {
 
   /// Check the enqueuer queue is empty or fail otherwise.
   void checkQueueIsEmpty();
-  void logSummary(log(message));
+  void logSummary(void log(String message));
 
   Iterable<Entity> get processedEntities;
 
@@ -92,7 +89,8 @@ abstract class Enqueuer {
 
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
-  void registerInstantiatedType(InterfaceType type, {bool isGlobal});
+  void registerInstantiatedType(InterfaceType type,
+      {bool isGlobal: false, bool nativeUsage: false});
 
   /// Called to notify to the backend that a class is being instantiated. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -135,6 +133,9 @@ abstract class EnqueuerListener {
   /// [recentClasses], but every class seen by the [enqueuer] will be present in
   /// [recentClasses] at least once.
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses);
+
+  /// Called after the queue has been emptied.
+  void logSummary(void log(String message));
 }
 
 abstract class EnqueuerImpl extends Enqueuer {
@@ -173,7 +174,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final String name;
   final CompilerOptions _options;
   final EnqueuerListener listener;
-  final native.NativeEnqueuer nativeEnqueuer;
 
   final EnqueuerStrategy strategy;
   final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
@@ -194,15 +194,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// has been emptied.
   final Queue<_DeferredAction> _deferredQueue = new Queue<_DeferredAction>();
 
-  ResolutionEnqueuer(
-      this.task,
-      this._options,
-      this._reporter,
-      this.strategy,
-      this.listener,
-      this.nativeEnqueuer,
-      this._worldBuilder,
-      this._workItemBuilder,
+  ResolutionEnqueuer(this.task, this._options, this._reporter, this.strategy,
+      this.listener, this._worldBuilder, this._workItemBuilder,
       [this.name = 'resolution enqueuer']) {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
@@ -238,11 +231,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           constructor: constructor,
           byMirrors: mirrorUsage,
           isRedirection: isRedirection);
-      if (nativeUsage) {
-        nativeEnqueuer.onInstantiatedType(type);
-      }
       listener.registerInstantiatedType(type,
-          isGlobal: globalDependency && !mirrorUsage);
+          isGlobal: globalDependency && !mirrorUsage, nativeUsage: nativeUsage);
     });
   }
 
@@ -378,9 +368,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _deferredQueue.isNotEmpty);
   }
 
-  void logSummary(log(message)) {
+  void logSummary(void log(String message)) {
     log('Resolved ${_processedEntities.length} elements.');
-    nativeEnqueuer.logSummary(log);
+    listener.logSummary(log);
   }
 
   String toString() => 'Enqueuer($name)';

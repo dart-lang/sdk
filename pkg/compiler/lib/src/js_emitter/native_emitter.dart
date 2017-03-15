@@ -208,7 +208,7 @@ class NativeEmitter {
 
     // Add properties containing the information needed to construct maps used
     // by getNativeInterceptor and custom elements.
-    if (compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses) {
+    if (backend.nativeCodegenEnqueuer.hasInstantiatedNativeClasses) {
       fillNativeInfo(jsInterceptorClass);
       for (Class cls in classes) {
         if (!cls.isNative || neededClasses.contains(cls)) {

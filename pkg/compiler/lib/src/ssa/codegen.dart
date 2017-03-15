@@ -198,8 +198,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   BackendHelpers get helpers => backend.helpers;
 
-  native.NativeEnqueuer get nativeEnqueuer {
-    return compiler.enqueuer.codegen.nativeEnqueuer;
+  native.NativeCodegenEnqueuer get nativeEnqueuer {
+    return backend.nativeCodegenEnqueuer;
   }
 
   DiagnosticReporter get reporter => compiler.reporter;

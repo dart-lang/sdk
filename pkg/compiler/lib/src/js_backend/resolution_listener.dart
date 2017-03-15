@@ -12,6 +12,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../kernel/task.dart';
+import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
@@ -52,6 +53,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final LookupMapLibraryAccess _lookupMapLibraryAccess;
   final MirrorsAnalysis _mirrorsAnalysis;
 
+  final NativeResolutionEnqueuer _nativeEnqueuer;
+
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
   ResolutionEnqueuerListener(
@@ -69,7 +72,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
       this._lookupMapLibraryAccess,
-      this._mirrorsAnalysis);
+      this._mirrorsAnalysis,
+      this._nativeEnqueuer);
 
   // TODO(johnniwinther): Avoid the need for these.
   Resolution get _resolution => _backend.resolution;
@@ -117,9 +121,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerInstantiatedType(InterfaceType type, {bool isGlobal: false}) {
+  void registerInstantiatedType(InterfaceType type,
+      {bool isGlobal: false, bool nativeUsage: false}) {
     if (isGlobal) {
       _backendUsage.registerGlobalClassDependency(type.element);
+    }
+    if (nativeUsage) {
+      _nativeEnqueuer.onInstantiatedType(type);
     }
   }
 
@@ -170,8 +178,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   @override
   void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries) {
-    enqueuer
-        .applyImpact(enqueuer.nativeEnqueuer.processNativeClasses(libraries));
+    enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
     if (mainMethod != null) {
       enqueuer.applyImpact(_computeMainImpact(mainMethod));
     }
@@ -416,5 +423,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
     _registerBackendImpact(
         impactBuilder, new BackendImpact(globalUses: staticUses));
+  }
+
+  void logSummary(void log(String message)) {
+    _nativeEnqueuer.logSummary(log);
   }
 }
