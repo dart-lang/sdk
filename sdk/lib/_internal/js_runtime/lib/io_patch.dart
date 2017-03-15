@@ -219,7 +219,7 @@ class _Platform {
     throw new UnsupportedError("Platform._version");
   }
   @patch
-  static _ansiSupported() {
+  static bool _ansiSupported() {
     throw new UnsupportedError("Platform._ansiSupported");
   }
 }
