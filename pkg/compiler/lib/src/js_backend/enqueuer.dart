@@ -32,7 +32,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final EnqueuerStrategy strategy;
 
   Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
-  final CodegenWorldBuilderImpl _universe;
+  final CodegenWorldBuilderImpl _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
   bool queueIsClosed = false;
@@ -50,18 +50,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(this.task, JavaScriptBackend backend, CompilerOptions options,
-      this.strategy)
-      : _universe =
-            new CodegenWorldBuilderImpl(backend, const TypeMaskStrategy()),
-        _workItemBuilder = new CodegenWorkItemBuilder(backend, options),
-        this.listener = backend.codegenEnqueuerListener,
-        this._options = options,
-        this.name = 'codegen enqueuer' {
+  CodegenEnqueuer(this.task, this._options, this.strategy, this._worldBuilder,
+      this._workItemBuilder, this.listener)
+      : this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
-  CodegenWorldBuilder get worldBuilder => _universe;
+  CodegenWorldBuilder get worldBuilder => _worldBuilder;
 
   bool get queueIsEmpty => _queue.isEmpty;
 
@@ -102,7 +97,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void _registerInstantiatedType(ResolutionInterfaceType type,
       {bool mirrorUsage: false, bool nativeUsage: false}) {
     task.measure(() {
-      _universe.registerTypeInstantiation(type, _applyClassUse,
+      _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
           byMirrors: mirrorUsage);
       listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
     });
@@ -113,7 +108,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void checkClass(ClassEntity cls) {
-    _universe.processClassMembers(cls, (MemberEntity member, useSet) {
+    _worldBuilder.processClassMembers(cls, (MemberEntity member, useSet) {
       if (useSet.isNotEmpty) {
         throw new SpannableAssertionFailure(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
@@ -125,7 +120,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void _applyClassUse(ClassEntity cls, EnumSet<ClassUse> useSet) {
     if (useSet.contains(ClassUse.INSTANTIATED)) {
       _recentClasses.add(cls);
-      _universe.processClassMembers(cls, _applyMemberUse);
+      _worldBuilder.processClassMembers(cls, _applyMemberUse);
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
@@ -151,12 +146,12 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      _universe.registerDynamicUse(dynamicUse, _applyMemberUse);
+      _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
   void processStaticUse(StaticUse staticUse) {
-    _universe.registerStaticUse(staticUse, _applyMemberUse);
+    _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
     switch (staticUse.kind) {
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
@@ -200,7 +195,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void _registerIsCheck(ResolutionDartType type) {
-    _universe.registerIsCheck(type);
+    _worldBuilder.registerIsCheck(type);
   }
 
   void _registerClosurizedMember(MemberElement element) {
@@ -249,7 +244,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   Iterable<Entity> get processedEntities => _processedEntities;
 
   @override
-  Iterable<ClassEntity> get processedClasses => _universe.processedClasses;
+  Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
 }
 
 /// Builder that creates the work item necessary for the code generation of a

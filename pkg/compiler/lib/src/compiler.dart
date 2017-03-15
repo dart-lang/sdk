@@ -689,7 +689,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
         Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
         _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-        _codegenWorldBuilder.open(closedWorld);
         codegenEnqueuer.applyImpact(
             backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
         if (compileAll) {

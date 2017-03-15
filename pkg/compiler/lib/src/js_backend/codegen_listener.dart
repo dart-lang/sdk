@@ -26,14 +26,16 @@ import 'mirrors_data.dart';
 import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
-  // TODO(johnniwinther): Avoid the need for accessing through [_backend].
-  final JavaScriptBackend _backend;
+  // TODO(johnniwinther): Remove this.
+  final DumpInfoTask _dumpInfoTask;
 
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
   final BackendImpacts _impacts;
 
+  final BackendUsage _backendUsage;
+  final RuntimeTypesNeed _rtiNeed;
   final MirrorsData _mirrorsData;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
@@ -46,22 +48,19 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   bool _isNoSuchMethodUsed = false;
 
   CodegenEnqueuerListener(
-      this._backend,
+      this._dumpInfoTask,
       this._elementEnvironment,
       this._commonElements,
       this._helpers,
       this._impacts,
+      this._backendUsage,
+      this._rtiNeed,
       this._mirrorsData,
       this._customElementsAnalysis,
       this._typeVariableHandler,
       this._lookupMapAnalysis,
       this._mirrorsAnalysis,
       this._nativeEnqueuer);
-
-  // TODO(johnniwinther): Change these to final fields.
-  DumpInfoTask get _dumpInfoTask => _backend.compiler.dumpInfoTask;
-  RuntimeTypesNeed get _rtiNeed => _backend.rtiNeed;
-  BackendUsage get _backendUsage => _backend.backendUsage;
 
   @override
   WorldImpact registerClosurizedMember(MemberElement element) {

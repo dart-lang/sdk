@@ -8,10 +8,6 @@ part of world_builder;
 ///
 /// This adds additional access to liveness of selectors and elements.
 abstract class CodegenWorldBuilder implements WorldBuilder {
-  /// Opens this world builder using [closedWorld] as the known superset of
-  /// possible runtime entities.
-  void open(ClosedWorld closedWorld);
-
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls].
   void forEachInstanceField(
@@ -53,7 +49,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final JavaScriptBackend _backend;
-  ClosedWorld __world;
+  final ClosedWorld _world;
 
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
@@ -120,19 +116,8 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  CodegenWorldBuilderImpl(this._backend, this.selectorConstraintsStrategy);
-
-  void open(ClosedWorld closedWorld) {
-    assert(invariant(NO_LOCATION_SPANNABLE, __world == null,
-        message: "CodegenWorldBuilder has already been opened."));
-    __world = closedWorld;
-  }
-
-  ClosedWorld get _world {
-    assert(invariant(NO_LOCATION_SPANNABLE, __world != null,
-        message: "CodegenWorldBuilder has not been opened."));
-    return __world;
-  }
+  CodegenWorldBuilderImpl(
+      this._backend, this._world, this.selectorConstraintsStrategy);
 
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls].

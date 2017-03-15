@@ -51,7 +51,7 @@ class EnqueueTask extends CompilerTask {
   ResolutionEnqueuer get resolution => _resolution;
 
   Enqueuer createCodegenEnqueuer(ClosedWorld closedWorld) {
-    return compiler.backend.createCodegenEnqueuer(this, compiler);
+    return compiler.backend.createCodegenEnqueuer(this, compiler, closedWorld);
   }
 }
 

@@ -52,6 +52,7 @@ import '../patch_parser.dart'
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../tree/tree.dart';
+import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
@@ -442,7 +443,6 @@ class JavaScriptBackend {
   CheckedModeHelpers _checkedModeHelpers;
 
   ResolutionEnqueuerListener _resolutionEnqueuerListener;
-  CodegenEnqueuerListener _codegenEnqueuerListener;
 
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -566,18 +566,6 @@ class JavaScriptBackend {
         lookupMapLibraryAccess,
         mirrorsAnalysis,
         _nativeResolutionEnqueuer);
-    _codegenEnqueuerListener = new CodegenEnqueuerListener(
-        this,
-        compiler.elementEnvironment,
-        commonElements,
-        helpers,
-        impacts,
-        mirrorsData,
-        customElementsCodegenAnalysis,
-        typeVariableHandler,
-        lookupMapAnalysis,
-        mirrorsAnalysis,
-        _nativeCodegenEnqueuer);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -652,8 +640,6 @@ class JavaScriptBackend {
 
   EnqueuerListener get resolutionEnqueuerListener =>
       _resolutionEnqueuerListener;
-
-  EnqueuerListener get codegenEnqueuerListener => _codegenEnqueuerListener;
 
   /// Returns constant environment for the JavaScript interpretation of the
   /// constants.
@@ -967,9 +953,29 @@ class JavaScriptBackend {
       noSuchMethodRegistry.isComplex(element);
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
-  CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
+  CodegenEnqueuer createCodegenEnqueuer(
+      CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
     return new CodegenEnqueuer(
-        task, this, compiler.options, const TreeShakingEnqueuerStrategy());
+        task,
+        compiler.options,
+        const TreeShakingEnqueuerStrategy(),
+        new CodegenWorldBuilderImpl(
+            this, closedWorld, const TypeMaskStrategy()),
+        new CodegenWorkItemBuilder(this, compiler.options),
+        new CodegenEnqueuerListener(
+            compiler.dumpInfoTask,
+            compiler.elementEnvironment,
+            commonElements,
+            helpers,
+            impacts,
+            backendUsage,
+            rtiNeed,
+            mirrorsData,
+            customElementsCodegenAnalysis,
+            typeVariableHandler,
+            lookupMapAnalysis,
+            mirrorsAnalysis,
+            _nativeCodegenEnqueuer));
   }
 
   WorldImpact codegen(CodegenWorkItem work) {

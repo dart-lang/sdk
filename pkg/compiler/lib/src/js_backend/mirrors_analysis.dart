@@ -158,8 +158,7 @@ class MirrorsAnalysis {
 
         // TODO(johnniwinther): We should have access to all recently processed
         // elements and process these instead.
-        processMetadata(enqueuer.processedEntities,
-            registerMetadataConstant);
+        processMetadata(enqueuer.processedEntities, registerMetadataConstant);
       } else {
         for (Dependency dependency in metadataConstants) {
           backend.computeImpactForCompileTimeConstant(
