@@ -1327,6 +1327,13 @@ class Parser {
   ///     ['(', '*', 'operator']
   ///
   Link<Token> findMemberName(Token token) {
+    // TODO(ahe): This method is rather broken for examples like this:
+    //
+    //     get<T>(){}
+    //
+    // In addition, the loop below will include things that can't be
+    // identifiers. This may be desirable (for error recovery), or
+    // not. Regardless, this method probably needs an overhaul.
     Link<Token> identifiers = const Link<Token>();
 
     // `true` if 'get' has been seen.
@@ -1516,6 +1523,11 @@ class Parser {
   }
 
   Token parseModifiers(Token token) {
+    // TODO(ahe): The calling convention of this method probably needs to
+    // change. For example, this is parsed as a local variable declaration:
+    // `abstract foo;`. Ideally, this example should be handled as a local
+    // variable having the type `abstract` (which should be reported as
+    // `ErrorKind.BuiltInIdentifierAsType` by [parseIdentifier]).
     int count = 0;
     while (identical(token.kind, KEYWORD_TOKEN)) {
       if (!isModifier(token)) break;
