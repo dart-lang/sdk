@@ -778,36 +778,6 @@ class Namer {
     return invocationName(new Selector.fromElement(method));
   }
 
-  String _jsNameHelper(Element e) {
-    String jsInteropName = _nativeData.getJsInteropName(e);
-    if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
-    return e.isLibrary ? 'self' : _nativeData.getUnescapedJSInteropName(e.name);
-  }
-
-  /// Returns a JavaScript path specifying the context in which
-  /// [element.fixedBackendName] should be evaluated. Only applicable for
-  /// elements using typed JavaScript interop.
-  /// For example: fixedBackendPath for the static method createMap in the
-  /// Map class of the goog.map JavaScript library would have path
-  /// "goog.maps.Map".
-  String fixedBackendMethodPath(MethodElement element) {
-    return _fixedBackendPath(element);
-  }
-
-  String _fixedBackendPath(Element element) {
-    if (!_nativeData.isJsInterop(element)) return null;
-    if (element.isInstanceMember) return 'this';
-    if (element.isConstructor) return _fixedBackendPath(element.enclosingClass);
-    if (element.isLibrary) return 'self';
-    var sb = new StringBuffer();
-    sb..write(_jsNameHelper(element.library));
-
-    if (element.enclosingClass != null && element.enclosingClass != element) {
-      sb..write('.')..write(_jsNameHelper(element.enclosingClass));
-    }
-    return sb.toString();
-  }
-
   /// Returns the annotated name for a variant of `call`.
   /// The result has the form:
   ///

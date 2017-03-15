@@ -339,7 +339,8 @@ class NativeEmitter {
         // and library that uses typed JavaScript interop will create only 1
         // unique template.
         receiver = js
-            .uncachedExpressionTemplate(namer.fixedBackendMethodPath(member))
+            .uncachedExpressionTemplate(
+                nativeData.getFixedBackendMethodPath(member))
             .instantiate([]);
       } else {
         receiver = js('this');

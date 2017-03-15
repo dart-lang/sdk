@@ -13,7 +13,7 @@ abstract class _MinifiedFieldNamer implements Namer {
   // The inheritance scope based naming might not yield a name. For instance,
   // this could be because the field belongs to a mixin. In such a case this
   // will return `null` and a normal field name has to be used.
-  jsAst.Name _minifiedInstanceFieldPropertyName(Element element) {
+  jsAst.Name _minifiedInstanceFieldPropertyName(FieldElement element) {
     if (_nativeData.hasFixedBackendName(element)) {
       return new StringBackedName(_nativeData.getFixedBackendName(element));
     }

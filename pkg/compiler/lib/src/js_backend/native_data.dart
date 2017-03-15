@@ -10,7 +10,6 @@ import '../elements/elements.dart'
         ClassElement,
         Element,
         FieldElement,
-        FunctionElement,
         LibraryElement,
         MemberElement,
         MethodElement;
@@ -63,11 +62,17 @@ abstract class NativeData extends NativeClassData {
 
   /// Returns `true` if the name of [element] is fixed for the generated
   /// JavaScript.
-  bool hasFixedBackendName(Element element);
+  bool hasFixedBackendName(MemberElement element);
 
   /// Computes the name for [element] to use in the generated JavaScript. This
   /// is either given through a native annotation or a js interop annotation.
-  String getFixedBackendName(Entity entity);
+  String getFixedBackendName(MemberEntity element);
+
+  /// Computes the name prefix for [element] to use in the generated JavaScript.
+  ///
+  /// For static and top-level members and constructors this is based on the
+  /// JavaScript names for the library and/or the enclosing class.
+  String getFixedBackendMethodPath(MethodElement element);
 
   /// Returns the list of non-directive native tag words for [cls].
   List<String> getNativeTagsOfClass(ClassElement cls);
@@ -75,22 +80,21 @@ abstract class NativeData extends NativeClassData {
   /// Returns `true` if [cls] has a `!nonleaf` tag word.
   bool hasNativeTagsForcedNonLeaf(ClassElement cls);
 
-  /// Returns `true` if [element] is part of JsInterop.
-  ///
-  /// Deprecated: Use [isJsInteropLibrary], [isJsInteropClass] or
-  /// [isJsInteropMember] instead.
-  @deprecated
-  bool isJsInterop(Element element);
-
   /// Returns `true` if [element] is a JsInterop method.
-  bool isJsInteropMember(MethodElement element);
+  bool isJsInteropMember(MemberEntity element);
 
-  /// Returns the explicit js interop name for [element].
-  String getJsInteropName(Element element);
+  /// Returns the explicit js interop name for library [element].
+  String getJsInteropLibraryName(LibraryElement element);
+
+  /// Returns the explicit js interop name for class [element].
+  String getJsInteropClassName(ClassElement element);
+
+  /// Returns the explicit js interop name for member [element].
+  String getJsInteropMemberName(MemberElement element);
 
   /// Apply JS$ escaping scheme to convert possible escaped Dart names into
   /// JS names.
-  String getUnescapedJSInteropName(String name);
+  String computeUnescapedJSInteropName(String name);
 }
 
 abstract class NativeClassDataBuilder {
@@ -131,15 +135,24 @@ abstract class NativeDataBuilder {
   /// [element] in the generated JavaScript.
   void setNativeMemberName(MemberElement element, String name);
 
-  /// Sets the explicit js interop [name] for [element].
-  void setJsInteropName(Element element, String name);
+  /// Sets the explicit js interop [name] for the library [element].
+  void setJsInteropLibraryName(LibraryElement element, String name);
+
+  /// Sets the explicit js interop [name] for the class [element].
+  void setJsInteropClassName(ClassElement element, String name);
+
+  /// Sets the explicit js interop [name] for the member [element].
+  void setJsInteropMemberName(MemberElement element, String name);
 }
 
 class NativeDataImpl
     implements NativeData, NativeDataBuilder, NativeClassDataBuilder {
   /// The JavaScript names for elements implemented via typed JavaScript
   /// interop.
-  Map<Element, String> jsInteropNames = <Element, String>{};
+  Map<LibraryElement, String> jsInteropLibraryNames =
+      <LibraryElement, String>{};
+  Map<ClassElement, String> jsInteropClassNames = <ClassElement, String>{};
+  Map<MemberElement, String> jsInteropMemberNames = <MemberElement, String>{};
 
   /// The JavaScript names for native JavaScript elements implemented.
   Map<Element, String> nativeMemberName = <Element, String>{};
@@ -165,125 +178,183 @@ class NativeDataImpl
   static const String _jsInteropEscapePrefix = r'JS$';
 
   /// Returns `true` if [element] is explicitly marked as part of JsInterop.
-  bool _isJsInterop(Element element) {
-    return jsInteropNames.containsKey(element.declaration);
+  bool _isJsInteropLibrary(LibraryElement element) {
+    return jsInteropLibraryNames.containsKey(element);
   }
 
-  /// Marks [element] as an explicit part of JsInterop. The js interop name is
-  /// expected to be computed later.
-  void markAsJsInterop(Element element) {
-    jsInteropNames[element.declaration] = null;
+  /// Returns `true` if [element] is explicitly marked as part of JsInterop.
+  bool _isJsInteropClass(ClassElement element) {
+    return jsInteropClassNames.containsKey(element);
+  }
+
+  /// Returns `true` if [element] is explicitly marked as part of JsInterop.
+  bool _isJsInteropMember(MemberElement element) {
+    return jsInteropMemberNames.containsKey(element);
   }
 
   @override
   void markAsJsInteropLibrary(LibraryElement element) {
-    markAsJsInterop(element);
+    jsInteropLibraryNames[element] = null;
   }
 
   @override
   void markAsJsInteropClass(ClassElement element) {
-    markAsJsInterop(element);
+    jsInteropClassNames[element] = null;
   }
 
   @override
   void markAsJsInteropMember(MemberElement element) {
-    markAsJsInterop(element);
+    jsInteropMemberNames[element] = null;
   }
 
-  /// Sets the explicit js interop [name] for [element].
-  void setJsInteropName(Element element, String name) {
-    assert(invariant(element, isJsInterop(element),
+  /// Sets the explicit js interop [name] for the library [element].
+  void setJsInteropLibraryName(LibraryElement element, String name) {
+    assert(invariant(element, _isJsInteropLibrary(element),
         message:
-            'Element $element is not js interop but given a js interop name.'));
-    jsInteropNames[element.declaration] = name;
+            'Library $element is not js interop but given a js interop name.'));
+    jsInteropLibraryNames[element] = name;
   }
 
-  /// Returns the explicit js interop name for [element].
-  String getJsInteropName(Element element) {
-    return jsInteropNames[element.declaration];
+  /// Sets the explicit js interop [name] for the class [element].
+  void setJsInteropClassName(ClassElement element, String name) {
+    assert(invariant(element, _isJsInteropClass(element),
+        message:
+            'Class $element is not js interop but given a js interop name.'));
+    jsInteropClassNames[element] = name;
   }
 
-  /// Returns `true` if [element] is part of JsInterop.
-  bool isJsInterop(Element element) {
-    // An function is part of JsInterop in the following cases:
-    // * It has a jsInteropName annotation
-    // * It is external member of a class or library tagged as JsInterop.
-    if (element.isFunction || element.isConstructor || element.isAccessor) {
-      FunctionElement function = element;
-      if (!function.isExternal) return false;
+  /// Sets the explicit js interop [name] for the member [element].
+  void setJsInteropMemberName(MemberElement element, String name) {
+    assert(invariant(element, _isJsInteropMember(element),
+        message:
+            'Member $element is not js interop but given a js interop name.'));
+    jsInteropMemberNames[element] = name;
+  }
 
-      if (_isJsInterop(function)) return true;
-      if (function.isClassMember) return isJsInterop(function.contextClass);
-      if (function.isTopLevel) return isJsInterop(function.library);
-      return false;
-    } else {
-      return _isJsInterop(element);
-    }
+  /// Returns the explicit js interop name for library [element].
+  String getJsInteropLibraryName(LibraryElement element) {
+    return jsInteropLibraryNames[element];
+  }
+
+  /// Returns the explicit js interop name for class [element].
+  String getJsInteropClassName(ClassElement element) {
+    return jsInteropClassNames[element];
+  }
+
+  /// Returns the explicit js interop name for member [element].
+  String getJsInteropMemberName(MemberElement element) {
+    return jsInteropMemberNames[element];
   }
 
   /// Returns `true` if [element] is a JsInterop library.
-  bool isJsInteropLibrary(LibraryElement element) => isJsInterop(element);
+  bool isJsInteropLibrary(LibraryElement element) =>
+      _isJsInteropLibrary(element);
 
   /// Returns `true` if [element] is a JsInterop class.
-  bool isJsInteropClass(ClassElement element) => isJsInterop(element);
+  bool isJsInteropClass(ClassElement element) => _isJsInteropClass(element);
 
   /// Returns `true` if [element] is a JsInterop method.
-  bool isJsInteropMember(MethodElement element) => isJsInterop(element);
+  bool isJsInteropMember(MemberElement element) {
+    if (element.isFunction || element.isConstructor || element.isAccessor) {
+      MethodElement function = element;
+      if (!function.isExternal) return false;
+
+      if (_isJsInteropMember(function)) return true;
+      if (function.isClassMember) {
+        return _isJsInteropClass(function.enclosingClass);
+      }
+      if (function.isTopLevel) {
+        return _isJsInteropLibrary(function.library);
+      }
+      return false;
+    } else {
+      return _isJsInteropMember(element);
+    }
+  }
 
   /// Returns `true` if the name of [element] is fixed for the generated
   /// JavaScript.
-  bool hasFixedBackendName(Element element) {
-    return isJsInterop(element) ||
+  bool hasFixedBackendName(MemberElement element) {
+    return isJsInteropMember(element) ||
         nativeMemberName.containsKey(element.declaration);
-  }
-
-  String _jsNameHelper(Element element) {
-    String jsInteropName = jsInteropNames[element.declaration];
-    assert(invariant(element, !(_isJsInterop(element) && jsInteropName == null),
-        message:
-            'Element $element is js interop but js interop name has not yet '
-            'been computed.'));
-    if (jsInteropName != null && jsInteropName.isNotEmpty) {
-      return jsInteropName;
-    }
-    return element.isLibrary ? 'self' : getUnescapedJSInteropName(element.name);
   }
 
   /// Computes the name for [element] to use in the generated JavaScript. This
   /// is either given through a native annotation or a js interop annotation.
-  String getFixedBackendName(Entity entity) {
-    // TODO(johnniwinther): Remove this assignment from [Entity] to [Element]
-    // when `.declaration` is no longer needed.
-    Element element = entity;
+  String getFixedBackendName(MemberElement element) {
     String name = nativeMemberName[element.declaration];
-    if (name == null && isJsInterop(element)) {
+    if (name == null && isJsInteropMember(element)) {
       // If an element isJsInterop but _isJsInterop is false that means it is
       // considered interop as the parent class is interop.
-      name = _jsNameHelper(
-          element.isConstructor ? element.enclosingClass : element);
+      name = element.isConstructor
+          ? _jsClassNameHelper(element.enclosingClass)
+          : _jsMemberNameHelper(element);
       nativeMemberName[element.declaration] = name;
     }
     return name;
   }
 
-  /// Whether [element] corresponds to a native JavaScript construct either
-  /// through the native mechanism (`@Native(...)` or the `native` pseudo
-  /// keyword) which is only allowed for internal libraries or via the typed
-  /// JavaScriptInterop mechanism which is allowed for user libraries.
-  bool isNative(Element element) {
-    if (isJsInterop(element)) return true;
-    if (element.isClass) {
-      return nativeClassTagInfo.containsKey(element.declaration);
-    } else {
-      return nativeMemberName.containsKey(element.declaration);
+  String _jsLibraryNameHelper(LibraryElement element) {
+    String jsInteropName = getJsInteropLibraryName(element);
+    if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
+    return 'self';
+  }
+
+  String _jsClassNameHelper(ClassElement element) {
+    String jsInteropName = getJsInteropClassName(element);
+    if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
+    return computeUnescapedJSInteropName(element.name);
+  }
+
+  String _jsMemberNameHelper(MemberElement element) {
+    String jsInteropName = jsInteropMemberNames[element];
+    assert(invariant(element,
+        !(jsInteropMemberNames.containsKey(element) && jsInteropName == null),
+        message:
+            'Member $element is js interop but js interop name has not yet '
+            'been computed.'));
+    if (jsInteropName != null && jsInteropName.isNotEmpty) {
+      return jsInteropName;
     }
+    return computeUnescapedJSInteropName(element.name);
+  }
+
+  /// Returns a JavaScript path specifying the context in which
+  /// [element.fixedBackendName] should be evaluated. Only applicable for
+  /// elements using typed JavaScript interop.
+  /// For example: fixedBackendPath for the static method createMap in the
+  /// Map class of the goog.map JavaScript library would have path
+  /// "goog.maps.Map".
+  String getFixedBackendMethodPath(MethodElement element) {
+    if (!isJsInteropMember(element)) return null;
+    if (element.isInstanceMember) return 'this';
+    if (element.isConstructor) {
+      return _fixedBackendClassPath(element.enclosingClass);
+    }
+    StringBuffer sb = new StringBuffer();
+    sb.write(_jsLibraryNameHelper(element.library));
+    if (element.enclosingClass != null) {
+      sb..write('.')..write(_jsClassNameHelper(element.enclosingClass));
+    }
+    return sb.toString();
+  }
+
+  String _fixedBackendClassPath(ClassElement element) {
+    if (!isJsInteropClass(element)) return null;
+    return _jsLibraryNameHelper(element.library);
   }
 
   /// Returns `true` if [cls] is a native class.
-  bool isNativeClass(ClassElement element) => isNative(element);
+  bool isNativeClass(ClassElement element) {
+    if (isJsInteropClass(element)) return true;
+    return nativeClassTagInfo.containsKey(element);
+  }
 
   /// Returns `true` if [element] is a native member of a native class.
-  bool isNativeMember(MemberElement element) => isNative(element);
+  bool isNativeMember(MemberElement element) {
+    if (isJsInteropMember(element)) return true;
+    return nativeMemberName.containsKey(element);
+  }
 
   /// Returns `true` if [element] or any of its superclasses is native.
   bool isNativeOrExtendsNative(ClassElement element) {
@@ -390,7 +461,7 @@ class NativeDataImpl
 
   /// Apply JS$ escaping scheme to convert possible escaped Dart names into
   /// JS names.
-  String getUnescapedJSInteropName(String name) {
+  String computeUnescapedJSInteropName(String name) {
     return name.startsWith(_jsInteropEscapePrefix)
         ? name.substring(_jsInteropEscapePrefix.length)
         : name;

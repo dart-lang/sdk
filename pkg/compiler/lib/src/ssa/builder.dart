@@ -1067,7 +1067,7 @@ class SsaBuilder extends ast.Visitor
           ast.Send call = link.head;
           assert(ast.Initializers.isSuperConstructorCall(call) ||
               ast.Initializers.isConstructorRedirect(call));
-          FunctionElement target = elements[call].implementation;
+          ConstructorElement target = elements[call];
           CallStructure callStructure =
               elements.getSelector(call).callStructure;
           Link<ast.Node> arguments = call.arguments;
@@ -2490,8 +2490,8 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [element] must be an implementation element.
    */
   List<HInstruction> makeStaticArgumentList(CallStructure callStructure,
-      Link<ast.Node> arguments, FunctionElement element) {
-    assert(invariant(element, element.isImplementation));
+      Link<ast.Node> arguments, MethodElement element) {
+    assert(invariant(element, element.isDeclaration));
 
     HInstruction compileArgument(ast.Node argument) {
       visit(argument);
@@ -2501,7 +2501,7 @@ class SsaBuilder extends ast.Visitor
     return Elements.makeArgumentsList<HInstruction>(
         callStructure,
         arguments,
-        element,
+        element.implementation,
         compileArgument,
         backend.nativeData.isJsInteropMember(element)
             ? handleConstantForOptionalParameterJsInterop
@@ -3069,8 +3069,8 @@ class SsaBuilder extends ast.Visitor
     Selector selector = elements.getSelector(node);
     assert(invariant(node, selector.applies(method.implementation),
         message: "$selector does not apply to ${method.implementation}"));
-    List<HInstruction> inputs = makeStaticArgumentList(
-        selector.callStructure, node.arguments, method.implementation);
+    List<HInstruction> inputs =
+        makeStaticArgumentList(selector.callStructure, node.arguments, method);
     push(buildInvokeSuper(selector, method, inputs, sourceInformation));
   }
 
@@ -3402,7 +3402,7 @@ class SsaBuilder extends ast.Visitor
       inputs.add(graph.addConstantNull(closedWorld));
     }
     inputs.addAll(makeStaticArgumentList(
-        callStructure, send.arguments, constructorImplementation));
+        callStructure, send.arguments, constructorImplementation.declaration));
 
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
@@ -3562,9 +3562,9 @@ class SsaBuilder extends ast.Visitor
 
   /// Generate an invocation to the static or top level [function].
   void generateStaticFunctionInvoke(
-      ast.Send node, FunctionElement function, CallStructure callStructure) {
-    List<HInstruction> inputs = makeStaticArgumentList(
-        callStructure, node.arguments, function.implementation);
+      ast.Send node, MethodElement function, CallStructure callStructure) {
+    List<HInstruction> inputs =
+        makeStaticArgumentList(callStructure, node.arguments, function);
 
     pushInvokeStatic(node, function, inputs,
         sourceInformation:
@@ -4026,7 +4026,7 @@ class SsaBuilder extends ast.Visitor
         if (argument != null) {
           filteredArguments.add(argument);
           var jsName =
-              backend.nativeData.getUnescapedJSInteropName(parameter.name);
+              backend.nativeData.computeUnescapedJSInteropName(parameter.name);
           parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
         }
         i++;
@@ -4045,7 +4045,8 @@ class SsaBuilder extends ast.Visitor
         ..sourceInformation = sourceInformation;
     }
     var target = new HForeignCode(
-        js.js.parseForeignJS("${backend.namer.fixedBackendMethodPath(element)}."
+        js.js.parseForeignJS(
+            "${backend.nativeData.getFixedBackendMethodPath(element)}."
             "${backend.nativeData.getFixedBackendName(element)}"),
         commonMasks.dynamicType,
         <HInstruction>[]);

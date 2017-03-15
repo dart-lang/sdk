@@ -39,7 +39,9 @@ class JavaScriptBackendSerialization implements BackendSerialization {
         deserializer = new JavaScriptBackendDeserializer(nativeData);
 }
 
-const Key JS_INTEROP_NAME = const Key('jsInteropName');
+const Key JS_INTEROP_LIBRARY_NAME = const Key('jsInteropLibraryName');
+const Key JS_INTEROP_CLASS_NAME = const Key('jsInteropClassName');
+const Key JS_INTEROP_MEMBER_NAME = const Key('jsInteropMemberName');
 const Key NATIVE_MEMBER_NAME = const Key('nativeMemberName');
 const Key NATIVE_CLASS_TAG_INFO = const Key('nativeClassTagInfo');
 const Key NATIVE_METHOD_BEHAVIOR = const Key('nativeMethodBehavior');
@@ -58,9 +60,17 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
       return encoder ??= createEncoder(_BACKEND_DATA_TAG);
     }
 
-    String jsInteropName = nativeData.jsInteropNames[element];
-    if (jsInteropName != null) {
-      getEncoder().setString(JS_INTEROP_NAME, jsInteropName);
+    String jsInteropLibraryName = nativeData.jsInteropLibraryNames[element];
+    if (jsInteropLibraryName != null) {
+      getEncoder().setString(JS_INTEROP_LIBRARY_NAME, jsInteropLibraryName);
+    }
+    String jsInteropClassName = nativeData.jsInteropClassNames[element];
+    if (jsInteropClassName != null) {
+      getEncoder().setString(JS_INTEROP_CLASS_NAME, jsInteropClassName);
+    }
+    String jsInteropMemberName = nativeData.jsInteropMemberNames[element];
+    if (jsInteropMemberName != null) {
+      getEncoder().setString(JS_INTEROP_MEMBER_NAME, jsInteropMemberName);
     }
     String nativeMemberName = nativeData.nativeMemberName[element];
     if (nativeMemberName != null) {
@@ -107,10 +117,20 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(_BACKEND_DATA_TAG);
     if (decoder != null) {
-      String jsInteropName =
-          decoder.getString(JS_INTEROP_NAME, isOptional: true);
-      if (jsInteropName != null) {
-        nativeData.jsInteropNames[element] = jsInteropName;
+      String jsInteropLibraryName =
+          decoder.getString(JS_INTEROP_LIBRARY_NAME, isOptional: true);
+      if (jsInteropLibraryName != null) {
+        nativeData.jsInteropLibraryNames[element] = jsInteropLibraryName;
+      }
+      String jsInteropClassName =
+          decoder.getString(JS_INTEROP_CLASS_NAME, isOptional: true);
+      if (jsInteropClassName != null) {
+        nativeData.jsInteropClassNames[element] = jsInteropClassName;
+      }
+      String jsInteropMemberName =
+          decoder.getString(JS_INTEROP_MEMBER_NAME, isOptional: true);
+      if (jsInteropMemberName != null) {
+        nativeData.jsInteropMemberNames[element] = jsInteropMemberName;
       }
       String nativeMemberName =
           decoder.getString(NATIVE_MEMBER_NAME, isOptional: true);

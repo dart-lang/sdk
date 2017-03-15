@@ -16,9 +16,9 @@ import '../elements/elements.dart'
         ClassElement,
         Element,
         FieldElement,
-        FunctionElement,
         LibraryElement,
         ParameterElement,
+        MemberElement,
         MethodElement,
         MetadataAnnotation;
 import '../js/js.dart' as jsAst;
@@ -57,8 +57,10 @@ class JsInteropAnalysis {
     _inCodegen = true;
   }
 
-  void processJsInteropAnnotation(Element e) {
-    for (MetadataAnnotation annotation in e.implementation.metadata) {
+  /// Resolves the metadata of [element] and returns the name of the `JS(...)`
+  /// annotation for js interop, if found.
+  String processJsInteropAnnotation(Element element) {
+    for (MetadataAnnotation annotation in element.implementation.metadata) {
       // TODO(johnniwinther): Avoid processing unresolved elements.
       if (annotation.constant == null) continue;
       ConstantValue constant =
@@ -67,18 +69,19 @@ class JsInteropAnalysis {
       ConstructedConstantValue constructedConstant = constant;
       if (constructedConstant.type.element == helpers.jsAnnotationClass) {
         ConstantValue value = constructedConstant.fields[nameField];
+        String name;
         if (value.isString) {
           StringConstantValue stringValue = value;
-          backend.nativeDataBuilder
-              .setJsInteropName(e, stringValue.primitiveValue.slowToString());
+          name = stringValue.primitiveValue.slowToString();
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          backend.nativeDataBuilder.setJsInteropName(e, '');
+          name = '';
         }
         enabledJsInterop = true;
-        return;
+        return name;
       }
     }
+    return null;
   }
 
   bool hasAnonymousAnnotation(Element element) {
@@ -94,7 +97,7 @@ class JsInteropAnalysis {
     });
   }
 
-  void _checkFunctionParameters(FunctionElement fn) {
+  void _checkFunctionParameters(MethodElement fn) {
     if (fn.hasFunctionSignature &&
         fn.functionSignature.optionalParametersAreNamed) {
       backend.reporter.reportErrorMessage(
@@ -105,17 +108,31 @@ class JsInteropAnalysis {
   }
 
   void processJsInteropAnnotationsInLibrary(LibraryElement library) {
-    processJsInteropAnnotation(library);
+    String libraryName = processJsInteropAnnotation(library);
+    if (libraryName != null) {
+      backend.nativeDataBuilder.setJsInteropLibraryName(library, libraryName);
+    }
     library.implementation.forEachLocalMember((Element element) {
-      processJsInteropAnnotation(element);
-      if (element is MethodElement) {
-        if (!backend.nativeData.isJsInteropMember(element)) return;
-        _checkFunctionParameters(element);
+      if (element is MemberElement) {
+        String memberName = processJsInteropAnnotation(element);
+        if (memberName != null) {
+          backend.nativeDataBuilder.setJsInteropMemberName(element, memberName);
+        }
+
+        if (element is MethodElement) {
+          if (!backend.nativeData.isJsInteropMember(element)) return;
+          _checkFunctionParameters(element);
+        }
       }
 
       if (!element.isClass) return;
 
       ClassElement classElement = element;
+      String className = processJsInteropAnnotation(classElement);
+      if (className != null) {
+        backend.nativeDataBuilder
+            .setJsInteropClassName(classElement, className);
+      }
       if (!backend.nativeData.isJsInteropClass(classElement)) return;
 
       // Skip classes that are completely unreachable. This should only happen
@@ -133,13 +150,17 @@ class JsInteropAnalysis {
         });
       }
 
-      classElement.forEachMember((ClassElement classElement, Element member) {
-        processJsInteropAnnotation(member);
+      classElement
+          .forEachMember((ClassElement classElement, MemberElement member) {
+        String memberName = processJsInteropAnnotation(member);
+        if (memberName != null) {
+          backend.nativeDataBuilder.setJsInteropMemberName(element, memberName);
+        }
 
         if (!member.isSynthesized &&
             backend.nativeData.isJsInteropClass(classElement) &&
-            member is FunctionElement) {
-          FunctionElement fn = member;
+            member is MethodElement) {
+          MethodElement fn = member;
           if (!fn.isExternal &&
               !fn.isAbstract &&
               !fn.isConstructor &&

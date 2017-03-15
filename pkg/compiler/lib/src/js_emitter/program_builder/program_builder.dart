@@ -354,7 +354,7 @@ class ProgramBuilder {
         if (e is ClassElement && backend.nativeData.isJsInteropClass(e)) {
           e.declaration.forEachMember((_, Element member) {
             var jsName =
-                backend.nativeData.getUnescapedJSInteropName(member.name);
+                backend.nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
               var selectors = worldBuilder.getterInvocationsByName(member.name);

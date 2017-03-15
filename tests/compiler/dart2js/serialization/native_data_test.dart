@@ -50,8 +50,20 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
   NativeDataImpl nativeData1 = backend1.nativeData;
   NativeDataImpl nativeData2 = backend2.nativeData;
 
-  checkMaps(nativeData1.jsInteropNames, nativeData2.jsInteropNames,
-      "NativeData.jsInteropNames", areElementsEquivalent, equality,
+  checkMaps(
+      nativeData1.jsInteropLibraryNames,
+      nativeData2.jsInteropLibraryNames,
+      "NativeData.jsInteropLibraryNames",
+      areElementsEquivalent,
+      equality,
+      verbose: verbose);
+
+  checkMaps(nativeData1.jsInteropClassNames, nativeData2.jsInteropClassNames,
+      "NativeData.jsInteropClassNames", areElementsEquivalent, equality,
+      verbose: verbose);
+
+  checkMaps(nativeData1.jsInteropMemberNames, nativeData2.jsInteropMemberNames,
+      "NativeData.jsInteropMemberNames", areElementsEquivalent, equality,
       verbose: verbose);
 
   checkMaps(nativeData1.nativeMemberName, nativeData2.nativeMemberName,
