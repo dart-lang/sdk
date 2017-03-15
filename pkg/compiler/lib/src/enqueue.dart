@@ -35,20 +35,19 @@ class EnqueueTask extends CompilerTask {
   EnqueueTask(Compiler compiler)
       : this.compiler = compiler,
         super(compiler.measurer) {
-    _resolution = new ResolutionEnqueuer(
-        this,
-        compiler.options,
-        compiler.reporter,
-        compiler.options.analyzeOnly && compiler.options.analyzeMain
-            ? const DirectEnqueuerStrategy()
-            : const TreeShakingEnqueuerStrategy(),
-        compiler.backend.resolutionEnqueuerListener,
-        new ElementResolutionWorldBuilder(
-            compiler.backend, compiler.resolution, const OpenWorldStrategy()),
-        new ResolutionWorkItemBuilder(compiler.resolution));
+    createResolutionEnqueuer();
   }
 
-  ResolutionEnqueuer get resolution => _resolution;
+  ResolutionEnqueuer get resolution {
+    assert(invariant(NO_LOCATION_SPANNABLE, _resolution != null,
+        message: "ResolutionEnqueuer has not been created yet."));
+    return _resolution;
+  }
+
+  ResolutionEnqueuer createResolutionEnqueuer() {
+    return _resolution ??=
+        compiler.backend.createResolutionEnqueuer(this, compiler);
+  }
 
   Enqueuer createCodegenEnqueuer(ClosedWorld closedWorld) {
     return compiler.backend.createCodegenEnqueuer(this, compiler, closedWorld);

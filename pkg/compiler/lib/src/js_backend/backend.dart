@@ -29,10 +29,12 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
     show
+        DirectEnqueuerStrategy,
         Enqueuer,
         EnqueuerListener,
         EnqueueTask,
         ResolutionEnqueuer,
+        ResolutionWorkItemBuilder,
         TreeShakingEnqueuerStrategy;
 import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
@@ -444,8 +446,6 @@ class JavaScriptBackend {
   MirrorsData mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
 
-  ResolutionEnqueuerListener _resolutionEnqueuerListener;
-
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
@@ -551,24 +551,6 @@ class JavaScriptBackend {
     serialization = new JavaScriptBackendSerialization(nativeData);
     _interceptorDataBuilder = new InterceptorDataBuilderImpl(
         nativeClassData, helpers, commonElements, compiler.resolution);
-    _resolutionEnqueuerListener = new ResolutionEnqueuerListener(
-        kernelTask,
-        compiler.options,
-        compiler.elementEnvironment,
-        commonElements,
-        helpers,
-        impacts,
-        nativeClassData,
-        _interceptorDataBuilder,
-        _backendUsageBuilder,
-        _rtiNeedBuilder,
-        mirrorsData,
-        noSuchMethodRegistry,
-        customElementsResolutionAnalysis,
-        lookupMapLibraryAccess,
-        mirrorsAnalysis,
-        typeVariableAnalysis,
-        _nativeResolutionEnqueuer);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -646,9 +628,6 @@ class JavaScriptBackend {
   }
 
   CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
-
-  EnqueuerListener get resolutionEnqueuerListener =>
-      _resolutionEnqueuerListener;
 
   /// Returns constant environment for the JavaScript interpretation of the
   /// constants.
@@ -928,6 +907,38 @@ class JavaScriptBackend {
 
   bool isComplexNoSuchMethod(FunctionElement element) =>
       noSuchMethodRegistry.isComplex(element);
+
+  ResolutionEnqueuer createResolutionEnqueuer(
+      CompilerTask task, Compiler compiler) {
+    return new ResolutionEnqueuer(
+        task,
+        compiler.options,
+        compiler.reporter,
+        compiler.options.analyzeOnly && compiler.options.analyzeMain
+            ? const DirectEnqueuerStrategy()
+            : const TreeShakingEnqueuerStrategy(),
+        new ResolutionEnqueuerListener(
+            kernelTask,
+            compiler.options,
+            compiler.elementEnvironment,
+            commonElements,
+            helpers,
+            impacts,
+            nativeClassData,
+            _interceptorDataBuilder,
+            _backendUsageBuilder,
+            _rtiNeedBuilder,
+            mirrorsData,
+            noSuchMethodRegistry,
+            customElementsResolutionAnalysis,
+            lookupMapLibraryAccess,
+            mirrorsAnalysis,
+            typeVariableAnalysis,
+            _nativeResolutionEnqueuer),
+        new ElementResolutionWorldBuilder(
+            this, compiler.resolution, const OpenWorldStrategy()),
+        new ResolutionWorkItemBuilder(compiler.resolution));
+  }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(

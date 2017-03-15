@@ -585,6 +585,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() =>
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
+        Enqueuer resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
         WorldImpact mainImpact = computeMain();
 
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
@@ -600,32 +601,32 @@ abstract class Compiler implements LibraryLoaderListener {
             supportSerialization: serialization.supportSerialization);
 
         phase = PHASE_RESOLVING;
-        enqueuer.resolution.applyImpact(mainImpact);
+        resolutionEnqueuer.applyImpact(mainImpact);
         if (options.resolveOnly) {
           libraryLoader.libraries.where((LibraryElement library) {
             return !serialization.isDeserialized(library);
           }).forEach((LibraryElement library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
-            enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
+            resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (analyzeAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             reporter.log('Enqueuing ${library.canonicalUri}');
-            enqueuer.resolution.applyImpact(computeImpactForLibrary(library));
+            resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (options.analyzeMain) {
           if (mainApp != null) {
-            enqueuer.resolution.applyImpact(computeImpactForLibrary(mainApp));
+            resolutionEnqueuer.applyImpact(computeImpactForLibrary(mainApp));
           }
           if (librariesToAnalyzeWhenRun != null) {
             for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-              enqueuer.resolution.applyImpact(computeImpactForLibrary(
+              resolutionEnqueuer.applyImpact(computeImpactForLibrary(
                   libraryLoader.lookupLibrary(libraryUri)));
             }
           }
         }
         if (deferredLoadTask.isProgramSplit) {
-          enqueuer.resolution
+          resolutionEnqueuer
               .applyImpact(backend.computeDeferredLoadingImpact());
         }
         resolveLibraryMetadata();
@@ -636,9 +637,9 @@ abstract class Compiler implements LibraryLoaderListener {
           mainMethod = mainFunction;
         }
 
-        processQueue(enqueuer.resolution, mainMethod, libraryLoader.libraries,
+        processQueue(resolutionEnqueuer, mainMethod, libraryLoader.libraries,
             onProgress: showResolutionProgress);
-        enqueuer.resolution.logSummary(reporter.log);
+        resolutionEnqueuer.logSummary(reporter.log);
 
         _reporter.reportSuppressedMessagesSummary();
 
@@ -709,7 +710,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
         backend.onCodegenEnd();
 
-        checkQueues(enqueuer.resolution, codegenEnqueuer);
+        checkQueues(resolutionEnqueuer, codegenEnqueuer);
       });
 
   /// Perform the steps needed to fully end the resolution phase.
