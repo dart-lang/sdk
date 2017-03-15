@@ -216,10 +216,10 @@ class ThisAccessor extends BuilderAccessor {
         Member getter = helper.lookupSuperMember(send.name);
         Member setter = helper.lookupSuperMember(send.name, isSetter: true);
         return new SuperPropertyAccessor(
-            helper, send.charOffset, send.name, getter, setter);
+            helper, charOffset, send.name, getter, setter);
       } else {
         return new ThisPropertyAccessor(
-            helper, send.charOffset, send.name, null, null);
+            helper, charOffset, send.name, null, null);
       }
     }
   }
@@ -592,9 +592,11 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
     with BuilderAccessor {
   final BuilderHelper helper;
 
+  final int charOffset;
+
   SuperPropertyAccessor(
-      this.helper, int charOffset, Name name, Member getter, Member setter)
-      : super(name, getter, setter, charOffset);
+      this.helper, this.charOffset, Name name, Member getter, Member setter)
+      : super(name, getter, setter);
 
   String get plainNameForRead => name.name;
 

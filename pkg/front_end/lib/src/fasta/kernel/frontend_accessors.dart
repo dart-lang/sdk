@@ -222,25 +222,23 @@ class NullAwarePropertyAccessor extends Accessor {
 class SuperPropertyAccessor extends Accessor {
   Name name;
   Member getter, setter;
-  final int charOffset;
 
-  SuperPropertyAccessor(this.name, this.getter, this.setter, this.charOffset);
+  SuperPropertyAccessor(this.name, this.getter, this.setter);
 
   _makeRead() {
     if (getter == null) return makeInvalidRead();
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    Expression result = new DirectPropertyGet(new ThisExpression(), getter)
-      ..fileOffset = charOffset;
-    result = new SuperPropertyGet(name, getter)..fileOffset = charOffset;
+    Expression result = new DirectPropertyGet(new ThisExpression(), getter);
+    result = new SuperPropertyGet(name, getter);
     return result;
   }
 
   _makeWrite(Expression value, bool voidContext) {
     if (setter == null) return makeInvalidWrite(value);
     // TODO(ahe): Use [DirectPropertySet] when possible.
-    Expression result = new DirectPropertySet(
-        new ThisExpression(), setter, value)..fileOffset = charOffset;
-    result = new SuperPropertySet(name, value, setter)..fileOffset = charOffset;
+    Expression result =
+        new DirectPropertySet(new ThisExpression(), setter, value);
+    result = new SuperPropertySet(name, value, setter);
     return result;
   }
 }

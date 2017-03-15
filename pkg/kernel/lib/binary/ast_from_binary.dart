@@ -687,14 +687,11 @@ class BinaryBuilder {
         return new SuperPropertySet.byReference(
             readName(), readExpression(), readMemberReference(allowNull: true));
       case Tag.DirectPropertyGet:
-        int offset = readOffset();
         return new DirectPropertyGet.byReference(
-            readExpression(), readMemberReference())..fileOffset = offset;
+            readExpression(), readMemberReference());
       case Tag.DirectPropertySet:
-        int offset = readOffset();
         return new DirectPropertySet.byReference(
-            readExpression(), readMemberReference(), readExpression())
-          ..fileOffset = offset;
+            readExpression(), readMemberReference(), readExpression());
       case Tag.StaticGet:
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
