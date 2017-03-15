@@ -395,12 +395,14 @@ type SuperPropertySet extends Expression {
 
 type DirectPropertyGet extends Expression {
   Byte tag = 15; // Note: tag is out of order
+  FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
 }
 
 type DirectPropertySet extends Expression {
   Byte tag = 16; // Note: tag is out of order
+  FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
   Expression value;

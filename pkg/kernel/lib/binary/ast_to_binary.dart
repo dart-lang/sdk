@@ -501,12 +501,14 @@ class BinaryPrinter extends Visitor {
 
   visitDirectPropertyGet(DirectPropertyGet node) {
     writeByte(Tag.DirectPropertyGet);
+    writeOffset(node, node.fileOffset);
     writeNode(node.receiver);
     writeReference(node.targetReference);
   }
 
   visitDirectPropertySet(DirectPropertySet node) {
     writeByte(Tag.DirectPropertySet);
+    writeOffset(node, node.fileOffset);
     writeNode(node.receiver);
     writeReference(node.targetReference);
     writeNode(node.value);
