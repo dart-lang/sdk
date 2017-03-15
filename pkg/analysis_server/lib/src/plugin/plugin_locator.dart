@@ -65,10 +65,12 @@ class PluginLocator {
         YamlNode contents = document.contents;
         if (contents is YamlMap) {
           String pluginPath = contents[analysisPluginKey];
-          Folder pluginFolder =
-              packageFolder.getChildAssumingFolder(pluginPath);
-          if (pluginFolder.exists) {
-            return pluginFolder.path;
+          if (pluginPath != null) {
+            Folder pluginFolder =
+                packageFolder.getChildAssumingFolder(pluginPath);
+            if (pluginFolder.exists) {
+              return pluginFolder.path;
+            }
           }
         }
       } catch (exception) {
