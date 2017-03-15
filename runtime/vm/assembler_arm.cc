@@ -3047,9 +3047,12 @@ void Assembler::AddImmediate(Register rd,
     } else if (Operand::CanHold(~(-value), &o)) {
       mvn(IP, o, cond);
       sub(rd, rn, Operand(IP), cond);
-    } else {
+    } else if (value > 0) {
       LoadDecodableImmediate(IP, value, cond);
       add(rd, rn, Operand(IP), cond);
+    } else {
+      LoadDecodableImmediate(IP, -value, cond);
+      sub(rd, rn, Operand(IP), cond);
     }
   }
 }

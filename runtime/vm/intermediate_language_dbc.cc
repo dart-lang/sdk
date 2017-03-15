@@ -247,7 +247,7 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
   if (with_checks()) {
     const intptr_t may_be_smi =
         (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
-    GrowableArray<CidTarget> sorted_ic_data;
+    GrowableArray<CidRangeTarget> sorted_ic_data;
     FlowGraphCompiler::SortICDataByCount(ic_data(), &sorted_ic_data,
                                          /* drop_smi = */ true);
     const intptr_t sorted_length = sorted_ic_data.length();
@@ -255,17 +255,39 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
       Unsupported(compiler);
       UNREACHABLE();
     }
-    __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(),
-                                   sorted_length + may_be_smi);
+    bool using_ranges = false;
+    for (intptr_t i = 0; i < sorted_length; i++) {
+      if (sorted_ic_data[i].cid_start != sorted_ic_data[i].cid_end) {
+        using_ranges = true;
+        break;
+      }
+    }
+
+    if (using_ranges) {
+      __ PushPolymorphicInstanceCallByRange(instance_call()->ArgumentCount(),
+                                            sorted_length + may_be_smi);
+    } else {
+      __ PushPolymorphicInstanceCall(instance_call()->ArgumentCount(),
+                                     sorted_length + may_be_smi);
+    }
     if (may_be_smi == 1) {
       const Function& target =
           Function::ZoneHandle(compiler->zone(), ic_data().GetTargetAt(0));
       __ Nop(compiler->ToEmbeddableCid(kSmiCid, this));
+      if (using_ranges) {
+        __ Nop(compiler->ToEmbeddableCid(1, this));
+      }
       __ Nop(__ AddConstant(target));
     }
     for (intptr_t i = 0; i < sorted_length; i++) {
       const Function& target = *sorted_ic_data[i].target;
-      __ Nop(compiler->ToEmbeddableCid(sorted_ic_data[i].cid, this));
+      intptr_t cid_start = sorted_ic_data[i].cid_start;
+      intptr_t cid_end = sorted_ic_data[i].cid_end;
+
+      __ Nop(compiler->ToEmbeddableCid(cid_start, this));
+      if (using_ranges) {
+        __ Nop(compiler->ToEmbeddableCid(1 + cid_end - cid_start, this));
+      }
       __ Nop(__ AddConstant(target));
     }
     compiler->EmitDeopt(deopt_id(),
@@ -1468,17 +1490,35 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
       __ Nop(compiler->ToEmbeddableCid(low_cid, this));
       __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));
     } else {
-      GrowableArray<CidTarget> sorted_ic_data;
+      GrowableArray<CidRangeTarget> sorted_ic_data;
       FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
                                            /* drop_smi = */ true);
       const intptr_t sorted_length = sorted_ic_data.length();
+
+      bool using_ranges = false;
+      for (intptr_t i = 0; i < sorted_length; i++) {
+        if (sorted_ic_data[i].cid_start != sorted_ic_data[i].cid_end) {
+          using_ranges = true;
+          break;
+        }
+      }
+
       if (!Utils::IsUint(8, sorted_length)) {
         Unsupported(compiler);
         UNREACHABLE();
       }
-      __ CheckCids(value, may_be_smi, sorted_length);
+      if (using_ranges) {
+        __ CheckCidsByRange(value, may_be_smi, sorted_length * 2);
+      } else {
+        __ CheckCids(value, may_be_smi, sorted_length);
+      }
       for (intptr_t i = 0; i < sorted_length; i++) {
-        __ Nop(compiler->ToEmbeddableCid(sorted_ic_data[i].cid, this));
+        intptr_t cid_start = sorted_ic_data[i].cid_start;
+        intptr_t cid_end = sorted_ic_data[i].cid_end;
+        __ Nop(compiler->ToEmbeddableCid(cid_start, this));
+        if (using_ranges) {
+          __ Nop(compiler->ToEmbeddableCid(1 + cid_end - cid_start, this));
+        }
       }
     }
   }

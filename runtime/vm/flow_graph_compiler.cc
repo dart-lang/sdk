@@ -34,16 +34,6 @@ DEFINE_FLAG(bool,
             enable_simd_inline,
             true,
             "Enable inlining of SIMD related method calls.");
-DEFINE_FLAG(
-    bool,
-    inline_smi_string_hashcode,
-    true,
-    "Inline hashcode for Smi and one-byte strings in case of megamorphic call");
-DEFINE_FLAG(
-    int,
-    inline_smi_string_hashcode_ratio,
-    50,
-    "Minimal hotness (0..100) of one-byte-string before inlining its hashcode");
 DEFINE_FLAG(int,
             min_optimization_counter_threshold,
             5000,
@@ -149,31 +139,6 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
       builder->AddMaterialization(mat);
     }
   }
-}
-
-
-// Returns true if OnebyteString is a frequent receiver class. We inline
-// Smi check as well, since a Smi check must be done anyway.
-// TODO(srdjan): Add check and code if Smi class is hot.
-bool FlowGraphCompiler::ShouldInlineSmiStringHashCode(const ICData& ic_data) {
-  if (!FLAG_inline_smi_string_hashcode ||
-      (ic_data.target_name() != Symbols::hashCode().raw())) {
-    return false;
-  }
-  // Precompiled code has no ICData, optimistically inline it.
-  if (ic_data.IsNull() || ic_data.NumberOfChecksIs(0)) {
-    return true;
-  }
-  // Check if OneByteString is hot enough.
-  const ICData& ic_data_sorted =
-      ICData::Handle(ic_data.AsUnaryClassChecksSortedByCount());
-  ASSERT(!ic_data_sorted.NumberOfChecksIs(0));
-  if (ic_data_sorted.GetReceiverClassIdAt(0) == kOneByteStringCid) {
-    const intptr_t total_count = ic_data_sorted.AggregateCount();
-    const intptr_t ratio = (ic_data_sorted.GetCountAt(0) * 100) / total_count;
-    return ratio > FLAG_inline_smi_string_hashcode_ratio;
-  }
-  return false;
 }
 
 
@@ -1664,29 +1629,53 @@ ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
 }
 
 
-static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
+template <typename T>
+static int HighestCountFirst(const T* a, const T* b) {
   // Negative if 'a' should sort before 'b'.
   return b->count - a->count;
 }
 
 
+static int LowestCidFirst(const CidRangeTarget* a, const CidRangeTarget* b) {
+  // Negative if 'a' should sort before 'b'.
+  return a->cid_start - b->cid_start;
+}
+
+
 // Returns 'sorted' array in decreasing count order.
 // The expected number of elements to sort is less than 10.
-void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
-                                          GrowableArray<CidTarget>* sorted,
-                                          bool drop_smi) {
+void FlowGraphCompiler::SortICDataByCount(
+    const ICData& ic_data,
+    GrowableArray<CidRangeTarget>* sorted_arg,
+    bool drop_smi) {
+  GrowableArray<CidRangeTarget>& sorted = *sorted_arg;
   ASSERT(ic_data.NumArgsTested() == 1);
   const intptr_t len = ic_data.NumberOfChecks();
-  sorted->Clear();
+  sorted.Clear();
 
   for (int i = 0; i < len; i++) {
     intptr_t receiver_cid = ic_data.GetReceiverClassIdAt(i);
     if (drop_smi && (receiver_cid == kSmiCid)) continue;
-    sorted->Add(CidTarget(receiver_cid,
-                          &Function::ZoneHandle(ic_data.GetTargetAt(i)),
-                          ic_data.GetCountAt(i)));
+    Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
+    sorted.Add(CidRangeTarget(receiver_cid, receiver_cid, &target,
+                              ic_data.GetCountAt(i)));
   }
-  sorted->Sort(HighestCountFirst);
+  sorted.Sort(LowestCidFirst);
+  int dest = 0;
+
+  // Merge adjacent ranges.
+  for (int src = 0; src < sorted.length(); src++) {
+    if (src > 0 && sorted[src - 1].cid_end + 1 == sorted[src].cid_start &&
+        sorted[src - 1].target->raw() == sorted[src].target->raw()) {
+      sorted[dest - 1].cid_end++;
+      sorted[dest - 1].count += sorted[dest].count;
+    } else {
+      sorted[dest++] = sorted[src];
+    }
+  }
+
+  sorted.SetLength(dest);
+  sorted.Sort(HighestCountFirst);
 }
 
 
@@ -1828,6 +1817,38 @@ const ICData& FlowGraphCompiler::TrySpecializeICDataByReceiverCid(
 }
 
 
+intptr_t FlowGraphCompiler::ComputeGoodBiasForCidComparison(
+    const GrowableArray<CidRangeTarget>& sorted,
+    intptr_t max_immediate) {
+  // Sometimes a bias can be useful so we can emit more compact compare
+  // instructions.
+  intptr_t min_cid = 1000000;
+  intptr_t max_cid = -1;
+
+  const intptr_t sorted_len = sorted.length();
+
+  for (intptr_t i = 0; i < sorted_len + 1; i++) {
+    bool done = (i == sorted_len);
+    intptr_t start = done ? 0 : sorted[i].cid_start;
+    intptr_t end = done ? 0 : sorted[i].cid_end;
+    bool is_range = start != end;
+    bool spread_too_big = start - min_cid > max_immediate;
+    if (done || is_range || spread_too_big) {
+      if (i >= 2 && max_cid - min_cid <= max_immediate &&
+          max_cid > max_immediate) {
+        return min_cid;
+      } else {
+        return 0;
+      }
+    }
+    min_cid = Utils::Minimum(min_cid, start);
+    max_cid = Utils::Maximum(max_cid, end);
+  }
+  UNREACHABLE();
+  return 0;
+}
+
+
 #if !defined(TARGET_ARCH_DBC)
 // DBC emits calls very differently from other architectures due to its
 // interpreted nature.
@@ -1837,7 +1858,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(const ICData& ic_data,
                                                     intptr_t deopt_id,
                                                     TokenPosition token_pos,
                                                     LocationSummary* locs,
-                                                    bool complete) {
+                                                    bool complete,
+                                                    intptr_t total_ic_calls) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt =
         AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
@@ -1845,7 +1867,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(const ICData& ic_data,
     EmitTestAndCall(ic_data, argument_count, argument_names,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
-                    deopt_id, token_pos, locs, complete);
+                    deopt_id, token_pos, locs, complete, total_ic_calls);
     assembler()->Bind(&ok);
   } else {
     if (complete) {
@@ -1853,7 +1875,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(const ICData& ic_data,
       EmitTestAndCall(ic_data, argument_count, argument_names,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
-                      deopt_id, token_pos, locs, true);
+                      deopt_id, token_pos, locs, true, total_ic_calls);
       assembler()->Bind(&ok);
     } else {
       EmitSwitchableInstanceCall(ic_data, argument_count, deopt_id, token_pos,

@@ -1858,6 +1858,28 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(PushPolymorphicInstanceCallByRange, A_D);
+    const uint8_t argc = rA;
+    const intptr_t cids_length = rD;
+    RawObject** args = SP - argc + 1;
+    const intptr_t receiver_cid = SimulatorHelpers::GetClassId(args[0]);
+    for (intptr_t i = 0; i < 3 * cids_length; i += 3) {
+      // Note unsigned types to get an unsigned range compare.
+      const uintptr_t cid_start = Bytecode::DecodeD(*(pc + i));
+      const uintptr_t cids = Bytecode::DecodeD(*(pc + i + 1));
+      if (receiver_cid - cid_start < cids) {
+        RawFunction* target =
+            RAW_CAST(Function, LOAD_CONSTANT(Bytecode::DecodeD(*(pc + i + 2))));
+        *++SP = target;
+        pc++;
+        break;
+      }
+    }
+    pc += 3 * cids_length;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(NativeBootstrapCall, 0);
     RawFunction* function = FrameFunction(FP);
     RawObject** incoming_args =
@@ -3192,6 +3214,31 @@ RawObject* Simulator::Call(const Code& code,
       for (intptr_t i = 0; i < cids_length; i++) {
         const intptr_t desired_cid = Bytecode::DecodeD(*(pc + i));
         if (cid == desired_cid) {
+          pc++;
+          break;
+        }
+      }
+      pc += cids_length;
+    } else {
+      pc += cids_length;
+      pc += (may_be_smi ? 1 : 0);
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckCidsByRange, A_B_C);
+    const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
+    const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
+    const bool may_be_smi = (rB == 1);
+    const intptr_t cids_length = rC;
+    if (LIKELY(!is_smi)) {
+      const intptr_t cid = SimulatorHelpers::GetClassId(FP[rA]);
+      for (intptr_t i = 0; i < cids_length; i += 2) {
+        // Note unsigned type to get unsigned range check below.
+        const uintptr_t cid_start = Bytecode::DecodeD(*(pc + i));
+        const uintptr_t cids = Bytecode::DecodeD(*(pc + i + 1));
+        if (cid - cid_start < cids) {
           pc++;
           break;
         }

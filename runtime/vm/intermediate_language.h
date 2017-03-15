@@ -2785,6 +2785,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
         complete_(complete) {
     ASSERT(instance_call_ != NULL);
     ASSERT(!ic_data.NumberOfChecksIs(0));
+    total_call_count_ = CallCount();
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
@@ -2808,6 +2809,17 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 
+  // If this polymophic call site was created to cover the remaining cids after
+  // inlinng then we need to keep track of the total number of calls including
+  // the ones that wer inlined. This is different from the CallCount above:  Eg
+  // if there  were 100 calls originally, distributed across three class-ids in
+  // the ratio 50, 40, 7, 3.  The first two were inlined, so now we have only
+  // 10 calls in the CallCount above, but the heuristics need to know that the
+  // last two cids cover 7% and 3% of the calls, not 70% and 30%.
+  intptr_t total_call_count() { return total_call_count_; }
+
+  void set_total_call_count(intptr_t count) { total_call_count_ = count; }
+
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 
   const ICData& ic_data() const { return ic_data_; }
@@ -2827,6 +2839,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   const ICData& ic_data_;
   bool with_checks_;
   const bool complete_;
+  intptr_t total_call_count_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };

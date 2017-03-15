@@ -1236,27 +1236,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into RDI.
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  Label done;
-  if (ShouldInlineSmiStringHashCode(ic_data)) {
-    Label megamorphic_call;
-    __ Comment("Inlined get:hashCode for Smi and OneByteString");
-    __ movq(RAX, RDI);  // Move Smi hashcode to RAX.
-    __ testq(RDI, Immediate(kSmiTagMask));
-    __ j(ZERO, &done, Assembler::kNearJump);  // It is Smi, we are done.
-
-    __ CompareClassId(RDI, kOneByteStringCid);
-    __ j(NOT_EQUAL, &megamorphic_call, Assembler::kNearJump);
-    __ movq(RAX, FieldAddress(RDI, String::hash_offset()));
-    __ cmpq(RAX, Immediate(0));
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-
-    __ Bind(&megamorphic_call);
-    __ Comment("Slow case: megamorphic call");
-  }
   __ LoadObject(RBX, cache);
   __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
 
-  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1441,7 +1423,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
                                         LocationSummary* locs,
-                                        bool complete) {
+                                        bool complete,
+                                        intptr_t total_ic_calls) {
   ASSERT(is_optimizing());
 
   __ Comment("EmitTestAndCall");
@@ -1487,31 +1470,47 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   __ Bind(&after_smi_test);
 
   ASSERT(!ic_data.IsNull() && (num_checks > 0));
-  GrowableArray<CidTarget> sorted(num_checks);
+  GrowableArray<CidRangeTarget> sorted(num_checks);
   SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
 
-  const intptr_t kSortedLen = sorted.length();
-  // If kSortedLen is 0 then only a Smi check was needed; the Smi check above
+  const intptr_t sorted_len = sorted.length();
+  // If sorted_len is 0 then only a Smi check was needed; the Smi check above
   // will fail if there was only one check and receiver is not Smi.
-  if (kSortedLen == 0) return;
+  if (sorted_len == 0) return;
 
   // Value is not Smi,
   __ LoadClassId(RDI, RAX);
-  for (intptr_t i = 0; i < kSortedLen; i++) {
-    const bool kIsLastCheck = (i == (kSortedLen - 1));
-    ASSERT(sorted[i].cid != kSmiCid);
+
+  bool add_megamorphic_call = false;
+  const int kMaxImmediateInInstruction = 127;
+  int bias =
+      ComputeGoodBiasForCidComparison(sorted, kMaxImmediateInInstruction);
+  if (bias != 0) __ addl(RDI, Immediate(-bias));
+
+  for (intptr_t i = 0; i < sorted_len; i++) {
+    const bool is_last_check = (i == (sorted_len - 1));
+    int cid_start = sorted[i].cid_start;
+    int cid_end = sorted[i].cid_end;
+    int count = sorted[i].count;
+    if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
+      // This case is hit too rarely to be worth writing class-id checks inline
+      // for.
+      add_megamorphic_call = true;
+      break;
+    }
+    ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
     Label next_test;
-    if (!complete) {
-      __ cmpl(RDI, Immediate(sorted[i].cid));
-      if (kIsLastCheck) {
-        __ j(NOT_EQUAL, failed);
+    if (!complete || !is_last_check) {
+      Label* next_label = is_last_check ? failed : &next_test;
+      bool near = is_last_check ? Assembler::kFarJump : Assembler::kNearJump;
+      if (cid_start == cid_end) {
+        __ cmpl(RDI, Immediate(cid_start - bias));
+        __ j(NOT_EQUAL, next_label, near);
       } else {
-        __ j(NOT_EQUAL, &next_test);
-      }
-    } else {
-      if (!kIsLastCheck) {
-        __ cmpl(RDI, Immediate(sorted[i].cid));
-        __ j(NOT_EQUAL, &next_test);
+        __ addl(RDI, Immediate(bias - cid_start));
+        bias = cid_start;
+        __ cmpl(RDI, Immediate(cid_end - cid_start));
+        __ j(ABOVE, next_label, near);  // Unsigned higher.
       }
     }
     // Do not use the code from the function, but let the code be patched so
@@ -1521,10 +1520,15 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
     __ Drop(argument_count, RCX);
-    if (!kIsLastCheck) {
+    if (!is_last_check) {
       __ jmp(match_found);
     }
     __ Bind(&next_test);
+  }
+  if (add_megamorphic_call) {
+    int try_index = CatchClauseNode::kInvalidTryIndex;
+    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id, token_index,
+                                locs, try_index, argument_count);
   }
 }
 

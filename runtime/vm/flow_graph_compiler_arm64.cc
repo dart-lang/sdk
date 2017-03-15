@@ -1222,32 +1222,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Comment("MegamorphicCall");
   // Load receiver into R0.
   __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
-  Label done;
-  if (ShouldInlineSmiStringHashCode(ic_data)) {
-    Label megamorphic_call;
-    __ Comment("Inlined get:hashCode for Smi and OneByteString");
-    __ tsti(R0, Immediate(kSmiTagMask));
-    __ b(&done, EQ);  // Is Smi (result is receiver).
-
-    __ CompareClassId(R0, kOneByteStringCid);
-    __ b(&megamorphic_call, NE);
-
-    // Use R5 (cache for megamorphic call) as scratch.
-    __ mov(R5, R0);  // Preserve receiver in R5, result in R0.
-    __ ldr(R0, FieldAddress(R0, String::hash_offset()));
-    __ CompareRegisters(R0, ZR);
-    __ b(&done, NE);
-    __ mov(R0, R5);  // Restore receiver in R0,
-
-    __ Bind(&megamorphic_call);
-    __ Comment("Slow case: megamorphic call");
-  }
 
   __ LoadObject(R5, cache);
   __ ldr(LR, Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ blr(LR);
 
-  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1475,9 +1454,9 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
                                         LocationSummary* locs,
-                                        bool complete) {
+                                        bool complete,
+                                        intptr_t total_ic_calls) {
   ASSERT(is_optimizing());
-
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor = Array::ZoneHandle(
       zone(), ArgumentsDescriptor::New(argument_count, argument_names));
@@ -1522,31 +1501,46 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   __ Bind(&after_smi_test);
 
   ASSERT(!ic_data.IsNull() && (num_checks > 0));
-  GrowableArray<CidTarget> sorted(num_checks);
+  GrowableArray<CidRangeTarget> sorted(num_checks);
   SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
 
-  // Value is not Smi,
-  const intptr_t kSortedLen = sorted.length();
-  // If kSortedLen is 0 then only a Smi check was needed; the Smi check above
+  const intptr_t sorted_len = sorted.length();
+  // If sorted_len is 0 then only a Smi check was needed; the Smi check above
   // will fail if there was only one check and receiver is not Smi.
-  if (kSortedLen == 0) return;
+  if (sorted_len == 0) return;
 
+  // Value is not Smi,
   __ LoadClassId(R2, R0);
-  for (intptr_t i = 0; i < kSortedLen; i++) {
-    const bool kIsLastCheck = (i == (kSortedLen - 1));
-    ASSERT(sorted[i].cid != kSmiCid);
+
+  bool add_megamorphic_call = false;
+  const int kMaxImmediateInInstruction = 256;
+  int bias =
+      ComputeGoodBiasForCidComparison(sorted, kMaxImmediateInInstruction);
+  if (bias != 0) __ AddImmediate(R2, R2, -bias);
+
+  for (intptr_t i = 0; i < sorted_len; i++) {
+    const bool is_last_check = (i == (sorted_len - 1));
+    int cid_start = sorted[i].cid_start;
+    int cid_end = sorted[i].cid_end;
+    int count = sorted[i].count;
+    if (!is_last_check && !complete && count < (total_ic_calls >> 5)) {
+      // This case is hit too rarely to be worth writing class-id checks inline
+      // for.
+      add_megamorphic_call = true;
+      break;
+    }
+    ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
     Label next_test;
-    if (!complete) {
-      __ CompareImmediate(R2, sorted[i].cid);
-      if (kIsLastCheck) {
-        __ b(failed, NE);
+    if (!complete || !is_last_check) {
+      Label* next_label = is_last_check ? failed : &next_test;
+      if (cid_start == cid_end) {
+        __ CompareImmediate(R2, cid_start - bias);
+        __ b(next_label, NE);
       } else {
-        __ b(&next_test, NE);
-      }
-    } else {
-      if (!kIsLastCheck) {
-        __ CompareImmediate(R2, sorted[i].cid);
-        __ b(&next_test, NE);
+        __ AddImmediate(R2, R2, bias - cid_start);
+        bias = cid_start;
+        __ CompareImmediate(R2, cid_end - cid_start);
+        __ b(next_label, HI);  // Unsigned higher.
       }
     }
     // Do not use the code from the function, but let the code be patched so
@@ -1556,10 +1550,15 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                            *StubCode::CallStaticFunction_entry(),
                            RawPcDescriptors::kOther, locs, function);
     __ Drop(argument_count);
-    if (!kIsLastCheck) {
+    if (!is_last_check) {
       __ b(match_found);
     }
     __ Bind(&next_test);
+  }
+  if (add_megamorphic_call) {
+    int try_index = CatchClauseNode::kInvalidTryIndex;
+    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id, token_index,
+                                locs, try_index, argument_count);
   }
 }
 
