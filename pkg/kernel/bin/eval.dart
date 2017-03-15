@@ -15,7 +15,7 @@ fail(String message) {
 main(List<String> args) {
   if (args.length == 1 && args[0].endsWith('.dill')) {
     var program = loadProgramFromBinary(args[0]);
-    new Interpreter(program).evalProgram();
+    new Interpreter(program).run();
   } else {
     return fail('One input binary file should be specified.');
   }
