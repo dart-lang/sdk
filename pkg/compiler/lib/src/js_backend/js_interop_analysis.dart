@@ -19,6 +19,7 @@ import '../elements/elements.dart'
         FunctionElement,
         LibraryElement,
         ParameterElement,
+        MethodElement,
         MetadataAnnotation;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -68,11 +69,11 @@ class JsInteropAnalysis {
         ConstantValue value = constructedConstant.fields[nameField];
         if (value.isString) {
           StringConstantValue stringValue = value;
-          backend.nativeClassDataBuilder
+          backend.nativeDataBuilder
               .setJsInteropName(e, stringValue.primitiveValue.slowToString());
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          backend.nativeClassDataBuilder.setJsInteropName(e, '');
+          backend.nativeDataBuilder.setJsInteropName(e, '');
         }
         enabledJsInterop = true;
         return;
@@ -107,14 +108,15 @@ class JsInteropAnalysis {
     processJsInteropAnnotation(library);
     library.implementation.forEachLocalMember((Element element) {
       processJsInteropAnnotation(element);
-      if (!backend.nativeData.isJsInterop(element)) return;
-      if (element is FunctionElement) {
+      if (element is MethodElement) {
+        if (!backend.nativeData.isJsInteropMember(element)) return;
         _checkFunctionParameters(element);
       }
 
       if (!element.isClass) return;
 
       ClassElement classElement = element;
+      if (!backend.nativeData.isJsInteropClass(classElement)) return;
 
       // Skip classes that are completely unreachable. This should only happen
       // when all of jsinterop types are unreachable from main.
@@ -135,7 +137,7 @@ class JsInteropAnalysis {
         processJsInteropAnnotation(member);
 
         if (!member.isSynthesized &&
-            backend.nativeData.isJsInterop(classElement) &&
+            backend.nativeData.isJsInteropClass(classElement) &&
             member is FunctionElement) {
           FunctionElement fn = member;
           if (!fn.isExternal &&

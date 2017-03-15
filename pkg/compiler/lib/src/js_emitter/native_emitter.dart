@@ -331,7 +331,7 @@ class NativeEmitter {
       assert(invariant(member, member.isStatic));
       arguments = argumentsBuffer.sublist(
           0, indexOfLastOptionalArgumentInParameters + 1);
-      if (nativeData.isJsInteropMethod(member)) {
+      if (nativeData.isJsInteropMember(member)) {
         // fixedBackendPath is allowed to have the form foo.bar.baz for
         // interop. This template is uncached to avoid possibly running out of
         // memory when Dart2Js is run in server mode. In reality the risk of

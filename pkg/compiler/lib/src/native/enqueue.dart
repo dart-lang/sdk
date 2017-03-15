@@ -16,6 +16,7 @@ import '../elements/types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/js_backend.dart';
+import '../js_backend/native_data.dart' show NativeClassDataBuilder;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
@@ -41,18 +42,6 @@ class NativeEnqueuer {
   void registerNativeBehavior(
       WorldImpactBuilder impactBuilder, NativeBehavior nativeBehavior, cause) {}
 
-  // TODO(johnniwinther): Move [handleFieldAnnotations] and
-  // [handleMethodAnnotations] to [JavaScriptBackend] or [NativeData].
-  // TODO(johnniwinther): Change the return type to 'bool' and rename them to
-  // something like `computeNativeField`.
-  /// Process the potentially native [field]. Adds information from metadata
-  /// attributes.
-  void handleFieldAnnotations(Element field) {}
-
-  /// Process the potentially native [method]. Adds information from metadata
-  /// attributes.
-  void handleMethodAnnotations(Element method) {}
-
   /// Returns whether native classes are being used.
   bool get hasInstantiatedNativeClasses => false;
 
@@ -61,8 +50,6 @@ class NativeEnqueuer {
 }
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
-  static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
-
   /// The set of all native classes.  Each native class is in [nativeClasses]
   /// and exactly one of [unusedClasses] and [registeredClasses].
   final Set<ClassElement> _nativeClasses = new Set<ClassElement>();
@@ -253,37 +240,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
-  /// Returns the JSName annotation string or `null` if no JSName annotation is
-  /// present.
-  String findJsNameFromAnnotation(Element element) {
-    String name = null;
-    ClassElement annotationClass = backend.helpers.annotationJSNameClass;
-    for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(resolution);
-      ConstantValue value =
-          compiler.constants.getConstantValue(annotation.constant);
-      if (!value.isConstructedObject) continue;
-      ConstructedConstantValue constructedObject = value;
-      if (constructedObject.type.element != annotationClass) continue;
-
-      Iterable<ConstantValue> fields = constructedObject.fields.values;
-      // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || fields.single is! StringConstantValue) {
-        reporter.internalError(
-            annotation, 'Annotations needs one string: ${annotation}');
-      }
-      StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.toDartString().slowToString();
-      if (name == null) {
-        name = specString;
-      } else {
-        reporter.internalError(
-            annotation, 'Too many JSName annotations: ${annotation}');
-      }
-    }
-    return name;
-  }
-
   /// Register [classes] as natively instantiated in [impactBuilder].
   void _registerTypeUses(
       WorldImpactBuilder impactBuilder, Set<ClassElement> classes, cause) {
@@ -298,84 +254,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       impactBuilder
           .registerTypeUse(new TypeUse.nativeInstantiation(cls.rawType));
     }
-  }
-
-  void handleFieldAnnotations(Element element) {
-    if (compiler.serialization.isDeserialized(element)) {
-      return;
-    }
-    if (element.isInstanceMember &&
-        backend.nativeClassData.isNativeClass(element.enclosingClass)) {
-      // Exclude non-instance (static) fields - they are not really native and
-      // are compiled as isolate globals.  Access of a property of a constructor
-      // function or a non-method property in the prototype chain, must be coded
-      // using a JS-call.
-      _setNativeName(element);
-    }
-  }
-
-  void handleMethodAnnotations(Element method) {
-    if (compiler.serialization.isDeserialized(method)) {
-      return;
-    }
-    if (isNativeMethod(method)) {
-      if (method.isStatic) {
-        _setNativeNameForStaticMethod(method);
-      } else {
-        _setNativeName(method);
-      }
-    }
-  }
-
-  /// Sets the native name of [element], either from an annotation, or
-  /// defaulting to the Dart name.
-  void _setNativeName(MemberElement element) {
-    String name = findJsNameFromAnnotation(element);
-    if (name == null) name = element.name;
-    backend.nativeClassDataBuilder.setNativeMemberName(element, name);
-  }
-
-  /// Sets the native name of the static native method [element], using the
-  /// following rules:
-  /// 1. If [element] has a @JSName annotation that is an identifier, qualify
-  ///    that identifier to the @Native name of the enclosing class
-  /// 2. If [element] has a @JSName annotation that is not an identifier,
-  ///    use the declared @JSName as the expression
-  /// 3. If [element] does not have a @JSName annotation, qualify the name of
-  ///    the method with the @Native name of the enclosing class.
-  void _setNativeNameForStaticMethod(MethodElement element) {
-    String name = findJsNameFromAnnotation(element);
-    if (name == null) name = element.name;
-    if (isIdentifier(name)) {
-      List<String> nativeNames = backend.nativeClassDataBuilder
-          .getNativeTagsOfClassRaw(element.enclosingClass);
-      if (nativeNames.length != 1) {
-        reporter.internalError(
-            element,
-            'Unable to determine a native name for the enclosing class, '
-            'options: $nativeNames');
-      }
-      backend.nativeClassDataBuilder
-          .setNativeMemberName(element, '${nativeNames[0]}.$name');
-    } else {
-      backend.nativeClassDataBuilder.setNativeMemberName(element, name);
-    }
-  }
-
-  bool isIdentifier(String s) => _identifier.hasMatch(s);
-
-  bool isNativeMethod(FunctionElementX element) {
-    if (!backend.canLibraryUseNative(element.library)) return false;
-    // Native method?
-    return reporter.withCurrentElement(element, () {
-      Node node = element.parseNode(resolution.parsingContext);
-      if (node is! FunctionExpression) return false;
-      FunctionExpression functionExpression = node;
-      node = functionExpression.body;
-      Token token = node.getBeginToken();
-      if (identical(token.stringValue, 'native')) return true;
-      return false;
-    });
   }
 
   void registerNativeBehavior(
@@ -489,7 +367,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     super.processNativeClass(classElement);
 
     // Js Interop interfaces do not have tags.
-    if (backend.nativeData.isJsInterop(classElement)) return;
+    if (backend.nativeData.isJsInteropClass(classElement)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
     for (String tag in backend.nativeData.getNativeTagsOfClass(classElement)) {

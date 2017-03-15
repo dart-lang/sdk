@@ -11,6 +11,7 @@ import '../elements/elements.dart'
         Element,
         FieldElement,
         FunctionElement,
+        LibraryElement,
         MemberElement,
         MethodElement;
 import '../elements/entities.dart';
@@ -31,13 +32,8 @@ abstract class NativeClassData {
   /// Returns `true` if [element] or any of its superclasses is native.
   bool isNativeOrExtendsNative(ClassElement element);
 
-  /// Returns `true` if [element] corresponds to a native JavaScript member.
-  ///
-  /// A member is marked as native either through the native mechanism
-  /// (`@Native(...)` or the `native` pseudo keyword) allowed for internal
-  /// libraries or via the typed JavaScriptInterop mechanism allowed for user
-  /// libraries.
-  bool isNativeMember(MemberEntity element);
+  /// Returns `true` if [element] is a JsInterop library.
+  bool isJsInteropLibrary(LibraryElement element);
 
   /// Returns `true` if [element] is a JsInterop class.
   bool isJsInteropClass(ClassElement element);
@@ -48,6 +44,14 @@ abstract class NativeClassData {
 ///
 /// This information is computed during resolution using [NativeDataBuilder].
 abstract class NativeData extends NativeClassData {
+  /// Returns `true` if [element] corresponds to a native JavaScript member.
+  ///
+  /// A member is marked as native either through the native mechanism
+  /// (`@Native(...)` or the `native` pseudo keyword) allowed for internal
+  /// libraries or via the typed JavaScriptInterop mechanism allowed for user
+  /// libraries.
+  bool isNativeMember(MemberEntity element);
+
   /// Returns the [NativeBehavior] for calling the native [method].
   NativeBehavior getNativeMethodBehavior(MethodElement method);
 
@@ -72,10 +76,14 @@ abstract class NativeData extends NativeClassData {
   bool hasNativeTagsForcedNonLeaf(ClassElement cls);
 
   /// Returns `true` if [element] is part of JsInterop.
+  ///
+  /// Deprecated: Use [isJsInteropLibrary], [isJsInteropClass] or
+  /// [isJsInteropMember] instead.
+  @deprecated
   bool isJsInterop(Element element);
 
   /// Returns `true` if [element] is a JsInterop method.
-  bool isJsInteropMethod(MethodElement element);
+  bool isJsInteropMember(MethodElement element);
 
   /// Returns the explicit js interop name for [element].
   String getJsInteropName(Element element);
@@ -93,19 +101,13 @@ abstract class NativeClassDataBuilder {
   /// begin with `!`.
   void setNativeClassTagInfo(ClassElement cls, String tagInfo);
 
-  /// Returns the list of native tag words for [cls].
-  List<String> getNativeTagsOfClassRaw(ClassElement cls);
-
-  /// Sets the native [name] for the member [element]. This name is used for
-  /// [element] in the generated JavaScript.
-  void setNativeMemberName(MemberElement element, String name);
+  /// Marks [element] as an explicit part of JsInterop. The js interop name is
+  /// expected to be computed later.
+  void markAsJsInteropLibrary(LibraryElement element);
 
   /// Marks [element] as an explicit part of JsInterop. The js interop name is
   /// expected to be computed later.
-  void markAsJsInterop(Element element);
-
-  /// Sets the explicit js interop [name] for [element].
-  void setJsInteropName(Element element, String name);
+  void markAsJsInteropClass(ClassElement element);
 }
 
 abstract class NativeDataBuilder {
@@ -117,6 +119,20 @@ abstract class NativeDataBuilder {
 
   /// Registers the [behavior] for writing to the native [field].
   void setNativeFieldStoreBehavior(FieldElement field, NativeBehavior behavior);
+
+  /// Returns the list of native tag words for [cls].
+  List<String> getNativeTagsOfClassRaw(ClassElement cls);
+
+  /// Returns [element] as an explicit part of JsInterop. The js interop name is
+  /// expected to be computed later.
+  void markAsJsInteropMember(MemberElement element);
+
+  /// Sets the native [name] for the member [element]. This name is used for
+  /// [element] in the generated JavaScript.
+  void setNativeMemberName(MemberElement element, String name);
+
+  /// Sets the explicit js interop [name] for [element].
+  void setJsInteropName(Element element, String name);
 }
 
 class NativeDataImpl
@@ -153,10 +169,25 @@ class NativeDataImpl
     return jsInteropNames.containsKey(element.declaration);
   }
 
-  /// Returns [element] as an explicit part of JsInterop. The js interop name is
+  /// Marks [element] as an explicit part of JsInterop. The js interop name is
   /// expected to be computed later.
   void markAsJsInterop(Element element) {
     jsInteropNames[element.declaration] = null;
+  }
+
+  @override
+  void markAsJsInteropLibrary(LibraryElement element) {
+    markAsJsInterop(element);
+  }
+
+  @override
+  void markAsJsInteropClass(ClassElement element) {
+    markAsJsInterop(element);
+  }
+
+  @override
+  void markAsJsInteropMember(MemberElement element) {
+    markAsJsInterop(element);
   }
 
   /// Sets the explicit js interop [name] for [element].
@@ -190,11 +221,14 @@ class NativeDataImpl
     }
   }
 
+  /// Returns `true` if [element] is a JsInterop library.
+  bool isJsInteropLibrary(LibraryElement element) => isJsInterop(element);
+
   /// Returns `true` if [element] is a JsInterop class.
   bool isJsInteropClass(ClassElement element) => isJsInterop(element);
 
   /// Returns `true` if [element] is a JsInterop method.
-  bool isJsInteropMethod(MethodElement element) => isJsInterop(element);
+  bool isJsInteropMember(MethodElement element) => isJsInterop(element);
 
   /// Returns `true` if the name of [element] is fixed for the generated
   /// JavaScript.

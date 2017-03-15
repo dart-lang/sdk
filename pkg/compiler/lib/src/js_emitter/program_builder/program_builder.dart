@@ -351,7 +351,7 @@ class ProgramBuilder {
     var stubNames = new Set<String>();
     librariesMap.forEach((LibraryElement library, List<Element> elements) {
       for (Element e in elements) {
-        if (e is ClassElement && backend.nativeData.isJsInterop(e)) {
+        if (e is ClassElement && backend.nativeData.isJsInteropClass(e)) {
           e.declaration.forEachMember((_, Element member) {
             var jsName =
                 backend.nativeData.getUnescapedJSInteropName(member.name);
@@ -496,7 +496,7 @@ class ProgramBuilder {
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
     bool hasRtiField = backend.rtiNeed.classNeedsRtiField(element);
-    if (backend.nativeData.isJsInterop(element)) {
+    if (backend.nativeData.isJsInteropClass(element)) {
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
       onlyForRti = true;
@@ -581,7 +581,7 @@ class ProgramBuilder {
 
     List<StubMethod> checkedSetters = <StubMethod>[];
     List<StubMethod> isChecks = <StubMethod>[];
-    if (backend.nativeData.isJsInterop(element)) {
+    if (backend.nativeData.isJsInteropClass(element)) {
       typeTests.properties.forEach((js.Name name, js.Node code) {
         _classes[helpers.jsInterceptorClass]
             .isChecks
@@ -609,7 +609,7 @@ class ProgramBuilder {
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
-    bool isInstantiated = !backend.nativeData.isJsInterop(element) &&
+    bool isInstantiated = !backend.nativeData.isJsInteropClass(element) &&
         worldBuilder.directlyInstantiatedClasses.contains(element);
 
     Class result;

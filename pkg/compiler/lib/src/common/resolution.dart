@@ -92,7 +92,7 @@ abstract class Target {
 
   /// Resolve target specific information for [element] and register it with
   /// [registry].
-  void resolveNativeElement(Element element, NativeRegistry registry) {}
+  void resolveNativeMember(MemberElement element, NativeRegistry registry) {}
 
   /// Processes [element] for resolution and returns the [MethodElement] that
   /// defines the implementation of [element].

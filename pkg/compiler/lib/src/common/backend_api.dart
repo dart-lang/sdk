@@ -176,9 +176,6 @@ abstract class BackendClasses {
   /// Returns `true` if [cls] is a native class.
   bool isNativeClass(ClassEntity element);
 
-  /// Returns `true` if [element] is a native member of a native class.
-  bool isNativeMember(MemberEntity element);
-
   /// Returns the type of the constant map implementation for a const map
   /// literal of [sourceType]. If [hasProtoKey] the map contains key of value
   /// '__proto__' and if [onlyStringKeys] all keys are string constants.

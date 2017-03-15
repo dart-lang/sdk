@@ -2559,7 +2559,7 @@ class MemorySet {
   void registerFieldValueUpdate(
       MemberEntity element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
-    if (closedWorld.backendClasses.isNativeMember(element)) {
+    if (closedWorld.nativeData.isNativeMember(element)) {
       return; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from
@@ -2579,7 +2579,7 @@ class MemorySet {
   void registerFieldValue(
       MemberEntity element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
-    if (closedWorld.backendClasses.isNativeMember(element)) {
+    if (closedWorld.nativeData.isNativeMember(element)) {
       return; // TODO(14955): Remove this restriction?
     }
     Map<HInstruction, HInstruction> map =

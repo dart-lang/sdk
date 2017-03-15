@@ -47,8 +47,7 @@ import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/task.dart';
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
-import '../patch_parser.dart'
-    show checkNativeAnnotation, checkJsInteropAnnotation;
+import '../native/resolver.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../tree/tree.dart';
@@ -436,6 +435,7 @@ class JavaScriptBackend {
   NativeData get nativeData => _nativeData;
   NativeClassDataBuilder get nativeClassDataBuilder => _nativeData;
   NativeDataBuilder get nativeDataBuilder => _nativeData;
+  final NativeDataResolver _nativeDataResolver;
   InterceptorDataBuilder _interceptorDataBuilder;
   InterceptorData _interceptorData;
   OneShotInterceptorData _oneShotInterceptorData;
@@ -486,7 +486,7 @@ class JavaScriptBackend {
     }
   }
 
-  JavaScriptBackend(Compiler compiler,
+  JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
@@ -500,7 +500,7 @@ class JavaScriptBackend {
             useNewSourceInfo: useNewSourceInfo),
         frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
-        this.compiler = compiler {
+        _nativeDataResolver = new NativeDataResolverImpl(compiler) {
     _target = new JavaScriptBackendTarget(this);
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
@@ -664,7 +664,7 @@ class JavaScriptBackend {
     if (isForeign(element)) {
       return element;
     }
-    if (nativeData.isJsInterop(element)) {
+    if (_nativeDataResolver.isJsInteropMember(element)) {
       if (element.memberName == const PublicName('[]') ||
           element.memberName == const PublicName('[]=')) {
         reporter.reportErrorMessage(
@@ -741,40 +741,6 @@ class JavaScriptBackend {
    */
   bool isAliasedSuperMember(FunctionElement member) {
     return aliasedSuperMembers.contains(member);
-  }
-
-  void resolveNativeElement(MemberElement element, NativeRegistry registry) {
-    if (element.isFunction ||
-        element.isConstructor ||
-        element.isGetter ||
-        element.isSetter) {
-      _nativeResolutionEnqueuer.handleMethodAnnotations(element);
-      if (nativeClassData.isNativeMember(element)) {
-        native.NativeBehavior behavior =
-            native.NativeBehavior.ofMethodElement(element, compiler);
-        nativeDataBuilder.setNativeMethodBehavior(element, behavior);
-        registry.registerNativeData(behavior);
-      }
-    } else if (element.isField) {
-      _nativeResolutionEnqueuer.handleFieldAnnotations(element);
-      if (nativeClassData.isNativeMember(element)) {
-        native.NativeBehavior fieldLoadBehavior =
-            native.NativeBehavior.ofFieldElementLoad(element, compiler);
-        native.NativeBehavior fieldStoreBehavior =
-            native.NativeBehavior.ofFieldElementStore(element, compiler);
-        nativeDataBuilder.setNativeFieldLoadBehavior(
-            element, fieldLoadBehavior);
-        nativeDataBuilder.setNativeFieldStoreBehavior(
-            element, fieldStoreBehavior);
-
-        // TODO(sra): Process fields for storing separately.
-        // We have to handle both loading and storing to the field because we
-        // only get one look at each member and there might be a load or store
-        // we have not seen yet.
-        registry.registerNativeData(fieldLoadBehavior);
-        registry.registerNativeData(fieldStoreBehavior);
-      }
-    }
   }
 
   /// Maps compile-time classes to their runtime class.  The runtime class is
@@ -1153,20 +1119,11 @@ class JavaScriptBackend {
       if (canLibraryUseNative(library)) {
         library.forEachLocalMember((Element element) {
           if (element.isClass) {
-            checkNativeAnnotation(compiler, element);
+            checkNativeAnnotation(compiler, element, nativeClassDataBuilder);
           }
         });
       }
-      checkJsInteropAnnotation(compiler, library);
-      library.forEachLocalMember((Element element) {
-        checkJsInteropAnnotation(compiler, element);
-        if (element.isClass && nativeData.isJsInterop(element)) {
-          ClassElement classElement = element;
-          classElement.forEachMember((_, memberElement) {
-            checkJsInteropAnnotation(compiler, memberElement);
-          });
-        }
-      });
+      checkJsInteropClassAnnotations(compiler, library, nativeClassDataBuilder);
     }
     if (library.isPlatformLibrary &&
         // Don't patch library currently disallowed.
@@ -1595,11 +1552,6 @@ class JavaScriptBackendClasses implements BackendClasses {
     return _nativeData.isNativeClass(element);
   }
 
-  @override
-  bool isNativeMember(MemberEntity element) {
-    return _nativeData.isNativeMember(element);
-  }
-
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool hasProtoKey: false, bool onlyStringKeys: false}) {
     ClassElement classElement = onlyStringKeys
@@ -1635,8 +1587,8 @@ class JavaScriptBackendTarget extends Target {
   }
 
   @override
-  void resolveNativeElement(MemberElement element, NativeRegistry registry) {
-    return _backend.resolveNativeElement(element, registry);
+  void resolveNativeMember(MemberElement element, NativeRegistry registry) {
+    return _backend._nativeDataResolver.resolveNativeMember(element, registry);
   }
 
   @override
