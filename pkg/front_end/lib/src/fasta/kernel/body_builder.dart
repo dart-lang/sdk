@@ -2218,6 +2218,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // TODO(ahe): Do not discard these when enabling generic method syntax.
     pop(); // Bound.
     pop(); // Name.
+    pop(); // Metadata.
   }
 
   @override

@@ -335,7 +335,6 @@ Language/Functions/syntax_t31: MissingCompileTimeError
 Language/Functions/syntax_t39: MissingCompileTimeError
 Language/Functions/syntax_t40: MissingCompileTimeError
 Language/Generics/malformed_t01: RuntimeError
-Language/Generics/syntax_t17: CompileTimeError
 Language/Interfaces/Superinterfaces/definition_t03: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/definition_t04: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t01: MissingCompileTimeError
@@ -598,7 +597,7 @@ Language/Metadata/before_function_t04: RuntimeError
 Language/Metadata/before_function_t05: RuntimeError
 Language/Metadata/before_function_t06: RuntimeError
 Language/Metadata/before_function_t07: RuntimeError
-Language/Metadata/before_type_param_t01: CompileTimeError
+Language/Metadata/before_type_param_t01: RuntimeError
 Language/Metadata/compilation_t01: MissingCompileTimeError
 Language/Metadata/compilation_t02: MissingCompileTimeError
 Language/Metadata/compilation_t03: MissingCompileTimeError

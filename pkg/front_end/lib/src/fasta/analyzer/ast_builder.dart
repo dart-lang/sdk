@@ -1406,9 +1406,8 @@ class AstBuilder extends ScopeListener {
     debugEvent("TypeVariable");
     TypeAnnotation bound = pop();
     SimpleIdentifier name = pop();
-    List<Annotation> metadata = null; // TODO(paulberry)
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    List<Annotation> metadata = pop();
+    Comment comment = pop();
     push(ast.typeParameter(
         comment, metadata, name, toAnalyzerToken(extendsOrSuper), bound));
   }

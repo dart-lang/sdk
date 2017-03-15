@@ -902,6 +902,7 @@ class Parser {
 
   Token parseTypeVariable(Token token) {
     listener.beginTypeVariable(token);
+    token = parseMetadataStar(token);
     token = parseIdentifier(token, IdentifierContext.typeVariableDeclaration);
     Token extendsOrSuper = null;
     if (optional('extends', token) || optional('super', token)) {
