@@ -612,6 +612,23 @@ class AstTestFactory {
           identifier: identifier3(identifier),
           parameters: formalParameterList(parameters));
 
+  static GenericFunctionType genericFunctionType(TypeAnnotation returnType,
+          TypeParameterList typeParameters, FormalParameterList parameters) =>
+      astFactory.genericFunctionType(returnType,
+          TokenFactory.tokenFromString("Function"), typeParameters, parameters);
+
+  static GenericTypeAlias genericTypeAlias(String name,
+          TypeParameterList typeParameters, GenericFunctionType functionType) =>
+      astFactory.genericTypeAlias(
+          null,
+          null,
+          TokenFactory.tokenFromKeyword(Keyword.TYPEDEF),
+          identifier3(name),
+          typeParameters,
+          TokenFactory.tokenFromType(TokenType.EQ),
+          functionType,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
   static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) =>
       astFactory.hideCombinator(
           TokenFactory.tokenFromString("hide"), identifiers);
@@ -1069,7 +1086,8 @@ class AstTestFactory {
           keyword:
               keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
           type: type,
-          identifier: identifier3(parameterName));
+          identifier:
+              parameterName == null ? null : identifier3(parameterName));
 
   static SimpleFormalParameter simpleFormalParameter3(String parameterName) =>
       simpleFormalParameter2(null, null, parameterName);

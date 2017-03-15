@@ -7537,7 +7537,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
     _visitNode(node.returnType);
-    _writer.print(' Function ');
+    _writer.print(' Function');
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     return null;
@@ -7880,7 +7880,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     _visitTokenWithSuffix(node.covariantKeyword, ' ');
     _visitTokenWithSuffix(node.keyword, " ");
-    _visitNodeWithSuffix(node.type, " ");
+    _visitNode(node.type);
+    if (node.type != null && node.identifier != null) {
+      _writer.print(' ');
+    }
     _visitNode(node.identifier);
     return null;
   }
@@ -8847,7 +8850,7 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
     safelyVisitNode(node.returnType);
-    sink.write(' Function ');
+    sink.write(' Function');
     safelyVisitNode(node.typeParameters);
     safelyVisitNode(node.parameters);
     return null;
@@ -9190,7 +9193,10 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitTokenWithSuffix(node.keyword, " ");
-    safelyVisitNodeWithSuffix(node.type, " ");
+    safelyVisitNode(node.type);
+    if (node.type != null && node.identifier != null) {
+      sink.write(' ');
+    }
     safelyVisitNode(node.identifier);
     return null;
   }

@@ -2509,6 +2509,33 @@ class ToSourceVisitor2Test extends EngineTestCase {
             parameters: AstTestFactory.formalParameterList([])));
   }
 
+  void test_visitGenericFunctionType() {
+    _assertSource(
+        "int Function<T>(T)",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ])));
+  }
+
+  void test_visitGenericTypeAlias() {
+    _assertSource(
+        "typedef X<S> = S Function<T>(T)",
+        AstTestFactory.genericTypeAlias(
+            'X',
+            AstTestFactory.typeParameterList(['S']),
+            AstTestFactory.genericFunctionType(
+                AstTestFactory.typeName4("S"),
+                AstTestFactory.typeParameterList(['T']),
+                AstTestFactory.formalParameterList([
+                  AstTestFactory.simpleFormalParameter4(
+                      AstTestFactory.typeName4("T"), null)
+                ]))));
+  }
+
   void test_visitIfStatement_withElse() {
     _assertSource(
         "if (c) {} else {}",
@@ -4856,6 +4883,33 @@ class ToSourceVisitorTest extends EngineTestCase {
             identifier: AstTestFactory.identifier3('f'),
             typeParameters: AstTestFactory.typeParameterList(['E']),
             parameters: AstTestFactory.formalParameterList([])));
+  }
+
+  void test_visitGenericFunctionType() {
+    _assertSource(
+        "int Function<T>(T)",
+        AstTestFactory.genericFunctionType(
+            AstTestFactory.typeName4("int"),
+            AstTestFactory.typeParameterList(['T']),
+            AstTestFactory.formalParameterList([
+              AstTestFactory.simpleFormalParameter4(
+                  AstTestFactory.typeName4("T"), null)
+            ])));
+  }
+
+  void test_visitGenericTypeAlias() {
+    _assertSource(
+        "typedef X<S> = S Function<T>(T)",
+        AstTestFactory.genericTypeAlias(
+            'X',
+            AstTestFactory.typeParameterList(['S']),
+            AstTestFactory.genericFunctionType(
+                AstTestFactory.typeName4("S"),
+                AstTestFactory.typeParameterList(['T']),
+                AstTestFactory.formalParameterList([
+                  AstTestFactory.simpleFormalParameter4(
+                      AstTestFactory.typeName4("T"), null)
+                ]))));
   }
 
   void test_visitIfStatement_withElse() {
