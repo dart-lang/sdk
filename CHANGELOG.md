@@ -39,6 +39,13 @@
     * any analysis option specified on the command line (e.g. `--strong` or `--no-strong`)
       takes precedence over any corresponding value specified in the analysis options file.
 
+* Dartium, dart2js, and DDC
+
+  * Imports to `dart:io` are allowed, but the imported library is not supported
+    and will likely fail on most APIs at runtime. This change was made as a
+    stopgap measure to make it easier to write libraries that share code between
+    platforms (like package `http`). This might change again when configuration
+    specific imports are supported.
 
 ## 1.22.0
 
