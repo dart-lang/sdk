@@ -13,7 +13,30 @@ flakiness of failures, especially timeouts.
 
 Usage:
 
-    compare_failures.dart <stdio-url>
+    dart compare_failures.dart <stdio-url>
     
 where `<stdio-url>` is a url for a test log (".../logs/stdio") from the 
 buildbot. 
+
+#### status_summary ####
+Collects the configurations for all status files in the 'tests' folder that
+mention one of the test names given as argument.
+
+Usage:
+
+    dart status_summary.dart <test-name1> [<test-name2> ...]
+    
+where `<test-nameX>` are test names like `language/arithmetic_test`.
+
+#### current_summary ####
+Collects the test results for all build bots in [buildGroups] for tests
+that mention one of the test names given as argument.
+
+Usage:
+
+    dart current_summary.dart <test-name1> [<test-name2> ...]
+    
+where `<test-nameX>` are test names like `language/arithmetic_test`.
+
+The results are currently pulled from the second to last build since the
+last build might not have completed yet.
