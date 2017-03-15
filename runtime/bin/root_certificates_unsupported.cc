@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_ANDROID) ||                  \
+#if defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID) ||                      \
     defined(DART_IO_ROOT_CERTS_DISABLED)
 
 namespace dart {
@@ -17,7 +17,7 @@ unsigned int root_certificates_pem_length = 0;
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS) || defined(TARGET_OS_ANDROID) || ...
+#endif  // defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID) || ...
 
 #endif  // !defined(DART_IO_DISABLED) &&
         // !defined(DART_IO_SECURE_SOCKET_DISABLED)

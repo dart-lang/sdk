@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/socket.h"
 #include "bin/socket_fuchsia.h"
@@ -534,6 +534,6 @@ bool Socket::LeaveMulticast(intptr_t fd,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)
 
 #endif  // !defined(DART_IO_DISABLED)

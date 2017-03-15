@@ -208,15 +208,15 @@ class Utils {
 
 }  // namespace dart
 
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 #include "platform/utils_android.h"
-#elif defined(TARGET_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA)
 #include "platform/utils_fuchsia.h"
-#elif defined(TARGET_OS_LINUX)
+#elif defined(HOST_OS_LINUX)
 #include "platform/utils_linux.h"
-#elif defined(TARGET_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
 #include "platform/utils_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
 #include "platform/utils_win.h"
 #else
 #error Unknown target os.

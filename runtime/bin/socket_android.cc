@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 
 #include "bin/socket.h"
 #include "bin/socket_android.h"
@@ -580,6 +580,6 @@ bool Socket::LeaveMulticast(intptr_t fd,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)
 
 #endif  // !defined(DART_IO_DISABLED)

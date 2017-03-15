@@ -6,7 +6,7 @@
 #define RUNTIME_VM_CPUID_H_
 
 #include "vm/globals.h"
-#if !defined(TARGET_OS_MACOS)
+#if !defined(HOST_OS_MACOS)
 #include "vm/allocation.h"
 #include "vm/cpuinfo.h"
 
@@ -44,5 +44,5 @@ class CpuId : public AllStatic {
 
 }  // namespace dart
 
-#endif  // !defined(TARGET_OS_MACOS)
+#endif  // !defined(HOST_OS_MACOS)
 #endif  // RUNTIME_VM_CPUID_H_

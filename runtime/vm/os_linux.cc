@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
 
 #include "vm/os.h"
 
@@ -428,4 +428,4 @@ void OS::Exit(int code) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)

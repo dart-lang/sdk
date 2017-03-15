@@ -11,15 +11,15 @@
 
 #include "platform/globals.h"
 // Declare the OS-specific types ahead of defining the generic class.
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 #include "bin/socket_android.h"
-#elif defined(TARGET_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA)
 #include "bin/socket_fuchsia.h"
-#elif defined(TARGET_OS_LINUX)
+#elif defined(HOST_OS_LINUX)
 #include "bin/socket_linux.h"
-#elif defined(TARGET_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
 #include "bin/socket_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
 #include "bin/socket_win.h"
 #else
 #error Unknown target os.

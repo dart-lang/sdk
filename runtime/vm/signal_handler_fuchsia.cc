@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "vm/signal_handler.h"
 
@@ -52,4 +52,4 @@ void SignalHandler::Remove() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)

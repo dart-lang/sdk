@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "platform/memory_sanitizer.h"
 #include "vm/native_symbol.h"
@@ -48,4 +48,4 @@ void NativeSymbolResolver::FreeSymbolName(char* name) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)

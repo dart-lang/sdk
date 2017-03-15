@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_fuchsia.h"
@@ -506,6 +506,6 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_FUCHSIA)
+#endif  // defined(HOST_OS_FUCHSIA)
 
 #endif  // !defined(DART_IO_DISABLED)

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 
 #include "bin/file.h"
 
@@ -608,4 +608,4 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)

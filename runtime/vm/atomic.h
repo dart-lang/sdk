@@ -73,15 +73,15 @@ class AtomicOperations : public AllStatic {
 #include "vm/atomic_simulator.h"
 #endif
 
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 #include "vm/atomic_android.h"
-#elif defined(TARGET_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA)
 #include "vm/atomic_fuchsia.h"
-#elif defined(TARGET_OS_LINUX)
+#elif defined(HOST_OS_LINUX)
 #include "vm/atomic_linux.h"
-#elif defined(TARGET_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
 #include "vm/atomic_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
 #include "vm/atomic_win.h"
 #else
 #error Unknown target os.

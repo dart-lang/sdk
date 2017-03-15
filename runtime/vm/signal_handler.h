@@ -8,10 +8,10 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
 #include <signal.h>    // NOLINT
 #include <ucontext.h>  // NOLINT
-#elif defined(TARGET_OS_ANDROID)
+#elif defined(HOST_OS_ANDROID)
 #include <signal.h>  // NOLINT
 #if !defined(__BIONIC_HAVE_UCONTEXT_T)
 #include <asm/sigcontext.h>  // NOLINT
@@ -25,15 +25,15 @@ typedef struct ucontext {
   uint32_t uc_sigmask;
 } ucontext_t;
 #endif                       // !defined(__BIONIC_HAVE_UCONTEXT_T)
-#elif defined(TARGET_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
 #include <signal.h>        // NOLINT
 #include <sys/ucontext.h>  // NOLINT
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
 // Stub out for windows.
 struct siginfo_t;
 struct mcontext_t;
 struct sigset_t {};
-#elif defined(TARGET_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA)
 #include <signal.h>    // NOLINT
 #include <ucontext.h>  // NOLINT
 #endif
@@ -43,7 +43,7 @@ struct sigset_t {};
 // work around incorrect Thumb -> ARM transitions. See SignalHandlerTrampoline
 // below for more details.
 #if defined(HOST_ARCH_ARM) &&                                                  \
-    (defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)) &&                \
+    (defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)) &&                    \
     !defined(__thumb__)
 #define USE_SIGNAL_HANDLER_TRAMPOLINE
 #endif

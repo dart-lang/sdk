@@ -5,7 +5,7 @@
 #include "platform/globals.h"  // NOLINT
 
 
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
 
 #include "vm/os_thread.h"
 
@@ -472,4 +472,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)

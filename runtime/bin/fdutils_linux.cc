@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
 
 #include "bin/fdutils.h"
 
@@ -147,4 +147,4 @@ void FDUtils::SaveErrorAndClose(intptr_t fd) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)

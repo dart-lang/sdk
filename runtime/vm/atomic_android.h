@@ -9,7 +9,7 @@
 #error Do not include atomic_android.h directly. Use atomic.h instead.
 #endif
 
-#if !defined(TARGET_OS_ANDROID)
+#if !defined(HOST_OS_ANDROID)
 #error This file should only be included on Android builds.
 #endif
 

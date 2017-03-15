@@ -22,7 +22,7 @@ namespace dart {
 
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-#if !defined(TARGET_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
   // On Windows, the profiler calls this from a separate thread where
   // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
@@ -223,7 +223,7 @@ RawCode* StackFrame::LookupDartCode() const {
 // We add a no gc scope to ensure that the code below does not trigger
 // a GC as we are handling raw object references here. It is possible
 // that the code is called while a GC is in progress, that is ok.
-#if !defined(TARGET_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
   // On Windows, the profiler calls this from a separate thread where
   // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;

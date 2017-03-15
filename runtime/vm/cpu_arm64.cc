@@ -19,12 +19,12 @@
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
-#if TARGET_OS_IOS
+#if HOST_OS_IOS
   // Precompilation never patches code so there should be no I cache flushes.
   UNREACHABLE();
 #endif
 
-#if !defined(USING_SIMULATOR) && !TARGET_OS_IOS
+#if !defined(USING_SIMULATOR) && !HOST_OS_IOS
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -32,8 +32,8 @@ void CPU::FlushICache(uword start, uword size) {
 
 // ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
 // blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
-#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_FUCHSIA) ||                \
-    defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA) ||                    \
+    defined(HOST_OS_LINUX)
   extern void __clear_cache(char*, char*);
   char* beg = reinterpret_cast<char*>(start);
   char* end = reinterpret_cast<char*>(start + size);

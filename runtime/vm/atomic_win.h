@@ -9,7 +9,7 @@
 #error Do not include atomic_win.h directly. Use atomic.h instead.
 #endif
 
-#if !defined(TARGET_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
 #error This file should only be included on Windows builds.
 #endif
 

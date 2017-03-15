@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if TARGET_OS_IOS
+#if HOST_OS_IOS
 
 #include "bin/secure_socket.h"
 #include "bin/secure_socket_ios.h"
@@ -1502,6 +1502,6 @@ OSStatus SSLFilter::ProcessWritePlaintextBuffer(intptr_t start,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // TARGET_OS_IOS
+#endif  // HOST_OS_IOS
 
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

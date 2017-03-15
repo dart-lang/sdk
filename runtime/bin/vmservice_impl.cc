@@ -238,7 +238,7 @@ bool VmService::Setup(const char* server_ip,
                          Dart_NewBoolean(dev_mode_server));
 
 // Are we running on Windows?
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   Dart_Handle is_windows = Dart_True();
 #else
   Dart_Handle is_windows = Dart_False();
@@ -248,7 +248,7 @@ bool VmService::Setup(const char* server_ip,
   SHUTDOWN_ON_ERROR(result);
 
 // Are we running on Fuchsia?
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
   Dart_Handle is_fuchsia = Dart_True();
 #else
   Dart_Handle is_fuchsia = Dart_False();

@@ -80,7 +80,7 @@ typedef uword cpp_vtable;
 
 // When using GCC we can use GCC attributes to ensure that certain
 // contants are 8 or 16 byte aligned.
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 #define ALIGN8 __declspec(align(8))
 #define ALIGN16 __declspec(align(16))
 #else
@@ -98,7 +98,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 
 
 // Macros to get the contents of the fp register.
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 // clang-format off
 #if defined(HOST_ARCH_IA32)
@@ -114,7 +114,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #error Unknown host architecture.
 #endif
 
-#else  // !defined(TARGET_OS_WINDOWS))
+#else  // !defined(HOST_OS_WINDOWS))
 
 // Assume GCC-like inline syntax is valid.
 #if defined(HOST_ARCH_IA32)
@@ -122,7 +122,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #elif defined(HOST_ARCH_X64)
 #define COPY_FP_REGISTER(fp) asm volatile("movq %%rbp, %0" : "=r"(fp));
 #elif defined(HOST_ARCH_ARM)
-#if defined(TARGET_OS_MAC)
+#if defined(HOST_OS_MAC)
 #define COPY_FP_REGISTER(fp) asm volatile("mov %0, r7" : "=r"(fp));
 #else
 #define COPY_FP_REGISTER(fp) asm volatile("mov %0, r11" : "=r"(fp));
@@ -135,7 +135,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #error Unknown host architecture.
 #endif
 
-#endif  // !defined(TARGET_OS_WINDOWS))
+#endif  // !defined(HOST_OS_WINDOWS))
 
 }  // namespace dart
 
