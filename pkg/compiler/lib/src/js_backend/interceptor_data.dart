@@ -5,6 +5,7 @@
 library js_backend.interceptor_data;
 
 import '../common/names.dart' show Identifiers;
+import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -219,6 +220,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final NativeData _nativeData;
   final BackendHelpers _helpers;
   final CommonElements _commonElements;
+  final Resolution _resolution;
 
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to
@@ -236,7 +238,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
       new Set<ClassElement>();
 
   InterceptorDataBuilderImpl(
-      this._nativeData, this._helpers, this._commonElements);
+      this._nativeData, this._helpers, this._commonElements, this._resolution);
 
   InterceptorData onResolutionComplete(ClosedWorld closedWorld) {
     return new InterceptorDataImpl(
@@ -249,6 +251,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   }
 
   void addInterceptorsForNativeClassMembers(ClassElement cls) {
+    cls.ensureResolved(_resolution);
     cls.forEachMember((ClassElement classElement, Element member) {
       if (member.name == Identifiers.call) {
         return;
@@ -272,6 +275,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
 
   void addInterceptors(ClassElement cls) {
     if (_interceptedClasses.add(cls)) {
+      cls.ensureResolved(_resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
         // All methods on [Object] are shadowed by [Interceptor].
         if (classElement == _commonElements.objectClass) return;

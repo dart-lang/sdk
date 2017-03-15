@@ -5,7 +5,6 @@
 library js_backend.backend.resolution_listener;
 
 import '../common/names.dart' show Identifiers, Uris;
-import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -33,8 +32,8 @@ import 'no_such_method_registry.dart';
 import 'type_variable_handler.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
-  // TODO(johnniwinther): Avoid the need for accessing through [_backend].
-  final JavaScriptBackend _backend;
+  // TODO(johnniwinther): Avoid the need for this.
+  final KernelTask _kernelTask;
 
   final CompilerOptions _options;
   final CommonElements _commonElements;
@@ -52,13 +51,15 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
   final LookupMapLibraryAccess _lookupMapLibraryAccess;
   final MirrorsAnalysis _mirrorsAnalysis;
+  final TypeVariableAnalysis _typeVariableAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
 
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
+
   ResolutionEnqueuerListener(
-      this._backend,
+      this._kernelTask,
       this._options,
       this._elementEnvironment,
       this._commonElements,
@@ -73,16 +74,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._customElementsAnalysis,
       this._lookupMapLibraryAccess,
       this._mirrorsAnalysis,
+      this._typeVariableAnalysis,
       this._nativeEnqueuer);
-
-  // TODO(johnniwinther): Avoid the need for these.
-  Resolution get _resolution => _backend.resolution;
-  KernelTask get _kernelTask => _backend.kernelTask;
-
-  // TODO(johnniwinther): Change this to a final field. Currently breaks
-  // `kernel/closed_world_test`.
-  TypeVariableAnalysis get _typeVariableAnalysis =>
-      _backend.typeVariableAnalysis;
 
   void _registerBackendImpact(
       WorldImpactBuilder builder, BackendImpact impact) {
@@ -91,7 +84,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   void _addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder) {
-    cls.ensureResolved(_resolution);
     _interceptorData.addInterceptors(cls);
     impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
     _backendUsage.registerBackendClassUse(cls);
@@ -369,18 +361,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     } else if (cls == _helpers.jsJavaScriptFunctionClass) {
       _addInterceptors(_helpers.jsJavaScriptFunctionClass, impactBuilder);
     } else if (_nativeData.isNativeOrExtendsNative(cls)) {
-      _addInterceptorsForNativeClassMembers(cls);
+      _interceptorData.addInterceptorsForNativeClassMembers(cls);
     } else if (cls == _helpers.jsIndexingBehaviorInterface) {
       _registerBackendImpact(impactBuilder, _impacts.jsIndexingBehavior);
     }
 
     _customElementsAnalysis.registerInstantiatedClass(cls);
     return impactBuilder;
-  }
-
-  void _addInterceptorsForNativeClassMembers(ClassElement cls) {
-    cls.ensureResolved(_resolution);
-    _interceptorData.addInterceptorsForNativeClassMembers(cls);
   }
 
   @override
@@ -415,7 +402,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
-    // We register all the _helpers in the _resolution queue.
+    // We register all the _helpers in the resolution queue.
     // TODO(13155): Find a way to register fewer _helpers.
     List<FunctionEntity> staticUses = <FunctionEntity>[];
     for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {

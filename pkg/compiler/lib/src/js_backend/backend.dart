@@ -547,10 +547,10 @@ class JavaScriptBackend {
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(nativeData);
-    _interceptorDataBuilder =
-        new InterceptorDataBuilderImpl(nativeData, helpers, commonElements);
+    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
+        nativeData, helpers, commonElements, compiler.resolution);
     _resolutionEnqueuerListener = new ResolutionEnqueuerListener(
-        this,
+        kernelTask,
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
@@ -565,6 +565,7 @@ class JavaScriptBackend {
         customElementsResolutionAnalysis,
         lookupMapLibraryAccess,
         mirrorsAnalysis,
+        typeVariableAnalysis,
         _nativeResolutionEnqueuer);
   }
 
@@ -584,6 +585,12 @@ class JavaScriptBackend {
     assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData != null,
         message: "InterceptorData has not been computed yet."));
     return _interceptorData;
+  }
+
+  InterceptorDataBuilder get interceptorDataBuilder {
+    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData == null,
+        message: "InterceptorData has already been computed."));
+    return _interceptorDataBuilder;
   }
 
   OneShotInterceptorData get oneShotInterceptorData {
