@@ -49,7 +49,7 @@ abstract class InterceptorDataBuilder {
 }
 
 class InterceptorDataImpl implements InterceptorData {
-  final NativeClassData _nativeData;
+  final NativeBasicData _nativeData;
   final BackendHelpers _helpers;
   final ClosedWorld _closedWorld;
 
@@ -217,7 +217,7 @@ class InterceptorDataImpl implements InterceptorData {
 }
 
 class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
-  final NativeClassData _nativeData;
+  final NativeBasicData _nativeData;
   final BackendHelpers _helpers;
   final CommonElements _commonElements;
   final Resolution _resolution;

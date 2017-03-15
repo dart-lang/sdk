@@ -49,7 +49,7 @@ void testTypeRepresentations() {
         env.compiler.backend.onCodegenStart(
             closedWorld,
             new CodegenWorldBuilderImpl(
-                env.compiler.backend.nativeClassData,
+                env.compiler.backend.nativeBaseData,
                 closedWorld,
                 env.compiler.backend.constants,
                 const TypeMaskStrategy()));

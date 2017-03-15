@@ -94,7 +94,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     }
     currentDefinitions = node;
     FormalElementX element = definition == null
-        ? createUnnamedParameter()  // This happens in function types.
+        ? createUnnamedParameter() // This happens in function types.
         : definition.accept(this);
     if (currentDefinitions.metadata != null) {
       element.metadataInternal =
@@ -205,7 +205,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     FormalElementX parameter;
     assert(!createRealParameters);
     parameter = new FormalElementX.unnamed(
-          ElementKind.PARAMETER, enclosingElement, currentDefinitions);
+        ElementKind.PARAMETER, enclosingElement, currentDefinitions);
     computeParameterType(parameter);
     return parameter;
   }

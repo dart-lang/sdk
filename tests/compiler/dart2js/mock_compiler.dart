@@ -20,7 +20,7 @@ import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/js_backend/backend_helpers.dart'
     show BackendHelpers;
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
-    show LookupMapLibraryAccess;
+    show LookupMapResolutionAnalysis;
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/resolution/members.dart';
@@ -131,7 +131,7 @@ class MockCompiler extends Compiler {
       asyncLibrarySource.addAll(ASYNC_AWAIT_LIBRARY);
     }
     registerSource(Uris.dart_async, buildLibrarySource(asyncLibrarySource));
-    registerSource(LookupMapLibraryAccess.PACKAGE_LOOKUP_MAP,
+    registerSource(LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP,
         buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
   }
 

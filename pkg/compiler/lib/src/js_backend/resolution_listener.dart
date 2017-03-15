@@ -26,10 +26,10 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'lookup_map_analysis.dart' show LookupMapLibraryAccess;
+import 'lookup_map_analysis.dart' show LookupMapResolutionAnalysis;
 import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
-import 'native_data.dart' show NativeClassData;
+import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
 import 'type_variable_handler.dart';
 
@@ -44,7 +44,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final BackendImpacts _impacts;
   final BackendClasses _backendClasses;
 
-  final NativeClassData _nativeData;
+  final NativeBasicData _nativeData;
   final InterceptorDataBuilder _interceptorData;
   final BackendUsageBuilder _backendUsage;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
@@ -52,9 +52,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
-  final LookupMapLibraryAccess _lookupMapLibraryAccess;
+  final LookupMapResolutionAnalysis _lookupMapResolutionAnalysis;
   final MirrorsAnalysis _mirrorsAnalysis;
-  final TypeVariableAnalysis _typeVariableAnalysis;
+  final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
 
@@ -76,9 +76,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._mirrorsData,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
-      this._lookupMapLibraryAccess,
+      this._lookupMapResolutionAnalysis,
       this._mirrorsAnalysis,
-      this._typeVariableAnalysis,
+      this._typeVariableResolutionAnalysis,
       this._nativeEnqueuer);
 
   void _registerBackendImpact(
@@ -191,8 +191,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
-    enqueuer.applyImpact(_lookupMapLibraryAccess.flush());
-    enqueuer.applyImpact(_typeVariableAnalysis.flush());
+    enqueuer.applyImpact(_lookupMapResolutionAnalysis.flush());
+    enqueuer.applyImpact(_typeVariableResolutionAnalysis.flush());
 
     for (ClassEntity cls in recentClasses) {
       MemberEntity element =
@@ -352,7 +352,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   WorldImpact _processClass(ClassElement cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      _typeVariableAnalysis.registerClassWithTypeVariables(cls);
+      _typeVariableResolutionAnalysis.registerClassWithTypeVariables(cls);
     }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
     // for these into [BackendHelpers] or [BackendImpacts].

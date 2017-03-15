@@ -46,7 +46,7 @@ import '../../js_backend/js_backend.dart'
         JavaScriptConstantCompiler,
         Namer,
         SetterName,
-        TypeVariableHandler;
+        TypeVariableCodegenAnalysis;
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -139,7 +139,8 @@ class Emitter implements js_emitter.Emitter {
   final Set<jsAst.Name> recordedMangledNames = new Set<jsAst.Name>();
 
   JavaScriptBackend get backend => compiler.backend;
-  TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
+  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis =>
+      backend.typeVariableCodegenAnalysis;
 
   String get _ => space;
   String get space => compiler.options.enableMinification ? "" : " ";

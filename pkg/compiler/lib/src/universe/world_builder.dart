@@ -18,7 +18,7 @@ import '../elements/types.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/constant_handler_javascript.dart'
     show JavaScriptConstantCompiler;
-import '../js_backend/native_data.dart' show NativeClassData;
+import '../js_backend/native_data.dart' show NativeBasicData;
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';

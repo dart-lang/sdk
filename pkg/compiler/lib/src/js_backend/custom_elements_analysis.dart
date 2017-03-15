@@ -55,7 +55,7 @@ import 'native_data.dart';
  * In these cases we conservatively generate all viable entries in the table.
  */
 abstract class CustomElementsAnalysisBase {
-  final NativeClassData _nativeData;
+  final NativeBasicData _nativeData;
   final BackendHelpers _helpers;
   final Resolution _resolution;
 
@@ -94,7 +94,7 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
       CommonElements commonElements,
       BackendClasses backendClasses,
       BackendHelpers helpers,
-      NativeClassData nativeData,
+      NativeBasicData nativeData,
       BackendUsageBuilder backendUsageBuilder)
       : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
             commonElements, backendClasses, nativeData,
@@ -132,7 +132,7 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
       CommonElements commonElements,
       BackendClasses backendClasses,
       BackendHelpers helpers,
-      NativeClassData nativeData)
+      NativeBasicData nativeData)
       : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
             commonElements, backendClasses, nativeData),
         super(resolution, helpers, nativeData) {
@@ -163,7 +163,7 @@ class CustomElementsAnalysisJoin {
   final ConstantSystem _constantSystem;
   final CommonElements _commonElements;
   final BackendClasses _backendClasses;
-  final NativeClassData _nativeData;
+  final NativeBasicData _nativeData;
   final BackendUsageBuilder _backendUsageBuilder;
 
   final bool forResolution;

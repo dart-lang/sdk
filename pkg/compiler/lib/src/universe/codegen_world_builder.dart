@@ -48,7 +48,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 }
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
-  final NativeClassData _nativeData;
+  final NativeBasicData _nativeData;
   final ClosedWorld _world;
   final JavaScriptConstantCompiler _constants;
 

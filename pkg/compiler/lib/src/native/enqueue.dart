@@ -16,7 +16,7 @@ import '../elements/types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/js_backend.dart';
-import '../js_backend/native_data.dart' show NativeClassDataBuilder;
+import '../js_backend/native_data.dart' show NativeBasicDataBuilder;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
@@ -104,7 +104,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     library.implementation.forEachLocalMember((Element element) {
       if (element.isClass) {
         ClassElement cls = element;
-        if (backend.nativeClassData.isNativeClass(cls)) {
+        if (backend.nativeBaseData.isNativeClass(cls)) {
           processNativeClass(element);
         }
       }
@@ -145,7 +145,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     // fact a subclass of a native class.
 
     ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (backend.nativeClassData.isNativeClass(classElement))
+      if (backend.nativeBaseData.isNativeClass(classElement))
         return classElement;
       if (classElement.superclass == null) return null;
       return nativeSuperclassOf(classElement.superclass);
@@ -367,11 +367,11 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     super.processNativeClass(classElement);
 
     // Js Interop interfaces do not have tags.
-    if (backend.nativeClassData.isJsInteropClass(classElement)) return;
+    if (backend.nativeBaseData.isJsInteropClass(classElement)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
     for (String tag
-        in backend.nativeClassData.getNativeTagsOfClass(classElement)) {
+        in backend.nativeBaseData.getNativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
         if (owner != classElement) {

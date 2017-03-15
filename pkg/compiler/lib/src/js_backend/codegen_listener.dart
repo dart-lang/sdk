@@ -31,9 +31,6 @@ import 'mirrors_data.dart';
 import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
-  // TODO(johnniwinther): Remove this.
-  final DumpInfoTask _dumpInfoTask;
-
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
@@ -45,18 +42,15 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final MirrorsData _mirrorsData;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
-  final TypeVariableHandler _typeVariableHandler;
+  final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
   final LookupMapAnalysis _lookupMapAnalysis;
   final MirrorsAnalysis _mirrorsAnalysis;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
-  final JavaScriptConstantCompiler _constants;
-
   bool _isNoSuchMethodUsed = false;
 
   CodegenEnqueuerListener(
-      this._dumpInfoTask,
       this._elementEnvironment,
       this._commonElements,
       this._helpers,
@@ -66,7 +60,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._rtiNeed,
       this._mirrorsData,
       this._customElementsAnalysis,
-      this._typeVariableHandler,
+      this._typeVariableCodegenAnalysis,
       this._lookupMapAnalysis,
       this._mirrorsAnalysis,
       this._nativeEnqueuer);
@@ -161,7 +155,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
     enqueuer.applyImpact(_lookupMapAnalysis.flush());
-    enqueuer.applyImpact(_typeVariableHandler.flush());
+    enqueuer.applyImpact(_typeVariableCodegenAnalysis.flush());
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
       enqueuer.applyImpact(
@@ -276,7 +270,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   WorldImpact _processClass(ClassElement cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     if (!cls.typeVariables.isEmpty) {
-      _typeVariableHandler.registerClassWithTypeVariables(cls);
+      _typeVariableCodegenAnalysis.registerClassWithTypeVariables(cls);
     }
     if (cls == _helpers.closureClass) {
       _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);

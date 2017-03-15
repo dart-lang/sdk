@@ -133,17 +133,17 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       backend.helpers,
       backend.impacts,
       backend.backendClasses,
-      backend.nativeClassData,
+      backend.nativeBaseData,
       backend.interceptorDataBuilder,
       backend.backendUsageBuilder,
       backend.rtiNeedBuilder,
       backend.mirrorsData,
       backend.noSuchMethodRegistry,
       backend.customElementsResolutionAnalysis,
-      backend.lookupMapLibraryAccess,
+      backend.lookupMapResolutionAnalysis,
       backend.mirrorsAnalysis,
-      new TypeVariableAnalysis(compiler.elementEnvironment, backend.impacts,
-          backend.backendUsageBuilder),
+      new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
+          backend.impacts, backend.backendUsageBuilder),
       backend.nativeResolutionEnqueuer);
 }
 

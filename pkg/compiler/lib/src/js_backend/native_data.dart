@@ -10,11 +10,10 @@ import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../util/util.dart';
 
-/// Basic information for native classes and methods and js-interop
-/// classes.
+/// Basic information for native classes and js-interop libraries and classes.
 ///
-/// This information is computed during loading using [NativeClassDataBuilder].
-abstract class NativeClassData {
+/// This information is computed during loading using [NativeBasicDataBuilder].
+abstract class NativeBasicData {
   /// Returns `true` if [cls] corresponds to a native JavaScript class.
   ///
   /// A class is marked as native either through the `@Native(...)` annotation
@@ -42,7 +41,7 @@ abstract class NativeClassData {
 /// methods.
 ///
 /// This information is computed during resolution using [NativeDataBuilder].
-abstract class NativeData extends NativeClassData {
+abstract class NativeData extends NativeBasicData {
   /// Returns `true` if [element] corresponds to a native JavaScript member.
   ///
   /// A member is marked as native either through the native mechanism
@@ -91,7 +90,7 @@ abstract class NativeData extends NativeClassData {
   String computeUnescapedJSInteropName(String name);
 }
 
-abstract class NativeClassDataBuilder {
+abstract class NativeBasicDataBuilder {
   /// Sets the native tag info for [cls].
   ///
   /// The tag info string contains comma-separated 'words' which are either
@@ -136,7 +135,7 @@ abstract class NativeDataBuilder {
   void setJsInteropMemberName(MemberEntity element, String name);
 }
 
-class NativeClassDataImpl implements NativeClassDataBuilder, NativeClassData {
+class NativeBasicDataImpl implements NativeBasicDataBuilder, NativeBasicData {
   /// Tag info for native JavaScript classes names. See
   /// [setNativeClassTagInfo].
   Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
@@ -221,7 +220,7 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
   /// when using JSInterop.
   static const String _jsInteropEscapePrefix = r'JS$';
 
-  final NativeClassData _nativeClassData;
+  final NativeBasicData _nativeBaseData;
 
   /// The JavaScript names for native JavaScript elements implemented.
   Map<MemberEntity, String> nativeMemberName = <MemberEntity, String>{};
@@ -247,7 +246,7 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
   /// interop.
   Map<MemberEntity, String> jsInteropMemberNames = <MemberEntity, String>{};
 
-  NativeDataImpl(this._nativeClassData);
+  NativeDataImpl(this._nativeBaseData);
 
   /// Sets the native [name] for the member [element]. This name is used for
   /// [element] in the generated JavaScript.
@@ -280,7 +279,7 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
 
   /// Sets the explicit js interop [name] for the library [element].
   void setJsInteropLibraryName(LibraryEntity element, String name) {
-    assert(invariant(element, _nativeClassData.isJsInteropLibrary(element),
+    assert(invariant(element, _nativeBaseData.isJsInteropLibrary(element),
         message:
             'Library $element is not js interop but given a js interop name.'));
     jsInteropLibraryNames[element] = name;
@@ -288,7 +287,7 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
 
   /// Sets the explicit js interop [name] for the class [element].
   void setJsInteropClassName(ClassEntity element, String name) {
-    assert(invariant(element, _nativeClassData.isJsInteropClass(element),
+    assert(invariant(element, _nativeBaseData.isJsInteropClass(element),
         message:
             'Class $element is not js interop but given a js interop name.'));
     jsInteropClassNames[element] = name;
@@ -314,27 +313,27 @@ class NativeDataImpl implements NativeDataBuilder, NativeData {
 
   /// Returns `true` if [cls] is a native class.
   bool isNativeClass(ClassEntity element) =>
-      _nativeClassData.isNativeClass(element);
+      _nativeBaseData.isNativeClass(element);
 
   /// Returns the list of non-directive native tag words for [cls].
   List<String> getNativeTagsOfClass(ClassEntity cls) =>
-      _nativeClassData.getNativeTagsOfClass(cls);
+      _nativeBaseData.getNativeTagsOfClass(cls);
 
   /// Returns `true` if [cls] has a `!nonleaf` tag word.
   bool hasNativeTagsForcedNonLeaf(ClassEntity cls) =>
-      _nativeClassData.hasNativeTagsForcedNonLeaf(cls);
+      _nativeBaseData.hasNativeTagsForcedNonLeaf(cls);
 
   /// Returns `true` if [element] is a JsInterop library.
   bool isJsInteropLibrary(LibraryEntity element) =>
-      _nativeClassData.isJsInteropLibrary(element);
+      _nativeBaseData.isJsInteropLibrary(element);
 
   /// Returns `true` if [element] is a JsInterop class.
   bool isJsInteropClass(ClassEntity element) =>
-      _nativeClassData.isJsInteropClass(element);
+      _nativeBaseData.isJsInteropClass(element);
 
   /// Returns `true` if [element] or any of its superclasses is native.
   bool isNativeOrExtendsNative(ClassEntity element) =>
-      _nativeClassData.isNativeOrExtendsNative(element);
+      _nativeBaseData.isNativeOrExtendsNative(element);
 
   /// Returns the explicit js interop name for library [element].
   String getJsInteropLibraryName(LibraryEntity element) {

@@ -2056,10 +2056,10 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   bool visitFunctionTypeAnnotation(
       FunctionTypeAnnotation node1, FunctionTypeAnnotation node2) {
     return testNodes(
-        node1, node2, 'returnType', node1.returnType, node2.returnType) &&
+            node1, node2, 'returnType', node1.returnType, node2.returnType) &&
         testNodes(node1, node2, 'formals', node1.formals, node2.formals) &&
-            testNodes(node1, node2, 'typeParameters', node1.typeParameters,
-                node2.typeParameters);
+        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
+            node2.typeParameters);
   }
 
   @override

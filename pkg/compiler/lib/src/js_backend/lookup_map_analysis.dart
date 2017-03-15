@@ -37,7 +37,7 @@ import 'backend_helpers.dart';
 /// In [LookupMapAnalysis] the value of `_version` is checked to ensure that it
 /// is valid to perform the optimization of `LookupMap`. The actual optimization
 /// is performed by [LookupMapAnalysis].
-class LookupMapLibraryAccess {
+class LookupMapResolutionAnalysis {
   static final Uri PACKAGE_LOOKUP_MAP =
       new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
 
@@ -57,7 +57,7 @@ class LookupMapLibraryAccess {
   final StagedWorldImpactBuilder _impactBuilder =
       new StagedWorldImpactBuilder();
 
-  LookupMapLibraryAccess(this._reporter, this._elementEnvironment);
+  LookupMapResolutionAnalysis(this._reporter, this._elementEnvironment);
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
   WorldImpact flush() {
@@ -131,7 +131,7 @@ class LookupMapAnalysis {
       CommonElements commonElements,
       BackendHelpers helpers,
       BackendClasses backendClasses,
-      LookupMapLibraryAccess analysis) {
+      LookupMapResolutionAnalysis analysis) {
     /// Checks if the version of lookup_map is valid, and if so, enable this
     /// analysis during codegen.
     FieldElement lookupMapVersionVariable = analysis.lookupMapVersionVariable;

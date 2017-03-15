@@ -22,7 +22,7 @@ import 'mirrors_data.dart';
 
 /// Resolution analysis that prepares for the construction of TypeVariable
 /// constants needed at runtime.
-class TypeVariableAnalysis {
+class TypeVariableResolutionAnalysis {
   final ElementEnvironment _elementEnvironment;
   final BackendImpacts _impacts;
   final BackendUsageBuilder _backendUsageBuilder;
@@ -35,7 +35,7 @@ class TypeVariableAnalysis {
   /// Impact builder used for the resolution world computation.
   final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
 
-  TypeVariableAnalysis(
+  TypeVariableResolutionAnalysis(
       this._elementEnvironment, this._impacts, this._backendUsageBuilder);
 
   /// Compute the [WorldImpact] for the type variables registered since last
@@ -57,7 +57,7 @@ class TypeVariableAnalysis {
 }
 
 /// Codegen handler that creates TypeVariable constants needed at runtime.
-class TypeVariableHandler {
+class TypeVariableCodegenAnalysis {
   final JavaScriptBackend _backend;
   final BackendHelpers _helpers;
   final MirrorsData _mirrorsData;
@@ -80,7 +80,7 @@ class TypeVariableHandler {
   final StagedWorldImpactBuilder _impactBuilder =
       new StagedWorldImpactBuilder();
 
-  TypeVariableHandler(this._backend, this._helpers, this._mirrorsData);
+  TypeVariableCodegenAnalysis(this._backend, this._helpers, this._mirrorsData);
 
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;

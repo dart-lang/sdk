@@ -1738,8 +1738,7 @@ class Rethrow extends Statement {
   Token getEndToken() => endToken;
 }
 
-abstract class TypeAnnotation extends Node {
-}
+abstract class TypeAnnotation extends Node {}
 
 class NominalTypeAnnotation extends TypeAnnotation {
   final Expression typeName;
@@ -2894,6 +2893,7 @@ class Typedef extends Node {
 
   final TypeAnnotation returnType;
   final Identifier name;
+
   /// The generic type parameters to the function type.
   ///
   /// For example `A` and `B` (but not `T`) are type parameters in
@@ -2904,8 +2904,14 @@ class Typedef extends Node {
   final Token typedefKeyword;
   final Token endToken;
 
-  Typedef(this.isGeneralizedTypeAlias, this.templateParameters, this.returnType,
-      this.name, this.typeParameters, this.formals, this.typedefKeyword,
+  Typedef(
+      this.isGeneralizedTypeAlias,
+      this.templateParameters,
+      this.returnType,
+      this.name,
+      this.typeParameters,
+      this.formals,
+      this.typedefKeyword,
       this.endToken);
 
   Typedef asTypedef() => this;
