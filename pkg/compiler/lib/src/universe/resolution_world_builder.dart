@@ -661,6 +661,9 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
         invariant(
             element, 'Direct static use is not supported for resolution.');
         break;
+      case StaticUseKind.INLINING:
+        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+            "Static use ${staticUse.kind} is not supported during resolution.");
     }
     if (useSet.isNotEmpty) {
       memberUsed(usage.entity, useSet);

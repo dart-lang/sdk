@@ -81,6 +81,7 @@ enum StaticUseKind {
   REDIRECTION,
   DIRECT_INVOKE,
   DIRECT_USE,
+  INLINING,
 }
 
 /// Statically known use of an [Element].
@@ -336,6 +337,11 @@ class StaticUse {
   /// Direct use of [element] as done with `--analyze-all` and `--analyze-main`.
   factory StaticUse.directUse(Entity element) {
     return new StaticUse.internal(element, StaticUseKind.DIRECT_USE);
+  }
+
+  /// Inlining of [element].
+  factory StaticUse.inlining(FunctionEntity element) {
+    return new StaticUse.internal(element, StaticUseKind.INLINING);
   }
 
   bool operator ==(other) {

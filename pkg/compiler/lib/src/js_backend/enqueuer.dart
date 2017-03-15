@@ -163,6 +163,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
       case StaticUseKind.REDIRECTION:
         processTypeUse(new TypeUse.instantiation(staticUse.type));
         break;
+      case StaticUseKind.INLINING:
+        // TODO(johnniwinther): Should this be tracked with _MemberUsage ?
+        listener.registerUsedElement(staticUse.element);
+        break;
       default:
         break;
     }

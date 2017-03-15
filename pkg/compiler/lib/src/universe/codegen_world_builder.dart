@@ -355,6 +355,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
       case StaticUseKind.DIRECT_INVOKE:
+      case StaticUseKind.INLINING:
         break;
     }
   }
@@ -402,6 +403,8 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         _instanceMembersByName[instanceUsage.entity.name]
             ?.remove(instanceUsage);
         useSet.addAll(usage.normalUse());
+        break;
+      case StaticUseKind.INLINING:
         break;
     }
     if (useSet.isNotEmpty) {

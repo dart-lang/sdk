@@ -403,8 +403,7 @@ class SsaBuilder extends ast.Visitor
   bool tryInlineMethod(MethodElement element, Selector selector, TypeMask mask,
       List<HInstruction> providedArguments, ast.Node currentNode,
       {ResolutionInterfaceType instanceType}) {
-    registry.addImpact(
-        backend.codegenEnqueuerListener.registerUsedElement(element));
+    registry.registerStaticUse(new StaticUse.inlining(element));
 
     if (backend.nativeData.isJsInterop(element) &&
         !element.isFactoryConstructor) {
