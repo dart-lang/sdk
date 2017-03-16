@@ -5532,8 +5532,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   // Construct the type object, canonicalize it and return.
   Type& instantiated_type =
       Type::Handle(Type::New(cls, type_args_obj, TokenPosition::kNoSource));
-  instantiated_type ^= ClassFinalizer::FinalizeType(
-      cls, instantiated_type, ClassFinalizer::kCanonicalize);
+  instantiated_type ^= ClassFinalizer::FinalizeType(cls, instantiated_type);
   return Api::NewHandle(T, instantiated_type.raw());
 }
 

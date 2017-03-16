@@ -95,13 +95,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseConstructor_with_pseudo_function_literal() {
-    // TODO(paulberry): Expected: an object with length of <1>
-    super.test_parseConstructor_with_pseudo_function_literal();
-  }
-
-  @override
-  @failingTest
   void test_parseConstructorFieldInitializer_qualified() {
     // TODO(paulberry): Unhandled event: ThisExpression
     super.test_parseConstructorFieldInitializer_qualified();
@@ -1112,62 +1105,8 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseForStatement_loop_c() {
-    super.test_parseForStatement_loop_c();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_cu() {
-    super.test_parseForStatement_loop_cu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_ecu() {
-    super.test_parseForStatement_loop_ecu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_i() {
-    super.test_parseForStatement_loop_i();
-  }
-
-  @override
-  @failingTest
   void test_parseForStatement_loop_i_withMetadata() {
     super.test_parseForStatement_loop_i_withMetadata();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_ic() {
-    super.test_parseForStatement_loop_ic();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_icu() {
-    super.test_parseForStatement_loop_icu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_iicuu() {
-    super.test_parseForStatement_loop_iicuu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_iu() {
-    super.test_parseForStatement_loop_iu();
-  }
-
-  @override
-  @failingTest
-  void test_parseForStatement_loop_u() {
-    super.test_parseForStatement_loop_u();
   }
 
   @override
@@ -1328,16 +1267,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnit_typedefAsPrefix() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_typedefAsPrefix();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
-    // TODO(paulberry,ahe): Fasta doesn't appear to support annotated type
-    // parameters.
-    super
-        .test_parseCompilationUnitMember_function_generic_noReturnType_annotated();
   }
 
   @override

@@ -13,9 +13,14 @@ part of _interceptors;
 class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
+  @NoInline()
   int codeUnitAt(int index) {
     if (index is !int) throw diagnoseIndexError(this, index);
     if (index < 0) throw diagnoseIndexError(this, index);
+    return _codeUnitAt(index);
+  }
+
+  int _codeUnitAt(int index) {
     if (index >= length) throw diagnoseIndexError(this, index);
     return JS('JSUInt31', r'#.charCodeAt(#)', this, index);
   }

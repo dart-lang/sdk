@@ -8,7 +8,7 @@
 // We must take these math functions from the C++ header file as long as we
 // are using the STL. Otherwise the Android build will break due to confusion
 // between C++ and C headers when math.h is also included.
-#if !defined(TARGET_OS_FUCHSIA)
+#if !defined(HOST_OS_FUCHSIA)
 #include <cmath>
 
 #define isinf(val) std::isinf(val)

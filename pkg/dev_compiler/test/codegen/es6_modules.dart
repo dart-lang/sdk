@@ -4,8 +4,11 @@ library test;
 typedef void Callback({int i});
 
 class A {}
+
 class _A {}
+
 class B<T> {}
+
 class _B<T> {}
 
 f() {}

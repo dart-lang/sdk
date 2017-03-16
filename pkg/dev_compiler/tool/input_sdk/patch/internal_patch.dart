@@ -10,8 +10,7 @@ import 'dart:_foreign_helper' show JS;
 @patch
 class Symbol implements core.Symbol {
   @patch
-  const Symbol(String name)
-      : this._name = name;
+  const Symbol(String name) : this._name = name;
 
   @patch
   int get hashCode {
@@ -22,7 +21,7 @@ class Symbol implements core.Symbol {
     JS('', '#._hashCode = #', this, hash);
     return hash;
   }
-  
+
   @patch
   toString() => 'Symbol("$_name")';
 }
@@ -36,16 +35,15 @@ class PrivateSymbol implements core.Symbol {
 
   const PrivateSymbol(this._name, this._nativeSymbol);
 
-  static String getName(core.Symbol symbol) =>
-      (symbol as PrivateSymbol)._name;
+  static String getName(core.Symbol symbol) => (symbol as PrivateSymbol)._name;
 
   static Object getNativeSymbol(core.Symbol symbol) {
     if (symbol is PrivateSymbol) return symbol._nativeSymbol;
     return null;
   }
 
-  bool operator ==(other) => other is PrivateSymbol &&
-      identical(_nativeSymbol, other._nativeSymbol);
+  bool operator ==(other) =>
+      other is PrivateSymbol && identical(_nativeSymbol, other._nativeSymbol);
 
   // TODO(jmesserly): is this equivalent to _nativeSymbol toString?
   toString() => 'Symbol("$_name")';

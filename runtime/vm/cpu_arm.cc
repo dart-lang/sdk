@@ -90,12 +90,12 @@ DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the softfp ABI.");
 #endif
 
 void CPU::FlushICache(uword start, uword size) {
-#if TARGET_OS_IOS
+#if HOST_OS_IOS
   // Precompilation never patches code so there should be no I cache flushes.
   UNREACHABLE();
 #endif
 
-#if !defined(USING_SIMULATOR) && !TARGET_OS_IOS
+#if !defined(USING_SIMULATOR) && !HOST_OS_IOS
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -140,7 +140,7 @@ bool HostCPUFeatures::initialized_ = false;
 
 
 #if !defined(USING_SIMULATOR)
-#if TARGET_OS_IOS
+#if HOST_OS_IOS
 void HostCPUFeatures::InitOnce() {
   // TODO(24743): Actually check the CPU features and fail if we're missing
   // something assumed in a precompiled snapshot.
@@ -158,7 +158,7 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-#else  // TARGET_OS_IOS
+#else  // HOST_OS_IOS
 void HostCPUFeatures::InitOnce() {
   bool is_arm64 = false;
   CpuInfo::InitOnce();
@@ -238,7 +238,7 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-#endif  // TARGET_OS_IOS
+#endif  // HOST_OS_IOS
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

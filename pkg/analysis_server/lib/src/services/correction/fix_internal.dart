@@ -598,7 +598,7 @@ class FixProcessor {
       // In the future consider better values than null for specific element types.
       sb.append('$paramName: null');
 
-      _insertBuilder(sb, targetElement);
+      _insertBuilder(sb, null);
       _addFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, [paramName]);
     }
   }

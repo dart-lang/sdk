@@ -200,6 +200,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           return error('Interpolated value #$nameOrPosition is not '
               'an Expression or List of Expressions: $value');
         }
+
         if (value is Iterable) return value.map(toExpression);
         return toExpression(value);
       };
@@ -227,6 +228,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         return error('Interpolated value #$nameOrPosition is not an Identifier'
             ' or List of Identifiers: $value');
       }
+
       if (value is Iterable) return value.map(toIdentifier);
       return toIdentifier(value);
     };
@@ -263,6 +265,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         return error('Interpolated value #$nameOrPosition is not a Method '
             'or List of Methods: $value');
       }
+
       if (value is Iterable) return value.map(toMethod);
       return toMethod(value);
     };
@@ -291,6 +294,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           return error('Interpolated value #$nameOrPosition is not '
               'a Statement or List of Statements: $value');
         }
+
         if (value is Iterable) return value.map(toStatement);
         return toStatement(value);
       };
@@ -310,6 +314,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           statements.add(node.toStatement());
         }
       }
+
       for (Instantiator instantiator in instantiators) {
         add(instantiator(arguments));
       }
@@ -331,6 +336,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           statements.add(node.toStatement());
         }
       }
+
       for (Instantiator instantiator in instantiators) {
         add(instantiator(arguments));
       }
@@ -369,6 +375,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
             'is not an Expression: $value');
       };
     }
+
     var makeCondition = compileCondition(node.condition);
     Instantiator makeThen = visit(node.then);
     Instantiator makeOtherwise = visit(node.otherwise);
@@ -567,13 +574,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         makeThen(arguments), makeOtherwise(arguments));
   }
 
-  Instantiator visitNew(New node) =>
-      handleCallOrNew(node, (target, arguments) =>
-          new New(target, arguments as List<Expression>));
+  Instantiator visitNew(New node) => handleCallOrNew(node,
+      (target, arguments) => new New(target, arguments as List<Expression>));
 
-  Instantiator visitCall(Call node) =>
-      handleCallOrNew(node, (target, arguments) =>
-          new Call(target, arguments as List<Expression>));
+  Instantiator visitCall(Call node) => handleCallOrNew(node,
+      (target, arguments) => new Call(target, arguments as List<Expression>));
 
   Instantiator handleCallOrNew(Call node, finish(target, arguments)) {
     Instantiator makeTarget = visit(node.target);

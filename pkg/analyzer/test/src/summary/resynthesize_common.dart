@@ -5483,6 +5483,36 @@ final dynamic vIndex;
     }
   }
 
+  test_constExpr_pushReference_enum_method() {
+    var library = checkLibrary('''
+enum E {a}
+final vToString = E.a.toString();
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  final int index;
+  static const List<E> values;
+  static const E a;
+}
+final String vToString;
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+enum E {
+  final int index;
+  static const List<E> values;
+  static const E a;
+}
+final dynamic vToString;
+''');
+    }
+  }
+
   test_constExpr_pushReference_field_simpleIdentifier() {
     var library = checkLibrary('''
 class C {

@@ -4165,8 +4165,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Z,
       Type::New(function_class, TypeArguments::Handle(Z, TypeArguments::null()),
                 token_pos, Heap::kOld));
-  type ^= ClassFinalizer::FinalizeType(function_class, type,
-                                       ClassFinalizer::kCanonicalize);
+  type ^= ClassFinalizer::FinalizeType(function_class, type);
   Value* receiver_value = Bind(new (Z) ConstantInstr(type));
   arguments->Add(PushArgument(receiver_value));
   // String memberName.

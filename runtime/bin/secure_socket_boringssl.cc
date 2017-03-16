@@ -5,8 +5,8 @@
 #if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX) ||                  \
-    defined(TARGET_OS_WINDOWS) || defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX) ||                      \
+    defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
 
 #include "bin/secure_socket.h"
 #include "bin/secure_socket_boringssl.h"
@@ -872,7 +872,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     return;
   }
 
-#if defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_ANDROID)
   // On Android, we don't compile in the trusted root certificates. Insead,
   // we use the directory of trusted certificates already present on the device.
   // This saves ~240KB from the size of the binary. This has the drawback that
@@ -883,7 +883,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   const char* android_cacerts = "/system/etc/security/cacerts";
   LoadRootCertCache(context, android_cacerts);
   return;
-#elif defined(TARGET_OS_LINUX)
+#elif defined(HOST_OS_LINUX)
   // On Linux, we use the compiled-in trusted certs as a last resort. First,
   // we try to find the trusted certs in various standard locations. A good
   // discussion of the complexities of this endeavor can be found here:
@@ -900,7 +900,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     LoadRootCertCache(context, cachedir);
     return;
   }
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(HOST_OS_ANDROID)
 
   // Fall back on the compiled-in certs if the standard locations don't exist,
   // or we aren't on Linux.
@@ -1799,7 +1799,7 @@ int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)
 
 #endif  // !defined(DART_IO_DISABLED) &&
         // !defined(DART_IO_SECURE_SOCKET_DISABLED)

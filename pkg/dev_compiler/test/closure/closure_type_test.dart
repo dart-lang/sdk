@@ -41,10 +41,12 @@ void main() {
     });
 
     test('supports map types', () {
-      expectToString(new ClosureType.map(
+      expectToString(
+          new ClosureType.map(
               new ClosureType.type("Foo"), new ClosureType.type("Bar")),
           "Object<Foo, Bar>",
-          nullable: "Object<Foo, Bar>", nonNullable: "!Object<Foo, Bar>");
+          nullable: "Object<Foo, Bar>",
+          nonNullable: "!Object<Foo, Bar>");
       expectToString(new ClosureType.map(), "Object<*, *>",
           nullable: "Object<*, *>", nonNullable: "!Object<*, *>");
     });
@@ -56,10 +58,11 @@ void main() {
           "function(number)");
       expectToString(new ClosureType.function(null, new ClosureType.number()),
           "function(...*):number");
-      expectToString(new ClosureType.function([
-        new ClosureType.number(),
-        new ClosureType.string()
-      ], new ClosureType.boolean()), "function(number, string):boolean");
+      expectToString(
+          new ClosureType.function(
+              [new ClosureType.number(), new ClosureType.string()],
+              new ClosureType.boolean()),
+          "function(number, string):boolean");
     });
 
     test('supports union types', () {
@@ -70,7 +73,8 @@ void main() {
     });
 
     test('supports record types', () {
-      expectToString(new ClosureType.record(
+      expectToString(
+          new ClosureType.record(
               {'x': new ClosureType.number(), 'y': new ClosureType.boolean()}),
           "{x: number, y: boolean}");
     });

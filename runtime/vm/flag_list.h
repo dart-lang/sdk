@@ -12,7 +12,7 @@
 #define USING_DBC false
 #endif
 
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA)
 #define USING_FUCHSIA true
 #else
 #define USING_FUCHSIA false

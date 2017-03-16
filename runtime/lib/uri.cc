@@ -9,7 +9,7 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(Uri_isWindowsPlatform, 0) {
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   return Bool::True().raw();
 #else
   return Bool::False().raw();

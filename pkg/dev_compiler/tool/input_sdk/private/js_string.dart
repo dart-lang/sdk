@@ -15,7 +15,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   const JSString();
 
   int codeUnitAt(int index) {
-    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index is! int) throw diagnoseIndexError(this, index);
     if (index < 0) throw diagnoseIndexError(this, index);
     if (index >= length) throw diagnoseIndexError(this, index);
     return JS('int', r'#.charCodeAt(#)', this, index);
@@ -45,7 +45,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   String operator +(String other) {
-    if (other is !String) throw new ArgumentError.value(other);
+    if (other is! String) throw new ArgumentError.value(other);
     return JS('String', r'# + #', this, other);
   }
 
@@ -66,8 +66,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   String splitMapJoin(Pattern from,
-                      {String onMatch(Match match),
-                       String onNonMatch(String nonMatch)}) {
+      {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
@@ -79,7 +78,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   String replaceFirstMapped(Pattern from, String replace(Match match),
-                            [int startIndex = 0]) {
+      [int startIndex = 0]) {
     checkNull(replace);
     checkInt(startIndex);
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
@@ -153,7 +152,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     checkInt(startIndex);
     if (endIndex == null) endIndex = length;
     checkInt(endIndex);
-    if (startIndex < 0 ) throw new RangeError.value(startIndex);
+    if (startIndex < 0) throw new RangeError.value(startIndex);
     if (startIndex > endIndex) throw new RangeError.value(startIndex);
     if (endIndex > length) throw new RangeError.value(endIndex);
     return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
@@ -344,8 +343,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return JS('String', r'#.substring(#, #)', result, 0, endIndex);
   }
 
-  String operator*(int times) {
-    if (0 >= times) return '';  // Unnecessary but hoists argument type check.
+  String operator *(int times) {
+    if (0 >= times) return ''; // Unnecessary but hoists argument type check.
     if (times == 1 || this.length == 0) return this;
     if (times != JS('int', '# >>> 0', times)) {
       // times >= 2^32. We can't create a string that big.
@@ -433,9 +432,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   bool get isNotEmpty => !isEmpty;
 
   int compareTo(String other) {
-    if (other is !String) throw argumentErrorValue(other);
-    return this == other ? 0
-        : JS('bool', r'# < #', this, other) ? -1 : 1;
+    if (other is! String) throw argumentErrorValue(other);
+    return this == other ? 0 : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
 
   // Note: if you change this, also change the function [S].
@@ -456,7 +454,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
       hash = JS('int', '# ^ (# >> 6)', hash, hash);
     }
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
     hash = JS('int', '# ^ (# >> 11)', hash, hash);
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
@@ -466,7 +464,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   int get length => JS('int', r'#.length', this);
 
   String operator [](int index) {
-    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index is! int) throw diagnoseIndexError(this, index);
     if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     return JS('String', '#[#]', this, index);
   }

@@ -5,11 +5,11 @@
 #if !defined(DART_IO_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_MACOS)
 
 #include "bin/file_system_watcher.h"
 
-#if !TARGET_OS_IOS
+#if !HOST_OS_IOS
 
 #include <errno.h>                      // NOLINT
 #include <fcntl.h>                      // NOLINT
@@ -397,7 +397,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace bin
 }  // namespace dart
 
-#else  // !TARGET_OS_IOS
+#else  // !HOST_OS_IOS
 
 namespace dart {
 namespace bin {
@@ -439,7 +439,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // !TARGET_OS_IOS
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // !HOST_OS_IOS
+#endif  // defined(HOST_OS_MACOS)
 
 #endif  // !defined(DART_IO_DISABLED)

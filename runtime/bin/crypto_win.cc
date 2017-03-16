@@ -7,7 +7,7 @@
 #endif
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/crypto.h"
 
@@ -32,4 +32,4 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

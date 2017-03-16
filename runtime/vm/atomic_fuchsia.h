@@ -9,7 +9,7 @@
 #error Do not include atomic_fuchsia.h directly. Use atomic.h instead.
 #endif
 
-#if !defined(TARGET_OS_FUCHSIA)
+#if !defined(HOST_OS_FUCHSIA)
 #error This file should only be included on Fuchsia builds.
 #endif
 

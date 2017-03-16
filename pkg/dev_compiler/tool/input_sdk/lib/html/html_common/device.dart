@@ -106,7 +106,7 @@ class Device {
     try {
       var e = new Event.eventType(eventType, '');
       return e is Event;
-    } catch (_) { }
+    } catch (_) {}
     return false;
   }
 }

@@ -1285,8 +1285,7 @@ dart::Type& TranslationHelper::GetCanonicalType(const dart::Class& klass) {
   type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
                    klass.token_pos());
   if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(
-        klass, type, ClassFinalizer::kCanonicalizeWellFormed);
+    type ^= ClassFinalizer::FinalizeType(klass, type);
     // Note that the receiver type may now be a malbounded type.
     klass.SetCanonicalType(type);
   }
@@ -4371,8 +4370,8 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
       Type::ZoneHandle(Z, signature_function.SignatureType());
 
   if (finalize_) {
-    signature_type ^= ClassFinalizer::FinalizeType(
-        *active_class_->klass, signature_type, ClassFinalizer::kCanonicalize);
+    signature_type ^=
+        ClassFinalizer::FinalizeType(*active_class_->klass, signature_type);
     // Do not refer to signature_function anymore, since it may have been
     // replaced during canonicalization.
     signature_function = Function::null();
@@ -4473,8 +4472,7 @@ void DartTypeTranslator::VisitInterfaceType(InterfaceType* node) {
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
-    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_,
-                                           ClassFinalizer::kCanonicalize);
+    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
   }
 }
 
@@ -4532,8 +4530,7 @@ const TypeArguments& DartTypeTranslator::TranslateInstantiatedTypeArguments(
   Type& type = Type::Handle(
       Z, Type::New(receiver_class, type_arguments, TokenPosition::kNoSource));
   if (finalize_) {
-    type ^= ClassFinalizer::FinalizeType(
-        *active_class_->klass, type, ClassFinalizer::kCanonicalizeWellFormed);
+    type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
   }
 
   const TypeArguments& instantiated_type_arguments =
@@ -4554,8 +4551,7 @@ const Type& DartTypeTranslator::ReceiverType(const dart::Class& klass) {
   type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
                    klass.token_pos());
   if (klass.is_type_finalized()) {
-    type ^= ClassFinalizer::FinalizeType(
-        klass, type, ClassFinalizer::kCanonicalizeWellFormed);
+    type ^= ClassFinalizer::FinalizeType(klass, type);
     klass.SetCanonicalType(type);
   }
   return type;
@@ -4924,8 +4920,7 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
 
     AbstractType& type = AbstractType::Handle(
         Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
-    type = ClassFinalizer::FinalizeType(klass, type,
-                                        ClassFinalizer::kCanonicalize);
+    type = ClassFinalizer::FinalizeType(klass, type);
 
     if (type.IsMalbounded()) {
       // Evaluate expressions for correctness.
@@ -6300,8 +6295,8 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
                                             true);  // is_closure
       // Finalize function type.
       Type& signature_type = Type::Handle(Z, function.SignatureType());
-      signature_type ^= ClassFinalizer::FinalizeType(
-          *active_class_.klass, signature_type, ClassFinalizer::kCanonicalize);
+      signature_type ^=
+          ClassFinalizer::FinalizeType(*active_class_.klass, signature_type);
       function.SetSignatureType(signature_type);
 
       I->AddClosureFunction(function);

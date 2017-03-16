@@ -107,8 +107,18 @@ library dart._foreign_helper;
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
 JS(String typeDescription, String codeTemplate,
-    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
-{}
+    [arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    arg5,
+    arg6,
+    arg7,
+    arg8,
+    arg9,
+    arg10,
+    arg11]) {}
 
 /// Annotates the compiled Js name for fields and methods.
 /// Similar behaviour to `JS` from `package:js/js.dart` (but usable from runtime
@@ -257,7 +267,9 @@ bool JS_GET_FLAG(String name) {}
  * TODO(sra): Replace this hack with something to mark the volatile or
  * externally initialized elements.
  */
-void JS_EFFECT(Function code) { code(null); }
+void JS_EFFECT(Function code) {
+  code(null);
+}
 
 /**
  * Use this class for creating constants that hold JavaScript code.
@@ -294,7 +306,6 @@ class _Rest {
 const _Rest rest = const _Rest();
 
 dynamic spread(args) {
-  throw new StateError(
-      'The spread function cannot be called, '
+  throw new StateError('The spread function cannot be called, '
       'it should be compiled away.');
 }

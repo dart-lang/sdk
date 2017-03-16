@@ -1092,6 +1092,33 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(constructor.body, new isInstanceOf<EmptyFunctionBody>());
   }
 
+  void test_parseConstructor_initializers_field() {
+    createParser('C(x, y) : _x = x, this._y = y;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ConstructorDeclaration>());
+    ConstructorDeclaration constructor = member as ConstructorDeclaration;
+    NodeList<ConstructorInitializer> initializers = constructor.initializers;
+    expect(initializers, hasLength(2));
+
+    {
+      var initializer = initializers[0] as ConstructorFieldInitializer;
+      expect(initializer.thisKeyword, isNull);
+      expect(initializer.period, isNull);
+      expect(initializer.fieldName.name, '_x');
+      expect(initializer.expression, isNotNull);
+    }
+
+    {
+      var initializer = initializers[1] as ConstructorFieldInitializer;
+      expect(initializer.thisKeyword, isNotNull);
+      expect(initializer.period, isNotNull);
+      expect(initializer.fieldName.name, '_y');
+      expect(initializer.expression, isNotNull);
+    }
+  }
+
   void test_parseConstructor_assert() {
     enableAssertInitializer = true;
     createParser('C(x, y) : _x = x, assert (x < y), _y = y;');
@@ -14727,6 +14754,17 @@ enum E {
     createParser('/// Doc\ntypedef F = bool Function();');
     var typeAlias = parseFullCompilationUnitMember() as GenericTypeAlias;
     expectCommentText(typeAlias.documentationComment, '/// Doc');
+  }
+
+  void test_parseTypeVariable_withDocumentationComment() {
+    createParser('''
+class A<
+    /// Doc
+    B> {}
+''');
+    var classDeclaration = parseFullCompilationUnitMember() as ClassDeclaration;
+    var typeVariable = classDeclaration.typeParameters.typeParameters[0];
+    expectCommentText(typeVariable.documentationComment, '/// Doc');
   }
 
   /**

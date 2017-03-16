@@ -1,5 +1,6 @@
 // compile options: --closure-experimental --destructure-named-params --modules=es6
 library test;
+
 import 'dart:js';
 
 List/*<T>*/ generic_function/*<T>*/(List/*<T>*/ items, dynamic/*=T*/ seed) {
@@ -23,10 +24,8 @@ class Foo<T> {
 
   T pass(T t) => t;
 
-  String typed_method(
-      Foo foo, List list,
-      int i, num n, double d, bool b, String s,
-      JsArray a, JsObject o, JsFunction f) {
+  String typed_method(Foo foo, List list, int i, num n, double d, bool b,
+      String s, JsArray a, JsObject o, JsFunction f) {
     return '';
   }
 
@@ -40,7 +39,8 @@ class Foo<T> {
     cb(i: i);
   }
 
-  run(List a, String b, List c(String d), List<int> e(f(g)), {Map<Map, Map> h}) {}
+  run(List a, String b, List c(String d), List<int> e(f(g)),
+      {Map<Map, Map> h}) {}
 
   String get prop => null;
   set prop(String value) {}
@@ -61,7 +61,9 @@ class Baz extends Foo<int> with Bar {
 
 void main(args) {}
 
-var closure = () { return; };
+var closure = () {
+  return;
+};
 
 const String some_top_level_constant = "abc";
 final String some_top_level_final = "abc";

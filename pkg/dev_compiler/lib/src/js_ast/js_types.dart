@@ -20,7 +20,6 @@ final _null = new NullTypeRef();
 /// handled by the type printers (for instance, the knowledge that
 /// `number|null` is just `number` in TypeScript, and is `number?` in Closure).
 abstract class TypeRef extends Expression {
-
   int get precedenceLevel => PRIMARY;
 
   TypeRef();
@@ -38,8 +37,7 @@ abstract class TypeRef extends Expression {
     return new GenericTypeRef(rawType, typeArgs.toList());
   }
 
-  factory TypeRef.array([TypeRef elementType]) =>
-      new ArrayTypeRef(elementType);
+  factory TypeRef.array([TypeRef elementType]) => new ArrayTypeRef(elementType);
 
   factory TypeRef.object([TypeRef keyType, TypeRef valueType]) {
     // TODO(ochafik): Roll out a dedicated ObjectTypeRef?
@@ -50,8 +48,8 @@ abstract class TypeRef extends Expression {
   }
 
   factory TypeRef.function(
-      [TypeRef returnType, Map<Identifier, TypeRef> paramTypes]) =>
-          new FunctionTypeRef(returnType, paramTypes);
+          [TypeRef returnType, Map<Identifier, TypeRef> paramTypes]) =>
+      new FunctionTypeRef(returnType, paramTypes);
 
   factory TypeRef.record(Map<Identifier, TypeRef> types) =>
       new RecordTypeRef(types);
@@ -79,8 +77,7 @@ abstract class TypeRef extends Expression {
   TypeRef orUndefined() => or(new TypeRef.undefined());
   TypeRef orNull() => or(_null);
 
-  TypeRef toOptional() =>
-      new OptionalTypeRef(this);
+  TypeRef toOptional() => new OptionalTypeRef(this);
 }
 
 class AnyTypeRef extends TypeRef {
@@ -123,6 +120,7 @@ class ArrayTypeRef extends TypeRef {
   void visitChildren(NodeVisitor visitor) {
     elementType.accept(visitor);
   }
+
   _clone() => new ArrayTypeRef(elementType);
 }
 
@@ -136,6 +134,7 @@ class GenericTypeRef extends TypeRef {
     rawType.accept(visitor);
     typeArgs.forEach((p) => p.accept(visitor));
   }
+
   _clone() => new GenericTypeRef(rawType, typeArgs);
 }
 
@@ -147,12 +146,15 @@ class UnionTypeRef extends TypeRef {
   void visitChildren(NodeVisitor visitor) {
     types.forEach((p) => p.accept(visitor));
   }
+
   _clone() => new UnionTypeRef(types);
 
   @override
   TypeRef or(TypeRef other) {
     if (types.contains(other)) return this;
-    return new UnionTypeRef([]..addAll(types)..add(other));
+    return new UnionTypeRef([]
+      ..addAll(types)
+      ..add(other));
   }
 }
 
@@ -164,6 +166,7 @@ class OptionalTypeRef extends TypeRef {
   void visitChildren(NodeVisitor visitor) {
     type.accept(visitor);
   }
+
   _clone() => new OptionalTypeRef(type);
 
   @override
@@ -178,6 +181,7 @@ class RecordTypeRef extends TypeRef {
   void visitChildren(NodeVisitor visitor) {
     types.values.forEach((p) => p.accept(visitor));
   }
+
   _clone() => new RecordTypeRef(types);
 }
 
@@ -194,5 +198,6 @@ class FunctionTypeRef extends TypeRef {
       t.accept(visitor);
     });
   }
+
   _clone() => new FunctionTypeRef(returnType, paramTypes);
 }

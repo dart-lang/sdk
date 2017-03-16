@@ -2657,7 +2657,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     // Format(instr, "smulh 'rd, 'rn, 'rm");
     const int64_t rn_val = get_register(rn, R31IsZR);
     const int64_t rm_val = get_register(rm, R31IsZR);
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
     // Visual Studio does not support __int128.
     int64_t alu_out;
     Multiply128(rn_val, rm_val, &alu_out);
@@ -2665,14 +2665,14 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     const __int128 res =
         static_cast<__int128>(rn_val) * static_cast<__int128>(rm_val);
     const int64_t alu_out = static_cast<int64_t>(res >> 64);
-#endif  // TARGET_OS_WINDOWS
+#endif  // HOST_OS_WINDOWS
     set_register(instr, rd, alu_out, R31IsZR);
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 6) &&
              (instr->Bit(15) == 0)) {
     // Format(instr, "umulh 'rd, 'rn, 'rm");
     const uint64_t rn_val = get_register(rn, R31IsZR);
     const uint64_t rm_val = get_register(rm, R31IsZR);
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
     // Visual Studio does not support __int128.
     uint64_t alu_out;
     UnsignedMultiply128(rn_val, rm_val, &alu_out);
@@ -2680,7 +2680,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     const unsigned __int128 res = static_cast<unsigned __int128>(rn_val) *
                                   static_cast<unsigned __int128>(rm_val);
     const uint64_t alu_out = static_cast<uint64_t>(res >> 64);
-#endif  // TARGET_OS_WINDOWS
+#endif  // HOST_OS_WINDOWS
     set_register(instr, rd, alu_out, R31IsZR);
   } else if ((instr->Bits(29, 3) == 4) && (instr->Bits(21, 3) == 5) &&
              (instr->Bit(15) == 0)) {

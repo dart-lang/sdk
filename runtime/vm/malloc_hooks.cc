@@ -5,7 +5,7 @@
 #include "platform/globals.h"
 
 #if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&                         \
-    !defined(TARGET_ARCH_DBC) && !defined(TARGET_OS_FUCHSIA)
+    !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
 
 #include "vm/malloc_hooks.h"
 
@@ -444,4 +444,4 @@ void MallocHooksState::RecordFreeHook(const void* ptr) {
 }  // namespace dart
 
 #endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
-        // !defined(TARGET_ARCH_DBC) && !defined(TARGET_OS_FUCHSIA)
+        // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)

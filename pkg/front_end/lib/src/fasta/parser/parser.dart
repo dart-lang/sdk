@@ -902,6 +902,7 @@ class Parser {
 
   Token parseTypeVariable(Token token) {
     listener.beginTypeVariable(token);
+    token = parseMetadataStar(token);
     token = parseIdentifier(token, IdentifierContext.typeVariableDeclaration);
     Token extendsOrSuper = null;
     if (optional('extends', token) || optional('super', token)) {
@@ -3214,19 +3215,19 @@ class Parser {
   }
 
   Token parseForStatement(Token awaitToken, Token token) {
-    Token forToken = token;
-    listener.beginForStatement(forToken);
+    Token forKeyword = token;
+    listener.beginForStatement(forKeyword);
     token = expect('for', token);
     Token leftParenthesis = token;
     token = expect('(', token);
     token = parseVariablesDeclarationOrExpressionOpt(token);
     if (optional('in', token)) {
-      return parseForInRest(awaitToken, forToken, leftParenthesis, token);
+      return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else {
       if (awaitToken != null) {
         reportRecoverableError(awaitToken, ErrorKind.InvalidAwaitFor);
       }
-      return parseForRest(forToken, token);
+      return parseForRest(forKeyword, leftParenthesis, token);
     }
   }
 
@@ -3248,7 +3249,8 @@ class Parser {
     return parseExpression(token);
   }
 
-  Token parseForRest(Token forToken, Token token) {
+  Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
+    Token leftSeparator = token;
     token = expectSemicolon(token);
     if (optional(';', token)) {
       token = parseEmptyStatement(token);
@@ -3270,12 +3272,12 @@ class Parser {
     listener.beginForStatementBody(token);
     token = parseStatement(token);
     listener.endForStatementBody(token);
-    listener.endForStatement(expressionCount, forToken, token);
+    listener.endForStatement(forToken, leftSeparator, expressionCount, token);
     return token;
   }
 
   Token parseForInRest(
-      Token awaitToken, Token forToken, Token leftParenthesis, Token token) {
+      Token awaitToken, Token forKeyword, Token leftParenthesis, Token token) {
     assert(optional('in', token));
     Token inKeyword = token;
     token = token.next;
@@ -3287,7 +3289,7 @@ class Parser {
     listener.beginForInBody(token);
     token = parseStatement(token);
     listener.endForInBody(token);
-    listener.endForIn(awaitToken, forToken, leftParenthesis, inKeyword,
+    listener.endForIn(awaitToken, forKeyword, leftParenthesis, inKeyword,
         rightParenthesis, token);
     return token;
   }

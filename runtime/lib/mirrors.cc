@@ -874,8 +874,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 2) {
 
   Type& instantiated_type =
       Type::Handle(Type::New(clz, type_args_obj, TokenPosition::kNoSource));
-  instantiated_type ^= ClassFinalizer::FinalizeType(
-      clz, instantiated_type, ClassFinalizer::kCanonicalize);
+  instantiated_type ^= ClassFinalizer::FinalizeType(clz, instantiated_type);
   if (instantiated_type.IsMalbounded()) {
     const LanguageError& type_error =
         LanguageError::Handle(instantiated_type.error());

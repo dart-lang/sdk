@@ -46,7 +46,7 @@ class JSBool extends Interceptor implements bool {
  */
 abstract class JSIndexable<E> {
   int get length;
-  E operator[](int index);
+  E operator [](int index);
 }
 
 /**
@@ -55,9 +55,7 @@ abstract class JSIndexable<E> {
  *
  * This is the type that should be exported by a JavaScript interop library.
  */
-abstract class JSObject {
-}
-
+abstract class JSObject {}
 
 /**
  * Interceptor base class for JavaScript objects not recognized as some more
@@ -72,7 +70,6 @@ abstract class JavaScriptObject extends Interceptor implements JSObject {
   Type get runtimeType => JSObject;
 }
 
-
 /**
  * Interceptor for plain JavaScript objects created as JavaScript object
  * literals or `new Object()`.
@@ -80,7 +77,6 @@ abstract class JavaScriptObject extends Interceptor implements JSObject {
 class PlainJavaScriptObject extends JavaScriptObject {
   const PlainJavaScriptObject();
 }
-
 
 /**
  * Interceptor for unclassified JavaScript objects, typically objects with a
@@ -99,7 +95,7 @@ class UnknownJavaScriptObject extends JavaScriptObject {
 // Warning: calls to these methods need to be removed before custom elements
 // and cross-frame dom objects behave correctly in ddc.
 // See https://github.com/dart-lang/sdk/issues/28326
-findInterceptorConstructorForType(Type type) { }
-findConstructorForNativeSubclassType(Type type, String name) { }
+findInterceptorConstructorForType(Type type) {}
+findConstructorForNativeSubclassType(Type type, String name) {}
 getNativeInterceptor(object) {}
 setDispatchProperty(object, value) {}

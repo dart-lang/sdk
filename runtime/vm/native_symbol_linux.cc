@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
 
 #include "platform/memory_sanitizer.h"
 #include "vm/native_symbol.h"
@@ -49,4 +49,4 @@ void NativeSymbolResolver::FreeSymbolName(char* name) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(HOST_OS_LINUX)

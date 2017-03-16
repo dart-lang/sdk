@@ -87,36 +87,36 @@
 #if defined(__ANDROID__)
 
 // Check for Android first, to determine its difference from Linux.
-#define TARGET_OS_ANDROID 1
+#define HOST_OS_ANDROID 1
 
 #elif defined(__linux__) || defined(__FreeBSD__)
 
 // Generic Linux.
-#define TARGET_OS_LINUX 1
+#define HOST_OS_LINUX 1
 
 #elif defined(__APPLE__)
 
 // Define the flavor of Mac OS we are running on.
 #include <TargetConditionals.h>
-// TODO(iposva): Rename TARGET_OS_MACOS to TARGET_OS_MAC to inherit
+// TODO(iposva): Rename HOST_OS_MACOS to HOST_OS_MAC to inherit
 // the value defined in TargetConditionals.h
-#define TARGET_OS_MACOS 1
+#define HOST_OS_MACOS 1
 #if TARGET_OS_IPHONE
 // Test for this #define by saying '#if TARGET_OS_IOS' rather than the usual
 // '#if defined(TARGET_OS_IOS)'. TARGET_OS_IOS is defined to be 0 in
 // XCode >= 7.0. See Issue #24453.
-#define TARGET_OS_IOS 1
+#define HOST_OS_IOS 1
 #endif
 
 #elif defined(_WIN32)
 
 // Windows, both 32- and 64-bit, regardless of the check for _WIN32.
-#define TARGET_OS_WINDOWS 1
+#define HOST_OS_WINDOWS 1
 
 #elif defined(__Fuchsia__)
-#define TARGET_OS_FUCHSIA
+#define HOST_OS_FUCHSIA
 
-#elif !defined(TARGET_OS_FUCHSIA)
+#elif !defined(HOST_OS_FUCHSIA)
 #error Automatic target os detection failed.
 #endif
 
@@ -388,7 +388,7 @@ typedef simd128_value_t fpu_register_t;
 #if defined(TARGET_ABI_IOS) && defined(TARGET_ABI_EABI)
 #error Both TARGET_ABI_IOS and TARGET_ABI_EABI defined.
 #elif !defined(TARGET_ABI_IOS) && !defined(TARGET_ABI_EABI)
-#if defined(TARGET_OS_MAC)
+#if defined(HOST_OS_MAC)
 #define TARGET_ABI_IOS 1
 #else
 #define TARGET_ABI_EABI 1
@@ -672,21 +672,21 @@ static inline T ReadUnaligned(const T* ptr) {
 
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 #define snprintf _snprintf
 #define strtok_r strtok_s
 #endif
 
-#if !defined(TARGET_OS_WINDOWS)
+#if !defined(HOST_OS_WINDOWS)
 #if defined(TEMP_FAILURE_RETRY)
 // TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. We should
 // not use that version, but instead the one in signal_blocker.h, to ensure
 // we disable signal interrupts.
 #undef TEMP_FAILURE_RETRY
 #endif  // defined(TEMP_FAILURE_RETRY)
-#endif  // !defined(TARGET_OS_WINDOWS)
+#endif  // !defined(HOST_OS_WINDOWS)
 
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS)
 // Tell the compiler to do printf format string checking if the
 // compiler supports it; see the 'format' attribute in
 // <http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Function-Attributes.html>.

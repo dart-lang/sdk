@@ -22,21 +22,22 @@ class ClassFinalizer : public AllStatic {
     kIgnore,                 // Type is ignored and replaced by dynamic.
     kDoNotResolve,           // Type resolution is postponed.
     kResolveTypeParameters,  // Resolve type parameters only.
-    kFinalize,               // Type resolution and finalization are required.
-    kCanonicalize,           // Same as kFinalize, but with canonicalization.
-    kCanonicalizeWellFormed  // Error-free resolution, finalization, and
-                             // canonicalization are required.
+    kFinalize,               // Resolve and finalize type and type arguments.
+    kCanonicalize            // Finalize, check bounds, and canonicalize.
   };
 
   // Finalize given type while parsing class cls.
-  // Also canonicalize type if applicable.
-  static RawAbstractType* FinalizeType(const Class& cls,
-                                       const AbstractType& type,
-                                       FinalizationKind finalization,
-                                       PendingTypes* pending_types = NULL);
+  // Also canonicalize and bound check type if applicable.
+  static RawAbstractType* FinalizeType(
+      const Class& cls,
+      const AbstractType& type,
+      FinalizationKind finalization = kCanonicalize,
+      PendingTypes* pending_types = NULL);
 
   // Finalize the types in the functions's signature while parsing class cls.
-  static void FinalizeSignature(const Class& cls, const Function& function);
+  static void FinalizeSignature(const Class& cls,
+                                const Function& function,
+                                FinalizationKind finalization = kCanonicalize);
 
   // Allocate, finalize, and return a new malformed type as if it was declared
   // in class cls at the given token position.
@@ -158,8 +159,9 @@ class ClassFinalizer : public AllStatic {
                                       const TypeArguments& arguments,
                                       Error* bound_error);
   static void ResolveUpperBounds(const Class& cls);
-  static void FinalizeUpperBounds(const Class& cls,
-                                  FinalizationKind finalization);
+  static void FinalizeUpperBounds(
+      const Class& cls,
+      FinalizationKind finalization = kCanonicalize);
   static void ResolveSignature(const Class& cls, const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);

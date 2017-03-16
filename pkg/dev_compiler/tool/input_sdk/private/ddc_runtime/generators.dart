@@ -14,13 +14,17 @@ part of dart._runtime;
 final _jsIterator = JS('', 'Symbol("_jsIterator")');
 final _current = JS('', 'Symbol("_current")');
 
-syncStar(gen, E, @rest args) => JS('', '''(() => {
+syncStar(gen, E, @rest args) => JS(
+    '',
+    '''(() => {
   const SyncIterable_E = ${getGenericClass(SyncIterable)}($E);
   return new SyncIterable_E($gen, $args);
 })()''');
 
 @JSExportName('async')
-async_(gen, T, @rest args) => JS('', '''(() => {
+async_(gen, T, @rest args) => JS(
+    '',
+    '''(() => {
   let iter;
   function onValue(res) {
     if (res === void 0) res = null;
@@ -77,7 +81,9 @@ async_(gen, T, @rest args) => JS('', '''(() => {
 //    }
 //
 // TODO(ochafik): Port back to Dart (which it used to be in the past).
-final _AsyncStarStreamController = JS('', '''
+final _AsyncStarStreamController = JS(
+    '',
+    '''
   class _AsyncStarStreamController {
     constructor(generator, T, args) {
       this.isAdding = false;
@@ -219,6 +225,8 @@ final _AsyncStarStreamController = JS('', '''
 
 /// Returns a Stream of T implemented by an async* function. */
 ///
-asyncStar(gen, T, @rest args) => JS('', '''(() => {
+asyncStar(gen, T, @rest args) => JS(
+    '',
+    '''(() => {
   return new $_AsyncStarStreamController($gen, $T, $args).controller.stream;
 })()''');

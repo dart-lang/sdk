@@ -94,11 +94,11 @@ bool TryReadKernel(const char* script_uri,
 
 
 static bool IsWindowsHost() {
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   return true;
-#else   // defined(TARGET_OS_WINDOWS)
+#else   // defined(HOST_OS_WINDOWS)
   return false;
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)
 }
 
 

@@ -12,8 +12,15 @@ import 'dart:collection';
 import 'dart:_internal';
 import 'dart:_interceptors' show JSIndexable;
 import 'dart:_js_helper'
-show Creates, JavaScriptIndexingBehavior, JSName, Native, Null, Returns,
-    diagnoseIndexError, diagnoseRangeError;
+    show
+        Creates,
+        JavaScriptIndexingBehavior,
+        JSName,
+        Native,
+        Null,
+        Returns,
+        diagnoseIndexError,
+        diagnoseRangeError;
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' as Math;
 
@@ -41,6 +48,7 @@ class NativeByteBuffer implements ByteBuffer {
   Uint16List asUint16List([int offsetInBytes = 0, int length]) {
     return new NativeUint16List.view(this, offsetInBytes, length);
   }
+
   Int16List asInt16List([int offsetInBytes = 0, int length]) {
     return new NativeInt16List.view(this, offsetInBytes, length);
   }
@@ -92,17 +100,14 @@ class NativeByteBuffer implements ByteBuffer {
   }
 }
 
-
-
 /**
  * A fixed-length list of Float32x4 numbers that is viewable as a
  * [TypedData]. For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
-class NativeFloat32x4List
-    extends Object with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
+class NativeFloat32x4List extends Object
+    with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
-
   final NativeFloat32List _storage;
 
   /**
@@ -150,7 +155,7 @@ class NativeFloat32x4List
 
   int get length => _storage.length ~/ 4;
 
-  Float32x4 operator[](int index) {
+  Float32x4 operator [](int index) {
     _checkValidIndex(index, this, this.length);
     double _x = _storage[(index * 4) + 0];
     double _y = _storage[(index * 4) + 1];
@@ -159,7 +164,7 @@ class NativeFloat32x4List
     return new NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
-  void operator[]=(int index, Float32x4 value) {
+  void operator []=(int index, Float32x4 value) {
     _checkValidIndex(index, this, this.length);
     _storage[(index * 4) + 0] = value.x;
     _storage[(index * 4) + 1] = value.y;
@@ -174,16 +179,14 @@ class NativeFloat32x4List
   }
 }
 
-
 /**
  * A fixed-length list of Int32x4 numbers that is viewable as a
  * [TypedData]. For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
-class NativeInt32x4List
-    extends Object with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
+class NativeInt32x4List extends Object
+    with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements Int32x4List {
-
   final Int32List _storage;
 
   /**
@@ -230,7 +233,7 @@ class NativeInt32x4List
 
   int get length => _storage.length ~/ 4;
 
-  Int32x4 operator[](int index) {
+  Int32x4 operator [](int index) {
     _checkValidIndex(index, this, this.length);
     int _x = _storage[(index * 4) + 0];
     int _y = _storage[(index * 4) + 1];
@@ -239,7 +242,7 @@ class NativeInt32x4List
     return new NativeInt32x4._truncated(_x, _y, _z, _w);
   }
 
-  void operator[]=(int index, Int32x4 value) {
+  void operator []=(int index, Int32x4 value) {
     _checkValidIndex(index, this, this.length);
     _storage[(index * 4) + 0] = value.x;
     _storage[(index * 4) + 1] = value.y;
@@ -254,16 +257,14 @@ class NativeInt32x4List
   }
 }
 
-
 /**
  * A fixed-length list of Float64x2 numbers that is viewable as a
  * [TypedData]. For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
-class NativeFloat64x2List
-    extends Object with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
+class NativeFloat64x2List extends Object
+    with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
-
   final NativeFloat64List _storage;
 
   /**
@@ -309,14 +310,14 @@ class NativeFloat64x2List
 
   int get length => _storage.length ~/ 2;
 
-  Float64x2 operator[](int index) {
+  Float64x2 operator [](int index) {
     _checkValidIndex(index, this, this.length);
     double _x = _storage[(index * 2) + 0];
     double _y = _storage[(index * 2) + 1];
     return new Float64x2(_x, _y);
   }
 
-  void operator[]=(int index, Float64x2 value) {
+  void operator []=(int index, Float64x2 value) {
     _checkValidIndex(index, this, this.length);
     _storage[(index * 2) + 0] = value.x;
     _storage[(index * 2) + 1] = value.y;
@@ -359,7 +360,7 @@ class NativeTypedData implements TypedData {
   external int get elementSizeInBytes;
 
   void _invalidPosition(int position, int length, String name) {
-    if (position is !int) {
+    if (position is! int) {
       throw new ArgumentError.value(position, name, 'Invalid list position');
     } else {
       throw new RangeError.range(position, 0, length, name);
@@ -368,12 +369,12 @@ class NativeTypedData implements TypedData {
 
   void _checkPosition(int position, int length, String name) {
     if (JS('bool', '(# >>> 0) !== #', position, position) ||
-        JS('int', '#', position) > length) {  // 'int' guaranteed by above test.
+        JS('int', '#', position) > length) {
+      // 'int' guaranteed by above test.
       _invalidPosition(position, length, name);
     }
   }
 }
-
 
 // Validates the unnamed constructor length argument.  Checking is necessary
 // because passing unvalidated values to the native constructors can cause
@@ -410,7 +411,6 @@ List _ensureNativeList(List list) {
   return result;
 }
 
-
 @Native("DataView")
 class NativeByteData extends NativeTypedData implements ByteData {
   /**
@@ -431,8 +431,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
    * the length of [buffer].
    */
-  factory NativeByteData.view(ByteBuffer buffer,
-                              int offsetInBytes, int length) {
+  factory NativeByteData.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -451,12 +451,13 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  double getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  double getFloat32(int byteOffset,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _getFloat32(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getFloat32')
   @Returns('double')
-  double _getFloat32(int byteOffset, [bool littleEndian]) native;
+  double _getFloat32(int byteOffset, [bool littleEndian]) native ;
 
   /**
    * Returns the floating point number represented by the eight bytes at
@@ -466,12 +467,13 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  double getFloat64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  double getFloat64(int byteOffset,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _getFloat64(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getFloat64')
   @Returns('double')
-  double _getFloat64(int byteOffset, [bool littleEndian]) native;
+  double _getFloat64(int byteOffset, [bool littleEndian]) native ;
 
   /**
    * Returns the (possibly negative) integer represented by the two bytes at
@@ -483,12 +485,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getInt16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _getInt16(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getInt16')
   @Returns('int')
-  int _getInt16(int byteOffset, [bool littleEndian]) native;
+  int _getInt16(int byteOffset, [bool littleEndian]) native ;
 
   /**
    * Returns the (possibly negative) integer represented by the four bytes at
@@ -500,12 +502,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  int getInt32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _getInt32(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getInt32')
   @Returns('int')
-  int _getInt32(int byteOffset, [bool littleEndian]) native;
+  int _getInt32(int byteOffset, [bool littleEndian]) native ;
 
   /**
    * Returns the (possibly negative) integer represented by the eight bytes at
@@ -517,7 +519,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getInt64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
+  int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
@@ -529,7 +531,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  int getInt8(int byteOffset) native;
+  int getInt8(int byteOffset) native ;
 
   /**
    * Returns the positive integer represented by the two bytes starting
@@ -540,12 +542,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getUint16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _getUint16(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getUint16')
   @Returns('int')
-  int _getUint16(int byteOffset, [bool littleEndian]) native;
+  int _getUint16(int byteOffset, [bool littleEndian]) native ;
 
   /**
    * Returns the positive integer represented by the four bytes starting
@@ -556,12 +558,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  int getUint32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
+  int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _getUint32(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getUint32')
   @Returns('int')
-  int _getUint32(int byteOffset, [bool littleEndian]) native;
+  int _getUint32(int byteOffset, [bool littleEndian]) native ;
 
   /**
    * Returns the positive integer represented by the eight bytes starting
@@ -572,7 +574,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getUint64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
+  int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 
@@ -584,7 +586,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  int getUint8(int byteOffset) native;
+  int getUint8(int byteOffset) native ;
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -604,11 +606,11 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 4` is greater than the length of this object.
    */
   void setFloat32(int byteOffset, num value,
-                  [Endianness endian=Endianness.BIG_ENDIAN]) =>
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _setFloat32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setFloat32')
-  void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
+  void _setFloat32(int byteOffset, num value, [bool littleEndian]) native ;
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -619,11 +621,11 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 8` is greater than the length of this object.
    */
   void setFloat64(int byteOffset, num value,
-                  [Endianness endian=Endianness.BIG_ENDIAN]) =>
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _setFloat64(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setFloat64')
-  void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
+  void _setFloat64(int byteOffset, num value, [bool littleEndian]) native ;
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this
@@ -635,11 +637,11 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 2` is greater than the length of this object.
    */
   void setInt16(int byteOffset, int value,
-                [Endianness endian=Endianness.BIG_ENDIAN]) =>
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _setInt16(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setInt16')
-  void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
+  void _setInt16(int byteOffset, int value, [bool littleEndian]) native ;
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -651,11 +653,11 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 4` is greater than the length of this object.
    */
   void setInt32(int byteOffset, int value,
-                [Endianness endian=Endianness.BIG_ENDIAN]) =>
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _setInt32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setInt32')
-  void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
+  void _setInt32(int byteOffset, int value, [bool littleEndian]) native ;
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -667,7 +669,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 8` is greater than the length of this object.
    */
   void setInt64(int byteOffset, int value,
-                [Endianness endian=Endianness.BIG_ENDIAN]) {
+      [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
@@ -680,7 +682,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  void setInt8(int byteOffset, int value) native;
+  void setInt8(int byteOffset, int value) native ;
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this object
@@ -692,11 +694,11 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 2` is greater than the length of this object.
    */
   void setUint16(int byteOffset, int value,
-                 [Endianness endian=Endianness.BIG_ENDIAN]) =>
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _setUint16(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setUint16')
-  void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
+  void _setUint16(int byteOffset, int value, [bool littleEndian]) native ;
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this object
@@ -708,11 +710,11 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 4` is greater than the length of this object.
    */
   void setUint32(int byteOffset, int value,
-                 [Endianness endian=Endianness.BIG_ENDIAN]) =>
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
       _setUint32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setUint32')
-  void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
+  void _setUint32(int byteOffset, int value, [bool littleEndian]) native ;
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this object
@@ -724,7 +726,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * `byteOffset + 8` is greater than the length of this object.
    */
   void setUint64(int byteOffset, int value,
-                 [Endianness endian=Endianness.BIG_ENDIAN]) {
+      [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 
@@ -737,7 +739,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative,
    * or greater than or equal to the length of this object.
    */
-  void setUint8(int byteOffset, int value) native;
+  void setUint8(int byteOffset, int value) native ;
 
   static NativeByteData _create1(arg) =>
       JS('NativeByteData', 'new DataView(new ArrayBuffer(#))', arg);
@@ -749,13 +751,12 @@ class NativeByteData extends NativeTypedData implements ByteData {
       JS('NativeByteData', 'new DataView(#, #, #)', arg1, arg2, arg3);
 }
 
-
 abstract class NativeTypedArray extends NativeTypedData
     implements JavaScriptIndexingBehavior {
   int get length;
 
-  void _setRangeFast(int start, int end,
-      NativeTypedArray source, int skipCount) {
+  void _setRangeFast(
+      int start, int end, NativeTypedArray source, int skipCount) {
     int targetLength = this.length;
     _checkPosition(start, targetLength, "start");
     _checkPosition(end, targetLength, "end");
@@ -765,37 +766,34 @@ abstract class NativeTypedArray extends NativeTypedData
     if (skipCount < 0) throw new ArgumentError(skipCount);
 
     int sourceLength = source.length;
-    if (sourceLength - skipCount < count)  {
+    if (sourceLength - skipCount < count) {
       throw new StateError('Not enough elements');
     }
 
     if (skipCount != 0 || sourceLength != count) {
       // Create a view of the exact subrange that is copied from the source.
-      source = JS('', '#.subarray(#, #)',
-          source, skipCount, skipCount + count);
+      source = JS('', '#.subarray(#, #)', source, skipCount, skipCount + count);
     }
     JS('void', '#.set(#, #)', this, source, start);
   }
 }
 
-abstract class NativeTypedArrayOfDouble
-    extends NativeTypedArray
-        with ListMixin<double>, FixedLengthListMixin<double> {
-
+abstract class NativeTypedArrayOfDouble extends NativeTypedArray
+    with ListMixin<double>, FixedLengthListMixin<double> {
   int get length => JS('int', '#.length', this);
 
-  double operator[](int index) {
+  double operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('double', '#[#]', this, index);
   }
 
-  void operator[]=(int index, num value) {
+  void operator []=(int index, num value) {
     _checkValidIndex(index, this, this.length);
     JS('void', '#[#] = #', this, index, value);
   }
 
   void setRange(int start, int end, Iterable<double> iterable,
-                [int skipCount = 0]) {
+      [int skipCount = 0]) {
     if (iterable is NativeTypedArrayOfDouble) {
       _setRangeFast(start, end, iterable, skipCount);
       return;
@@ -804,23 +802,21 @@ abstract class NativeTypedArrayOfDouble
   }
 }
 
-abstract class NativeTypedArrayOfInt
-    extends NativeTypedArray
-        with ListMixin<int>, FixedLengthListMixin<int>
+abstract class NativeTypedArrayOfInt extends NativeTypedArray
+    with ListMixin<int>, FixedLengthListMixin<int>
     implements List<int> {
-
   int get length => JS('int', '#.length', this);
 
   // operator[]() is not here since different versions have different return
   // types
 
-  void operator[]=(int index, int value) {
+  void operator []=(int index, int value) {
     _checkValidIndex(index, this, this.length);
     JS('void', '#[#] = #', this, index, value);
   }
 
   void setRange(int start, int end, Iterable<int> iterable,
-                [int skipCount = 0]) {
+      [int skipCount = 0]) {
     if (iterable is NativeTypedArrayOfInt) {
       _setRangeFast(start, end, iterable, skipCount);
       return;
@@ -829,19 +825,16 @@ abstract class NativeTypedArrayOfInt
   }
 }
 
-
 @Native("Float32Array")
-class NativeFloat32List
-    extends NativeTypedArrayOfDouble
+class NativeFloat32List extends NativeTypedArrayOfDouble
     implements Float32List {
-
   factory NativeFloat32List(int length) => _create1(_checkLength(length));
 
   factory NativeFloat32List.fromList(List<double> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeFloat32List.view(ByteBuffer buffer,
-                                 int offsetInBytes, int length) {
+  factory NativeFloat32List.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -866,19 +859,16 @@ class NativeFloat32List
       JS('NativeFloat32List', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
 }
 
-
 @Native("Float64Array")
-class NativeFloat64List
-    extends NativeTypedArrayOfDouble
+class NativeFloat64List extends NativeTypedArrayOfDouble
     implements Float64List {
-
   factory NativeFloat64List(int length) => _create1(_checkLength(length));
 
   factory NativeFloat64List.fromList(List<double> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeFloat64List.view(ByteBuffer buffer,
-                                 int offsetInBytes, int length) {
+  factory NativeFloat64List.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -903,19 +893,15 @@ class NativeFloat64List
       JS('NativeFloat64List', 'new Float64Array(#, #, #)', arg1, arg2, arg3);
 }
 
-
 @Native("Int16Array")
-class NativeInt16List
-    extends NativeTypedArrayOfInt
-    implements Int16List {
-
+class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
   factory NativeInt16List(int length) => _create1(_checkLength(length));
 
   factory NativeInt16List.fromList(List<int> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeInt16List.view(NativeByteBuffer buffer,
-                               int offsetInBytes, int length) {
+  factory NativeInt16List.view(
+      NativeByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -924,7 +910,7 @@ class NativeInt16List
 
   Type get runtimeType => Int16List;
 
-  int operator[](int index) {
+  int operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
@@ -945,17 +931,15 @@ class NativeInt16List
       JS('NativeInt16List', 'new Int16Array(#, #, #)', arg1, arg2, arg3);
 }
 
-
 @Native("Int32Array")
 class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
-
   factory NativeInt32List(int length) => _create1(_checkLength(length));
 
   factory NativeInt32List.fromList(List<int> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeInt32List.view(ByteBuffer buffer,
-                               int offsetInBytes, int length) {
+  factory NativeInt32List.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -964,7 +948,7 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
 
   Type get runtimeType => Int32List;
 
-  int operator[](int index) {
+  int operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
@@ -985,17 +969,15 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
       JS('NativeInt32List', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
 }
 
-
 @Native("Int8Array")
 class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
-
   factory NativeInt8List(int length) => _create1(_checkLength(length));
 
   factory NativeInt8List.fromList(List<int> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeInt8List.view(ByteBuffer buffer,
-                               int offsetInBytes, int length) {
+  factory NativeInt8List.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -1004,7 +986,7 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
 
   Type get runtimeType => Int8List;
 
-  int operator[](int index) {
+  int operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
@@ -1025,17 +1007,15 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
       JS('NativeInt8List', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
 }
 
-
 @Native("Uint16Array")
 class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
-
   factory NativeUint16List(int length) => _create1(_checkLength(length));
 
   factory NativeUint16List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
-  factory NativeUint16List.view(ByteBuffer buffer,
-                                int offsetInBytes, int length) {
+  factory NativeUint16List.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -1044,7 +1024,7 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
 
   Type get runtimeType => Uint16List;
 
-  int operator[](int index) {
+  int operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
@@ -1065,17 +1045,15 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
       JS('NativeUint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
 }
 
-
 @Native("Uint32Array")
 class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
-
   factory NativeUint32List(int length) => _create1(_checkLength(length));
 
   factory NativeUint32List.fromList(List<int> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeUint32List.view(ByteBuffer buffer,
-                                int offsetInBytes, int length) {
+  factory NativeUint32List.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -1084,7 +1062,7 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
 
   Type get runtimeType => Uint32List;
 
-  int operator[](int index) {
+  int operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
@@ -1105,19 +1083,16 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
       JS('NativeUint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
 }
 
-
 @Native("Uint8ClampedArray,CanvasPixelArray")
-class NativeUint8ClampedList
-    extends NativeTypedArrayOfInt
+class NativeUint8ClampedList extends NativeTypedArrayOfInt
     implements Uint8ClampedList {
-
   factory NativeUint8ClampedList(int length) => _create1(_checkLength(length));
 
   factory NativeUint8ClampedList.fromList(List<int> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeUint8ClampedList.view(ByteBuffer buffer,
-                                      int offsetInBytes, int length) {
+  factory NativeUint8ClampedList.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -1128,15 +1103,15 @@ class NativeUint8ClampedList
 
   int get length => JS('int', '#.length', this);
 
-  int operator[](int index) {
+  int operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeUint8ClampedList', '#.subarray(#, #)',
-        this, start, end);
+    var source =
+        JS('NativeUint8ClampedList', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
@@ -1146,11 +1121,13 @@ class NativeUint8ClampedList
   static NativeUint8ClampedList _create2(arg1, arg2) =>
       JS('NativeUint8ClampedList', 'new Uint8ClampedArray(#, #)', arg1, arg2);
 
-  static NativeUint8ClampedList _create3(arg1, arg2, arg3) =>
-      JS('NativeUint8ClampedList', 'new Uint8ClampedArray(#, #, #)',
-         arg1, arg2, arg3);
+  static NativeUint8ClampedList _create3(arg1, arg2, arg3) => JS(
+      'NativeUint8ClampedList',
+      'new Uint8ClampedArray(#, #, #)',
+      arg1,
+      arg2,
+      arg3);
 }
-
 
 // On some browsers Uint8ClampedArray is a subtype of Uint8Array.  Marking
 // Uint8List as !nonleaf ensures that the native dispatch correctly handles
@@ -1158,14 +1135,13 @@ class NativeUint8ClampedList
 // dispatch record for Uint8List.
 @Native("Uint8Array,!nonleaf")
 class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
-
   factory NativeUint8List(int length) => _create1(_checkLength(length));
 
   factory NativeUint8List.fromList(List<int> elements) =>
       _create1(_ensureNativeList(elements));
 
-  factory NativeUint8List.view(ByteBuffer buffer,
-                               int offsetInBytes, int length) {
+  factory NativeUint8List.view(
+      ByteBuffer buffer, int offsetInBytes, int length) {
     _checkViewArguments(buffer, offsetInBytes, length);
     return length == null
         ? _create2(buffer, offsetInBytes)
@@ -1176,7 +1152,7 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
 
   int get length => JS('int', '#.length', this);
 
-  int operator[](int index) {
+  int operator [](int index) {
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
@@ -1196,7 +1172,6 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
   static NativeUint8List _create3(arg1, arg2, arg3) =>
       JS('NativeUint8List', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
 }
-
 
 /**
  * Implementation of Dart Float32x4 immutable value type and operations.
@@ -1218,10 +1193,10 @@ class NativeFloat32x4 implements Float32x4 {
   }
 
   NativeFloat32x4(double x, double y, double z, double w)
-    : this.x = _truncate(x),
-      this.y = _truncate(y),
-      this.z = _truncate(z),
-      this.w = _truncate(w) {
+      : this.x = _truncate(x),
+        this.y = _truncate(y),
+        this.z = _truncate(z),
+        this.w = _truncate(w) {
     // We would prefer to check for `double` but in dart2js we can't see the
     // difference anyway.
     if (x is! num) throw new ArgumentError(x);
@@ -1239,20 +1214,21 @@ class NativeFloat32x4 implements Float32x4 {
     _uint32view[1] = i.y;
     _uint32view[2] = i.z;
     _uint32view[3] = i.w;
-    return new NativeFloat32x4._truncated(_list[0], _list[1], _list[2], _list[3]);
+    return new NativeFloat32x4._truncated(
+        _list[0], _list[1], _list[2], _list[3]);
   }
 
   NativeFloat32x4.fromFloat64x2(Float64x2 v)
-    : this._truncated(_truncate(v.x), _truncate(v.y), 0.0, 0.0);
+      : this._truncated(_truncate(v.x), _truncate(v.y), 0.0, 0.0);
 
   /// Creates a new NativeFloat32x4.
   ///
   /// Does not verify if the given arguments are non-null.
   NativeFloat32x4._doubles(double x, double y, double z, double w)
-    : this.x = _truncate(x),
-      this.y = _truncate(y),
-      this.z = _truncate(z),
-      this.w = _truncate(w);
+      : this.x = _truncate(x),
+        this.y = _truncate(y),
+        this.z = _truncate(z),
+        this.w = _truncate(w);
 
   /// Creates a new NativeFloat32x4.
   ///
@@ -1265,8 +1241,8 @@ class NativeFloat32x4 implements Float32x4 {
     return '[$x, $y, $z, $w]';
   }
 
-   /// Addition operator.
-  Float32x4 operator+(Float32x4 other) {
+  /// Addition operator.
+  Float32x4 operator +(Float32x4 other) {
     double _x = x + other.x;
     double _y = y + other.y;
     double _z = z + other.z;
@@ -1275,12 +1251,12 @@ class NativeFloat32x4 implements Float32x4 {
   }
 
   /// Negate operator.
-  Float32x4 operator-() {
+  Float32x4 operator -() {
     return new NativeFloat32x4._truncated(-x, -y, -z, -w);
   }
 
   /// Subtraction operator.
-  Float32x4 operator-(Float32x4 other) {
+  Float32x4 operator -(Float32x4 other) {
     double _x = x - other.x;
     double _y = y - other.y;
     double _z = z - other.z;
@@ -1289,7 +1265,7 @@ class NativeFloat32x4 implements Float32x4 {
   }
 
   /// Multiplication operator.
-  Float32x4 operator*(Float32x4 other) {
+  Float32x4 operator *(Float32x4 other) {
     double _x = x * other.x;
     double _y = y * other.y;
     double _z = z * other.z;
@@ -1298,7 +1274,7 @@ class NativeFloat32x4 implements Float32x4 {
   }
 
   /// Division operator.
-  Float32x4 operator/(Float32x4 other) {
+  Float32x4 operator /(Float32x4 other) {
     double _x = x / other.x;
     double _y = y / other.y;
     double _z = z / other.z;
@@ -1312,10 +1288,8 @@ class NativeFloat32x4 implements Float32x4 {
     bool _cy = y < other.y;
     bool _cz = z < other.z;
     bool _cw = w < other.w;
-    return new NativeInt32x4._truncated(_cx ? -1 : 0,
-                                        _cy ? -1 : 0,
-                                        _cz ? -1 : 0,
-                                        _cw ? -1 : 0);
+    return new NativeInt32x4._truncated(
+        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
   /// Relational less than or equal.
@@ -1324,10 +1298,8 @@ class NativeFloat32x4 implements Float32x4 {
     bool _cy = y <= other.y;
     bool _cz = z <= other.z;
     bool _cw = w <= other.w;
-    return new NativeInt32x4._truncated(_cx ? -1 : 0,
-                                        _cy ? -1 : 0,
-                                        _cz ? -1 : 0,
-                                        _cw ? -1 : 0);
+    return new NativeInt32x4._truncated(
+        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
   /// Relational greater than.
@@ -1336,10 +1308,8 @@ class NativeFloat32x4 implements Float32x4 {
     bool _cy = y > other.y;
     bool _cz = z > other.z;
     bool _cw = w > other.w;
-    return new NativeInt32x4._truncated(_cx ? -1 : 0,
-                                        _cy ? -1 : 0,
-                                        _cz ? -1 : 0,
-                                        _cw ? -1 : 0);
+    return new NativeInt32x4._truncated(
+        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
   /// Relational greater than or equal.
@@ -1348,10 +1318,8 @@ class NativeFloat32x4 implements Float32x4 {
     bool _cy = y >= other.y;
     bool _cz = z >= other.z;
     bool _cw = w >= other.w;
-    return new NativeInt32x4._truncated(_cx ? -1 : 0,
-                                        _cy ? -1 : 0,
-                                        _cz ? -1 : 0,
-                                        _cw ? -1 : 0);
+    return new NativeInt32x4._truncated(
+        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
   /// Relational equal.
@@ -1360,10 +1328,8 @@ class NativeFloat32x4 implements Float32x4 {
     bool _cy = y == other.y;
     bool _cz = z == other.z;
     bool _cw = w == other.w;
-    return new NativeInt32x4._truncated(_cx ? -1 : 0,
-                                        _cy ? -1 : 0,
-                                        _cz ? -1 : 0,
-                                        _cw ? -1 : 0);
+    return new NativeInt32x4._truncated(
+        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
   /// Relational not-equal.
@@ -1372,10 +1338,8 @@ class NativeFloat32x4 implements Float32x4 {
     bool _cy = y != other.y;
     bool _cz = z != other.z;
     bool _cw = w != other.w;
-    return new NativeInt32x4._truncated(_cx ? -1 : 0,
-                                        _cy ? -1 : 0,
-                                        _cz ? -1 : 0,
-                                        _cw ? -1 : 0);
+    return new NativeInt32x4._truncated(
+        _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
   /// Returns a copy of [this] each lane being scaled by [s].
@@ -1544,7 +1508,6 @@ class NativeFloat32x4 implements Float32x4 {
   }
 }
 
-
 /**
  * Interface of Dart Int32x4 and operations.
  * Int32x4 stores 4 32-bit bit-masks in "lanes".
@@ -1564,10 +1527,10 @@ class NativeInt32x4 implements Int32x4 {
   }
 
   NativeInt32x4(int x, int y, int z, int w)
-    : this.x = _truncate(x),
-      this.y = _truncate(y),
-      this.z = _truncate(z),
-      this.w = _truncate(w) {
+      : this.x = _truncate(x),
+        this.y = _truncate(y),
+        this.z = _truncate(z),
+        this.w = _truncate(w) {
     if (x != this.x && x is! int) throw new ArgumentError(x);
     if (y != this.y && y is! int) throw new ArgumentError(y);
     if (z != this.z && z is! int) throw new ArgumentError(z);
@@ -1575,10 +1538,10 @@ class NativeInt32x4 implements Int32x4 {
   }
 
   NativeInt32x4.bool(bool x, bool y, bool z, bool w)
-    : this.x = x ? -1 : 0,
-      this.y = y ? -1 : 0,
-      this.z = z ? -1 : 0,
-      this.w = w ? -1 : 0;
+      : this.x = x ? -1 : 0,
+        this.y = y ? -1 : 0,
+        this.z = z ? -1 : 0,
+        this.w = w ? -1 : 0;
 
   /// Returns a bit-wise copy of [f] as a Int32x4.
   factory NativeInt32x4.fromFloat32x4Bits(Float32x4 f) {
@@ -1595,59 +1558,64 @@ class NativeInt32x4 implements Int32x4 {
 
   String toString() => '[$x, $y, $z, $w]';
 
-
   /// The bit-wise or operator.
-  Int32x4 operator|(Int32x4 other) {
+  Int32x4 operator |(Int32x4 other) {
     // Dart2js uses unsigned results for bit-operations.
     // We use "JS" to fall back to the signed versions.
-    return new NativeInt32x4._truncated(JS("int", "# | #", x, other.x),
-                                        JS("int", "# | #", y, other.y),
-                                        JS("int", "# | #", z, other.z),
-                                        JS("int", "# | #", w, other.w));
+    return new NativeInt32x4._truncated(
+        JS("int", "# | #", x, other.x),
+        JS("int", "# | #", y, other.y),
+        JS("int", "# | #", z, other.z),
+        JS("int", "# | #", w, other.w));
   }
 
   /// The bit-wise and operator.
-  Int32x4 operator&(Int32x4 other) {
+  Int32x4 operator &(Int32x4 other) {
     // Dart2js uses unsigned results for bit-operations.
     // We use "JS" to fall back to the signed versions.
-    return new NativeInt32x4._truncated(JS("int", "# & #", x, other.x),
-                                        JS("int", "# & #", y, other.y),
-                                        JS("int", "# & #", z, other.z),
-                                        JS("int", "# & #", w, other.w));
+    return new NativeInt32x4._truncated(
+        JS("int", "# & #", x, other.x),
+        JS("int", "# & #", y, other.y),
+        JS("int", "# & #", z, other.z),
+        JS("int", "# & #", w, other.w));
   }
 
   /// The bit-wise xor operator.
-  Int32x4 operator^(Int32x4 other) {
+  Int32x4 operator ^(Int32x4 other) {
     // Dart2js uses unsigned results for bit-operations.
     // We use "JS" to fall back to the signed versions.
-    return new NativeInt32x4._truncated(JS("int", "# ^ #", x, other.x),
-                                        JS("int", "# ^ #", y, other.y),
-                                        JS("int", "# ^ #", z, other.z),
-                                        JS("int", "# ^ #", w, other.w));
+    return new NativeInt32x4._truncated(
+        JS("int", "# ^ #", x, other.x),
+        JS("int", "# ^ #", y, other.y),
+        JS("int", "# ^ #", z, other.z),
+        JS("int", "# ^ #", w, other.w));
   }
 
-  Int32x4 operator+(Int32x4 other) {
+  Int32x4 operator +(Int32x4 other) {
     // Avoid going through the typed array by "| 0" the result.
-    return new NativeInt32x4._truncated(JS("int", "(# + #) | 0", x, other.x),
-                                        JS("int", "(# + #) | 0", y, other.y),
-                                        JS("int", "(# + #) | 0", z, other.z),
-                                        JS("int", "(# + #) | 0", w, other.w));
+    return new NativeInt32x4._truncated(
+        JS("int", "(# + #) | 0", x, other.x),
+        JS("int", "(# + #) | 0", y, other.y),
+        JS("int", "(# + #) | 0", z, other.z),
+        JS("int", "(# + #) | 0", w, other.w));
   }
 
-  Int32x4 operator-(Int32x4 other) {
+  Int32x4 operator -(Int32x4 other) {
     // Avoid going through the typed array by "| 0" the result.
-    return new NativeInt32x4._truncated(JS("int", "(# - #) | 0", x, other.x),
-                                        JS("int", "(# - #) | 0", y, other.y),
-                                        JS("int", "(# - #) | 0", z, other.z),
-                                        JS("int", "(# - #) | 0", w, other.w));
+    return new NativeInt32x4._truncated(
+        JS("int", "(# - #) | 0", x, other.x),
+        JS("int", "(# - #) | 0", y, other.y),
+        JS("int", "(# - #) | 0", z, other.z),
+        JS("int", "(# - #) | 0", w, other.w));
   }
 
-  Int32x4 operator-() {
+  Int32x4 operator -() {
     // Avoid going through the typed array by "| 0" the result.
-    return new NativeInt32x4._truncated(JS("int", "(-#) | 0", x),
-                                        JS("int", "(-#) | 0", y),
-                                        JS("int", "(-#) | 0", z),
-                                        JS("int", "(-#) | 0", w));
+    return new NativeInt32x4._truncated(
+        JS("int", "(-#) | 0", x),
+        JS("int", "(-#) | 0", y),
+        JS("int", "(-#) | 0", z),
+        JS("int", "(-#) | 0", w));
   }
 
   /// Extract the top bit from each lane return them in the first 4 bits.
@@ -1724,10 +1692,13 @@ class NativeInt32x4 implements Int32x4 {
 
   /// Extracted x value. Returns `false` for 0, `true` for any other value.
   bool get flagX => x != 0;
+
   /// Extracted y value. Returns `false` for 0, `true` for any other value.
   bool get flagY => y != 0;
+
   /// Extracted z value. Returns `false` for 0, `true` for any other value.
   bool get flagZ => z != 0;
+
   /// Extracted w value. Returns `false` for 0, `true` for any other value.
   bool get flagW => w != 0;
 
@@ -1816,25 +1787,27 @@ class NativeFloat64x2 implements Float64x2 {
   String toString() => '[$x, $y]';
 
   /// Addition operator.
-  Float64x2 operator+(Float64x2 other) {
+  Float64x2 operator +(Float64x2 other) {
     return new NativeFloat64x2._doubles(x + other.x, y + other.y);
   }
 
   /// Negate operator.
-  Float64x2 operator-() {
+  Float64x2 operator -() {
     return new NativeFloat64x2._doubles(-x, -y);
   }
 
   /// Subtraction operator.
-  Float64x2 operator-(Float64x2 other) {
+  Float64x2 operator -(Float64x2 other) {
     return new NativeFloat64x2._doubles(x - other.x, y - other.y);
   }
+
   /// Multiplication operator.
-  Float64x2 operator*(Float64x2 other) {
+  Float64x2 operator *(Float64x2 other) {
     return new NativeFloat64x2._doubles(x * other.x, y * other.y);
   }
+
   /// Division operator.
-  Float64x2 operator/(Float64x2 other) {
+  Float64x2 operator /(Float64x2 other) {
     return new NativeFloat64x2._doubles(x / other.x, y / other.y);
   }
 
@@ -1849,8 +1822,7 @@ class NativeFloat64x2 implements Float64x2 {
   }
 
   /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
-  Float64x2 clamp(Float64x2 lowerLimit,
-                  Float64x2 upperLimit) {
+  Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) {
     double _lx = lowerLimit.x;
     double _ly = lowerLimit.y;
     double _ux = upperLimit.x;
@@ -1889,20 +1861,19 @@ class NativeFloat64x2 implements Float64x2 {
 
   /// Returns the lane-wise minimum value in [this] or [other].
   Float64x2 min(Float64x2 other) {
-    return new NativeFloat64x2._doubles(x < other.x ? x : other.x,
-                                        y < other.y ? y : other.y);
-
+    return new NativeFloat64x2._doubles(
+        x < other.x ? x : other.x, y < other.y ? y : other.y);
   }
 
   /// Returns the lane-wise maximum value in [this] or [other].
   Float64x2 max(Float64x2 other) {
-    return new NativeFloat64x2._doubles(x > other.x ? x : other.x,
-                                        y > other.y ? y : other.y);
+    return new NativeFloat64x2._doubles(
+        x > other.x ? x : other.x, y > other.y ? y : other.y);
   }
 
   /// Returns the lane-wise square root of [this].
   Float64x2 sqrt() {
-      return new NativeFloat64x2._doubles(Math.sqrt(x), Math.sqrt(y));
+    return new NativeFloat64x2._doubles(Math.sqrt(x), Math.sqrt(y));
   }
 }
 
@@ -1929,11 +1900,10 @@ void _checkValidIndex(int index, List list, int length) {
 /// Returns the actual value of `end`, which is `length` if `end` is `null`, and
 /// the original value of `end` otherwise.
 int _checkValidRange(int start, int end, int length) {
-  if (_isInvalidArrayIndex(start) ||  // Ensures start is non-negative int.
-      ((end == null) ? start > length
-                     : (_isInvalidArrayIndex(end) ||
-                        start > end ||
-                        end > length))) {
+  if (_isInvalidArrayIndex(start) || // Ensures start is non-negative int.
+      ((end == null)
+          ? start > length
+          : (_isInvalidArrayIndex(end) || start > end || end > length))) {
     throw diagnoseRangeError(start, end, length);
   }
   if (end == null) return length;

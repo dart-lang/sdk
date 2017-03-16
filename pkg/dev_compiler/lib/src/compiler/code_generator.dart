@@ -2855,7 +2855,17 @@ class CodeGenerator extends GeneralizingAstVisitor
       // For instance members, we add implicit-this.
       // For method tear-offs, we ensure it's a bound method.
       var tearOff = element is MethodElement && !inInvocationContext(node);
-      if (tearOff) return _callHelper('bind(this, #)', member);
+      if (tearOff) {
+        // To be safe always use the symbolized name when binding on a native
+        // class as bind assumes the name will match the name class sigatures
+        // which is symbolized for native classes.
+        var safeName = _emitMemberName(name,
+            isStatic: isStatic,
+            type: type,
+            element: element,
+            alwaysSymbolizeNative: true);
+        return _callHelper('bind(this, #)', safeName);
+      }
       return js.call('this.#', member);
     }
 
@@ -5022,13 +5032,22 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression result;
     if (member != null && member is MethodElement && !isStatic) {
       // Tear-off methods: explicitly bind it.
+      // To be safe always use the symbolized name when binding on a native
+      // class as bind assumes the name will match the name class sigatures
+      // which is symbolized for native classes.
+      var safeName = _emitMemberName(memberName,
+          type: getStaticType(target),
+          isStatic: isStatic,
+          element: member,
+          alwaysSymbolizeNative: true);
       if (isSuper) {
-        result = _callHelper('bind(this, #, #.#)', [name, jsTarget, name]);
+        result =
+            _callHelper('bind(this, #, #.#)', [safeName, jsTarget, safeName]);
       } else if (_isObjectMemberCall(target, memberName)) {
         result = _callHelper('bind(#, #, #.#)',
             [jsTarget, _propertyName(memberName), _runtimeModule, memberName]);
       } else {
-        result = _callHelper('bind(#, #)', [jsTarget, name]);
+        result = _callHelper('bind(#, #)', [jsTarget, safeName]);
       }
     } else if (_isObjectMemberCall(target, memberName)) {
       result = _callHelper('#(#)', [memberName, jsTarget]);
@@ -5625,6 +5644,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       bool isStatic: false,
       bool useExtension,
       bool useDisplayName: false,
+      bool alwaysSymbolizeNative: false,
       Element element}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
@@ -5663,8 +5683,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       while (baseType is TypeParameterType) {
         baseType = (baseType.element as TypeParameterElement).bound;
       }
-      useExtension =
-          baseType is InterfaceType && _isSymbolizedMember(baseType, name);
+      useExtension = baseType is InterfaceType &&
+          _isSymbolizedMember(baseType, name, alwaysSymbolizeNative);
     }
 
     return useExtension
@@ -5701,7 +5721,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// Note, this is an underlying assumption here that, if another native type
   /// subtypes this one, it also forwards this member to its underlying native
   /// one without renaming.
-  bool _isSymbolizedMember(InterfaceType type, String name) {
+  bool _isSymbolizedMember(
+      InterfaceType type, String name, bool alwaysSymbolizeNative) {
     // Object members are handled separately.
     if (isObjectMember(name)) {
       return false;
@@ -5716,7 +5737,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (member is FieldElement ||
           member is ExecutableElement && member.isExternal) {
         var jsName = getAnnotationName(member, isJsName);
-        return jsName != null && jsName != name;
+        return alwaysSymbolizeNative || (jsName != null && jsName != name);
       } else {
         // Non-external members must be symbolized.
         return true;

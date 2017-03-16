@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "bin/platform.h"
 
@@ -58,6 +58,19 @@ class PlatformWin {
     // the requested file. See:
     // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680621(v=vs.85).aspx
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+    // Set up a signal handler that restores the console state on a
+    // CTRL_C_EVENT signal. This will only run when there is no signal hanlder
+    // registered for the CTRL_C_EVENT from Dart code.
+    SetConsoleCtrlHandler(SignalHandler, TRUE);
+  }
+
+  static BOOL WINAPI SignalHandler(DWORD signal) {
+    if (signal == CTRL_C_EVENT) {
+      // We call this without taking the lock because this is a signal
+      // handler, and because the process is about to go down.
+      RestoreConsoleLocked();
+    }
+    return FALSE;
   }
 
   static void SaveAndConfigureConsole() {
@@ -92,20 +105,33 @@ class PlatformWin {
 
   static void RestoreConsole() {
     MutexLocker ml(platform_win_mutex_);
+    RestoreConsoleLocked();
+  }
 
+  static bool ansi_supported() { return ansi_supported_; }
+
+ private:
+  static Mutex* platform_win_mutex_;
+  static int saved_output_cp_;
+  static int saved_input_cp_;
+  static bool ansi_supported_;
+
+  static void RestoreConsoleLocked() {
     // STD_OUTPUT_HANDLE and STD_INPUT_HANDLE may have been closed or
     // redirected. Therefore, we explicitly open the CONOUT$ and CONIN$
     // devices, so that we can be sure that we are really unsetting
     // ENABLE_VIRTUAL_TERMINAL_PROCESSING and ENABLE_VIRTUAL_TERMINAL_INPUT
     // respectively.
-    HANDLE out;
-    {
-      Utf8ToWideScope conin("CONOUT$");
-      out = CreateFileW(conin.wide(), GENERIC_READ | GENERIC_WRITE,
-                        FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-      if (out != INVALID_HANDLE_VALUE) {
-        SetStdHandle(STD_OUTPUT_HANDLE, out);
-      }
+    const intptr_t kWideBufLen = 64;
+    const char* conout = "CONOUT$";
+    wchar_t widebuf[kWideBufLen];
+    int result =
+        MultiByteToWideChar(CP_UTF8, 0, conout, -1, widebuf, kWideBufLen);
+    ASSERT(result != 0);
+    HANDLE out = CreateFileW(widebuf, GENERIC_READ | GENERIC_WRITE,
+                             FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    if (out != INVALID_HANDLE_VALUE) {
+      SetStdHandle(STD_OUTPUT_HANDLE, out);
     }
     DWORD out_mode;
     if ((out != INVALID_HANDLE_VALUE) && GetConsoleMode(out, &out_mode)) {
@@ -113,14 +139,13 @@ class PlatformWin {
       SetConsoleMode(out, request);
     }
 
-    HANDLE in;
-    {
-      Utf8ToWideScope conin("CONIN$");
-      in = CreateFileW(conin.wide(), GENERIC_READ | GENERIC_WRITE,
-                       FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-      if (in != INVALID_HANDLE_VALUE) {
-        SetStdHandle(STD_INPUT_HANDLE, in);
-      }
+    const char* conin = "CONIN$";
+    result = MultiByteToWideChar(CP_UTF8, 0, conin, -1, widebuf, kWideBufLen);
+    ASSERT(result != 0);
+    HANDLE in = CreateFileW(widebuf, GENERIC_READ | GENERIC_WRITE,
+                            FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    if (in != INVALID_HANDLE_VALUE) {
+      SetStdHandle(STD_INPUT_HANDLE, in);
     }
     DWORD in_mode;
     if ((in != INVALID_HANDLE_VALUE) && GetConsoleMode(in, &in_mode)) {
@@ -137,14 +162,6 @@ class PlatformWin {
       saved_input_cp_ = -1;
     }
   }
-
-  static bool ansi_supported() { return ansi_supported_; }
-
- private:
-  static Mutex* platform_win_mutex_;
-  static int saved_output_cp_;
-  static int saved_input_cp_;
-  static bool ansi_supported_;
 
   static void InvalidParameterHandler(const wchar_t* expression,
                                       const wchar_t* function,
@@ -277,4 +294,4 @@ void Platform::Exit(int exit_code) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

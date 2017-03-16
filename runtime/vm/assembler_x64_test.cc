@@ -3413,7 +3413,7 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
   EnterTestFrame(assembler);
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
   // First argument is code object, second argument is thread. MSVC passes
   // third argument in XMM2.
   __ DoubleAbs(XMM2);

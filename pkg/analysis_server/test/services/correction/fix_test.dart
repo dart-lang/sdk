@@ -77,13 +77,19 @@ bool test() {
 ''');
   }
 
-  assertHasFix(FixKind kind, String expected) async {
+  assertHasFix(FixKind kind, String expected, {String target}) async {
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(kind, error);
     change = fix.change;
+
     // apply to "file"
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
+
+    if (target != null) {
+      expect(target, fileEdits.first.file);
+    }
+
     resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
@@ -429,13 +435,20 @@ class A {
 
   test_addMissingRequiredArg_cons_single() async {
     _addMetaPackageSource();
-
-    await resolveTestUnit('''
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
 import 'package:meta/meta.dart';
 
 class A {
   A({@required int a}) {}
 }
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
 main() {
   A a = new A();
 }
@@ -443,15 +456,13 @@ main() {
     await assertHasFix(
         DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
         '''
-import 'package:meta/meta.dart';
+import 'libA.dart';
 
-class A {
-  A({@required int a}) {}
-}
 main() {
   A a = new A(a: null);
 }
-''');
+''',
+        target: '/test.dart');
   }
 
   test_addMissingRequiredArg_multiple() async {

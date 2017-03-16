@@ -141,7 +141,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError # co19 issue 87
 Language/Expressions/Shift/syntax_t01/14: MissingRuntimeError # Please triage this failure
 Language/Functions/External_Functions/not_connected_to_a_body_t01: CompileTimeError, OK # Issue 5021
-Language/Generics/syntax_t17: fail # Issue 21203
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: CompileTimeError # Please triage this failure
@@ -151,7 +150,7 @@ Language/Metadata/before_export_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_import_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_library_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_param_t09: RuntimeError # Please triage this failure
-Language/Metadata/before_type_param_t01: CompileTimeError # Please triage this failure
+Language/Metadata/before_type_param_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_typedef_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure
 Language/Mixins/Mixin_Application/static_warning_t01: CompileTimeError # Please triage this failure

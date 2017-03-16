@@ -872,9 +872,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 
 
-#if defined(TARGET_OS_LINUX)
+#if defined(HOST_OS_LINUX)
   assembly_stream_.Print(".section .rodata\n");
-#elif defined(TARGET_OS_MACOS)
+#elif defined(HOST_OS_MACOS)
   assembly_stream_.Print(".const\n");
 #else
   // Unsupported platform.

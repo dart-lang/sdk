@@ -541,13 +541,13 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endForStatement(
-      int updateExpressionCount, Token beginToken, Token endToken) {
+  void endForStatement(Token forKeyword, Token leftSeparator,
+      int updateExpressionCount, Token endToken) {
     Statement body = popNode();
     NodeList updates = makeNodeList(updateExpressionCount, null, null, ',');
     Statement condition = popNode();
     Node initializer = popNode();
-    pushNode(new For(initializer, condition, updates, body, beginToken));
+    pushNode(new For(initializer, condition, updates, body, forKeyword));
   }
 
   @override
@@ -1006,6 +1006,18 @@ class NodeListener extends ElementListener {
     Statement statement = popNode();
     NodeList labels = makeNodeList(labelCount, null, null, null);
     pushNode(new LabeledStatement(labels, statement));
+  }
+
+  @override
+  void endTypeVariable(Token token, Token extendsOrSuper) {
+    inTypeVariable = false;
+    NominalTypeAnnotation bound = popNode();
+    Identifier name = popNode();
+    // TODO(paulberry): type variable metadata should not be ignored.  See
+    // dartbug.com/5841.
+    popNode(); // Metadata
+    pushNode(new TypeVariable(name, extendsOrSuper, bound));
+    rejectBuiltInIdentifier(name);
   }
 
   @override

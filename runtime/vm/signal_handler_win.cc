@@ -4,7 +4,7 @@
 
 #include "vm/globals.h"
 #include "vm/signal_handler.h"
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 namespace dart {
 
@@ -50,4 +50,4 @@ void SignalHandler::Remove() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

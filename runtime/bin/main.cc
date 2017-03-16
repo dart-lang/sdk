@@ -491,7 +491,7 @@ static bool ProcessShortSocketWriteOption(const char* arg,
 }
 
 
-#if !defined(TARGET_OS_MACOS)
+#if !defined(HOST_OS_MACOS)
 extern const char* commandline_root_certs_file;
 extern const char* commandline_root_certs_cache;
 
@@ -527,7 +527,7 @@ static bool ProcessRootCertsCacheOption(const char* arg,
   commandline_root_certs_cache = arg;
   return true;
 }
-#endif  // !defined(TARGET_OS_MACOS)
+#endif  // !defined(HOST_OS_MACOS)
 
 
 static struct {
@@ -561,10 +561,10 @@ static struct {
     {"--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption},
     {"--short_socket_read", ProcessShortSocketReadOption},
     {"--short_socket_write", ProcessShortSocketWriteOption},
-#if !defined(TARGET_OS_MACOS)
+#if !defined(HOST_OS_MACOS)
     {"--root-certs-file=", ProcessRootCertsFileOption},
     {"--root-certs-cache=", ProcessRootCertsCacheOption},
-#endif  // !defined(TARGET_OS_MACOS)
+#endif  // !defined(HOST_OS_MACOS)
     {NULL, NULL}};
 
 
@@ -1116,7 +1116,7 @@ static void PrintUsage() {
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is localhost).\n"
-#if !defined(TARGET_OS_MACOS)
+#if !defined(HOST_OS_MACOS)
 "\n"
 "--root-certs-file=<path>\n"
 "  The path to a file containing the trusted root certificates to use for\n"
@@ -1124,7 +1124,7 @@ static void PrintUsage() {
 "--root-certs-cache=<path>\n"
 "  The path to a cache directory containing the trusted root certificates to\n"
 "  use for secure socket connections.\n"
-#endif  // !defined(TARGET_OS_MACOS)
+#endif  // !defined(HOST_OS_MACOS)
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");

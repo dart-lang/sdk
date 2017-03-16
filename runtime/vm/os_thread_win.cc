@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#if defined(TARGET_OS_WINDOWS)
+#if defined(HOST_OS_WINDOWS)
 
 #include "vm/growable_array.h"
 #include "vm/lockers.h"
@@ -700,4 +700,4 @@ PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnDartThreadExit;
 #endif  // _WIN64
 }  // extern "C"
 
-#endif  // defined(TARGET_OS_WINDOWS)
+#endif  // defined(HOST_OS_WINDOWS)

@@ -25,9 +25,7 @@ class TestCase {
   /// Map from template names to the inserted values.
   final Map<String, String> environment;
 
-  const TestCase(
-      this.data,
-      [this.environment = const {}]);
+  const TestCase(this.data, [this.environment = const {}]);
 }
 
 const List<TestCase> DATA = const <TestCase>[
@@ -44,12 +42,11 @@ function(a, b) {
 function(a, b) {
   return null;
 @0}""",
-   TestMode.EXIT: """
+    TestMode.EXIT: """
 function(a@1, b@2) {
   return null@5;
 @4}@3@0"""
   }),
-
   const TestCase(const {
     TestMode.NONE: """
 function() {
@@ -108,7 +105,6 @@ function() {
 @26  }@22
 @20}@1@0""",
   }),
-
   const TestCase(const {
     TestMode.NONE: """
 function() {
@@ -125,13 +121,12 @@ function() {
   function foo() {
   @3}
 @0}""",
-   TestMode.EXIT: """
+    TestMode.EXIT: """
 function() {
   function foo@4() {
   }@5@3
 @2}@1@0"""
   }),
-
   const TestCase(const {
     TestMode.INPUT: """
 function() {
@@ -153,20 +148,21 @@ function() {
   a.b;
   [1,, 2];
 @0}""",
-   TestMode.EXIT: """
+    TestMode.EXIT: """
 function() {
   a@4.b@5@3;
 @2  [1@8,,@9 2@10]@7;
 @6}@1@0""",
   }),
-
   const TestCase(const {
     TestMode.INPUT: "a.#nameTemplate = #nameTemplate",
     TestMode.NONE: "a.nameValue = nameValue",
     TestMode.ENTER: "@0@1@2a.@3nameValue = @3nameValue",
     TestMode.DELIMITER: "a.nameValue = nameValue",
     TestMode.EXIT: "a@2.nameValue@3@1 = nameValue@3@0",
-  }, const {'nameTemplate': 'nameValue'}),
+  }, const {
+    'nameTemplate': 'nameValue'
+  }),
 ];
 
 class FixedName extends Name {
@@ -221,10 +217,8 @@ class Context extends SimpleJavaScriptPrintingContext {
     }
   }
 
-  void exitNode(Node node,
-                int startPosition,
-                int endPosition,
-                int delimiterPosition) {
+  void exitNode(
+      Node node, int startPosition, int endPosition, int delimiterPosition) {
     int value = id(node);
     if (mode == TestMode.DELIMITER && delimiterPosition != null) {
       tagMap.putIfAbsent(delimiterPosition, () => []).add(tag(value));

@@ -392,11 +392,12 @@ class AstBuilder extends ScopeListener {
 
   void handleNoInitializers() {
     debugEvent("NoInitializers");
+    push(NullValue.ConstructorInitializers);
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
-    popList(count);
+    push(popList(count));
   }
 
   void endVariableInitializer(Token assignmentOperator) {
@@ -414,8 +415,8 @@ class AstBuilder extends ScopeListener {
     debugEvent("WhileStatement");
     Statement body = pop();
     ParenthesizedExpression condition = pop();
-    pop(); // continue target
-    pop(); // break target
+    exitContinueTarget();
+    exitBreakTarget();
     push(ast.whileStatement(
         toAnalyzerToken(whileKeyword),
         condition.leftParenthesis,
@@ -474,25 +475,43 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(beginToken), statements, toAnalyzerToken(endToken)));
   }
 
-  void endForStatement(
-      int updateExpressionCount, Token beginToken, Token endToken) {
+  void endForStatement(Token forKeyword, Token leftSeparator,
+      int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement");
     Statement body = pop();
     List<Expression> updates = popList(updateExpressionCount);
-    ExpressionStatement condition = pop();
-    VariableDeclarationStatement variables = pop();
+    Statement conditionStatement = pop();
+    Object initializerPart = pop();
+    exitLocalScope();
     exitContinueTarget();
     exitBreakTarget();
-    exitLocalScope();
-    BeginGroupToken leftParenthesis = beginToken.next;
+    BeginGroupToken leftParenthesis = forKeyword.next;
+
+    VariableDeclarationList variableList;
+    Expression initializer;
+    if (initializerPart is VariableDeclarationStatement) {
+      variableList = initializerPart.variables;
+    } else {
+      initializer = initializerPart as Expression;
+    }
+
+    Expression condition;
+    analyzer.Token rightSeparator;
+    if (conditionStatement is ExpressionStatement) {
+      condition = conditionStatement.expression;
+      rightSeparator = conditionStatement.semicolon;
+    } else {
+      rightSeparator = (conditionStatement as EmptyStatement).semicolon;
+    }
+
     push(ast.forStatement(
-        toAnalyzerToken(beginToken),
+        toAnalyzerToken(forKeyword),
         toAnalyzerToken(leftParenthesis),
-        variables?.variables,
-        null, // initialization.
-        variables?.semicolon,
-        condition.expression,
-        condition.semicolon,
+        variableList,
+        initializer,
+        toAnalyzerToken(leftSeparator),
+        condition,
+        rightSeparator,
         updates,
         toAnalyzerToken(leftParenthesis.endGroup),
         body));
@@ -700,9 +719,9 @@ class AstBuilder extends ScopeListener {
     Statement body = pop();
     Expression iterator = pop();
     Object variableOrDeclaration = pop();
-    pop(); // local scope
-    pop(); // continue target
-    pop(); // break target
+    exitLocalScope();
+    exitContinueTarget();
+    exitBreakTarget();
     if (variableOrDeclaration is SimpleIdentifier) {
       push(ast.forEachStatementWithReference(
           toAnalyzerToken(awaitToken),
@@ -1067,8 +1086,8 @@ class AstBuilder extends ScopeListener {
     debugEvent("DoWhileStatement");
     ParenthesizedExpression condition = pop();
     Statement body = pop();
-    pop(); // continue target
-    pop(); // break target
+    exitContinueTarget();
+    exitBreakTarget();
     push(ast.doStatement(
         toAnalyzerToken(doKeyword),
         body,
@@ -1387,9 +1406,8 @@ class AstBuilder extends ScopeListener {
     debugEvent("TypeVariable");
     TypeAnnotation bound = pop();
     SimpleIdentifier name = pop();
-    List<Annotation> metadata = null; // TODO(paulberry)
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    List<Annotation> metadata = pop();
+    Comment comment = pop();
     push(ast.typeParameter(
         comment, metadata, name, toAnalyzerToken(extendsOrSuper), bound));
   }
@@ -1407,7 +1425,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Method");
     FunctionBody body = pop();
     ConstructorName redirectedConstructor = null; // TODO(paulberry)
-    List<ConstructorInitializer> initializers = null; // TODO(paulberry)
+    List<Object> initializerObjects = pop() ?? const [];
     Token separator = null; // TODO(paulberry)
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop(); // TODO(paulberry)
@@ -1416,6 +1434,30 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
+
+    var initializers = <ConstructorInitializer>[];
+    for (Object initializerObject in initializerObjects) {
+      if (initializerObject is AssignmentExpression) {
+        analyzer.Token thisKeyword;
+        analyzer.Token period;
+        SimpleIdentifier fieldName;
+        Expression left = initializerObject.leftHandSide;
+        if (left is PropertyAccess) {
+          var thisExpression = left.target as ThisExpression;
+          thisKeyword = thisExpression.thisKeyword;
+          period = left.operator;
+          fieldName = left.propertyName;
+        } else {
+          fieldName = left as SimpleIdentifier;
+        }
+        initializers.add(ast.constructorFieldInitializer(
+            thisKeyword,
+            period,
+            fieldName,
+            initializerObject.operator,
+            initializerObject.rightHandSide));
+      }
+    }
 
     void constructor(SimpleIdentifier returnType, analyzer.Token period,
         SimpleIdentifier name) {

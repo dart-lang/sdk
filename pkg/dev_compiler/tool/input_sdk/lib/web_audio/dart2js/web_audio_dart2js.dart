@@ -10,20 +10,17 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_native_typed_data';
 import 'dart:typed_data';
-import 'dart:_js_helper' show Creates, JSName, Native, Returns, convertDartClosureToJS;
+import 'dart:_js_helper'
+    show Creates, JSName, Native, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
 
-
-
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('AnalyserNode')
@@ -32,7 +29,9 @@ import 'dart:_interceptors' show Interceptor;
 @Native("AnalyserNode,RealtimeAnalyserNode")
 class AnalyserNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory AnalyserNode._() { throw new UnsupportedError("Not supported"); }
+  factory AnalyserNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('AnalyserNode.fftSize')
   @DocsEditable()
@@ -56,25 +55,24 @@ class AnalyserNode extends AudioNode {
 
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable()
-  void getByteFrequencyData(Uint8List array) native;
+  void getByteFrequencyData(Uint8List array) native ;
 
   @DomName('AnalyserNode.getByteTimeDomainData')
   @DocsEditable()
-  void getByteTimeDomainData(Uint8List array) native;
+  void getByteTimeDomainData(Uint8List array) native ;
 
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable()
-  void getFloatFrequencyData(Float32List array) native;
+  void getFloatFrequencyData(Float32List array) native ;
 
   @DomName('AnalyserNode.getFloatTimeDomainData')
   @DocsEditable()
   @Experimental() // untriaged
-  void getFloatTimeDomainData(Float32List array) native;
+  void getFloatTimeDomainData(Float32List array) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('AudioBuffer')
@@ -83,7 +81,9 @@ class AnalyserNode extends AudioNode {
 @Native("AudioBuffer")
 class AudioBuffer extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory AudioBuffer._() { throw new UnsupportedError("Not supported"); }
+  factory AudioBuffer._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('AudioBuffer.duration')
   @DocsEditable()
@@ -103,14 +103,13 @@ class AudioBuffer extends Interceptor {
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
-  Float32List getChannelData(int channelIndex) native;
+  Float32List getChannelData(int channelIndex) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
-
 
 @DomName('AudioBufferCallback')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
@@ -120,7 +119,6 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DomName('AudioBufferSourceNode')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -128,7 +126,6 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBufferSourceNode-section
 @Native("AudioBufferSourceNode")
 class AudioBufferSourceNode extends AudioSourceNode {
-
   // TODO(efortuna): Remove these methods when Chrome stable also uses start
   // instead of noteOn.
   void start(num when, [num grainOffset, num grainDuration]) {
@@ -158,8 +155,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
       JS('void', '#.noteOff(#)', this, when);
     }
   }
+
   // To suppress missing implicit constructor warnings.
-  factory AudioBufferSourceNode._() { throw new UnsupportedError("Not supported"); }
+  factory AudioBufferSourceNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `ended` events to event
@@ -170,7 +170,8 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DomName('AudioBufferSourceNode.endedEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+  static const EventStreamProvider<Event> endedEvent =
+      const EventStreamProvider<Event>('ended');
 
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
@@ -197,12 +198,10 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onEnded => endedEvent.forTarget(this);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('AudioContext')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -212,7 +211,9 @@ class AudioBufferSourceNode extends AudioSourceNode {
 @Native("AudioContext,webkitAudioContext")
 class AudioContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
-  factory AudioContext._() { throw new UnsupportedError("Not supported"); }
+  factory AudioContext._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `complete` events to event
@@ -222,10 +223,12 @@ class AudioContext extends EventTarget {
    */
   @DomName('AudioContext.completeEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+  static const EventStreamProvider<Event> completeEvent =
+      const EventStreamProvider<Event>('complete');
 
   /// Checks if this type is supported on the current platform.
-  static bool get supported => JS('bool', '!!(window.AudioContext || window.webkitAudioContext)');
+  static bool get supported =>
+      JS('bool', '!!(window.AudioContext || window.webkitAudioContext)');
 
   @DomName('AudioContext.currentTime')
   @DocsEditable()
@@ -245,77 +248,82 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
-  AnalyserNode createAnalyser() native;
+  AnalyserNode createAnalyser() native ;
 
   @DomName('AudioContext.createBiquadFilter')
   @DocsEditable()
-  BiquadFilterNode createBiquadFilter() native;
+  BiquadFilterNode createBiquadFilter() native ;
 
   @DomName('AudioContext.createBuffer')
   @DocsEditable()
-  AudioBuffer createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate) native;
+  AudioBuffer createBuffer(
+      int numberOfChannels, int numberOfFrames, num sampleRate) native ;
 
   @DomName('AudioContext.createBufferSource')
   @DocsEditable()
-  AudioBufferSourceNode createBufferSource() native;
+  AudioBufferSourceNode createBufferSource() native ;
 
   @DomName('AudioContext.createChannelMerger')
   @DocsEditable()
-  ChannelMergerNode createChannelMerger([int numberOfInputs]) native;
+  ChannelMergerNode createChannelMerger([int numberOfInputs]) native ;
 
   @DomName('AudioContext.createChannelSplitter')
   @DocsEditable()
-  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) native;
+  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) native ;
 
   @DomName('AudioContext.createConvolver')
   @DocsEditable()
-  ConvolverNode createConvolver() native;
+  ConvolverNode createConvolver() native ;
 
   @DomName('AudioContext.createDelay')
   @DocsEditable()
-  DelayNode createDelay([num maxDelayTime]) native;
+  DelayNode createDelay([num maxDelayTime]) native ;
 
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable()
-  DynamicsCompressorNode createDynamicsCompressor() native;
+  DynamicsCompressorNode createDynamicsCompressor() native ;
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable()
-  MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native;
+  MediaElementAudioSourceNode createMediaElementSource(
+      MediaElement mediaElement) native ;
 
   @DomName('AudioContext.createMediaStreamDestination')
   @DocsEditable()
-  MediaStreamAudioDestinationNode createMediaStreamDestination() native;
+  MediaStreamAudioDestinationNode createMediaStreamDestination() native ;
 
   @DomName('AudioContext.createMediaStreamSource')
   @DocsEditable()
-  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native;
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream)
+      native ;
 
   @DomName('AudioContext.createOscillator')
   @DocsEditable()
-  OscillatorNode createOscillator() native;
+  OscillatorNode createOscillator() native ;
 
   @DomName('AudioContext.createPanner')
   @DocsEditable()
-  PannerNode createPanner() native;
+  PannerNode createPanner() native ;
 
   @DomName('AudioContext.createPeriodicWave')
   @DocsEditable()
   @Experimental() // untriaged
-  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native;
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native ;
 
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
-  WaveShaperNode createWaveShaper() native;
+  WaveShaperNode createWaveShaper() native ;
 
   @JSName('decodeAudioData')
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
-  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
+  void _decodeAudioData(
+      ByteBuffer audioData, AudioBufferCallback successCallback,
+      [AudioBufferCallback errorCallback]) native ;
 
   @DomName('AudioContext.startRendering')
   @DocsEditable()
-  void startRendering() native;
+  void startRendering() native ;
 
   /// Stream of `complete` events handled by this [AudioContext].
   @DomName('AudioContext.oncomplete')
@@ -335,8 +343,12 @@ class AudioContext extends EventTarget {
 
   ScriptProcessorNode createScriptProcessor(int bufferSize,
       [int numberOfInputChannels, int numberOfOutputChannels]) {
-    var function = JS('=Object', '#.createScriptProcessor || '
-        '#.createJavaScriptNode', this, this);
+    var function = JS(
+        '=Object',
+        '#.createScriptProcessor || '
+        '#.createJavaScriptNode',
+        this,
+        this);
     if (numberOfOutputChannels != null) {
       return JS('ScriptProcessorNode', '#.call(#, #, #, #)', function, this,
           bufferSize, numberOfInputChannels, numberOfOutputChannels);
@@ -344,29 +356,29 @@ class AudioContext extends EventTarget {
       return JS('ScriptProcessorNode', '#.call(#, #, #)', function, this,
           bufferSize, numberOfInputChannels);
     } else {
-      return JS('ScriptProcessorNode', '#.call(#, #)', function, this,
-          bufferSize);
+      return JS(
+          'ScriptProcessorNode', '#.call(#, #)', function, this, bufferSize);
     }
   }
+
   @DomName('AudioContext.decodeAudioData')
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
     var completer = new Completer<AudioBuffer>();
-    _decodeAudioData(audioData,
-        (value) { completer.complete(value); },
-        (error) {
-          if (error == null) {
-            completer.completeError('');
-          } else {
-            completer.completeError(error);
-          }
-        });
+    _decodeAudioData(audioData, (value) {
+      completer.complete(value);
+    }, (error) {
+      if (error == null) {
+        completer.completeError('');
+      } else {
+        completer.completeError(error);
+      }
+    });
     return completer.future;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('AudioDestinationNode')
@@ -375,7 +387,9 @@ class AudioContext extends EventTarget {
 @Native("AudioDestinationNode")
 class AudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory AudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
+  factory AudioDestinationNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable()
@@ -385,7 +399,6 @@ class AudioDestinationNode extends AudioNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('AudioListener')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
@@ -393,7 +406,9 @@ class AudioDestinationNode extends AudioNode {
 @Native("AudioListener")
 class AudioListener extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory AudioListener._() { throw new UnsupportedError("Not supported"); }
+  factory AudioListener._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
@@ -405,20 +420,19 @@ class AudioListener extends Interceptor {
 
   @DomName('AudioListener.setOrientation')
   @DocsEditable()
-  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native ;
 
   @DomName('AudioListener.setPosition')
   @DocsEditable()
-  void setPosition(num x, num y, num z) native;
+  void setPosition(num x, num y, num z) native ;
 
   @DomName('AudioListener.setVelocity')
   @DocsEditable()
-  void setVelocity(num x, num y, num z) native;
+  void setVelocity(num x, num y, num z) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('AudioNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
@@ -426,7 +440,9 @@ class AudioListener extends Interceptor {
 @Native("AudioNode")
 class AudioNode extends EventTarget {
   // To suppress missing implicit constructor warnings.
-  factory AudioNode._() { throw new UnsupportedError("Not supported"); }
+  factory AudioNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('AudioNode.channelCount')
   @DocsEditable()
@@ -455,11 +471,11 @@ class AudioNode extends EventTarget {
   @JSName('connect')
   @DomName('AudioNode.connect')
   @DocsEditable()
-  void _connect(destination, int output, [int input]) native;
+  void _connect(destination, int output, [int input]) native ;
 
   @DomName('AudioNode.disconnect')
   @DocsEditable()
-  void disconnect(int output) native;
+  void disconnect(int output) native ;
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
@@ -473,7 +489,6 @@ class AudioNode extends EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('AudioParam')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
@@ -481,7 +496,9 @@ class AudioNode extends EventTarget {
 @Native("AudioParam")
 class AudioParam extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory AudioParam._() { throw new UnsupportedError("Not supported"); }
+  factory AudioParam._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
@@ -493,32 +510,31 @@ class AudioParam extends Interceptor {
 
   @DomName('AudioParam.cancelScheduledValues')
   @DocsEditable()
-  void cancelScheduledValues(num startTime) native;
+  void cancelScheduledValues(num startTime) native ;
 
   @DomName('AudioParam.exponentialRampToValueAtTime')
   @DocsEditable()
-  void exponentialRampToValueAtTime(num value, num time) native;
+  void exponentialRampToValueAtTime(num value, num time) native ;
 
   @DomName('AudioParam.linearRampToValueAtTime')
   @DocsEditable()
-  void linearRampToValueAtTime(num value, num time) native;
+  void linearRampToValueAtTime(num value, num time) native ;
 
   @DomName('AudioParam.setTargetAtTime')
   @DocsEditable()
-  void setTargetAtTime(num target, num time, num timeConstant) native;
+  void setTargetAtTime(num target, num time, num timeConstant) native ;
 
   @DomName('AudioParam.setValueAtTime')
   @DocsEditable()
-  void setValueAtTime(num value, num time) native;
+  void setValueAtTime(num value, num time) native ;
 
   @DomName('AudioParam.setValueCurveAtTime')
   @DocsEditable()
-  void setValueCurveAtTime(Float32List values, num time, num duration) native;
+  void setValueCurveAtTime(Float32List values, num time, num duration) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('AudioProcessingEvent')
@@ -527,7 +543,9 @@ class AudioParam extends Interceptor {
 @Native("AudioProcessingEvent")
 class AudioProcessingEvent extends Event {
   // To suppress missing implicit constructor warnings.
-  factory AudioProcessingEvent._() { throw new UnsupportedError("Not supported"); }
+  factory AudioProcessingEvent._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('AudioProcessingEvent.inputBuffer')
   @DocsEditable()
@@ -546,7 +564,6 @@ class AudioProcessingEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('AudioSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
@@ -554,12 +571,13 @@ class AudioProcessingEvent extends Event {
 @Native("AudioSourceNode")
 class AudioSourceNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory AudioSourceNode._() { throw new UnsupportedError("Not supported"); }
+  factory AudioSourceNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('BiquadFilterNode')
@@ -568,7 +586,9 @@ class AudioSourceNode extends AudioNode {
 @Native("BiquadFilterNode")
 class BiquadFilterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
+  factory BiquadFilterNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('BiquadFilterNode.Q')
   @DocsEditable()
@@ -592,12 +612,12 @@ class BiquadFilterNode extends AudioNode {
 
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable()
-  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) native;
+  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse,
+      Float32List phaseResponse) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('ChannelMergerNode')
@@ -606,12 +626,13 @@ class BiquadFilterNode extends AudioNode {
 @Native("ChannelMergerNode,AudioChannelMerger")
 class ChannelMergerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory ChannelMergerNode._() { throw new UnsupportedError("Not supported"); }
+  factory ChannelMergerNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('ChannelSplitterNode')
@@ -620,12 +641,13 @@ class ChannelMergerNode extends AudioNode {
 @Native("ChannelSplitterNode,AudioChannelSplitter")
 class ChannelSplitterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory ChannelSplitterNode._() { throw new UnsupportedError("Not supported"); }
+  factory ChannelSplitterNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('ConvolverNode')
@@ -634,7 +656,9 @@ class ChannelSplitterNode extends AudioNode {
 @Native("ConvolverNode")
 class ConvolverNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory ConvolverNode._() { throw new UnsupportedError("Not supported"); }
+  factory ConvolverNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('ConvolverNode.buffer')
   @DocsEditable()
@@ -648,7 +672,6 @@ class ConvolverNode extends AudioNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('DelayNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DelayNode
@@ -656,7 +679,9 @@ class ConvolverNode extends AudioNode {
 @Native("DelayNode")
 class DelayNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory DelayNode._() { throw new UnsupportedError("Not supported"); }
+  factory DelayNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('DelayNode.delayTime')
   @DocsEditable()
@@ -666,7 +691,6 @@ class DelayNode extends AudioNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('DynamicsCompressorNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DynamicsCompressorNode
@@ -674,7 +698,9 @@ class DelayNode extends AudioNode {
 @Native("DynamicsCompressorNode")
 class DynamicsCompressorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory DynamicsCompressorNode._() { throw new UnsupportedError("Not supported"); }
+  factory DynamicsCompressorNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('DynamicsCompressorNode.attack')
   @DocsEditable()
@@ -704,7 +730,6 @@ class DynamicsCompressorNode extends AudioNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('GainNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode
@@ -712,7 +737,9 @@ class DynamicsCompressorNode extends AudioNode {
 @Native("GainNode,AudioGainNode")
 class GainNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory GainNode._() { throw new UnsupportedError("Not supported"); }
+  factory GainNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('GainNode.gain')
   @DocsEditable()
@@ -722,7 +749,6 @@ class GainNode extends AudioNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('MediaElementAudioSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaElementAudioSourceNode
@@ -730,7 +756,9 @@ class GainNode extends AudioNode {
 @Native("MediaElementAudioSourceNode")
 class MediaElementAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
-  factory MediaElementAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
+  factory MediaElementAudioSourceNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
   @DocsEditable()
@@ -741,7 +769,6 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('MediaStreamAudioDestinationNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioDestinationNode
@@ -749,7 +776,9 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 @Native("MediaStreamAudioDestinationNode")
 class MediaStreamAudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
+  factory MediaStreamAudioDestinationNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('MediaStreamAudioDestinationNode.stream')
   @DocsEditable()
@@ -759,7 +788,6 @@ class MediaStreamAudioDestinationNode extends AudioNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('MediaStreamAudioSourceNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioSourceNode
@@ -767,7 +795,9 @@ class MediaStreamAudioDestinationNode extends AudioNode {
 @Native("MediaStreamAudioSourceNode")
 class MediaStreamAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
-  factory MediaStreamAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
+  factory MediaStreamAudioSourceNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('MediaStreamAudioSourceNode.mediaStream')
   @DocsEditable()
@@ -777,7 +807,6 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('OfflineAudioCompletionEvent')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioCompletionEvent-section
@@ -785,7 +814,9 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 @Native("OfflineAudioCompletionEvent")
 class OfflineAudioCompletionEvent extends Event {
   // To suppress missing implicit constructor warnings.
-  factory OfflineAudioCompletionEvent._() { throw new UnsupportedError("Not supported"); }
+  factory OfflineAudioCompletionEvent._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
   @DocsEditable()
@@ -795,7 +826,6 @@ class OfflineAudioCompletionEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('OfflineAudioContext')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioContext-section
@@ -803,19 +833,25 @@ class OfflineAudioCompletionEvent extends Event {
 @Native("OfflineAudioContext")
 class OfflineAudioContext extends AudioContext {
   // To suppress missing implicit constructor warnings.
-  factory OfflineAudioContext._() { throw new UnsupportedError("Not supported"); }
+  factory OfflineAudioContext._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable()
-  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
-    return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
+  factory OfflineAudioContext(
+      int numberOfChannels, int numberOfFrames, num sampleRate) {
+    return OfflineAudioContext._create_1(
+        numberOfChannels, numberOfFrames, sampleRate);
   }
-  static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) => JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)', numberOfChannels, numberOfFrames, sampleRate);
+  static OfflineAudioContext _create_1(
+          numberOfChannels, numberOfFrames, sampleRate) =>
+      JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)',
+          numberOfChannels, numberOfFrames, sampleRate);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('OscillatorNode')
@@ -824,7 +860,9 @@ class OfflineAudioContext extends AudioContext {
 @Native("OscillatorNode,Oscillator")
 class OscillatorNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
-  factory OscillatorNode._() { throw new UnsupportedError("Not supported"); }
+  factory OscillatorNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `ended` events to event
@@ -835,7 +873,8 @@ class OscillatorNode extends AudioSourceNode {
   @DomName('OscillatorNode.endedEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+  static const EventStreamProvider<Event> endedEvent =
+      const EventStreamProvider<Event>('ended');
 
   @DomName('OscillatorNode.detune')
   @DocsEditable()
@@ -851,24 +890,24 @@ class OscillatorNode extends AudioSourceNode {
 
   @DomName('OscillatorNode.noteOff')
   @DocsEditable()
-  void noteOff(num when) native;
+  void noteOff(num when) native ;
 
   @DomName('OscillatorNode.noteOn')
   @DocsEditable()
-  void noteOn(num when) native;
+  void noteOn(num when) native ;
 
   @DomName('OscillatorNode.setPeriodicWave')
   @DocsEditable()
   @Experimental() // untriaged
-  void setPeriodicWave(PeriodicWave periodicWave) native;
+  void setPeriodicWave(PeriodicWave periodicWave) native ;
 
   @DomName('OscillatorNode.start')
   @DocsEditable()
-  void start([num when]) native;
+  void start([num when]) native ;
 
   @DomName('OscillatorNode.stop')
   @DocsEditable()
-  void stop([num when]) native;
+  void stop([num when]) native ;
 
   /// Stream of `ended` events handled by this [OscillatorNode].
   @DomName('OscillatorNode.onended')
@@ -880,7 +919,6 @@ class OscillatorNode extends AudioSourceNode {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('PannerNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#PannerNode
@@ -888,7 +926,9 @@ class OscillatorNode extends AudioSourceNode {
 @Native("PannerNode,AudioPannerNode,webkitAudioPannerNode")
 class PannerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory PannerNode._() { throw new UnsupportedError("Not supported"); }
+  factory PannerNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
@@ -924,20 +964,19 @@ class PannerNode extends AudioNode {
 
   @DomName('PannerNode.setOrientation')
   @DocsEditable()
-  void setOrientation(num x, num y, num z) native;
+  void setOrientation(num x, num y, num z) native ;
 
   @DomName('PannerNode.setPosition')
   @DocsEditable()
-  void setPosition(num x, num y, num z) native;
+  void setPosition(num x, num y, num z) native ;
 
   @DomName('PannerNode.setVelocity')
   @DocsEditable()
-  void setVelocity(num x, num y, num z) native;
+  void setVelocity(num x, num y, num z) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('PeriodicWave')
@@ -945,12 +984,13 @@ class PannerNode extends AudioNode {
 @Native("PeriodicWave")
 class PeriodicWave extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory PeriodicWave._() { throw new UnsupportedError("Not supported"); }
+  factory PeriodicWave._() {
+    throw new UnsupportedError("Not supported");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('ScriptProcessorNode')
@@ -959,7 +999,9 @@ class PeriodicWave extends Interceptor {
 @Native("ScriptProcessorNode,JavaScriptAudioNode")
 class ScriptProcessorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
+  factory ScriptProcessorNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /**
    * Static factory designed to expose `audioprocess` events to event
@@ -970,7 +1012,8 @@ class ScriptProcessorNode extends AudioNode {
   @DomName('ScriptProcessorNode.audioprocessEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
+  static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent =
+      const EventStreamProvider<AudioProcessingEvent>('audioprocess');
 
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable()
@@ -979,7 +1022,7 @@ class ScriptProcessorNode extends AudioNode {
   @DomName('ScriptProcessorNode.setEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void setEventListener(EventListener eventListener) native;
+  void setEventListener(EventListener eventListener) native ;
 
   /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
 /**
@@ -992,12 +1035,12 @@ class ScriptProcessorNode extends AudioNode {
   @DomName('ScriptProcessorNode.onaudioprocess')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<AudioProcessingEvent> get onAudioProcess => audioProcessEvent.forTarget(this);
+  Stream<AudioProcessingEvent> get onAudioProcess =>
+      audioProcessEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('WaveShaperNode')
@@ -1006,7 +1049,9 @@ class ScriptProcessorNode extends AudioNode {
 @Native("WaveShaperNode")
 class WaveShaperNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
-  factory WaveShaperNode._() { throw new UnsupportedError("Not supported"); }
+  factory WaveShaperNode._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable()

@@ -40,8 +40,7 @@ class JSNumber extends Interceptor implements int, double {
   bool get isNaN => JS('bool', r'isNaN(#)', this);
 
   bool get isInfinite {
-    return JS('bool', r'# == (1/0)', this)
-        || JS('bool', r'# == (-1/0)', this);
+    return JS('bool', r'# == (1/0)', this) || JS('bool', r'# == (-1/0)', this);
   }
 
   bool get isFinite => JS('bool', r'isFinite(#)', this);
@@ -63,7 +62,7 @@ class JSNumber extends Interceptor implements int, double {
       return JS('int', '# | 0', this);
     }
     if (JS('bool', r'isFinite(#)', this)) {
-      return JS('int', r'# + 0', truncateToDouble());  // Converts -0.0 to +0.0.
+      return JS('int', r'# + 0', truncateToDouble()); // Converts -0.0 to +0.0.
     }
     // This is either NaN, Infinity or -Infinity.
     throw new UnsupportedError(JS("String", '"" + #', this));
@@ -149,8 +148,7 @@ class JSNumber extends Interceptor implements int, double {
     if (precision < 1 || precision > 21) {
       throw new RangeError.range(precision, 1, 21, "precision");
     }
-    String result = JS('String', r'#.toPrecision(#)',
-                       this, precision);
+    String result = JS('String', r'#.toPrecision(#)', this, precision);
     if (this == 0 && isNegative) return "-$result";
     return result;
   }
@@ -172,8 +170,7 @@ class JSNumber extends Interceptor implements int, double {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
     var match = JS('List|Null',
-                   r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)',
-                   result);
+        r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
     if (match == null) {
       // Then we don't know how to handle it at all.
       throw new UnsupportedError("Unexpected toString result: $result");
@@ -201,30 +198,30 @@ class JSNumber extends Interceptor implements int, double {
   JSNumber operator -() => JS('num', r'-#', this);
 
   JSNumber operator +(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# + #', this, other);
   }
 
   JSNumber operator -(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# - #', this, other);
   }
 
   double operator /(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# / #', this, other);
   }
 
   JSNumber operator *(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('num', '# * #', this, other);
   }
 
   JSNumber operator %(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
-    if (result == 0) return (0 as JSNumber);  // Make sure we don't return -0.0.
+    if (result == 0) return (0 as JSNumber); // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', other) < 0) {
       return result - JS('num', '#', other);
@@ -244,7 +241,7 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   int _tdivSlow(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return (JS('num', r'# / #', this, other)).toInt();
   }
 
@@ -254,7 +251,7 @@ class JSNumber extends Interceptor implements int, double {
   // the grain at which we do the type checks.
 
   int operator <<(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shlPositive(other);
   }
@@ -268,7 +265,7 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   int operator >>(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shrOtherPositive(other);
   }
@@ -296,37 +293,37 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   int operator &(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('int', r'(# & #) >>> 0', this, other);
   }
 
   int operator |(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('int', r'(# | #) >>> 0', this, other);
   }
 
   int operator ^(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('int', r'(# ^ #) >>> 0', this, other);
   }
 
   bool operator <(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# < #', this, other);
   }
 
   bool operator >(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# > #', this, other);
   }
 
   bool operator <=(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# <= #', this, other);
   }
 
   bool operator >=(num other) {
-    if (other is !num) throw argumentErrorValue(other);
+    if (other is! num) throw argumentErrorValue(other);
     return JS('bool', '# >= #', this, other);
   }
 
@@ -403,10 +400,7 @@ class JSNumber extends Interceptor implements int, double {
     final bool ac = x.isEven;
     int u = x;
     int v = y;
-    int a = 1,
-        b = 0,
-        c = 0,
-        d = 1;
+    int a = 1, b = 0, c = 0, d = 1;
     do {
       while (u.isEven) {
         u ~/= 2;
@@ -444,7 +438,7 @@ class JSNumber extends Interceptor implements int, double {
         d -= b;
       }
     } while (u != 0);
-    if (!inv) return s*v;
+    if (!inv) return s * v;
     if (v != 1) throw new Exception("Not coprime");
     if (d < 0) {
       d += x;
