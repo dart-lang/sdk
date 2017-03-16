@@ -98,9 +98,9 @@ String white(String string) => wrap(string, WHITE_COLOR);
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
 bool computeEnableColors(CompilerContext context) {
-  if (Platform.isWindows) {
+  if (!Platform.ansiSupported) {
     if (context.options.verbose) {
-      print("Not enabling colors, running on Windows.");
+      print("Not enabling colors, 'Platform.ansiSupported' is false.");
     }
     return false;
   }
@@ -118,6 +118,16 @@ bool computeEnableColors(CompilerContext context) {
     }
     return false;
   }
+
+  if (Platform.isWindows) {
+    if (context.options.verbose) {
+      print("Enabling colors as OS is Windows.");
+    }
+    return true;
+  }
+
+  // We have to check if the terminal actually supports colors. Currently,
+  // `Platform.ansiSupported` is hard-coded to true on non-Windows platforms.
 
   // The `-S` option of `tput` allows us to query multiple capabilities at
   // once.
