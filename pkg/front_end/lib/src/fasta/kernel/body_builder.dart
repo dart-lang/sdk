@@ -818,18 +818,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
       List<Expression> expressions = <Expression>[];
-      expressions
+      // Contains more than just \' or \".
+      if (first.lexeme.length > 1) {
+        expressions
           .add(new StringLiteral(unescapeFirstStringPart(first.lexeme, quote)));
+      }
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
-          expressions.add(new StringLiteral(unescape(part.lexeme, quote)));
+          if (part.lexeme.length != 0) {
+            expressions.add(new StringLiteral(unescape(part.lexeme, quote)));
+          }
         } else {
           expressions.add(toValue(part));
         }
       }
-      expressions
+      // Contains more than just \' or \".
+      if (last.lexeme.length > 1) {
+        expressions
           .add(new StringLiteral(unescapeLastStringPart(last.lexeme, quote)));
+      }
       push(new StringConcatenation(expressions)
         ..fileOffset = endToken.charOffset);
     }
