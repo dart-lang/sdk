@@ -3813,8 +3813,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       check_pos = parameter.token_pos();
     }
 
-    if (!check_pos.IsDebugPause()) {
-      // No parameters or synthetic parameters.
+    if (check_pos.IsNoSource() || (check_pos.Pos() < node->token_pos().Pos())) {
+      // No parameters or synthetic parameters, e.g. 'this'.
       check_pos = node->token_pos();
       ASSERT(check_pos.IsDebugPause());
     }
