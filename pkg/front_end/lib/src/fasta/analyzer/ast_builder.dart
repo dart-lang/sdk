@@ -26,15 +26,16 @@ import 'element_store.dart'
         AnalyzerParameterElement,
         ElementStore,
         KernelClassElement;
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:front_end/src/fasta/parser/error_kind.dart';
 import 'token_utils.dart' show toAnalyzerToken, toAnalyzerCommentToken;
 
 class AstBuilder extends ScopeListener {
   final AstFactory ast = standard.astFactory;
 
+  final ErrorReporter errorReporter;
   final KernelLibraryBuilder library;
-
   final Builder member;
-
   final ElementStore elementStore;
 
   @override
@@ -44,7 +45,8 @@ class AstBuilder extends ScopeListener {
   /// being parsed.
   String className;
 
-  AstBuilder(this.library, this.member, this.elementStore, Scope scope,
+  AstBuilder(this.errorReporter, this.library, this.member, this.elementStore,
+      Scope scope,
       [Uri uri])
       : uri = uri ?? library.fileUri,
         super(scope);
@@ -950,6 +952,27 @@ class AstBuilder extends ScopeListener {
           index,
           toAnalyzerToken(closeCurlyBracket)));
     }
+  }
+
+  @override
+  void handleInvalidExpression(Token token) {
+    debugEvent("InvalidExpression");
+  }
+
+  @override
+  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
+    if (kind == ErrorKind.ExpectedExpression) {
+      String lexeme = token.lexeme;
+      if (identical('async', lexeme) || identical('yield', lexeme)) {
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+            token.charOffset,
+            token.charCount);
+        push(ast.simpleIdentifier(toAnalyzerToken(token)));
+        return token;
+      }
+    }
+    return super.handleUnrecoverableError(token, kind, arguments);
   }
 
   void handleUnaryPrefixExpression(Token token) {

@@ -359,11 +359,16 @@ class FileState {
       try {
         fasta.ScannerResult scanResult = fasta.scan(_contentBytes);
 
-        var listener = new fasta.AstBuilder(null, null,
-            new _FastaElementStoreProxy(), new _FastaEmptyScope(), uri);
-        var parser = new fasta.Parser(listener);
+        var astBuilder = new fasta.AstBuilder(
+            new ErrorReporter(errorListener, source),
+            null,
+            null,
+            new _FastaElementStoreProxy(),
+            new _FastaEmptyScope(),
+            uri);
+        var parser = new fasta.Parser(astBuilder);
         parser.parseUnit(scanResult.tokens);
-        var unit = listener.pop() as CompilationUnit;
+        var unit = astBuilder.pop() as CompilationUnit;
 
         LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
         unit.lineInfo = lineInfo;
