@@ -41,6 +41,15 @@ class InvokeDynamicSpecializer {
     instruction.setUseGvn();
   }
 
+  Selector renameToOptimizedSelector(
+      String name, Selector selector, Compiler compiler) {
+    if (selector.name == name) return selector;
+    JavaScriptBackend backend = compiler.backend;
+    return new Selector.call(
+        new Name(name, backend.helpers.interceptorsLibrary),
+        new CallStructure(selector.argumentCount));
+  }
+
   Operation operation(ConstantSystem constantSystem) => null;
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
@@ -241,15 +250,6 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction newBuiltinVariant(
       HInvokeDynamic instruction, Compiler compiler, ClosedWorld closedWorld);
-
-  Selector renameToOptimizedSelector(
-      String name, Selector selector, Compiler compiler) {
-    if (selector.name == name) return selector;
-    JavaScriptBackend backend = compiler.backend;
-    return new Selector.call(
-        new Name(name, backend.helpers.interceptorsLibrary),
-        new CallStructure(selector.argumentCount));
-  }
 }
 
 class AddSpecializer extends BinaryArithmeticSpecializer {
@@ -553,7 +553,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     if (instruction is HBitAnd) {
       return low == 0 &&
           (argumentInRange(instruction.inputs[0], low, high) ||
-           argumentInRange(instruction.inputs[1], low, high));
+              argumentInRange(instruction.inputs[1], low, high));
     }
     return false;
   }
@@ -866,6 +866,10 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       // String.codeUnitAt does not have any side effect (other than throwing),
       // and that it can be GVN'ed.
       clearAllSideEffects(instruction);
+      if (instruction.inputs.last.isPositiveInteger(closedWorld)) {
+        instruction.selector = renameToOptimizedSelector(
+            '_codeUnitAt', instruction.selector, compiler);
+      }
     }
     return null;
   }
