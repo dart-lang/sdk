@@ -145,8 +145,8 @@ static method testIsNot(dynamic o) → dynamic {
   tes::write(!(let dynamic #t8 = o in #t8 is int::HasRuntimeTypeGetter && #t8.$is$D));
 }
 static method main() → dynamic {
-  dynamic objects = int::attachType(<dynamic>[new self::A::•(), new self::B::•(), new self::C::•(), new self::D::•()], new typ::Interface::•(self::$declarations.[](6), <dynamic>[const typ::Dynamic::•()]));
-  objects.forEach(new self::Closure#testIs::•());
-  objects.forEach(new self::Closure#testIsNot::•());
+  core::List<self::C> objects = int::attachType(<self::C>[new self::A::•(), new self::B::•(), new self::C::•(), new self::D::•()], new typ::Interface::•(self::$declarations.[](6), <dynamic>[new typ::Interface::•(self::$declarations.[](0))]));
+  objects.{core::Iterable::forEach}(new self::Closure#testIs::•());
+  objects.{core::Iterable::forEach}(new self::Closure#testIsNot::•());
   tes::expectOutput("true\nfalse\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\nfalse\ntrue\nfalse\nfalse\ntrue\ntrue\ntrue\nfalse\ntrue\nfalse\ntrue\ntrue\nfalse\nfalse\ntrue\ntrue\ntrue\nfalse\ntrue\ntrue\nfalse\nfalse\nfalse");
 }

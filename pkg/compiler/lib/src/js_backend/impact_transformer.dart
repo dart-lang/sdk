@@ -44,7 +44,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final NativeBasicData _nativeBaseData;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final BackendUsageBuilder _backendUsageBuider;
-  final MirrorsData _mirrorsData;
+  final MirrorsDataBuilder _mirrorsDataBuilder;
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
 
@@ -57,7 +57,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._nativeBaseData,
       this._nativeResolutionEnqueuer,
       this._backendUsageBuider,
-      this._mirrorsData,
+      this._mirrorsDataBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder);
 
@@ -226,7 +226,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     if (worldImpact.constSymbolNames.isNotEmpty) {
       registerImpact(_impacts.constSymbol);
       for (String constSymbolName in worldImpact.constSymbolNames) {
-        _mirrorsData.registerConstSymbol(constSymbolName);
+        _mirrorsDataBuilder.registerConstSymbol(constSymbolName);
       }
     }
 
@@ -344,7 +344,6 @@ class CodegenImpactTransformer {
   final RuntimeTypesNeed _rtiNeed;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final Namer _namer;
-  final MirrorsData _mirrorsData;
   final OneShotInterceptorData _oneShotInterceptorData;
   final LookupMapAnalysis _lookupMapAnalysis;
   final RuntimeTypesChecksBuilder _rtiChecksBuilder;
@@ -360,7 +359,6 @@ class CodegenImpactTransformer {
       this._rtiNeed,
       this._nativeCodegenEnqueuer,
       this._namer,
-      this._mirrorsData,
       this._oneShotInterceptorData,
       this._lookupMapAnalysis,
       this._rtiChecksBuilder);
@@ -442,10 +440,6 @@ class CodegenImpactTransformer {
           break;
         default:
       }
-    }
-
-    for (String name in impact.constSymbols) {
-      _mirrorsData.registerConstSymbol(name);
     }
 
     for (Set<ClassElement> classes in impact.specializedGetInterceptors) {

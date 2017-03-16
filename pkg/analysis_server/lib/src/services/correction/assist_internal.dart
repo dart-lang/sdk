@@ -121,6 +121,7 @@ class AssistProcessor {
     _addProposal_convertDocumentationIntoLine();
     _addProposal_convertToBlockFunctionBody();
     _addProposal_convertToExpressionFunctionBody();
+    _addProposal_convertFlutterChild();
     _addProposal_convertToForIndexLoop();
     _addProposal_convertToIsNot_onIs();
     _addProposal_convertToIsNot_onNot();
@@ -503,6 +504,73 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE, []);
+  }
+
+  void _addProposal_convertFlutterChild() {
+    NamedExpression namedExp;
+    // Allow assist to activate from either the new-expr or the child: arg.
+    if (node is SimpleIdentifier &&
+        node.parent is Label &&
+        node.parent.parent is NamedExpression) {
+      namedExp = node.parent.parent as NamedExpression;
+      if ((node as SimpleIdentifier).name != 'child' ||
+          namedExp.expression == null) {
+        return;
+      }
+      if (namedExp.parent?.parent is! InstanceCreationExpression) {
+        return;
+      }
+      InstanceCreationExpression newExpr = namedExp.parent.parent;
+      if (newExpr == null || !_isFlutterInstanceCreationExpression(newExpr)) {
+        return;
+      }
+    } else {
+      InstanceCreationExpression newExpr = _identifyNewExpression();
+      if (newExpr == null || !_isFlutterInstanceCreationExpression(newExpr)) {
+        _coverageMarker();
+        return;
+      }
+      namedExp = _findChildArgument(newExpr);
+      if (namedExp == null || namedExp.expression == null) {
+        _coverageMarker();
+        return;
+      }
+    }
+    InstanceCreationExpression childArg = _getChildWidget(namedExp, false);
+    if (childArg == null) {
+      _coverageMarker();
+      return;
+    }
+    int childLoc = namedExp.offset + 'child'.length;
+    _addInsertEdit(childLoc, 'ren');
+    int listLoc = childArg.offset;
+    String childArgSrc = utils.getNodeText(childArg);
+    if (!childArgSrc.contains(eol)) {
+      _addInsertEdit(listLoc, '<Widget>[');
+      _addInsertEdit(listLoc + childArg.length, ']');
+    } else {
+      int newlineLoc = childArgSrc.lastIndexOf(eol);
+      if (newlineLoc == childArgSrc.length) {
+        newlineLoc -= 1;
+      }
+      String indentOld = utils.getLinePrefix(childArg.offset + 1 + newlineLoc);
+      String indentNew = '$indentOld${utils.getIndent(1)}';
+      // The separator includes 'child:' but that has no newlines.
+      String separator =
+          utils.getText(namedExp.offset, childArg.offset - namedExp.offset);
+      String prefix = separator.contains(eol) ? "" : "$eol$indentNew";
+      if (prefix.isEmpty) {
+        _addInsertEdit(namedExp.offset + 'child:'.length, ' <Widget>[');
+        _addRemoveEdit(rangeStartLength(childArg.offset - 2, 2));
+      } else {
+        _addInsertEdit(listLoc, '<Widget>[');
+      }
+      String newChildArgSrc = childArgSrc.replaceAll(
+          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+      newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
+      _addReplaceEdit(rangeNode(childArg), newChildArgSrc);
+    }
+    _addAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, []);
   }
 
   void _addProposal_convertIntoFinalField() {
@@ -2311,11 +2379,12 @@ class AssistProcessor {
     return _getChildWidget(child);
   }
 
-  InstanceCreationExpression _getChildWidget(NamedExpression child) {
+  InstanceCreationExpression _getChildWidget(NamedExpression child,
+      [bool strict = false]) {
     if (child?.expression is InstanceCreationExpression) {
       InstanceCreationExpression childNewExpr = child.expression;
       if (_isFlutterInstanceCreationExpression(childNewExpr)) {
-        if (_findChildArgument(childNewExpr) != null) {
+        if (!strict || (_findChildArgument(childNewExpr) != null)) {
           return childNewExpr;
         }
       }

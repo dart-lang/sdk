@@ -676,8 +676,8 @@ class ClosureConverter extends Transformer {
     String closureClassName = createNameForClosureClass(procedure.function);
     Class closureClass = null;
     for (TreeNode node in newLibraryMembers) {
-      if (node is Class && (node as Class).name == closureClassName) {
-        closureClass = node as Class;
+      if (node is Class && node.name == closureClassName) {
+        closureClass = node;
       }
     }
     if (closureClass == null) {
@@ -739,7 +739,7 @@ class ClosureConverter extends Transformer {
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
         requiredParameterCount: function.requiredParameterCount,
-        returnType: substitute(function.returnType, substitution),
+        returnType: substitute(function.returnType, cloner.typeSubstitution),
         inferredReturnValue: inferredReturnValue);
   }
 

@@ -91,7 +91,7 @@ WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
 Language/Classes/Getters/type_object_t02: RuntimeError # Issue 23721

@@ -92,28 +92,7 @@ Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompile
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Timeout, Skip # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Timeout, Skip # Issue 25967
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError, Pass # co19 issue 57
-Language/Expressions/Identifier_Reference/built_in_identifier_t35: MissingCompileTimeError # Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t36: MissingCompileTimeError # Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t37: MissingCompileTimeError # Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t53: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t54: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t55: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t56: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t57: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t58: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t59: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t60: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t61: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t62: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t63: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t64: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t65: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t66: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t67: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t68: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: MissingCompileTimeError # Issue 25732
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError # Issue 26581
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: MissingCompileTimeError # Issue 25732
 Language/Expressions/Identifier_Reference/syntax_built_in_t01: fail # Issue 21154
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Please triage this failure

@@ -381,3 +381,42 @@ abstract class ExpressionVisitor1<R> {
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, arg) =>
       defaultExpression(node, arg);
 }
+
+abstract class StatementVisitor1<R> {
+  R defaultStatement(Statement node, arg) => null;
+
+  R visitInvalidStatement(InvalidStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitExpressionStatement(ExpressionStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitBlock(Block node, arg) => defaultStatement(node, arg);
+  R visitEmptyStatement(EmptyStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitAssertStatement(AssertStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitLabeledStatement(LabeledStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitBreakStatement(BreakStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitWhileStatement(WhileStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitDoStatement(DoStatement node, arg) => defaultStatement(node, arg);
+  R visitForStatement(ForStatement node, arg) => defaultStatement(node, arg);
+  R visitForInStatement(ForInStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitSwitchStatement(SwitchStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitContinueSwitchStatement(ContinueSwitchStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitIfStatement(IfStatement node, arg) => defaultStatement(node, arg);
+  R visitReturnStatement(ReturnStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitTryCatch(TryCatch node, arg) => defaultStatement(node, arg);
+  R visitTryFinally(TryFinally node, arg) => defaultStatement(node, arg);
+  R visitYieldStatement(YieldStatement node, arg) =>
+      defaultStatement(node, arg);
+  R visitVariableDeclaration(VariableDeclaration node, arg) =>
+      defaultStatement(node, arg);
+  R visitFunctionDeclaration(FunctionDeclaration node, arg) =>
+      defaultStatement(node, arg);
+}

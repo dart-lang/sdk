@@ -238,12 +238,8 @@ class RuntimeTypeSupportBuilder {
     }
 
     if (type is InterfaceType || type is Supertype) {
-      InterfaceType interfaceType = null;
-      if (type is InterfaceType) {
-        interfaceType = type;
-      } else {
-        interfaceType = (type as Supertype).asInterfaceType;
-      }
+      InterfaceType interfaceType =
+          (type is InterfaceType) ? type : (type as Supertype).asInterfaceType;
       Class cls = interfaceType.classNode;
       Expression declaration = createReference(cls);
       List<DartType> typeArguments = interfaceType.typeArguments;

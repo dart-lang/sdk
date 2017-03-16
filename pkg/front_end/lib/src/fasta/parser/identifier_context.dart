@@ -11,8 +11,10 @@
 class IdentifierContext {
   /// Identifier is being declared as the name of an import prefix (i.e. `Foo`
   /// in `import "..." as Foo;`)
-  static const importPrefixDeclaration =
-      const IdentifierContext._('importPrefixDeclaration', inDeclaration: true);
+  static const importPrefixDeclaration = const IdentifierContext._(
+      'importPrefixDeclaration',
+      inDeclaration: true,
+      isBuiltInIdentifierAllowed: false);
 
   /// Identifier is the start of a dotted name in a conditional import or
   /// export.
@@ -44,8 +46,10 @@ class IdentifierContext {
           isContinuation: true);
 
   /// Identifier is the name being declared by a typedef declaration.
-  static const typedefDeclaration =
-      const IdentifierContext._('typedefDeclaration', inDeclaration: true);
+  static const typedefDeclaration = const IdentifierContext._(
+      'typedefDeclaration',
+      inDeclaration: true,
+      isBuiltInIdentifierAllowed: false);
 
   /// Identifier is a field initializer in a formal parameter list (i.e. it
   /// appears directly after `this.`).
@@ -83,8 +87,8 @@ class IdentifierContext {
       isContinuation: true);
 
   /// Identifier is the type name being declared by an enum declaration.
-  static const enumDeclaration =
-      const IdentifierContext._('enumDeclaration', inDeclaration: true);
+  static const enumDeclaration = const IdentifierContext._('enumDeclaration',
+      inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   /// Identifier is an enumerated value name being declared by an enum
   /// declaration.
@@ -93,27 +97,32 @@ class IdentifierContext {
 
   /// Identifier is the name being declared by a named mixin declaration (e.g.
   /// `Foo` in `class Foo = X with Y;`).
-  static const namedMixinDeclaration =
-      const IdentifierContext._('namedMixinDeclaration', inDeclaration: true);
+  static const namedMixinDeclaration = const IdentifierContext._(
+      'namedMixinDeclaration',
+      inDeclaration: true,
+      isBuiltInIdentifierAllowed: false);
 
   /// Identifier is the name being declared by a class declaration.
-  static const classDeclaration =
-      const IdentifierContext._('classDeclaration', inDeclaration: true);
+  static const classDeclaration = const IdentifierContext._('classDeclaration',
+      inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   /// Identifier is the name of a type variable being declared (e.g. `Foo` in
   /// `class C<Foo extends num> {}`).
-  static const typeVariableDeclaration =
-      const IdentifierContext._('typeVariableDeclaration', inDeclaration: true);
+  static const typeVariableDeclaration = const IdentifierContext._(
+      'typeVariableDeclaration',
+      inDeclaration: true,
+      isBuiltInIdentifierAllowed: false);
 
   /// Identifier is the start of a reference to a type declared elsewhere.
-  static const typeReference =
-      const IdentifierContext._('typeReference', isScopeReference: true);
+  static const typeReference = const IdentifierContext._('typeReference',
+      isScopeReference: true, isBuiltInIdentifierAllowed: false);
 
   /// Identifier is part of a reference to a type declared elsewhere, but it's
   /// not the first identifier of the reference.
   static const typeReferenceContinuation = const IdentifierContext._(
       'typeReferenceContinuation',
-      isContinuation: true);
+      isContinuation: true,
+      isBuiltInIdentifierAllowed: false);
 
   /// Identifier is a name being declared by a top level variable declaration.
   static const topLevelVariableDeclaration = const IdentifierContext._(
@@ -262,12 +271,16 @@ class IdentifierContext {
   /// Indicates whether the identifier should be looked up in the current scope.
   final bool isScopeReference;
 
+  /// Indicates whether built-in identifiers are allowed in this context.
+  final bool isBuiltInIdentifierAllowed;
+
   const IdentifierContext._(this._name,
       {this.inDeclaration: false,
       this.inLibraryOrPartOfDeclaration: false,
       this.inSymbol: false,
       this.isContinuation: false,
-      this.isScopeReference: false});
+      this.isScopeReference: false,
+      this.isBuiltInIdentifierAllowed: true});
 
   String toString() => _name;
 }

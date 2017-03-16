@@ -52,6 +52,8 @@ Language/Classes/Getters/syntax_t03: MissingCompileTimeError
 Language/Classes/Getters/syntax_t04: MissingCompileTimeError
 Language/Classes/Getters/syntax_t05: MissingCompileTimeError
 Language/Classes/Getters/syntax_t07: MissingCompileTimeError
+Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
+Language/Classes/Getters/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Instance_Methods/Operators/arity_0_or_1_t02: MissingCompileTimeError
 Language/Classes/Instance_Methods/Operators/arity_0_t02: MissingCompileTimeError
 Language/Classes/Instance_Methods/Operators/arity_1_t01: MissingCompileTimeError
@@ -98,8 +100,12 @@ Language/Classes/Setters/static_setter_t05: RuntimeError
 Language/Classes/Setters/syntax_t01: RuntimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Setters/syntax_t04: RuntimeError
+Language/Classes/Setters/type_object_t01: RuntimeError # Issue 23721
+Language/Classes/Setters/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
+Language/Classes/Static_Methods/type_object_t01: RuntimeError # Issue 23721
+Language/Classes/Static_Methods/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t03: RuntimeError
 Language/Classes/Superclasses/superclass_of_itself_t01: MissingCompileTimeError
 Language/Classes/Superclasses/superclass_of_itself_t02: MissingCompileTimeError
@@ -149,6 +155,7 @@ Language/Expressions/Assignment/static_type_t06: CompileTimeError
 Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
+Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
 Language/Expressions/Await_Expressions/syntax_t06: Crash
 Language/Expressions/Constants/bitwise_operators_t02: Crash
@@ -212,6 +219,8 @@ Language/Expressions/Constants/top_level_function_t05: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Binding_Actuals_to_Formals/same_name_arguments_t01: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
+Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
 Language/Expressions/Identifier_Reference/async_and_generator_t02: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/async_and_generator_t03: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/async_and_generator_t04: MissingCompileTimeError
@@ -221,15 +230,8 @@ Language/Expressions/Identifier_Reference/async_and_generator_t07: MissingCompil
 Language/Expressions/Identifier_Reference/async_and_generator_t08: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/async_and_generator_t09: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/async_and_generator_t10: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_identifier_t08: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_identifier_t09: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_identifier_t10: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_identifier_t35: Pass # OK, Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t36: Pass # OK, Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t37: Pass # OK, Issue 25732
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t01: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t12: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Pass # OK, Issue 25732
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/evaluation_static_t02: Crash
 Language/Expressions/Identifier_Reference/syntax_built_in_t01: CompileTimeError
@@ -274,6 +276,8 @@ Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError # Dartk Issue 28562
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t17: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t18: RuntimeError # Dartk Issue 28562
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t01: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: RuntimeError
@@ -281,6 +285,14 @@ Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t03: MissingCompileTimeError
 Language/Expressions/Postfix_Expressions/syntax_t06: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: RuntimeError
 Language/Expressions/This/placement_t04: MissingCompileTimeError
@@ -407,6 +419,7 @@ Language/Metadata/compilation_t10: MissingCompileTimeError
 Language/Metadata/compilation_t11: MissingCompileTimeError
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t15: MissingCompileTimeError
+Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
 Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t02: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t07: MissingCompileTimeError
@@ -418,6 +431,8 @@ Language/Mixins/declaring_constructor_t01: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t02: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t03: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t04: MissingCompileTimeError
+Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
+Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t07: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t08: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t09: MissingCompileTimeError
@@ -503,8 +518,15 @@ Language/Statements/While/execution_t03: Crash
 Language/Statements/Yield_and_Yield_Each/Yield/location_t02: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield/location_t04: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield/location_t06: MissingCompileTimeError
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t02: MissingCompileTimeError
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t04: MissingCompileTimeError
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t06: MissingCompileTimeError
 Language/Types/Static_Types/deferred_type_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Types/Static_Types/malformed_type_t01: RuntimeError

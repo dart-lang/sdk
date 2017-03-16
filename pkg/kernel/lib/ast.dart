@@ -2756,6 +2756,7 @@ class CheckLibraryIsLoaded extends Expression {
 
 abstract class Statement extends TreeNode {
   accept(StatementVisitor v);
+  accept1(StatementVisitor1 v, arg);
 }
 
 /// A statement with a compile-time error.
@@ -2763,6 +2764,7 @@ abstract class Statement extends TreeNode {
 /// Should throw an exception at runtime.
 class InvalidStatement extends Statement {
   accept(StatementVisitor v) => v.visitInvalidStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitInvalidStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2776,6 +2778,7 @@ class ExpressionStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitExpressionStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitExpressionStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -2797,6 +2800,7 @@ class Block extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitBlock(this);
+  accept1(StatementVisitor1 v, arg) => v.visitBlock(this, arg);
 
   visitChildren(Visitor v) {
     visitList(statements, v);
@@ -2814,6 +2818,7 @@ class Block extends Statement {
 
 class EmptyStatement extends Statement {
   accept(StatementVisitor v) => v.visitEmptyStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitEmptyStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2829,6 +2834,7 @@ class AssertStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitAssertStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitAssertStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -2860,6 +2866,7 @@ class LabeledStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitLabeledStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitLabeledStatement(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -2899,6 +2906,7 @@ class BreakStatement extends Statement {
   BreakStatement(this.target);
 
   accept(StatementVisitor v) => v.visitBreakStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitBreakStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2914,6 +2922,7 @@ class WhileStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitWhileStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitWhileStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -2942,6 +2951,7 @@ class DoStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitDoStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitDoStatement(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -2974,6 +2984,7 @@ class ForStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitForStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitForStatement(this, arg);
 
   visitChildren(Visitor v) {
     visitList(variables, v);
@@ -3010,6 +3021,7 @@ class ForInStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitForInStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitForInStatement(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -3047,6 +3059,7 @@ class SwitchStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitSwitchStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitSwitchStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -3109,6 +3122,8 @@ class ContinueSwitchStatement extends Statement {
   ContinueSwitchStatement(this.target);
 
   accept(StatementVisitor v) => v.visitContinueSwitchStatement(this);
+  accept1(StatementVisitor1 v, arg) =>
+      v.visitContinueSwitchStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -3126,6 +3141,7 @@ class IfStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitIfStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitIfStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -3157,6 +3173,7 @@ class ReturnStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitReturnStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitReturnStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -3180,6 +3197,7 @@ class TryCatch extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitTryCatch(this);
+  accept1(StatementVisitor1 v, arg) => v.visitTryCatch(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -3245,6 +3263,7 @@ class TryFinally extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitTryFinally(this);
+  accept1(StatementVisitor1 v, arg) => v.visitTryFinally(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -3292,6 +3311,7 @@ class YieldStatement extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitYieldStatement(this);
+  accept1(StatementVisitor1 v, arg) => v.visitYieldStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -3376,6 +3396,7 @@ class VariableDeclaration extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
+  accept1(StatementVisitor1 v, arg) => v.visitVariableDeclaration(this, arg);
 
   visitChildren(Visitor v) {
     type?.accept(v);
@@ -3409,6 +3430,7 @@ class FunctionDeclaration extends Statement {
   }
 
   accept(StatementVisitor v) => v.visitFunctionDeclaration(this);
+  accept1(StatementVisitor1 v, arg) => v.visitFunctionDeclaration(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);

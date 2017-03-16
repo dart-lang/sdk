@@ -124,8 +124,9 @@ abstract class Token {
 
   bool get isEof => false;
 
-  @override
   bool get isOperator => info.isOperator;
+
+  bool get isBuiltInIdentifier => false;
 }
 
 /**
@@ -176,6 +177,12 @@ class KeywordToken extends Token {
   String get stringValue => keyword.syntax;
 
   bool isIdentifier() => keyword.isPseudo || keyword.isBuiltIn;
+
+  bool get isBuiltInIdentifier {
+    // TODO(ahe): Remove special case for "deferred" once dartbug.com/29069 is
+    // fixed.
+    return keyword.isBuiltIn || identical("deferred", lexeme);
+  }
 
   String toString() => "KeywordToken($lexeme)";
 }

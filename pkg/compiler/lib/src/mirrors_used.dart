@@ -99,7 +99,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
     List<String> symbols = analyzer.mergedMirrorUsage.symbols;
     List<Element> targets = analyzer.mergedMirrorUsage.targets;
     List<Element> metaTargets = analyzer.mergedMirrorUsage.metaTargets;
-    compiler.backend.mirrorsData.registerMirrorUsage(
+    compiler.backend.mirrorsDataBuilder.registerMirrorUsage(
         symbols == null ? null : new Set<String>.from(symbols),
         targets == null ? null : new Set<Element>.from(targets),
         metaTargets == null ? null : new Set<Element>.from(metaTargets));

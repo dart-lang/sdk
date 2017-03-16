@@ -876,6 +876,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const dart::Field& field);
   Fragment StringInterpolate(TokenPosition position);
+  Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);

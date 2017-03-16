@@ -2748,6 +2748,23 @@ Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
 }
 
 
+Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
+  const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Object::null_array();
+  const dart::Class& cls = dart::Class::Handle(
+      dart::Library::LookupCoreClass(Symbols::StringBase()));
+  ASSERT(!cls.IsNull());
+  const Function& function = dart::Function::ZoneHandle(
+      Z, dart::Resolver::ResolveStatic(cls, dart::Library::PrivateCoreLibName(
+                                                Symbols::InterpolateSingle()),
+                                       kNumberOfArguments, kNoArgumentNames));
+  Fragment instructions;
+  instructions += PushArgument();
+  instructions += StaticCall(position, function, 1);
+  return instructions;
+}
+
+
 Fragment FlowGraphBuilder::ThrowTypeError() {
   const dart::Class& klass = dart::Class::ZoneHandle(
       Z, dart::Library::LookupCoreClass(Symbols::TypeError()));
@@ -5161,22 +5178,26 @@ void FlowGraphBuilder::VisitStringConcatenation(StringConcatenation* node) {
 
   Fragment instructions;
 
-  // The type arguments for CreateArray.
-  instructions += Constant(TypeArguments::ZoneHandle(Z));
-  instructions += IntConstant(expressions.length());
-  instructions += CreateArray();
-  LocalVariable* array = MakeTemporary();
+  if (node->expressions().length() == 1) {
+    instructions += TranslateExpression(node->expressions()[0]);
+    instructions += StringInterpolateSingle(node->position());
+  } else {
+    // The type arguments for CreateArray.
+    instructions += Constant(TypeArguments::ZoneHandle(Z));
+    instructions += IntConstant(expressions.length());
+    instructions += CreateArray();
+    LocalVariable* array = MakeTemporary();
 
-  for (intptr_t i = 0; i < node->expressions().length(); i++) {
-    instructions += LoadLocal(array);
-    instructions += IntConstant(i);
-    instructions += TranslateExpression(node->expressions()[i]);
-    instructions += StoreIndexed(kArrayCid);
-    instructions += Drop();
+    for (intptr_t i = 0; i < node->expressions().length(); i++) {
+      instructions += LoadLocal(array);
+      instructions += IntConstant(i);
+      instructions += TranslateExpression(node->expressions()[i]);
+      instructions += StoreIndexed(kArrayCid);
+      instructions += Drop();
+    }
+
+    instructions += StringInterpolate(node->position());
   }
-
-  instructions += StringInterpolate(node->position());
-
   fragment_ = instructions;
 }
 

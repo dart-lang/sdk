@@ -19,12 +19,15 @@ class A extends core::Object implements int::HasRuntimeTypeGetter {
     return this.{=self::A::$type};
 }
 class B extends core::Object implements int::HasRuntimeTypeGetter {
-  field dynamic x;
+  field self::A x;
   field dynamic y;
   final field typ::ReifiedType $type;
   constructor •(typ::ReifiedType $type) → void
     : self::B::x = self::B::$init$x($type), self::B::$type = $type, self::B::y = new self::A::•(new typ::Interface::•(self::$declarations.[](0), typ::getTypeArguments(typ::asInstanceOf($type, self::$declarations.[](1))))), super core::Object::•()
     ;
+  set x$cc(self::A x_) → dynamic {
+    this.{=self::B::x} = x_ as self::A;
+  }
   get $B$T() → typ::ReifiedType
     return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](1))).[](0);
   get $is$A() → core::bool
@@ -59,9 +62,9 @@ static final field core::List<dec::Class> $declarations = (core::List<dec::Class
   return d;
 }.call(dec::allocateDeclarations(<dynamic>["A", "B", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
 static method main() → dynamic {
-  dynamic b = new self::B::•(new typ::Interface::•(self::$declarations.[](1), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])]));
-  tes::expectTrue(let dynamic #t1 = b.x in #t1 is int::HasRuntimeTypeGetter && #t1.$is$A && (let dynamic #t2 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t1.$type, #t2)));
-  tes::expectTrue(let dynamic #t3 = b.y in #t3 is int::HasRuntimeTypeGetter && #t3.$is$A && (let dynamic #t4 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t3.$type, #t4)));
-  tes::expectFalse(let dynamic #t5 = b.x in #t5 is int::HasRuntimeTypeGetter && #t5.$is$A && (let dynamic #t6 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t5.$type, #t6)));
-  tes::expectFalse(let dynamic #t7 = b.y in #t7 is int::HasRuntimeTypeGetter && #t7.$is$A && (let dynamic #t8 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t7.$type, #t8)));
+  self::B b = new self::B::•(new typ::Interface::•(self::$declarations.[](1), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])]));
+  tes::expectTrue(let dynamic #t1 = b.{self::B::x} in #t1 is int::HasRuntimeTypeGetter && #t1.$is$A && (let dynamic #t2 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t1.$type, #t2)));
+  tes::expectTrue(let dynamic #t3 = b.{self::B::y} in #t3 is int::HasRuntimeTypeGetter && #t3.$is$A && (let dynamic #t4 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t3.$type, #t4)));
+  tes::expectFalse(let dynamic #t5 = b.{self::B::x} in #t5 is int::HasRuntimeTypeGetter && #t5.$is$A && (let dynamic #t6 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t5.$type, #t6)));
+  tes::expectFalse(let dynamic #t7 = b.{self::B::y} in #t7 is int::HasRuntimeTypeGetter && #t7.$is$A && (let dynamic #t8 = new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](1), <dynamic>[const typ::Dynamic::•()])]) in typ::isSubtypeOf(#t7.$type, #t8)));
 }

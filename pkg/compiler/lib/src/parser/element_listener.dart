@@ -731,6 +731,16 @@ class ElementListener extends Listener {
       case ErrorKind.Unspecified:
         errorCode = MessageKind.GENERIC;
         break;
+
+      case ErrorKind.BuiltInIdentifierAsType:
+        errorCode = MessageKind.GENERIC;
+        arguments = {"text": "Can't use '${token.lexeme}' as a type."};
+        break;
+
+      case ErrorKind.BuiltInIdentifierInDeclaration:
+        errorCode = MessageKind.GENERIC;
+        arguments = {"text": "Can't use '${token.lexeme}' as a name here."};
+        break;
     }
     SourceSpan span = reporter.spanFromToken(token);
     reportError(span, errorCode, arguments);

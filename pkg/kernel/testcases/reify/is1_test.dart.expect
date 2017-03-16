@@ -72,11 +72,11 @@ static final field core::List<dec::Class> $declarations = (core::List<dec::Class
   return d;
 }.call(dec::allocateDeclarations(<dynamic>["N", "I", "D", "A", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
 static method main() → dynamic {
-  dynamic x = new self::A::•(new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]));
+  self::A x = new self::A::•(new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]));
   tes::expectTrue(let dynamic #t1 = x in #t1 is int::HasRuntimeTypeGetter && #t1.$is$A && (let dynamic #t2 = new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](0))]) in typ::isSubtypeOf(#t1.$type, #t2)));
   tes::expectTrue(let dynamic #t3 = x in #t3 is int::HasRuntimeTypeGetter && #t3.$is$A && (let dynamic #t4 = new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]) in typ::isSubtypeOf(#t3.$type, #t4)));
   tes::expectFalse(let dynamic #t5 = x in #t5 is int::HasRuntimeTypeGetter && #t5.$is$A && (let dynamic #t6 = new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](2))]) in typ::isSubtypeOf(#t5.$type, #t6)));
-  dynamic y = new self::A::•(new typ::Interface::•(self::$declarations.[](3), <dynamic>[const typ::Dynamic::•()]));
+  self::A y = new self::A::•(new typ::Interface::•(self::$declarations.[](3), <dynamic>[const typ::Dynamic::•()]));
   tes::expectTrue(let dynamic #t7 = y in #t7 is int::HasRuntimeTypeGetter && #t7.$is$A && (let dynamic #t8 = new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](0))]) in typ::isSubtypeOf(#t7.$type, #t8)));
   tes::expectTrue(let dynamic #t9 = y in #t9 is int::HasRuntimeTypeGetter && #t9.$is$A && (let dynamic #t10 = new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))]) in typ::isSubtypeOf(#t9.$type, #t10)));
   tes::expectTrue(let dynamic #t11 = y in #t11 is int::HasRuntimeTypeGetter && #t11.$is$A && (let dynamic #t12 = new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](2))]) in typ::isSubtypeOf(#t11.$type, #t12)));

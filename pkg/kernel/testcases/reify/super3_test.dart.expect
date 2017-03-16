@@ -53,6 +53,6 @@ static final field core::List<dec::Class> $declarations = (core::List<dec::Class
   return d;
 }.call(dec::allocateDeclarations(<dynamic>["A", "B", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
 static method main() → dynamic {
-  new self::B::•().foo;
+  new self::B::•().{self::A::foo};
   new self::B::redirect();
 }

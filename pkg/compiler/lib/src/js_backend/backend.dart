@@ -380,10 +380,10 @@ class JavaScriptBackend {
   bool htmlLibraryIsLoaded = false;
 
   /// Resolution analysis for tracking reflective access to type variables.
-  TypeVariableResolutionAnalysis typeVariableResolutionAnalysis;
+  TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
   /// Codegen handler for reflective access to type variables.
-  TypeVariableCodegenAnalysis typeVariableCodegenAnalysis;
+  TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
@@ -440,7 +440,7 @@ class JavaScriptBackend {
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsage _backendUsage;
   BackendUsageBuilder _backendUsageBuilder;
-  MirrorsData mirrorsData;
+  MirrorsDataImpl _mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
 
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
@@ -504,7 +504,7 @@ class JavaScriptBackend {
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
     backendClasses = new JavaScriptBackendClasses(
         compiler.elementEnvironment, helpers, nativeBaseData);
-    mirrorsData = new MirrorsData(
+    _mirrorsData = new MirrorsDataImpl(
         compiler, compiler.options, commonElements, helpers, constants);
     _backendUsageBuilder = new BackendUsageBuilderImpl(
         compiler.elementEnvironment, commonElements, helpers);
@@ -515,10 +515,8 @@ class JavaScriptBackend {
     _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
         compiler, emitter, _nativeResolutionEnqueuer);
 
-    typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
+    _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
         compiler.elementEnvironment, impacts, backendUsageBuilder);
-    typeVariableCodegenAnalysis =
-        new TypeVariableCodegenAnalysis(this, helpers, mirrorsData);
     customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
         compiler.resolution,
         constantSystem,
@@ -550,7 +548,7 @@ class JavaScriptBackend {
         nativeBaseData,
         nativeResolutionEnqueuer,
         backendUsageBuilder,
-        mirrorsData,
+        mirrorsDataBuilder,
         customElementsResolutionAnalysis,
         rtiNeedBuilder);
     patchResolverTask = new PatchResolverTask(compiler);
@@ -573,6 +571,24 @@ class JavaScriptBackend {
   Resolution get resolution => compiler.resolution;
 
   Target get target => _target;
+
+  /// Resolution analysis for tracking reflective access to type variables.
+  TypeVariableResolutionAnalysis get typeVariableResolutionAnalysis {
+    assert(invariant(NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis == null,
+        message: "TypeVariableHandler has already been created."));
+    return _typeVariableResolutionAnalysis;
+  }
+
+  /// Codegen handler for reflective access to type variables.
+  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis {
+    assert(invariant(NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis != null,
+        message: "TypeVariableHandler has not been created yet."));
+    return _typeVariableCodegenAnalysis;
+  }
+
+  MirrorsData get mirrorsData => _mirrorsData;
+
+  MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
 
   /// Codegen support for tree-shaking entries of `LookupMap`.
   LookupMapAnalysis get lookupMapAnalysis {
@@ -782,7 +798,7 @@ class JavaScriptBackend {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
       processAnnotations(entity, closedWorldRefiner);
     }
-    mirrorsData.computeMembersNeededForReflection(
+    mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _backendUsage = _backendUsageBuilder.close();
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
@@ -875,7 +891,7 @@ class JavaScriptBackend {
             _interceptorDataBuilder,
             _backendUsageBuilder,
             _rtiNeedBuilder,
-            mirrorsData,
+            mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
             lookupMapResolutionAnalysis,
@@ -890,6 +906,7 @@ class JavaScriptBackend {
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
+    _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(this, helpers, mirrorsData);
     _lookupMapAnalysis = new LookupMapAnalysis(
         reporter,
         constantSystem,
@@ -914,7 +931,6 @@ class JavaScriptBackend {
             backendClasses,
             backendUsage,
             rtiNeed,
-            mirrorsData,
             customElementsCodegenAnalysis,
             typeVariableCodegenAnalysis,
             lookupMapAnalysis,
@@ -1192,7 +1208,6 @@ class JavaScriptBackend {
         rtiNeed,
         nativeCodegenEnqueuer,
         namer,
-        mirrorsData,
         oneShotInterceptorData,
         lookupMapAnalysis,
         rtiChecksBuilder);

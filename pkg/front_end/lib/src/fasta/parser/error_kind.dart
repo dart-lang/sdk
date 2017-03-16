@@ -7,6 +7,8 @@ library fasta.parser.error_kind;
 /// Kinds of error codes.
 enum ErrorKind {
   AsciiControlCharacter,
+  BuiltInIdentifierAsType,
+  BuiltInIdentifierInDeclaration,
   EmptyNamedParameterList,
   EmptyOptionalParameterList,
   Encoding,

@@ -48,7 +48,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final InterceptorDataBuilder _interceptorData;
   final BackendUsageBuilder _backendUsage;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
-  final MirrorsData _mirrorsData;
+  final MirrorsDataBuilder _mirrorsDataBuilder;
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
@@ -73,7 +73,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._interceptorData,
       this._backendUsage,
       this._rtiNeedBuilder,
-      this._mirrorsData,
+      this._mirrorsDataBuilder,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
       this._lookupMapResolutionAnalysis,
@@ -286,7 +286,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   @override
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    _mirrorsData.registerUsedMember(member);
+    _mirrorsDataBuilder.registerUsedMember(member);
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
