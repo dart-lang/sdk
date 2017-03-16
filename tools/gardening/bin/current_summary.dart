@@ -10,10 +10,10 @@
 
 import 'dart:math';
 import 'dart:io';
-import 'compare_failures.dart';
-import 'src/buildbot_data.dart';
-import 'src/buildbot_structures.dart';
-import 'src/util.dart';
+
+import 'package:gardening/src/buildbot_data.dart';
+import 'package:gardening/src/buildbot_structures.dart';
+import 'package:gardening/src/util.dart';
 
 main(List<String> args) async {
   if (args.length == 0) {

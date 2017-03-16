@@ -13,8 +13,10 @@ flakiness of failures, especially timeouts.
 
 Usage:
 
-    dart compare_failures.dart <stdio-url>
-    
+```console
+dart bin/compare_failures.dart <stdio-url>
+```
+
 where `<stdio-url>` is a url for a test log (".../logs/stdio") from the 
 buildbot. 
 
@@ -24,8 +26,10 @@ mention one of the test names given as argument.
 
 Usage:
 
-    dart status_summary.dart <test-name1> [<test-name2> ...]
-    
+```console
+dart bin/status_summary.dart <test-name1> [<test-name2> ...]
+```
+
 where `<test-nameX>` are test names like `language/arithmetic_test`.
 
 #### current_summary ####
@@ -34,8 +38,10 @@ that mention one of the test names given as argument.
 
 Usage:
 
-    dart current_summary.dart <test-name1> [<test-name2> ...]
-    
+```console
+dart bin/current_summary.dart <test-name1> [<test-name2> ...]
+```
+
 where `<test-nameX>` are test names like `language/arithmetic_test`.
 
 The results are currently pulled from the second to last build since the

@@ -7,11 +7,10 @@
 /// Use this to detect flakiness of failures, especially timeouts.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'src/buildbot_structures.dart';
-import 'src/util.dart';
+import 'package:gardening/src/buildbot_structures.dart';
+import 'package:gardening/src/util.dart';
 
 main(List<String> args) async {
   if (args.length != 1) {
@@ -45,13 +44,6 @@ Future<List<BuildResult>> readBuildResults(
     }
   }
   return summaries;
-}
-
-/// Reads the content of [uri] as text.
-Future<String> readUriAsText(HttpClient client, Uri uri) async {
-  HttpClientRequest request = await client.getUrl(uri);
-  HttpClientResponse response = await request.close();
-  return UTF8.decode(await response.expand((l) => l).toList());
 }
 
 /// Parses the [buildUri] test log and creates a [BuildResult] for it.

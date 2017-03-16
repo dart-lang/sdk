@@ -9,7 +9,7 @@ import 'dart:async';
 import 'dart:math' hide log;
 import 'dart:io';
 
-import 'src/util.dart';
+import 'package:gardening/src/util.dart';
 
 main(List<String> args) async {
   if (args.length == 0) {
