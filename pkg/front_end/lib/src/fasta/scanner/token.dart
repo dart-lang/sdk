@@ -124,7 +124,6 @@ abstract class Token {
 
   bool get isEof => false;
 
-  @override
   bool get isOperator => info.isOperator;
 }
 

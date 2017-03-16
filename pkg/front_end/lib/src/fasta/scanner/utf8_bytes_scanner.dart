@@ -10,7 +10,7 @@ import '../scanner.dart' show unicodeReplacementCharacter;
 
 import 'precedence.dart' show PrecedenceInfo;
 
-import 'token.dart' show StringToken, Token;
+import 'token.dart' show StringToken;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 

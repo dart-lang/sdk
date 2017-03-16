@@ -8,7 +8,7 @@ import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 import 'precedence.dart' show PrecedenceInfo;
 
-import 'token.dart' show StringToken, Token;
+import 'token.dart' show StringToken;
 
 /**
  * Scanner that reads from a String and creates tokens that points to
