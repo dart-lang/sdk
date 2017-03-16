@@ -71,6 +71,7 @@ import 'package:linter/src/rules/unawaited_futures.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interps.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unnecessary_lambdas.dart';
+import 'package:linter/src/rules/unnecessary_this.dart';
 import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
 import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
@@ -148,6 +149,7 @@ void registerLintRules() {
     //..register(new UnnecessaryGetters())
     ..register(new UnnecessaryGettersSetters())
     ..register(new UnnecessaryLambdas())
+    ..register(new UnnecessaryThis())
     ..register(new UnrelatedTypeEqualityChecks())
     ..register(new ValidRegExps());
 }
