@@ -4,12 +4,173 @@
 
 // test w/ `pub run test -N invariant_booleans`
 
+void deadCodeWithIfAndElseExit() {
+  int localFoo = 3, localBar = 4;
+  if (localFoo < localBar) {
+    return;
+  }
+  else {
+    return;
+  }
+  // ignore: dead_code
+  if (localFoo < localBar) { // OK
+
+  }
+}
+
+void returnMustUndefineAll() {
+  int localFoo = 3, localBar = 4;
+  if (localFoo < localBar) {
+    return;
+    // ignore: dead_code
+    if (localFoo < localBar) { // OK
+
+    }
+  }
+}
+
+void throwMustUndefineAll() {
+  int localFoo = 3, localBar = 4;
+  if (localFoo < localBar) {
+    throw new Exception();
+    // ignore: dead_code
+    if (localFoo < localBar) { // OK
+
+    }
+  }
+}
+
+void rethrowMustUndefineAll() {
+  int localFoo = 3, localBar = 4;
+  try {
+  } catch(exception) {
+    if (localFoo < localBar) {
+      rethrow;
+      // ignore: dead_code
+      if (localFoo < localBar) { // OK
+
+      }
+    }
+  }
+
+}
+
+void forStatementWithLabels() {
+  int localFoo = 3, localBar = 4;
+  label: for (;localFoo < 3;) {
+    for (;localBar>4;) {
+      break label;
+    }
+  }
+  if (localFoo < 3) {} // OK
+}
+
+void whileStatementWithLabels() {
+  int localFoo = 3, localBar = 4;
+  label: while (localFoo < 3) {
+    while (localBar>4) {
+      break label;
+    }
+  }
+  if (localFoo < 3) {} // OK
+}
+
+void forStatementTest1() {
+  int localFoo = 3, localBar = 4;
+  for (;localFoo < localBar;) {
+    print('hola mundo');
+  }
+  if (localFoo < localBar) { // LINT
+    print('should not see this');
+  }
+}
+
+void forStatementTest2() {
+  int localFoo = 3, localBar = 4, localBaz = 5;
+  for (;localFoo < localBar;) {
+    for (;localFoo < localBaz;) {
+      break;
+    }
+  }
+  if (localFoo < localBar) { // LINT
+    print('should not see this');
+  }
+}
+
+void forStatementTest3() {
+  int localFoo = 3, localBar = 4;
+  for (;localFoo < localBar ;) {
+    break;
+  }
+  if (localFoo < localBar) { // OK
+    print('should not see this');
+  }
+}
+
+void whileStatementTest1() {
+  int localFoo = 3, localBar = 4;
+  while (localFoo < localBar) {
+    print('hola mundo');
+  }
+  if (localFoo < localBar) { // LINT
+    print('should not see this');
+  }
+}
+
+void whileStatementTest2() {
+  int localFoo = 3, localBar = 4, localBaz = 5;
+  while (localFoo < localBar) {
+    while (localFoo < localBaz) {
+      break;
+    }
+  }
+  if (localFoo < localBar) { // LINT
+    print('should not see this');
+  }
+}
+
+void whileStatementTest3() {
+  int localFoo = 3, localBar = 4;
+  while (localFoo < localBar) {
+    break;
+  }
+  if (localFoo < localBar) { // OK
+    print('should not see this');
+  }
+}
+
+void forStatementWithLabeledBreak() {
+  int localFoo = 3, localBar = 4;
+  outer:
+  for (;localFoo < localBar;) {
+    if (localFoo < localBar - 1) {
+      break outer;
+    }
+  }
+  if (localFoo < localBar) { // OK
+    print('should not see this');
+  }
+}
+
+void whileStatementWithLabeledBreak() {
+  int localFoo = 3, localBar = 4;
+  outer:
+  while (localFoo < localBar) {
+    if (localFoo < localBar - 1) {
+      break outer;
+    }
+  }
+  if (localFoo < localBar) { // OK
+    print('should not see this');
+  }
+}
+
 int bar = 1;
 
 int baz = 2;
 
 int foo = 0;
-bool setting = null;
+bool setting;
 
 class A {
   bool foo;
@@ -290,3 +451,4 @@ void test337_5() {
     }
   }
 }
+
