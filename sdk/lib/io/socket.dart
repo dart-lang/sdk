@@ -695,7 +695,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * If an error occur when trying to join the multicast group an
    * exception is thrown.
    */
-  void joinMulticast(InternetAddress group, {NetworkInterface interface});
+  void joinMulticast(InternetAddress group, [NetworkInterface interface]);
 
   /**
    * Leave a multicast group.
@@ -703,7 +703,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * If an error occur when trying to join the multicase group an
    * exception is thrown.
    */
-  void leaveMulticast(InternetAddress group, {NetworkInterface interface});
+  void leaveMulticast(InternetAddress group, [NetworkInterface interface]);
 }
 
 
