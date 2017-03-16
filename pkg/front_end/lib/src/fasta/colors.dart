@@ -98,7 +98,14 @@ String white(String string) => wrap(string, WHITE_COLOR);
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
 bool computeEnableColors(CompilerContext context) {
-  if (!Platform.ansiSupported) {
+  bool ansiSupported;
+  try {
+    ansiSupported = Platform.ansiSupported;
+  } on NoSuchMethodError catch (e) {
+    // Ignored: We're running on an older version of the Dart VM which doesn't
+    // implement `ansiSupported`.
+  }
+  if (ansiSupported == false) {
     if (context.options.verbose) {
       print("Not enabling colors, 'Platform.ansiSupported' is false.");
     }
@@ -119,7 +126,7 @@ bool computeEnableColors(CompilerContext context) {
     return false;
   }
 
-  if (Platform.isWindows) {
+  if (ansiSupported == true && Platform.isWindows) {
     if (context.options.verbose) {
       print("Enabling colors as OS is Windows.");
     }
