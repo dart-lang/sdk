@@ -60,6 +60,6 @@ static method p(dynamic x) → dynamic {
   return x;
 }
 static method main() → dynamic {
-  dynamic b = new self::B::•(new typ::Interface::•(self::$declarations.[](1), <dynamic>[const typ::Dynamic::•()]));
+  self::B b = new self::B::•(new typ::Interface::•(self::$declarations.[](1), <dynamic>[const typ::Dynamic::•()]));
   tes::expectOutput("b1\nb2\nb3\nb4\na1\na2\nA\nB");
 }

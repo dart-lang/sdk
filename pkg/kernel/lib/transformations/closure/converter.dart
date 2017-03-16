@@ -739,7 +739,7 @@ class ClosureConverter extends Transformer {
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
         requiredParameterCount: function.requiredParameterCount,
-        returnType: substitute(function.returnType, substitution),
+        returnType: substitute(function.returnType, cloner.typeSubstitution),
         inferredReturnValue: inferredReturnValue);
   }
 

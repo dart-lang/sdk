@@ -27,12 +27,24 @@ class Erasure extends Transformer with DartTypeVisitor<DartType> {
   }
 
   TreeNode removeTypeArgumentsOfStaticCall(StaticInvocation node) {
-    Class cls = node.target.parent;
-    if (removeTypeParameters(cls)) {
-      node.arguments.types.clear();
-      Procedure target = node.target;
-      target.function.typeParameters.clear();
+    if (node.target.parent is Class) {
+      Class cls = node.target.parent;
+      if (!removeTypeParameters(cls)) {
+        return node;
+      }
+    } else {
+      // If parent is a Library, then a global procedure is invoked, and it may
+      // be a generic function, so we need to remove type arguments anyway.
+      assert(node.target.parent is Library);
     }
+    node.arguments.types.clear();
+    Procedure target = node.target;
+    target.function.typeParameters.clear();
+    return node;
+  }
+
+  TreeNode removeTypeArgumentOfMethodInvocation(MethodInvocation node) {
+    node.arguments.types.clear();
     return node;
   }
 
@@ -96,7 +108,8 @@ class Erasure extends Transformer with DartTypeVisitor<DartType> {
   @override
   StaticInvocation visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
-    if (node.target.kind == ProcedureKind.Factory) {
+    if (node.target.kind == ProcedureKind.Factory ||
+        node.target.kind == ProcedureKind.Method) {
       node = removeTypeArgumentsOfStaticCall(node);
     }
     return node;
@@ -115,5 +128,11 @@ class Erasure extends Transformer with DartTypeVisitor<DartType> {
       node.typeParameters.clear();
     }
     return node;
+  }
+
+  @override
+  Expression visitMethodInvocation(MethodInvocation node) {
+    node.transformChildren(this);
+    return removeTypeArgumentOfMethodInvocation(node);
   }
 }

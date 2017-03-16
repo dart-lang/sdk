@@ -14,6 +14,9 @@ class C extends core::Object implements int::HasRuntimeTypeGetter {
     dynamic temp = t;
     return temp;
   }
+  method foo$cc(core::Object t) → dynamic {
+    return this.{=self::C::foo}(t as dynamic);
+  }
   get $C$T() → typ::ReifiedType
     return typ::getTypeArguments(typ::asInstanceOf(this.$type, self::$declarations.[](0))).[](0);
   get runtimeType() → core::Type
@@ -43,5 +46,5 @@ static final field core::List<dec::Class> $declarations = (core::List<dec::Class
   return d;
 }.call(dec::allocateDeclarations(<dynamic>["C", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
 static method main() → dynamic {
-  self::C c = new self::C::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])])).foo(new self::C::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])));
+  self::C c = new self::C::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])])).{self::C::foo}(new self::C::•(new typ::Interface::•(self::$declarations.[](0), <dynamic>[const typ::Dynamic::•()])));
 }

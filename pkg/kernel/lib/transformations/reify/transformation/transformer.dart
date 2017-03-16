@@ -103,6 +103,8 @@ class ReifyVisitor extends Transformer with DebugTrace {
   // TODO(karlklose): find a way to get rid of this state in the visitor.
   TransformationContext context;
 
+  static const String genericMethodTypeParametersName = r"$typeParameters";
+
   bool libraryShouldBeTransformed(Library library) {
     return libraryToTransform == null || libraryToTransform == library;
   }
@@ -180,6 +182,9 @@ class ReifyVisitor extends Transformer with DebugTrace {
       // Intercept calls to factories of classes we do not transform
       return interceptInstantiation(invocation, target);
     }
+
+    addTypeArgumentToGenericInvocation(invocation);
+
     return invocation;
   }
 
@@ -419,6 +424,8 @@ class ReifyVisitor extends Transformer with DebugTrace {
   FunctionNode visitFunctionNode(FunctionNode node) {
     trace(node);
 
+    addTypeArgumentToGenericDeclaration(node);
+
     // If we have a [TransformationContext] with a runtime type field and we
     // translate a constructor or factory, we need a parameter that the code of
     // initializers or the factory body can use to access type arguments.
@@ -571,5 +578,47 @@ class ReifyVisitor extends Transformer with DebugTrace {
         node,
         new InterfaceType(builder.coreTypes.mapClass,
             <DartType>[node.keyType, node.valueType]));
+  }
+
+  Expression visitMethodInvocation(MethodInvocation node) {
+    node.transformChildren(this);
+    addTypeArgumentToGenericInvocation(node);
+    return node;
+  }
+
+  bool isGenericMethod(FunctionNode node) {
+    if (node.parent is Member) {
+      Member member = node.parent;
+      if (member is Constructor ||
+          member is Procedure && member.kind == ProcedureKind.Factory) {
+        return member.enclosingClass.typeParameters.length <
+            node.typeParameters.length;
+      }
+    }
+    return node.typeParameters.isNotEmpty;
+  }
+
+  void addTypeArgumentToGenericInvocation(InvocationExpression expression) {
+    if (expression.arguments.types.length > 0) {
+      ListLiteral genericMethodTypeParameters = new ListLiteral(
+          expression.arguments.types
+              .map(createRuntimeType)
+              .toList(growable: false),
+          typeArgument: rtiLibrary.typeType);
+      expression.arguments.named.add(new NamedExpression(
+          genericMethodTypeParametersName, genericMethodTypeParameters)
+        ..parent = expression.arguments);
+    }
+  }
+
+  void addTypeArgumentToGenericDeclaration(FunctionNode node) {
+    if (isGenericMethod(node)) {
+      VariableDeclaration genericMethodTypeParameters = new VariableDeclaration(
+          genericMethodTypeParametersName,
+          type: new InterfaceType(
+              builder.coreTypes.listClass, <DartType>[rtiLibrary.typeType]));
+      genericMethodTypeParameters.parent = node;
+      node.namedParameters.insert(0, genericMethodTypeParameters);
+    }
   }
 }

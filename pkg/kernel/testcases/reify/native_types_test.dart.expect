@@ -79,7 +79,7 @@ class Closure#main#function extends core::Object implements core::Function, int:
   constructor •(final mock::Context context) → dynamic
     : self::Closure#main#function::context = context
     ;
-  method call() → dynamic {
+  method call() → self::C {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
     final mock::Context #contextParameter = this.{self::Closure#main#function::context};
     return throw int::attachType(new core::AbstractClassInstantiationError::•("C"), new typ::Interface::•(self::$declarations.[](3)));
@@ -119,7 +119,7 @@ class Closure#main#function#1 extends core::Object implements core::Function, in
   constructor •(final mock::Context context) → dynamic
     : self::Closure#main#function#1::context = context
     ;
-  method call(dynamic e) → dynamic {
+  method call(dynamic e) → core::bool {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
     final mock::Context #contextParameter = this.{self::Closure#main#function#1::context};
     return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](3)));
@@ -199,7 +199,7 @@ class Closure#main#function#3 extends core::Object implements core::Function, in
   constructor •(final mock::Context context) → dynamic
     : self::Closure#main#function#3::context = context
     ;
-  method call(dynamic e) → dynamic {
+  method call(dynamic e) → core::bool {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
     final mock::Context #contextParameter = this.{self::Closure#main#function#3::context};
     return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](7)));
@@ -279,7 +279,7 @@ class Closure#main#function#5 extends core::Object implements core::Function, in
   constructor •(final mock::Context context) → dynamic
     : self::Closure#main#function#5::context = context
     ;
-  method call(dynamic e) → dynamic {
+  method call(dynamic e) → core::bool {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
     final mock::Context #contextParameter = this.{self::Closure#main#function#5::context};
     return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](10)));
@@ -322,7 +322,7 @@ class Closure#main#function#6 extends core::Object implements core::Function, in
   method call() → dynamic {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
     final mock::Context #contextParameter = this.{self::Closure#main#function#6::context};
-    return int::attachType(<dynamic>[], new typ::Interface::•(self::$declarations.[](12), <dynamic>[const typ::Dynamic::•()])).[](1);
+    return int::attachType(<dynamic>[], new typ::Interface::•(self::$declarations.[](12), <dynamic>[const typ::Dynamic::•()])).{core::List::[]}(1);
   }
   get $type() → typ::ReifiedType
     return new typ::Interface::•(self::$declarations.[](11));
@@ -359,7 +359,7 @@ class Closure#main#function#7 extends core::Object implements core::Function, in
   constructor •(final mock::Context context) → dynamic
     : self::Closure#main#function#7::context = context
     ;
-  method call(dynamic e) → dynamic {
+  method call(dynamic e) → core::bool {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
     final mock::Context #contextParameter = this.{self::Closure#main#function#7::context};
     return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](14)));
@@ -398,18 +398,18 @@ static field dynamic bar = self::foo;
 static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
   dec::init(d, 0, new typ::Interface::•(d.[](18)));
   dec::init(d, 1, new typ::Interface::•(d.[](18)));
-  dec::init(d, 2, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[]));
+  dec::init(d, 2, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](0)), 0, <dynamic>[]));
   dec::init(d, 3, new typ::Interface::•(d.[](27)));
-  dec::init(d, 4, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 4, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
   dec::init(d, 5, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[]));
-  dec::init(d, 6, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 6, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
   dec::init(d, 7, new typ::Interface::•(d.[](27)));
   dec::init(d, 8, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[]));
-  dec::init(d, 9, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 9, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
   dec::init(d, 10, new typ::Interface::•(d.[](27)));
   dec::init(d, 11, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[]));
   dec::init(d, 12, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](28), <dynamic>[d.[](12).variables.[](0)])]);
-  dec::init(d, 13, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), const typ::Dynamic::•(), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 13, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](26))], new typ::FunctionType::•(new typ::Interface::•(d.[](26)), new typ::Interface::•(d.[](19)), 0, <dynamic>[const typ::Dynamic::•()]));
   dec::init(d, 14, new typ::Interface::•(d.[](21)));
   dec::init(d, 15, new typ::Interface::•(d.[](29)));
   dec::init(d, 16, new typ::Interface::•(d.[](29)));

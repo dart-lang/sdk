@@ -15,6 +15,8 @@ import 'package:kernel/analyzer/loader.dart'
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
+import 'package:kernel/target/vmcc.dart' show VmClosureConvertedTarget;
+
 import 'kernel_chain.dart'
     show MatchExpectation, Print, ReadDill, SanityCheck, WriteDill;
 
@@ -29,9 +31,6 @@ import 'package:testing/testing.dart'
         runMe;
 
 import 'package:kernel/ast.dart' show Program;
-
-import 'package:kernel/transformations/closure_conversion.dart'
-    as closure_conversion;
 
 import 'package:kernel/transformations/generic_types_reification.dart'
     as generic_types_reification;
@@ -57,10 +56,9 @@ class TestContext extends ChainContext {
             sdk: sdk,
             packagePath: packages.toFilePath()),
         steps = <Step>[
-          const Kernel(),
+          const NotReifiedKernel(),
           const Print(),
           const SanityCheck(),
-          const ClosureConversion(),
           const GenericTypesReification(),
           const Print(),
           const SanityCheck(),
@@ -126,14 +124,51 @@ Future<TestContext> createContext(
   Uri vm = Uri.base.resolve("out/ReleaseX64/dart");
 
   Uri packages = Uri.base.resolve(".packages");
-  bool strongMode = false;
-  bool updateExpectations = environment["updateExpectations"] == "true";
+  // Strong mode is required to keep the type arguments in invocations of
+  // generic methods.
+  bool strongMode = true;
+  bool updateExpectations = const String.fromEnvironment("updateExpectations",
+          defaultValue: "false") ==
+      "true";
   return new TestContext(sdk, vm, packages, strongMode,
       createDartSdk(sdk, strongMode: strongMode), updateExpectations);
 }
 
-class Kernel extends Step<TestDescription, Program, TestContext> {
-  const Kernel();
+// [NotReifiedTarget] is intended to work as the [Target] class that
+// [VmGenericTypesReifiedTarget] inherits from, but with some transformations
+// disabled. Those include tree shaking and generic types information erasure
+// passes.
+// [NotReifiedTarget] also adds the necessary runtime libraries.
+class NotReifiedTarget extends VmClosureConvertedTarget {
+  NotReifiedTarget(TargetFlags flags) : super(flags);
+
+  @override
+  String get name => "not reified target";
+
+  // Tree shaking needs to be disabled, because Generic Types Reification
+  // transformation relies on certain runtime libraries to be present in
+  // the program that is being transformed. If the tree shaker is enabled,
+  // it just deletes everything from those libraries, because they aren't
+  // used in the program being transform prior to the transformation.
+  @override
+  void performTreeShaking(Program program) {}
+
+  // Erasure needs to be disabled, because it removes the necessary information
+  // about type arguments for generic methods.
+  @override
+  void performErasure(Program program) {}
+
+  // Adds the necessary runtime libraries.
+  @override
+  List<String> get extraRequiredLibraries {
+    Target reifyTarget = getTarget("vmreify", this.flags);
+    var x = reifyTarget.extraRequiredLibraries;
+    return x;
+  }
+}
+
+class NotReifiedKernel extends Step<TestDescription, Program, TestContext> {
+  const NotReifiedKernel();
 
   String get name => "kernel";
 
@@ -142,19 +177,15 @@ class Kernel extends Step<TestDescription, Program, TestContext> {
     try {
       DartLoader loader = await testContext.createLoader();
 
-      Target target = getTarget(
-          "vm", new TargetFlags(strongMode: testContext.options.strongMode));
-      // reifyTarget is used to add the GTR-specific runtime libraries
-      // when the program is being loaded
-      Target reifyTarget = getTarget(
-          "vmreify",
-          new TargetFlags(
-              strongMode: testContext.options.strongMode,
-              kernelRuntime: Platform.script.resolve('../../runtime/')));
+      // Strong mode is required to keep the type arguments in invocations of
+      // generic methods.
+      Target target = new NotReifiedTarget(new TargetFlags(
+          strongMode: true,
+          kernelRuntime: Platform.script.resolve("../../runtime/")));
 
       String path = description.file.path;
       Uri uri = Uri.base.resolve(path);
-      loader.loadProgram(uri, target: reifyTarget);
+      loader.loadProgram(uri, target: target);
       var program = loader.program;
       for (var error in loader.errors) {
         return fail(program, "$error");
@@ -162,21 +193,6 @@ class Kernel extends Step<TestDescription, Program, TestContext> {
       target
         ..performModularTransformations(program)
         ..performGlobalTransformations(program);
-      return pass(program);
-    } catch (e, s) {
-      return crash(e, s);
-    }
-  }
-}
-
-class ClosureConversion extends Step<Program, Program, TestContext> {
-  const ClosureConversion();
-
-  String get name => "closure conversion";
-
-  Future<Result<Program>> run(Program program, TestContext testContext) async {
-    try {
-      program = closure_conversion.transformProgram(program);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);

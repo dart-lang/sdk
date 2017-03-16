@@ -141,6 +141,7 @@ main(List<String> arguments) async {
   }
 
   ProcessResult result = await Process.run(dartkPath, [
+    "--strong",
     "--sdk=$sdkPath",
     "--target=vmreify",
     "--link",
