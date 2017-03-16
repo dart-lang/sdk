@@ -13,81 +13,82 @@ where it is going, and where it is today.
 The compiler will operate in these general phases:
 
   1. **load kernel**: Load all the code as kernel
-    * Collect dart sources transtively
-    * Convert to kernel AST
-    (this is will handled by invoking the front-end package)
-
-    Alternatively, the compiler can start compilation directly from a kernel
-    file(s).
+      * Collect dart sources transtively
+      * Convert to kernel AST  
+  
+  (this is will handled by invoking the front-end package)
+  
+  Alternatively, the compiler can start compilation directly from a kernel
+  file(s).
 
   2. **model**: Create a Dart model of the program
-    * The kernel ASTs could be used as a model, so this might be a no-op or just
-      creating a thin wrapper on top of kernel.
+     * The kernel ASTs could be used as a model, so this might be a no-op or just
+       creating a thin wrapper on top of kernel.
 
   3. **tree-shake and create world**: Build world of reachable code
-    * For each reachable piece of code:
-        * Compute impact (i1) from kernel AST
-    * Build a closed world (w1)
+     * For each reachable piece of code:
+         * Compute impact (i1) from kernel AST
+     * Build a closed world (w1)
 
   4. **analyze**: Run a global analysis
-    * Assume closed world semantics (from w1)
-    * Produce a global result (g)
-       * Like today (g) will contain type and nullability information
-       * After we adopt strong-mode types, we want to explore simplifying this
-         to only contain native + nullability information.
+     * Assume closed world semantics (from w1)
+     * Produce a global result (g)
+        * Like today (g) will contain type and nullability information
+        * After we adopt strong-mode types, we want to explore simplifying this
+        to only contain native + nullability information.
 
   5. **codegen model**: Create a JS model of the program
-    * Model JavaScript specific concepts (like the split of constructor bodies
-      as separate elements) and provide a mapping to the Dart model
+     * Model JavaScript specific concepts (like the split of constructor bodies
+       as separate elements) and provide a mapping to the Dart model
 
   6. **codegen and tree-shake**: Generate code, as needed
-    * For each reachable piece of code:
+     * For each reachable piece of code:
         * build ssa graph from kernel ASTs and global results (g)
         * optimize ssa
         * compute impact (i2) from optimized code
         * emit JS ASTs for the code
-    * Build a codegen closed world (w2) from new impacts (i2)
+     * Build a codegen closed world (w2) from new impacts (i2)
 
   7. **emit**: Assemble and minify the program
-    * Build program structure from the compiled pieces (w2)
-    * Use frequency namer to minify names.
-    * Emit js and source map files.
+     * Build program structure from the compiled pieces (w2)
+     * Use frequency namer to minify names.
+     * Emit js and source map files.
 
 ### The old architecture
 
 The compiler used to operate as follows:
 
   1. **load dart**: Load all source files
-    * Collect dart sources transtively
-    * Scan enough tokens to build import dependencies.
+     * Collect dart sources transtively
+     * Scan enough tokens to build import dependencies.
 
   2. **model**: Create a Dart model (aka. Element Model) of the program
-    * Do a diet-parse of the program to create the high-level element model
+     * Do a diet-parse of the program to create the high-level element model
 
   3. **resolve and tree-shake**: Resolve and build world of reachable code (the
      resolution enqueuer)
-    * For each reachable piece of code:
+     * For each reachable piece of code:
         * Parse the full body of the function
         * Resolve it and enqueue other pieces that are reachable
         * Type check the body of the function
 
-  5. **analyze**: Run a global analysis
-    * Assume closed world semantics (from everything enqueued by the resolver)
-    * Produce a global result about type and nullability information of method
-      arguments, return values, and receivers of dynamic sends.
+  4. **analyze**: Run a global analysis
+     * Assume closed world semantics (from everything enqueued by the resolver)
+     * Produce a global result about type and nullability information of method
+       arguments, return values, and receivers of dynamic sends.
 
-  6. **codegen and tree-shake**: Generate code, as needed (via the codegen
+  5. **codegen and tree-shake**: Generate code, as needed (via the codegen
      enqueuer)
-    * For each reachable piece of code:
+     * For each reachable piece of code:
         * build ssa graph from resolved source ASTs global results (g)
         * optimize ssa
         * enqueue visible dependencies
         * emit js asts for the code
 
-  7. **emit**: Assemble and minify the program
-    * Build program structure from the compiled pieces
-    * Use frequency namer to minify names.
-    * Emit js and source map files.
+  6. **emit**: Assemble and minify the program
+     * Build program structure from the compiled pieces
+     * Use frequency namer to minify names.
+     * Emit js and source map files.
 
 ### The architecture today (which might be changing while you read this!)
 
@@ -100,26 +101,26 @@ follows:
   2. **model**: (same element model as old compiler)
 
   3. **resolve, tree-shake and build world**: Build world of reachable code
-    * For each reachable piece of code:
+     * For each reachable piece of code:
         * Parse full body of the function
         * Resolve it from the parsed source ASTs
         * Type check it (same as old compiler)
         * Compute impact (i1) from resolved source ASTs (no kernel)
-    * Build a closed world (w1)
+     * Build a closed world (w1)
 
-  6. **kernelize**: Create kernel ASTs
-    * For all resolved elements in w1, compute their kernel representation using
-      the `rasta` visitor.
+  4. **kernelize**: Create kernel ASTs
+     * For all resolved elements in w1, compute their kernel representation using
+       the `rasta` visitor.
 
   5. **analyze**: (almost same as old compiler)
 
   6. **codegen and tree-shake**: Generate code, as needed
-    * For each reachable piece of code:
+     * For each reachable piece of code:
         * build ssa graph from kernel ASTs (uses global results g)
         * optimize ssa
         * compute impact (i2) from optimized code
         * emit js asts for the code
-    * Build a codegen closed world (w2) from new impacts (i2)
+     * Build a codegen closed world (w2) from new impacts (i2)
 
   7. **emit**: (same as old compiler)
 
