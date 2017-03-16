@@ -631,6 +631,277 @@ Null V;
 ''');
   }
 
+  /**
+   * A getter, setter or field which overrides/implements only a getter is
+   * inferred to have the type taken from the overridden getter result type.
+   *
+   * Note that overriding a field is addressed via the implicit induced
+   * getter/setter pair (or just getter in the case of a final field).
+   */
+  test_instanceField_fromField() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int x;
+  int y;
+  int z;
+}
+class B implements A {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int x;
+  int y;
+  int z;
+}
+class B implements A {
+  int x;
+  int get y {}
+  void set z(int _) {}
+}
+''');
+  }
+
+  /**
+   * A getter, setter or field which overrides/implements only a getter is
+   * inferred to have the type taken from the overridden getter result type.
+   */
+  @failingTest
+  test_instanceField_fromGetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+  int get y;
+  int get z;
+}
+class B implements A {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+  int get y;
+  int get z;
+}
+class B implements A {
+  int x;
+  int get y {}
+  void set z(int _) {}
+}
+''');
+  }
+
+  /**
+   * A field which overrides/implements both a setter and a getter is inferred
+   * to have the type taken from the overridden setter parameter type if this
+   * type is the same as the return type of the overridden getter (if the types
+   * are not the same then inference fails with an error).
+   */
+  test_instanceField_fromGetterSetter_field_differentType() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  var x;
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  dynamic x;
+}
+''');
+  }
+
+  /**
+   * A field which overrides/implements both a setter and a getter is inferred
+   * to have the type taken from the overridden setter parameter type if this
+   * type is the same as the return type of the overridden getter (if the types
+   * are not the same then inference fails with an error).
+   */
+  test_instanceField_fromGetterSetter_field_sameType() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  var x;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  int x;
+}
+''');
+  }
+
+  /**
+   * A getter which overrides/implements both a setter and a getter is inferred
+   * to have the type taken from the overridden getter result type.
+   */
+  test_instanceField_fromGetterSetter_getter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  int get x {}
+}
+''');
+  }
+
+  /**
+   * A setter which overrides/implements both a setter and a getter is inferred
+   * to have the type taken from the overridden setter parameter type.
+   */
+  test_instanceField_fromGetterSetter_setter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  set x(_);
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  void set x(String _);
+}
+''');
+  }
+
+  /**
+   * A getter, setter or field which overrides/implements only a setter is
+   * inferred to have the type taken from the overridden setter parameter.
+   */
+  @failingTest
+  test_instanceField_fromSetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  void set x(int _);
+  void set y(int _);
+  void set z(int _);
+}
+class B implements A {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  void set x(int _);
+  void set y(int _);
+  void set z(int _);
+}
+class B implements A {
+  int x;
+  int get y {}
+  void set z(int _) {}
+}
+''');
+  }
+
+  /**
+   * A getter, setter or field which overrides/implements only a getter is
+   * inferred to have the type taken from the overridden getter result type.
+   *
+   * Note that overriding a field is addressed via the implicit induced
+   * getter/setter pair (or just getter in the case of a final field).
+   *
+   * A field with no annotated type that does not override anything has the
+   * type inferred from its initializer.
+   */
+  @failingTest
+  test_instanceField_preferOverride() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  num x;
+  var y = 2;
+}
+class B implements A {
+  var x = 1;
+  var y = 2;
+  var z = 3;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  num x;
+  int y;
+}
+class B implements A {
+  num x;
+  int y;
+  int z;
+}
+''');
+  }
+
   test_method_error_conflict_parameterType_generic() async {
     var library = await _encodeDecodeLibrary(r'''
 class A<T> {
