@@ -70,8 +70,7 @@ abstract class IntegrationTestMixin {
    *   Otherwise, it will be used to identify the files for which the plugin
    *   should be notified of changes.
    */
-  Future<PluginVersionCheckResult> sendPluginVersionCheck(
-      String byteStorePath, String version) async {
+  Future<PluginVersionCheckResult> sendPluginVersionCheck(String byteStorePath, String version) async {
     var params = new PluginVersionCheckParams(byteStorePath, version).toJson();
     var result = await server.send("plugin.versionCheck", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
@@ -171,8 +170,7 @@ abstract class IntegrationTestMixin {
    *
    *   The options used to build the analysis contexts.
    */
-  Future sendAnalysisSetContextBuilderOptions(
-      ContextBuilderOptions options) async {
+  Future sendAnalysisSetContextBuilderOptions(ContextBuilderOptions options) async {
     var params = new AnalysisSetContextBuilderOptionsParams(options).toJson();
     var result = await server.send("analysis.setContextBuilderOptions", params);
     outOfTestExpect(result, isNull);
@@ -231,8 +229,7 @@ abstract class IntegrationTestMixin {
    *   A table mapping services to a list of the files being subscribed to the
    *   service.
    */
-  Future sendAnalysisSetSubscriptions(
-      Map<AnalysisService, List<String>> subscriptions) async {
+  Future sendAnalysisSetSubscriptions(Map<AnalysisService, List<String>> subscriptions) async {
     var params = new AnalysisSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("analysis.setSubscriptions", params);
     outOfTestExpect(result, isNull);
@@ -484,13 +481,11 @@ abstract class IntegrationTestMixin {
    *   client to respond to further keystrokes from the user without having to
    *   make additional requests.
    */
-  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
-      String file, int offset) async {
+  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(String file, int offset) async {
     var params = new CompletionGetSuggestionsParams(file, offset).toJson();
     var result = await server.send("completion.getSuggestions", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
-    return new CompletionGetSuggestionsResult.fromJson(
-        decoder, 'result', result);
+    return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -519,8 +514,7 @@ abstract class IntegrationTestMixin {
    *
    *   The assists that are available at the given location.
    */
-  Future<EditGetAssistsResult> sendEditGetAssists(
-      String file, int offset, int length) async {
+  Future<EditGetAssistsResult> sendEditGetAssists(String file, int offset, int length) async {
     var params = new EditGetAssistsParams(file, offset, length).toJson();
     var result = await server.send("edit.getAssists", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
@@ -556,14 +550,11 @@ abstract class IntegrationTestMixin {
    *   However, plugins can support pre-defined refactorings, such as a rename
    *   refactoring, at locations not supported by server.
    */
-  Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(
-      String file, int offset, int length) async {
-    var params =
-        new EditGetAvailableRefactoringsParams(file, offset, length).toJson();
+  Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(String file, int offset, int length) async {
+    var params = new EditGetAvailableRefactoringsParams(file, offset, length).toJson();
     var result = await server.send("edit.getAvailableRefactorings", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
-    return new EditGetAvailableRefactoringsResult.fromJson(
-        decoder, 'result', result);
+    return new EditGetAvailableRefactoringsResult.fromJson(decoder, 'result', result);
   }
 
   /**
@@ -671,13 +662,8 @@ abstract class IntegrationTestMixin {
    *   the change field is omitted or if there are no potential edits for the
    *   refactoring.
    */
-  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind,
-      String file, int offset, int length, bool validateOnly,
-      {RefactoringOptions options}) async {
-    var params = new EditGetRefactoringParams(
-            kind, file, offset, length, validateOnly,
-            options: options)
-        .toJson();
+  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) async {
+    var params = new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options).toJson();
     var result = await server.send("edit.getRefactoring", params);
     ResponseDecoder decoder = new ResponseDecoder(kind);
     return new EditGetRefactoringResult.fromJson(decoder, 'result', result);
@@ -692,20 +678,15 @@ abstract class IntegrationTestMixin {
     onPluginError = _onPluginError.stream.asBroadcastStream();
     _onAnalysisErrors = new StreamController<AnalysisErrorsParams>(sync: true);
     onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
-    _onAnalysisFolding =
-        new StreamController<AnalysisFoldingParams>(sync: true);
+    _onAnalysisFolding = new StreamController<AnalysisFoldingParams>(sync: true);
     onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
-    _onAnalysisHighlights =
-        new StreamController<AnalysisHighlightsParams>(sync: true);
+    _onAnalysisHighlights = new StreamController<AnalysisHighlightsParams>(sync: true);
     onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
-    _onAnalysisNavigation =
-        new StreamController<AnalysisNavigationParams>(sync: true);
+    _onAnalysisNavigation = new StreamController<AnalysisNavigationParams>(sync: true);
     onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
-    _onAnalysisOccurrences =
-        new StreamController<AnalysisOccurrencesParams>(sync: true);
+    _onAnalysisOccurrences = new StreamController<AnalysisOccurrencesParams>(sync: true);
     onAnalysisOccurrences = _onAnalysisOccurrences.stream.asBroadcastStream();
-    _onAnalysisOutline =
-        new StreamController<AnalysisOutlineParams>(sync: true);
+    _onAnalysisOutline = new StreamController<AnalysisOutlineParams>(sync: true);
     onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
   }
 
@@ -718,38 +699,31 @@ abstract class IntegrationTestMixin {
     switch (event) {
       case "plugin.error":
         outOfTestExpect(params, isPluginErrorParams);
-        _onPluginError
-            .add(new PluginErrorParams.fromJson(decoder, 'params', params));
+        _onPluginError.add(new PluginErrorParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.errors":
         outOfTestExpect(params, isAnalysisErrorsParams);
-        _onAnalysisErrors
-            .add(new AnalysisErrorsParams.fromJson(decoder, 'params', params));
+        _onAnalysisErrors.add(new AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.folding":
         outOfTestExpect(params, isAnalysisFoldingParams);
-        _onAnalysisFolding
-            .add(new AnalysisFoldingParams.fromJson(decoder, 'params', params));
+        _onAnalysisFolding.add(new AnalysisFoldingParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.highlights":
         outOfTestExpect(params, isAnalysisHighlightsParams);
-        _onAnalysisHighlights.add(
-            new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
+        _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.navigation":
         outOfTestExpect(params, isAnalysisNavigationParams);
-        _onAnalysisNavigation.add(
-            new AnalysisNavigationParams.fromJson(decoder, 'params', params));
+        _onAnalysisNavigation.add(new AnalysisNavigationParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.occurrences":
         outOfTestExpect(params, isAnalysisOccurrencesParams);
-        _onAnalysisOccurrences.add(
-            new AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
+        _onAnalysisOccurrences.add(new AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.outline":
         outOfTestExpect(params, isAnalysisOutlineParams);
-        _onAnalysisOutline
-            .add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
+        _onAnalysisOutline.add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
         break;
       default:
         fail('Unexpected notification: $event');
