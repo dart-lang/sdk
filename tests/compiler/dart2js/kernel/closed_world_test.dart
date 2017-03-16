@@ -137,7 +137,7 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       backend.interceptorDataBuilder,
       backend.backendUsageBuilder,
       backend.rtiNeedBuilder,
-      backend.mirrorsData,
+      backend.mirrorsDataBuilder,
       backend.noSuchMethodRegistry,
       backend.customElementsResolutionAnalysis,
       backend.lookupMapResolutionAnalysis,

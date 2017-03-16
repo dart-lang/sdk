@@ -16,7 +16,104 @@ import '../util/emptyset.dart';
 import 'backend_helpers.dart';
 import 'constant_handler_javascript.dart';
 
-class MirrorsData {
+abstract class MirrorsData {
+  /// True if a call to preserveMetadataMarker has been seen.  This means that
+  /// metadata must be retained for dart:mirrors to work correctly.
+  // resolution-empty-queue
+  bool get mustRetainMetadata;
+
+  /// True if any metadata has been retained.  This is slightly different from
+  /// [mustRetainMetadata] and tells us if any metadata was retained.  For
+  /// example, if [mustRetainMetadata] is true but there is no metadata in the
+  /// program, this variable will stil be false.
+  // emitter
+  bool get hasRetainedMetadata;
+
+  /// True if a call to preserveLibraryNames has been seen.
+  // emitter
+  bool get mustRetainLibraryNames;
+
+  /// True if a call to preserveNames has been seen.
+  // resolution-empty-queue
+  bool get mustPreserveNames;
+
+  /// True if a call to disableTreeShaking has been seen.
+  bool get isTreeShakingDisabled;
+
+  /// True if a call to preserveUris has been seen and the preserve-uris flag
+  /// is set.
+  bool get mustPreserveUris;
+
+  /// Set of symbols that the user has requested for reflection.
+  Iterable<String> get symbolsUsed;
+
+  /// Set of elements that the user has requested for reflection.
+  Iterable<Element> get targetsUsed;
+
+  /// Should [element] (a getter) that would normally not be generated due to
+  /// treeshaking be retained for reflection?
+  bool shouldRetainGetter(Element element);
+
+  /// Should [element] (a setter) hat would normally not be generated due to
+  /// treeshaking be retained for reflection?
+  bool shouldRetainSetter(Element element);
+
+  /// Should [name] be retained for reflection?
+  bool shouldRetainName(String name);
+
+  /// Returns true if this element is covered by a mirrorsUsed annotation.
+  ///
+  /// Note that it might still be ok to tree shake the element away if no
+  /// reflection is used in the program (and thus [isTreeShakingDisabled] is
+  /// still false). Therefore _do not_ use this predicate to decide inclusion
+  /// in the tree, use [requiredByMirrorSystem] instead.
+  bool referencedFromMirrorSystem(Element element, [recursive = true]);
+
+  /// Returns `true` if [element] can be accessed through reflection, that is,
+  /// is in the set of elements covered by a `MirrorsUsed` annotation.
+  ///
+  /// This property is used to tag emitted elements with a marker which is
+  /// checked by the runtime system to throw an exception if an element is
+  /// accessed (invoked, get, set) that is not accessible for the reflective
+  /// system.
+  bool isAccessibleByReflection(Element element);
+
+  bool retainMetadataOf(Element element);
+
+  bool invokedReflectively(Element element);
+
+  /// Returns `true` if this member element needs reflection information at
+  /// runtime.
+  bool isMemberAccessibleByReflection(MemberElement element);
+
+  /// Returns true if this element has to be enqueued due to
+  /// mirror usage. Might be a subset of [referencedFromMirrorSystem] if
+  /// normal tree shaking is still active ([isTreeShakingDisabled] is false).
+  bool requiredByMirrorSystem(Element element);
+}
+
+abstract class MirrorsDataBuilder {
+  void registerUsedMember(MemberElement member);
+
+  /// Called by [MirrorUsageAnalyzerTask] after it has merged all @MirrorsUsed
+  /// annotations. The arguments corresponds to the unions of the corresponding
+  /// fields of the annotations.
+  void registerMirrorUsage(
+      Set<String> symbols, Set<Element> targets, Set<Element> metaTargets);
+
+  /// Called when `const Symbol(name)` is seen.
+  void registerConstSymbol(String name);
+
+  void maybeMarkClosureAsNeededForReflection(
+      ClosureClassElement globalizedElement,
+      FunctionElement callFunction,
+      FunctionElement function);
+
+  void computeMembersNeededForReflection(
+      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld);
+}
+
+class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   /// True if a call to preserveMetadataMarker has been seen.  This means that
   /// metadata must be retained for dart:mirrors to work correctly.
   bool mustRetainMetadata = false;
@@ -43,10 +140,10 @@ class MirrorsData {
   /// is set.
   bool mustPreserveUris = false;
 
-  /// List of symbols that the user has requested for reflection.
+  /// Set of symbols that the user has requested for reflection.
   final Set<String> symbolsUsed = new Set<String>();
 
-  /// List of elements that the user has requested for reflection.
+  /// Set of elements that the user has requested for reflection.
   final Set<Element> targetsUsed = new Set<Element>();
 
   /// List of annotations provided by user that indicate that the annotated
@@ -64,7 +161,7 @@ class MirrorsData {
 
   final JavaScriptConstantCompiler _constants;
 
-  MirrorsData(this._compiler, this._options, this._commonElements,
+  MirrorsDataImpl(this._compiler, this._options, this._commonElements,
       this._helpers, this._constants);
 
   void registerUsedMember(MemberElement member) {
@@ -164,15 +261,13 @@ class MirrorsData {
     if (metaTargets != null) metaTargetsUsed.addAll(metaTargets);
   }
 
-  /**
-   * Returns `true` if [element] can be accessed through reflection, that is,
-   * is in the set of elements covered by a `MirrorsUsed` annotation.
-   *
-   * This property is used to tag emitted elements with a marker which is
-   * checked by the runtime system to throw an exception if an element is
-   * accessed (invoked, get, set) that is not accessible for the reflective
-   * system.
-   */
+  /// Returns `true` if [element] can be accessed through reflection, that is,
+  /// is in the set of elements covered by a `MirrorsUsed` annotation.
+  ///
+  /// This property is used to tag emitted elements with a marker which is
+  /// checked by the runtime system to throw an exception if an element is
+  /// accessed (invoked, get, set) that is not accessible for the reflective
+  /// system.
   bool isAccessibleByReflection(Element element) {
     if (element.isClass) {
       element = _getDartClass(element);
@@ -410,7 +505,7 @@ class MirrorsData {
     _membersNeededForReflection.add(globalizedElement);
   }
 
-  /// Called when [:const Symbol(name):] is seen.
+  /// Called when `const Symbol(name)` is seen.
   void registerConstSymbol(String name) {
     symbolsUsed.add(name);
     if (name.endsWith('=')) {

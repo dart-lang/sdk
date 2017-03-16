@@ -39,7 +39,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
-  final MirrorsData _mirrorsData;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
   final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
@@ -58,7 +57,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._backendClasses,
       this._backendUsage,
       this._rtiNeed,
-      this._mirrorsData,
       this._customElementsAnalysis,
       this._typeVariableCodegenAnalysis,
       this._lookupMapAnalysis,
@@ -251,7 +249,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   @override
   WorldImpact registerUsedElement(MemberElement member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    _mirrorsData.registerUsedMember(member);
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {

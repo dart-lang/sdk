@@ -1081,7 +1081,7 @@ class ClosureTranslator extends Visitor {
     closedWorldRefiner.registerClosureClass(globalizedElement);
     MethodElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
-    backend.mirrorsData.maybeMarkClosureAsNeededForReflection(
+    backend.mirrorsDataBuilder.maybeMarkClosureAsNeededForReflection(
         globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;
     enclosing.nestedClosures.add(callElement);
