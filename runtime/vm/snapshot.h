@@ -24,6 +24,7 @@ class Class;
 class ClassTable;
 class Closure;
 class Code;
+class Dwarf;
 class ExternalTypedData;
 class GrowableObjectArray;
 class Heap;
@@ -765,10 +766,8 @@ class AssemblyImageWriter : public ImageWriter {
  public:
   AssemblyImageWriter(uint8_t** assembly_buffer,
                       ReAlloc alloc,
-                      intptr_t initial_size)
-      : ImageWriter(),
-        assembly_stream_(assembly_buffer, alloc, initial_size),
-        text_size_(0) {}
+                      intptr_t initial_size);
+  void Finalize();
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() { return text_size_; }
@@ -776,6 +775,9 @@ class AssemblyImageWriter : public ImageWriter {
   intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
 
  private:
+  void FrameUnwindPrologue();
+  void FrameUnwindEpilogue();
+  void WriteByteSequence(uword start, uword end);
   void WriteWordLiteralText(uword value) {
 // Padding is helpful for comparing the .S with --disassemble.
 #if defined(ARCH_IS_64_BIT)
@@ -788,6 +790,7 @@ class AssemblyImageWriter : public ImageWriter {
 
   WriteStream assembly_stream_;
   intptr_t text_size_;
+  Dwarf* dwarf_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };

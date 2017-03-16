@@ -44,6 +44,19 @@ void NativeSymbolResolver::FreeSymbolName(char* name) {
 }
 
 
+bool NativeSymbolResolver::LookupSharedObject(uword pc,
+                                              uword* dso_base,
+                                              char** dso_name) {
+  Dl_info info;
+  int r = dladdr(reinterpret_cast<void*>(pc), &info);
+  if (r == 0) {
+    return false;
+  }
+  *dso_base = reinterpret_cast<uword>(info.dli_fbase);
+  *dso_name = strdup(info.dli_fname);
+  return true;
+}
+
 }  // namespace dart
 
 #endif  // defined(HOST_OS_MACOS)
