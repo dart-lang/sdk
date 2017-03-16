@@ -240,8 +240,12 @@ RawObject* SnapshotReader::ReadObject() {
         (*backward_references_)[i].set_state(kIsDeserialized);
       }
     }
-    ProcessDeferredCanonicalizations();
-    return obj.raw();
+    if (backward_references_->length() > 0) {
+      ProcessDeferredCanonicalizations();
+      return (*backward_references_)[0].reference()->raw();
+    } else {
+      return obj.raw();
+    }
   } else {
     // An error occurred while reading, return the error object.
     const Error& err = Error::Handle(thread()->sticky_error());
@@ -511,7 +515,8 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
     while (offset < next_field_offset) {
-      pobj_ = ReadObjectImpl(read_as_reference);
+      pobj_ =
+          ReadObjectImpl(read_as_reference, object_id, (offset / kWordSize));
       result->SetFieldAtOffset(offset, pobj_);
       if ((offset != type_argument_field_offset) &&
           (kind_ == Snapshot::kMessage) && isolate()->use_field_guards()) {
@@ -1217,20 +1222,21 @@ void SnapshotReader::ProcessDeferredCanonicalizations() {
       if (newobj.raw() != objref->raw()) {
         ZoneGrowableArray<intptr_t>* patches = backref.patch_records();
         ASSERT(newobj.IsNull() || newobj.IsCanonical());
-        ASSERT(patches != NULL);
         // First we replace the back ref table with the canonical object.
         *objref = newobj.raw();
-        // Now we go over all the patch records and patch the canonical object.
-        for (intptr_t j = 0; j < patches->length(); j += 2) {
-          NoSafepointScope no_safepoint;
-          intptr_t patch_object_id = (*patches)[j];
-          intptr_t patch_offset = (*patches)[j + 1];
-          Object* target = GetBackRef(patch_object_id);
-          // We should not backpatch an object that is canonical.
-          if (!target->IsCanonical()) {
-            RawObject** rawptr =
-                reinterpret_cast<RawObject**>(target->raw()->ptr());
-            target->StorePointer((rawptr + patch_offset), newobj.raw());
+        if (patches != NULL) {
+          // Now go over all the patch records and patch the canonical object.
+          for (intptr_t j = 0; j < patches->length(); j += 2) {
+            NoSafepointScope no_safepoint;
+            intptr_t patch_object_id = (*patches)[j];
+            intptr_t patch_offset = (*patches)[j + 1];
+            Object* target = GetBackRef(patch_object_id);
+            // We should not backpatch an object that is canonical.
+            if (!target->IsCanonical()) {
+              RawObject** rawptr =
+                  reinterpret_cast<RawObject**>(target->raw()->ptr());
+              target->StorePointer((rawptr + patch_offset), newobj.raw());
+            }
           }
         }
       } else {
