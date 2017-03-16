@@ -23,7 +23,6 @@ part of dart.core;
  * since they will stay alive forever.
  */
 class Expando<T> {
-
   /**
    * The name of the this [Expando] as passed to the constructor. If
    * no name was passed to the constructor, the name is [:null:].
@@ -60,5 +59,4 @@ class Expando<T> {
    * The object must not be a number, a string, a boolean or null.
    */
   external void operator []=(Object object, T value);
-
 }

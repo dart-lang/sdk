@@ -133,8 +133,7 @@ class Isolate {
    * pause or terminate the isolate. All the untrusted code can do is to
    * inspect the isolate and see uncaught errors or when it terminates.
    */
-  Isolate(this.controlPort, {this.pauseCapability,
-                             this.terminateCapability});
+  Isolate(this.controlPort, {this.pauseCapability, this.terminateCapability});
 
   /**
    * Return an [Isolate] object representing the current isolate.
@@ -226,10 +225,10 @@ class Isolate {
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawn(void entryPoint(message), var message,
-                                        {bool paused: false,
-                                         bool errorsAreFatal,
-                                         SendPort onExit,
-                                         SendPort onError});
+      {bool paused: false,
+      bool errorsAreFatal,
+      SendPort onExit,
+      SendPort onError});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -308,18 +307,16 @@ class Isolate {
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
-      Uri uri,
-      List<String> args,
-      var message,
+      Uri uri, List<String> args, var message,
       {bool paused: false,
-       SendPort onExit,
-       SendPort onError,
-       bool errorsAreFatal,
-       bool checked,
-       Map<String, String> environment,
-       Uri packageRoot,
-       Uri packageConfig,
-       bool automaticPackageResolution: false});
+      SendPort onExit,
+      SendPort onError,
+      bool errorsAreFatal,
+      bool checked,
+      Map<String, String> environment,
+      Uri packageRoot,
+      Uri packageConfig,
+      bool automaticPackageResolution: false});
 
   /**
    * Requests the isolate to pause.
@@ -497,8 +494,8 @@ class Isolate {
    *     after the current event, and any already scheduled control events,
    *     are completed.
    */
-  external void ping(SendPort responsePort, {Object response,
-                                             int priority: IMMEDIATE});
+  external void ping(SendPort responsePort,
+      {Object response, int priority: IMMEDIATE});
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
@@ -560,6 +557,7 @@ class Isolate {
       var error = new RemoteError(errorDescription, stackDescription);
       controller.addError(error, error.stackTrace);
     }
+
     controller = new StreamController.broadcast(
         sync: true,
         onListen: () {
@@ -586,7 +584,6 @@ class Isolate {
  * when sent.
  */
 abstract class SendPort implements Capability {
-
   /**
    * Sends an asynchronous [message] through this send port, to its
    * corresponding `ReceivePort`.
@@ -611,7 +608,7 @@ abstract class SendPort implements Capability {
    * Tests whether [other] is a [SendPort] pointing to the same
    * [ReceivePort] as this one.
    */
-  bool operator==(var other);
+  bool operator ==(var other);
 
   /**
    * Returns an immutable hash code for this send port that is
@@ -636,7 +633,6 @@ abstract class SendPort implements Capability {
  * A [ReceivePort] may have many [SendPort]s.
  */
 abstract class ReceivePort implements Stream {
-
   /**
    * Opens a long-lived port for receiving messages.
    *
@@ -667,9 +663,7 @@ abstract class ReceivePort implements Stream {
    * The stream closes when [close] is called.
    */
   StreamSubscription listen(void onData(var message),
-                            { Function onError,
-                              void onDone(),
-                              bool cancelOnError });
+      {Function onError, void onDone(), bool cancelOnError});
 
   /**
    * Closes `this`.

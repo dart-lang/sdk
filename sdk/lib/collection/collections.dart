@@ -21,5 +21,5 @@ class UnmodifiableListView<E> extends UnmodifiableListBase<E> {
    */
   UnmodifiableListView(Iterable<E> source) : _source = source;
   int get length => _source.length;
-  E operator[](int index) => _source.elementAt(index);
+  E operator [](int index) => _source.elementAt(index);
 }

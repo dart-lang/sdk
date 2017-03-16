@@ -140,12 +140,12 @@ void scheduleMicrotask(void callback()) {
   _ZoneFunction implementation = currentZone._scheduleMicrotask;
   if (identical(_ROOT_ZONE, implementation.zone) &&
       _ROOT_ZONE.inSameErrorZone(currentZone)) {
-    _rootScheduleMicrotask(null, null, currentZone,
-                           currentZone.registerCallback(callback));
+    _rootScheduleMicrotask(
+        null, null, currentZone, currentZone.registerCallback(callback));
     return;
   }
-  Zone.current.scheduleMicrotask(
-      Zone.current.bindCallback(callback, runGuarded: true));
+  Zone.current
+      .scheduleMicrotask(Zone.current.bindCallback(callback, runGuarded: true));
 }
 
 class _AsyncRun {

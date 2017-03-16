@@ -33,6 +33,8 @@ JSObject newObject() => JsNative.newObject();
 hasProperty(JSObject o, name) => JsNative.hasProperty(o, name);
 getProperty(JSObject o, name) => JsNative.getProperty(o, name);
 setProperty(JSObject o, name, value) => JsNative.setProperty(o, name, value);
-callMethod(JSObject o, String method, List args) => JsNative.callMethod(o, method, args);
+callMethod(JSObject o, String method, List args) =>
+    JsNative.callMethod(o, method, args);
 instanceof(JSObject o, Function type) => JsNative.instanceof(o, type);
-callConstructor(JSObject constructor, List args) => JsNative.callConstructor(constructor, args);
+callConstructor(JSObject constructor, List args) =>
+    JsNative.callConstructor(constructor, args);

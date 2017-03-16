@@ -4,8 +4,8 @@
 
 part of dart.async;
 
-_invokeErrorHandler(Function errorHandler,
-                    Object error, StackTrace stackTrace) {
+_invokeErrorHandler(
+    Function errorHandler, Object error, StackTrace stackTrace) {
   if (errorHandler is ZoneBinaryCallback) {
     return errorHandler(error, stackTrace);
   } else {

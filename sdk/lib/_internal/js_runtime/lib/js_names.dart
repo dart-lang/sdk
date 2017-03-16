@@ -4,19 +4,12 @@
 
 library dart._js_names;
 
-import 'dart:_js_embedded_names' show
-    JsGetName,
-    MANGLED_GLOBAL_NAMES,
-    MANGLED_NAMES;
+import 'dart:_js_embedded_names'
+    show JsGetName, MANGLED_GLOBAL_NAMES, MANGLED_NAMES;
 
-import 'dart:_foreign_helper' show
-    JS,
-    JS_EMBEDDED_GLOBAL,
-    JS_GET_NAME;
+import 'dart:_foreign_helper' show JS, JS_EMBEDDED_GLOBAL, JS_GET_NAME;
 
-import 'dart:_js_helper' show
-    JsCache,
-    NoInline;
+import 'dart:_js_helper' show JsCache, NoInline;
 
 import 'dart:_interceptors' show JSArray;
 
@@ -32,9 +25,8 @@ final _LazyMangledNamesMap mangledNames = new _LazyMangledInstanceNamesMap(
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledNames]).
-final _LazyReflectiveNamesMap reflectiveNames =
-    new _LazyReflectiveNamesMap(JS_EMBEDDED_GLOBAL('=Object', MANGLED_NAMES),
-        true);
+final _LazyReflectiveNamesMap reflectiveNames = new _LazyReflectiveNamesMap(
+    JS_EMBEDDED_GLOBAL('=Object', MANGLED_NAMES), true);
 
 /// A map from mangled names to "reflective" names (see [mangledNames]).  This
 /// map is for globals, that is, static and top-level members.
@@ -56,12 +48,11 @@ class _LazyMangledNamesMap {
 
   _LazyMangledNamesMap(this._jsMangledNames);
 
-  String operator[](String key) {
+  String operator [](String key) {
     var result = JS('var', '#[#]', _jsMangledNames, key);
     // Filter out all non-string values to protect against polution from
     // anciliary fields in [_jsMangledNames].
-    bool filter =
-        JS('bool', 'typeof # !== "string"', result);
+    bool filter = JS('bool', 'typeof # !== "string"', result);
     // To ensure that the inferrer sees that result is a String, we explicitly
     // give it a better type here.
     return filter ? null : JS('String', '#', result);
@@ -74,7 +65,7 @@ class _LazyMangledNamesMap {
 class _LazyMangledInstanceNamesMap extends _LazyMangledNamesMap {
   _LazyMangledInstanceNamesMap(_jsMangledNames) : super(_jsMangledNames);
 
-  String operator[](String key) {
+  String operator [](String key) {
     String result = super[key];
     String setterPrefix = JS_GET_NAME(JsGetName.SETTER_PREFIX);
     if (result == null && key.startsWith(setterPrefix)) {
@@ -130,10 +121,10 @@ class _LazyReflectiveNamesMap {
     return result;
   }
 
-  int get _jsMangledNamesLength => JS('int', 'Object.keys(#).length',
-      _jsMangledNames);
+  int get _jsMangledNamesLength =>
+      JS('int', 'Object.keys(#).length', _jsMangledNames);
 
-  String operator[](String key) {
+  String operator [](String key) {
     if (_cache == null || _jsMangledNamesLength != _cacheLength) {
       _cache = _updateReflectiveNames();
       _cacheLength = _jsMangledNamesLength;

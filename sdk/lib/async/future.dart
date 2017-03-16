@@ -295,13 +295,12 @@ abstract class Future<T> {
    * uncaught asynchronous error.
    */
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
-                           {bool eagerError: false,
-                            void cleanUp(T successValue)}) {
+      {bool eagerError: false, void cleanUp(T successValue)}) {
     final _Future<List<T>> result = new _Future<List<T>>();
-    List<T> values;  // Collects the values. Set to null on error.
-    int remaining = 0;  // How many futures are we waiting for.
-    var error;   // The first error from a future.
-    StackTrace stackTrace;  // The stackTrace that came with the error.
+    List<T> values; // Collects the values. Set to null on error.
+    int remaining = 0; // How many futures are we waiting for.
+    var error; // The first error from a future.
+    StackTrace stackTrace; // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
     // TODO(jmesserly): use `void` return type once it can be inferred for the
@@ -313,7 +312,9 @@ abstract class Future<T> {
           for (var value in values) {
             if (value != null) {
               // Ensure errors from cleanUp are uncaught.
-              new Future.sync(() { cleanUp(value); });
+              new Future.sync(() {
+                cleanUp(value);
+              });
             }
           }
         }
@@ -344,7 +345,9 @@ abstract class Future<T> {
           } else {
             if (cleanUp != null && value != null) {
               // Ensure errors from cleanUp are uncaught.
-              new Future.sync(() { cleanUp(value); });
+              new Future.sync(() {
+                cleanUp(value);
+              });
             }
             if (remaining == 0 && !eagerError) {
               result._completeError(error, stackTrace);
@@ -406,7 +409,6 @@ abstract class Future<T> {
     return completer.future;
   }
 
-
   /**
    * Perform an async operation for each element of the iterable, in turn.
    *
@@ -450,8 +452,8 @@ abstract class Future<T> {
     // context of all the previous iterations' callbacks.
     nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
       if (keepGoing) {
-        new Future.sync(f).then(nextIteration,
-                                onError: doneSignal._completeError);
+        new Future.sync(f)
+            .then(nextIteration, onError: doneSignal._completeError);
       } else {
         doneSignal._complete(null);
       }
@@ -499,7 +501,7 @@ abstract class Future<T> {
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
-  Future<S> then<S>(FutureOr<S> onValue(T value), { Function onError });
+  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError});
 
   /**
    * Handles errors emitted by this [Future].
@@ -560,8 +562,7 @@ abstract class Future<T> {
   // `isCheck` we should also expect functions that take a specific argument.
   // Note: making `catchError` return a `Future<T>` in non-strong mode could be
   // a breaking change.
-  Future<T> catchError(Function onError,
-                       {bool test(Object error)});
+  Future<T> catchError(Function onError, {bool test(Object error)});
 
   /**
    * Register a function to be called when this future completes.
@@ -691,7 +692,6 @@ class TimeoutException implements Exception {
  *     }
  */
 abstract class Completer<T> {
-
   /**
    * Creates a new completer.
    *

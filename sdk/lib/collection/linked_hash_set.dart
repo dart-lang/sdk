@@ -74,9 +74,10 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    * and the `isValidKey` defaults to accepting all keys.
    * Such a map can be created directly using [LinkedHashSet.identity].
    */
-  external factory LinkedHashSet({bool equals(E e1, E e2),
-                                  int hashCode(E e),
-                                  bool isValidKey(potentialKey)});
+  external factory LinkedHashSet(
+      {bool equals(E e1, E e2),
+      int hashCode(E e),
+      bool isValidKey(potentialKey)});
 
   /**
    * Creates an insertion-ordered identity-based set.

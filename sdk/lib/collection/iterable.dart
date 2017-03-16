@@ -15,13 +15,12 @@ abstract class IterableMixin<E> implements Iterable<E> {
   // - SetMixin
   // If changing a method here, also change the other copies.
 
-  Iterable<T> map<T>(T f(E element)) =>
-      new MappedIterable<E, T>(this, f);
+  Iterable<T> map<T>(T f(E element)) => new MappedIterable<E, T>(this, f);
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      new ExpandIterable<E, T>(this, f);
+  Iterable<T>
+      expand<T>(Iterable<T> f(E element)) => new ExpandIterable<E, T>(this, f);
 
   bool contains(Object element) {
     for (E e in this) {
@@ -46,8 +45,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return value;
   }
 
-  T fold<T>(T initialValue,
-               T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;
@@ -85,7 +83,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return false;
   }
 
-  List<E> toList({ bool growable: true }) =>
+  List<E> toList({bool growable: true}) =>
       new List<E>.from(this, growable: growable);
 
   Set<E> toSet() => new Set<E>.from(this);
@@ -136,7 +134,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     E result;
     do {
       result = it.current;
-    } while(it.moveNext());
+    } while (it.moveNext());
     return result;
   }
 
@@ -148,7 +146,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return result;
   }
 
-  E firstWhere(bool test(E value), { E orElse() }) {
+  E firstWhere(bool test(E value), {E orElse()}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -156,7 +154,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E value), { E orElse() }) {
+  E lastWhere(bool test(E value), {E orElse()}) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -197,7 +195,6 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw new RangeError.index(index, this, "index", null, elementIndex);
   }
 
-
   String toString() => IterableBase.iterableToShortString(this, '(', ')');
 }
 
@@ -219,8 +216,7 @@ abstract class IterableBase<E> extends Iterable<E> {
    * to a string ends up converting [iterable] to a string again.
    */
   static String iterableToShortString(Iterable iterable,
-                                      [String leftDelimiter = '(',
-                                       String rightDelimiter = ')']) {
+      [String leftDelimiter = '(', String rightDelimiter = ')']) {
     if (_isToStringVisiting(iterable)) {
       if (leftDelimiter == "(" && rightDelimiter == ")") {
         // Avoid creating a new string in the "common" case.
@@ -237,8 +233,9 @@ abstract class IterableBase<E> extends Iterable<E> {
       _toStringVisiting.removeLast();
     }
     return (new StringBuffer(leftDelimiter)
-                ..writeAll(parts, ", ")
-                ..write(rightDelimiter)).toString();
+          ..writeAll(parts, ", ")
+          ..write(rightDelimiter))
+        .toString();
   }
 
   /**
@@ -254,8 +251,7 @@ abstract class IterableBase<E> extends Iterable<E> {
    * to a string ends up converting [iterable] to a string again.
    */
   static String iterableToFullString(Iterable iterable,
-                                     [String leftDelimiter = '(',
-                                      String rightDelimiter = ')']) {
+      [String leftDelimiter = '(', String rightDelimiter = ')']) {
     if (_isToStringVisiting(iterable)) {
       return "$leftDelimiter...$rightDelimiter";
     }
@@ -294,17 +290,20 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
    */
   /// Try to stay below this many characters.
   const int LENGTH_LIMIT = 80;
+
   /// Always at least this many elements at the start.
   const int HEAD_COUNT = 3;
+
   /// Always at least this many elements at the end.
   const int TAIL_COUNT = 2;
+
   /// Stop iterating after this many elements. Iterables can be infinite.
   const int MAX_COUNT = 100;
   // Per entry length overhead. It's for ", " for all after the first entry,
   // and for "(" and ")" for the initial entry. By pure luck, that's the same
   // number.
   const int OVERHEAD = 2;
-  const int ELLIPSIS_SIZE = 3;  // "...".length.
+  const int ELLIPSIS_SIZE = 3; // "...".length.
 
   int length = 0;
   int count = 0;
@@ -359,7 +358,7 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
           // Remove any surplus elements until length, including ", ...)",
           // is at most LENGTH_LIMIT.
           while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD &&
-                 count > HEAD_COUNT) {
+              count > HEAD_COUNT) {
             length -= parts.removeLast().length + OVERHEAD;
             count--;
           }
@@ -369,8 +368,7 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
       }
       penultimateString = "$penultimate";
       ultimateString = "$ultimate";
-      length +=
-          ultimateString.length + penultimateString.length + 2 * OVERHEAD;
+      length += ultimateString.length + penultimateString.length + 2 * OVERHEAD;
     }
   }
 

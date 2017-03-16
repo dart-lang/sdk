@@ -2758,8 +2758,8 @@ class JsFunctionTypeMirror extends BrokenClassMirror
   }
 
   bool get hasReflectedType => true;
-  Type get reflectedType => _cachedReflectedType
-      ??= createRuntimeType(runtimeTypeToString(_typeData));
+  Type get reflectedType => _cachedReflectedType ??=
+      createRuntimeType(runtimeTypeToString(_typeData));
 
   String _unmangleIfPreserved(String mangled) {
     String result = unmangleGlobalNameIfPreservedAnyways(mangled);

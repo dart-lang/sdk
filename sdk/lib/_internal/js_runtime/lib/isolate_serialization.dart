@@ -117,9 +117,11 @@ class _Serializer {
 
   serializeMap(Map x) {
     Function serializeTearOff = serialize;
-    return ['map',
-            x.keys.map(serializeTearOff).toList(),
-            x.values.map(serializeTearOff).toList()];
+    return [
+      'map',
+      x.keys.map(serializeTearOff).toList(),
+      x.values.map(serializeTearOff).toList()
+    ];
   }
 
   serializeJSObject(JSObject x) {
@@ -193,21 +195,36 @@ class _Deserializer {
     if (x is! JSArray) throw new ArgumentError("Bad serialized message: $x");
 
     switch (x.first) {
-      case "ref": return deserializeRef(x);
-      case "buffer": return deserializeByteBuffer(x);
-      case "typed": return deserializeTypedData(x);
-      case "fixed": return deserializeFixed(x);
-      case "extendable": return deserializeExtendable(x);
-      case "mutable": return deserializeMutable(x);
-      case "const": return deserializeConst(x);
-      case "map": return deserializeMap(x);
-      case "sendport": return deserializeSendPort(x);
-      case "raw sendport": return deserializeRawSendPort(x);
-      case "js-object": return deserializeJSObject(x);
-      case "function": return deserializeClosure(x);
-      case "capability": return deserializeCapability(x);
-      case "dart": return deserializeDartObject(x);
-      default: throw "couldn't deserialize: $x";
+      case "ref":
+        return deserializeRef(x);
+      case "buffer":
+        return deserializeByteBuffer(x);
+      case "typed":
+        return deserializeTypedData(x);
+      case "fixed":
+        return deserializeFixed(x);
+      case "extendable":
+        return deserializeExtendable(x);
+      case "mutable":
+        return deserializeMutable(x);
+      case "const":
+        return deserializeConst(x);
+      case "map":
+        return deserializeMap(x);
+      case "sendport":
+        return deserializeSendPort(x);
+      case "raw sendport":
+        return deserializeRawSendPort(x);
+      case "js-object":
+        return deserializeJSObject(x);
+      case "function":
+        return deserializeClosure(x);
+      case "capability":
+        return deserializeCapability(x);
+      case "dart":
+        return deserializeDartObject(x);
+      default:
+        throw "couldn't deserialize: $x";
     }
   }
 
@@ -364,7 +381,7 @@ class _Deserializer {
     var emptyInstance = JS('', '#(#)', instanceFromClassId, classId);
     deserializedObjects.add(emptyInstance);
     deserializeArrayInPlace(fields);
-    return JS('', '#(#, #, #)',
-              initializeObject, classId, emptyInstance, fields);
+    return JS(
+        '', '#(#, #, #)', initializeObject, classId, emptyInstance, fields);
   }
 }

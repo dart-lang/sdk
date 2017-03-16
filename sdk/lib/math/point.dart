@@ -10,7 +10,9 @@ class Point<T extends num> {
   final T x;
   final T y;
 
-  const Point(T x, T y): this.x = x, this.y = y;
+  const Point(T x, T y)
+      : this.x = x,
+        this.y = y;
 
   String toString() => 'Point($x, $y)';
 
@@ -22,7 +24,7 @@ class Point<T extends num> {
    * [x] equal to `other.x` and [y] equal to `other.y`.
    */
   bool operator ==(other) {
-    if (other is !Point) return false;
+    if (other is! Point) return false;
     return x == other.x && y == other.y;
   }
 
@@ -55,7 +57,7 @@ class Point<T extends num> {
    * it, passing in a double [factor] on a `Point<int>` _causes_ _a_
    * _runtime_ _error_ in checked mode.
    */
-  Point<T> operator *(num/*T|int*/ factor) {
+  Point<T> operator *(num /*T|int*/ factor) {
     return new Point<T>(
         (x * factor) as dynamic/*=T*/, (y * factor) as dynamic/*=T*/);
   }

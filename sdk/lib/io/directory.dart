@@ -280,8 +280,8 @@ abstract class Directory implements FileSystemEntity {
    * The result is a stream of [FileSystemEntity] objects
    * for the directories, files, and links.
    */
-  Stream<FileSystemEntity> list({bool recursive: false,
-                                 bool followLinks: true});
+  Stream<FileSystemEntity> list(
+      {bool recursive: false, bool followLinks: true});
 
   /**
    * Lists the sub-directories and files of this [Directory].
@@ -303,8 +303,8 @@ abstract class Directory implements FileSystemEntity {
    * Returns a [List] containing [FileSystemEntity] objects for the
    * directories, files, and links.
    */
-  List<FileSystemEntity> listSync({bool recursive: false,
-                                   bool followLinks: true});
+  List<FileSystemEntity> listSync(
+      {bool recursive: false, bool followLinks: true});
 
   /**
    * Returns a human readable string for this Directory instance.

@@ -5,7 +5,6 @@
 part of dart.core;
 
 abstract class StringSink {
-
   /**
    * Converts [obj] to a String by invoking [Object.toString] and 
    * adds the result to `this`.

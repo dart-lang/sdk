@@ -155,16 +155,15 @@ class DateTime implements Comparable<DateTime> {
    *     DateTime annularEclipse = new DateTime(2014, DateTime.APRIL, 29, 6, 4);
    */
   DateTime(int year,
-           [int month = 1,
-            int day = 1,
-            int hour = 0,
-            int minute = 0,
-            int second = 0,
-            int millisecond = 0,
-            int microsecond = 0])
-      : this._internal(
-            year, month, day, hour, minute, second, millisecond, microsecond,
-            false);
+      [int month = 1,
+      int day = 1,
+      int hour = 0,
+      int minute = 0,
+      int second = 0,
+      int millisecond = 0,
+      int microsecond = 0])
+      : this._internal(year, month, day, hour, minute, second, millisecond,
+            microsecond, false);
 
   /**
    * Constructs a [DateTime] instance specified in the UTC time zone.
@@ -172,16 +171,15 @@ class DateTime implements Comparable<DateTime> {
    *     DateTime dDay = new DateTime.utc(1944, DateTime.JUNE, 6);
    */
   DateTime.utc(int year,
-               [int month = 1,
-                int day = 1,
-                int hour = 0,
-                int minute = 0,
-                int second = 0,
-                int millisecond = 0,
-                int microsecond = 0])
-    : this._internal(
-          year, month, day, hour, minute, second, millisecond, microsecond,
-          true);
+      [int month = 1,
+      int day = 1,
+      int hour = 0,
+      int minute = 0,
+      int second = 0,
+      int millisecond = 0,
+      int microsecond = 0])
+      : this._internal(year, month, day, hour, minute, second, millisecond,
+            microsecond, true);
 
   /**
    * Constructs a [DateTime] instance with current date and time in the
@@ -263,8 +261,7 @@ class DateTime implements Comparable<DateTime> {
      * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
      * timezonemins_opt ::= <empty> | colon_opt digit{2}
      */
-    final RegExp re = new RegExp(
-        r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)'  // Day part.
+    final RegExp re = new RegExp(r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
         r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d{1,6}))?)?)?' // Time part.
         r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 
@@ -306,7 +303,8 @@ class DateTime implements Comparable<DateTime> {
       int microsecond =
           milliAndMicroseconds.remainder(Duration.MICROSECONDS_PER_MILLISECOND);
       bool isUtc = false;
-      if (match[8] != null) {  // timezone part
+      if (match[8] != null) {
+        // timezone part
         isUtc = true;
         if (match[9] != null) {
           // timezone other than 'Z' and 'z'.
@@ -317,9 +315,8 @@ class DateTime implements Comparable<DateTime> {
           minute -= sign * minuteDifference;
         }
       }
-      int value = _brokenDownDateToValue(
-          years, month, day, hour, minute, second, millisecond, microsecond,
-          isUtc);
+      int value = _brokenDownDateToValue(years, month, day, hour, minute,
+          second, millisecond, microsecond, isUtc);
       if (value == null) {
         throw new FormatException("Time out of range", formattedString);
       }
@@ -342,7 +339,7 @@ class DateTime implements Comparable<DateTime> {
    * time zone (local or UTC).
    */
   external DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-                                              {bool isUtc: false});
+      {bool isUtc: false});
 
   /**
    * Constructs a new [DateTime] instance
@@ -355,7 +352,7 @@ class DateTime implements Comparable<DateTime> {
    * time zone (local or UTC).
    */
   external DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-                                               {bool isUtc: false});
+      {bool isUtc: false});
 
   /**
    * Constructs a new [DateTime] instance with the given value.
@@ -365,7 +362,7 @@ class DateTime implements Comparable<DateTime> {
   DateTime._withValue(this._value, {this.isUtc}) {
     if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH ||
         (millisecondsSinceEpoch.abs() == _MAX_MILLISECONDS_SINCE_EPOCH &&
-         microsecond != 0)) {
+            microsecond != 0)) {
       throw new ArgumentError(millisecondsSinceEpoch);
     }
     if (isUtc == null) throw new ArgumentError(isUtc);
@@ -553,8 +550,8 @@ class DateTime implements Comparable<DateTime> {
    * The resulting string can be parsed back using [parse].
    */
   String toIso8601String() {
-    String y = (year >= -9999 && year <= 9999) ? _fourDigits(year)
-                                               : _sixDigits(year);
+    String y =
+        (year >= -9999 && year <= 9999) ? _fourDigits(year) : _sixDigits(year);
     String m = _twoDigits(month);
     String d = _twoDigits(day);
     String h = _twoDigits(hour);
@@ -627,23 +624,23 @@ class DateTime implements Comparable<DateTime> {
    */
   external Duration difference(DateTime other);
 
-  external DateTime._internal(int year,
-                              int month,
-                              int day,
-                              int hour,
-                              int minute,
-                              int second,
-                              int millisecond,
-                              int microsecond,
-                              bool isUtc);
+  external DateTime._internal(int year, int month, int day, int hour,
+      int minute, int second, int millisecond, int microsecond, bool isUtc);
 
   external DateTime._now();
 
   /// Returns the time as value (millisecond or microsecond since epoch), or
   /// null if the values are out of range.
   external static int _brokenDownDateToValue(
-      int year, int month, int day, int hour, int minute, int second,
-      int millisecond, int microsecond, bool isUtc);
+      int year,
+      int month,
+      int day,
+      int hour,
+      int minute,
+      int second,
+      int millisecond,
+      int microsecond,
+      bool isUtc);
 
   /**
    * The number of milliseconds since

@@ -165,7 +165,7 @@ abstract class SecurityContext {
    * boolean argument specifies whether to set the list for server connections
    * or client connections.
    */
-   void setAlpnProtocols(List<String> protocols, bool isServer);
+  void setAlpnProtocols(List<String> protocols, bool isServer);
 
   /// Encodes a set of supported protocols for ALPN/NPN usage.
   ///

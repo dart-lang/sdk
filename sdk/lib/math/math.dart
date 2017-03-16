@@ -26,12 +26,12 @@ const double E = 2.718281828459045;
 /**
  * Natural logarithm of 10.
  */
-const double LN10 =  2.302585092994046;
+const double LN10 = 2.302585092994046;
 
 /**
  * Natural logarithm of 2.
  */
-const double LN2 =  0.6931471805599453;
+const double LN2 = 0.6931471805599453;
 
 /**
  * Base-2 logarithm of [E].

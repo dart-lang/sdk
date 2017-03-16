@@ -36,7 +36,6 @@ part of dart.async;
  * See [Stopwatch] for measuring elapsed time.
  */
 abstract class Timer {
-
   /**
    * Creates a new timer.
    *
@@ -69,8 +68,7 @@ abstract class Timer {
    * when the previous callback started, or when the previous callback was
    * scheduled for - even if the actual callback was delayed.
    */
-  factory Timer.periodic(Duration duration,
-                         void callback(Timer timer)) {
+  factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.ROOT) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
@@ -78,8 +76,8 @@ abstract class Timer {
     }
     // TODO(floitsch): the return type should be 'void', and the type
     // should be inferred.
-    var boundCallback = Zone.current.bindUnaryCallback<dynamic, Timer>(
-        callback, runGuarded: true);
+    var boundCallback = Zone.current
+        .bindUnaryCallback<dynamic, Timer>(callback, runGuarded: true);
     return Zone.current.createPeriodicTimer(duration, boundCallback);
   }
 
@@ -108,7 +106,6 @@ abstract class Timer {
   bool get isActive;
 
   external static Timer _createTimer(Duration duration, void callback());
-  external static Timer _createPeriodicTimer(Duration duration,
-                                             void callback(Timer timer));
+  external static Timer _createPeriodicTimer(
+      Duration duration, void callback(Timer timer));
 }
-

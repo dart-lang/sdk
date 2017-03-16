@@ -39,7 +39,7 @@ class bool {
    *     const isLoggingOn = (const String.fromEnvironment("logging") == "on");
    */
   external const factory bool.fromEnvironment(String name,
-                                              {bool defaultValue: false});
+      {bool defaultValue: false});
 
   external int get hashCode;
 

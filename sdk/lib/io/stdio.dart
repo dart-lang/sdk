@@ -10,24 +10,17 @@ const int _STDIO_HANDLE_TYPE_FILE = 2;
 const int _STDIO_HANDLE_TYPE_SOCKET = 3;
 const int _STDIO_HANDLE_TYPE_OTHER = 4;
 
-
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
 
   _StdStream(this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {Function onError,
-                                        void onDone(),
-                                        bool cancelOnError}) {
-    return _stream.listen(
-        onData,
-        onError: onError,
-        onDone: onDone,
-        cancelOnError: cancelOnError);
+      {Function onError, void onDone(), bool cancelOnError}) {
+    return _stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
-
 
 /**
  * [Stdin] allows both synchronous and asynchronous reads from the standard
@@ -53,8 +46,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * that data is returned.
    * Returns `null` if no bytes preceded the end of input.
    */
-  String readLineSync({Encoding encoding: SYSTEM_ENCODING,
-                       bool retainNewlines: false}) {
+  String readLineSync(
+      {Encoding encoding: SYSTEM_ENCODING, bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
     final List<int> line = <int>[];
@@ -87,7 +80,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
       }
     } else {
       // Case having to handel CR LF as a single unretained line terminator.
-      outer: while (true) {
+      outer:
+      while (true) {
         int byte = readByteSync();
         if (byte == LF) break;
         if (byte == CR) {
@@ -151,7 +145,6 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   external int readByteSync();
 }
 
-
 /**
  * [Stdout] represents the [IOSink] for either `stdout` or `stderr`.
  *
@@ -208,7 +201,6 @@ class Stdout extends _StdFileSink implements IOSink {
   }
 }
 
-
 class StdoutException implements IOException {
   final String message;
   final OSError osError;
@@ -219,7 +211,6 @@ class StdoutException implements IOException {
     return "StdoutException: $message${osError == null ? "" : ", $osError"}";
   }
 }
-
 
 class StdinException implements IOException {
   final String message;
@@ -232,7 +223,6 @@ class StdinException implements IOException {
   }
 }
 
-
 class _StdConsumer implements StreamConsumer<List<int>> {
   final _file;
 
@@ -241,15 +231,14 @@ class _StdConsumer implements StreamConsumer<List<int>> {
   Future addStream(Stream<List<int>> stream) {
     var completer = new Completer();
     var sub;
-    sub = stream.listen(
-        (data) {
-          try {
-            _file.writeFromSync(data);
-          } catch (e, s) {
-            sub.cancel();
-            completer.completeError(e, s);
-          }
-        },
+    sub = stream.listen((data) {
+      try {
+        _file.writeFromSync(data);
+      } catch (e, s) {
+        sub.cancel();
+        completer.completeError(e, s);
+      }
+    },
         onError: completer.completeError,
         onDone: completer.complete,
         cancelOnError: true);
@@ -285,29 +274,36 @@ class _StdSinkHelper implements IOSink {
     _translation = _FileTranslation.text;
     _sink.write(object);
   }
-  void writeln([object = "" ]) {
+
+  void writeln([object = ""]) {
     _translation = _FileTranslation.text;
     _sink.writeln(object);
   }
+
   void writeAll(objects, [sep = ""]) {
     _translation = _FileTranslation.text;
     _sink.writeAll(objects, sep);
   }
+
   void add(List<int> data) {
     _translation = _FileTranslation.binary;
     _sink.add(data);
   }
+
   void addError(error, [StackTrace stackTrace]) {
     _sink.addError(error, stackTrace);
   }
+
   void writeCharCode(int charCode) {
     _translation = _FileTranslation.text;
     _sink.writeCharCode(charCode);
   }
+
   Future addStream(Stream<List<int>> stream) {
     _translation = _FileTranslation.binary;
     return _sink.addStream(stream);
   }
+
   Future flush() => _sink.flush();
   Future close() => _sink.close();
   Future get done => _sink.done;
@@ -333,11 +329,9 @@ class StdioType {
   String toString() => "StdioType: $name";
 }
 
-
 Stdin _stdin;
 Stdout _stdout;
 Stdout _stderr;
-
 
 /// The standard input stream of data read by this program.
 Stdin get stdin {
@@ -347,7 +341,6 @@ Stdin get stdin {
   return _stdin;
 }
 
-
 /// The standard output stream of data written by this program.
 Stdout get stdout {
   if (_stdout == null) {
@@ -355,7 +348,6 @@ Stdout get stdout {
   }
   return _stdout;
 }
-
 
 /// The standard output stream of errors written by this program.
 Stdout get stderr {
@@ -365,7 +357,6 @@ Stdout get stderr {
   return _stderr;
 }
 
-
 /// For a stream, returns whether it is attached to a file, pipe, terminal, or
 /// something else.
 StdioType stdioType(object) {
@@ -373,9 +364,12 @@ StdioType stdioType(object) {
     object = object._stream;
   } else if (object == stdout || object == stderr) {
     switch (_StdIOUtils._getStdioHandleType(object == stdout ? 1 : 2)) {
-      case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
-      case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
-      case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
+      case _STDIO_HANDLE_TYPE_TERMINAL:
+        return StdioType.TERMINAL;
+      case _STDIO_HANDLE_TYPE_PIPE:
+        return StdioType.PIPE;
+      case _STDIO_HANDLE_TYPE_FILE:
+        return StdioType.FILE;
     }
   }
   if (object is _FileStream) {
@@ -405,10 +399,10 @@ StdioType stdioType(object) {
   return StdioType.OTHER;
 }
 
-
 class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
   external static Stdin _getStdioInputStream();
+
   /// Returns the socket type or `null` if [socket] is not a builtin socket.
   external static int _socketType(Socket socket);
   external static _getStdioHandleType(int fd);

@@ -10,8 +10,7 @@ abstract class Client {
   final bool sendEvents;
   final Set<String> streams = new Set<String>();
 
-  Client(this.service, { bool sendEvents: true })
-      : this.sendEvents = sendEvents {
+  Client(this.service, {bool sendEvents: true}) : this.sendEvents = sendEvents {
     service._addClient(this);
   }
 
@@ -32,8 +31,7 @@ abstract class Client {
         post(response);
       });
     } catch (e, st) {
-      message.setErrorResponse(
-          kInternalError, 'Unexpected exception:$e\n$st');
+      message.setErrorResponse(kInternalError, 'Unexpected exception:$e\n$st');
       post(message.response);
     }
   }
@@ -42,7 +40,6 @@ abstract class Client {
   void post(dynamic result);
 
   dynamic toJson() {
-    return {
-    };
+    return {};
   }
 }

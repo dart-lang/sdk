@@ -111,7 +111,6 @@ class Stopwatch {
     return (elapsedTicks * 1000) ~/ frequency;
   }
 
-
   /**
    * Whether the [StopWatch] is currently running.
    */

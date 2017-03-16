@@ -66,7 +66,7 @@ part of dart.core;
  * which is easily created by `new RangeError.range(startIndex, 0, length)`.
  */
 class Error {
-  Error();  // Prevent use as mixin.
+  Error(); // Prevent use as mixin.
 
   /**
    * Safely convert a value to a [String] description.
@@ -105,14 +105,12 @@ class AssertionError extends Error {
 /**
  * Error thrown by the runtime system when a type assertion fails.
  */
-class TypeError extends AssertionError {
-}
+class TypeError extends AssertionError {}
 
 /**
  * Error thrown by the runtime system when a cast operation fails.
  */
-class CastError extends Error {
-}
+class CastError extends Error {}
 
 /**
  * Error thrown when attempting to throw [:null:].
@@ -142,9 +140,9 @@ class ArgumentError extends Error {
    * of a message.
    */
   ArgumentError([this.message])
-     : invalidValue = null,
-       _hasValue = false,
-       name = null;
+      : invalidValue = null,
+        _hasValue = false,
+        name = null;
 
   /**
    * Creates error containing the invalid [value].
@@ -205,7 +203,9 @@ class RangeError extends ArgumentError {
    * Create a new [RangeError] with the given [message].
    */
   RangeError(var message)
-      : start = null, end = null, super(message);
+      : start = null,
+        end = null,
+        super(message);
 
   /**
    * Create a new [RangeError] with a message for the given [value].
@@ -215,9 +215,10 @@ class RangeError extends ArgumentError {
    * description.
    */
   RangeError.value(num value, [String name, String message])
-      : start = null, end = null,
-        super.value(value, name,
-                    (message != null) ? message : "Value not in range");
+      : start = null,
+        end = null,
+        super.value(
+            value, name, (message != null) ? message : "Value not in range");
 
   /**
    * Create a new [RangeError] for a value being outside the valid range.
@@ -234,11 +235,11 @@ class RangeError extends ArgumentError {
    * description.
    */
   RangeError.range(num invalidValue, int minValue, int maxValue,
-                   [String name, String message])
+      [String name, String message])
       : start = minValue,
         end = maxValue,
-        super.value(invalidValue, name,
-                    (message != null) ? message : "Invalid value");
+        super.value(
+            invalidValue, name, (message != null) ? message : "Invalid value");
 
   /**
    * Creates a new [RangeError] stating that [index] is not a valid index
@@ -252,9 +253,7 @@ class RangeError extends ArgumentError {
    * If `length` is omitted, it defaults to `indexable.length`.
    */
   factory RangeError.index(int index, indexable,
-                           [String name,
-                            String message,
-                            int length]) = IndexError;
+      [String name, String message, int length]) = IndexError;
 
   /**
    * Check that a [value] lies in a specific interval.
@@ -263,7 +262,7 @@ class RangeError extends ArgumentError {
    * The interval is from [minValue] to [maxValue], both inclusive.
    */
   static void checkValueInInterval(int value, int minValue, int maxValue,
-                                   [String name, String message]) {
+      [String name, String message]) {
     if (value < minValue || value > maxValue) {
       throw new RangeError.range(value, minValue, maxValue, name, message);
     }
@@ -281,7 +280,7 @@ class RangeError extends ArgumentError {
    * otherwise the length is found as `indexable.length`.
    */
   static void checkValidIndex(int index, var indexable,
-                              [String name, int length, String message]) {
+      [String name, int length, String message]) {
     if (length == null) length = indexable.length;
     // Comparing with `0` as receiver produces better dart2js type inference.
     if (0 > index || index >= length) {
@@ -307,8 +306,7 @@ class RangeError extends ArgumentError {
    * and `end` otherwise.
    */
   static int checkValidRange(int start, int end, int length,
-                              [String startName, String endName,
-                               String message]) {
+      [String startName, String endName, String message]) {
     // Comparing with `0` as receiver produces better dart2js type inference.
     // Ditto `start > end` below.
     if (0 > start || start > length) {
@@ -380,11 +378,11 @@ class IndexError extends ArgumentError implements RangeError {
    * The message is used as part of the string representation of the error.
    */
   IndexError(int invalidValue, indexable,
-             [String name, String message, int length])
+      [String name, String message, int length])
       : this.indexable = indexable,
         this.length = (length != null) ? length : indexable.length,
         super.value(invalidValue, name,
-                    (message != null) ? message : "Index out of range");
+            (message != null) ? message : "Index out of range");
 
   // Getters inherited from RangeError.
   int get start => 0;
@@ -402,7 +400,6 @@ class IndexError extends ArgumentError implements RangeError {
     return ": index should be less than $length";
   }
 }
-
 
 /**
  * Error thrown when control reaches the end of a switch case.
@@ -427,7 +424,6 @@ class AbstractClassInstantiationError extends Error {
 
   external String toString();
 }
-
 
 /**
  * Error thrown by the default implementation of [:noSuchMethod:] on [Object].
@@ -462,15 +458,12 @@ class NoSuchMethodError extends Error {
    * the signature of the method that would have been called if the parameters
    * had matched.
    */
-  external NoSuchMethodError(Object receiver,
-                             Symbol memberName,
-                             List positionalArguments,
-                             Map<Symbol, dynamic> namedArguments,
-                             [List existingArgumentNames = null]);
+  external NoSuchMethodError(Object receiver, Symbol memberName,
+      List positionalArguments, Map<Symbol, dynamic> namedArguments,
+      [List existingArgumentNames = null]);
 
   external String toString();
 }
-
 
 /**
  * The operation was not allowed by the object.
@@ -483,7 +476,6 @@ class UnsupportedError extends Error {
   UnsupportedError(this.message);
   String toString() => "Unsupported operation: $message";
 }
-
 
 /**
  * Thrown by operations that have not been implemented yet.
@@ -499,10 +491,9 @@ class UnimplementedError extends Error implements UnsupportedError {
   final String message;
   UnimplementedError([this.message]);
   String toString() => (this.message != null
-                        ? "UnimplementedError: $message"
-                        : "UnimplementedError");
+      ? "UnimplementedError: $message"
+      : "UnimplementedError");
 }
-
 
 /**
  * The operation was not allowed by the current state of the object.
@@ -515,7 +506,6 @@ class StateError extends Error {
   StateError(this.message);
   String toString() => "Bad state: $message";
 }
-
 
 /**
  * Error occurring when a collection is modified during iteration.
@@ -535,10 +525,9 @@ class ConcurrentModificationError extends Error {
       return "Concurrent modification during iteration.";
     }
     return "Concurrent modification during iteration: "
-           "${Error.safeToString(modifiedObject)}.";
+        "${Error.safeToString(modifiedObject)}.";
   }
 }
-
 
 class OutOfMemoryError implements Error {
   const OutOfMemoryError();
@@ -546,7 +535,6 @@ class OutOfMemoryError implements Error {
 
   StackTrace get stackTrace => null;
 }
-
 
 class StackOverflowError implements Error {
   const StackOverflowError();

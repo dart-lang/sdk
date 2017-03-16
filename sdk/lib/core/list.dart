@@ -117,7 +117,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This constructor returns a growable list when [growable] is true;
    * otherwise, it returns a fixed-length list.
    */
-  external factory List.from(Iterable elements, { bool growable: true });
+  external factory List.from(Iterable elements, {bool growable: true});
 
   /**
    * Generates a list of values.
@@ -131,7 +131,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * The created list is fixed-length unless [growable] is true.
    */
   factory List.generate(int length, E generator(int index),
-                       { bool growable: true }) {
+      {bool growable: true}) {
     List<E> result;
     if (growable) {
       result = <E>[]..length = length;

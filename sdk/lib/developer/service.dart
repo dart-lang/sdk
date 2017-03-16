@@ -12,9 +12,11 @@ class ServiceProtocolInfo {
   /// The major version of the protocol. If the running Dart environment does
   /// not support the service protocol, this is 0.
   final int majorVersion = _getServiceMajorVersion();
+
   /// The minor version of the protocol. If the running Dart environment does
   /// not support the service protocol, this is 0.
   final int minorVersion = _getServiceMinorVersion();
+
   /// The Uri to access the service. If the web server is not running, this
   /// will be null.
   final Uri serverUri;
@@ -24,7 +26,7 @@ class ServiceProtocolInfo {
   String toString() {
     if (serverUri != null) {
       return 'Dart VM Service Protocol v$majorVersion.$minorVersion '
-             'listening on $serverUri';
+          'listening on $serverUri';
     } else {
       return 'Dart VM Service Protocol v$majorVersion.$minorVersion';
     }
@@ -57,9 +59,7 @@ class Service {
   static Future<ServiceProtocolInfo> controlWebServer(
       {bool enable: false}) async {
     if (enable is! bool) {
-      throw new ArgumentError.value(enable,
-                                    'enable',
-                                    'Must be a bool');
+      throw new ArgumentError.value(enable, 'enable', 'Must be a bool');
     }
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort();
@@ -80,9 +80,7 @@ class Service {
   /// protocol.
   static String getIsolateID(Isolate isolate) {
     if (isolate is! Isolate) {
-      throw new ArgumentError.value(isolate,
-                                    'isolate',
-                                    'Must be an Isolate');
+      throw new ArgumentError.value(isolate, 'isolate', 'Must be an Isolate');
     }
     return _getIsolateIDFromSendPort(isolate.controlPort);
   }

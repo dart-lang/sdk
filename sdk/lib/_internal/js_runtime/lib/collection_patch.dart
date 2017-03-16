@@ -4,19 +4,28 @@
 
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show
-    fillLiteralMap, InternalMap, NoInline, NoSideEffects, NoThrows, patch,
-    JsLinkedHashMap, LinkedHashMapCell, LinkedHashMapKeyIterable,
-    LinkedHashMapKeyIterator;
+import 'dart:_js_helper'
+    show
+        fillLiteralMap,
+        InternalMap,
+        NoInline,
+        NoSideEffects,
+        NoThrows,
+        patch,
+        JsLinkedHashMap,
+        LinkedHashMapCell,
+        LinkedHashMapKeyIterable,
+        LinkedHashMapKeyIterator;
 
 const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
 
 @patch
 class HashMap<K, V> {
   @patch
-  factory HashMap({ bool equals(K key1, K key2),
-                    int hashCode(K key),
-                    bool isValidKey(potentialKey) }) {
+  factory HashMap(
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -70,7 +79,6 @@ class _HashMap<K, V> implements HashMap<K, V> {
 
   _HashMap();
 
-
   int get length => _length;
   bool get isEmpty => _length == 0;
   bool get isNotEmpty => !isEmpty;
@@ -112,7 +120,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
     });
   }
 
-  V operator[](Object key) {
+  V operator [](Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       return (strings == null) ? null : _getTableEntry(strings, key);
@@ -132,7 +140,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
     return (index < 0) ? null : JS('var', '#[#]', bucket, index + 1);
   }
 
-  void operator[]=(K key, V value) {
+  void operator []=(K key, V value) {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) _strings = strings = _newHashTable();
@@ -393,12 +401,12 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey))
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
-  V operator[](Object key) {
+  V operator [](Object key) {
     if (!_validKey(key)) return null;
     return super._get(key);
   }
 
-  void operator[]=(K key, V value) {
+  void operator []=(K key, V value) {
     super._set(key, value);
   }
 
@@ -489,9 +497,10 @@ class _HashMapKeyIterator<E> implements Iterator<E> {
 @patch
 class LinkedHashMap<K, V> {
   @patch
-  factory LinkedHashMap({ bool equals(K key1, K key2),
-                          int hashCode(K key),
-                          bool isValidKey(potentialKey) }) {
+  factory LinkedHashMap(
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -528,7 +537,9 @@ class LinkedHashMap<K, V> {
   }
 
   // Private factory constructor called by generated code for map literals.
-  @NoThrows() @NoInline() @NoSideEffects()
+  @NoThrows()
+  @NoInline()
+  @NoSideEffects()
   factory LinkedHashMap._empty() {
     return new JsLinkedHashMap<K, V>.es6();
   }
@@ -548,7 +559,7 @@ class LinkedHashMap<K, V> {
 class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
   static bool get _supportsEs6Maps {
     return JS('returns:bool;depends:none;effects:none;throws:never;gvn:true',
-              'typeof Map != "undefined"');
+        'typeof Map != "undefined"');
   }
 
   factory _LinkedIdentityHashMap.es6() {
@@ -577,8 +588,8 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
   }
 }
 
-class _Es6LinkedIdentityHashMap<K, V>
-    extends _LinkedIdentityHashMap<K, V> implements InternalMap {
+class _Es6LinkedIdentityHashMap<K, V> extends _LinkedIdentityHashMap<K, V>
+    implements InternalMap {
   final _map;
   int _modifications = 0;
 
@@ -590,8 +601,7 @@ class _Es6LinkedIdentityHashMap<K, V>
 
   Iterable<K> get keys => new _Es6MapIterable<K>(this, true);
 
-  Iterable<V> get values =>
-      new _Es6MapIterable<V>(this, false);
+  Iterable<V> get values => new _Es6MapIterable<V>(this, false);
 
   bool containsKey(Object key) {
     return JS('bool', '#.has(#)', _map, key);
@@ -607,11 +617,11 @@ class _Es6LinkedIdentityHashMap<K, V>
     });
   }
 
-  V operator[](Object key) {
+  V operator [](Object key) {
     return JS('var', '#.get(#)', _map, key);
   }
 
-  void operator[]=(K key, V value) {
+  void operator []=(K key, V value) {
     JS('var', '#.set(#, #)', _map, key, value);
     _modified();
   }
@@ -742,16 +752,16 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
 
-  _LinkedCustomHashMap(this._equals, this._hashCode,
-                       bool validKey(potentialKey))
+  _LinkedCustomHashMap(
+      this._equals, this._hashCode, bool validKey(potentialKey))
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
-  V operator[](Object key) {
+  V operator [](Object key) {
     if (!_validKey(key)) return null;
     return super.internalGet(key);
   }
 
-  void operator[]=(K key, V value) {
+  void operator []=(K key, V value) {
     super.internalSet(key, value);
   }
 
@@ -786,9 +796,10 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
 @patch
 class HashSet<E> {
   @patch
-  factory HashSet({ bool equals(E e1, E e2),
-                    int hashCode(E e),
-                    bool isValidKey(potentialKey) }) {
+  factory HashSet(
+      {bool equals(E e1, E e2),
+      int hashCode(E e),
+      bool isValidKey(potentialKey)}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -1191,9 +1202,10 @@ class _HashSetIterator<E> implements Iterator<E> {
 @patch
 class LinkedHashSet<E> {
   @patch
-  factory LinkedHashSet({ bool equals(E e1, E e2),
-                          int hashCode(E e),
-                          bool isValidKey(potentialKey) }) {
+  factory LinkedHashSet(
+      {bool equals(E e1, E e2),
+      int hashCode(E e),
+      bool isValidKey(potentialKey)}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -1560,8 +1572,8 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
   _Predicate _validKey;
-  _LinkedCustomHashSet(this._equality, this._hasher,
-                       bool validKey(potentialKey))
+  _LinkedCustomHashSet(
+      this._equality, this._hasher, bool validKey(potentialKey))
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() =>

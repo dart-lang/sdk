@@ -123,15 +123,15 @@ class Platform {
   /**
    * Returns true if the operating system is Fuchsia
    */
-   static final bool isFuchsia = (_operatingSystem == "fuchsia");
+  static final bool isFuchsia = (_operatingSystem == "fuchsia");
 
-   /**
+  /**
     * When stdio is connected to a terminal, whether ANSI codes are supported.
     *
     * This value is hard-coded to `true`, except on Windows where only more
     * recent versions of Windows 10 support the codes.
     */
-   static final bool ansiSupported = _ansiSupported;
+  static final bool ansiSupported = _ansiSupported;
 
   /**
    * Get the environment for this process.

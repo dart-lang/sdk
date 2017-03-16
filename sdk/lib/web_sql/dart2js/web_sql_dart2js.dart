@@ -21,39 +21,41 @@ import 'dart:_interceptors' show Interceptor;
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
 
-
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName, Native,
-    JavaScriptIndexingBehavior;
-
+import 'dart:_js_helper'
+    show
+        convertDartClosureToJS,
+        Creates,
+        JSName,
+        Native,
+        JavaScriptIndexingBehavior;
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
-
 
 @DomName('SQLStatementCallback')
 // http://www.w3.org/TR/webdatabase/#sqlstatementcallback
 @Experimental() // deprecated
-typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
+typedef void SqlStatementCallback(
+    SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
-
 
 @DomName('SQLStatementErrorCallback')
 // http://www.w3.org/TR/webdatabase/#sqlstatementerrorcallback
 @Experimental() // deprecated
-typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
+typedef void SqlStatementErrorCallback(
+    SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
-
 
 @DomName('SQLTransactionCallback')
 // http://www.w3.org/TR/webdatabase/#sqltransactioncallback
@@ -65,7 +67,6 @@ typedef void SqlTransactionCallback(SqlTransaction transaction);
 
 // WARNING: Do not edit - generated code.
 
-
 @DomName('SQLTransactionErrorCallback')
 // http://www.w3.org/TR/webdatabase/#sqltransactionerrorcallback
 @Experimental() // deprecated
@@ -73,7 +74,6 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('Database')
@@ -85,7 +85,9 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @Native("Database")
 class SqlDatabase extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
+  factory SqlDatabase._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
@@ -110,20 +112,26 @@ class SqlDatabase extends Interceptor {
    */
   @DomName('Database.changeVersion')
   @DocsEditable()
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void changeVersion(String oldVersion, String newVersion,
+      [SqlTransactionCallback callback,
+      SqlTransactionErrorCallback errorCallback,
+      VoidCallback successCallback]) native ;
 
   @DomName('Database.readTransaction')
   @DocsEditable()
-  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void readTransaction(SqlTransactionCallback callback,
+      [SqlTransactionErrorCallback errorCallback,
+      VoidCallback successCallback]) native ;
 
   @DomName('Database.transaction')
   @DocsEditable()
-  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
+  void transaction(SqlTransactionCallback callback,
+      [SqlTransactionErrorCallback errorCallback,
+      VoidCallback successCallback]) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('SQLError')
@@ -132,7 +140,9 @@ class SqlDatabase extends Interceptor {
 @Native("SQLError")
 class SqlError extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory SqlError._() { throw new UnsupportedError("Not supported"); }
+  factory SqlError._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable()
@@ -178,7 +188,6 @@ class SqlError extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
@@ -186,7 +195,9 @@ class SqlError extends Interceptor {
 @Native("SQLResultSet")
 class SqlResultSet extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
+  factory SqlResultSet._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable()
@@ -204,32 +215,34 @@ class SqlResultSet extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 @DocsEditable()
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
 @Native("SQLResultSetRowList")
-class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
+class SqlResultSetRowList extends Interceptor
+    with ListMixin<Map>, ImmutableListMixin<Map>
+    implements List<Map> {
   // To suppress missing implicit constructor warnings.
-  factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
+  factory SqlResultSetRowList._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
   int get length => JS("int", "#.length", this);
 
-  Map operator[](int index) {
-    if (JS("bool", "# >>> 0 !== # || # >= #", index,
-        index, index, length))
+  Map operator [](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
       throw new RangeError.index(index, this);
     return this.item(index);
   }
-  void operator[]=(int index, Map value) {
+
+  void operator []=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Map> mixins.
   // Map is the element type.
-
 
   set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
@@ -267,15 +280,15 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
+
   @JSName('item')
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  _item_1(index) native;
+  _item_1(index) native ;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('SQLTransaction')
@@ -287,9 +300,14 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 @Native("SQLTransaction")
 class SqlTransaction extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
+  factory SqlTransaction._() {
+    throw new UnsupportedError("Not supported");
+  }
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, [List arguments, SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
+  void executeSql(String sqlStatement,
+      [List arguments,
+      SqlStatementCallback callback,
+      SqlStatementErrorCallback errorCallback]) native ;
 }

@@ -5,7 +5,6 @@
 part of html_common;
 
 abstract class CssClassSetImpl implements CssClassSet {
-
   static final RegExp _validTokenRE = new RegExp(r'^\S+$');
 
   String _validateToken(String value) {
@@ -56,8 +55,7 @@ abstract class CssClassSetImpl implements CssClassSet {
 
   String join([String separator = ""]) => readClasses().join(separator);
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(String e)) =>
-      readClasses().map/*<T>*/(f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(String e)) => readClasses().map/*<T>*/(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
@@ -178,21 +176,19 @@ abstract class CssClassSetImpl implements CssClassSet {
   }
 
   bool containsAll(Iterable<Object> collection) =>
-    readClasses().containsAll(collection);
+      readClasses().containsAll(collection);
 
   Set<String> intersection(Set<Object> other) =>
-    readClasses().intersection(other);
+      readClasses().intersection(other);
 
-  Set<String> union(Set<String> other) =>
-    readClasses().union(other);
+  Set<String> union(Set<String> other) => readClasses().union(other);
 
-  Set<String> difference(Set<Object> other) =>
-    readClasses().difference(other);
+  Set<String> difference(Set<Object> other) => readClasses().difference(other);
 
   String get first => readClasses().first;
   String get last => readClasses().last;
   String get single => readClasses().single;
-  List<String> toList({ bool growable: true }) =>
+  List<String> toList({bool growable: true}) =>
       readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   Iterable<String> take(int n) => readClasses().take(n);
@@ -201,9 +197,9 @@ abstract class CssClassSetImpl implements CssClassSet {
   Iterable<String> skip(int n) => readClasses().skip(n);
   Iterable<String> skipWhile(bool test(String value)) =>
       readClasses().skipWhile(test);
-  String firstWhere(bool test(String value), { String orElse() }) =>
+  String firstWhere(bool test(String value), {String orElse()}) =>
       readClasses().firstWhere(test, orElse: orElse);
-  String lastWhere(bool test(String value), { String orElse()}) =>
+  String lastWhere(bool test(String value), {String orElse()}) =>
       readClasses().lastWhere(test, orElse: orElse);
   String singleWhere(bool test(String value)) =>
       readClasses().singleWhere(test);

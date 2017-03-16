@@ -7,6 +7,7 @@ part of dart._vmservice;
 class Message {
   final Completer _completer = new Completer.sync();
   bool get completed => _completer.isCompleted;
+
   /// Future of response.
   Future<String> get response => _completer.future;
   Client client;
@@ -35,7 +36,8 @@ class Message {
   }
 
   Message.fromJsonRpc(this.client, Map map)
-      : serial = map['id'], method = map['method'] {
+      : serial = map['id'],
+        method = map['method'] {
     if (map['params'] != null) {
       params.addAll(map['params']);
     }
@@ -52,15 +54,19 @@ class Message {
   }
 
   Message.forMethod(String method)
-      : client = null, method = method, serial = '';
+      : client = null,
+        method = method,
+        serial = '';
 
   Message.fromUri(this.client, Uri uri)
-      : serial = '', method = _methodNameFromUri(uri) {
+      : serial = '',
+        method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
   }
 
   Message.forIsolate(this.client, Uri uri, RunningIsolate isolate)
-      : serial = '', method = _methodNameFromUri(uri) {
+      : serial = '',
+        method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
     params['isolateId'] = isolate.serviceId;
   }
@@ -70,10 +76,7 @@ class Message {
   }
 
   dynamic toJson() {
-    return {
-      'path': path,
-      'params': params
-    };
+    return {'path': path, 'params': params};
   }
 
   // Calls toString on all non-String elements of [list]. We do this so all
@@ -99,22 +102,22 @@ class Message {
       receivePort.close();
       _completer.complete(value);
     };
-    var keys = _makeAllString(params.keys.toList(growable:false));
-    var values = _makeAllString(params.values.toList(growable:false));
+    var keys = _makeAllString(params.keys.toList(growable: false));
+    var values = _makeAllString(params.values.toList(growable: false));
     var request = new List(6)
-        ..[0] = 0  // Make room for OOB message type.
-        ..[1] = receivePort.sendPort
-        ..[2] = serial
-        ..[3] = method
-        ..[4] = keys
-        ..[5] = values;
+      ..[0] = 0 // Make room for OOB message type.
+      ..[1] = receivePort.sendPort
+      ..[2] = serial
+      ..[3] = method
+      ..[4] = keys
+      ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
       _completer.complete(JSON.encode({
-          'type': 'ServiceError',
-          'id': '',
-          'kind': 'InternalError',
-          'message': 'could not send message [${serial}] to isolate',
+        'type': 'ServiceError',
+        'id': '',
+        'kind': 'InternalError',
+        'message': 'could not send message [${serial}] to isolate',
       }));
     }
     return _completer.future;
@@ -149,27 +152,27 @@ class Message {
     };
     if (_methodNeedsObjectParameters(method)) {
       // We use a different method invocation path here.
-      var keys = params.keys.toList(growable:false);
-      var values = params.values.toList(growable:false);
+      var keys = params.keys.toList(growable: false);
+      var values = params.values.toList(growable: false);
       var request = new List(6)
-          ..[0] = 0  // Make room for OOB message type.
-          ..[1] = receivePort.sendPort
-          ..[2] = serial
-          ..[3] = method
-          ..[4] = keys
-          ..[5] = values;
+        ..[0] = 0 // Make room for OOB message type.
+        ..[1] = receivePort.sendPort
+        ..[2] = serial
+        ..[3] = method
+        ..[4] = keys
+        ..[5] = values;
       sendObjectRootServiceMessage(request);
       return _completer.future;
     } else {
-      var keys = _makeAllString(params.keys.toList(growable:false));
-      var values = _makeAllString(params.values.toList(growable:false));
+      var keys = _makeAllString(params.keys.toList(growable: false));
+      var values = _makeAllString(params.values.toList(growable: false));
       var request = new List(6)
-          ..[0] = 0  // Make room for OOB message type.
-          ..[1] = receivePort.sendPort
-          ..[2] = serial
-          ..[3] = method
-          ..[4] = keys
-          ..[5] = values;
+        ..[0] = 0 // Make room for OOB message type.
+        ..[1] = receivePort.sendPort
+        ..[2] = serial
+        ..[3] = method
+        ..[4] = keys
+        ..[5] = values;
       sendRootServiceMessage(request);
       return _completer.future;
     }
@@ -180,8 +183,8 @@ class Message {
   }
 
   void setErrorResponse(int code, String details) {
-    _completer.complete(encodeRpcError(this, code,
-                                       details: '$method: $details'));
+    _completer
+        .complete(encodeRpcError(this, code, details: '$method: $details'));
   }
 }
 

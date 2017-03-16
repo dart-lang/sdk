@@ -39,13 +39,15 @@ abstract class _RectangleBase<T extends num> {
   }
 
   bool operator ==(other) {
-    if (other is !Rectangle) return false;
-    return left == other.left && top == other.top && right == other.right &&
+    if (other is! Rectangle) return false;
+    return left == other.left &&
+        top == other.top &&
+        right == other.right &&
         bottom == other.bottom;
   }
 
-  int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
-      right.hashCode, bottom.hashCode);
+  int get hashCode => _JenkinsSmiHash.hash4(
+      left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);
 
   /**
    * Computes the intersection of `this` and [other].
@@ -70,7 +72,6 @@ abstract class _RectangleBase<T extends num> {
     }
     return null;
   }
-
 
   /**
    * Returns true if `this` intersects [other].
@@ -100,9 +101,9 @@ abstract class _RectangleBase<T extends num> {
    */
   bool containsRectangle(Rectangle<num> another) {
     return left <= another.left &&
-           left + width >= another.left + another.width &&
-           top <= another.top &&
-           top + height >= another.top + another.height;
+        left + width >= another.left + another.width &&
+        top <= another.top &&
+        top + height >= another.top + another.height;
   }
 
   /**
@@ -110,19 +111,17 @@ abstract class _RectangleBase<T extends num> {
    */
   bool containsPoint(Point<num> another) {
     return another.x >= left &&
-           another.x <= left + width &&
-           another.y >= top &&
-           another.y <= top + height;
+        another.x <= left + width &&
+        another.y >= top &&
+        another.y <= top + height;
   }
 
   Point<T> get topLeft => new Point<T>(this.left, this.top);
   Point<T> get topRight => new Point<T>(this.left + this.width, this.top);
-  Point<T> get bottomRight => new Point<T>(this.left + this.width,
-      this.top + this.height);
-  Point<T> get bottomLeft => new Point<T>(this.left,
-      this.top + this.height);
+  Point<T> get bottomRight =>
+      new Point<T>(this.left + this.width, this.top + this.height);
+  Point<T> get bottomLeft => new Point<T>(this.left, this.top + this.height);
 }
-
 
 /**
  * A class for representing two-dimensional rectangles whose properties are
@@ -148,8 +147,8 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
    * point `(left, top)`.
    */
   const Rectangle(this.left, this.top, T width, T height)
-      : this.width = (width < 0) ? -width * 0 : width,  // Inline _clampToZero.
-        this.height = (height < 0) ?  -height * 0 : height;
+      : this.width = (width < 0) ? -width * 0 : width, // Inline _clampToZero.
+        this.height = (height < 0) ? -height * 0 : height;
 
   /**
    * Create a rectangle spanned by the points [a] and [b];
@@ -177,8 +176,7 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
  * properties.
  */
 class MutableRectangle<T extends num> extends _RectangleBase<T>
-                                      implements Rectangle<T> {
-
+    implements Rectangle<T> {
   /**
    * The x-coordinate of the left edge.
    *
@@ -234,7 +232,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
 
   T get width => _width;
 
- /**
+  /**
    * Sets the width of the rectangle.
    *
    * The width must be non-negative.

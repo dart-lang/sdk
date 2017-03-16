@@ -120,7 +120,7 @@ abstract class ListMixin<E> implements List<E> {
     return false;
   }
 
-  E firstWhere(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -133,7 +133,7 @@ abstract class ListMixin<E> implements List<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), { E orElse() }) {
+  E lastWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = this[i];
@@ -175,11 +175,10 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
 
-  Iterable<T> map<T>(T f(E element)) =>
-      new MappedListIterable<E, T>(this, f);
+  Iterable<T> map<T>(T f(E element)) => new MappedListIterable<E, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      new ExpandIterable<E, T>(this, f);
+  Iterable<T>
+      expand<T>(Iterable<T> f(E element)) => new ExpandIterable<E, T>(this, f);
 
   E reduce(E combine(E previousValue, E element)) {
     int length = this.length;
@@ -194,8 +193,7 @@ abstract class ListMixin<E> implements List<E> {
     return value;
   }
 
-  T fold<T>(T initialValue,
-               T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -219,7 +217,7 @@ abstract class ListMixin<E> implements List<E> {
     return new TakeWhileIterable<E>(this, test);
   }
 
-  List<E> toList({ bool growable: true }) {
+  List<E> toList({bool growable: true}) {
     List<E> result;
     if (growable) {
       result = new List<E>()..length = length;
@@ -292,7 +290,9 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  void clear() { this.length = 0; }
+  void clear() {
+    this.length = 0;
+  }
 
   // List interface.
 
@@ -412,7 +412,7 @@ abstract class ListMixin<E> implements List<E> {
     } else {
       int delta = insertLength - removeLength;
       int newLength = this.length + delta;
-      int insertEnd = start + insertLength;  // aka. end + delta.
+      int insertEnd = start + insertLength; // aka. end + delta.
       this.length = newLength;
       this.setRange(insertEnd, newLength, this, end);
       this.setRange(start, insertEnd, newContents);

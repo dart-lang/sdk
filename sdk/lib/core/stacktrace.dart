@@ -14,7 +14,7 @@ part of dart.core;
  * them programmatically.
  */
 abstract class StackTrace {
-  StackTrace();  // In case existing classes extend StackTrace.
+  StackTrace(); // In case existing classes extend StackTrace.
 
   /**
    * Create a `StackTrace` object from [stackTraceString].

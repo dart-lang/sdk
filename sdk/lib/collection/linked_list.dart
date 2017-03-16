@@ -4,7 +4,6 @@
 
 part of dart.collection;
 
-
 /**
  * A specialized double-linked list of elements that extends [LinkedListEntry].
  *
@@ -28,9 +27,7 @@ part of dart.collection;
  * A `LinkedList` also allows constant time adding and removing at either end,
  * and a constant time length getter.
  */
-class LinkedList<E extends LinkedListEntry<E>>
-    extends Iterable<E> {
-
+class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   int _modificationCount = 0;
   int _length = 0;
   E _first;
@@ -72,7 +69,7 @@ class LinkedList<E extends LinkedListEntry<E>>
    */
   bool remove(E entry) {
     if (entry._list != this) return false;
-    _unlink(entry);  // Unlink will decrement length.
+    _unlink(entry); // Unlink will decrement length.
     return true;
   }
 
@@ -149,8 +146,7 @@ class LinkedList<E extends LinkedListEntry<E>>
   /// updates the [_first] field to point to the [newEntry] as first entry.
   void _insertBefore(E entry, E newEntry, {bool updateFirst}) {
     if (newEntry.list != null) {
-      throw new StateError(
-          'LinkedListEntry is already in a LinkedList');
+      throw new StateError('LinkedListEntry is already in a LinkedList');
     }
     _modificationCount++;
 
@@ -188,9 +184,7 @@ class LinkedList<E extends LinkedListEntry<E>>
   }
 }
 
-
-class _LinkedListIterator<E extends LinkedListEntry<E>>
-    implements Iterator<E> {
+class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
   final LinkedList<E> _list;
   final int _modificationCount;
   E _current;
@@ -198,10 +192,10 @@ class _LinkedListIterator<E extends LinkedListEntry<E>>
   bool _visitedFirst;
 
   _LinkedListIterator(LinkedList<E> list)
-    : _list = list,
-      _modificationCount = list._modificationCount,
-      _next = list._first,
-      _visitedFirst = false;
+      : _list = list,
+        _modificationCount = list._modificationCount,
+        _next = list._first,
+        _visitedFirst = false;
 
   E get current => _current;
 
@@ -209,8 +203,7 @@ class _LinkedListIterator<E extends LinkedListEntry<E>>
     if (_modificationCount != _list._modificationCount) {
       throw new ConcurrentModificationError(this);
     }
-    if (_list.isEmpty ||
-        (_visitedFirst && identical(_next, _list.first))) {
+    if (_list.isEmpty || (_visitedFirst && identical(_next, _list.first))) {
       _current = null;
       return false;
     }
@@ -220,7 +213,6 @@ class _LinkedListIterator<E extends LinkedListEntry<E>>
     return true;
   }
 }
-
 
 /**
  * An object that can be an element in a [LinkedList].
