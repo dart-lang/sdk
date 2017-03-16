@@ -337,6 +337,12 @@ class KernelLibraryBuilder
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 
+  void addArgumentsWithMissingDefaultValues(
+      Arguments arguments, FunctionNode function) {
+    assert(partOfLibrary == null);
+    argumentsWithMissingDefaultValues.add([arguments, function]);
+  }
+
   int finishStaticInvocations() {
     CloneVisitor cloner;
     for (var list in argumentsWithMissingDefaultValues) {
