@@ -539,11 +539,23 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   }
 
   bool argumentLessThan32(HInstruction instruction) {
-    if (!instruction.isConstantInteger()) return false;
-    HConstant rightConstant = instruction;
-    IntConstantValue intConstant = rightConstant.constant;
-    int count = intConstant.primitiveValue;
-    return count >= 0 && count <= 31;
+    return argumentInRange(instruction, 0, 31);
+  }
+
+  bool argumentInRange(HInstruction instruction, int low, int high) {
+    if (instruction.isConstantInteger()) {
+      HConstant rightConstant = instruction;
+      IntConstantValue intConstant = rightConstant.constant;
+      int value = intConstant.primitiveValue;
+      return value >= low && value <= high;
+    }
+    // TODO(sra): Integrate with the bit-width analysis in codegen.dart.
+    if (instruction is HBitAnd) {
+      return low == 0 &&
+          (argumentInRange(instruction.inputs[0], low, high) ||
+           argumentInRange(instruction.inputs[1], low, high));
+    }
+    return false;
   }
 
   bool isPositive(HInstruction instruction, ClosedWorld closedWorld) {
