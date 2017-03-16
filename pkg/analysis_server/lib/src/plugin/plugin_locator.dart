@@ -37,6 +37,8 @@ class PluginLocator {
    */
   final ResourceProvider resourceProvider;
 
+  final Map<String, String> pluginMap = <String, String>{};
+
   /**
    * Initialize a newly created plugin locator to use the given
    * [resourceProvider] to access the file system.
@@ -56,6 +58,13 @@ class PluginLocator {
    * returning it.
    */
   String findPlugin(String packageRoot) {
+    return pluginMap.putIfAbsent(packageRoot, () => _findPlugin(packageRoot));
+  }
+
+  /**
+   * The implementation of [findPlugin].
+   */
+  String _findPlugin(String packageRoot) {
     Folder packageFolder = resourceProvider.getFolder(packageRoot);
     File pubspecFile = packageFolder.getChildAssumingFile(pubspecFileName);
     if (pubspecFile.exists) {
