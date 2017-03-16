@@ -4,9 +4,9 @@
 
 /// Lists that efficiently handle fixed sized data
 /// (for example, unsigned 8 byte integers) and SIMD numeric types.
-/// 
+///
 /// To use this library in your code:
-/// 
+///
 ///     import 'dart:typed_data';
 library dart.typed_data;
 
@@ -359,7 +359,6 @@ abstract class ByteBuffer {
   ByteData asByteData([int offsetInBytes = 0, int length]);
 }
 
-
 /**
  * A typed view of a sequence of bytes.
  */
@@ -386,7 +385,6 @@ abstract class TypedData {
   ByteBuffer get buffer;
 }
 
-
 /**
  * Describes endianness to be used when accessing or updating a
  * sequence of bytes.
@@ -397,12 +395,12 @@ class Endianness {
   static const Endianness BIG_ENDIAN = const Endianness._(false);
   static const Endianness LITTLE_ENDIAN = const Endianness._(true);
   static final Endianness HOST_ENDIAN =
-    (new ByteData.view(new Uint16List.fromList([1]).buffer)).getInt8(0) == 1 ?
-    LITTLE_ENDIAN : BIG_ENDIAN;
+      (new ByteData.view(new Uint16List.fromList([1]).buffer)).getInt8(0) == 1
+          ? LITTLE_ENDIAN
+          : BIG_ENDIAN;
 
   final bool _littleEndian;
 }
-
 
 /**
  * A fixed-length, random-access sequence of bytes that also provides random
@@ -447,7 +445,7 @@ abstract class ByteData implements TypedData {
    * the length of [buffer].
    */
   factory ByteData.view(ByteBuffer buffer,
-                        [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asByteData(offsetInBytes, length);
   }
 
@@ -522,9 +520,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setInt16(int byteOffset,
-                int value,
-                [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setInt16(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the two bytes starting
@@ -549,9 +546,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setUint16(int byteOffset,
-                 int value,
-                 [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setUint16(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the four bytes at
@@ -577,9 +573,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setInt32(int byteOffset,
-                int value,
-                [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setInt32(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the four bytes starting
@@ -604,9 +599,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setUint32(int byteOffset,
-                 int value,
-                 [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setUint32(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the eight bytes at
@@ -632,9 +626,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setInt64(int byteOffset,
-                int value,
-                [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setInt64(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the eight bytes starting
@@ -659,9 +652,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setUint64(int byteOffset,
-                 int value,
-                 [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setUint64(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the floating point number represented by the four bytes at
@@ -672,7 +664,7 @@ abstract class ByteData implements TypedData {
    * `byteOffset + 4` is greater than the length of this object.
    */
   double getFloat32(int byteOffset,
-                    [Endianness endian = Endianness.BIG_ENDIAN]);
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -691,9 +683,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setFloat32(int byteOffset,
-                  double value,
-                  [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setFloat32(int byteOffset, double value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the floating point number represented by the eight bytes at
@@ -704,7 +695,7 @@ abstract class ByteData implements TypedData {
    * `byteOffset + 8` is greater than the length of this object.
    */
   double getFloat64(int byteOffset,
-                    [Endianness endian = Endianness.BIG_ENDIAN]);
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -714,11 +705,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setFloat64(int byteOffset,
-                  double value,
-                  [Endianness endian = Endianness.BIG_ENDIAN]);
+  void setFloat64(int byteOffset, double value,
+      [Endianness endian = Endianness.BIG_ENDIAN]);
 }
-
 
 /**
  * A fixed-length list of 8-bit signed integers.
@@ -761,13 +750,12 @@ abstract class Int8List implements List<int>, TypedData {
    * the length of [buffer].
    */
   factory Int8List.view(ByteBuffer buffer,
-                        [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asInt8List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 1;
 }
-
 
 /**
  * A fixed-length list of 8-bit unsigned integers.
@@ -810,13 +798,12 @@ abstract class Uint8List implements List<int>, TypedData {
    * the length of [buffer].
    */
   factory Uint8List.view(ByteBuffer buffer,
-                         [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asUint8List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 1;
 }
-
 
 /**
  * A fixed-length list of 8-bit unsigned integers.
@@ -860,13 +847,12 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
    * the length of [buffer].
    */
   factory Uint8ClampedList.view(ByteBuffer buffer,
-                                [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asUint8ClampedList(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 1;
 }
-
 
 /**
  * A fixed-length list of 16-bit signed integers that is viewable as a
@@ -913,13 +899,12 @@ abstract class Int16List implements List<int>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Int16List.view(ByteBuffer buffer,
-                         [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asInt16List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 2;
 }
-
 
 /**
  * A fixed-length list of 16-bit unsigned integers that is viewable as a
@@ -967,13 +952,12 @@ abstract class Uint16List implements List<int>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Uint16List.view(ByteBuffer buffer,
-                          [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asUint16List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 2;
 }
-
 
 /**
  * A fixed-length list of 32-bit signed integers that is viewable as a
@@ -1020,13 +1004,12 @@ abstract class Int32List implements List<int>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Int32List.view(ByteBuffer buffer,
-                         [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asInt32List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 4;
 }
-
 
 /**
  * A fixed-length list of 32-bit unsigned integers that is viewable as a
@@ -1074,13 +1057,12 @@ abstract class Uint32List implements List<int>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Uint32List.view(ByteBuffer buffer,
-                          [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asUint32List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 4;
 }
-
 
 /**
  * A fixed-length list of 64-bit signed integers that is viewable as a
@@ -1127,13 +1109,12 @@ abstract class Int64List implements List<int>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Int64List.view(ByteBuffer buffer,
-                         [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asInt64List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 8;
 }
-
 
 /**
  * A fixed-length list of 64-bit unsigned integers that is viewable as a
@@ -1181,13 +1162,12 @@ abstract class Uint64List implements List<int>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Uint64List.view(ByteBuffer buffer,
-                          [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asUint64List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 8;
 }
-
 
 /**
  * A fixed-length list of IEEE 754 single-precision binary floating-point
@@ -1235,13 +1215,12 @@ abstract class Float32List implements List<double>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Float32List.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asFloat32List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 4;
 }
-
 
 /**
  * A fixed-length list of IEEE 754 double-precision binary floating-point
@@ -1282,13 +1261,12 @@ abstract class Float64List implements List<double>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Float64List.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asFloat64List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 8;
 }
-
 
 /**
  * A fixed-length list of Float32x4 numbers that is viewable as a
@@ -1328,13 +1306,12 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Float32x4List.view(ByteBuffer buffer,
-                             [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asFloat32x4List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 16;
 }
-
 
 /**
  * A fixed-length list of Int32x4 numbers that is viewable as a
@@ -1374,13 +1351,12 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Int32x4List.view(ByteBuffer buffer,
-                             [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asInt32x4List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 16;
 }
-
 
 /**
  * A fixed-length list of Float64x2 numbers that is viewable as a
@@ -1420,13 +1396,12 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
    * [BYTES_PER_ELEMENT].
    */
   factory Float64x2List.view(ByteBuffer buffer,
-                             [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int length]) {
     return buffer.asFloat64x2List(offsetInBytes, length);
   }
 
   static const int BYTES_PER_ELEMENT = 16;
 }
-
 
 /**
  * Float32x4 immutable value type and operations.
@@ -1439,48 +1414,63 @@ abstract class Float32x4 {
   external factory Float32x4.splat(double v);
   external factory Float32x4.zero();
   external factory Float32x4.fromInt32x4Bits(Int32x4 x);
+
   /// Sets the x and y lanes to their respective values in [v] and sets the z
   /// and w lanes to 0.0.
   external factory Float32x4.fromFloat64x2(Float64x2 v);
 
   /// Addition operator.
-  Float32x4 operator+(Float32x4 other);
+  Float32x4 operator +(Float32x4 other);
+
   /// Negate operator.
-  Float32x4 operator-();
+  Float32x4 operator -();
+
   /// Subtraction operator.
-  Float32x4 operator-(Float32x4 other);
+  Float32x4 operator -(Float32x4 other);
+
   /// Multiplication operator.
-  Float32x4 operator*(Float32x4 other);
+  Float32x4 operator *(Float32x4 other);
+
   /// Division operator.
-  Float32x4 operator/(Float32x4 other);
+  Float32x4 operator /(Float32x4 other);
 
   /// Relational less than.
   Int32x4 lessThan(Float32x4 other);
+
   /// Relational less than or equal.
   Int32x4 lessThanOrEqual(Float32x4 other);
+
   /// Relational greater than.
   Int32x4 greaterThan(Float32x4 other);
+
   /// Relational greater than or equal.
   Int32x4 greaterThanOrEqual(Float32x4 other);
+
   /// Relational equal.
   Int32x4 equal(Float32x4 other);
+
   /// Relational not-equal.
   Int32x4 notEqual(Float32x4 other);
 
   /// Returns a copy of [this] each lane being scaled by [s].
   /// Equivalent to this * new Float32x4.splat(s)
   Float32x4 scale(double s);
+
   /// Returns the lane-wise absolute value of this [Float32x4].
   Float32x4 abs();
+
   /// Lane-wise clamp [this] to be in the range [lowerLimit]-[upperLimit].
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit);
 
   /// Extracted x value.
   double get x;
+
   /// Extracted y value.
   double get y;
+
   /// Extracted z value.
   double get z;
+
   /// Extracted w value.
   double get w;
 
@@ -1759,10 +1749,13 @@ abstract class Float32x4 {
 
   /// Returns a new [Float32x4] copied from [this] with a new x value.
   Float32x4 withX(double x);
+
   /// Returns a new [Float32x4] copied from [this] with a new y value.
   Float32x4 withY(double y);
+
   /// Returns a new [Float32x4] copied from [this] with a new z value.
   Float32x4 withZ(double z);
+
   /// Returns a new [Float32x4] copied from [this] with a new w value.
   Float32x4 withW(double w);
 
@@ -1782,7 +1775,6 @@ abstract class Float32x4 {
   Float32x4 reciprocalSqrt();
 }
 
-
 /**
  * Int32x4 and operations.
  *
@@ -1795,22 +1787,29 @@ abstract class Int32x4 {
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 
   /// The bit-wise or operator.
-  Int32x4 operator|(Int32x4 other);
+  Int32x4 operator |(Int32x4 other);
+
   /// The bit-wise and operator.
-  Int32x4 operator&(Int32x4 other);
+  Int32x4 operator &(Int32x4 other);
+
   /// The bit-wise xor operator.
-  Int32x4 operator^(Int32x4 other);
+  Int32x4 operator ^(Int32x4 other);
+
   /// Addition operator.
-  Int32x4 operator+(Int32x4 other);
+  Int32x4 operator +(Int32x4 other);
+
   /// Subtraction operator.
-  Int32x4 operator-(Int32x4 other);
+  Int32x4 operator -(Int32x4 other);
 
   /// Extract 32-bit mask from x lane.
   int get x;
+
   /// Extract 32-bit mask from y lane.
   int get y;
+
   /// Extract 32-bit mask from z lane.
   int get z;
+
   /// Extract 32-bit mask from w lane.
   int get w;
 
@@ -2089,28 +2088,37 @@ abstract class Int32x4 {
 
   /// Returns a new [Int32x4] copied from [this] with a new x value.
   Int32x4 withX(int x);
+
   /// Returns a new [Int32x4] copied from [this] with a new y value.
   Int32x4 withY(int y);
+
   /// Returns a new [Int32x4] copied from [this] with a new z value.
   Int32x4 withZ(int z);
+
   /// Returns a new [Int32x4] copied from [this] with a new w value.
   Int32x4 withW(int w);
 
   /// Extracted x value. Returns false for 0, true for any other value.
   bool get flagX;
+
   /// Extracted y value. Returns false for 0, true for any other value.
   bool get flagY;
+
   /// Extracted z value. Returns false for 0, true for any other value.
   bool get flagZ;
+
   /// Extracted w value. Returns false for 0, true for any other value.
   bool get flagW;
 
   /// Returns a new [Int32x4] copied from [this] with a new x value.
   Int32x4 withFlagX(bool x);
+
   /// Returns a new [Int32x4] copied from [this] with a new y value.
   Int32x4 withFlagY(bool y);
+
   /// Returns a new [Int32x4] copied from [this] with a new z value.
   Int32x4 withFlagZ(bool z);
+
   /// Returns a new [Int32x4] copied from [this] with a new w value.
   Int32x4 withFlagW(bool w);
 
@@ -2130,32 +2138,38 @@ abstract class Float64x2 {
   external factory Float64x2(double x, double y);
   external factory Float64x2.splat(double v);
   external factory Float64x2.zero();
+
   /// Uses the "x" and "y" lanes from [v].
   external factory Float64x2.fromFloat32x4(Float32x4 v);
 
   /// Addition operator.
-  Float64x2 operator+(Float64x2 other);
+  Float64x2 operator +(Float64x2 other);
+
   /// Negate operator.
-  Float64x2 operator-();
+  Float64x2 operator -();
+
   /// Subtraction operator.
-  Float64x2 operator-(Float64x2 other);
+  Float64x2 operator -(Float64x2 other);
+
   /// Multiplication operator.
-  Float64x2 operator*(Float64x2 other);
+  Float64x2 operator *(Float64x2 other);
+
   /// Division operator.
-  Float64x2 operator/(Float64x2 other);
+  Float64x2 operator /(Float64x2 other);
 
   /// Returns a copy of [this] each lane being scaled by [s].
   /// Equivalent to this * new Float64x2.splat(s)
   Float64x2 scale(double s);
+
   /// Returns the lane-wise absolute value of this [Float64x2].
   Float64x2 abs();
 
   /// Lane-wise clamp [this] to be in the range [lowerLimit]-[upperLimit].
-  Float64x2 clamp(Float64x2 lowerLimit,
-                  Float64x2 upperLimit);
+  Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit);
 
   /// Extracted x value.
   double get x;
+
   /// Extracted y value.
   double get y;
 
@@ -2166,6 +2180,7 @@ abstract class Float64x2 {
 
   /// Returns a new [Float64x2] copied from [this] with a new x value.
   Float64x2 withX(double x);
+
   /// Returns a new [Float64x2] copied from [this] with a new y value.
   Float64x2 withY(double y);
 

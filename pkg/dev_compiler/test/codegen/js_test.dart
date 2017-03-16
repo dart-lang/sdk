@@ -37,7 +37,6 @@ class Callable {
 
 main() {
   group('identity', () {
-
     test('context instances should be identical', () {
       var c1 = context;
       var c2 = context;
@@ -82,11 +81,9 @@ main() {
         expect(obj['role'], 'object');
       });
     });
-
   });
 
   group('context', () {
-
     test('read global field', () {
       expect(context['x'], 42);
       expect(context['y'], null);
@@ -101,11 +98,9 @@ main() {
       context['y'] = 42;
       expect(context['y'], 42);
     });
-
   });
 
   group('new JsObject()', () {
-
     test('new Foo()', () {
       var foo = new JsObject(context['Foo'], [42]);
       expect(foo['a'], 42);
@@ -147,8 +142,8 @@ main() {
     });
 
     test('new Date("December 17, 1995 03:24:00 GMT")', () {
-      final a = new JsObject(context['Date'],
-          ["December 17, 1995 03:24:00 GMT"]);
+      final a =
+          new JsObject(context['Date'], ["December 17, 1995 03:24:00 GMT"]);
       expect(a.callMethod('getTime'), 819170640000);
     });
 
@@ -161,8 +156,7 @@ main() {
 
     test('new Date(1995,11,17,3,24,0)', () {
       // Note: JS Date counts months from 0 while Dart counts from 1.
-      final a = new JsObject(context['Date'],
-          [1995, 11, 17, 3, 24, 0]);
+      final a = new JsObject(context['Date'], [1995, 11, 17, 3, 24, 0]);
       final b = new DateTime(1995, 12, 17, 3, 24, 0);
       expect(a.callMethod('getTime'), b.millisecondsSinceEpoch);
     });
@@ -201,7 +195,8 @@ main() {
     });
 
     test('>10 parameters', () {
-      final o = new JsObject(context['Baz'], [1,2,3,4,5,6,7,8,9,10,11]);
+      final o =
+          new JsObject(context['Baz'], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
       for (var i = 1; i <= 11; i++) {
         expect(o["f$i"], i);
       }
@@ -210,7 +205,6 @@ main() {
   });
 
   group('JsFunction and callMethod', () {
-
     test('new JsObject can return a JsFunction', () {
       var f = new JsObject(context['Function']);
       expect(f, (a) => a is JsFunction);
@@ -231,19 +225,17 @@ main() {
     });
 
     test('callMethod with many arguments', () {
-      expect(context.callMethod('varArgs', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-        55);
+      expect(
+          context.callMethod('varArgs', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), 55);
     });
 
     test('access a property of a function', () {
       expect(context.callMethod('Bar'), "ret_value");
       expect(context['Bar']['foo'], "property_value");
     });
-
   });
 
   group('JsArray', () {
-
     test('new JsArray()', () {
       var array = new JsArray();
       var arrayType = context['Array'];
@@ -263,8 +255,9 @@ main() {
 
     test('get Array from JS', () {
       context['a'] = new JsObject(context['Array'], [1, 2, 3]);
-      expect(context.callMethod('isPropertyInstanceOf',
-          ['a', context['Array']]), true);
+      expect(
+          context.callMethod('isPropertyInstanceOf', ['a', context['Array']]),
+          true);
       var a = context['a'];
       expect(a, (a) => a is JsArray);
       expect(a, [1, 2, 3]);
@@ -273,8 +266,9 @@ main() {
 
     test('pass Array to JS', () {
       context['a'] = [1, 2, 3];
-      expect(context.callMethod('isPropertyInstanceOf',
-          ['a', context['Array']]), false);
+      expect(
+          context.callMethod('isPropertyInstanceOf', ['a', context['Array']]),
+          false);
       var a = context['a'];
       expect(a, (a) => a is List);
       expect(a, isNot((a) => a is JsArray));
@@ -290,7 +284,7 @@ main() {
       expect(() => array[2], throwsA(isRangeError));
     });
 
-   test('[]=', () {
+    test('[]=', () {
       var array = new JsArray.from([1, 2]);
       array[0] = 'd';
       array[1] = 'e';
@@ -309,8 +303,8 @@ main() {
       array.length = 3;
       expect(array, [1, 2, null]);
     });
- 
-     test('add', () {
+
+    test('add', () {
       var array = new JsArray();
       array.add('a');
       expect(array, ['a']);
@@ -383,11 +377,9 @@ main() {
       array.sort((a, b) => -(a.compareTo(b)));
       expect(array, ['c', 'b', 'a']);
     });
-
   });
 
   group('JsObject.fromBrowserObject()', () {
-
     test('Nodes are proxied', () {
       var node = new JsObject.fromBrowserObject(document.createElement('div'));
       context.callMethod('addTestProperty', [node]);
@@ -402,7 +394,6 @@ main() {
             throwsA((a) => a is ArgumentError));
       }
     });
-
   });
 
   group('Dart functions', () {
@@ -416,8 +407,7 @@ main() {
     });
 
     test('callback as parameter', () {
-      expect(context.callMethod('getTypeOf', [context['razzle']]),
-          "function");
+      expect(context.callMethod('getTypeOf', [context['razzle']]), "function");
     });
 
     test('invoke Dart callback from JS with this', () {
@@ -430,15 +420,16 @@ main() {
     });
 
     test('invoke Dart callback from JS with 11 parameters', () {
-      context['callbackWith11params'] = (p1, p2, p3, p4, p5, p6, p7,
-          p8, p9, p10, p11) => '$p1$p2$p3$p4$p5$p6$p7$p8$p9$p10$p11';
-      expect(context.callMethod('invokeCallbackWith11params'),
-          '1234567891011');
+      context['callbackWith11params'] =
+          (p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) =>
+              '$p1$p2$p3$p4$p5$p6$p7$p8$p9$p10$p11';
+      expect(context.callMethod('invokeCallbackWith11params'), '1234567891011');
     });
 
     test('return a JS proxy to JavaScript', () {
-      var result = context.callMethod('testJsMap',
-          [() => new JsObject.jsify({'value': 42})]);
+      var result = context.callMethod('testJsMap', [
+        () => new JsObject.jsify({'value': 42})
+      ]);
       expect(result, 42);
     });
 
@@ -448,17 +439,15 @@ main() {
       expect(result, 'called');
       context.deleteProperty('callable');
     });
-
   });
 
   group('JsObject.jsify()', () {
-
     test('convert a List', () {
       final list = [1, 2, 3, 4, 5, 6, 7, 8];
       var array = new JsObject.jsify(list);
       expect(context.callMethod('isArray', [array]), true);
       expect(array['length'], list.length);
-      for (var i = 0; i < list.length ; i++) {
+      for (var i = 0; i < list.length; i++) {
         expect(array[i], list[i]);
       }
     });
@@ -468,7 +457,7 @@ main() {
       var array = new JsObject.jsify(set);
       expect(context.callMethod('isArray', [array]), true);
       expect(array['length'], set.length);
-      for (var i = 0; i < array['length'] ; i++) {
+      for (var i = 0; i < array['length']; i++) {
         expect(set.contains(array[i]), true);
       }
     });
@@ -484,7 +473,10 @@ main() {
 
     test('deep convert a complex object', () {
       final object = {
-        'a': [1, [2, 3]],
+        'a': [
+          1,
+          [2, 3]
+        ],
         'b': {
           'c': 3,
           'd': new JsObject(context['Foo'], [42])
@@ -502,13 +494,11 @@ main() {
     });
 
     test('throws if object is not a Map or Iterable', () {
-      expect(() => new JsObject.jsify('a'),
-          throwsA((a) => a is ArgumentError));
+      expect(() => new JsObject.jsify('a'), throwsA((a) => a is ArgumentError));
     });
   });
 
   group('JsObject methods', () {
-
     test('hashCode and ==', () {
       final o1 = context['Object'];
       final o2 = context['Object'];
@@ -566,13 +556,10 @@ main() {
       foo["getAge"] = () => 10;
       expect(foo.callMethod('getAge'), 10);
     });
-
   });
 
   group('transferrables', () {
-
     group('JS->Dart', () {
-
       test('DateTime', () {
         var date = context.callMethod('getNewDate');
         expect(date is DateTime, true);
@@ -633,16 +620,14 @@ main() {
         var node = context.callMethod('getNewImageData');
         expect(node is ImageData, true);
       });
-
     });
 
     group('Dart->JS', () {
-
       test('Date', () {
         context['o'] = new DateTime(1995, 12, 17);
         var dateType = context['Date'];
-        expect(context.callMethod('isPropertyInstanceOf', ['o', dateType]),
-            true);
+        expect(
+            context.callMethod('isPropertyInstanceOf', ['o', dateType]), true);
         context.deleteProperty('o');
       });
 
@@ -666,24 +651,24 @@ main() {
         var fileParts = ['<a id="a"><b id="b">hey!</b></a>'];
         context['o'] = new Blob(fileParts, type: 'text/html');
         var blobType = context['Blob'];
-        expect(context.callMethod('isPropertyInstanceOf', ['o', blobType]),
-            true);
+        expect(
+            context.callMethod('isPropertyInstanceOf', ['o', blobType]), true);
         context.deleteProperty('o');
       });
 
       test('unattached DivElement', () {
         context['o'] = document.createElement('div');
         var divType = context['HTMLDivElement'];
-        expect(context.callMethod('isPropertyInstanceOf', ['o', divType]),
-            true);
+        expect(
+            context.callMethod('isPropertyInstanceOf', ['o', divType]), true);
         context.deleteProperty('o');
       });
 
       test('Event', () {
         context['o'] = new CustomEvent('test');
         var eventType = context['Event'];
-        expect(context.callMethod('isPropertyInstanceOf', ['o', eventType]),
-            true);
+        expect(
+            context.callMethod('isPropertyInstanceOf', ['o', eventType]), true);
         context.deleteProperty('o');
       });
 
@@ -699,7 +684,6 @@ main() {
             true);
         context.deleteProperty('o');
       });
-
     });
   });
 }

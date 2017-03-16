@@ -47,7 +47,7 @@ void draw() {
 // This example was modified to use classes and mixins.
 class SunflowerSeed extends Circle with CirclePainter {
   SunflowerSeed(num x, num y, num radius, [String color])
-  : super(x, y, radius) {
+      : super(x, y, radius) {
     if (color != null) this.color = color;
   }
 }

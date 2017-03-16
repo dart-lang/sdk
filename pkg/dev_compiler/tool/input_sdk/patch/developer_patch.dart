@@ -23,13 +23,13 @@ Object inspect(Object object) {
 
 @patch
 void log(String message,
-         {DateTime time,
-          int sequenceNumber,
-          int level: 0,
-          String name: '',
-          Zone zone,
-          Object error,
-          StackTrace stackTrace}) {
+    {DateTime time,
+    int sequenceNumber,
+    int level: 0,
+    String name: '',
+    Zone zone,
+    Object error,
+    StackTrace stackTrace}) {
   // TODO.
 }
 
@@ -50,7 +50,6 @@ void _postEvent(String eventKind, String eventData) {
   // TODO.
 }
 
-
 @patch
 bool _isDartStreamEnabled() {
   return false;
@@ -61,6 +60,7 @@ int _getTraceClock() {
   // TODO.
   return _clockValue++;
 }
+
 int _clockValue = 0;
 
 @patch
@@ -68,21 +68,15 @@ int _getThreadCpuClock() {
   return -1;
 }
 
-
 @patch
-void _reportCompleteEvent(int start,
-                          int startCpu,
-                          String category,
-                          String name,
-                          String argumentsAsJson) {
+void _reportCompleteEvent(int start, int startCpu, String category, String name,
+    String argumentsAsJson) {
   // TODO.
 }
 
 @patch
-void _reportInstantEvent(int start,
-                         String category,
-                         String name,
-                         String argumentsAsJson) {
+void _reportInstantEvent(
+    int start, String category, String name, String argumentsAsJson) {
   // TODO.
 }
 
@@ -97,13 +91,9 @@ int _getIsolateNum() {
 }
 
 @patch
-void _reportTaskEvent(int start,
-                      int taskId,
-                      String phase,
-                      String category,
-                      String name,
-                      String argumentsAsJson) {
- // TODO.
+void _reportTaskEvent(int start, int taskId, String phase, String category,
+    String name, String argumentsAsJson) {
+  // TODO.
 }
 
 @patch

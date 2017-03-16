@@ -50,7 +50,7 @@ bool get asyncTestStarted => _initialized;
 void asyncStart() {
   if (_initialized && _asyncLevel == 0) {
     throw _buildException('asyncStart() was called even though we are done '
-                          'with testing.');
+        'with testing.');
   }
   if (!_initialized) {
     if (_onAsyncEnd == null) {
@@ -60,7 +60,6 @@ void asyncStart() {
 
     print('unittest-suite-wait-for-done');
     _initialized = true;
-
   }
   _asyncLevel++;
 }
@@ -72,7 +71,7 @@ void asyncEnd() {
       throw _buildException('asyncEnd() was called before asyncStart().');
     } else {
       throw _buildException('asyncEnd() was called more often than '
-                            'asyncStart().');
+          'asyncStart().');
     }
   }
   _asyncLevel--;

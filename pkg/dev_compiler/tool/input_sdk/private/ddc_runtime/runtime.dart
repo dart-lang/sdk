@@ -35,7 +35,9 @@ part 'utils.dart';
 // Note, native extensions are registered onto types in dart.global.
 // This polyfill needs to run before the corresponding dart:html code is run.
 @JSExportName('global')
-final global_ = JS('', '''
+final global_ = JS(
+    '',
+    '''
   function () {
     if (typeof NodeList !== "undefined") {
       // TODO(vsm): Do we still need these?

@@ -4,7 +4,6 @@
 
 part of js_ast;
 
-
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
@@ -18,19 +17,20 @@ class JavaScriptPrintingOptions {
 
   JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
-       this.minifyLocalVariables: false,
-       this.preferSemicolonToNewlineInMinifiedOutput: false,
-       this.emitTypes: false,
-       this.allowKeywordsInProperties: false,
-       this.allowSingleLineIfStatements: false});
+      this.minifyLocalVariables: false,
+      this.preferSemicolonToNewlineInMinifiedOutput: false,
+      this.emitTypes: false,
+      this.allowKeywordsInProperties: false,
+      this.allowSingleLineIfStatements: false});
 }
-
 
 /// An environment in which JavaScript printing is done.  Provides emitting of
 /// text and pre- and post-visit callbacks.
 abstract class JavaScriptPrintingContext {
   /// Signals an error.  This should happen only for serious internal errors.
-  void error(String message) { throw message; }
+  void error(String message) {
+    throw message;
+  }
 
   /// Adds [string] to the output.
   void emit(String string);
@@ -38,6 +38,7 @@ abstract class JavaScriptPrintingContext {
   /// Callback immediately before printing [node].  Whitespace may be printed
   /// after this callback before the first non-whitespace character for [node].
   void enterNode(Node node) {}
+
   /// Callback after printing the last character representing [node].
   void exitNode(Node node) {}
 }
@@ -72,28 +73,28 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   int _indentLevel = 0;
   // A cache of all indentation strings used so far.
   List<String> _indentList = <String>[""];
+
   /// Whether the next call to [indent] should just be a no-op.
   bool _skipNextIndent = false;
 
   static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
   static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
 
-  Printer(JavaScriptPrintingOptions options,
-          JavaScriptPrintingContext context,
-          {LocalNamer localNamer})
+  Printer(JavaScriptPrintingOptions options, JavaScriptPrintingContext context,
+      {LocalNamer localNamer})
       : options = options,
         context = context,
         shouldCompressOutput = options.shouldCompressOutput,
         danglingElseVisitor = new DanglingElseVisitor(context),
         localNamer = determineRenamer(localNamer, options);
 
-  static LocalNamer determineRenamer(LocalNamer localNamer,
-                                     JavaScriptPrintingOptions options) {
+  static LocalNamer determineRenamer(
+      LocalNamer localNamer, JavaScriptPrintingOptions options) {
     if (localNamer != null) return localNamer;
     return (options.shouldCompressOutput && options.minifyLocalVariables)
-        ? new MinifyRenamer() : new IdentityNamer();
+        ? new MinifyRenamer()
+        : new IdentityNamer();
   }
-
 
   // The current indentation string.
   String get indentation {
@@ -112,15 +113,16 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     _indentLevel--;
   }
 
-
   /// Always emit a newline, even under `enableMinification`.
   void forceLine() {
     out("\n");
   }
+
   /// Emits a newline for readability.
   void lineOut() {
     if (!shouldCompressOutput) forceLine();
   }
+
   void spaceOut() {
     if (!shouldCompressOutput) out(" ");
   }
@@ -182,8 +184,15 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     }
   }
 
-  void outIndent(String str) { indent(); out(str); }
-  void outIndentLn(String str) { indent(); outLn(str); }
+  void outIndent(String str) {
+    indent();
+    out(str);
+  }
+
+  void outIndentLn(String str) {
+    indent();
+    outLn(str);
+  }
 
   void skipNextIndent() {
     _skipNextIndent = true;
@@ -206,7 +215,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitCommaSeparated(List<Node> nodes, int hasRequiredType,
-                      {bool newInForInit, bool newAtStatementBegin}) {
+      {bool newInForInit, bool newAtStatementBegin}) {
     for (int i = 0; i < nodes.length; i++) {
       if (i != 0) {
         atStatementBegin = false;
@@ -214,8 +223,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         spaceOut();
       }
       visitNestedExpression(nodes[i], hasRequiredType,
-                            newInForInit: newInForInit,
-                            newAtStatementBegin: newAtStatementBegin);
+          newInForInit: newInForInit, newAtStatementBegin: newAtStatementBegin);
     }
   }
 
@@ -282,7 +290,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     indent();
     outClosureAnnotation(expressionStatement);
     visitNestedExpression(expressionStatement.expression, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: true);
+        newInForInit: false, newAtStatementBegin: true);
     outSemicolonLn();
   }
 
@@ -309,7 +317,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     spaceOut();
     out("(");
     visitNestedExpression(node.condition, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     bool thenWasBlock;
     if (options.allowSingleLineIfStatements && !hasElse && then is! Block) {
@@ -347,19 +355,19 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     out("(");
     if (loop.init != null) {
       visitNestedExpression(loop.init, EXPRESSION,
-                            newInForInit: true, newAtStatementBegin: false);
+          newInForInit: true, newAtStatementBegin: false);
     }
     out(";");
     if (loop.condition != null) {
       spaceOut();
       visitNestedExpression(loop.condition, EXPRESSION,
-                            newInForInit: false, newAtStatementBegin: false);
+          newInForInit: false, newAtStatementBegin: false);
     }
     out(";");
     if (loop.update != null) {
       spaceOut();
       visitNestedExpression(loop.update, EXPRESSION,
-                            newInForInit: false, newAtStatementBegin: false);
+          newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
     blockBody(loop.body, needsSeparation: false, needsNewline: true);
@@ -370,11 +378,11 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     spaceOut();
     out("(");
     visitNestedExpression(loop.leftHandSide, EXPRESSION,
-                          newInForInit: true, newAtStatementBegin: false);
+        newInForInit: true, newAtStatementBegin: false);
     out(" in");
     pendingSpace = true;
     visitNestedExpression(loop.object, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     blockBody(loop.body, needsSeparation: false, needsNewline: true);
   }
@@ -384,11 +392,11 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     spaceOut();
     out("(");
     visitNestedExpression(loop.leftHandSide, EXPRESSION,
-    newInForInit: true, newAtStatementBegin: false);
+        newInForInit: true, newAtStatementBegin: false);
     out(" of");
     pendingSpace = true;
     visitNestedExpression(loop.iterable, EXPRESSION,
-    newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     blockBody(loop.body, needsSeparation: false, needsNewline: true);
   }
@@ -398,7 +406,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     spaceOut();
     out("(");
     visitNestedExpression(loop.condition, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     blockBody(loop.body, needsSeparation: false, needsNewline: true);
   }
@@ -414,7 +422,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     spaceOut();
     out("(");
     visitNestedExpression(loop.condition, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     outSemicolonLn();
   }
@@ -444,7 +452,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       outIndent("return");
       pendingSpace = true;
       visitNestedExpression(node.value, EXPRESSION,
-                            newInForInit: false, newAtStatementBegin: false);
+          newInForInit: false, newAtStatementBegin: false);
     }
     outSemicolonLn();
   }
@@ -457,16 +465,15 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     }
     pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     outSemicolonLn();
   }
-
 
   visitThrow(Throw node) {
     outIndent("throw");
     pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     outSemicolonLn();
   }
 
@@ -491,7 +498,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     spaceOut();
     out("(");
     visitNestedExpression(node.declaration, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
@@ -501,7 +508,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     spaceOut();
     out("(");
     visitNestedExpression(node.key, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
     spaceOut();
     outLn("{");
@@ -515,7 +522,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     outIndent("case");
     pendingSpace = true;
     visitNestedExpression(node.expression, EXPRESSION,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     outLn(":");
     if (!node.body.statements.isEmpty) {
       blockOut(node.body, true, true);
@@ -541,14 +548,14 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out(" ");
       // Name must be a [Decl]. Therefore only test for primary expressions.
       visitNestedExpression(name, PRIMARY,
-                            newInForInit: false, newAtStatementBegin: false);
+          newInForInit: false, newAtStatementBegin: false);
     }
     localNamer.enterScope(fun);
     outTypeParams(fun.typeParams);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
-                          newInForInit: false, newAtStatementBegin: false);
+          newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
     outTypeAnnotation(fun.returnType);
@@ -577,19 +584,20 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitNestedExpression(Expression node, int requiredPrecedence,
-                        {bool newInForInit, bool newAtStatementBegin}) {
+      {bool newInForInit, bool newAtStatementBegin}) {
     int nodePrecedence = node.precedenceLevel;
     bool needsParentheses =
         // a - (b + c).
         (requiredPrecedence != EXPRESSION &&
-         nodePrecedence < requiredPrecedence) ||
-        // for (a = (x in o); ... ; ... ) { ... }
-        (newInForInit && node is Binary && node.op == "in") ||
-        // (function() { ... })().
-        // ({a: 2, b: 3}.toString()).
-        (newAtStatementBegin && (node is NamedFunction ||
-                                 node is FunctionExpression ||
-                                 node is ObjectInitializer));
+                nodePrecedence < requiredPrecedence) ||
+            // for (a = (x in o); ... ; ... ) { ... }
+            (newInForInit && node is Binary && node.op == "in") ||
+            // (function() { ... })().
+            // ({a: 2, b: 3}.toString()).
+            (newAtStatementBegin &&
+                (node is NamedFunction ||
+                    node is FunctionExpression ||
+                    node is ObjectInitializer));
     if (needsParentheses) {
       inForInit = false;
       atStatementBegin = false;
@@ -612,19 +620,20 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out(" ");
     }
     visitCommaSeparated(list.declarations, ASSIGNMENT,
-                        newInForInit: inForInit, newAtStatementBegin: false);
+        newInForInit: inForInit, newAtStatementBegin: false);
   }
 
   visitArrayBindingPattern(ArrayBindingPattern node) {
     out("[");
     visitCommaSeparated(node.variables, EXPRESSION,
-                        newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out("]");
   }
+
   visitObjectBindingPattern(ObjectBindingPattern node) {
     out("{");
     visitCommaSeparated(node.variables, EXPRESSION,
-                        newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out("}");
   }
 
@@ -653,7 +662,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out("=");
       spaceOut();
       visitNestedExpression(node.defaultValue, EXPRESSION,
-                            newInForInit: false, newAtStatementBegin: false);
+          newInForInit: false, newAtStatementBegin: false);
     }
   }
 
@@ -663,8 +672,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitAssignment(Assignment assignment) {
     visitNestedExpression(assignment.leftHandSide, LEFT_HAND_SIDE,
-                          newInForInit: inForInit,
-                          newAtStatementBegin: atStatementBegin);
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     if (assignment.value != null) {
       spaceOut();
       String op = assignment.op;
@@ -672,8 +680,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out("=");
       spaceOut();
       visitNestedExpression(assignment.value, ASSIGNMENT,
-                            newInForInit: inForInit,
-                            newAtStatementBegin: false);
+          newInForInit: inForInit, newAtStatementBegin: false);
     }
   }
 
@@ -684,40 +691,38 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitConditional(Conditional cond) {
     visitNestedExpression(cond.condition, LOGICAL_OR,
-                          newInForInit: inForInit,
-                          newAtStatementBegin: atStatementBegin);
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     spaceOut();
     out("?");
     spaceOut();
     // The then part is allowed to have an 'in'.
     visitNestedExpression(cond.then, ASSIGNMENT,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     spaceOut();
     out(":");
     spaceOut();
     visitNestedExpression(cond.otherwise, ASSIGNMENT,
-                          newInForInit: inForInit, newAtStatementBegin: false);
+        newInForInit: inForInit, newAtStatementBegin: false);
   }
 
   visitNew(New node) {
     out("new ");
     inNewTarget = true;
     visitNestedExpression(node.target, ACCESS,
-                          newInForInit: inForInit, newAtStatementBegin: false);
+        newInForInit: inForInit, newAtStatementBegin: false);
     inNewTarget = false;
     out("(");
     visitCommaSeparated(node.arguments, SPREAD,
-                        newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
   }
 
   visitCall(Call call) {
     visitNestedExpression(call.target, LEFT_HAND_SIDE,
-                          newInForInit: inForInit,
-                          newAtStatementBegin: atStatementBegin);
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     out("(");
     visitCommaSeparated(call.arguments, SPREAD,
-                        newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
     out(")");
   }
 
@@ -727,7 +732,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     String op = binary.op;
     int leftPrecedenceRequirement;
     int rightPrecedenceRequirement;
-    bool leftSpace = true;   // left<HERE>op right
+    bool leftSpace = true; // left<HERE>op right
     switch (op) {
       case ',':
         //  x, (y, z) <=> (x, y), z.
@@ -804,8 +809,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     }
 
     visitNestedExpression(left, leftPrecedenceRequirement,
-                          newInForInit: inForInit,
-                          newAtStatementBegin: atStatementBegin);
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
 
     if (op == "in" || op == "instanceof") {
       // There are cases where the space is not required but without further
@@ -819,8 +823,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       spaceOut();
     }
     visitNestedExpression(right, rightPrecedenceRequirement,
-                          newInForInit: inForInit,
-                          newAtStatementBegin: false);
+        newInForInit: inForInit, newAtStatementBegin: false);
   }
 
   visitPrefix(Prefix unary) {
@@ -848,7 +851,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         out(op);
     }
     visitNestedExpression(unary.argument, unary.precedenceLevel,
-                          newInForInit: inForInit, newAtStatementBegin: false);
+        newInForInit: inForInit, newAtStatementBegin: false);
   }
 
   visitSpread(Spread unary) => visitPrefix(unary);
@@ -863,8 +866,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitPostfix(Postfix postfix) {
     visitNestedExpression(postfix.argument, LEFT_HAND_SIDE,
-                          newInForInit: inForInit,
-                          newAtStatementBegin: atStatementBegin);
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     out(postfix.op);
   }
 
@@ -897,10 +899,10 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       // TODO(floitsch): allow more characters.
       int charCode = field.codeUnitAt(i);
       if (!(charCodes.$a <= charCode && charCode <= charCodes.$z ||
-            charCodes.$A <= charCode && charCode <= charCodes.$Z ||
-            charCode == charCodes.$$ ||
-            charCode == charCodes.$_ ||
-            i != 1 && isDigit(charCode))) {
+          charCodes.$A <= charCode && charCode <= charCodes.$Z ||
+          charCode == charCodes.$$ ||
+          charCode == charCodes.$_ ||
+          i != 1 && isDigit(charCode))) {
         return false;
       }
     }
@@ -929,8 +931,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     int precedence = inNewTarget ? ACCESS : CALL;
 
     visitNestedExpression(access.receiver, precedence,
-                          newInForInit: inForInit,
-                          newAtStatementBegin: atStatementBegin);
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     propertyNameOut(access.selector, inAccess: true);
   }
 
@@ -1015,7 +1016,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         indent();
       }
       visitNestedExpression(element, ASSIGNMENT,
-                            newInForInit: false, newAtStatementBegin: false);
+          newInForInit: false, newAtStatementBegin: false);
       // We can skip the trailing "," for the last element (since it's not
       // an array hole).
       if (i != elements.length - 1) out(",");
@@ -1062,7 +1063,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     out(":");
     spaceOut();
     visitNestedExpression(node.value, ASSIGNMENT,
-                          newInForInit: false, newAtStatementBegin: false);
+        newInForInit: false, newAtStatementBegin: false);
   }
 
   visitRegExpLiteral(RegExpLiteral node) {
@@ -1184,9 +1185,8 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     }
   }
 
-  void propertyNameOut(Expression node, {bool inMethod: false,
-      bool inAccess: false}) {
-
+  void propertyNameOut(Expression node,
+      {bool inMethod: false, bool inAccess: false}) {
     if (node is LiteralNumber) {
       LiteralNumber nameNumber = node;
       if (inAccess) out('[');
@@ -1206,7 +1206,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
         // ComputedPropertyName
         out("[");
         visitNestedExpression(node, EXPRESSION,
-                              newInForInit: false, newAtStatementBegin: false);
+            newInForInit: false, newAtStatementBegin: false);
         out("]");
       }
     }
@@ -1395,9 +1395,10 @@ class VarCollector extends BaseVisitor {
   final Set<String> vars;
   final Set<String> params;
 
-  VarCollector() : nested = false,
-                   vars = new Set<String>(),
-                   params = new Set<String>();
+  VarCollector()
+      : nested = false,
+        vars = new Set<String>(),
+        params = new Set<String>();
 
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
@@ -1460,7 +1461,6 @@ class VarCollector extends BaseVisitor {
   }
 }
 
-
 /**
  * Returns true, if the given node must be wrapped into braces when used
  * as then-statement in an [If] that has an else branch.
@@ -1484,6 +1484,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
     if (!node.hasElse) return true;
     return node.otherwise.accept(this);
   }
+
   bool visitFor(For node) => node.body.accept(this);
   bool visitForIn(ForIn node) => node.body.accept(this);
   bool visitForOf(ForOf node) => node.body.accept(this);
@@ -1500,19 +1501,18 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
       return node.catchPart.accept(this);
     }
   }
+
   bool visitCatch(Catch node) => node.body.accept(this);
   bool visitSwitch(Switch node) => false;
   bool visitCase(Case node) => false;
   bool visitDefault(Default node) => false;
   bool visitFunctionDeclaration(FunctionDeclaration node) => false;
-  bool visitLabeledStatement(LabeledStatement node)
-      => node.body.accept(this);
+  bool visitLabeledStatement(LabeledStatement node) => node.body.accept(this);
   bool visitLiteralStatement(LiteralStatement node) => true;
   bool visitClassDeclaration(ClassDeclaration node) => false;
 
   bool visitExpression(Expression node) => false;
 }
-
 
 abstract class LocalNamer {
   String getName(Identifier node);
@@ -1520,13 +1520,11 @@ abstract class LocalNamer {
   void leaveScope();
 }
 
-
 class IdentityNamer implements LocalNamer {
   String getName(Identifier node) => node.name;
   void enterScope(FunctionExpression node) {}
   void leaveScope() {}
 }
-
 
 class MinifyRenamer implements LocalNamer {
   final List<Map<String, String>> maps = [];
@@ -1567,9 +1565,9 @@ class MinifyRenamer implements LocalNamer {
   static const DIGITS = 10;
 
   static int nthLetter(int n) {
-    return (n < LOWER_CASE_LETTERS) ?
-           charCodes.$a + n :
-           charCodes.$A + n - LOWER_CASE_LETTERS;
+    return (n < LOWER_CASE_LETTERS)
+        ? charCodes.$a + n
+        : charCodes.$A + n - LOWER_CASE_LETTERS;
   }
 
   // Parameters go from a to z and variables go from z to a.  This makes each
@@ -1661,8 +1659,10 @@ abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
   }
 
   _scanVariableBinding(VariableBinding d) {
-    if (d is Identifier) declare(d);
-    else d.accept(this);
+    if (d is Identifier)
+      declare(d);
+    else
+      d.accept(this);
   }
 
   visitRestParameter(RestParameter node) {

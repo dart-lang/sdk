@@ -49,7 +49,9 @@ safeGetOwnProperty(obj, String name) {
 /// After initial get or set, it will replace itself with a value property.
 // TODO(jmesserly): reusing descriptor objects has been shown to improve
 // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
-defineLazyProperty(to, name, desc) => JS('', '''(() => {
+defineLazyProperty(to, name, desc) => JS(
+    '',
+    '''(() => {
   let init = $desc.get;
     let value = null;
 
@@ -75,7 +77,9 @@ defineLazyProperty(to, name, desc) => JS('', '''(() => {
     return $defineProperty($to, $name, $desc);
 })()''');
 
-void defineLazy(to, from) => JS('', '''(() => {
+void defineLazy(to, from) => JS(
+    '',
+    '''(() => {
   for (let name of $getOwnNamesAndSymbols($from)) {
     $defineLazyProperty($to, name, $getOwnPropertyDescriptor($from, name));
   }
@@ -85,7 +89,9 @@ defineMemoizedGetter(obj, String name, getter) {
   return defineLazyProperty(obj, name, JS('', '{get: #}', getter));
 }
 
-copyTheseProperties(to, from, names) => JS('', '''(() => {
+copyTheseProperties(to, from, names) => JS(
+    '',
+    '''(() => {
   for (let i = 0; i < $names.length; ++i) {
     $copyProperty($to, $from, $names[i]);
   }

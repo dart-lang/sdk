@@ -38,7 +38,6 @@ abstract class _TypePrinterBase implements TypeRefVisitor {
 }
 
 abstract class TypeScriptTypePrinter extends _TypePrinterBase {
-
   void _outTypeAnnotation(TypeRef type) {
     if (type is OptionalTypeRef) {
       out("?: ");
@@ -158,7 +157,8 @@ class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
     }
   }
 
-  @override toString() => _buffer.toString();
+  @override
+  toString() => _buffer.toString();
 
   @override
   visitArrayTypeRef(ArrayTypeRef node) {
