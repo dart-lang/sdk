@@ -701,12 +701,15 @@ final isSubtype = JS(
 _isBottom(type) => JS('bool', '# == # || # == #', type, bottom, type, Null);
 
 _isTop(type) {
-  if (JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr))) {
+  if (_isFutureOr(type)) {
     return _isTop(JS('', '#[0]', getGenericArgs(type)));
   }
   return JS('bool', '# == # || # == # || # == #', type, Object, type, dynamic,
       type, _void);
 }
+
+bool _isFutureOr(type) =>
+    JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr));
 
 _isSubtype(t1, t2, isCovariant) => JS(
     '',
@@ -723,6 +726,31 @@ _isSubtype(t1, t2, isCovariant) => JS(
   if ($_isTop($t1)) {
     if ($t1 === $dynamic) return null;
     return false;
+  }
+
+  // Handle FutureOr<T> union type.
+  if ($_isFutureOr($t1)) {
+    let t1TypeArg = $getGenericArgs($t1)[0];
+    if ($_isFutureOr($t2)) {
+      let t2TypeArg = $getGenericArgs($t2)[0];
+      // FutureOr<A> <: FutureOr<B> iff A <: B
+      return $_isSubtype(t1TypeArg, t2TypeArg, $isCovariant);
+    }
+
+    // given t1 is Future<A> | A, then:
+    // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
+    let t1Future = ${getGenericClass(Future)}(t1TypeArg);
+    return $_isSubtype(t1Future, $t2, $isCovariant) &&
+        $_isSubtype(t1TypeArg, $t2, $isCovariant);
+  }
+
+  if ($_isFutureOr($t2)) {
+    // given t2 is Future<A> | A, then:
+    // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
+    let t2TypeArg = $getGenericArgs($t2)[0];
+    var t2Future = ${getGenericClass(Future)}(t2TypeArg);
+    return $_isSubtype($t1, t2Future, $isCovariant) ||
+        $_isSubtype($t1, t2TypeArg, $isCovariant);
   }
 
   // "Traditional" name-based subtype check.  Avoid passing
@@ -792,22 +820,6 @@ isClassSubType(t1, t2, isCovariant) => JS(
       }
     }
     return true;
-  }
-
-  // Handle FutureOr<T>.
-  // It's not really a class type, but it's convenient to handle here.
-  if (raw1 === ${getGenericClass(FutureOr)}) {
-    // given t1 is Future<A> | A, then:
-    // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-    let t1TypeArg = $getGenericArgs($t1)[0];
-    let t1Future = ${getGenericClass(Future)}(t1TypeArg);
-    return $isSubtype(t1Future, $t2) && $isSubtype(t1TypeArg, $t2);
-  } else if (raw2 === ${getGenericClass(FutureOr)}) {
-    // given t2 is Future<A> | A, then:
-    // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
-    let t2TypeArg = $getGenericArgs($t2)[0];
-    let t2Future = ${getGenericClass(Future)}(t2TypeArg);
-    return $isSubtype($t1, t2Future) || $isSubtype($t1, t2TypeArg);
   }
 
   let indefinite = false;
