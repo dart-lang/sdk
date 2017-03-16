@@ -11,8 +11,9 @@ void testJsonIsUpdated() {
   if (packageRoot == null || packageRoot == "") {
     throw new UnsupportedError("This test requires a package root.");
   }
-  var jsonUri = Uri.parse(packageRoot).resolve(
-      'dart_messages/generated/shared_messages.json');
+  var jsonUri = Uri
+      .parse(packageRoot)
+      .resolve('dart_messages/generated/shared_messages.json');
   var jsonPath = jsonUri.toFilePath();
   var content = new io.File(jsonPath).readAsStringSync();
   if (messagesAsJson != content) {

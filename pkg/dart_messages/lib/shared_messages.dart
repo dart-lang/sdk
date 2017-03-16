@@ -40,7 +40,10 @@ class Category {
   Category(this.name);
 }
 
-enum Platform { dart2js, analyzer, }
+enum Platform {
+  dart2js,
+  analyzer,
+}
 const dart2js = Platform.dart2js;
 const analyzer = Platform.analyzer;
 
@@ -269,7 +272,9 @@ final Map<String, Message> MESSAGES = {
       template: "Enums can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword.",
       usedBy: [analyzer],
-      examples: const ["const enum Foo { x } main() {}",]),
+      examples: const [
+        "const enum Foo { x } main() {}",
+      ]),
 
   'CONST_TYPEDEF': new Message(
       id: 'GRKIQE',
@@ -281,7 +286,9 @@ final Map<String, Message> MESSAGES = {
       template: "Type aliases can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword.",
       usedBy: [analyzer],
-      examples: const ["const typedef void Foo(); main() {}",]),
+      examples: const [
+        "const typedef void Foo(); main() {}",
+      ]),
 
   'CONST_AND_FINAL': new Message(
       id: 'GRKIQE',
@@ -325,7 +332,9 @@ final Map<String, Message> MESSAGES = {
       template: "Classes can't be declared inside other classes.",
       howToFix: "Try moving the class to the top-level.",
       usedBy: [analyzer],
-      examples: const ["class A { class B {} } main() { new A(); }",]),
+      examples: const [
+        "class A { class B {} } main() { new A(); }",
+      ]),
 
   'CONSTRUCTOR_WITH_RETURN_TYPE': new Message(
       id: 'VOJBWY',
@@ -333,7 +342,9 @@ final Map<String, Message> MESSAGES = {
       template: "Constructors can't have a return type.",
       howToFix: "Try removing the return type.",
       usedBy: [analyzer, dart2js],
-      examples: const ["class A { int A() {} } main() { new A(); }",]),
+      examples: const [
+        "class A { int A() {} } main() { new A(); }",
+      ]),
 
   'MISSING_EXPRESSION_IN_THROW': new Message(
       id: 'FTGGMJ',
@@ -577,11 +588,15 @@ final Map<String, Message> MESSAGES = {
       id: 'ERUSKD',
       subId: 5,
       specializationOf: 'UNDEFINED_GETTER',
-      categories: [Category.staticTypeWarning,],
+      categories: [
+        Category.staticTypeWarning,
+      ],
       template: "The setter '#{memberName}' in class '#{className}' can"
           " not be used as a getter.",
       usedBy: [dart2js],
-      examples: const ["class A { set x(y) {} } main() { new A().x; }",]),
+      examples: const [
+        "class A { set x(y) {} } main() { new A().x; }",
+      ]),
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -606,7 +621,9 @@ final Map<String, Message> MESSAGES = {
       template: "The operator '#{memberName}' is not defined for the "
           "class '#{className}'.",
       usedBy: [dart2js, analyzer],
-      examples: const ["class A {} main() { new A() + 3; }",]),
+      examples: const [
+        "class A {} main() { new A() + 3; }",
+      ]),
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -636,7 +653,9 @@ final Map<String, Message> MESSAGES = {
       usedBy: [dart2js, analyzer],
       // TODO(eernst): When this.x access is available, add examples here,
       // e.g., "class A { var x; A(this.x) : x = 3; } main() => new A(2);"
-      examples: const ["class A {} main() { new A().x = 499; }",]),
+      examples: const [
+        "class A {} main() { new A().x = 499; }",
+      ]),
 
   'NO_SUCH_SUPER_MEMBER': new Message(
       id: 'ERUSKD',
@@ -753,7 +772,10 @@ final Map<String, Message> MESSAGES = {
       categories: [Category.staticTypeWarning, Category.staticWarning],
       template: "The setter '#{memberName}' is not defined in a superclass "
           "of '#{className}'.",
-      usedBy: [analyzer, dart2js,],
+      usedBy: [
+        analyzer,
+        dart2js,
+      ],
       examples: const [
         """
         class A {}
@@ -792,7 +814,9 @@ final Map<String, Message> MESSAGES = {
       categories: [Category.staticTypeWarning],
       template: "The function '#{memberName}' is not defined.",
       usedBy: [analyzer],
-      examples: const ["main() { foo(); }",]),
+      examples: const [
+        "main() { foo(); }",
+      ]),
 
   'UNDEFINED_STATIC_GETTER_BUT_SETTER': new Message(
       id: 'ERUSKD',
@@ -801,7 +825,9 @@ final Map<String, Message> MESSAGES = {
       categories: [Category.staticTypeWarning],
       template: "Cannot resolve getter '#{name}'.",
       usedBy: [dart2js],
-      examples: const ["set foo(x) {}  main() { foo; }",]),
+      examples: const [
+        "set foo(x) {}  main() { foo; }",
+      ]),
 
   'UNDEFINED_STATIC_SETTER_BUT_GETTER': new Message(
       id: 'ERUSKD',

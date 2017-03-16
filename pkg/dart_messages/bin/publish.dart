@@ -121,6 +121,7 @@ void emitDart2js() {
         }
         return '"$content"';
       }
+
       for (var example in message.examples) {
         if (example is String) {
           out.write("      ");
