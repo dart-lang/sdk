@@ -676,8 +676,8 @@ class ClosureConverter extends Transformer {
     String closureClassName = createNameForClosureClass(procedure.function);
     Class closureClass = null;
     for (TreeNode node in newLibraryMembers) {
-      if (node is Class && (node as Class).name == closureClassName) {
-        closureClass = node as Class;
+      if (node is Class && node.name == closureClassName) {
+        closureClass = node;
       }
     }
     if (closureClass == null) {
