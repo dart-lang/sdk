@@ -887,6 +887,13 @@ class Parser {
     if (!token.isIdentifier()) {
       token =
           reportUnrecoverableError(token, ErrorKind.ExpectedIdentifier)?.next;
+    } else if (token.isBuiltInIdentifier &&
+        !context.isBuiltInIdentifierAllowed) {
+      if (context.inDeclaration) {
+        reportRecoverableError(token, ErrorKind.BuiltInIdentifierInDeclaration);
+      } else if (!optional("dynamic", token)) {
+        reportRecoverableError(token, ErrorKind.BuiltInIdentifierAsType);
+      }
     }
     listener.handleIdentifier(token, context);
     return token.next;
