@@ -125,7 +125,8 @@ abstract class AbstractAnalysisServerIntegrationTest
    */
   bool _subscribedToServerStatus = false;
 
-  List<AnalysisError> getErrors(String pathname) => currentAnalysisErrors[pathname];
+  List<AnalysisError> getErrors(String pathname) =>
+      currentAnalysisErrors[pathname];
 
   AbstractAnalysisServerIntegrationTest() {
     initializeInttestMixin();

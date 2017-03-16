@@ -2498,7 +2498,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * [member] in the given [type] and not finding any member.
    */
   bool _shouldReportMissingMember(DartType type, Element member) {
-    return member == null && type != null && !type.isDynamic && !type.isDartCoreNull;
+    return member == null &&
+        type != null &&
+        !type.isDynamic &&
+        !type.isDartCoreNull;
   }
 
   /**

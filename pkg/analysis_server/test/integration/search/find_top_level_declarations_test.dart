@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class FindTopLevelDeclarationsTest extends AbstractAnalysisServerIntegrationTest {
+class FindTopLevelDeclarationsTest
+    extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
   test_findTopLevelDeclarations() async {

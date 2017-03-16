@@ -418,9 +418,9 @@ part of lib;
       // TODO(28522): Should cause an error for wrong library name.
       expect(errors, hasLength(0));
     } else {
-        expect(errors, hasLength(1));
-        expect(errors[0].errorCode,
-            ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+      expect(errors, hasLength(1));
+      expect(errors[0].errorCode,
+          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
     }
   }
 

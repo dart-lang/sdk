@@ -412,7 +412,6 @@ class SummaryDataStore {
    * the given [unitUriString], or `null` if no such library is in the store.
    */
   List<String> getContainingLibraryUris(String unitUriString) {
-
     // The unit is the defining unit of a library.
     if (linkedMap.containsKey(unitUriString)) {
       return <String>[unitUriString];

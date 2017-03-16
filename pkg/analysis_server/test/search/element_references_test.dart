@@ -29,7 +29,8 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     expect(result.isPotential, isPotential);
   }
 
-  Future<Null> findElementReferences(String search, bool includePotential) async {
+  Future<Null> findElementReferences(
+      String search, bool includePotential) async {
     int offset = findOffset(search);
     await waitForTasksFinished();
     Request request = new SearchFindElementReferencesParams(

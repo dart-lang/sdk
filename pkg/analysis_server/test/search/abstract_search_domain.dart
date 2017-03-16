@@ -96,7 +96,9 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    server.handlers = [new SearchDomainHandler(server),];
+    server.handlers = [
+      new SearchDomainHandler(server),
+    ];
   }
 
   Future waitForSearchResults() {

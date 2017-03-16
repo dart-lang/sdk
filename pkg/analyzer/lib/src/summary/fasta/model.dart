@@ -137,6 +137,7 @@ class TopScope extends Scope {
       references: [new UnlinkedReferenceBuilder()],
       typedefs: [],
       variables: []);
+
   /// Stores publicly visible names exported from the unit.
   final UnlinkedPublicNamespaceBuilder publicNamespace =
       new UnlinkedPublicNamespaceBuilder(names: [], exports: [], parts: []);
@@ -160,6 +161,7 @@ class TopScope extends Scope {
   void expandLazyReferences() {
     _toExpand.forEach((r) => r.expand());
   }
+
   int serializeReference(int prefixIndex, String name) => nameToReference
           .putIfAbsent(prefixIndex, () => <String, int>{})
           .putIfAbsent(name, () {

@@ -164,7 +164,8 @@ class ExecutionDomainHandler implements RequestHandler {
       return new ExecutionSetSubscriptionsResult().toResponse(request.id);
     } else {
       List<ExecutionService> subscriptions =
-          new ExecutionSetSubscriptionsParams.fromRequest(request).subscriptions;
+          new ExecutionSetSubscriptionsParams.fromRequest(request)
+              .subscriptions;
       if (subscriptions.contains(ExecutionService.LAUNCH_DATA)) {
         if (onFileAnalyzed == null) {
           onFileAnalyzed = server.onFileAnalyzed.listen(_fileAnalyzed);

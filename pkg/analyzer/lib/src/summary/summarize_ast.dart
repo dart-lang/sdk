@@ -1108,7 +1108,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.isConst = true;
       b.constCycleSlot = assignSlot();
     }
-    b.isExternal = node.externalKeyword != null || node.body is NativeFunctionBody;
+    b.isExternal =
+        node.externalKeyword != null || node.body is NativeFunctionBody;
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
@@ -1230,7 +1231,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.documentationComment,
         node.metadata,
         node.functionExpression.typeParameters,
-        node.externalKeyword != null || node.functionExpression.body is NativeFunctionBody,
+        node.externalKeyword != null ||
+            node.functionExpression.body is NativeFunctionBody,
         false,
         node.parent is FunctionDeclarationStatement));
   }

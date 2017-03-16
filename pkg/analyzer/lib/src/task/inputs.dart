@@ -282,7 +282,8 @@ abstract class MapTaskInputMixin<K, V> implements MapTaskInput<K, V> {
   TaskInput<List/*<E>*/ > toFlattenList/*<E>*/(
       BinaryFunction<K, dynamic /*element of V*/, dynamic/*=E*/ > mapper) {
     return new MapToFlattenListTaskInput<K, dynamic /*element of V*/,
-        dynamic/*=E*/ >(this as MapTaskInput<K, List /*element of V*/ >, mapper);
+            dynamic/*=E*/ >(
+        this as MapTaskInput<K, List /*element of V*/ >, mapper);
   }
 }
 

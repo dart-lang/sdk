@@ -910,18 +910,21 @@ class RenameClassMemberTest_Driver extends RenameClassMemberTest {
   @failingTest
   @override
   test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() {
-    return super.test_checkFinalConditions_shadowed_byLocalFunction_inSameClass();
+    return super
+        .test_checkFinalConditions_shadowed_byLocalFunction_inSameClass();
   }
 
   @failingTest
   @override
   test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() {
-    return super.test_checkFinalConditions_shadowed_byLocalVariable_inSameClass();
+    return super
+        .test_checkFinalConditions_shadowed_byLocalVariable_inSameClass();
   }
 
   @failingTest
   @override
   test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() {
-    return super.test_checkFinalConditions_shadowed_byLocalVariable_inSubClass();
+    return super
+        .test_checkFinalConditions_shadowed_byLocalVariable_inSubClass();
   }
 }

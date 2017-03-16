@@ -28,10 +28,12 @@ int minified(int x, int y) => min(x, y);
     writeFile(pathname, text);
     standardAnalysisSetup();
 
-    EditOrganizeDirectivesResult result = await sendEditOrganizeDirectives(pathname);
+    EditOrganizeDirectivesResult result =
+        await sendEditOrganizeDirectives(pathname);
     SourceFileEdit edit = result.edit;
     expect(edit.edits, hasLength(1));
-    expect(edit.edits.first.replacement, "import 'dart:async';\nimport 'dart:math");
+    expect(edit.edits.first.replacement,
+        "import 'dart:async';\nimport 'dart:math");
   }
 
   test_organize_directives_no_changes() async {
@@ -46,7 +48,8 @@ int minified(int x, int y) => min(x, y);
     writeFile(pathname, text);
     standardAnalysisSetup();
 
-    EditOrganizeDirectivesResult result = await sendEditOrganizeDirectives(pathname);
+    EditOrganizeDirectivesResult result =
+        await sendEditOrganizeDirectives(pathname);
     SourceFileEdit edit = result.edit;
     expect(edit.edits, isEmpty);
   }

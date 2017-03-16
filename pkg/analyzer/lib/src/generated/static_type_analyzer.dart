@@ -2043,8 +2043,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // Or look it up, instead of jumping backwards through the Member?
     var rawElement = (originalElement as ConstructorMember).baseElement;
 
-    FunctionType constructorType =
-        constructorToGenericFunctionType(rawElement);
+    FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 
     ArgumentList arguments = node.argumentList;
     FunctionType inferred = _inferGenericInvoke(node, constructorType,
