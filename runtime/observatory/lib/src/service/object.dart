@@ -1366,10 +1366,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   void _handleIsolateReloadEvent(ServiceEvent event) {
-    if (event.reloadError != null) {
-      // Failure.
-      print('Reload failed: ${event.reloadError}');
-    } else {
+    if (event.reloadError == null) {
       _cache.clear();
     }
   }
@@ -2113,7 +2110,7 @@ class ServiceEvent extends ServiceObject {
   DartError error;
   String extensionRPC;
   Instance exception;
-  Instance reloadError;
+  DartError reloadError;
   bool atAsyncSuspension;
   Instance inspectee;
   ByteData data;

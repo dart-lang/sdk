@@ -636,9 +636,16 @@ void IsolateReloadContext::Reload(bool force_reload,
 
   BackgroundCompiler::Enable();
 
-  if (result.IsUnwindError() || result.IsUnhandledException()) {
-    // If the tag handler returns with an UnwindError or an UnhandledException
-    // error, propagate it and give up.
+  if (result.IsUnwindError()) {
+    // We can only propagate errors when there are Dart frames on the stack.
+    // TODO(johnmccutchan): Fix dartbug.com/29092.
+    if (thread->top_exit_frame_info() == 0) {
+      FATAL(
+          "Got an Unwind Error in the middle of a reload. "
+          "http://dartbug.com/29092");
+    }
+    // If the tag handler returns with an UnwindError error, propagate it and
+    // give up.
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
