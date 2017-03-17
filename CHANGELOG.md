@@ -1,3 +1,7 @@
+## 0.5.4+1
+
+- Remove files published accidentally.
+
 ## 0.5.4
 
 - Added script to show inferred types of functions and fields on the command
