@@ -256,7 +256,6 @@ abstract class ExpressionListener extends StackListener {
     debugEvent("ConstructorReference $start $periodBeforeName");
     Ref ctorName = popIfNotNull(periodBeforeName);
     assert(ctorName?.prefix == null);
-    // ignore: strong_mode_down_cast_composite
     List<TypeRef> typeArgs = pop();
     Ref type = pop();
     push(new ConstructorName(new TypeRef(type, typeArgs), ctorName?.name));
@@ -322,7 +321,6 @@ abstract class ExpressionListener extends StackListener {
   void endSend(Token beginToken, Token endToken) {
     debugEvent("EndSend");
     if (ignore) return;
-    // ignore: strong_mode_down_cast_composite
     List<Expression> args = pop();
     if (args != null) {
       /* var typeArgs = */ pop();
@@ -414,7 +412,6 @@ abstract class ExpressionListener extends StackListener {
     var constructorName = pop();
     var positional = args.where((a) => a is! NamedArg).toList();
     var named = args.where((a) => a is NamedArg).toList();
-    // ignore: strong_mode_down_cast_composite
     push(new ConstCreation(constructorName, positional, named));
   }
 
@@ -452,10 +449,8 @@ abstract class ExpressionListener extends StackListener {
     debugEvent("LiteralList");
     if (ignore) return;
     var values = popList(count) ?? const <Expression>[];
-    // ignore: strong_mode_down_cast_composite
     List<TypeRef> typeArguments = pop();
     var type = typeArguments?.single;
-    // ignore: strong_mode_down_cast_composite
     push(new ListLiteral(type, values, constKeyword != null));
   }
 
@@ -464,7 +459,6 @@ abstract class ExpressionListener extends StackListener {
     if (ignore) return;
     var values = popList(count) ?? const <KeyValuePair>[];
     var typeArgs = pop() ?? const <TypeRef>[];
-    // ignore: strong_mode_down_cast_composite
     push(new MapLiteral(typeArgs, values, constKeyword != null));
   }
 
@@ -555,7 +549,6 @@ abstract class ExpressionListener extends StackListener {
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
     if (ignore) return;
-    // ignore: strong_mode_down_cast_composite
     List<TypeRef> arguments = pop();
     Ref name = pop();
     push(new TypeRef(name, arguments));
@@ -863,10 +856,8 @@ class SummaryBuilder extends StackListener {
       Token implementsKeyword,
       Token endToken) {
     debugEvent("endClassDeclaration");
-    // ignore: strong_mode_down_cast_composite
     List<EntityRefBuilder> interfaces = popList(interfacesCount);
     EntityRef supertype = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedTypeParamBuilder> typeVariables = pop();
     String name = pop();
     int modifiers = pop();
@@ -878,7 +869,6 @@ class SummaryBuilder extends StackListener {
     s.currentClass
       ..name = name
       ..isAbstract = modifiers & _abstract_flag != 0
-      // ignore: strong_mode_down_cast_composite
       ..annotations = metadata
       ..typeParameters = typeVariables
       ..interfaces = interfaces;
@@ -945,7 +935,6 @@ class SummaryBuilder extends StackListener {
 
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     debugEvent("Enum");
-    // ignore: strong_mode_down_cast_composite
     List<String> constants = popList(count);
     String name = pop();
     List metadata = pop();
@@ -954,7 +943,6 @@ class SummaryBuilder extends StackListener {
     scope = s.parent;
     s.currentEnum
       ..name = name
-      // ignore: strong_mode_down_cast_composite
       ..annotations = metadata;
     s.top.unit.enums.add(s.currentEnum);
 
@@ -970,12 +958,9 @@ class SummaryBuilder extends StackListener {
 
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedCombinator> combinators = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedConfiguration> conditionalUris = pop();
     String uri = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedExpr> metadata = pop();
     topScope.unit.exports
         .add(new UnlinkedExportNonPublicBuilder(annotations: metadata));
@@ -1030,7 +1015,6 @@ class SummaryBuilder extends StackListener {
           name: nameOrFormal,
           kind: _nextParamKind,
           inheritsCovariantSlot: slotIf(type == null),
-          // ignore: strong_mode_down_cast_composite
           annotations: metadata,
           isInitializingFormal: thisKeyword != null,
           type: type));
@@ -1071,12 +1055,9 @@ class SummaryBuilder extends StackListener {
     scope = scope.parent;
     topScope.unit.typedefs.add(new UnlinkedTypedefBuilder(
         name: name,
-        // ignore: strong_mode_down_cast_composite
         typeParameters: typeVariables,
         returnType: returnType,
-        // ignore: strong_mode_down_cast_composite
         parameters: formals,
-        // ignore: strong_mode_down_cast_composite
         annotations: metadata));
 
     _addNameIfPublic(name, ReferenceKind.typedef, typeVariables.length);
@@ -1085,7 +1066,6 @@ class SummaryBuilder extends StackListener {
   void endFunctionTypedFormalParameter(
       Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedParamBuilder> formals = pop();
     if (formals != null) formals.forEach((p) => p.inheritsCovariantSlot = null);
 
@@ -1100,13 +1080,11 @@ class SummaryBuilder extends StackListener {
         kind: _nextParamKind,
         isFunctionTyped: true,
         parameters: formals,
-        // ignore: strong_mode_down_cast_composite
         annotations: metadata,
         type: returnType));
   }
 
   void endHide(_) {
-    // ignore: strong_mode_down_cast_composite
     push(new UnlinkedCombinatorBuilder(hides: pop()));
   }
 
@@ -1118,15 +1096,12 @@ class SummaryBuilder extends StackListener {
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
     debugEvent("endImport");
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedCombinator> combinators = pop();
     String prefix = popIfNotNull(asKeyword);
     int prefixIndex =
         prefix == null ? null : topScope.serializeReference(null, prefix);
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedConfiguration> conditionalUris = pop();
     String uri = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedExpr> metadata = pop(); // metadata
 
     topScope.unit.imports.add(new UnlinkedImportBuilder(
@@ -1154,7 +1129,6 @@ class SummaryBuilder extends StackListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     String name = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedExpr> metadata = pop(); // metadata
 
     topScope.unit.libraryName = name;
@@ -1200,9 +1174,7 @@ class SummaryBuilder extends StackListener {
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
     int asyncModifier = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedParam> formals = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedTypeParamBuilder> typeVariables = pop();
     String name = pop();
     EntityRef returnType = pop();
@@ -1243,7 +1215,6 @@ class SummaryBuilder extends StackListener {
         typeParameters: typeVariables,
         returnType: returnType,
         parameters: formals, // TODO: add inferred slot to args
-        // ignore: strong_mode_down_cast_composite
         annotations: metadata,
         inferredReturnTypeSlot:
             slotIf(returnType == null && !isStatic && !isConstructor)));
@@ -1265,14 +1236,12 @@ class SummaryBuilder extends StackListener {
   void endMixinApplication(Token withKeyword) {
     debugEvent("MixinApplication");
     ClassScope s = scope;
-    // ignore: strong_mode_down_cast_composite
     s.currentClass.mixins = pop();
   }
 
   void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
       Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
-    // ignore: strong_mode_down_cast_composite
     List<EntityRef> interfaces = popIfNotNull(implementsKeyword);
     EntityRef supertype = pop();
     List typeVariables = pop();
@@ -1287,9 +1256,7 @@ class SummaryBuilder extends StackListener {
       ..name = name
       ..isAbstract = modifiers & _abstract_flag != 0
       ..isMixinApplication = true
-      // ignore: strong_mode_down_cast_composite
       ..annotations = metadata
-      // ignore: strong_mode_down_cast_composite
       ..typeParameters = typeVariables
       ..interfaces = interfaces;
     if (supertype != null) {
@@ -1312,7 +1279,6 @@ class SummaryBuilder extends StackListener {
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
     String uri = pop();
-    // ignore: strong_mode_down_cast_composite
     List<UnlinkedExpr> metadata = pop();
     topScope.unit.parts.add(new UnlinkedPartBuilder(annotations: metadata));
     topScope.publicNamespace.parts.add(uri);
@@ -1333,7 +1299,6 @@ class SummaryBuilder extends StackListener {
   }
 
   void endShow(_) {
-    // ignore: strong_mode_down_cast_composite
     push(new UnlinkedCombinatorBuilder(shows: pop()));
   }
 
@@ -1368,9 +1333,7 @@ class SummaryBuilder extends StackListener {
       isStatic: modifiers & _static_flag != 0,
       typeParameters: [], // TODO
       returnType: returnType,
-      // ignore: strong_mode_down_cast_composite
       parameters: formals,
-      // ignore: strong_mode_down_cast_composite
       annotations: metadata,
       inferredReturnTypeSlot: null, // not needed for top-levels
       // skip body.
@@ -1483,7 +1446,6 @@ class SummaryBuilder extends StackListener {
 
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
-    // ignore: strong_mode_down_cast_composite
     List<EntityRef> arguments = pop();
     String name = pop();
 
@@ -1542,7 +1504,6 @@ class SummaryBuilder extends StackListener {
 
   void _endFields(int count, List result, bool isTopLevel) {
     debugEvent('EndFields: $count $isTopLevel');
-    // ignore: strong_mode_down_cast_composite
     List<_InitializedName> fields = popList(count);
     EntityRef type = pop();
     int modifiers = pop();
@@ -1564,7 +1525,6 @@ class SummaryBuilder extends StackListener {
           isStatic: isStatic,
           name: name,
           type: type,
-          // ignore: strong_mode_down_cast_composite
           annotations: metadata,
           initializer: initializer,
           propagatedTypeSlot: slotIf(needsPropagatedType),
