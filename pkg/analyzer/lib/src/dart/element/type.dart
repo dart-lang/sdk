@@ -2660,9 +2660,47 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   int get hashCode => element.hashCode;
 
+  /**
+   * Append a textual representation of this type to the given [buffer]. The set
+   * of [visitedTypes] is used to prevent infinite recursion.
+   */
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
+    super.appendTo(buffer, visitedTypes);
+    TypeParameterElement e = element;
+    if (e is TypeParameterMember &&
+        e.bound != e.baseElement.bound &&
+        !_appendingBounds) {
+      buffer.write(' extends ');
+      // If we're appending bounds already, we don't want to do it recursively.
+      _appendingBounds = true;
+      try {
+        (e.bound as TypeImpl).appendTo(buffer, visitedTypes);
+      } finally {
+        _appendingBounds = false;
+      }
+    }
+  }
+
   @override
-  bool operator ==(Object object) =>
-      object is TypeParameterTypeImpl && (element == object.element);
+  bool operator ==(Object other) {
+    if (other is TypeParameterTypeImpl && element == other.element) {
+      if (_comparingBounds) {
+        // If we're comparing bounds already, then we only need type variable
+        // equality.
+        return true;
+      }
+      _comparingBounds = true;
+      try {
+        return bound == other.bound;
+      } finally {
+        _comparingBounds = false;
+      }
+    }
+    return false;
+  }
+
+  static bool _comparingBounds = false;
+  static bool _appendingBounds = false;
 
   @override
   bool isMoreSpecificThan(DartType s,

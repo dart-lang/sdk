@@ -428,8 +428,8 @@ void testIntSetFrom(setFrom) {
 }
 
 void testCESetFrom(setFrom) {
-  List<Object> ceList = [new CE(2), new CE(3), new CE(5),
-                         new CE(7), new CE(11), new CE(13)];
+  var ceList = [new CE(2), new CE(3), new CE(5),
+                new CE(7), new CE(11), new CE(13)];
 
   Set<CE> set1 = setFrom(ceList);
   Expect.listEquals(ceList, set1.toList()..sort());

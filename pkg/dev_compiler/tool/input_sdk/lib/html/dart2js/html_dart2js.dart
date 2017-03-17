@@ -16703,7 +16703,7 @@ class Events {
 
   Events(this._ptr);
 
-  Stream operator [](String type) {
+  Stream<Event> operator [](String type) {
     return new _EventStream(_ptr, type, false);
   }
 }
@@ -16728,7 +16728,7 @@ class ElementEvents extends Events {
 
   ElementEvents(Element ptr) : super(ptr);
 
-  Stream operator [](String type) {
+  Stream<Event> operator [](String type) {
     if (webkitEvents.keys.contains(type.toLowerCase())) {
       if (Device.isWebKit) {
         return new _ElementEventStreamImpl(
@@ -30223,8 +30223,8 @@ class SelectElement extends HtmlElement {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options = new List<OptionElement>.from(this.querySelectorAll('option'));
-    return new UnmodifiableListView(options);
+    var options = this.querySelectorAll/*<OptionElement>*/('option');
+    return new UnmodifiableListView(options.toList());
   }
 
   List<OptionElement> get selectedOptions {

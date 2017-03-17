@@ -5536,10 +5536,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     return result is JS.Node ? annotate(result, node) : result;
   }
 
-  List/*<T>*/ _visitList/*<T extends AstNode>*/(Iterable/*<T>*/ nodes) {
+  // TODO(jmesserly): we should make sure this only returns JS AST nodes.
+  List/*<R>*/ _visitList/*<T extends AstNode, R>*/(Iterable/*<T>*/ nodes) {
     if (nodes == null) return null;
-    var result = /*<T>*/ [];
-    for (var node in nodes) result.add(_visit(node) as dynamic/*=T*/);
+    var result = /*<R>*/ [];
+    for (var node in nodes) result.add(_visit(node) as dynamic/*=R*/);
     return result;
   }
 

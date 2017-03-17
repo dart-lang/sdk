@@ -387,8 +387,8 @@ class DefaultEquality<S> extends EqualityBase<S> {
   const DefaultEquality();
 }
 class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = const DefaultEquality();
-  const SetEquality([Equality<T> inner = const DefaultEquality()]);
+  final Equality<T> field = /*info:INFERRED_TYPE_ALLOCATION*/const DefaultEquality();
+  const SetEquality([Equality<T> inner = /*info:INFERRED_TYPE_ALLOCATION*/const DefaultEquality()]);
 }
 class C<Q> {
   final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
@@ -2430,10 +2430,10 @@ class D<T, S> extends /*error:IMPLICIT_DYNAMIC_TYPE*/C
     implements /*error:IMPLICIT_DYNAMIC_TYPE*/I {}
 
 C f(D d) {
-  D x = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  D x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
   D<int, dynamic> y = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
   D<dynamic, int> z = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  return new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
+  return /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
 }
 
 class A<T extends num> {}
@@ -3389,7 +3389,7 @@ void main() {
     lOfDs = lOfDs;
     lOfDs = lOfOs;
     lOfDs = lOfAs;
-    lOfDs = new L(); // Reset type propagation.
+    lOfDs = /*info:INFERRED_TYPE_ALLOCATION*/new L(); // Reset type propagation.
   }
   {
     lOfOs = mOfDs;
@@ -3416,7 +3416,7 @@ void main() {
     mOfDs = /*info:DOWN_CAST_IMPLICIT*/lOfDs;
     mOfDs = /*info:DOWN_CAST_IMPLICIT*/lOfOs;
     mOfDs = /*error:INVALID_ASSIGNMENT*/lOfAs;
-    mOfDs = new M(); // Reset type propagation.
+    mOfDs = /*info:INFERRED_TYPE_ALLOCATION*/new M(); // Reset type propagation.
   }
   {
     mOfOs = mOfDs;
@@ -3771,10 +3771,10 @@ test() {
      l = <int>[i, /*info:DOWN_CAST_IMPLICIT*/n, /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/s];
   }
   {
-     List l = /*info:INFERRED_TYPE_LITERAL*/[i];
-     l = /*info:INFERRED_TYPE_LITERAL*/[s];
-     l = /*info:INFERRED_TYPE_LITERAL*/[n];
-     l = /*info:INFERRED_TYPE_LITERAL*/[i, n, s];
+     List l = [i];
+     l = [s];
+     l = [n];
+     l = [i, n, s];
   }
   {
      Map<String, int> m = <String, int>{s: i};
@@ -3787,15 +3787,13 @@ test() {
  // TODO(leafp): We can't currently test for key errors since the
  // error marker binds to the entire entry.
   {
-     Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
-     m = /*info:INFERRED_TYPE_LITERAL*/
-         {s: i,
+     Map m = {s: i};
+     m = {s: s};
+     m = {s: n};
+     m = {s: i,
           s: n,
           s: s};
-     m = /*info:INFERRED_TYPE_LITERAL*/
-         {i: s,
+     m = {i: s,
           n: s,
           s: s};
   }
@@ -3866,14 +3864,11 @@ void f/*<T extends num>*/(T x, T y) {
     q = /*info:DOWN_CAST_COMPOSITE*/z;
     /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
 
-    // This does not capture the type `T extends int`. Instead the return type
-    // is `T extends num`. What happens is we substitute {T/T} on the function
-    // type, and the way it is implemented, this leads back to `T extends num`.
-    // See https://github.com/dart-lang/sdk/issues/27725
+    // This captures the type `T extends int`.
     var g = () => x;
-    g = f;
-    /*info:DYNAMIC_INVOKE*/g()./*error:UNDEFINED_GETTER*/isEven;
-    q = /*info:DOWN_CAST_COMPOSITE*/g();
+    g = /*info:DOWN_CAST_COMPOSITE*/f;
+    g().isEven;
+    q = g();
     int r = x;
   }
 }

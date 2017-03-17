@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/string_source.dart';
 
 /**
  * A type provider that can be used by tests without creating the element model
@@ -282,19 +283,7 @@ class TestTypeProvider extends TypeProviderBase {
   @override
   InterfaceType get futureOrType {
     if (_futureOrType == null) {
-      Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      _context.setContents(asyncSource, "");
-      CompilationUnitElementImpl asyncUnit =
-          new CompilationUnitElementImpl("async.dart");
-      LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-          _context, AstTestFactory.libraryIdentifier2(["dart.async"]));
-      asyncLibrary.definingCompilationUnit = asyncUnit;
-      asyncUnit.librarySource = asyncUnit.source = asyncSource;
-
-      ClassElementImpl futureOr =
-          ElementFactory.classElement2("FutureOr", ["T"]);
-      _futureOrType = futureOr.type;
-      asyncUnit.types = <ClassElement>[futureOr];
+      _initDartAsync();
     }
     return _futureOrType;
   }
@@ -302,18 +291,7 @@ class TestTypeProvider extends TypeProviderBase {
   @override
   InterfaceType get futureType {
     if (_futureType == null) {
-      Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      _context.setContents(asyncSource, "");
-      CompilationUnitElementImpl asyncUnit =
-          new CompilationUnitElementImpl("async.dart");
-      LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-          _context, AstTestFactory.libraryIdentifier2(["dart.async"]));
-      asyncLibrary.definingCompilationUnit = asyncUnit;
-      asyncUnit.librarySource = asyncUnit.source = asyncSource;
-
-      ClassElementImpl future = ElementFactory.classElement2("Future", ["T"]);
-      _futureType = future.type;
-      asyncUnit.types = <ClassElement>[future];
+      _initDartAsync();
     }
     return _futureType;
   }
@@ -436,11 +414,20 @@ class TestTypeProvider extends TypeProviderBase {
   @override
   InterfaceType get nullType {
     if (_nullType == null) {
-      ClassElementImpl nullElement = ElementFactory.classElement2("Null");
+      var nullElement = ElementFactory.classElement2("Null");
       nullElement.constructors = <ConstructorElement>[
         ElementFactory.constructorElement(
             nullElement, '_uninstantiatable', false)..factory = true
       ];
+      // Create a library element for "dart:core"
+      // This enables the "isDartCoreNull" getter.
+      var library = new LibraryElementImpl.forNode(
+          _context, AstTestFactory.libraryIdentifier2(["dart.core"]));
+      var unit = new CompilationUnitElementImpl("core.dart");
+      library.definingCompilationUnit = unit;
+      unit.librarySource = unit.source = new StringSource('', null);
+
+      nullElement.enclosingElement = library;
       _nullType = nullElement.type;
     }
     return _nullType;
@@ -567,6 +554,24 @@ class TestTypeProvider extends TypeProviderBase {
       _undefinedType = UndefinedTypeImpl.instance;
     }
     return _undefinedType;
+  }
+
+  void _initDartAsync() {
+    Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+    _context.setContents(asyncSource, "");
+    CompilationUnitElementImpl asyncUnit =
+        new CompilationUnitElementImpl("async.dart");
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+        _context, AstTestFactory.libraryIdentifier2(["dart.async"]));
+    asyncLibrary.definingCompilationUnit = asyncUnit;
+    asyncUnit.librarySource = asyncUnit.source = asyncSource;
+
+    ClassElementImpl future = ElementFactory.classElement2("Future", ["T"]);
+    _futureType = future.type;
+    asyncUnit.types = <ClassElement>[future];
+    ClassElementImpl futureOr = ElementFactory.classElement2("FutureOr", ["T"]);
+    _futureOrType = futureOr.type;
+    asyncUnit.types = <ClassElement>[future, futureOr];
   }
 
   /**

@@ -4,6 +4,9 @@
 
 import 'dart:collection';
 
+class C extends LinkedListEntry<C> {}
+
 main() {
-  var a = new List.unmodifiable(new LinkedList());
+  var ll = new LinkedList<C>();
+  var a = new List.unmodifiable(ll);
 }

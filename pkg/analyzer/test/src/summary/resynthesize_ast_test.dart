@@ -173,6 +173,21 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     await super.test_circularReference_viaClosures_initializerTypes();
   }
 
+  @override
+  @failingTest
+  test_blockBodiedLambdas_noReturn_topLevel() =>
+      super.test_blockBodiedLambdas_noReturn_topLevel();
+
+  @failingTest
+  @override
+  test_listLiteralsCanInferNull_topLevel() =>
+      super.test_listLiteralsCanInferNull_topLevel();
+
+  @failingTest
+  @override
+  test_mapLiteralsCanInferNull_topLevel() =>
+      super.test_mapLiteralsCanInferNull_topLevel();
+
   test_infer_extractIndex_custom() async {
     var unit = await checkFileElement('''
 class A {

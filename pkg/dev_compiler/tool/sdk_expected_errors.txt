@@ -1,5 +1,14 @@
-[error] Couldn't infer type parameter 'T'; '_ControllerEventSinkWrapper<dynamic>' must be of type 'EventSink<T>'. (dart:async/stream.dart, line 1321, col 16)
-[error] The argument type '_ControllerEventSinkWrapper' can't be assigned to the parameter type 'EventSink<T>'. (dart:async/stream.dart, line 1321, col 53)
+[error] Couldn't infer type parameter 'T'.
+
+Inferred type '_ControllerEventSinkWrapper<dynamic>' does not work with constraints:
+  Argument 'action' inferred as '(EventSink<T>) → dynamic' must be a '(T) → R'.
+The type '_ControllerEventSinkWrapper<dynamic>' was inferred from:
+  Argument 'argument' inferred as '_ControllerEventSinkWrapper<dynamic>' must be a 'T'.
+
+Consider passing explicit type argument(s) to the generic.
+
+ (dart:async/stream.dart, line 1321, col 16)
+[error] The argument type 'ZoneUnaryCallback(EventSink<T>) → dynamic' can't be assigned to the parameter type '(_ControllerEventSinkWrapper<dynamic>) → dynamic'. (dart:async/stream.dart, line 1321, col 32)
 [error] Type parameter bound types must be instantiated. (dart:collection/queue.dart, line 97, col 32)
 [error] Invalid override. The type of '_UnicodeSubsetEncoder.startChunkedConversion' ('(Sink<List<int>>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 106, col 3)
 [error] Invalid override. The type of '_UnicodeSubsetEncoder.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 114, col 3)
@@ -39,7 +48,7 @@
 [error] Base class introduces an invalid override. The type of 'Converter.bind' ('(Stream<List<int>>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<List<int>, List<int>, List<int>, List<int>>.bind' ('(dynamic) → dynamic'). (dart:io/data_transformer.dart, line 295, col 19)
 [error] Invalid override. The type of 'ZLibEncoder.startChunkedConversion' ('(Sink<List<int>>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, List<int>, List<int>, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:io/data_transformer.dart, line 388, col 3)
 [error] The argument type '(RandomAccessFile) → Future<RandomAccessFile>' can't be assigned to the parameter type '(RandomAccessFile) → FutureOr<File>'. (dart:io/file_impl.dart, line 202, col 30)
-[error] The return type 'Future' isn't a 'FutureOr<File>', as defined by the method ''. (dart:io/file_impl.dart, line 591, col 14)
+[error] The return type 'Future<Object>' isn't a 'FutureOr<File>', as defined by the method ''. (dart:io/file_impl.dart, line 591, col 14)
 [error] Undefined name 'lineMode'. (dart:io/stdio.dart, line 57, col 10)
 [error] The name 'echoMode=' is already defined. (dart:io/stdio.dart, line 122, col 12)
 [error] The name 'lineMode=' is already defined. (dart:io/stdio.dart, line 143, col 12)
@@ -49,6 +58,7 @@
 [error] Invalid override. The type of '_WindowsCodePageDecoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:io/string_transformer.dart, line 109, col 3)
 [error] The getter 'packagesBase' isn't defined for the class 'IsolateNatives'. (dart:isolate, line 716, col 61)
 [error] Invalid override. The type of 'JsArray.[]=' ('(Object, E) → void') isn't a subtype of 'JsObject.[]=' ('(Object, dynamic) → dynamic'). (dart:js, line 370, col 3)
+[error] The argument type 'List' can't be assigned to the parameter type 'Iterable<Null>'. (dart:js_util, line 112, col 29)
 [error] The return type 'double' isn't a 'T', as defined by the method 'min'. (dart:math, line 90, col 16)
 [error] The return type 'double' isn't a 'T', as defined by the method 'max'. (dart:math, line 125, col 16)
 [warning] The final variable 'origin' must be initialized. (dart:html, line 187, col 3)

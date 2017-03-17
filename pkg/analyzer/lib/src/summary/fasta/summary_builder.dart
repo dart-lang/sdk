@@ -1399,7 +1399,7 @@ class SummaryBuilder extends StackListener {
 
   void handleModifiers(int count) {
     debugEvent("Modifiers");
-    push((popList(count) ?? const []).fold(0, (a, b) => a | b));
+    push((popList(count) ?? const []).fold/*<int>*/(0, (a, b) => a | b));
   }
 
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {

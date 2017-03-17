@@ -173,6 +173,7 @@ main() {
     var fragment = new DocumentFragment.html(
       "<div class='foo'><a>foo</a><b>bar</b></div>");
     expect(fragment.query(".foo a").tagName, "A");
-    expect(_nodeStrings(fragment.queryAll(".foo *")), equals(["A", "B"]));
+    expect(_nodeStrings(fragment.queryAll<Element>(".foo *")),
+        equals(["A", "B"]));
   });
 }
