@@ -7,6 +7,7 @@ import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
+import 'package:kernel/ast.dart' as ir;
 
 enum IdKind { element, node }
 
@@ -98,6 +99,139 @@ abstract class AstEnumeratorMixin {
         return computeAccessId(node, sendStructure.semantics);
       default:
         return new NodeId(node.getBeginToken().charOffset);
+    }
+  }
+}
+
+/// Visitor that finds the AST node or element corresponding to an [Id].
+class AstIdFinder extends ast.Visitor with AstEnumeratorMixin {
+  Id soughtId;
+  var /*AstElement|ast.Node*/ found;
+  final TreeElements elements;
+
+  AstIdFinder(this.elements);
+
+  /// Visits the subtree of [root] returns the [ast.Node] or [AstElement]
+  /// corresponding to [id].
+  /*AstElement|ast.Node*/ find(ast.Node root, Id id) {
+    soughtId = id;
+    root.accept(this);
+    var result = found;
+    found = null;
+    return result;
+  }
+
+  visit(ast.Node node) {
+    if (found == null) {
+      node?.accept(this);
+    }
+  }
+
+  visitNode(ast.Node node) {
+    if (found == null) {
+      node.visitChildren(this);
+    }
+  }
+
+  visitSend(ast.Send node) {
+    if (found == null) {
+      visitNode(node);
+      Id id = computeNodeId(node);
+      if (id == soughtId) {
+        found = node;
+      }
+    }
+  }
+
+  visitVariableDefinitions(ast.VariableDefinitions node) {
+    if (found == null) {
+      for (ast.Node child in node.definitions) {
+        AstElement element = elements[child];
+        if (element != null) {
+          Id id = computeElementId(element);
+          if (id == soughtId) {
+            found = element;
+            return;
+          }
+        }
+      }
+      visitNode(node);
+    }
+  }
+
+  visitFunctionExpression(ast.FunctionExpression node) {
+    if (found == null) {
+      AstElement element = elements.getFunctionDefinition(node);
+      if (element != null) {
+        Id id = computeElementId(element);
+        if (id == soughtId) {
+          found = element;
+          return;
+        }
+      }
+      visitNode(node);
+    }
+  }
+}
+
+abstract class IrEnumeratorMixin {
+  Id computeElementId(ir.Member node) {
+    String className;
+    if (node.enclosingClass != null) {
+      className = node.enclosingClass.name;
+    }
+    String memberName = node.name.name;
+    if (node is ir.Procedure && node.kind == ir.ProcedureKind.Setter) {
+      memberName += '=';
+    }
+    return new ElementId.internal(memberName, className);
+  }
+
+  Id computeNodeId(ir.Node node) {
+    if (node is ir.MethodInvocation) {
+      assert(node.fileOffset != ir.TreeNode.noOffset);
+      return new NodeId(node.fileOffset);
+    } else if (node is ir.PropertyGet) {
+      assert(node.fileOffset != ir.TreeNode.noOffset);
+      return new NodeId(node.fileOffset);
+    }
+    return null;
+  }
+}
+
+/// Visitor that finds the IR node corresponding to an [Id].
+class IrIdFinder extends ir.Visitor with IrEnumeratorMixin {
+  Id soughtId;
+  ir.Node found;
+
+  /// Visits the subtree of [root] returns the [ir.Node] corresponding to [id].
+  ir.Node find(ir.Node root, Id id) {
+    soughtId = id;
+    root.accept(this);
+    var result = found;
+    found = null;
+    return result;
+  }
+
+  defaultNode(ir.Node node) {
+    if (found == null) {
+      Id id = computeNodeId(node);
+      if (id == soughtId) {
+        found = node;
+        return;
+      }
+      node.visitChildren(this);
+    }
+  }
+
+  defaultMember(ir.Member node) {
+    if (found == null) {
+      Id id = computeElementId(node);
+      if (id == soughtId) {
+        found = node;
+        return;
+      }
+      defaultNode(node);
     }
   }
 }

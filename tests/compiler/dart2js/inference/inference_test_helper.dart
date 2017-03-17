@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/types/types.dart';
@@ -14,11 +16,18 @@ import '../annotated_code_helper.dart';
 import '../memory_compiler.dart';
 import 'enumerator.dart';
 
-checkCode(String annotatedCode) async {
+typedef void CheckMemberFunction(
+    Compiler compiler, Map<Id, String> expectedMap, MemberElement member);
+
+/// Compiles the [annotatedCode] with the provided [options] and calls
+/// [checkMember] for each member in the code providing the map from [Id] to
+/// annotation. Any [Id] left in the map will be reported as missing.
+checkCode(String annotatedCode, CheckMemberFunction checkMember,
+    {List<String> options: const <String>[]}) async {
   AnnotatedCode code = new AnnotatedCode.fromText(annotatedCode, '/*', '*/');
   Map<Id, String> expectedMap = computeExpectedMap(code);
-  Compiler compiler =
-      compilerFor(memorySourceFiles: {'main.dart': code.sourceCode});
+  Compiler compiler = compilerFor(
+      memorySourceFiles: {'main.dart': code.sourceCode}, options: options);
   compiler.stopAfterTypeInference = true;
   Uri mainUri = Uri.parse('memory:main.dart');
   await compiler.run(mainUri);
@@ -33,15 +42,17 @@ checkCode(String annotatedCode) async {
       checkMember(compiler, expectedMap, member);
     }
   });
-  expectedMap.forEach((NodeId id, String expected) {
+  expectedMap.forEach((Id id, String expected) {
     reportHere(
         compiler.reporter,
-        new SourceSpan(mainUri, id.value, id.value + 1),
+        computeSpannable(compiler.elementEnvironment, mainUri, id),
         'expected:${expected},actual:null');
   });
+  Expect.isTrue(expectedMap.isEmpty,
+      "Ids not found: $expectedMap.");
 }
 
-void checkMember(
+void checkMemberAstTypeMasks(
     Compiler compiler, Map<Id, String> expectedMap, MemberElement member) {
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
@@ -50,6 +61,23 @@ void checkMember(
             compiler.globalInference.results)
         .check();
   });
+}
+
+Spannable computeSpannable(
+    ElementEnvironment elementEnvironment, Uri mainUri, Id id) {
+  if (id is NodeId) {
+    return new SourceSpan(mainUri, id.value, id.value + 1);
+  } else if (id is ElementId) {
+    LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
+    if (id.className != null) {
+      ClassEntity cls =
+          elementEnvironment.lookupClass(library, id.className, required: true);
+      return elementEnvironment.lookupClassMember(cls, id.memberName);
+    } else {
+      return elementEnvironment.lookupLibraryMember(library, id.memberName);
+    }
+  }
+  throw new UnsupportedError('Unsupported id $id.');
 }
 
 Map<Id, String> computeExpectedMap(AnnotatedCode code) {

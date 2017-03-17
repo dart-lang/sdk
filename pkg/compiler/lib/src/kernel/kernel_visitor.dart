@@ -1325,7 +1325,9 @@ class KernelVisitor extends Object
   ir.PropertyGet visitDynamicPropertyGet(
       Send node, Node receiver, Name name, _) {
     return associateNode(
-        new ir.PropertyGet(visitForValue(receiver), nameToIrName(name)), node);
+        new ir.PropertyGet(visitForValue(receiver), nameToIrName(name))
+          ..fileOffset = node.selector.getBeginToken().charOffset,
+        node);
   }
 
   @override
@@ -1333,7 +1335,8 @@ class KernelVisitor extends Object
       Send node, Node receiver, NodeList arguments, Selector selector, _) {
     return associateNode(
         buildInvokeSelector(
-            visitForValue(receiver), selector, buildArguments(arguments)),
+            visitForValue(receiver), selector, buildArguments(arguments))
+          ..fileOffset = node.selector.getBeginToken().charOffset,
         node);
   }
 
