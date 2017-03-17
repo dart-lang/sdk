@@ -32,6 +32,7 @@ import 'package:source_maps/source_maps.dart';
 
 import '../analyzer/context.dart' show AnalyzerOptions, createSourceFactory;
 import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' show js;
 import 'code_generator.dart' show CodeGenerator;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
 import 'extension_types.dart' show ExtensionTypeSet;
@@ -509,8 +510,10 @@ class JSModuleFile {
     }
 
     var text = printer.getText();
-    var rawSourceMap = options.inlineSourceMap ? builtMap : null;
-    text = text.replaceFirst(sourceMapHoleID, JSON.encode(rawSourceMap));
+    var rawSourceMap = options.inlineSourceMap
+        ? js.escapedString(JSON.encode(builtMap), "'").value
+        : 'null';
+    text = text.replaceFirst(sourceMapHoleID, rawSourceMap);
 
     return new JSModuleCode(text, builtMap);
   }
