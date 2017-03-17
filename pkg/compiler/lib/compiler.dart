@@ -29,7 +29,7 @@ import 'src/options.dart' show CompilerOptions;
  * expected to hold a zero element at the last position. If this is not the
  * case, the entire data structure is copied before scanning.
  */
-typedef Future/*<String | List<int>>*/ CompilerInputProvider(Uri uri);
+typedef Future /* <String | List<int>> */ CompilerInputProvider(Uri uri);
 
 /// Deprecated, please use [CompilerInputProvider] instead.
 typedef Future<String> ReadStringFromUri(Uri uri);
