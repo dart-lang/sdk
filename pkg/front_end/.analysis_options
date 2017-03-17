@@ -10,11 +10,6 @@ analyzer:
     # TODO(sigmund): enable once #28601 is fixed
     strong_mode_invalid_field_override: ignore
 
-    # Omits warnings for implicit casts with generics like `List<T> x = list;`,
-    # also removes warnings due to a bad interaction between inference of
-    # guarded type arguments and downward cast warnings (see #28646).
-    strong_mode_down_cast_composite: ignore
-
     # Allow having TODOs in the code
     todo: ignore
 
