@@ -1622,7 +1622,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (target is Constructor) {
       typeParameters = target.enclosingClass.typeParameters;
     }
-    if (!addDefaultArguments(target.function, arguments, typeParameters)) {
+    if (!checkArguments(target.function, arguments, typeParameters)) {
       return throwNoSuchMethodError(target.name.name, arguments, charOffset);
     }
     if (target is Constructor) {
@@ -1632,30 +1632,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
-  bool addDefaultArguments(FunctionNode function, Arguments arguments,
+  bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters) {
-    bool missingInitializers = false;
-
-    Expression defaultArgumentFrom(Expression expression) {
-      if (expression == null) {
-        missingInitializers = true;
-        return null;
-      }
-      cloner ??= new CloneVisitor();
-      return cloner.clone(expression);
-    }
 
     if (arguments.positional.length < function.requiredParameterCount ||
         arguments.positional.length > function.positionalParameters.length) {
       return false;
-    }
-    for (int i = arguments.positional.length;
-        i < function.positionalParameters.length;
-        i++) {
-      var expression =
-          defaultArgumentFrom(function.positionalParameters[i].initializer);
-      expression?.parent = arguments;
-      arguments.positional.add(expression);
     }
     Map<String, VariableDeclaration> names;
     if (function.namedParameters.isNotEmpty) {
@@ -1673,14 +1655,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       }
     }
-    if (names != null) {
-      for (String name in names.keys) {
-        VariableDeclaration parameter = names[name];
-        arguments.named.add(new NamedExpression(
-            name, defaultArgumentFrom(parameter.initializer))
-          ..parent = arguments);
-      }
-    }
     if (typeParameters.length != arguments.types.length) {
       arguments.types.clear();
       for (int i = 0; i < typeParameters.length; i++) {
@@ -1688,9 +1662,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
 
-    if (missingInitializers) {
-      library.addArgumentsWithMissingDefaultValues(arguments, function);
-    }
     return true;
   }
 

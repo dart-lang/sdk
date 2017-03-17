@@ -75,5 +75,5 @@ static method main() → dynamic {
   on core::NoSuchMethodError catch(dynamic e) {
     core::print("As expected: ${e}");
   }
-  core::print(core::int::parse("42", radix: null, onError: null));
+  core::print(core::int::parse("42"));
 }
