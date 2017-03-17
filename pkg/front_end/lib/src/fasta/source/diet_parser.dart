@@ -16,8 +16,7 @@ import '../parser/parser.dart' show optional;
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
-  DietParser(Listener listener, {bool asyncAwaitKeywordsEnabled: false})
-      : super(listener, asyncAwaitKeywordsEnabled: asyncAwaitKeywordsEnabled);
+  DietParser(Listener listener) : super(listener);
 
   Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
     return skipFormals(token);

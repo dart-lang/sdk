@@ -98,7 +98,7 @@ class ConstExpressionBuilder extends ExpressionListener {
   final Uri uri;
   Parser parser;
   ConstExpressionBuilder(this.uri) {
-    parser = new Parser(this, asyncAwaitKeywordsEnabled: true);
+    parser = new Parser(this);
   }
   bool get forConst => true;
 
@@ -610,7 +610,7 @@ class InitializerBuilder extends ExpressionListener {
   int _inArguments = 0;
 
   InitializerBuilder(this.uri) {
-    parser = new Parser(this, asyncAwaitKeywordsEnabled: true);
+    parser = new Parser(this);
   }
 
   bool get ignore => super.ignore || _inArguments > 0;

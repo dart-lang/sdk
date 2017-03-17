@@ -66,6 +66,8 @@ import '../scanner/characters.dart' show $CLOSE_CURLY_BRACKET;
 
 import '../util/link.dart' show Link;
 
+import 'async_modifier.dart' show AsyncModifier;
+
 import 'listener.dart' show Listener;
 
 import 'error_kind.dart' show ErrorKind;
@@ -116,9 +118,22 @@ class Parser {
 
   bool mayParseFunctionExpressions = true;
 
-  bool asyncAwaitKeywordsEnabled;
+  /// Represents parser state: what asynchronous syntax is allowed in the
+  /// function being currently parsed. In rare situations, this can be set by
+  /// external clients, for example, to parse an expression outside a function.
+  AsyncModifier asyncState = AsyncModifier.Sync;
 
-  Parser(this.listener, {this.asyncAwaitKeywordsEnabled: false});
+  Parser(this.listener);
+
+  bool get inGenerator {
+    return asyncState == AsyncModifier.AsyncStar ||
+        asyncState == AsyncModifier.SyncStar;
+  }
+
+  bool get inAsync {
+    return asyncState == AsyncModifier.Async ||
+        asyncState == AsyncModifier.AsyncStar;
+  }
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -1299,10 +1314,10 @@ class Parser {
       listener.handleNoTypeVariables(token);
     }
     token = parseFormalParametersOpt(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     token = parseFunctionBody(token, false, externalModifier != null);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     Token endToken = token;
     token = token.next;
     listener.endTopLevelMethod(start, getOrSet, endToken);
@@ -1857,7 +1872,7 @@ class Parser {
     }
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -1865,7 +1880,7 @@ class Parser {
       token = parseFunctionBody(
           token, false, staticModifier == null || externalModifier != null);
     }
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     listener.endMethod(getOrSet, start, token);
     return token.next;
   }
@@ -1953,10 +1968,10 @@ class Parser {
     }
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     token = parseFunctionBody(token, false, true);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     listener.endFunction(getOrSet, token);
     return token.next;
   }
@@ -1964,11 +1979,11 @@ class Parser {
   Token parseUnnamedFunction(Token token) {
     listener.beginUnnamedFunction(token);
     token = parseFormalParameters(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     listener.endUnnamedFunction(token);
     return isBlock ? token.next : token;
   }
@@ -1990,11 +2005,11 @@ class Parser {
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     listener.endFunction(null, token);
     return isBlock ? token.next : token;
   }
@@ -2130,20 +2145,22 @@ class Parser {
   Token parseAsyncModifier(Token token) {
     Token async;
     Token star;
-    asyncAwaitKeywordsEnabled = false;
+    asyncState = AsyncModifier.Sync;
     if (optional('async', token)) {
-      asyncAwaitKeywordsEnabled = true;
       async = token;
       token = token.next;
       if (optional('*', token)) {
+        asyncState = AsyncModifier.AsyncStar;
         star = token;
         token = token.next;
+      } else {
+        asyncState = AsyncModifier.Async;
       }
     } else if (optional('sync', token)) {
       async = token;
       token = token.next;
       if (optional('*', token)) {
-        asyncAwaitKeywordsEnabled = true;
+        asyncState = AsyncModifier.SyncStar;
         star = token;
         token = token.next;
       } else {
@@ -2179,7 +2196,7 @@ class Parser {
       return parseVariablesDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
-    } else if (asyncAwaitKeywordsEnabled && identical(value, 'await')) {
+    } else if (asyncState != AsyncModifier.Sync && identical(value, 'await')) {
       if (identical(token.next.stringValue, 'for')) {
         return parseForStatement(token, token.next);
       } else {
@@ -2210,7 +2227,7 @@ class Parser {
       return parseAssertStatement(token);
     } else if (identical(value, ';')) {
       return parseEmptyStatement(token);
-    } else if (asyncAwaitKeywordsEnabled && identical(value, 'yield')) {
+    } else if (asyncState != AsyncModifier.Sync && identical(value, 'yield')) {
       return parseYieldStatement(token);
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
@@ -2613,7 +2630,7 @@ class Parser {
   Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
-    if (asyncAwaitKeywordsEnabled && optional('await', token)) {
+    if (asyncState != AsyncModifier.Sync && optional('await', token)) {
       return parseAwaitExpression(token, allowCascades);
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
@@ -2692,7 +2709,7 @@ class Parser {
         return parseConstExpression(token);
       } else if (value == 'void') {
         return parseFunctionExpression(token);
-      } else if (asyncAwaitKeywordsEnabled &&
+      } else if (asyncState != AsyncModifier.Sync &&
           (value == 'yield' || value == 'async')) {
         return expressionExpected(token);
       } else if (token.isIdentifier()) {

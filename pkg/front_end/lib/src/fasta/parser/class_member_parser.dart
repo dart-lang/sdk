@@ -13,8 +13,7 @@ import 'parser.dart' show Parser;
 /// Parser similar to [TopLevelParser] but also parses class members (excluding
 /// their bodies).
 class ClassMemberParser extends Parser {
-  ClassMemberParser(Listener listener, {bool asyncAwaitKeywordsEnabled: false})
-      : super(listener, asyncAwaitKeywordsEnabled: asyncAwaitKeywordsEnabled);
+  ClassMemberParser(Listener listener) : super(listener);
 
   Token parseExpression(Token token) => skipExpression(token);
 
