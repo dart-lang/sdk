@@ -8,9 +8,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-import '../builder/builder.dart' show Builder;
+import 'package:front_end/src/fasta/builder/builder.dart' show Builder;
 
-import '../errors.dart' show internalError;
+import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:analyzer/src/generated/source.dart';
 
 abstract class MockElement extends Builder implements Element, LocalElement {

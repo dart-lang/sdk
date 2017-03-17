@@ -4,20 +4,20 @@
 
 library fasta.analyzer.token_utils;
 
-import '../parser/error_kind.dart' show ErrorKind;
+import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
 
-import '../scanner/error_token.dart' show ErrorToken;
+import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 
-import '../scanner/keyword.dart' show Keyword;
+import 'package:front_end/src/fasta/scanner/keyword.dart' show Keyword;
 
-import '../scanner/precedence.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart';
 
-import '../scanner/token.dart'
+import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, KeywordToken, StringToken, SymbolToken, Token;
 
-import '../scanner/token_constants.dart';
+import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
-import '../../scanner/token.dart' as analyzer
+import 'package:front_end/src/scanner/token.dart' as analyzer
     show
         BeginToken,
         BeginTokenWithComment,
@@ -30,11 +30,11 @@ import '../../scanner/token.dart' as analyzer
         Token,
         TokenWithComment;
 
-import '../../scanner/errors.dart' as analyzer show ScannerErrorCode;
+import 'package:front_end/src/scanner/errors.dart' as analyzer show ScannerErrorCode;
 
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 
-import '../errors.dart' show internalError;
+import 'package:front_end/src/fasta/errors.dart' show internalError;
 
 /// Class capable of converting a stream of Fasta tokens to a stream of analyzer
 /// tokens.

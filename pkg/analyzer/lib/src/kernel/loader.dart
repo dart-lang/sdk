@@ -8,9 +8,12 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -22,11 +25,10 @@ import 'package:kernel/application_root.dart';
 import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
 
-import '../ast.dart' as ast;
-import '../target/targets.dart' show Target;
-import '../type_algebra.dart';
-import 'analyzer.dart';
-import 'ast_from_analyzer.dart';
+import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/target/targets.dart' show Target;
+import 'package:kernel/type_algebra.dart';
+import 'package:analyzer/src/kernel/ast_from_analyzer.dart';
 
 /// Options passed to the Dart frontend.
 class DartOptions {

@@ -4,7 +4,7 @@
 
 library fasta.analyzer.element_store;
 
-import 'package:kernel/analyzer/loader.dart' show ReferenceLevelLoader;
+import 'package:analyzer/src/kernel/loader.dart' show ReferenceLevelLoader;
 
 import 'package:kernel/ast.dart';
 
@@ -16,11 +16,11 @@ import 'package:analyzer/dart/element/element.dart';
 
 import 'package:analyzer/dart/element/type.dart' as analyzer;
 
-import '../errors.dart' show internalError;
+import 'package:front_end/src/fasta/errors.dart' show internalError;
 
-import '../kernel/kernel_builder.dart';
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 
-import '../dill/dill_member_builder.dart';
+import 'package:front_end/src/fasta/dill/dill_member_builder.dart';
 
 import 'mock_element.dart';
 

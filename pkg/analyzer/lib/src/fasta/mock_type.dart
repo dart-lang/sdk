@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
 
-import '../errors.dart' show internalError;
+import 'package:front_end/src/fasta/errors.dart' show internalError;
 
 abstract class MockType extends DartType {
   String get displayName => internalError("not supported.");

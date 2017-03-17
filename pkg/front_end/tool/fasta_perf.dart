@@ -8,7 +8,7 @@ library front_end.tool.fasta_perf;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:front_end/src/fasta/analyzer/ast_builder.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;

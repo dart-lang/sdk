@@ -12,7 +12,7 @@ import '../target_implementation.dart' show TargetImplementation;
 
 import '../source/source_loader.dart' show SourceLoader;
 
-import 'element_store.dart' show ElementStore;
+import 'package:analyzer/src/fasta/element_store.dart' show ElementStore;
 
 import 'analyzer_diet_listener.dart' show AnalyzerDietListener;
 

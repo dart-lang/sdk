@@ -8,13 +8,13 @@ import 'package:analyzer/analyzer.dart' show AstNode;
 
 import 'package:analyzer/dart/element/element.dart' show LocalElement;
 
-import 'package:kernel/analyzer/ast_from_analyzer.dart' show ExpressionScope;
+import 'package:analyzer/src/kernel/ast_from_analyzer.dart' show ExpressionScope;
 
 import 'package:kernel/ast.dart' show Library, TreeNode;
 
-import '../builder/scope.dart' show Scope;
+import 'package:front_end/src/fasta/builder/scope.dart' show Scope;
 
-import '../kernel/kernel_builder.dart'
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelFormalParameterBuilder;
 
 import 'element_store.dart' show ElementStore;

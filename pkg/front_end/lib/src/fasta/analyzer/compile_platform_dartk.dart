@@ -18,7 +18,7 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
-import 'package:kernel/analyzer/loader.dart'
+import 'package:analyzer/src/kernel/loader.dart'
     show DartLoader, DartOptions, createDartSdk;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;

@@ -3,14 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.analyzer.ast_from_analyzer;
 
-import '../ast.dart' as ast;
-import '../frontend/accessors.dart';
-import '../frontend/super_initializers.dart';
-import '../log.dart';
-import '../type_algebra.dart';
-import '../transformations/flags.dart';
-import 'analyzer.dart';
-import 'loader.dart';
+import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/frontend/accessors.dart';
+import 'package:kernel/frontend/super_initializers.dart';
+import 'package:kernel/log.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/transformations/flags.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/src/generated/parser.dart';

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/analyzer/token_utils.dart';
+import 'package:analyzer/src/fasta/token_utils.dart';
 import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
