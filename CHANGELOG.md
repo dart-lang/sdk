@@ -5,16 +5,19 @@
   importing library.
 
 ### Core library changes
-* `dart:core`: Added `Uri.isScheme` function to check the scheme of a URI.
-   Example: `uri.isScheme("http")`. Ignores case when comparing.
-* `dart:core`: Make `UriData.parse` validate its input better.
-  If the data is base-64 encoded, the data is normalized wrt.
-  alphabet and padding, and it contains invalid base-64 data,
-  parsing fails. Also normalizes non-base-64 data.
-* `dart:io`: Added functions `File.lastAccessed`, `File.lastAccessedSync`,
-  `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
-  and `File.setLastAccessedSync`.
-* `dart:io`: Added `{Stdin,Stdout}.supportsAnsiEscapes`.
+
+* `dart:core`
+  * Added `Uri.isScheme` function to check the scheme of a URI.
+    Example: `uri.isScheme("http")`. Ignores case when comparing.
+  * Make `UriData.parse` validate its input better.
+    If the data is base-64 encoded, the data is normalized wrt.
+    alphabet and padding, and it contains invalid base-64 data,
+    parsing fails. Also normalizes non-base-64 data.
+* `dart:io`
+  * Added functions `File.lastAccessed`, `File.lastAccessedSync`,
+    `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
+    and `File.setLastAccessedSync`.
+  * Added Added `{Stdin,Stdout}.supportsAnsiEscapes`.
 
 ### Dart VM
 * Calls to `print()` and `Stdout.write*()` now correctly print unicode
@@ -24,20 +27,23 @@
 ### Tool changes
 
 * Analysis
-
-  * The `dartanalyzer` now follows the same rules as the analysis server to find an analysis options file,
-    stopping when an analysis options file is found:
+  * `dartanalyzer` now follows the same rules as the analysis server to find
+    an analysis options file, stopping when an analysis options file is found:
     * Search up the directory hierarchy looking for an analysis options file.
-    * If analyzing a project referencing the [Flutter](https://flutter.io/) package, then use the
+    * If analyzing a project referencing the [Flutter](https://flutter.io/) 
+      package, then use the
       [default Flutter analysis options](https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml)
       found in `package:flutter`.
-    * If in a Bazel workspace, then use the analysis options in `package:dart.analysis_options/default.yaml` if it exists.
+    * If in a Bazel workspace, then use the analysis options in 
+      `package:dart.analysis_options/default.yaml` if it exists.
     * Use the default analysis options rules.
   * In addition, specific to `dartanalyzer`:
-    * an analysis options file can be specified on the command line via `--options`
-      and that file will be used instead of searching for an analysis options file.
-    * any analysis option specified on the command line (e.g. `--strong` or `--no-strong`)
-      takes precedence over any corresponding value specified in the analysis options file.
+    * an analysis options file can be specified on the command line via 
+      `--options` and that file will be used instead of searching for an
+      analysis options file.
+    * any analysis option specified on the command line
+      (e.g. `--strong` or `--no-strong`) takes precedence over any corresponding
+      value specified in the analysis options file.
 
 * Dartium, dart2js, and DDC
 
@@ -47,18 +53,35 @@
     platforms (like package `http`). This might change again when configuration
     specific imports are supported.
 
+* Pub
+  * `pub publish`
+    * Warns if a package imports a package that's not a dependency from within
+      `lib/` or `bin/`, or a package that's not a dev dependency from within
+      `test/` or `tool/`.
+    * No longer produces "UID too large" errors on OS X. All packages are now
+      uploaded with the user and group names set to "pub".
+    * No longer fails with a stack overflow when uploading a package that uses
+      Git submodules.
+  * `pub get` and `pub upgrade`
+    * Produce more informative error messages if they're run directly in a
+      package that uses Flutter.
+    * Properly unlock SDK and path dependencies if they have a new version
+      that's also valid according to the user's pubspec.
+
 ## 1.22.0
 
 ### Language
 
-  * Breaking change: ['Generalized tear-offs'](https://github.com/gbracha/generalizedTearOffs/blob/master/proposal.md)
+  * Breaking change: 
+    ['Generalized tear-offs'](https://github.com/gbracha/generalizedTearOffs/blob/master/proposal.md)
     are no longer supported, and will cause errors. We updated the language spec
     and added warnings in 1.21, and are now taking the last step to fully
     de-support them. They were previously only supported in the VM, and there
     are almost no known uses of them in the wild.
 
   * The `assert()` statement has been expanded to support an optional second
-    `message` argument (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
+    `message` argument 
+    (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
 
     The message is displayed if the assert fails. It can be any object, and it
     is accessible as `AssertionError.message`. It can be used to provide more
