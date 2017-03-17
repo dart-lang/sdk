@@ -150,7 +150,6 @@ Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
-Language/Expressions/Await_Expressions/syntax_t06: Crash
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
