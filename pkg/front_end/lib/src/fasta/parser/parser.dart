@@ -2694,23 +2694,23 @@ class Parser {
     } else if (kind == HASH_TOKEN) {
       return parseLiteralSymbol(token);
     } else if (kind == KEYWORD_TOKEN) {
-      final value = token.stringValue;
-      if (value == 'true' || value == 'false') {
+      final String value = token.stringValue;
+      if (identical(value, "true") || identical(value, "false")) {
         return parseLiteralBool(token);
-      } else if (value == 'null') {
+      } else if (identical(value, "null")) {
         return parseLiteralNull(token);
-      } else if (value == 'this') {
+      } else if (identical(value, "this")) {
         return parseThisExpression(token);
-      } else if (value == 'super') {
+      } else if (identical(value, "super")) {
         return parseSuperExpression(token);
-      } else if (value == 'new') {
+      } else if (identical(value, "new")) {
         return parseNewExpression(token);
-      } else if (value == 'const') {
+      } else if (identical(value, "const")) {
         return parseConstExpression(token);
-      } else if (value == 'void') {
+      } else if (identical(value, "void")) {
         return parseFunctionExpression(token);
       } else if (asyncState != AsyncModifier.Sync &&
-          (value == 'yield' || value == 'async')) {
+          (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
       } else if (token.isIdentifier()) {
         return parseSendOrFunctionLiteral(token);
@@ -2719,7 +2719,7 @@ class Parser {
       }
     } else if (kind == OPEN_PAREN_TOKEN) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
-    } else if (kind == OPEN_SQUARE_BRACKET_TOKEN || token.stringValue == '[]') {
+    } else if (kind == OPEN_SQUARE_BRACKET_TOKEN || optional('[]', token)) {
       listener.handleNoTypeArguments(token);
       return parseLiteralListSuffix(token, null);
     } else if (kind == OPEN_CURLY_BRACKET_TOKEN) {
@@ -2747,7 +2747,8 @@ class Parser {
         (identical(kind, FUNCTION_TOKEN) ||
             identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
             (identical(kind, KEYWORD_TOKEN) &&
-                (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync')))) {
+                (optional('async', nextToken) ||
+                    optional('sync', nextToken))))) {
       listener.handleNoTypeVariables(token);
       return parseUnnamedFunction(token);
     } else {
@@ -2866,7 +2867,7 @@ class Parser {
       if (identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
           (identical(kind, KEYWORD_TOKEN) &&
-              (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync'))) {
+              (optional('async', nextToken) || optional('sync', nextToken)))) {
         return parseUnnamedFunction(token);
       }
       // Fall through.
