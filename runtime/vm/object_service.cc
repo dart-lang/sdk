@@ -1502,7 +1502,8 @@ void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "StackTrace");
   jsobj.AddServiceId(*this);
-  jsobj.AddProperty("valueAsString", ToCString());
+  intptr_t idx = 0;
+  jsobj.AddProperty("valueAsString", ToCStringInternal(*this, &idx));
 }
 
 

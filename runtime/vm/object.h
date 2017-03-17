@@ -8444,10 +8444,12 @@ class StackTrace : public Instance {
                             const StackTrace& async_link,
                             Heap::Space space = Heap::kNew);
 
- private:
-  static const char* ToDartCString(const StackTrace& stack_trace_in);
-  static const char* ToDwarfCString(const StackTrace& stack_trace_in);
+  // The argument 'max_frames' limits the number of printed frames.
+  static const char* ToCStringInternal(const StackTrace& stack_trace,
+                                       intptr_t* frame_index,
+                                       intptr_t max_frames = kMaxInt32);
 
+ private:
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
   bool expand_inlined() const;

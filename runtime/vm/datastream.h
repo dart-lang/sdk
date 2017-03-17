@@ -388,29 +388,6 @@ class WriteStream : public ValueObject {
     va_list args;
     va_start(args, format);
     VPrint(format, args);
-    va_end(args);
-  }
-
-  void VPrint(const char* format, va_list args) {
-    // Measure.
-    va_list measure_args;
-    va_copy(measure_args, args);
-    intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
-    va_end(measure_args);
-
-    // Alloc.
-    if ((end_ - current_) < (len + 1)) {
-      Resize(len + 1);
-    }
-    ASSERT((end_ - current_) >= (len + 1));
-
-    // Print.
-    va_list print_args;
-    va_copy(print_args, args);
-    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
-                 print_args);
-    va_end(print_args);
-    current_ += len;  // Not len + 1 to swallow the terminating NUL.
   }
 
   template <typename T>
@@ -449,6 +426,28 @@ class WriteStream : public ValueObject {
     current_size_ = new_size;
     end_ = *buffer_ + new_size;
     ASSERT(end_ > *buffer_);
+  }
+
+  void VPrint(const char* format, va_list args) {
+    // Measure.
+    va_list measure_args;
+    va_copy(measure_args, args);
+    intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+    va_end(measure_args);
+
+    // Alloc.
+    if ((end_ - current_) < (len + 1)) {
+      Resize(len + 1);
+    }
+    ASSERT((end_ - current_) >= (len + 1));
+
+    // Print.
+    va_list print_args;
+    va_copy(print_args, args);
+    OS::VSNPrint(reinterpret_cast<char*>(current_), len + 1, format,
+                 print_args);
+    va_end(print_args);
+    current_ += len;  // Not len + 1 to swallow the terminating NUL.
   }
 
  private:

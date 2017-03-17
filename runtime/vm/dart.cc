@@ -707,10 +707,6 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
 #endif
   }
 
-  if (FLAG_dwarf_stack_traces) {
-    buffer.AddString(" dwarf-stack-traces");
-  }
-
   return buffer.Steal();
 }
 

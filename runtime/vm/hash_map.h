@@ -39,9 +39,6 @@ class BaseDirectChainedHashMap : public B {
       typename KeyValueTrait::Key key) const;
 
   typename KeyValueTrait::Pair* Lookup(typename KeyValueTrait::Key key) const;
-  bool HasKey(typename KeyValueTrait::Key key) const {
-    return Lookup(key) != NULL;
-  }
 
   bool IsEmpty() const { return count_ == 0; }
 
@@ -381,10 +378,6 @@ class DirectChainedHashMap
   DirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
             ASSERT_NOTNULL(Thread::Current()->zone())) {}
-
-  explicit DirectChainedHashMap(Zone* zone)
-      : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
-            ASSERT_NOTNULL(zone)) {}
 };
 
 

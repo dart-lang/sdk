@@ -9,7 +9,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/dart_entry.h"
-#include "vm/dwarf.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/lockers.h"
@@ -773,27 +772,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 }
 
 
-AssemblyImageWriter::AssemblyImageWriter(uint8_t** assembly_buffer,
-                                         ReAlloc alloc,
-                                         intptr_t initial_size)
-    : ImageWriter(),
-      assembly_stream_(assembly_buffer, alloc, initial_size),
-      text_size_(0),
-      dwarf_(NULL) {
-#if defined(DART_PRECOMPILER)
-  Zone* zone = Thread::Current()->zone();
-  dwarf_ = new (zone) Dwarf(zone, &assembly_stream_);
-#endif
-}
-
-
-void AssemblyImageWriter::Finalize() {
-#ifdef DART_PRECOMPILER
-  dwarf_->Write();
-#endif
-}
-
-
 static void EnsureIdentifier(char* label) {
   for (char c = *label; c != '\0'; c = *++label) {
     if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
@@ -812,7 +790,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
   assembly_stream_.Print(".text\n");
   assembly_stream_.Print(".globl %s\n", instructions_symbol);
-
   // Start snapshot at page boundary.
   ASSERT(VirtualMemory::PageSize() >= OS::kMaxPreferredCodeAlignment);
   assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
@@ -826,8 +803,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   for (intptr_t i = 1; i < header_words; i++) {
     WriteWordLiteralText(0);
   }
-
-  FrameUnwindPrologue();
 
   Object& owner = Object::Handle(zone);
   String& str = String::Handle(zone);
@@ -845,6 +820,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
       uword entry = beginning + Instructions::HeaderSize();
 
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+
       // Write Instructions with the mark and VM heap bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
       marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
@@ -853,11 +831,13 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
 
-      WriteByteSequence(beginning, entry);
+      for (uword* cursor = reinterpret_cast<uword*>(beginning);
+           cursor < reinterpret_cast<uword*>(entry); cursor++) {
+        WriteWordLiteralText(*cursor);
+      }
     }
 
     // 2. Write a label at the entry point.
-    // Linux's perf uses these labels.
     owner = code.owner();
     if (owner.IsNull()) {
       const char* name = StubCode::NameOfStub(insns.UncheckedEntryPoint());
@@ -876,12 +856,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       UNREACHABLE();
     }
 
-#ifdef DART_PRECOMPILER
-    // Create a label for use by DWARF.
-    intptr_t dwarf_index = dwarf_->AddCode(code);
-    assembly_stream_.Print(".Lcode%" Pd ":\n", dwarf_index);
-#endif
-
     {
       // 3. Write from the entry point to the end.
       NoSafepointScope no_safepoint;
@@ -891,15 +865,17 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
       uword end = entry + payload_size;
 
-      ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
-      ASSERT(Utils::IsAligned(entry, sizeof(uword)));
-      ASSERT(Utils::IsAligned(end, sizeof(uword)));
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(end, sizeof(uint64_t)));
 
-      WriteByteSequence(entry, end);
+      for (uword* cursor = reinterpret_cast<uword*>(entry);
+           cursor < reinterpret_cast<uword*>(end); cursor++) {
+        WriteWordLiteralText(*cursor);
+      }
     }
   }
 
-  FrameUnwindEpilogue();
 
 #if defined(HOST_OS_LINUX)
   assembly_stream_.Print(".section .rodata\n");
@@ -916,113 +892,10 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print(".balign %" Pd ", 0\n",
                          OS::kMaxPreferredCodeAlignment);
   assembly_stream_.Print("%s:\n", data_symbol);
-  uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
+  uint8_t* buffer = clustered_stream->buffer();
   intptr_t length = clustered_stream->bytes_written();
-  WriteByteSequence(buffer, buffer + length);
-}
-
-
-void AssemblyImageWriter::FrameUnwindPrologue() {
-  // Creates DWARF's .debug_frame
-  // CFI = Call frame information
-  // CFA = Canonical frame address
-  assembly_stream_.Print(".cfi_startproc\n");
-
-#if defined(TARGET_ARCH_X64)
-  assembly_stream_.Print(".cfi_def_cfa rbp, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset rbp, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_.Print(".cfi_offset rip, 8\n");   // saved pc is *(CFA+8)
-  // saved sp is CFA+16
-  // Should be ".cfi_value_offset rsp, 16", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
-  // DW_CFA_expression          0x10
-  // uleb128 register (rsp)        7   (DWARF register number)
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_.Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
-
-#elif defined(TARGET_ARCH_ARM64)
-  COMPILE_ASSERT(FP == R29);
-  COMPILE_ASSERT(LR == R30);
-  assembly_stream_.Print(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset x29, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_.Print(".cfi_offset x30, 8\n");   // saved pc is *(CFA+8)
-  // saved sp is CFA+16
-  // Should be ".cfi_value_offset sp, 16", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
-  // DW_CFA_expression          0x10
-  // uleb128 register (x31)       31
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend               16
-  assembly_stream_.Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
-
-#elif defined(TARGET_ARCH_ARM)
-#if defined(TARGET_ABI_EABI)
-  COMPILE_ASSERT(FP == R11);
-  assembly_stream_.Print(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset r11, 0\n");   // saved fp is *(CFA+0)
-#elif defined(TARGET_ABI_IOS)
-  COMPILE_ASSERT(FP == R7);
-  assembly_stream_.Print(".cfi_def_cfa r7, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset r7, 0\n");   // saved fp is *(CFA+0)
-#endif
-  assembly_stream_.Print(".cfi_offset lr, 4\n");    // saved pc is *(CFA+4)
-  // saved sp is CFA+8
-  // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        13
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_.Print(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
-
-// libunwind on ARM may use .ARM.exidx instead of .debug_frame
-#if defined(TARGET_ABI_EABI)
-  COMPILE_ASSERT(FP == R11);
-  assembly_stream_.Print(".fnstart\n");
-  assembly_stream_.Print(".save {r11, lr}\n");
-  assembly_stream_.Print(".setfp r11, sp, #0\n");
-#elif defined(TARGET_ABI_IOS)
-  COMPILE_ASSERT(FP == R7);
-  assembly_stream_.Print(".fnstart\n");
-  assembly_stream_.Print(".save {r7, lr}\n");
-  assembly_stream_.Print(".setfp r7, sp, #0\n");
-#endif
-
-#elif defined(TARGET_ARCH_MIPS)
-  COMPILE_ASSERT(FP == R30);
-  COMPILE_ASSERT(RA == R31);
-  assembly_stream_.Print(".cfi_def_cfa r30, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset r30, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_.Print(".cfi_offset r31, 4\n");   // saved pc is *(CFA+4)
-  // saved sp is CFA+16
-  // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
-  // 2016 and not supported by Android's libunwind.
-  // DW_CFA_expression          0x10
-  // uleb128 register (sp)        29
-  // uleb128 size of operation     2
-  // DW_OP_plus_uconst          0x23
-  // uleb128 addend                8
-  assembly_stream_.Print(".cfi_escape 0x10, 29, 2, 0x23, 8\n");
-#endif
-}
-
-
-void AssemblyImageWriter::FrameUnwindEpilogue() {
-#if defined(TARGET_ARCH_ARM)
-  assembly_stream_.Print(".fnend\n");
-#endif
-  assembly_stream_.Print(".cfi_endproc\n");
-}
-
-
-void AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
-  for (uword* cursor = reinterpret_cast<uword*>(start);
-       cursor < reinterpret_cast<uword*>(end); cursor++) {
-    WriteWordLiteralText(*cursor);
+  for (intptr_t i = 0; i < length; i++) {
+    assembly_stream_.Print(".byte %" Pd "\n", buffer[i]);
   }
 }
 
@@ -1037,30 +910,50 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     instructions_blob_stream_.WriteWord(0);
   }
 
-  NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
 
-    uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-    uword entry = beginning + Instructions::HeaderSize();
-    uword payload_size = insns.Size();
-    payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
-    uword end = entry + payload_size;
+    // 1. Write from the header to the entry point.
+    {
+      NoSafepointScope no_safepoint;
 
-    ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
-    ASSERT(Utils::IsAligned(entry, sizeof(uword)));
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
+      uword entry = beginning + Instructions::HeaderSize();
 
-    // Write Instructions with the mark and VM heap bits set.
-    uword marked_tags = insns.raw_ptr()->tags_;
-    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
 
-    instructions_blob_stream_.WriteWord(marked_tags);
-    beginning += sizeof(uword);
+      // Write Instructions with the mark and VM heap bits set.
+      uword marked_tags = insns.raw_ptr()->tags_;
+      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+      marked_tags = RawObject::MarkBit::update(true, marked_tags);
 
-    for (uword* cursor = reinterpret_cast<uword*>(beginning);
-         cursor < reinterpret_cast<uword*>(end); cursor++) {
-      instructions_blob_stream_.WriteWord(*cursor);
+      instructions_blob_stream_.WriteWord(marked_tags);
+      beginning += sizeof(uword);
+
+      for (uword* cursor = reinterpret_cast<uword*>(beginning);
+           cursor < reinterpret_cast<uword*>(entry); cursor++) {
+        instructions_blob_stream_.WriteWord(*cursor);
+      }
+    }
+
+    // 2. Write from the entry point to the end.
+    {
+      NoSafepointScope no_safepoint;
+      uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
+      uword entry = beginning + Instructions::HeaderSize();
+      uword payload_size = insns.Size();
+      payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+      uword end = entry + payload_size;
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(end, sizeof(uint64_t)));
+
+      for (uword* cursor = reinterpret_cast<uword*>(entry);
+           cursor < reinterpret_cast<uword*>(end); cursor++) {
+        instructions_blob_stream_.WriteWord(*cursor);
+      }
     }
   }
 }

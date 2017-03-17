@@ -30,7 +30,6 @@
 #include "vm/intrinsifier.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_to_il.h"
-#include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/precompiler.h"
@@ -9176,7 +9175,7 @@ intptr_t Script::GetTokenLineUsingLineStarts(
   }
 
   ASSERT(line_starts_array.Length() > 0);
-  intptr_t offset = target_token_pos.Pos();
+  intptr_t offset = target_token_pos.value();
   intptr_t min = 0;
   intptr_t max = line_starts_array.Length() - 1;
 
@@ -22555,6 +22554,12 @@ RawStackTrace* StackTrace::New(const Array& code_array,
 }
 
 
+const char* StackTrace::ToCString() const {
+  intptr_t idx = 0;
+  return ToCStringInternal(*this, &idx);
+}
+
+
 static void PrintStackTraceFrame(Zone* zone,
                                  ZoneTextBuffer* buffer,
                                  const Function& function,
@@ -22591,21 +22596,22 @@ static void PrintStackTraceFrame(Zone* zone,
 }
 
 
-const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
+const char* StackTrace::ToCStringInternal(const StackTrace& stack_trace_in,
+                                          intptr_t* frame_index,
+                                          intptr_t max_frames) {
   Zone* zone = Thread::Current()->zone();
   StackTrace& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
   Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
-
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
   ZoneTextBuffer buffer(zone, 1024);
 
   // Iterate through the stack frames and create C string description
   // for each frame.
-  intptr_t frame_index = 0;
   do {
-    for (intptr_t i = 0; i < stack_trace.Length(); i++) {
+    for (intptr_t i = 0;
+         (i < stack_trace.Length()) && (*frame_index < max_frames); i++) {
       code = stack_trace.CodeAtFrame(i);
       if (code.IsNull()) {
         // Check for a null function, which indicates a gap in a StackOverflow
@@ -22615,7 +22621,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
           buffer.AddString("...\n...\n");
           ASSERT(stack_trace.PcOffsetAtFrame(i) != Smi::null());
           // To account for gap frames.
-          frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
+          (*frame_index) += Smi::Value(stack_trace.PcOffsetAtFrame(i));
         }
       } else if (code.raw() ==
                  StubCode::AsynchronousGapMarker_entry()->code()) {
@@ -22635,8 +22641,8 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
             if (inlined_functions[j]->is_visible() ||
                 FLAG_show_invisible_frames) {
               PrintStackTraceFrame(zone, &buffer, *inlined_functions[j],
-                                   inlined_token_positions[j], frame_index);
-              frame_index++;
+                                   inlined_token_positions[j], *frame_index);
+              (*frame_index)++;
             }
           }
         } else {
@@ -22645,8 +22651,8 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
             uword pc = code.PayloadStart() + pc_offset;
             const TokenPosition token_pos = code.GetTokenIndexOfPC(pc);
             PrintStackTraceFrame(zone, &buffer, function, token_pos,
-                                 frame_index);
-            frame_index++;
+                                 *frame_index);
+            (*frame_index)++;
           }
         }
       }
@@ -22656,90 +22662,6 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
   } while (!stack_trace.IsNull());
 
   return buffer.buffer();
-}
-
-
-const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  Zone* zone = Thread::Current()->zone();
-  StackTrace& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
-  Code& code = Code::Handle(zone);
-  ZoneTextBuffer buffer(zone, 1024);
-
-  // The Dart standard requires the output of StackTrace.toString to include
-  // all pending activations with precise source locations (i.e., to expand
-  // inlined frames and provide line and column numbers).
-  buffer.Printf(
-      "Warning: This VM has been configured to produce stack traces "
-      "that violate the Dart standard.\n");
-  // This prologue imitates Android's debuggerd to make it possible to paste
-  // the stack trace into ndk-stack.
-  buffer.Printf(
-      "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***\n");
-  OSThread* thread = OSThread::Current();
-  buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
-                OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
-  intptr_t frame_index = 0;
-  do {
-    for (intptr_t i = 0; i < stack_trace.Length(); i++) {
-      code = stack_trace.CodeAtFrame(i);
-      if (code.IsNull()) {
-        // Check for a null function, which indicates a gap in a StackOverflow
-        // or OutOfMemory trace.
-        if ((i < (stack_trace.Length() - 1)) &&
-            (stack_trace.CodeAtFrame(i + 1) != Code::null())) {
-          buffer.AddString("...\n...\n");
-          ASSERT(stack_trace.PcOffsetAtFrame(i) != Smi::null());
-          // To account for gap frames.
-          frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
-        }
-      } else if (code.raw() ==
-                 StubCode::AsynchronousGapMarker_entry()->code()) {
-        buffer.AddString("<asynchronous suspension>\n");
-        // The frame immediately after the asynchronous gap marker is the
-        // identical to the frame above the marker. Skip the frame to enhance
-        // the readability of the trace.
-        i++;
-      } else {
-        intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
-        // This output is formatted like Android's debuggerd. Note debuggerd
-        // prints call addresses instead of return addresses.
-        uword return_addr = code.PayloadStart() + pc_offset;
-        uword call_addr = return_addr - 1;
-        uword dso_base;
-        char* dso_name;
-        if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
-                                                     &dso_name)) {
-          uword dso_offset = call_addr - dso_base;
-          buffer.Printf("    #%02" Pd " pc %" Pp "  %s\n", frame_index,
-                        dso_offset, dso_name);
-          NativeSymbolResolver::FreeSymbolName(dso_name);
-        } else {
-          buffer.Printf("    #%02" Pd " pc %" Pp "  <unknown>\n", frame_index,
-                        call_addr);
-        }
-        frame_index++;
-      }
-    }
-    // Follow the link.
-    stack_trace ^= stack_trace.async_link();
-  } while (!stack_trace.IsNull());
-
-  return buffer.buffer();
-#else
-  UNREACHABLE();
-  return NULL;
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-}
-
-
-const char* StackTrace::ToCString() const {
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_dwarf_stack_traces) {
-    return ToDwarfCString(*this);
-  }
-#endif
-  return ToDartCString(*this);
 }
 
 

@@ -3193,9 +3193,7 @@ void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
     // Set FP to the saved previous FP.
     add(FP, SP, Operand(4 * NumRegsBelowFP(regs)));
   }
-  if (frame_size != 0) {
-    AddImmediate(SP, -frame_size);
-  }
+  AddImmediate(SP, -frame_size);
 }
 
 

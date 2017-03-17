@@ -82,12 +82,6 @@ void NativeSymbolResolver::FreeSymbolName(char* name) {
 }
 
 
-bool NativeSymbolResolver::LookupSharedObject(uword pc,
-                                              uword* dso_base,
-                                              char** dso_name) {
-  return false;
-}
-
 }  // namespace dart
 
 #endif  // defined(HOST_OS_WINDOWS)

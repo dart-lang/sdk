@@ -444,7 +444,6 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   return true;
 }
 
-
 bool Flags::SetFlag(const char* name, const char* value, const char** error) {
   Flag* flag = Lookup(name);
   if (flag == NULL) {
