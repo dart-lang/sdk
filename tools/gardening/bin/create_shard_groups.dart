@@ -41,7 +41,10 @@ List<List<String>> findShards(List<String> source) {
   for (String line in source) {
     if (line.contains(shardsStartMark)) started = true;
     if (started) {
-      if (line.contains(shardsEndMark)) break;
+      if (line.contains(shardsEndMark)) {
+        if (shardResult != null) result.add(shardResult);
+        break;
+      }
       String trimmed = line.trim();
       int buildersIndex = trimmed.indexOf(shardMark);
       if (buildersIndex >= 0) {

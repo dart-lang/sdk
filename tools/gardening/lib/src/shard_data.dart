@@ -462,4 +462,9 @@ const Map<String, List<String>> shardGroups = const {
     'dartium-mac-x64-inc-integration',
     'dartium-win-ia32-inc-integration',
   ],
+  'dartium-full-integration': const <String>[
+    'dartium-linux-x64-integration',
+    'dartium-mac-x64-integration',
+    'dartium-win-ia32-integration',
+  ],
 };
