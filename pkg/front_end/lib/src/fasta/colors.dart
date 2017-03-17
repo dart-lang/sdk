@@ -100,6 +100,7 @@ String white(String string) => wrap(string, WHITE_COLOR);
 bool computeEnableColors(CompilerContext context) {
   bool ansiSupported;
   try {
+    // ignore: undefined_getter
     ansiSupported = Platform.ansiSupported;
   } on NoSuchMethodError {
     // Ignored: We're running on an older version of the Dart VM which doesn't
