@@ -27,6 +27,8 @@ class Stdin {
   static bool GetLineMode(bool* enabled);
   static bool SetLineMode(bool enabled);
 
+  static bool AnsiSupported(bool* supported);
+
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Stdin);
@@ -36,6 +38,7 @@ class Stdin {
 class Stdout {
  public:
   static bool GetTerminalSize(intptr_t fd, int size[2]);
+  static bool AnsiSupported(intptr_t fd, bool* supported);
 
  private:
   DISALLOW_ALLOCATION();

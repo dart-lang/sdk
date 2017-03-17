@@ -11,7 +11,6 @@ class _Platform {
   external static _localHostname();
   external static _executable();
   external static _resolvedExecutable();
-  external static bool _ansiSupported();
 
   /**
    * Retrieve the entries of the process environment.
@@ -46,7 +45,6 @@ class _Platform {
   static int get numberOfProcessors => _numberOfProcessors();
   static String get pathSeparator => _pathSeparator();
   static String get operatingSystem => _operatingSystem();
-  static bool get ansiSupported => _ansiSupported();
   static Uri script;
 
   static String get localHostname {

@@ -14,7 +14,7 @@
 * `dart:io`: Added functions `File.lastAccessed`, `File.lastAccessedSync`,
   `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
   and `File.setLastAccessedSync`.
-* `dart:io`: Added `Platform.ansiSupported`.
+* `dart:io`: Added `{Stdin,Stdout}.supportsAnsiEscapes`.
 
 ### Dart VM
 * Calls to `print()` and `Stdout.write*()` now correctly print unicode

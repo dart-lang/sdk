@@ -83,11 +83,20 @@
     }
   }
 
+  @patch bool get supportsAnsiEscapes {
+    var result = _supportsAnsiEscapes();
+    if (result is OSError) {
+      throw new StdinException("Error determining ANSI support", result);
+    }
+    return result;
+  }
+
   static _echoMode() native "Stdin_GetEchoMode";
   static _setEchoMode(bool enabled) native "Stdin_SetEchoMode";
   static _lineMode() native "Stdin_GetLineMode";
   static _setLineMode(bool enabled) native "Stdin_SetLineMode";
   static _readByte() native "Stdin_ReadByte";
+  static _supportsAnsiEscapes() native "Stdin_AnsiSupported";
 }
 
 @patch class Stdout {
@@ -112,6 +121,16 @@
   }
 
   static _getTerminalSize(int fd) native "Stdout_GetTerminalSize";
+
+  @patch static bool _supportsAnsiEscapes(int fd) {
+    var result = _getAnsiSupported(fd);
+    if (result is! bool) {
+      throw new StdoutException("Error determining ANSI support", result);
+    }
+    return result;
+  }
+
+  static _getAnsiSupported(int fd) native "Stdout_AnsiSupported";
 }
 
 

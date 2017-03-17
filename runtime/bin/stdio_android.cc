@@ -83,6 +83,21 @@ bool Stdin::SetLineMode(bool enabled) {
 }
 
 
+static bool TermHasXTerm() {
+  const char* term = getenv("TERM");
+  if (term == NULL) {
+    return false;
+  }
+  return strstr(term, "xterm") != NULL;
+}
+
+
+bool Stdin::AnsiSupported(bool* supported) {
+  *supported = isatty(STDIN_FILENO) && TermHasXTerm();
+  return true;
+}
+
+
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   struct winsize w;
   int status = NO_RETRY_EXPECTED(ioctl(fd, TIOCGWINSZ, &w));
@@ -92,6 +107,12 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
     return true;
   }
   return false;
+}
+
+
+bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
+  *supported = isatty(fd) && TermHasXTerm();
+  return true;
 }
 
 }  // namespace bin

@@ -137,6 +137,30 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   external void set lineMode(bool enabled);
 
   /**
+    * Whether connected to a terminal that supports ANSI escape sequences.
+    *
+    * Not all terminals are recognized, and not all recognized terminals can
+    * report whether they support ANSI escape sequences, so this value is a
+    * best-effort attempt at detecting the support.
+    *
+    * The actual escape sequence support may differ between terminals,
+    * with some terminals supporting more escape sequences than others,
+    * and some terminals even differing in behavior for the same escape
+    * sequence.
+    *
+    * The ANSI color selection is generally supported.
+    *
+    * Currently, a `TERM` environment variable containing the string `xterm`
+    * will be taken as evidence that ANSI escape sequences are supported.
+    * On Windows, only versions of Windows 10 after v.1511
+    * ("TH2", OS build 10586) will be detected as supporting the output of
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * Update", OS build 14393) will be detected as supporting the input of
+    * ANSI escape sequences.
+    */
+  external bool get supportsAnsiEscapes;
+
+  /**
    * Synchronously read a byte from stdin. This call will block until a byte is
    * available.
    *
@@ -178,7 +202,7 @@ class Stdout extends _StdFileSink implements IOSink {
    */
   int get terminalColumns => _terminalColumns(_fd);
 
-  /**
+  /*
    * Get the number of lines of the terminal.
    *
    * If no terminal is attached to stdout, a [StdoutException] is thrown. See
@@ -186,9 +210,34 @@ class Stdout extends _StdFileSink implements IOSink {
    */
   int get terminalLines => _terminalLines(_fd);
 
+  /**
+    * Whether connected to a terminal that supports ANSI escape sequences.
+    *
+    * Not all terminals are recognized, and not all recognized terminals can
+    * report whether they support ANSI escape sequences, so this value is a
+    * best-effort attempt at detecting the support.
+    *
+    * The actual escape sequence support may differ between terminals,
+    * with some terminals supporting more escape sequences than others,
+    * and some terminals even differing in behavior for the same escape
+    * sequence.
+    *
+    * The ANSI color selection is generally supported.
+    *
+    * Currently, a `TERM` environment variable containing the string `xterm`
+    * will be taken as evidence that ANSI escape sequences are supported.
+    * On Windows, only versions of Windows 10 after v.1511
+    * ("TH2", OS build 10586) will be detected as supporting the output of
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * Update", OS build 14393) will be detected as supporting the input of
+    * ANSI escape sequences.
+    */
+  bool get supportsAnsiEscapes => _supportsAnsiEscapes(_fd);
+
   external bool _hasTerminal(int fd);
   external int _terminalColumns(int fd);
   external int _terminalLines(int fd);
+  external static bool _supportsAnsiEscapes(int fd);
 
   /**
    * Get a non-blocking `IOSink`.

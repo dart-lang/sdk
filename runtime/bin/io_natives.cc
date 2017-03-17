@@ -92,7 +92,6 @@ namespace bin {
   V(Platform_Environment, 0)                                                   \
   V(Platform_ExecutableArguments, 0)                                           \
   V(Platform_GetVersion, 0)                                                    \
-  V(Platform_AnsiSupported, 0)                                                 \
   V(Process_Start, 11)                                                         \
   V(Process_Wait, 5)                                                           \
   V(Process_KillPid, 2)                                                        \
@@ -148,7 +147,9 @@ namespace bin {
   V(Stdin_SetEchoMode, 1)                                                      \
   V(Stdin_GetLineMode, 0)                                                      \
   V(Stdin_SetLineMode, 1)                                                      \
+  V(Stdin_AnsiSupported, 0)                                                    \
   V(Stdout_GetTerminalSize, 1)                                                 \
+  V(Stdout_AnsiSupported, 1)                                                   \
   V(StringToSystemEncoding, 1)                                                 \
   V(SystemEncodingToString, 1)                                                 \
   V(X509_Subject, 1)                                                           \

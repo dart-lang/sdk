@@ -250,11 +250,6 @@ class _Platform {
   static String _version() {
     throw new UnsupportedError("Platform._version");
   }
-
-  @patch
-  static bool _ansiSupported() {
-    throw new UnsupportedError("Platform._ansiSupported");
-  }
 }
 
 @patch
@@ -550,6 +545,11 @@ class Stdin {
   void set lineMode(bool enabled) {
     throw new UnsupportedError("Stdin.lineMode");
   }
+
+  @patch
+  bool get supportsAnsiEscapes {
+    throw new UnsupportedError("Stdin.supportsAnsiEscapes");
+  }
 }
 
 @patch
@@ -567,6 +567,11 @@ class Stdout {
   @patch
   int _terminalLines(int fd) {
     throw new UnsupportedError("Stdout.terminalLines");
+  }
+
+  @patch
+  static bool _supportsAnsiEscapes(int fd) {
+    throw new UnsupportedError("Stdout.supportsAnsiEscapes");
   }
 }
 

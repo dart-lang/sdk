@@ -42,7 +42,19 @@ bool Stdin::SetLineMode(bool enabled) {
 }
 
 
+bool Stdin::AnsiSupported(bool* supported) {
+  UNIMPLEMENTED();
+  return false;
+}
+
+
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
+  UNIMPLEMENTED();
+  return false;
+}
+
+
+bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
   UNIMPLEMENTED();
   return false;
 }

@@ -9,6 +9,16 @@
 
 #include "bin/stdio.h"
 
+// These are not always defined in the header files. See:
+// https://msdn.microsoft.com/en-us/library/windows/desktop/ms686033(v=vs.85).aspx
+#ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
+#define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
+#endif
+
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+
 namespace dart {
 namespace bin {
 
@@ -77,6 +87,23 @@ bool Stdin::SetLineMode(bool enabled) {
 }
 
 
+bool Stdin::AnsiSupported(bool* supported) {
+  ASSERT(supported != NULL);
+  HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+  if (h == INVALID_HANDLE_VALUE) {
+    *supported = false;
+    return false;
+  }
+  DWORD mode;
+  if (!GetConsoleMode(h, &mode)) {
+    *supported = false;
+    return false;
+  }
+  *supported = (mode & ENABLE_VIRTUAL_TERMINAL_INPUT) != 0;
+  return true;
+}
+
+
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   HANDLE h;
   if (fd == 1) {
@@ -90,6 +117,28 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   }
   size[0] = info.srWindow.Right - info.srWindow.Left + 1;
   size[1] = info.srWindow.Bottom - info.srWindow.Top + 1;
+  return true;
+}
+
+
+bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
+  ASSERT(supported != NULL);
+  HANDLE h;
+  if (fd == 1) {
+    h = GetStdHandle(STD_OUTPUT_HANDLE);
+  } else {
+    h = GetStdHandle(STD_ERROR_HANDLE);
+  }
+  if (h == INVALID_HANDLE_VALUE) {
+    *supported = false;
+    return false;
+  }
+  DWORD mode;
+  if (!GetConsoleMode(h, &mode)) {
+    *supported = false;
+    return false;
+  }
+  *supported = (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
   return true;
 }
 
