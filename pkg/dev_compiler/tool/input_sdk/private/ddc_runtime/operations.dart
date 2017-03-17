@@ -471,7 +471,7 @@ final _ignoreTypeFailure = JS(
       // This is primarily due to the lack of generic methods,
       // but we need to triage all the types.
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
-        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
+        !!$isSubtype(type, $FutureOr) && !!$isSubtype(actual, $Future) ||
         !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
         $isFunctionType(type) && $isFunctionType(actual) ||
         !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream) ||

@@ -749,8 +749,11 @@ _isSubtype(t1, t2, isCovariant) => JS(
     // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
     let t2TypeArg = $getGenericArgs($t2)[0];
     var t2Future = ${getGenericClass(Future)}(t2TypeArg);
-    return $_isSubtype($t1, t2Future, $isCovariant) ||
-        $_isSubtype($t1, t2TypeArg, $isCovariant);
+    let s1 = $_isSubtype($t1, t2Future, $isCovariant);
+    let s2 = $_isSubtype($t1, t2TypeArg, $isCovariant);
+    if (s1 === true || s2 === true) return true;
+    if (s1 === null || s2 === null) return null;
+    return false;
   }
 
   // "Traditional" name-based subtype check.  Avoid passing
