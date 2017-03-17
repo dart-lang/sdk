@@ -1,3 +1,8 @@
+## 0.5.4
+
+- Added script to show inferred types of functions and fields on the command
+  line.
+
 ## 0.5.3+1
 
 - Improved the stability of `ConstantInfo.id`.
