@@ -15,10 +15,12 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart'
     as rf;
 import 'package:analysis_server/src/services/correction/strings.dart';
@@ -369,6 +371,11 @@ class FixProcessor {
       _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
     }
+    if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
+        errorCode == StaticWarningCode.UNDEFINED_NAMED_PARAMETER) {
+      _addFix_convertFlutterChild();
+      _addFix_convertFlutterChildren();
+    }
     // lints
     if (errorCode is LintCode) {
       if (errorCode.name == LintNames.annotate_overrides) {
@@ -649,6 +656,43 @@ class FixProcessor {
         }
       }
     }
+  }
+
+  void _addFix_convertFlutterChild() {
+    NamedExpression namedExp = findFlutterNamedExpression(node, 'child');
+    if (namedExp == null) {
+      return;
+    }
+    InstanceCreationExpression childArg = getChildWidget(namedExp, false);
+    if (childArg != null) {
+      convertFlutterChildToChildren(
+          childArg,
+          namedExp,
+          eol,
+          utils.getNodeText,
+          utils.getLinePrefix,
+          utils.getIndent,
+          utils.getText,
+          _addInsertEdit,
+          _addRemoveEdit,
+          _addReplaceEdit,
+          rangeStartLength,
+          rangeNode);
+      _addFix(DartFixKind.CONVERT_FLUTTER_CHILD, []);
+      return;
+    }
+    ListLiteral listArg = getChildList(namedExp);
+    if (listArg != null) {
+      _addInsertEdit(namedExp.offset + 'child'.length, 'ren');
+      if (listArg.typeArguments == null) {
+        _addInsertEdit(listArg.offset, '<Widget>');
+      }
+      _addFix(DartFixKind.CONVERT_FLUTTER_CHILD, []);
+    }
+  }
+
+  void _addFix_convertFlutterChildren() {
+    // TODO(messick) Implement _addFix_convertFlutterChildren()
   }
 
   void _addFix_createClass() {
