@@ -4,27 +4,14 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'inference_test_helper.dart';
-
-const List<String> TESTS = const <String>[
-  '''
-class Super {
-  var field = 42;
-}
-class Sub extends Super {
-  method() {
-   var a = super.field = new Sub();
-   return a.@{[exact=Sub]}method;
-  }
-}
-main() {
-  new Sub().@{[exact=Sub]}method();
-}
-''',
-];
+import 'dart:io';
 
 main() {
   asyncTest(() async {
-    for (String annotatedCode in TESTS) {
+    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    await for (FileSystemEntity entity in dataDir.list()) {
+      print('Checking ${entity.uri}');
+      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
       await checkCode(annotatedCode);
     }
   });
