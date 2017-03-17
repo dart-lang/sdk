@@ -1143,7 +1143,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
-    test() => f.then((int x) {});
+    test() => f.then((int x) {return null;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].staticType);
@@ -1198,7 +1198,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
-    test() => f.then<Null>((int x) {});
+    test() => f.then<Null>((int x) { return null;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].staticType);

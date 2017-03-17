@@ -2317,7 +2317,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       } else if (expectedReturnType.isDynamic ||
           expectedReturnType.isVoid ||
-          expectedReturnType.isDartCoreNull) {
+          (expectedReturnType.isDartCoreNull && _options.strongMode)) {
+        // TODO(leafp): Empty returns shouldn't be allowed for Null in strong
+        // mode either once we allow void as a type argument.  But for now, the
+        // only type we can validly infer for f.then((_) {print("hello");}) is
+        // Future<Null>, so we allow this.
         return;
       }
       _hasReturnWithoutValue = true;
