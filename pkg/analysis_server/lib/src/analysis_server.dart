@@ -662,6 +662,10 @@ class AnalysisServer {
    * otherwise in the first driver, otherwise `null` is returned.
    */
   Future<nd.AnalysisResult> getAnalysisResult(String path) async {
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return null;
+    }
+
     try {
       nd.AnalysisDriver driver = getAnalysisDriver(path);
       return await driver?.getResult(path);
