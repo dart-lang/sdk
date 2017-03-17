@@ -27,6 +27,9 @@ class Flags {
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
+  // Temporary flag to also integrate Kernel into global type inference.
+  // TODO(efortuna): Remove when fully implemented and simply use "useKernel".
+  static const String kernelGlobalInference = '--kernel-global-inference';
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';

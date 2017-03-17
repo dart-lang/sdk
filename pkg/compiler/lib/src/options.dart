@@ -202,6 +202,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to use kernel internally as part of compilation.
   final bool useKernel;
 
+  // Whether to use kernel internally for global type inference calculations.
+  // TODO(efortuna): Remove this and consolidate with useKernel.
+  final bool kernelGlobalInference;
+
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
   final bool useFrequencyNamer;
@@ -279,6 +283,7 @@ class CompilerOptions implements DiagnosticOptions {
         generateCodeWithCompileTimeErrors:
             _hasOption(options, Flags.generateCodeWithCompileTimeErrors),
         generateSourceMap: !_hasOption(options, Flags.noSourceMaps),
+        kernelGlobalInference: _hasOption(options, Flags.kernelGlobalInference),
         outputUri: _extractUriOption(options, '--out='),
         platformConfigUri:
             _resolvePlatformConfigFromOptions(libraryRoot, options),
@@ -341,6 +346,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool enableUserAssertions: false,
       bool generateCodeWithCompileTimeErrors: false,
       bool generateSourceMap: true,
+      bool kernelGlobalInference: false,
       Uri outputUri: null,
       Uri platformConfigUri: null,
       bool preserveComments: false,
@@ -411,6 +417,7 @@ class CompilerOptions implements DiagnosticOptions {
         enableUserAssertions: enableUserAssertions,
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors,
         generateSourceMap: generateSourceMap,
+        kernelGlobalInference: kernelGlobalInference,
         outputUri: outputUri,
         platformConfigUri: platformConfigUri ??
             _resolvePlatformConfig(libraryRoot, null, const []),
@@ -460,6 +467,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.enableUserAssertions: false,
       this.generateCodeWithCompileTimeErrors: false,
       this.generateSourceMap: true,
+      this.kernelGlobalInference: false,
       this.outputUri: null,
       this.platformConfigUri: null,
       this.preserveComments: false,
@@ -516,6 +524,7 @@ class CompilerOptions implements DiagnosticOptions {
       enableUserAssertions,
       generateCodeWithCompileTimeErrors,
       generateSourceMap,
+      kernelGlobalInference,
       outputUri,
       platformConfigUri,
       preserveComments,
@@ -578,6 +587,8 @@ class CompilerOptions implements DiagnosticOptions {
         generateCodeWithCompileTimeErrors: generateCodeWithCompileTimeErrors ??
             options.generateCodeWithCompileTimeErrors,
         generateSourceMap: generateSourceMap ?? options.generateSourceMap,
+        kernelGlobalInference:
+            kernelGlobalInference ?? options.kernelGlobalInference,
         outputUri: outputUri ?? options.outputUri,
         platformConfigUri: platformConfigUri ?? options.platformConfigUri,
         preserveComments: preserveComments ?? options.preserveComments,

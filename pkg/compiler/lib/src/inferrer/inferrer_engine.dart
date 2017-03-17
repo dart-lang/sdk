@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
@@ -28,6 +30,7 @@ import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'builder.dart';
+import 'builder_kernel.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
@@ -64,6 +67,12 @@ class InferrerEngine {
   final TypeSystem types;
   final Map<ast.Node, TypeInformation> concreteTypes =
       new Map<ast.Node, TypeInformation>();
+
+  /// Parallel structure for concreteTypes.
+  // TODO(efortuna): Remove concreteTypes and/or parameterize InferrerEngine by
+  // ir.Node or ast.Node type. Then remove this in favor of `concreteTypes`.
+  final Map<ir.Node, TypeInformation> concreteKernelTypes =
+      new Map<ir.Node, TypeInformation>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
   /// Data computed internally within elements, like the type-mask of a send a
@@ -467,8 +476,9 @@ class InferrerEngine {
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    ElementGraphBuilder visitor =
-        new ElementGraphBuilder(element, resolvedAst, compiler, this);
+    var visitor = compiler.options.kernelGlobalInference
+        ? new KernelTypeGraphBuilder(element, resolvedAst, compiler, this)
+        : new ElementGraphBuilder(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
       type = visitor.run();
