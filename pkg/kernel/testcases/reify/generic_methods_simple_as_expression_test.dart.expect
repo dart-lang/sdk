@@ -1,0 +1,35 @@
+library generic_methods_simple_as_expression_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/types.dart" as typ;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](14)), <dynamic>[new typ::Interface::•(d.[](15), <dynamic>[new typ::Interface::•(d.[](0))])]);
+  dec::init(d, 1, new typ::Interface::•(d.[](14)));
+  dec::init(d, 2, new typ::Interface::•(d.[](14)));
+  dec::init(d, 3, new typ::Interface::•(d.[](14)), <dynamic>[new typ::Interface::•(d.[](15), <dynamic>[new typ::Interface::•(d.[](3))]), new typ::Interface::•(d.[](16))]);
+  dec::init(d, 4, new typ::Interface::•(d.[](0)));
+  dec::init(d, 5, new typ::Interface::•(d.[](0)));
+  dec::init(d, 6, new typ::Interface::•(d.[](14)));
+  dec::init(d, 7, new typ::Interface::•(d.[](17)));
+  dec::init(d, 8, new typ::Interface::•(d.[](17)));
+  dec::init(d, 9, new typ::Interface::•(d.[](17)));
+  dec::init(d, 10, new typ::Interface::•(d.[](17)));
+  dec::init(d, 11, new typ::Interface::•(d.[](14)), <dynamic>[new typ::Interface::•(d.[](18))]);
+  dec::init(d, 12, new typ::Interface::•(d.[](13)));
+  dec::init(d, 13, new typ::Interface::•(d.[](17)));
+  dec::init(d, 14, null);
+  dec::init(d, 15, new typ::Interface::•(d.[](14)));
+  dec::init(d, 16, new typ::Interface::•(d.[](14)));
+  dec::init(d, 17, new typ::Interface::•(d.[](14)));
+  dec::init(d, 18, new typ::Interface::•(d.[](14)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["num", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "Comparable", "Pattern", "Error", "Exception"], <dynamic>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]));
+static method cast(dynamic obj, {core::List<typ::ReifiedType> $typeParameters}) → dynamic {
+  return obj as dynamic;
+}
+static method main() → dynamic {
+  tes::expectTrue(self::cast(42, $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](0))]).{core::num::==}(42));
+}

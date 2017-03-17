@@ -1,0 +1,83 @@
+library generic_methods_overriding_contravariance_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class X extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+}
+class Y extends self::X implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super self::X::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+}
+class Z extends self::Y implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super self::Y::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+}
+class C extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method fun<T extends self::Y>(dynamic t, {core::List<typ::ReifiedType> $typeParameters}) → core::String {
+    return "C";
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](3));
+}
+class E extends self::C implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super self::C::•()
+    ;
+  method fun<T extends self::Y>(self::Y y, {core::List<typ::ReifiedType> $typeParameters}) → core::String {
+    return "E";
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](4));
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](18)));
+  dec::init(d, 1, new typ::Interface::•(d.[](0)));
+  dec::init(d, 2, new typ::Interface::•(d.[](1)));
+  dec::init(d, 3, new typ::Interface::•(d.[](18)));
+  dec::init(d, 4, new typ::Interface::•(d.[](3)));
+  dec::init(d, 5, new typ::Interface::•(d.[](18)));
+  dec::init(d, 6, new typ::Interface::•(d.[](18)));
+  dec::init(d, 7, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](20), <dynamic>[new typ::Interface::•(d.[](7))]), new typ::Interface::•(d.[](21))]);
+  dec::init(d, 8, new typ::Interface::•(d.[](22)));
+  dec::init(d, 9, new typ::Interface::•(d.[](22)));
+  dec::init(d, 10, new typ::Interface::•(d.[](18)));
+  dec::init(d, 11, new typ::Interface::•(d.[](23)));
+  dec::init(d, 12, new typ::Interface::•(d.[](23)));
+  dec::init(d, 13, new typ::Interface::•(d.[](23)));
+  dec::init(d, 14, new typ::Interface::•(d.[](23)));
+  dec::init(d, 15, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](24))]);
+  dec::init(d, 16, new typ::Interface::•(d.[](17)));
+  dec::init(d, 17, new typ::Interface::•(d.[](23)));
+  dec::init(d, 18, null);
+  dec::init(d, 20, new typ::Interface::•(d.[](18)));
+  dec::init(d, 21, new typ::Interface::•(d.[](18)));
+  dec::init(d, 22, new typ::Interface::•(d.[](18)), <dynamic>[new typ::Interface::•(d.[](20), <dynamic>[new typ::Interface::•(d.[](22))])]);
+  dec::init(d, 23, new typ::Interface::•(d.[](18)));
+  dec::init(d, 24, new typ::Interface::•(d.[](18)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["X", "Y", "Z", "C", "E", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "Comparable", "Pattern", "num", "Error", "Exception"], <dynamic>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]));
+static method main() → dynamic {
+  self::Y y = new self::Y::•();
+  self::C c = new self::C::•();
+  self::E e = new self::E::•();
+  tes::expectTrue(c.{self::C::fun}(y, $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](1))]).{core::String::==}("C"));
+  tes::expectTrue(e.{self::E::fun}(y, $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](1))]).{core::String::==}("E"));
+}

@@ -1,0 +1,111 @@
+library generic_methods_dynamic_dependent_type_error_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "dart:mock" as mock;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class A extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+  get $is$TypeError() → core::bool
+    return false;
+}
+class B extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+  get $is$TypeError() → core::bool
+    return false;
+}
+class C extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method bar<T extends core::Object>(core::Iterable<self::C::bar::T> t, {core::List<typ::ReifiedType> $typeParameters}) → core::List<self::C::bar::T> {
+    return int::attachType(<dynamic>[t.{core::Iterable::first}], new typ::Interface::•(self::$declarations.[](3), <dynamic>[this.$C$T]));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+  get $is$TypeError() → core::bool
+    return false;
+}
+class Closure#main#function extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function::context = context
+    ;
+  method call() → dynamic {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function::context};
+    return #contextParameter.[](0).bar(int::attachType(<self::B>[new self::B::•()], new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])), $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](0))]);
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](4));
+  get $is$TypeError() → core::bool
+    return false;
+}
+class Closure#main#function#1 extends core::Object implements core::Function, int::HasRuntimeTypeGetter {
+  field core::String note = "This is temporary. The VM doesn't need closure classes.";
+  field mock::Context context;
+  constructor •(final mock::Context context) → dynamic
+    : self::Closure#main#function#1::context = context
+    ;
+  method call(dynamic e) → core::bool {
+    "This is a temporary solution. In the VM, this will become an additional parameter.";
+    final mock::Context #contextParameter = this.{self::Closure#main#function#1::context};
+    return typ::isSubtypeOf(int::type(e), new typ::Interface::•(self::$declarations.[](6)));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](5));
+  get $is$TypeError() → core::bool
+    return false;
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](21)));
+  dec::init(d, 1, new typ::Interface::•(d.[](21)));
+  dec::init(d, 2, new typ::Interface::•(d.[](21)));
+  dec::init(d, 3, new typ::Interface::•(d.[](21)), <dynamic>[new typ::Interface::•(d.[](23), <dynamic>[d.[](3).variables.[](0)])]);
+  dec::init(d, 4, new typ::Interface::•(d.[](21)), <dynamic>[new typ::Interface::•(d.[](24))], new typ::FunctionType::•(new typ::Interface::•(d.[](24)), const typ::Dynamic::•(), 0, <dynamic>[]));
+  dec::init(d, 5, new typ::Interface::•(d.[](21)), <dynamic>[new typ::Interface::•(d.[](24))], new typ::FunctionType::•(new typ::Interface::•(d.[](24)), new typ::Interface::•(d.[](9)), 0, <dynamic>[const typ::Dynamic::•()]));
+  dec::init(d, 6, new typ::Interface::•(d.[](25)));
+  dec::init(d, 7, new typ::Interface::•(d.[](21)));
+  dec::init(d, 8, new typ::Interface::•(d.[](21)));
+  dec::init(d, 9, new typ::Interface::•(d.[](21)));
+  dec::init(d, 10, new typ::Interface::•(d.[](21)), <dynamic>[new typ::Interface::•(d.[](26), <dynamic>[new typ::Interface::•(d.[](10))]), new typ::Interface::•(d.[](27))]);
+  dec::init(d, 11, new typ::Interface::•(d.[](28)));
+  dec::init(d, 12, new typ::Interface::•(d.[](28)));
+  dec::init(d, 13, new typ::Interface::•(d.[](21)));
+  dec::init(d, 14, new typ::Interface::•(d.[](29)));
+  dec::init(d, 15, new typ::Interface::•(d.[](29)));
+  dec::init(d, 16, new typ::Interface::•(d.[](29)));
+  dec::init(d, 17, new typ::Interface::•(d.[](29)));
+  dec::init(d, 18, new typ::Interface::•(d.[](21)), <dynamic>[new typ::Interface::•(d.[](30))]);
+  dec::init(d, 19, new typ::Interface::•(d.[](20)));
+  dec::init(d, 20, new typ::Interface::•(d.[](29)));
+  dec::init(d, 21, null);
+  dec::init(d, 23, new typ::Interface::•(d.[](31), <dynamic>[d.[](23).variables.[](0)]));
+  dec::init(d, 24, new typ::Interface::•(d.[](21)));
+  dec::init(d, 25, new typ::Interface::•(d.[](29)));
+  dec::init(d, 26, new typ::Interface::•(d.[](21)));
+  dec::init(d, 27, new typ::Interface::•(d.[](21)));
+  dec::init(d, 28, new typ::Interface::•(d.[](21)), <dynamic>[new typ::Interface::•(d.[](26), <dynamic>[new typ::Interface::•(d.[](28))])]);
+  dec::init(d, 29, new typ::Interface::•(d.[](21)));
+  dec::init(d, 30, new typ::Interface::•(d.[](21)));
+  dec::init(d, 31, new typ::Interface::•(d.[](21)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["A", "B", "C", "List", "Closure#main#function", "Closure#main#function#1", "TypeError", "Context", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "EfficientLengthIterable", "Function", "AssertionError", "Comparable", "Pattern", "num", "Error", "Exception", "Iterable"], <dynamic>[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1]));
+static method main() → dynamic {
+  self::C c = new self::C::•();
+  final mock::Context #context = int::attachType(new mock::Context::•(1), new typ::Interface::•(self::$declarations.[](7)));
+  #context.[]=(0, c);
+  tes::expectThrows(new self::Closure#main#function::•(#context), new self::Closure#main#function#1::•(#context));
+}
