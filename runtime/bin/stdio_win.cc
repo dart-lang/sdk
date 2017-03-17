@@ -92,12 +92,12 @@ bool Stdin::AnsiSupported(bool* supported) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   if (h == INVALID_HANDLE_VALUE) {
     *supported = false;
-    return false;
+    return true;
   }
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
     *supported = false;
-    return false;
+    return true;
   }
   *supported = (mode & ENABLE_VIRTUAL_TERMINAL_INPUT) != 0;
   return true;
@@ -131,12 +131,12 @@ bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
   }
   if (h == INVALID_HANDLE_VALUE) {
     *supported = false;
-    return false;
+    return true;
   }
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
     *supported = false;
-    return false;
+    return true;
   }
   *supported = (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
   return true;
