@@ -17,7 +17,7 @@
   * Added functions `File.lastAccessed`, `File.lastAccessedSync`,
     `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
     and `File.setLastAccessedSync`.
-  * Added Added `{Stdin,Stdout}.supportsAnsiEscapes`.
+  * Added `{Stdin,Stdout}.supportsAnsiEscapes`.
 
 ### Dart VM
 * Calls to `print()` and `Stdout.write*()` now correctly print unicode
@@ -54,6 +54,8 @@
     specific imports are supported.
 
 * Pub
+  * Now sends telemetry data to `pub.dartlang.org` to allow better understanding
+    of why a particular package is being accessed.
   * `pub publish`
     * Warns if a package imports a package that's not a dependency from within
       `lib/` or `bin/`, or a package that's not a dev dependency from within
