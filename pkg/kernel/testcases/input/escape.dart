@@ -1,11 +1,13 @@
 class A {
   var field;
 }
+
 class B {
   var field;
 }
+
 class C {
-  operator==(x) => false;
+  operator ==(x) => false;
 }
 
 class X implements A, B {

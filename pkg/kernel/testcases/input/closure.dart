@@ -14,6 +14,7 @@ main() {
     x = new Foo();
     return new Foo();
   }
+
   useCallback(inner);
   var _ = inner()._field;
 }

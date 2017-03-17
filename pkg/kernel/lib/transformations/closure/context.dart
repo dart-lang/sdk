@@ -118,12 +118,11 @@ class LocalContext extends Context {
   factory LocalContext(ClosureConverter converter, Context parent) {
     Class contextClass = converter.contextClass;
     assert(contextClass.constructors.length == 1);
-    converter.rewriter.insertContextDeclaration(
-        contextClass, parent.expression);
+    converter.rewriter
+        .insertContextDeclaration(contextClass, parent.expression);
 
     return new LocalContext._internal(converter, parent,
-        converter.rewriter.contextDeclaration,
-        converter.rewriter.contextSize);
+        converter.rewriter.contextDeclaration, converter.rewriter.contextSize);
   }
 
   Expression get expression => accessor.buildSimpleRead();

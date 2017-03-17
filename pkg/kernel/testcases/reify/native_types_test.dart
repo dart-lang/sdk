@@ -30,9 +30,13 @@ main() {
   expectTrue(true is! int);
 
   // Test error and exception classes
-  expectThrows(() => new C(), (e) => e is AbstractClassInstantiationError);  /// 01: static type warning
+  expectThrows(() => new C(), (e) => e is AbstractClassInstantiationError);
 
-  expectThrows(() => new D().foo(), (e) => e is NoSuchMethodError);  /// 02: static type warning
+  /// 01: static type warning
+
+  expectThrows(() => new D().foo(), (e) => e is NoSuchMethodError);
+
+  /// 02: static type warning
 
   expectThrows(() => foo, (e) => e is CyclicInitializationError);
 

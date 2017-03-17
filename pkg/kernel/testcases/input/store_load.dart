@@ -4,11 +4,13 @@
 class Foo {
   var _field;
 }
+
 class FooValue {}
 
 class Bar {
   var _field; // Same name.
 }
+
 class BarValue {}
 
 main() {

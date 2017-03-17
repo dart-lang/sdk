@@ -92,10 +92,10 @@ class VmTarget extends Target {
   void performTreeShaking(Program program) {
     var coreTypes = new CoreTypes(program);
     new TreeShaker(program,
-        hierarchy: _hierarchy,
-        coreTypes: coreTypes,
-        strongMode: strongMode,
-        programRoots: flags.programRoots)
+            hierarchy: _hierarchy,
+            coreTypes: coreTypes,
+            strongMode: strongMode,
+            programRoots: flags.programRoots)
         .transform(program);
     _hierarchy = null; // Hierarchy must be recomputed.
   }

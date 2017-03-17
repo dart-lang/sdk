@@ -4,15 +4,18 @@
 class Uninitialized {
   int x;
 }
+
 class PartiallyInitialized {
   int x;
   PartiallyInitialized(this.x);
   PartiallyInitialized.noInitializer();
 }
+
 class Initialized {
   int x;
   Initialized(this.x);
 }
+
 class Forwarding {
   int x;
   Forwarding.initialize(this.x);
@@ -22,6 +25,4 @@ class Forwarding {
 int uninitializedTopLevel;
 int initializedTopLevel = 4;
 
-main() {
-
-}
+main() {}

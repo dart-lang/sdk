@@ -7,7 +7,9 @@ main(List<String> arguments) {
     bar() {
       print(x);
     }
+
     return bar;
   }
+
   foo(arguments[0])();
 }

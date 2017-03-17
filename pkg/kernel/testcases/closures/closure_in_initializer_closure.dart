@@ -4,14 +4,15 @@
 
 class C {
   var t;
-  C.foo(f) : t = (() {
-      var prefix;
-      var g = (x) {
-        f("$prefix$x");
-      };
-      prefix = 'hest';
-      return g;
-    }) {
+  C.foo(f)
+      : t = (() {
+          var prefix;
+          var g = (x) {
+            f("$prefix$x");
+          };
+          prefix = 'hest';
+          return g;
+        }) {
     print(1);
   }
 }

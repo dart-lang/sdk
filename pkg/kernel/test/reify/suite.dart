@@ -70,8 +70,9 @@ class TestContext extends ChainContext {
         ];
 
   Future<DartLoader> createLoader() async {
-    return new DartLoader(new Program(), options,
-        await loadPackagesFile(packages), dartSdk: dartSdk);
+    return new DartLoader(
+        new Program(), options, await loadPackagesFile(packages),
+        dartSdk: dartSdk);
   }
 }
 
