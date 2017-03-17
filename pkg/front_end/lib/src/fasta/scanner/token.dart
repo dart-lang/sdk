@@ -96,6 +96,8 @@ abstract class Token {
    */
   bool isIdentifier();
 
+  bool get isPseudo => false;
+
   /**
    * Returns a textual representation of this token to be used for debugging
    * purposes. The resulting string might contain information about the
@@ -177,6 +179,8 @@ class KeywordToken extends Token {
   String get stringValue => keyword.syntax;
 
   bool isIdentifier() => keyword.isPseudo || keyword.isBuiltIn;
+
+  bool get isPseudo => keyword.isPseudo;
 
   bool get isBuiltInIdentifier {
     // TODO(ahe): Remove special case for "deferred" once dartbug.com/29069 is

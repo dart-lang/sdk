@@ -135,6 +135,8 @@ class Parser {
         asyncState == AsyncModifier.AsyncStar;
   }
 
+  bool get inPlainSync => asyncState == AsyncModifier.Sync;
+
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
     int count = 0;
@@ -909,6 +911,14 @@ class Parser {
       } else if (!optional("dynamic", token)) {
         reportRecoverableError(token, ErrorKind.BuiltInIdentifierAsType);
       }
+    } else if (!inPlainSync && token.isPseudo) {
+      if (optional('await', token)) {
+        reportRecoverableError(token, ErrorKind.AwaitAsIdentifier);
+      } else if (optional('yield', token)) {
+        reportRecoverableError(token, ErrorKind.YieldAsIdentifier);
+      } else if (optional('async', token)) {
+        reportRecoverableError(token, ErrorKind.AsyncAsIdentifier);
+      }
     }
     listener.handleIdentifier(token, context);
     return token.next;
@@ -1315,7 +1325,11 @@ class Parser {
     }
     token = parseFormalParametersOpt(token);
     AsyncModifier savedAsyncModifier = asyncState;
+    Token asyncToken = token;
     token = parseAsyncModifier(token);
+    if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
+      reportRecoverableError(asyncToken, ErrorKind.SetterNotSync);
+    }
     token = parseFunctionBody(token, false, externalModifier != null);
     asyncState = savedAsyncModifier;
     Token endToken = token;
@@ -1873,7 +1887,11 @@ class Parser {
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
     AsyncModifier savedAsyncModifier = asyncState;
+    Token asyncToken = token;
     token = parseAsyncModifier(token);
+    if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
+      reportRecoverableError(asyncToken, ErrorKind.SetterNotSync);
+    }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
@@ -1903,7 +1921,11 @@ class Parser {
     token = expect('factory', token);
     token = parseConstructorReference(token);
     token = parseFormalParameters(token);
+    Token asyncToken = token;
     token = parseAsyncModifier(token);
+    if (!inPlainSync) {
+      reportRecoverableError(asyncToken, ErrorKind.FactoryNotSync);
+    }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
@@ -2168,6 +2190,11 @@ class Parser {
       }
     }
     listener.handleAsyncModifier(async, star);
+    if (inGenerator && optional('=>', token)) {
+      reportRecoverableError(token, ErrorKind.GeneratorReturnsValue);
+    } else if (!inPlainSync && optional(';', token)) {
+      reportRecoverableError(token, ErrorKind.AbstractNotSync);
+    }
     return token;
   }
 
@@ -2196,12 +2223,11 @@ class Parser {
       return parseVariablesDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
-    } else if (asyncState != AsyncModifier.Sync && identical(value, 'await')) {
-      if (identical(token.next.stringValue, 'for')) {
-        return parseForStatement(token, token.next);
-      } else {
-        return parseExpressionStatement(token);
+    } else if (identical(value, 'await') && optional('for', token.next)) {
+      if (!inAsync) {
+        reportRecoverableError(token, ErrorKind.AwaitForNotAsync);
       }
+      return parseForStatement(token, token.next);
     } else if (identical(value, 'for')) {
       return parseForStatement(null, token);
     } else if (identical(value, 'rethrow')) {
@@ -2227,8 +2253,20 @@ class Parser {
       return parseAssertStatement(token);
     } else if (identical(value, ';')) {
       return parseEmptyStatement(token);
-    } else if (asyncState != AsyncModifier.Sync && identical(value, 'yield')) {
-      return parseYieldStatement(token);
+    } else if (identical(value, 'yield')) {
+      switch (asyncState) {
+        case AsyncModifier.Sync:
+          return parseExpressionStatementOrDeclaration(token);
+
+        case AsyncModifier.SyncStar:
+        case AsyncModifier.AsyncStar:
+          return parseYieldStatement(token);
+
+        case AsyncModifier.Async:
+          reportRecoverableError(token, ErrorKind.YieldNotGenerator);
+          return parseYieldStatement(token);
+      }
+      throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (token.isIdentifier()) {
@@ -2262,6 +2300,9 @@ class Parser {
       listener.endReturnStatement(false, begin, token);
     } else {
       token = parseExpression(token);
+      if (inGenerator) {
+        reportRecoverableError(begin.next, ErrorKind.GeneratorReturnsValue);
+      }
       listener.endReturnStatement(true, begin, token);
     }
     return expectSemicolon(token);
@@ -2291,6 +2332,9 @@ class Parser {
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
+    if (!inPlainSync && optional("await", token)) {
+      return parseExpressionStatement(token);
+    }
     assert(token.isIdentifier() || identical(token.stringValue, 'void'));
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
@@ -2630,8 +2674,12 @@ class Parser {
   Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
-    if (asyncState != AsyncModifier.Sync && optional('await', token)) {
-      return parseAwaitExpression(token, allowCascades);
+    if (optional('await', token)) {
+      if (inPlainSync) {
+        return parsePrimary(token);
+      } else {
+        return parseAwaitExpression(token, allowCascades);
+      }
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
       reportRecoverableError(token, ErrorKind.UnsupportedPrefixPlus);
@@ -2645,6 +2693,7 @@ class Parser {
       token = parsePrecedenceExpression(
           token.next, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixExpression(operator);
+      return token;
     } else if ((identical(value, '++')) || identical(value, '--')) {
       // TODO(ahe): Validate this is used correctly.
       Token operator = token;
@@ -2653,10 +2702,10 @@ class Parser {
       token = parsePrecedenceExpression(
           token.next, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
+      return token;
     } else {
-      token = parsePrimary(token);
+      return parsePrimary(token);
     }
-    return token;
   }
 
   Token parseArgumentOrIndexStar(Token token) {
@@ -2709,7 +2758,7 @@ class Parser {
         return parseConstExpression(token);
       } else if (identical(value, "void")) {
         return parseFunctionExpression(token);
-      } else if (asyncState != AsyncModifier.Sync &&
+      } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
       } else if (token.isIdentifier()) {
@@ -3362,6 +3411,9 @@ class Parser {
     Token awaitToken = token;
     listener.beginAwaitExpression(awaitToken);
     token = expect('await', token);
+    if (!inAsync) {
+      reportRecoverableError(awaitToken, ErrorKind.AwaitNotAsync);
+    }
     token = parsePrecedenceExpression(token, POSTFIX_PRECEDENCE, allowCascades);
     listener.endAwaitExpression(awaitToken, token);
     return token;

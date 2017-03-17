@@ -52,8 +52,6 @@ Language/Classes/Getters/syntax_t03: MissingCompileTimeError
 Language/Classes/Getters/syntax_t04: MissingCompileTimeError
 Language/Classes/Getters/syntax_t05: MissingCompileTimeError
 Language/Classes/Getters/syntax_t07: MissingCompileTimeError
-Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
-Language/Classes/Getters/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Instance_Methods/Operators/arity_0_or_1_t02: MissingCompileTimeError
 Language/Classes/Instance_Methods/Operators/arity_0_t02: MissingCompileTimeError
 Language/Classes/Instance_Methods/Operators/arity_1_t01: MissingCompileTimeError
@@ -100,12 +98,8 @@ Language/Classes/Setters/static_setter_t05: RuntimeError
 Language/Classes/Setters/syntax_t01: RuntimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Setters/syntax_t04: RuntimeError
-Language/Classes/Setters/type_object_t01: RuntimeError # Issue 23721
-Language/Classes/Setters/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
-Language/Classes/Static_Methods/type_object_t01: RuntimeError # Issue 23721
-Language/Classes/Static_Methods/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t03: RuntimeError
 Language/Classes/Superclasses/superclass_of_itself_t01: MissingCompileTimeError
 Language/Classes/Superclasses/superclass_of_itself_t02: MissingCompileTimeError
@@ -155,7 +149,6 @@ Language/Expressions/Assignment/static_type_t06: CompileTimeError
 Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
-Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
 Language/Expressions/Await_Expressions/syntax_t06: Crash
 Language/Expressions/Constants/bitwise_operators_t02: Crash
@@ -219,17 +212,6 @@ Language/Expressions/Constants/top_level_function_t05: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Binding_Actuals_to_Formals/same_name_arguments_t01: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
-Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
-Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
-Language/Expressions/Identifier_Reference/async_and_generator_t02: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t03: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t04: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t05: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t06: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t07: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t08: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t09: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t10: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t01: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t12: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError
@@ -330,22 +312,8 @@ Language/Functions/Formal_Parameters/declare_as_constant_t05: MissingCompileTime
 Language/Functions/Formal_Parameters/declare_as_constant_t06: MissingCompileTimeError
 Language/Functions/Function_Declarations/external_function_t01: MissingCompileTimeError
 Language/Functions/Function_Declarations/external_function_t02: MissingCompileTimeError
-Language/Functions/ctor_modifier_t03: MissingCompileTimeError
-Language/Functions/ctor_modifier_t04: MissingCompileTimeError
-Language/Functions/ctor_modifier_t09: MissingCompileTimeError
-Language/Functions/ctor_modifier_t10: MissingCompileTimeError
-Language/Functions/ctor_modifier_t15: MissingCompileTimeError
-Language/Functions/ctor_modifier_t16: MissingCompileTimeError
-Language/Functions/setter_modifier_t01: MissingCompileTimeError
-Language/Functions/setter_modifier_t02: MissingCompileTimeError
-Language/Functions/setter_modifier_t03: MissingCompileTimeError
-Language/Functions/setter_modifier_t04: MissingCompileTimeError
-Language/Functions/setter_modifier_t05: MissingCompileTimeError
-Language/Functions/setter_modifier_t06: MissingCompileTimeError
 Language/Functions/syntax_t05: MissingCompileTimeError
 Language/Functions/syntax_t31: MissingCompileTimeError
-Language/Functions/syntax_t39: MissingCompileTimeError
-Language/Functions/syntax_t40: MissingCompileTimeError
 Language/Generics/malformed_t01: RuntimeError
 Language/Interfaces/Superinterfaces/definition_t03: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/definition_t04: MissingCompileTimeError
@@ -468,7 +436,6 @@ Language/Statements/Continue/label_t09: MissingCompileTimeError
 Language/Statements/Continue/label_t10: MissingCompileTimeError
 Language/Statements/Continue/label_t11: MissingCompileTimeError
 Language/Statements/Do/execution_t04: Crash
-Language/Statements/For/Asynchronous_For_in/syntax_t02: MissingCompileTimeError
 Language/Statements/For/syntax_t07: CompileTimeError
 Language/Statements/For/syntax_t12: MissingCompileTimeError
 Language/Statements/For/syntax_t13: MissingCompileTimeError
@@ -481,8 +448,6 @@ Language/Statements/Labels/scope_t07: CompileTimeError
 Language/Statements/Labels/syntax_t03: Pass # OK
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError
-Language/Statements/Local_Function_Declaration/syntax_t05: MissingCompileTimeError
-Language/Statements/Local_Function_Declaration/syntax_t06: MissingCompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t05: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t06: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t11: MissingCompileTimeError
@@ -491,14 +456,6 @@ Language/Statements/Local_Variable_Declaration/syntax_t19: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t20: MissingCompileTimeError
 Language/Statements/Rethrow/on_catch_clause_t01: Crash
 Language/Statements/Rethrow/on_catch_clause_t02: Crash
-Language/Statements/Return/generator_function_t01: MissingCompileTimeError
-Language/Statements/Return/generator_function_t02: MissingCompileTimeError
-Language/Statements/Return/generator_function_t03: MissingCompileTimeError
-Language/Statements/Return/generator_function_t04: MissingCompileTimeError
-Language/Statements/Return/generator_function_t05: MissingCompileTimeError
-Language/Statements/Return/generator_function_t06: MissingCompileTimeError
-Language/Statements/Return/generator_function_t07: MissingCompileTimeError
-Language/Statements/Return/generator_function_t08: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t01: MissingCompileTimeError
@@ -515,19 +472,9 @@ Language/Statements/Try/syntax_t06: MissingCompileTimeError
 Language/Statements/Try/syntax_t13: MissingCompileTimeError
 Language/Statements/Try/syntax_t15: Crash
 Language/Statements/While/execution_t03: Crash
-Language/Statements/Yield_and_Yield_Each/Yield/location_t02: MissingCompileTimeError
-Language/Statements/Yield_and_Yield_Each/Yield/location_t04: MissingCompileTimeError
-Language/Statements/Yield_and_Yield_Each/Yield/location_t06: MissingCompileTimeError
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: RuntimeError # Issue 25748
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t02: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t04: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t06: MissingCompileTimeError
 Language/Types/Static_Types/deferred_type_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Types/Static_Types/malformed_type_t01: RuntimeError
 Language/Types/Type_Declarations/Typedef/param_default_value_t02: MissingCompileTimeError
@@ -595,12 +542,6 @@ Language/Expressions/Lists/constant_list_t01: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Statements/Switch/syntax_t16: Crash
 Language/Statements/Switch/syntax_t17: Crash
-Language/Statements/Yield_and_Yield_Each/Yield/location_t02: Crash
-Language/Statements/Yield_and_Yield_Each/Yield/location_t04: Crash
-Language/Statements/Yield_and_Yield_Each/Yield/location_t06: Crash
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t02: Crash
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t04: Crash
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t06: Crash
 
 # dartk: JIT failures
 [ $compiler == dartk ]

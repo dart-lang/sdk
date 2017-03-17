@@ -22,34 +22,7 @@ assignable_expression_test/32: MissingCompileTimeError
 assignable_expression_test/33: MissingCompileTimeError
 assignable_expression_test/42: MissingCompileTimeError
 assignable_expression_test/43: MissingCompileTimeError
-async_await_syntax_test/a01b: MissingCompileTimeError
-async_await_syntax_test/a01c: MissingCompileTimeError
-async_await_syntax_test/a05f: MissingCompileTimeError
-async_await_syntax_test/a05g: MissingCompileTimeError
-async_await_syntax_test/a05h: MissingCompileTimeError
-async_await_syntax_test/a06b: MissingCompileTimeError
-async_await_syntax_test/a12e: MissingCompileTimeError
-async_await_syntax_test/a12f: MissingCompileTimeError
-async_await_syntax_test/b01b: MissingCompileTimeError
-async_await_syntax_test/b01c: MissingCompileTimeError
-async_await_syntax_test/b10b: MissingCompileTimeError
-async_await_syntax_test/b12e: MissingCompileTimeError
-async_await_syntax_test/b12f: MissingCompileTimeError
-async_await_syntax_test/c01b: MissingCompileTimeError
-async_await_syntax_test/c01c: MissingCompileTimeError
-async_await_syntax_test/c11a: MissingCompileTimeError
-async_await_syntax_test/c11b: MissingCompileTimeError
-async_await_syntax_test/d01b: MissingCompileTimeError
-async_await_syntax_test/d01c: MissingCompileTimeError
-async_await_syntax_test/e1: MissingCompileTimeError
-async_await_syntax_test/e2: MissingCompileTimeError
-async_await_syntax_test/e3: MissingCompileTimeError
-async_return_types_test/return_value_sync_star: MissingCompileTimeError
-async_star_pause_test: Crash
-async_test/constructor3: MissingCompileTimeError
-async_test/setter1: MissingCompileTimeError
-await_backwards_compatibility_test/await1: MissingCompileTimeError
-await_for_test: Crash, Fail
+await_for_test: RuntimeError
 await_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
@@ -569,20 +542,6 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-sync_generator2_test/01: MissingCompileTimeError
-sync_generator2_test/02: MissingCompileTimeError
-sync_generator2_test/03: MissingCompileTimeError
-sync_generator2_test/04: MissingCompileTimeError
-sync_generator2_test/05: MissingCompileTimeError
-sync_generator2_test/06: MissingCompileTimeError
-sync_generator2_test/09: Crash
-sync_generator2_test/11: MissingCompileTimeError
-sync_generator2_test/20: MissingCompileTimeError
-sync_generator2_test/30: MissingCompileTimeError
-sync_generator2_test/40: MissingCompileTimeError
-sync_generator2_test/41: MissingCompileTimeError
-sync_generator2_test/51: MissingCompileTimeError
-sync_generator2_test/52: MissingCompileTimeError
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
@@ -615,11 +574,6 @@ vm/type_vm_test: RuntimeError
 
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
-async_await_syntax_test/a05g: Crash
-async_await_syntax_test/a05h: Crash
-async_await_syntax_test/b10b: Crash
-async_await_syntax_test/c11a: Crash
-async_await_syntax_test/c11b: Crash
 const_instance_field_test/01: Crash
 list_literal2_negative_test: Crash
 switch1_negative_test: Crash
@@ -694,7 +648,9 @@ vm/closure_memory_retention_test: Skip  # Hits OOM
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
+constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 external_test/13: Crash
 final_syntax_test/09: Crash
-constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
+regress_22445_test: Crash
+regress_23498_test: Crash

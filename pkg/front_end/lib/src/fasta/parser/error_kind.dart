@@ -6,7 +6,11 @@ library fasta.parser.error_kind;
 
 /// Kinds of error codes.
 enum ErrorKind {
+  AbstractNotSync,
   AsciiControlCharacter,
+  AsyncAsIdentifier,
+  AwaitAsIdentifier,
+  AwaitNotAsync,
   BuiltInIdentifierAsType,
   BuiltInIdentifierInDeclaration,
   EmptyNamedParameterList,
@@ -21,6 +25,7 @@ enum ErrorKind {
   /// Dart Language Specification) Dart VM native clauses. See
   /// [dart_vm_native.dart].
   ExpectedClassBodyToSkip,
+  AwaitForNotAsync,
   ExpectedDeclaration,
   ExpectedExpression,
   ExpectedFunctionBody,
@@ -31,8 +36,10 @@ enum ErrorKind {
   ExpectedType,
   ExtraneousModifier,
   ExtraneousModifierReplace,
-  InvalidInlineFunctionType,
+  FactoryNotSync,
+  GeneratorReturnsValue,
   InvalidAwaitFor,
+  InvalidInlineFunctionType,
   InvalidSyncModifier,
   InvalidVoid,
   MissingExponent,
@@ -40,6 +47,7 @@ enum ErrorKind {
   NonAsciiWhitespace,
   PositionalParameterWithEquals,
   RequiredParameterWithDefault,
+  SetterNotSync,
   StackOverflow,
   UnexpectedDollarInString,
   UnexpectedToken,
@@ -48,5 +56,7 @@ enum ErrorKind {
   UnterminatedComment,
   UnterminatedString,
   UnterminatedToken,
+  YieldAsIdentifier,
+  YieldNotGenerator,
   Unspecified,
 }
