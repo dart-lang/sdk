@@ -231,6 +231,8 @@ class KernelTarget extends TargetImplementation {
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
       program = link(new List<Library>.from(loader.libraries));
+      loader.computeHierarchy(program);
+      loader.checkOverrides(sourceClasses);
       if (uri == null) return program;
       return await writeLinkedProgram(uri, program, isFullProgram: false);
     } on InputError catch (e) {
@@ -247,7 +249,6 @@ class KernelTarget extends TargetImplementation {
       return handleInputError(uri, null, isFullProgram: true);
     }
     try {
-      loader.computeHierarchy(program);
       await loader.buildBodies();
       loader.finishStaticInvocations();
       finishAllConstructors();

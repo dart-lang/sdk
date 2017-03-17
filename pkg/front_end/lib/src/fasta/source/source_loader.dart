@@ -10,29 +10,29 @@ import 'dart:io' show FileSystemException;
 
 import 'dart:typed_data' show Uint8List;
 
-import '../scanner/io.dart' show readBytesFromFile;
-
-import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
-
-import '../parser/class_member_parser.dart' show ClassMemberParser;
-
 import 'package:kernel/ast.dart' show Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../errors.dart' show inputError;
+import '../builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
-import '../messages.dart' show warning;
+import '../compiler_context.dart' show CompilerContext;
+
+import '../errors.dart' show inputError;
 
 import '../export.dart' show Export;
 
-import '../builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
-
-import 'outline_builder.dart' show OutlineBuilder;
-
 import '../loader.dart' show Loader;
+
+import '../messages.dart' show warning;
+
+import '../parser/class_member_parser.dart' show ClassMemberParser;
+
+import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
+
+import '../scanner/io.dart' show readBytesFromFile;
 
 import '../target_implementation.dart' show TargetImplementation;
 
@@ -40,9 +40,11 @@ import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
 
-import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'outline_builder.dart' show OutlineBuilder;
 
-import '../compiler_context.dart' show CompilerContext;
+import 'source_class_builder.dart' show SourceClassBuilder;
+
+import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceLoader<L> extends Loader<L> {
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
@@ -358,6 +360,14 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Computed class hierarchy");
     coreTypes = new CoreTypes(program);
     ticker.logMs("Computed core types");
+  }
+
+  void checkOverrides(List<SourceClassBuilder> sourceClasses) {
+    assert(hierarchy != null);
+    for (SourceClassBuilder builder in sourceClasses) {
+      builder.checkOverrides(hierarchy);
+    }
+    ticker.logMs("Checked overrides");
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();

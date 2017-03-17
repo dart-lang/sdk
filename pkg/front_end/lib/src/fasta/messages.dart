@@ -70,6 +70,9 @@ String format(Uri uri, int charOffset, String message) {
 }
 
 Location getLocation(String path, int charOffset) {
+  if (CompilerContext.current.uriToSource[path] == null) {
+    return new Location(path, 1, 1);
+  }
   return new Program(null, CompilerContext.current.uriToSource)
       .getLocation(path, charOffset);
 }

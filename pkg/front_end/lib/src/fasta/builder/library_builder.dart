@@ -12,6 +12,8 @@ import '../export.dart' show Export;
 
 import '../loader.dart' show Loader;
 
+import '../messages.dart' show nit, warning;
+
 import '../util/relativize.dart' show relativizeUri;
 
 import 'builder.dart' show Builder, ClassBuilder, TypeBuilder;
@@ -58,6 +60,22 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
       printUnexpected(fileUri, charOffset, message);
     }
     compileTimeErrors.add(new InputError(fileUri, charOffset, message));
+  }
+
+  void addWarning(int charOffset, Object message,
+      {Uri fileUri, bool silent: false}) {
+    fileUri ??= this.fileUri;
+    if (!silent) {
+      warning(fileUri, charOffset, message);
+    }
+  }
+
+  void addNit(int charOffset, Object message,
+      {Uri fileUri, bool silent: false}) {
+    fileUri ??= this.fileUri;
+    if (!silent) {
+      nit(fileUri, charOffset, message);
+    }
   }
 
   bool addToExportScope(String name, Builder member);

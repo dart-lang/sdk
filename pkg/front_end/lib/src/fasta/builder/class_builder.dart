@@ -54,6 +54,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   Map<String, Builder> get membersInScope => members;
 
+  LibraryBuilder get library {
+    LibraryBuilder library = parent;
+    return library.partOfLibrary ?? library;
+  }
+
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
     Scope scope = computeInstanceScope(library.scope);

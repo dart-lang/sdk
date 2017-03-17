@@ -7,22 +7,31 @@ library fasta.kernel_class_builder;
 import 'package:kernel/ast.dart'
     show
         Class,
+        Constructor,
         DartType,
         Expression,
         ExpressionStatement,
         Field,
+        FunctionNode,
         InterfaceType,
         ListLiteral,
         Member,
         Name,
+        Procedure,
+        ProcedureKind,
         StaticGet,
         StringLiteral,
         Supertype,
-        Throw;
+        Throw,
+        VariableDeclaration;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import '../errors.dart' show internalError;
 
 import '../messages.dart' show warning;
+
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import 'kernel_builder.dart'
     show
@@ -37,8 +46,6 @@ import 'kernel_builder.dart'
         ProcedureBuilder,
         TypeVariableBuilder,
         computeDefaultTypeArguments;
-
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -165,5 +172,112 @@ abstract class KernelClassBuilder
     ListLiteral literal = field.initializer;
     literal.expressions
         .add(new StaticGet(constructor.target)..parent = literal);
+  }
+
+  void checkOverrides(ClassHierarchy hierarchy) {
+    hierarchy.forEachOverridePair(cls, checkOverride);
+  }
+
+  void checkOverride(
+      Member declaredMember, Member interfaceMember, bool isSetter) {
+    if (declaredMember is Constructor || interfaceMember is Constructor) {
+      internalError(
+          "Constructor in override check.", fileUri, declaredMember.fileOffset);
+    }
+    if (declaredMember is Procedure && interfaceMember is Procedure) {
+      if (declaredMember.kind == ProcedureKind.Method &&
+          interfaceMember.kind == ProcedureKind.Method) {
+        checkMethodOverride(declaredMember, interfaceMember);
+        return;
+      }
+    }
+    // TODO(ahe): Handle other cases: accessors, operators, and fields.
+  }
+
+  void checkMethodOverride(
+      Procedure declaredMember, Procedure interfaceMember) {
+    if (declaredMember.enclosingClass != cls) {
+      // TODO(ahe): Include these checks as well, but the message needs to
+      // explain that [declaredMember] is inherited.
+      return;
+    }
+    assert(declaredMember.kind == ProcedureKind.Method);
+    assert(interfaceMember.kind == ProcedureKind.Method);
+    FunctionNode declaredFunction = declaredMember.function;
+    FunctionNode interfaceFunction = interfaceMember.function;
+    if (declaredFunction.typeParameters?.length !=
+        interfaceFunction.typeParameters?.length) {
+      addWarning(
+          declaredMember.fileOffset,
+          "Declared type variables of '$name::${declaredMember.name.name}' "
+          "doesn't match those on overridden method "
+          "'${interfaceMember.enclosingClass.name}::"
+          "${interfaceMember.name.name}'.");
+    }
+    if (declaredFunction.positionalParameters.length <
+            interfaceFunction.requiredParameterCount ||
+        declaredFunction.positionalParameters.length <
+            interfaceFunction.positionalParameters.length) {
+      addWarning(
+          declaredMember.fileOffset,
+          "The method '$name::${declaredMember.name.name}' has fewer "
+          "positional arguments than those of overridden method "
+          "'${interfaceMember.enclosingClass.name}::"
+          "${interfaceMember.name.name}'.");
+    }
+    if (interfaceFunction.requiredParameterCount <
+        declaredFunction.requiredParameterCount) {
+      addWarning(
+          declaredMember.fileOffset,
+          "The method '$name::${declaredMember.name.name}' has more "
+          "positional arguments than those of overridden method "
+          "'${interfaceMember.enclosingClass.name}::"
+          "${interfaceMember.name.name}'.");
+    }
+    if (declaredFunction.namedParameters.isEmpty &&
+        interfaceFunction.namedParameters.isEmpty) {
+      return;
+    }
+    if (declaredFunction.namedParameters.length <
+        interfaceFunction.namedParameters.length) {
+      addWarning(
+          declaredMember.fileOffset,
+          "The method '$name::${declaredMember.name.name}' has fewer named "
+          "arguments than those of overridden method "
+          "'${interfaceMember.enclosingClass.name}::"
+          "${interfaceMember.name.name}'.");
+    }
+    Iterator<VariableDeclaration> declaredNamedParameters =
+        declaredFunction.namedParameters.iterator;
+    Iterator<VariableDeclaration> interfaceNamedParameters =
+        interfaceFunction.namedParameters.iterator;
+    outer:
+    while (declaredNamedParameters.moveNext() &&
+        interfaceNamedParameters.moveNext()) {
+      while (declaredNamedParameters.current.name !=
+          interfaceNamedParameters.current.name) {
+        if (!declaredNamedParameters.moveNext()) {
+          addWarning(
+              declaredMember.fileOffset,
+              "The method '$name::${declaredMember.name.name}' doesn't have "
+              "the named parameter '${interfaceNamedParameters.current.name}' "
+              "of overriden method '${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}'.");
+          break outer;
+        }
+      }
+    }
+  }
+
+  void addCompileTimeError(int charOffset, String message) {
+    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
+  }
+
+  void addWarning(int charOffset, String message) {
+    library.addWarning(charOffset, message, fileUri: fileUri);
+  }
+
+  void addNit(int charOffset, String message) {
+    library.addNit(charOffset, message, fileUri: fileUri);
   }
 }

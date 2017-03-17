@@ -101,10 +101,11 @@ bool computeEnableColors(CompilerContext context) {
   bool ansiSupported;
   try {
     ansiSupported = Platform.ansiSupported;
-  } on NoSuchMethodError catch (e) {
+  } on NoSuchMethodError {
     // Ignored: We're running on an older version of the Dart VM which doesn't
     // implement `ansiSupported`.
   }
+
   if (ansiSupported == false) {
     if (context.options.verbose) {
       print("Not enabling colors, 'Platform.ansiSupported' is false.");

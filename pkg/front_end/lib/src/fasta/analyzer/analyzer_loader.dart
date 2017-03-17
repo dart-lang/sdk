@@ -10,6 +10,8 @@ import '../builder/builder.dart' show LibraryBuilder;
 
 import '../target_implementation.dart' show TargetImplementation;
 
+import '../source/source_class_builder.dart' show SourceClassBuilder;
+
 import '../source/source_loader.dart' show SourceLoader;
 
 import 'package:analyzer/src/fasta/element_store.dart' show ElementStore;
@@ -30,5 +32,10 @@ class AnalyzerLoader<L> extends SourceLoader<L> {
   @override
   AnalyzerDietListener createDietListener(LibraryBuilder library) {
     return new AnalyzerDietListener(library, elementStore);
+  }
+
+  @override
+  void checkOverrides(List<SourceClassBuilder> sourceClasses) {
+    // Not implemented yet. Requires [hierarchy].
   }
 }
