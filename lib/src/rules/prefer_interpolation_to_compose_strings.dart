@@ -29,44 +29,28 @@ const _details = r'''
 ''';
 
 class PreferInterpolationToComposeStrings extends LintRule {
-  _Visitor _visitor;
   PreferInterpolationToComposeStrings()
       : super(
             name: 'prefer_interpolation_to_compose_strings',
             description: _desc,
             details: _details,
-            group: Group.style) {
-    _visitor = new _Visitor(this);
-  }
+            group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _visitor;
+  AstVisitor getVisitor() => new _Visitor(this);
 }
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
+  final skippedNodes = new Set<AstNode>();
+
   _Visitor(this.rule);
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
-    final skippedNodes = new Set<AstNode>();
-    void checkRule(AstNode node) {
-      if (skippedNodes.contains(node)) {
-        return;
-      }
-      if (node is BinaryExpression) {
-        _checkBinaryExpression(node, skippedNodes);
-      }
-      if (node is AssignmentExpression) {
-        _checkAssignmentExpression(node, skippedNodes);
-      }
+  visitAssignmentExpression(AssignmentExpression node) {
+    if (skippedNodes.contains(node)) {
+      return;
     }
-
-    DartTypeUtilities.traverseNodesInDFS(node).forEach(checkRule);
-  }
-
-  _checkAssignmentExpression(
-      AssignmentExpression node, Set<AstNode> skippedNodes) {
     if (node.operator.type == TokenType.PLUS_EQ &&
         (DartTypeUtilities.isClass(
                 node.leftHandSide.bestType, 'String', 'dart.core') ||
@@ -77,7 +61,11 @@ class _Visitor extends SimpleAstVisitor {
     }
   }
 
-  _checkBinaryExpression(BinaryExpression node, Set<AstNode> skippedNodes) {
+  @override
+  visitBinaryExpression(BinaryExpression node) {
+    if (skippedNodes.contains(node)) {
+      return;
+    }
     if (node.operator.type == TokenType.PLUS) {
       if (node.leftOperand is StringLiteral &&
           node.rightOperand is StringLiteral) {
