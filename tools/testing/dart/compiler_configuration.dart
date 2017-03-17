@@ -92,7 +92,7 @@ abstract class CompilerConfiguration {
             extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
       case 'app_jit':
-        return new Dart2AppSnapshotCompilerConfiguration(
+        return new AppJitCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked);
       case 'precompiler':
         return new PrecompilerCompilerConfiguration(
@@ -616,8 +616,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
     var exec;
-    if (isAndroid && arch == 'arm') {
-      exec = "$buildDir/clang_x86/dart_bootstrap";
+    if (isAndroid) {
+      if (arch == "arm") {
+        exec = "$buildDir/clang_x86/dart_bootstrap";
+      } else if (arch == "arm64") {
+        exec = "$buildDir/clang_x64/dart_bootstrap";
+      }
     } else {
       exec = "$buildDir/dart_bootstrap";
     }
@@ -649,7 +653,23 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
 
     var cc, shared;
-    if (Platform.isLinux) {
+    if (isAndroid) {
+      var ndk = "third_party/android_tools/ndk";
+      var triple;
+      if (arch == "arm") {
+        triple = "arm-linux-androideabi";
+      } else if (arch == "arm64") {
+        triple = "aarch64-linux-android";
+      }
+      var host;
+      if (Platform.isLinux) {
+        host = "linux";
+      } else if (Platform.isMacOS) {
+        host = "darwin";
+      }
+      cc = "$ndk/toolchains/$triple-4.9/prebuilt/$host-x86_64/bin/$triple-gcc";
+      shared = '-shared';
+    } else if (Platform.isLinux) {
       cc = 'gcc';
       shared = '-shared';
     } else if (Platform.isMacOS) {
@@ -657,10 +677,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       shared = '-dynamiclib';
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
-    }
-    if (isAndroid) {
-      // TODO: If we're not using "--use-blobs" we need to use the arm cross
-      // compiler instead of just 'gcc' for .
     }
 
     var cc_flags;
@@ -676,6 +692,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       cc_flags = "-m32";
     } else if (arch == 'arm') {
       cc_flags = null;
+    } else if (arch == 'arm64') {
+      cc_flags = null;
     } else if (arch == 'mips') {
       cc_flags = "-EL";
     } else {
@@ -685,6 +703,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var exec = cc;
     var args = (cc_flags != null) ? [ shared, cc_flags ] : [ shared ];
     args.addAll([
+      '-nostdlib',
       '-o',
       '$tempDir/out.aotsnapshot',
       '$tempDir/out.S'
@@ -767,8 +786,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
-  Dart2AppSnapshotCompilerConfiguration({bool isDebug, bool isChecked})
+class AppJitCompilerConfiguration extends CompilerConfiguration {
+  AppJitCompilerConfiguration({bool isDebug, bool isChecked})
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
