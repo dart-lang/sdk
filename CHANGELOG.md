@@ -59,7 +59,7 @@
   * `pub publish`
     * Warns if a package imports a package that's not a dependency from within
       `lib/` or `bin/`, or a package that's not a dev dependency from within
-      `test/` or `tool/`.
+      `benchmark/`, `example/`, `test/` or `tool/`.
     * No longer produces "UID too large" errors on OS X. All packages are now
       uploaded with the user and group names set to "pub".
     * No longer fails with a stack overflow when uploading a package that uses
