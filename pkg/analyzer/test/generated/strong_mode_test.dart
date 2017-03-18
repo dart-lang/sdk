@@ -1110,6 +1110,61 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     verify([source]);
   }
 
+  test_inferGenericInstantiation() async {
+    // Verify that we don't infer '?` when we instantiate a generic function.
+    var source = addSource(r'''
+T f<T>(T x(T t)) => x(null);
+S g<S>(S s) => s;
+test() {
+ var h = f(g);
+}
+    ''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    var unit = analysisResult.unit;
+    var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
+            as VariableDeclarationStatement)
+        .variables
+        .variables[0];
+    _isDynamic(h.element.type);
+    var fCall = h.initializer as MethodInvocation;
+    expect(
+        fCall.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
+    var g = fCall.argumentList.arguments[0];
+    expect(g.staticType.toString(), '(dynamic) → dynamic');
+  }
+
+  test_inferGenericInstantiation2() async {
+    // Verify the behavior when we cannot infer an instantiation due to invalid
+    // constraints from an outer generic method.
+    var source = addSource(r'''
+T max<T extends num>(T x, T y) => x < y ? y : x;
+abstract class Iterable<T> {
+  T get first;
+  S fold<S>(S s, S f(S s, T t));
+}
+num test(Iterable values) => values.fold(values.first as num, max);
+    ''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ]);
+    verify([source]);
+    var unit = analysisResult.unit;
+    var fold = (AstFinder
+            .getTopLevelFunction(unit, 'test')
+            .functionExpression
+            .body as ExpressionFunctionBody)
+        .expression as MethodInvocation;
+    expect(
+        fold.staticInvokeType.toString(), '(num, (num, dynamic) → num) → num');
+    var max = fold.argumentList.arguments[1];
+    // TODO(jmesserly): arguably (num, num) → num is better here.
+    expect(max.staticType.toString(), '(dynamic, dynamic) → dynamic');
+  }
+
   test_inferredFieldDeclaration_propagation() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25546
     String code = r'''
@@ -1661,7 +1716,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source,[StrongModeCode.INVALID_CAST_LITERAL]);
+    assertErrors(source, [StrongModeCode.INVALID_CAST_LITERAL]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");

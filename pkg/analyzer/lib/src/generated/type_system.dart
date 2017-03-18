@@ -245,7 +245,6 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     // Infer and instantiate the resulting type.
     return inferrer.infer(fnType, fnType.typeFormals,
-        downwardsInferPhase: true,
         errorReporter: errorReporter, errorNode: errorNode);
   }
 

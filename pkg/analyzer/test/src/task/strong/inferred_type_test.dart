@@ -2525,11 +2525,11 @@ takeDDN(math.max);
 takeIIO(math.max);
 takeDDO(math.max);
 
-takeOOI(/*error:INVALID_CAST_FUNCTION*/math.max);
-takeIDI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeDID(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeOON(/*error:INVALID_CAST_FUNCTION*/math.max);
-takeOOO(/*error:INVALID_CAST_FUNCTION*/math.max);
+takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/math.max);
+takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
+takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/math.max);
+takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/math.max);
 
 // Also test SimpleIdentifier
 takeIII(min);
@@ -2542,11 +2542,11 @@ takeDDN(min);
 takeIIO(min);
 takeDDO(min);
 
-takeOOI(/*error:INVALID_CAST_FUNCTION*/min);
-takeIDI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeDID(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeOON(/*error:INVALID_CAST_FUNCTION*/min);
-takeOOO(/*error:INVALID_CAST_FUNCTION*/min);
+takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/min);
+takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
+takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/min);
+takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/min);
 
 // Also PropertyAccess
 takeIII(new C().m);
@@ -2569,17 +2569,17 @@ takeDDO(new C().m);
 // That's legal because we're loosening parameter types.
 //
 // We do issue the inference error though, similar to generic function calls.
-takeOON(/*info:DOWN_CAST_COMPOSITE*/new C().m);
-takeOOO(/*info:DOWN_CAST_COMPOSITE*/new C().m);
+takeOON(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/new C().m);
+takeOOO(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/new C().m);
 
 // Note: this is a warning because a downcast of a method tear-off could work
 // in "normal" Dart, due to bivariance.
 //
 // We do issue the inference error though, similar to generic function calls.
-takeOOI(/*info:DOWN_CAST_COMPOSITE*/new C().m);
+takeOOI(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/new C().m);
 
-takeIDI(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
-takeDID(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
+takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
+takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
 }
 
 void takeIII(int fn(int a, int b)) {}
@@ -2667,7 +2667,7 @@ main() {
   }
 
   test_genericMethods_nestedGenericInstantiation() async {
-    var mainUnit = await checkFileElement(r'''
+    await checkFileElement(r'''
 import 'dart:math' as math;
 class Trace {
   List<Frame> frames = /*info:INFERRED_TYPE_LITERAL*/[];
