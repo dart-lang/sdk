@@ -521,36 +521,6 @@ var v = () => null;
     expect(v.initializer.type.toString(), '() → () → dynamic');
   }
 
-  test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() async {
-    addFile(
-        '''
-import 'b.dart';
-class A {
-  static final a1 = B.b1;
-  final a2 = new B().b2;
-}
-''',
-        name: '/a.dart');
-    addFile(
-        '''
-class B {
-  static final b1 = 1;
-  final b2 = 1;
-}
-''',
-        name: '/b.dart');
-    await checkFileElement('''
-import "a.dart";
-
-test1() {
-  int x = 0;
-  // inference in A now works.
-  x = A.a1;
-  x = new A().a2;
-}
-''');
-  }
-
   test_circularReference_viaClosures() async {
     var mainUnit = await checkFileElement('''
 var x = () => y;
@@ -1705,34 +1675,6 @@ Iterable<Map<int, int>> bar() sync* {
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
   ''');
-  }
-
-  test_dynamic_has_object_methods_viaNonPrefixedIdentifier() async {
-    var mainUnit = await checkFileElement('''
-dynamic f() => null;
-var s = f().toString();
-var h = f().hashCode;
-''');
-    var s = mainUnit.topLevelVariables[0];
-    expect(s.name, 's');
-    expect(s.type.toString(), 'String');
-    var h = mainUnit.topLevelVariables[1];
-    expect(h.name, 'h');
-    expect(h.type.toString(), 'int');
-  }
-
-  test_dynamic_has_object_methods_viaPrefixedIdentifier() async {
-    var mainUnit = await checkFileElement('''
-dynamic d;
-var s = d.toString();
-var h = d.hashCode;
-''');
-    var s = mainUnit.topLevelVariables[1];
-    expect(s.name, 's');
-    expect(s.type.toString(), 'String');
-    var h = mainUnit.topLevelVariables[2];
-    expect(h.name, 'h');
-    expect(h.type.toString(), 'int');
   }
 
   test_fieldRefersToStaticGetter() async {
@@ -3033,105 +2975,6 @@ var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
     expect(v.type.toString(), 'List<(int) → Object>');
   }
 
-  test_inferenceInCyclesIsDeterministic() async {
-    addFile(
-        '''
-import 'b.dart';
-class A {
-  static final a1 = B.b1;
-  final a2 = new B().b2;
-}
-''',
-        name: '/a.dart');
-    addFile(
-        '''
-class B {
-  static final b1 = 1;
-  final b2 = 1;
-}
-''',
-        name: '/b.dart');
-    addFile(
-        '''
-import "main.dart"; // creates a cycle
-
-class C {
-  static final c1 = 1;
-  final c2 = 1;
-}
-''',
-        name: '/c.dart');
-    addFile(
-        '''
-library e;
-import 'a.dart';
-part 'e2.dart';
-
-class E {
-  static final e1 = 1;
-  static final e2 = F.f1;
-  static final e3 = A.a1;
-  final e4 = 1;
-  final e5 = new F().f2;
-  final e6 = new A().a2;
-}
-''',
-        name: '/e.dart');
-    addFile(
-        '''
-part 'f2.dart';
-''',
-        name: '/f.dart');
-    addFile(
-        '''
-part of e;
-class F {
-  static final f1 = 1;
-  final f2 = 1;
-}
-''',
-        name: '/e2.dart');
-    await checkFileElement('''
-import "a.dart";
-import "c.dart";
-import "e.dart";
-
-class D {
-  static final d1 = A.a1 + 1;
-  static final d2 = C.c1 + 1;
-  final d3 = new A().a2;
-  final d4 = new C().c2;
-}
-
-test1() {
-  int x = 0;
-  // inference in A works, it's not in a cycle
-  x = A.a1;
-  x = new A().a2;
-
-  // Within a cycle we allow inference when the RHS is well known, but
-  // not when it depends on other fields within the cycle
-  x = C.c1;
-  x = D.d1;
-  x = D.d2;
-  x = new C().c2;
-  x = new D().d3;
-  x = /*info:DYNAMIC_CAST*/new D().d4;
-
-
-  // Similarly if the library contains parts.
-  x = E.e1;
-  x = E.e2;
-  x = E.e3;
-  x = new E().e4;
-  x = /*info:DYNAMIC_CAST*/new E().e5;
-  x = new E().e6;
-  x = F.f1;
-  x = new F().f2;
-}
-''');
-  }
-
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
     await checkFileElement('''
 class A { int x; B operator+(other) => null; }
@@ -3362,38 +3205,6 @@ class C {
 var y = new C().m(42);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  test_inferIfComplexExpressionsReadPossibleInferredField() async {
-    // but flags can enable this behavior.
-    addFile(
-        '''
-class A {
-  var x = 3;
-}
-''',
-        name: '/a.dart');
-    await checkFileElement('''
-import 'a.dart';
-class B {
-  var y = 3;
-}
-final t1 = new A();
-final t2 = new A().x;
-final t3 = new B();
-final t4 = new B().y;
-
-test1() {
-  int i = 0;
-  A a;
-  B b;
-  a = t1;
-  i = t2;
-  b = t3;
-  i = /*info:DYNAMIC_CAST*/t4;
-  i = new B().y; // B.y was inferred though
-}
-''');
   }
 
   test_inferListLiteralNestedInMapLiteral() async {
@@ -3670,60 +3481,6 @@ var x = f().g;
     expect(x.type.toString(), '() → bool');
   }
 
-  test_inferredType_extractProperty() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  bool b;
-}
-C f() => null;
-var x = f().b;
-''');
-    var x = mainUnit.topLevelVariables[0];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'bool');
-  }
-
-  test_inferredType_extractProperty_prefixedIdentifier() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  bool b;
-}
-C c;
-var x = c.b;
-''');
-    var x = mainUnit.topLevelVariables[1];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'bool');
-  }
-
-  test_inferredType_extractProperty_prefixedIdentifier_viaInterface() async {
-    var mainUnit = await checkFileElement('''
-class I {
-  bool b;
-}
-abstract class C implements I {}
-C c;
-var x = c.b;
-''');
-    var x = mainUnit.topLevelVariables[1];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'bool');
-  }
-
-  test_inferredType_extractProperty_viaInterface() async {
-    var mainUnit = await checkFileElement('''
-class I {
-  bool b;
-}
-abstract class C implements I {}
-C f() => null;
-var x = f().b;
-''');
-    var x = mainUnit.topLevelVariables[0];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'bool');
-  }
-
   test_inferredType_fromTopLevelExecutableTearoff() async {
     var mainUnit = await checkFileElement('''
 var v = print;
@@ -3793,60 +3550,6 @@ final x = <String, F<int>>{};
 ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.type.toString(), 'Map<String, () → int>');
-  }
-
-  test_inferredType_opAssignToProperty() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  num n;
-}
-C f() => null;
-var x = (f().n *= null);
-''');
-    var x = mainUnit.topLevelVariables[0];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'num');
-  }
-
-  test_inferredType_opAssignToProperty_prefixedIdentifier() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  num n;
-}
-C c;
-var x = (c.n *= null);
-''');
-    var x = mainUnit.topLevelVariables[1];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'num');
-  }
-
-  test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() async {
-    var mainUnit = await checkFileElement('''
-class I {
-  num n;
-}
-abstract class C implements I {}
-C c;
-var x = (c.n *= null);
-''');
-    var x = mainUnit.topLevelVariables[1];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'num');
-  }
-
-  test_inferredType_opAssignToProperty_viaInterface() async {
-    var mainUnit = await checkFileElement('''
-class I {
-  num n;
-}
-abstract class C implements I {}
-C f() => null;
-var x = (f().n *= null);
-''');
-    var x = mainUnit.topLevelVariables[0];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'num');
   }
 
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
@@ -4315,69 +4018,6 @@ var x = /*info:USE_OF_VOID_RESULT*/f();
     expect(x.type.toString(), 'void');
   }
 
-  test_instanceField_basedOnInstanceField_betweenCycles() async {
-    // Verify that all instance fields in one library cycle are inferred before
-    // an instance fields in a dependent library cycle.
-    addFile(
-        '''
-import 'b.dart';
-class A {
-  var x = new B().y;
-  var y = 0;
-}
-''',
-        name: '/a.dart');
-    addFile(
-        '''
-class B {
-  var x = new B().y;
-  var y = 0;
-}
-''',
-        name: '/b.dart');
-    await checkFileElement('''
-import 'a.dart';
-import 'b.dart';
-main() {
-  new A().x = /*error:INVALID_ASSIGNMENT*/'foo';
-  new B().x = 'foo';
-}
-''');
-  }
-
-  test_instanceField_basedOnInstanceField_withinCycle() async {
-    // Verify that all instance field inferences that occur within the same
-    // library cycle happen as though they occurred "all at once", so no
-    // instance field in the library cycle can inherit its type from another
-    // instance field in the same library cycle.
-    addFile(
-        '''
-import 'b.dart';
-class A {
-  var x = new B().y;
-  var y = 0;
-}
-''',
-        name: '/a.dart');
-    addFile(
-        '''
-import 'a.dart';
-class B {
-  var x = new A().y;
-  var y = 0;
-}
-''',
-        name: '/b.dart');
-    await checkFileElement('''
-import 'a.dart';
-import 'b.dart';
-main() {
-  new A().x = 'foo';
-  new B().x = 'foo';
-}
-''');
-  }
-
   test_instantiateToBounds_generic2_hasBound_definedAfter() async {
     var unit = await checkFileElement(r'''
 class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
@@ -4816,34 +4456,6 @@ void main() {
 ''');
   }
 
-  test_referenceToFieldOfStaticField() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  static D d;
-}
-class D {
-  int i;
-}
-final x = C.d.i;
-''');
-    var x = mainUnit.topLevelVariables[0];
-    expect(x.type.toString(), 'int');
-  }
-
-  test_referenceToFieldOfStaticGetter() async {
-    var mainUnit = await checkFileElement('''
-class C {
-  static D get d => null;
-}
-class D {
-  int i;
-}
-final x = C.d.i;
-''');
-    var x = mainUnit.topLevelVariables[0];
-    expect(x.type.toString(), 'int');
-  }
-
   test_referenceToTypedef() async {
     var mainUnit = await checkFileElement('''
 typedef void F();
@@ -4917,57 +4529,6 @@ class C {
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), '(String) → int');
-  }
-
-  test_staticRefersToNonStaticField_inOtherLibraryCycle() async {
-    addFile(
-        '''
-import 'b.dart';
-var x = new C().f;
-''',
-        name: '/a.dart');
-    addFile(
-        '''
-class C {
-  var f = 0;
-}
-''',
-        name: '/b.dart');
-    await checkFileElement('''
-import 'a.dart';
-test() {
-  x = /*error:INVALID_ASSIGNMENT*/"hi";
-}
-''');
-  }
-
-  test_staticRefersToNonstaticField_inSameLibraryCycle() async {
-    addFile(
-        '''
-import 'b.dart';
-var x = new C().f;
-class D {
-  var f = 0;
-}
-''',
-        name: '/a.dart');
-    addFile(
-        '''
-import 'a.dart';
-var y = new D().f;
-class C {
-  var f = 0;
-}
-''',
-        name: '/b.dart');
-    await checkFileElement('''
-import 'a.dart';
-import 'b.dart';
-test() {
-  x = "hi";
-  y = "hi";
-}
-''');
   }
 
   test_typeInferenceDependency_staticVariable_inIdentifierSequence() async {
@@ -5485,25 +5046,6 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   @override
   test_blockBodiedLambdas_LUB_topLevel() async {
     await super.test_blockBodiedLambdas_LUB_topLevel();
-  }
-
-  @failingTest
-  @override
-  test_inferCorrectlyOnMultipleVariablesDeclaredTogether() async {
-    await super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
-  }
-
-  @failingTest
-  @override
-  test_inferredType_opAssignToProperty_prefixedIdentifier() async {
-    await super.test_inferredType_opAssignToProperty_prefixedIdentifier();
-  }
-
-  @failingTest
-  @override
-  test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() async {
-    await super
-        .test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface();
   }
 
   @failingTest

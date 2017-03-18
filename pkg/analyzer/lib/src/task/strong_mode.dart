@@ -19,6 +19,16 @@ import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
+ * Return `true` if the given [expression] is an immediately-evident expression,
+ * so can be used to infer the type for a top-level variable or a class field.
+ */
+bool isValidForTypeInference(Expression expression) {
+  var visitor = new _IsValidForTypeInferenceVisitor();
+  expression.accept(visitor);
+  return visitor.isValid;
+}
+
+/**
  * Sets the type of the field. This is stored in the field itself, and the
  * synthetic getter/setter types.
  */
@@ -70,6 +80,13 @@ class InstanceMemberInferrer {
   final InheritanceManager inheritanceManager;
 
   /**
+   * The set of fields for which type inference from initializer should be
+   * disabled, because their initializers are not immediately-evident
+   * expressions.
+   */
+  final Set<FieldElement> fieldsWithDisabledInitializerInference;
+
+  /**
    * The classes that have been visited while attempting to infer the types of
    * instance members of some base class.
    */
@@ -80,6 +97,7 @@ class InstanceMemberInferrer {
    * Initialize a newly create inferrer.
    */
   InstanceMemberInferrer(TypeProvider typeProvider, this.inheritanceManager,
+      this.fieldsWithDisabledInitializerInference,
       {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null)
             ? typeSystem
@@ -363,9 +381,12 @@ class InstanceMemberInferrer {
       // analyze.
       //
       if (newType == null || newType.isDynamic) {
-        if (fieldElement.initializer != null &&
+        FunctionElement initializer = fieldElement.initializer;
+        if (initializer != null &&
             (fieldElement.isFinal || overriddenGetters.isEmpty)) {
-          newType = fieldElement.initializer.returnType;
+          if (!fieldsWithDisabledInitializerInference.contains(fieldElement)) {
+            newType = initializer.returnType;
+          }
         }
       }
       if (newType == null || newType.isBottom || newType.isDartCoreNull) {
@@ -494,8 +515,10 @@ class VariableGatherer extends RecursiveAstVisitor {
       }
 
       Element element = nonAccessor(node.staticElement);
-      if (element is VariableElement && (filter == null || filter(element))) {
-        results.add(element);
+      if (element is VariableElement) {
+        if (filter == null || filter(element)) {
+          results.add(element);
+        }
       }
     }
   }
@@ -505,3 +528,34 @@ class VariableGatherer extends RecursiveAstVisitor {
  * A class of exception that is not used anywhere else.
  */
 class _CycleException implements Exception {}
+
+/**
+ * The visitor for [isValidForTypeInference].
+ */
+class _IsValidForTypeInferenceVisitor extends RecursiveAstVisitor {
+  bool isValid = true;
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    isValid = false;
+  }
+
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    node.target.accept(this);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element == null) {
+      AstNode parent = node.parent;
+      if (parent is PropertyAccess && parent.propertyName == node ||
+          parent is PrefixedIdentifier && parent.identifier == node) {
+        isValid = false;
+      }
+    } else if (element is PropertyAccessorElement && !element.isStatic) {
+      isValid = false;
+    }
+  }
+}

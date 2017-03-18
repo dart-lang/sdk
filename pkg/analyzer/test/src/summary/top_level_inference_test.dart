@@ -27,6 +27,10 @@ class ApplyCheckElementTextReplacements {
 
 @reflectiveTest
 class TopLevelInferenceTest extends BaseAnalysisDriverTest {
+  void addFile(String path, String code) {
+    provider.newFile(_p(path), code);
+  }
+
   test_initializer_as() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = 1 as num;
@@ -35,23 +39,6 @@ var V = 1 as num;
         library,
         r'''
 num V;
-''');
-  }
-
-  @failingTest
-  test_initializer_assignment() async {
-    var library = await _encodeDecodeLibrary(r'''
-var a = 1;
-var b = a = 2;
-var c = a += 2;
-''');
-    // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
-int a;
-dynamic b;
-dynamic c;
 ''');
   }
 
@@ -124,6 +111,378 @@ var V = true ? 1 : 2.3;
         library,
         r'''
 num V;
+''');
+  }
+
+  test_initializer_error_assign() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = 1;
+var t1 = (a = 2);
+var t2 = (a += 2);
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+int a;
+dynamic t1;
+dynamic t2;
+''');
+  }
+
+  test_initializer_error_assign_prefixed() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f;
+}
+var a = new A();
+var t1 = (a.f = 1);
+var t2 = (a.f += 2);
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A {
+  int f;
+}
+A a;
+dynamic t1;
+dynamic t2;
+''');
+  }
+
+  test_initializer_error_assign_prefixed_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  int f;
+}
+abstract class C implements I {}
+C c;
+var t1 = (c.f = 1);
+var t2 = (c.f += 2);
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class I {
+  int f;
+}
+abstract class C implements I {
+}
+C c;
+dynamic t1;
+dynamic t2;
+''');
+  }
+
+  test_initializer_error_assign_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  int f;
+}
+abstract class C implements I {}
+C getC() => null;
+var t1 = (getC().f = 1);
+var t2 = (getC().f += 2);
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class I {
+  int f;
+}
+abstract class C implements I {
+}
+dynamic t1;
+dynamic t2;
+C getC() {}
+''');
+  }
+
+  /**
+   * A simple or qualified identifier referring to a top level function, static
+   * variable, field, getter; or a static class variable, static getter or
+   * method; or an instance method; has the inferred type of the identifier.
+   *
+   * Note: specifically, references to instance fields and instance getters are
+   * disallowed here.
+   */
+  test_initializer_error_classField_useInstanceGetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f = 1;
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+class X {
+  A a = new A();
+  B b = new B();
+  C c = new C();
+  var t01 = a.f;
+  var t02 = b.a.f;
+  var t03 = c.b.a.f;
+  var t11 = new A().f;
+  var t12 = new B().a.f;
+  var t13 = new C().b.a.f;
+  var t21 = newA().f;
+  var t22 = newB().a.f;
+  var t23 = newC().b.a.f;
+}
+A newA() => new A();
+B newB() => new B();
+C newC() => new C();
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A {
+  int f;
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+class X {
+  A a;
+  B b;
+  C c;
+  dynamic t01;
+  dynamic t02;
+  dynamic t03;
+  dynamic t11;
+  dynamic t12;
+  dynamic t13;
+  dynamic t21;
+  dynamic t22;
+  dynamic t23;
+}
+A newA() {}
+B newB() {}
+C newC() {}
+''');
+  }
+
+  test_initializer_error_extractProperty() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  bool b;
+}
+C f() => null;
+var x = f().b;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class C {
+  bool b;
+}
+dynamic x;
+C f() {}
+''');
+  }
+
+  test_initializer_error_extractProperty_inOtherLibraryCycle() async {
+    addFile(
+        '/a.dart',
+        r'''
+import 'b.dart';
+var x = new C().f;
+''');
+    addFile(
+        '/b.dart',
+        r'''
+class C {
+  var f = 0;
+}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var t1 = x;
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+dynamic t1;
+''');
+  }
+
+  test_initializer_error_extractProperty_inStaticField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f;
+}
+class B {
+  static var t = new A().f;
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class A {
+  int f;
+}
+class B {
+  static dynamic t;
+}
+''');
+  }
+
+  test_initializer_error_extractProperty_prefixedIdentifier() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  bool b;
+}
+C c;
+var x = c.b;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class C {
+  bool b;
+}
+C c;
+dynamic x;
+''');
+  }
+
+  test_initializer_error_extractProperty_prefixedIdentifier_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C c;
+var x = c.b;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class I {
+  bool b;
+}
+abstract class C implements I {
+}
+C c;
+dynamic x;
+''');
+  }
+
+  test_initializer_error_extractProperty_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C f() => null;
+var x = f().b;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class I {
+  bool b;
+}
+abstract class C implements I {
+}
+dynamic x;
+C f() {}
+''');
+  }
+
+  test_initializer_error_instanceGetterOfObject() async {
+    var library = await _encodeDecodeLibrary(r'''
+dynamic f() => null;
+var s = f().toString();
+var h = f().hashCode;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+String s;
+dynamic h;
+dynamic f() {}
+''');
+  }
+
+  test_initializer_error_instanceGetterOfObject_prefixed() async {
+    var library = await _encodeDecodeLibrary(r'''
+dynamic d;
+var s = d.toString();
+var h = d.hashCode;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+dynamic d;
+String s;
+dynamic h;
+''');
+  }
+
+  test_initializer_error_referenceToFieldOfStaticField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final x = C.d.i;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final dynamic x;
+''');
+  }
+
+  test_initializer_error_referenceToFieldOfStaticGetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  static D get d => null;
+}
+class D {
+  int i;
+}
+var x = C.d.i;
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+class C {
+  static D get d {}
+}
+class D {
+  int i;
+}
+dynamic x;
 ''');
   }
 
@@ -874,7 +1233,6 @@ class B implements A {
    * A field with no annotated type that does not override anything has the
    * type inferred from its initializer.
    */
-  @failingTest
   test_instanceField_preferOverride() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {

@@ -3462,6 +3462,30 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+
+    //
+    // Prepare fields for which inference should be disabled.
+    //
+    Set<FieldElement> fieldsWithDisabledInference = new Set<FieldElement>();
+    for (CompilationUnitMember classDeclaration in unit.declarations) {
+      if (classDeclaration is ClassDeclaration) {
+        for (ClassMember fieldDeclaration in classDeclaration.members) {
+          if (fieldDeclaration is FieldDeclaration) {
+            if (!fieldDeclaration.isStatic) {
+              for (VariableDeclaration field
+                  in fieldDeclaration.fields.variables) {
+                Expression initializer = field.initializer;
+                if (initializer != null &&
+                    !isValidForTypeInference(initializer)) {
+                  fieldsWithDisabledInference.add(field.element);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     //
     // Infer instance members.
     //
@@ -3470,6 +3494,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
           typeProvider,
           new InheritanceManager(
               resolutionMap.elementDeclaredByCompilationUnit(unit).library),
+          fieldsWithDisabledInference,
           typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
@@ -3742,13 +3767,19 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       visitor.initForIncrementalResolution();
       initializer.accept(visitor);
 
+      DartType newType;
+      if (!isValidForTypeInference(initializer)) {
+        newType = typeProvider.dynamicType;
+      } else {
+        newType = initializer.staticType;
+        if (newType == null || newType.isBottom || newType.isDartCoreNull) {
+          newType = typeProvider.dynamicType;
+        }
+      }
+
       //
       // Record the type of the variable.
       //
-      DartType newType = initializer.staticType;
-      if (newType == null || newType.isBottom || newType.isDartCoreNull) {
-        newType = typeProvider.dynamicType;
-      }
       setFieldType(variable, newType);
       errors = getUniqueErrors(errorListener.errors);
     } else {

@@ -369,7 +369,8 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is AssignmentExpression) {
       _serializeAssignment(expr);
     } else if (expr is CascadeExpression) {
-      _serializeCascadeExpression(expr);
+      isValidConst = false;
+      _serialize(expr.target);
     } else if (expr is FunctionExpression) {
       isValidConst = false;
       List<int> indices = serializeFunctionExpression(expr);
@@ -516,15 +517,6 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedExprOperation.ifNull);
     } else {
       throw new StateError('Unknown operator: $operator');
-    }
-  }
-
-  void _serializeCascadeExpression(CascadeExpression expr) {
-    _serialize(expr.target);
-    for (Expression section in expr.cascadeSections) {
-      operations.add(UnlinkedExprOperation.cascadeSectionBegin);
-      _serialize(section);
-      operations.add(UnlinkedExprOperation.cascadeSectionEnd);
     }
   }
 

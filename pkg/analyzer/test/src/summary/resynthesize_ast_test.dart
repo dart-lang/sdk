@@ -162,12 +162,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
-  test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() async {
-    variablesWithNotConstInitializers.add('a2');
-    await super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
-  }
-
-  @override
   @failingTest
   test_circularReference_viaClosures_initializerTypes() async {
     await super.test_circularReference_viaClosures_initializerTypes();
@@ -238,7 +232,7 @@ class C {
 var a = new A();
 var v = a.b.c.d;
   ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'int');
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
   }
 
   test_infer_extractProperty_getter_sequence_generic() async {
@@ -255,7 +249,7 @@ class C<K, V> {
 var a = new A<double>();
 var v = a.b.c.d;
   ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
   }
 
   test_infer_extractProperty_getter_sequence_withUnresolved() async {
@@ -304,7 +298,7 @@ class C {
 var a = new A();
 var v = a.b.c.m;
   ''');
-    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
   }
 
   test_infer_invokeConstructor_factoryRedirected() async {
@@ -440,7 +434,7 @@ class C<K, V> {
 var a = new A<double>();
 var v = a.b.c.m();
   ''');
-    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
   }
 
   test_infer_invokeMethodRef_method_gg() async {
@@ -486,7 +480,7 @@ var a = new A();
 import 'a.dart' as p;
 var b = p.a.b.m();
   ''');
-    expect(unit.topLevelVariables[0].type.toString(), 'int');
+    expect(unit.topLevelVariables[0].type.toString(), 'dynamic');
   }
 
   test_infer_invokeMethodRef_method_withInferredTypeInLibraryCycle() async {
@@ -531,18 +525,6 @@ var b = a.m();
 
   @override
   @failingTest
-  test_inferCorrectlyOnMultipleVariablesDeclaredTogether() async {
-    await super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
-  }
-
-  @override
-  @failingTest
-  test_inferenceInCyclesIsDeterministic() async {
-    await super.test_inferenceInCyclesIsDeterministic();
-  }
-
-  @override
-  @failingTest
   test_inferLocalFunctionReturnType() async {
     await super.test_inferLocalFunctionReturnType();
   }
@@ -557,19 +539,6 @@ var b = a.m();
   @failingTest
   test_inferredType_blockClosure_noArgs_noReturn() async {
     await super.test_inferredType_blockClosure_noArgs_noReturn();
-  }
-
-  @override
-  @failingTest
-  test_inferredType_opAssignToProperty_prefixedIdentifier() async {
-    await super.test_inferredType_opAssignToProperty_prefixedIdentifier();
-  }
-
-  @override
-  @failingTest
-  test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() async {
-    return super
-        .test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface();
   }
 
   test_invokeMethod_notGeneric_genericClass() async {
