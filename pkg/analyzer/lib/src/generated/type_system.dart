@@ -1916,12 +1916,15 @@ class _GenericInferrer {
   }
 
   DartType _inferTypeParameterFromAll(
-      Iterable<_TypeConstraint> constraints, _TypeConstraint extendsClause) {
+      List<_TypeConstraint> constraints, _TypeConstraint extendsClause) {
     // See if we already fixed this type from downwards inference.
     // If so, then we aren't allowed to change it based on argument types.
     DartType t = _inferTypeParameterFromContext(
         constraints.where((c) => c.isDownwards), extendsClause);
     if (UnknownInferredType.isKnown(t)) {
+      // Remove constraints that aren't downward ones; we'll ignore these for
+      // error reporting, because inference already succeeded.
+      constraints.removeWhere((c) => !c.isDownwards);
       return t;
     }
 

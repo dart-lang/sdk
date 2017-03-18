@@ -1661,8 +1661,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source,
-        [StrongModeCode.COULD_NOT_INFER, StrongModeCode.INVALID_CAST_LITERAL]);
+    assertErrors(source,[StrongModeCode.INVALID_CAST_LITERAL]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -1714,7 +1713,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.COULD_NOT_INFER,
       StrongModeCode.INVALID_CAST_LITERAL,
     ]);
     verify([source]);
