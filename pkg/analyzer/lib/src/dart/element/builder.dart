@@ -430,17 +430,13 @@ class ApiElementBuilder extends _BaseElementBuilder {
   Object visitGenericFunctionType(GenericFunctionType node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    FunctionElementImpl element =
-        new FunctionElementImpl.forOffset(node.beginToken.offset);
+    GenericFunctionTypeElementImpl element =
+        new GenericFunctionTypeElementImpl.forOffset(node.beginToken.offset);
     _setCodeRange(element, node);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
     FunctionType type = new FunctionTypeImpl(element);
     element.type = type;
-    if (node.returnType == null) {
-      element.hasImplicitReturnType = true;
-    }
-    _currentHolder.addFunction(element);
     (node as GenericFunctionTypeImpl).type = type;
     holder.validate();
     return null;

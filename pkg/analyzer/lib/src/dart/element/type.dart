@@ -386,7 +386,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * [element], and also initialize [typeArguments] to match the
    * [typeParameters], which permits later substitution.
    */
-  FunctionTypeImpl(ExecutableElement element,
+  FunctionTypeImpl(FunctionTypedElement element,
       [List<FunctionTypeAliasElement> prunedTypedefs])
       : this._(element, null, prunedTypedefs, null, null, null, null, false);
 
@@ -425,7 +425,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Private constructor.
    */
   FunctionTypeImpl._(
-      TypeParameterizedElement element,
+      FunctionTypedElement element,
       String name,
       this.prunedTypedefs,
       this._typeArguments,

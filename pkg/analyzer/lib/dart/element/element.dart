@@ -903,42 +903,44 @@ class ElementKind implements Comparable<ElementKind> {
   static const ElementKind FUNCTION =
       const ElementKind('FUNCTION', 7, "function");
 
-  static const ElementKind GETTER = const ElementKind('GETTER', 8, "getter");
+  static const ElementKind GENERIC_FUNCTION_TYPE = const ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
+
+  static const ElementKind GETTER = const ElementKind('GETTER', 9, "getter");
 
   static const ElementKind IMPORT =
-      const ElementKind('IMPORT', 9, "import directive");
+      const ElementKind('IMPORT', 10, "import directive");
 
-  static const ElementKind LABEL = const ElementKind('LABEL', 10, "label");
+  static const ElementKind LABEL = const ElementKind('LABEL', 11, "label");
 
   static const ElementKind LIBRARY =
-      const ElementKind('LIBRARY', 11, "library");
+      const ElementKind('LIBRARY', 12, "library");
 
   static const ElementKind LOCAL_VARIABLE =
-      const ElementKind('LOCAL_VARIABLE', 12, "local variable");
+      const ElementKind('LOCAL_VARIABLE', 13, "local variable");
 
-  static const ElementKind METHOD = const ElementKind('METHOD', 13, "method");
+  static const ElementKind METHOD = const ElementKind('METHOD', 14, "method");
 
-  static const ElementKind NAME = const ElementKind('NAME', 14, "<name>");
+  static const ElementKind NAME = const ElementKind('NAME', 15, "<name>");
 
   static const ElementKind PARAMETER =
-      const ElementKind('PARAMETER', 15, "parameter");
+      const ElementKind('PARAMETER', 16, "parameter");
 
   static const ElementKind PREFIX =
-      const ElementKind('PREFIX', 16, "import prefix");
+      const ElementKind('PREFIX', 17, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 17, "setter");
+  static const ElementKind SETTER = const ElementKind('SETTER', 18, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind('TOP_LEVEL_VARIABLE', 18, "top level variable");
+      const ElementKind('TOP_LEVEL_VARIABLE', 19, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind('FUNCTION_TYPE_ALIAS', 19, "function type alias");
+      const ElementKind('FUNCTION_TYPE_ALIAS', 20, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      const ElementKind('TYPE_PARAMETER', 20, "type parameter");
+      const ElementKind('TYPE_PARAMETER', 21, "type parameter");
 
   static const ElementKind UNIVERSE =
-      const ElementKind('UNIVERSE', 21, "<universe>");
+      const ElementKind('UNIVERSE', 22, "<universe>");
 
   static const List<ElementKind> values = const [
     CLASS,
@@ -949,6 +951,7 @@ class ElementKind implements Comparable<ElementKind> {
     EXPORT,
     FIELD,
     FUNCTION,
+    GENERIC_FUNCTION_TYPE,
     GETTER,
     IMPORT,
     LABEL,
@@ -1054,6 +1057,8 @@ abstract class ElementVisitor<R> {
   R visitFunctionElement(FunctionElement element);
 
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
+
+  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
 
   R visitImportElement(ImportElement element);
 
@@ -1268,6 +1273,13 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 
   @override
   FunctionDeclaration computeNode();
+}
+
+/**
+ * The pseudo-declaration that defines a generic function type.
+ */
+abstract class GenericFunctionTypeElement implements FunctionTypedElement {
+
 }
 
 /**

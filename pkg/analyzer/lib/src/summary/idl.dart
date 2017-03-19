@@ -2510,6 +2510,37 @@ enum UnlinkedExprOperation {
 }
 
 /**
+ * Unlinked summary information about a generic function type.
+ */
+abstract class UnlinkedGenericFunctionType extends base.SummaryClass {
+  /**
+   * The offset of the return type.
+   */
+  @informative
+  @Id(0)
+  int get offset;
+
+  /**
+   * Parameters of the function type, if any.
+   */
+  @Id(3)
+  List<UnlinkedParam> get parameters;
+
+  /**
+   * Declared return type of the function type. Absent if the return type is
+   * implicit.
+   */
+  @Id(1)
+  EntityRef get returnType;
+
+  /**
+   * Type parameters of the function type, if any.
+   */
+  @Id(2)
+  List<UnlinkedTypeParam> get typeParameters;
+}
+
+/**
  * Unlinked summary information about an import declaration.
  */
 abstract class UnlinkedImport extends base.SummaryClass {

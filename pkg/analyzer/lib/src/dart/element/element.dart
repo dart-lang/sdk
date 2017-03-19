@@ -413,11 +413,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   final UnlinkedClass _unlinkedClass;
 
   /**
-   * A list containing all of the type parameters defined for this class.
-   */
-  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
-
-  /**
    * The superclass of the class, or `null` for [Object].
    */
   InterfaceType _supertype;
@@ -900,17 +895,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return _type;
   }
 
-  @override
-  TypeParameterizedElementMixin get typeParameterContext => this;
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    if (_unlinkedClass != null) {
-      return super.typeParameters;
-    }
-    return _typeParameters;
-  }
-
   /**
    * Set the type parameters defined for this class to the given
    * [typeParameters].
@@ -920,12 +904,12 @@ class ClassElementImpl extends AbstractClassElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameters = typeParameters;
+    this._typeParameterElements = typeParameters;
   }
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
-      _unlinkedClass.typeParameters;
+      _unlinkedClass?.typeParameters;
 
   @override
   ConstructorElement get unnamedConstructor {
@@ -3158,6 +3142,31 @@ abstract class ElementImpl implements Element {
     }
   }
 
+  /**
+   * If the element associated with the given [type] is a generic function type
+   * element, then make it a child of this element. Return the [type] as a
+   * convenience.
+   */
+  DartType _checkElementOfType(DartType type) {
+    Element element = type?.element;
+    if (element is GenericFunctionTypeElementImpl) {
+      element.enclosingElement = this;
+    }
+    return type;
+  }
+
+  /**
+   * If the given [type] is a generic function type, then the element associated
+   * with the type is implicitly a child of this element and should be visted by
+   * the given [visitor].
+   */
+  void _safelyVisitPossibleChild(DartType type, ElementVisitor visitor) {
+    Element element = type?.element;
+    if (element is GenericFunctionTypeElementImpl) {
+      element.accept(visitor);
+    }
+  }
+
   static int findElementIndexUsingIdentical(List items, Object item) {
     int length = items.length;
     for (int i = 0; i < length; i++) {
@@ -3590,12 +3599,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<ParameterElement> _parameters;
 
   /**
-   * A list containing all of the type parameters defined for this executable
-   * element.
-   */
-  List<TypeParameterElement> _typeParameters;
-
-  /**
    * The declared return type of this executable element.
    */
   DartType _declaredReturnType;
@@ -3658,7 +3661,7 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   void set declaredReturnType(DartType returnType) {
     _assertNotResynthesized(serializedExecutable);
-    _declaredReturnType = returnType;
+    _declaredReturnType = _checkElementOfType(returnType);
   }
 
   @override
@@ -3889,7 +3892,7 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   void set returnType(DartType returnType) {
     _assertNotResynthesized(serializedExecutable);
-    _returnType = returnType;
+    _returnType = _checkElementOfType(returnType);
   }
 
   @override
@@ -3906,17 +3909,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     _type = type;
   }
 
-  @override
-  TypeParameterizedElementMixin get typeParameterContext => this;
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    if (serializedExecutable != null) {
-      return super.typeParameters;
-    }
-    return _typeParameters ?? const <TypeParameterElement>[];
-  }
-
   /**
    * Set the type parameters defined by this executable element to the given
    * [typeParameters].
@@ -3926,12 +3918,12 @@ abstract class ExecutableElementImpl extends ElementImpl
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameters = typeParameters;
+    this._typeParameterElements = typeParameters;
   }
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
-      serializedExecutable.typeParameters;
+      serializedExecutable?.typeParameters;
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -4017,11 +4009,12 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
+    _safelyVisitPossibleChild(returnType, visitor);
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(_functions, visitor);
-    safelyVisitChildren(_labels, visitor);
-    safelyVisitChildren(_localVariables, visitor);
+    safelyVisitChildren(functions, visitor);
+    safelyVisitChildren(labels, visitor);
+    safelyVisitChildren(localVariables, visitor);
   }
 }
 
@@ -4505,7 +4498,7 @@ class FunctionElementImpl extends ExecutableElementImpl
    * alias.
    */
   void shareTypeParameters(List<TypeParameterElement> typeParameters) {
-    this._typeParameters = typeParameters;
+    this._typeParameterElements = typeParameters;
   }
 
   /**
@@ -4634,11 +4627,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   FunctionType _type;
 
   /**
-   * A list containing all of the type parameters defined for this type.
-   */
-  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
-
-  /**
    * Initialize a newly created type alias element to have the given name.
    *
    * [name] the name of this element
@@ -4764,7 +4752,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   void set returnType(DartType returnType) {
     _assertNotResynthesized(_unlinkedTypedef);
-    _returnType = returnType;
+    _returnType = _checkElementOfType(returnType);
   }
 
   @override
@@ -4780,17 +4768,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
     _type = type;
   }
 
-  @override
-  TypeParameterizedElementMixin get typeParameterContext => this;
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    if (_unlinkedTypedef != null) {
-      return super.typeParameters;
-    }
-    return _typeParameters;
-  }
-
   /**
    * Set the type parameters defined for this type to the given
    * [typeParameters].
@@ -4800,12 +4777,12 @@ class FunctionTypeAliasElementImpl extends ElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameters = typeParameters;
+    this._typeParameterElements = typeParameters;
   }
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
-      _unlinkedTypedef.typeParameters;
+      _unlinkedTypedef?.typeParameters;
 
   @override
   /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
@@ -4815,14 +4792,15 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   void appendTo(StringBuffer buffer) {
     buffer.write("typedef ");
     buffer.write(displayName);
-    int typeParameterCount = _typeParameters.length;
+    List<TypeParameterElement> typeParameters = this.typeParameters;
+    int typeParameterCount = typeParameters.length;
     if (typeParameterCount > 0) {
       buffer.write("<");
       for (int i = 0; i < typeParameterCount; i++) {
         if (i > 0) {
           buffer.write(", ");
         }
-        (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
       buffer.write(">");
     }
@@ -4857,7 +4835,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
         return parameterImpl;
       }
     }
-    for (TypeParameterElement typeParameter in _typeParameters) {
+    for (TypeParameterElement typeParameter in typeParameters) {
       TypeParameterElementImpl typeParameterImpl = typeParameter;
       if (typeParameterImpl.identifier == identifier) {
         return typeParameterImpl;
@@ -4869,8 +4847,177 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
+    _safelyVisitPossibleChild(returnType, visitor);
     safelyVisitChildren(parameters, visitor);
     safelyVisitChildren(typeParameters, visitor);
+  }
+}
+
+/**
+ * The element used for a generic function type.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class GenericFunctionTypeElementImpl extends ElementImpl
+    with TypeParameterizedElementMixin
+    implements GenericFunctionTypeElement {
+  /**
+   * The unlinked representation of the generic function type in the summary.
+   */
+  UnlinkedGenericFunctionType _unlinkedGenericFunctionType;
+
+  /**
+   * The declared return type of the function.
+   */
+  DartType _returnType;
+
+  /**
+   * The elements representing the parameters of the function.
+   */
+  List<ParameterElement> _parameters;
+
+  /**
+   * The type defined by this element.
+   */
+  FunctionType _type;
+
+  /**
+   * Initialize a newly created function element to have no name and the given
+   * [nameOffset]. This is used for function expressions, that have no name.
+   */
+  GenericFunctionTypeElementImpl.forOffset(int nameOffset)
+      : super("", nameOffset);
+
+  /**
+   * Initialize from serialized information.
+   */
+  GenericFunctionTypeElementImpl.forSerialized(ElementImpl enclosingElement)
+      : super.forSerialized(enclosingElement);
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
+      (enclosingElement as ElementImpl).typeParameterContext;
+
+  @override
+  ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
+
+  @override
+  List<ParameterElement> get parameters {
+    if (_unlinkedGenericFunctionType != null) {
+      _parameters ??= ParameterElementImpl.resynthesizeList(
+          _unlinkedGenericFunctionType.parameters, this);
+    }
+    return _parameters ?? const <ParameterElement>[];
+  }
+
+  /**
+   * Set the parameters defined by this function type element to the given
+   * [parameters].
+   */
+  void set parameters(List<ParameterElement> parameters) {
+    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    for (ParameterElement parameter in parameters) {
+      (parameter as ParameterElementImpl).enclosingElement = this;
+    }
+    this._parameters = parameters;
+  }
+
+  @override
+  DartType get returnType {
+    if (_unlinkedGenericFunctionType != null && _returnType == null) {
+      _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          _unlinkedGenericFunctionType.returnType, typeParameterContext,
+          defaultVoid: false, declaredType: true);
+    }
+    return _returnType;
+  }
+
+  /**
+   * Set the return type defined by this function type element to the given
+   * [returnType].
+   */
+  void set returnType(DartType returnType) {
+    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    _returnType = _checkElementOfType(returnType);
+  }
+
+  @override
+  FunctionType get type {
+    if (_unlinkedGenericFunctionType != null) {
+      _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
+          this, null, allEnclosingTypeParameterTypes, false);
+    }
+    return _type;
+  }
+
+  /**
+   * Set the function type defined by this function type element to the given
+   * [type].
+   */
+  void set type(FunctionType type) {
+    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    _type = type;
+  }
+
+  /**
+   * Set the type parameters defined by this function type element to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    for (TypeParameterElement parameter in typeParameters) {
+      (parameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameterElements = typeParameters;
+  }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedGenericFunctionType?.typeParameters;
+
+  @override
+  T accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitGenericFunctionTypeElement(this);
+  }
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    DartType type = returnType;
+    if (type is TypeImpl) {
+      type.appendTo(buffer, new HashSet<TypeImpl>());
+      buffer.write(' Function');
+    } else {
+      buffer.write('Function');
+    }
+    List<TypeParameterElement> typeParams = typeParameters;
+    int typeParameterCount = typeParams.length;
+    if (typeParameterCount > 0) {
+      buffer.write('<');
+      for (int i = 0; i < typeParameterCount; i++) {
+        if (i > 0) {
+          buffer.write(', ');
+        }
+        (typeParams[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write('>');
+    }
+    List<ParameterElement> params = parameters;
+    buffer.write('(');
+    for (int i = 0; i < params.length; i++) {
+      if (i > 0) {
+        buffer.write(', ');
+      }
+      (params[i] as ParameterElementImpl).appendTo(buffer);
+    }
+    buffer.write(')');
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    _safelyVisitPossibleChild(returnType, visitor);
+    safelyVisitChildren(typeParameters, visitor);
+    safelyVisitChildren(parameters, visitor);
   }
 }
 
@@ -4898,11 +5045,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
    * The type of function defined by this type alias.
    */
   FunctionType _type;
-
-  /**
-   * A list containing all of the type parameters defined for this type.
-   */
-  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
    * Initialize a newly created type alias element to have the given [name].
@@ -5032,17 +5174,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
     _type = type;
   }
 
-  @override
-  TypeParameterizedElementMixin get typeParameterContext => this;
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    if (_unlinkedTypedef != null) {
-      return super.typeParameters;
-    }
-    return _typeParameters;
-  }
-
   /**
    * Set the type parameters defined for this type to the given
    * [typeParameters].
@@ -5052,12 +5183,12 @@ class GenericTypeAliasElementImpl extends ElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameters = typeParameters;
+    this._typeParameterElements = typeParameters;
   }
 
   @override
   List<UnlinkedTypeParam> get unlinkedTypeParams =>
-      _unlinkedTypedef.typeParameters;
+      _unlinkedTypedef?.typeParameters;
 
   @override
   /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
@@ -5067,14 +5198,15 @@ class GenericTypeAliasElementImpl extends ElementImpl
   void appendTo(StringBuffer buffer) {
     buffer.write("typedef ");
     buffer.write(displayName);
-    int typeParameterCount = _typeParameters.length;
+    var typeParameters = this.typeParameters;
+    int typeParameterCount = typeParameters.length;
     if (typeParameterCount > 0) {
       buffer.write("<");
       for (int i = 0; i < typeParameterCount; i++) {
         if (i > 0) {
           buffer.write(", ");
         }
-        (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
       buffer.write(">");
     }
@@ -5088,7 +5220,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   ElementImpl getChild(String identifier) {
-    for (TypeParameterElement typeParameter in _typeParameters) {
+    for (TypeParameterElement typeParameter in typeParameters) {
       TypeParameterElementImpl typeParameterImpl = typeParameter;
       if (typeParameterImpl.identifier == identifier) {
         return typeParameterImpl;
@@ -7144,7 +7276,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   void set type(DartType type) {
     _assertNotResynthesized(_unlinkedVariable);
-    _type = type;
+    _type = _checkElementOfType(type);
   }
 
   /**
@@ -8121,7 +8253,7 @@ abstract class PropertyInducingElementImpl
 
   void set propagatedType(DartType propagatedType) {
     _assertNotResynthesized(_unlinkedVariable);
-    _propagatedType = propagatedType;
+    _propagatedType = _checkElementOfType(propagatedType);
   }
 
   @override
@@ -8410,7 +8542,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   void set bound(DartType bound) {
     _assertNotResynthesized(_unlinkedTypeParam);
-    _bound = bound;
+    _bound = _checkElementOfType(bound);
   }
 
   @override
@@ -8491,9 +8623,30 @@ class TypeParameterElementImpl extends ElementImpl
  */
 abstract class TypeParameterizedElementMixin
     implements TypeParameterizedElement, ElementImpl {
+  /**
+   * The cached number of type parameters that are in scope in this context, or
+   * `null` if the number has not yet been computed.
+   */
   int _nestingLevel;
+
+  /**
+   * A cached list containing the type parameters declared by this element
+   * directly, or `null` if the elements have not been created yet. This does
+   * not include type parameters that are declared by any enclosing elements.
+   */
   List<TypeParameterElement> _typeParameterElements;
+
+  /**
+   * A cached list containing the type parameter types declared by this element
+   * directly, or `null` if the list has not been computed yet.
+   */
   List<TypeParameterType> _typeParameterTypes;
+
+  /**
+   * A cached list containing all of the type parameter types of this element,
+   * including those declared by this element directly and those declared by any
+   * enclosing elements, or `null` if the list has not been computed yet.
+   */
   List<TypeParameterType> _allTypeParameterTypes;
 
   /**
@@ -8530,6 +8683,9 @@ abstract class TypeParameterizedElementMixin
    */
   CompilationUnitElementImpl get enclosingUnit;
 
+  @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
+
   /**
    * Find out how many type parameters are in scope in this context.
    */
@@ -8537,19 +8693,24 @@ abstract class TypeParameterizedElementMixin
       _nestingLevel ??= unlinkedTypeParams.length +
           (enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0);
 
+  @override
   List<TypeParameterElement> get typeParameters {
     if (_typeParameterElements == null) {
-      int enclosingNestingLevel =
-          enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0;
-      int numTypeParameters = unlinkedTypeParams.length;
-      _typeParameterElements =
-          new List<TypeParameterElement>(numTypeParameters);
-      for (int i = 0; i < numTypeParameters; i++) {
-        _typeParameterElements[i] = new TypeParameterElementImpl.forSerialized(
-            unlinkedTypeParams[i], this, enclosingNestingLevel + i);
+      List<UnlinkedTypeParam> unlinkedParams = unlinkedTypeParams;
+      if (unlinkedParams != null) {
+        int enclosingNestingLevel =
+            enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0;
+        int numTypeParameters = unlinkedParams.length;
+        _typeParameterElements =
+            new List<TypeParameterElement>(numTypeParameters);
+        for (int i = 0; i < numTypeParameters; i++) {
+          _typeParameterElements[i] =
+              new TypeParameterElementImpl.forSerialized(
+                  unlinkedParams[i], this, enclosingNestingLevel + i);
+        }
       }
     }
-    return _typeParameterElements;
+    return _typeParameterElements ?? const <TypeParameterElement>[];
   }
 
   /**
@@ -8564,7 +8725,7 @@ abstract class TypeParameterizedElementMixin
 
   /**
    * Get the [UnlinkedTypeParam]s representing the type parameters declared by
-   * this element.
+   * this element, or `null` if this element isn't from a summary.
    *
    * TODO(scheglov) make private after switching linker to Impl
    */
@@ -8764,7 +8925,7 @@ abstract class VariableElementImpl extends ElementImpl
   DartObject get constantValue => evaluationResult?.value;
 
   void set declaredType(DartType type) {
-    _declaredType = type;
+    _declaredType = _checkElementOfType(type);
   }
 
   @override
@@ -8850,7 +9011,7 @@ abstract class VariableElementImpl extends ElementImpl
   DartType get type => _type ?? _declaredType;
 
   void set type(DartType type) {
-    _type = type;
+    _type = _checkElementOfType(type);
   }
 
   @override
