@@ -7917,6 +7917,190 @@ abstract class _UnlinkedExprMixin implements idl.UnlinkedExpr {
   String toString() => convert.JSON.encode(toJson());
 }
 
+class UnlinkedGenericFunctionTypeBuilder extends Object with _UnlinkedGenericFunctionTypeMixin implements idl.UnlinkedGenericFunctionType {
+  int _offset;
+  List<UnlinkedParamBuilder> _parameters;
+  EntityRefBuilder _returnType;
+  List<UnlinkedTypeParamBuilder> _typeParameters;
+
+  @override
+  int get offset => _offset ??= 0;
+
+  /**
+   * The offset of the return type.
+   */
+  void set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
+  }
+
+  @override
+  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
+
+  /**
+   * Parameters of the function type, if any.
+   */
+  void set parameters(List<UnlinkedParamBuilder> value) {
+    this._parameters = value;
+  }
+
+  @override
+  EntityRefBuilder get returnType => _returnType;
+
+  /**
+   * Declared return type of the function type. Absent if the return type is
+   * implicit.
+   */
+  void set returnType(EntityRefBuilder value) {
+    this._returnType = value;
+  }
+
+  @override
+  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
+
+  /**
+   * Type parameters of the function type, if any.
+   */
+  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+    this._typeParameters = value;
+  }
+
+  UnlinkedGenericFunctionTypeBuilder({int offset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
+    : _offset = offset,
+      _parameters = parameters,
+      _returnType = returnType,
+      _typeParameters = typeParameters;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _offset = null;
+    _parameters?.forEach((b) => b.flushInformative());
+    _returnType?.flushInformative();
+    _typeParameters?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addBool(this._returnType != null);
+    this._returnType?.collectApiSignature(signature);
+    if (this._typeParameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typeParameters.length);
+      for (var x in this._typeParameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._parameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parameters.length);
+      for (var x in this._parameters) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_parameters;
+    fb.Offset offset_returnType;
+    fb.Offset offset_typeParameters;
+    if (!(_parameters == null || _parameters.isEmpty)) {
+      offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_returnType != null) {
+      offset_returnType = _returnType.finish(fbBuilder);
+    }
+    if (!(_typeParameters == null || _typeParameters.isEmpty)) {
+      offset_typeParameters = fbBuilder.writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
+    }
+    fbBuilder.startTable();
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(0, _offset);
+    }
+    if (offset_parameters != null) {
+      fbBuilder.addOffset(3, offset_parameters);
+    }
+    if (offset_returnType != null) {
+      fbBuilder.addOffset(1, offset_returnType);
+    }
+    if (offset_typeParameters != null) {
+      fbBuilder.addOffset(2, offset_typeParameters);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedGenericFunctionTypeReader extends fb.TableReader<_UnlinkedGenericFunctionTypeImpl> {
+  const _UnlinkedGenericFunctionTypeReader();
+
+  @override
+  _UnlinkedGenericFunctionTypeImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedGenericFunctionTypeImpl(bc, offset);
+}
+
+class _UnlinkedGenericFunctionTypeImpl extends Object with _UnlinkedGenericFunctionTypeMixin implements idl.UnlinkedGenericFunctionType {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedGenericFunctionTypeImpl(this._bc, this._bcOffset);
+
+  int _offset;
+  List<idl.UnlinkedParam> _parameters;
+  idl.EntityRef _returnType;
+  List<idl.UnlinkedTypeParam> _typeParameters;
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
+    return _offset;
+  }
+
+  @override
+  List<idl.UnlinkedParam> get parameters {
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedParam>[]);
+    return _parameters;
+  }
+
+  @override
+  idl.EntityRef get returnType {
+    _returnType ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _returnType;
+  }
+
+  @override
+  List<idl.UnlinkedTypeParam> get typeParameters {
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedTypeParam>[]);
+    return _typeParameters;
+  }
+}
+
+abstract class _UnlinkedGenericFunctionTypeMixin implements idl.UnlinkedGenericFunctionType {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (offset != 0) _result["offset"] = offset;
+    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (returnType != null) _result["returnType"] = returnType.toJson();
+    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "offset": offset,
+    "parameters": parameters,
+    "returnType": returnType,
+    "typeParameters": typeParameters,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
   List<UnlinkedExprBuilder> _annotations;
   List<UnlinkedCombinatorBuilder> _combinators;

@@ -2233,6 +2233,32 @@ table UnlinkedExpr {
 }
 
 /**
+ * Unlinked summary information about a generic function type.
+ */
+table UnlinkedGenericFunctionType {
+  /**
+   * The offset of the return type.
+   */
+  offset:uint (id: 0);
+
+  /**
+   * Parameters of the function type, if any.
+   */
+  parameters:[UnlinkedParam] (id: 3);
+
+  /**
+   * Declared return type of the function type. Absent if the return type is
+   * implicit.
+   */
+  returnType:EntityRef (id: 1);
+
+  /**
+   * Type parameters of the function type, if any.
+   */
+  typeParameters:[UnlinkedTypeParam] (id: 2);
+}
+
+/**
  * Unlinked summary information about an import declaration.
  */
 table UnlinkedImport {
