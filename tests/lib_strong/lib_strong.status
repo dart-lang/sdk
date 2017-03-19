@@ -15,6 +15,7 @@ convert/chunked_conversion_utf88_test: Skip
 convert/chunked_conversion_utf8_test: Skip
 convert/line_splitter_test: Skip
 html/cross_frame_test: Skip
+html/element_dimensions_test: Skip
 html/element_test: Skip
 html/events_test: Skip
 html/fileapi_test: Skip
