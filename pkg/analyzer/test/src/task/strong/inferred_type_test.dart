@@ -3049,8 +3049,8 @@ class B implements A {
 }
 
 foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
-  int z = new B().x;
+  String y = /*info:DYNAMIC_CAST*/new B().x;
+  int z = /*info:DYNAMIC_CAST*/new B().x;
 }
 ''');
   }

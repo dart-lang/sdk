@@ -2750,7 +2750,7 @@ class D extends C {
     Source source = addSource(r'''
 abstract class A {
   num get x;
-  set x(covariant num);
+  set x(covariant num _);
 }
 
 class B extends A {

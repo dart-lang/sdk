@@ -4724,8 +4724,8 @@ const vFunctionTypeAlias = F;
           r'''
 typedef dynamic F(int a, String b);
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
   static const E b;
   static const E c;
@@ -4755,8 +4755,8 @@ const Type vFunctionTypeAlias =
           r'''
 typedef dynamic F(int a, String b);
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
   static const E b;
   static const E c;
@@ -5455,8 +5455,8 @@ final vIndex = E.a.index;
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
   static const E b;
   static const E c;
@@ -5470,8 +5470,8 @@ final dynamic vIndex;
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
   static const E b;
   static const E c;
@@ -5493,8 +5493,8 @@ final vToString = E.a.toString();
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
 }
 final String vToString;
@@ -5504,8 +5504,8 @@ final String vToString;
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
 }
 final dynamic vToString;
@@ -6938,8 +6938,8 @@ enum E { v }''');
  * Docs
  */
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 ''');
@@ -6951,8 +6951,8 @@ enum E {
  * Docs
  */
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 ''');
@@ -6972,8 +6972,8 @@ enum E {
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   /**
    * Docs
    */
@@ -6985,8 +6985,8 @@ enum E {
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   /**
    * Docs
    */
@@ -7003,8 +7003,8 @@ enum E {
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v1;
   static const E v2;
 }
@@ -7014,8 +7014,8 @@ enum E {
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v1;
   static const E v2;
 }
@@ -7030,13 +7030,13 @@ enum E {
           library,
           r'''
 enum E1 {
-  final int index;
-  static const List<E1> values;
+  synthetic final int index;
+  synthetic static const List<E1> values;
   static const E1 v1;
 }
 enum E2 {
-  final int index;
-  static const List<E2> values;
+  synthetic final int index;
+  synthetic static const List<E2> values;
   static const E2 v2;
 }
 ''');
@@ -7045,13 +7045,13 @@ enum E2 {
           library,
           r'''
 enum E1 {
-  final int index;
-  static const List<E1> values;
+  synthetic final int index;
+  synthetic static const List<E1> values;
   static const E1 v1;
 }
 enum E2 {
-  final int index;
-  static const List<E2> values;
+  synthetic final int index;
+  synthetic static const List<E2> values;
   static const E2 v2;
 }
 ''');
@@ -7083,8 +7083,8 @@ class D = Object with M, E;
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
   static const E b;
   static const E c;
@@ -7110,8 +7110,8 @@ class alias D extends Object with M {
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E a;
   static const E b;
   static const E c;
@@ -11016,8 +11016,8 @@ const dynamic a = null;
 @
         a/*location: test.dart;a?*/
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 const dynamic a = null;
@@ -11029,8 +11029,8 @@ const dynamic a = null;
 @
         a/*location: test.dart;a?*/
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 const dynamic a = null;
@@ -13143,8 +13143,8 @@ class C<T> {
           r'''
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13159,8 +13159,8 @@ F f;
           r'''
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13189,8 +13189,8 @@ unit: a.dart
 
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13210,8 +13210,8 @@ unit: a.dart
 
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13232,8 +13232,8 @@ library l;
 part 'a.dart';
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13253,8 +13253,8 @@ library l;
 part 'a.dart';
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13285,8 +13285,8 @@ unit: a.dart
 
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13310,8 +13310,8 @@ unit: a.dart
 
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13341,8 +13341,8 @@ unit: a.dart
 
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13362,8 +13362,8 @@ unit: a.dart
 
 typedef dynamic F();
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 class C {
@@ -13445,8 +13445,8 @@ C<dynamic, dynamic> c;
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 E e;
@@ -13456,8 +13456,8 @@ E e;
           library,
           r'''
 enum E {
-  final int index;
-  static const List<E> values;
+  synthetic final int index;
+  synthetic static const List<E> values;
   static const E v;
 }
 E e;
