@@ -48,7 +48,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceLoader<L> extends Loader<L> {
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
-  final includeSource = CompilerContext.current.options.includeSource;
+  final excludeSource = CompilerContext.current.options.excludeSource;
 
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
@@ -94,7 +94,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   List<int> getSource(List<int> bytes) {
-    if (!includeSource) return const <int>[];
+    if (excludeSource) return const <int>[];
 
     // bytes is 0-terminated. We don't want that included.
     if (bytes is Uint8List) {
