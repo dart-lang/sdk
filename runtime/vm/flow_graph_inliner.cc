@@ -158,8 +158,12 @@ class GraphInfoCollector : public ValueObject {
          block_it.Advance()) {
       for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
            it.Advance()) {
-        ++instruction_count_;
         Instruction* current = it.Current();
+        // Don't count instructions that won't generate any code.
+        if (current->IsRedefinition()) {
+          continue;
+        }
+        ++instruction_count_;
         if (current->IsInstanceCall() || current->IsStaticCall() ||
             current->IsClosureCall()) {
           ++call_site_count_;

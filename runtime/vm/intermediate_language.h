@@ -2409,7 +2409,7 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit RedefinitionInstr(Value* value) : type_(NULL) {
+  explicit RedefinitionInstr(Value* value) : constrained_type_(NULL) {
     SetInputAt(0, value);
   }
 
@@ -2420,15 +2420,17 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
-  void set_type(CompileType* type) { type_ = type; }
-  CompileType* type() const { return type_; }
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  void set_constrained_type(CompileType* type) { constrained_type_ = type; }
+  CompileType* constrained_type() const { return constrained_type_; }
 
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  CompileType* type_;
+  CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 

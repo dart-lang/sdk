@@ -210,11 +210,11 @@ class FlowGraph : public ZoneAllocated {
   void ComputeBlockEffects();
   BlockEffects* block_effects() const { return block_effects_; }
 
-  // Insert a redefinition of an original definition at the beginning of a
-  // basic block and rename all dominated uses of the original.
-  // If an equivalent redefinition is already present, nothing is inserted.
+  // Insert a redefinition of an original definition after prev and rename all
+  // dominated uses of the original.  If an equivalent redefinition is already
+  // present, nothing is inserted.
   // Returns the redefintion, if a redefinition was inserted, NULL otherwise.
-  RedefinitionInstr* EnsureRedefinition(BlockEntryInstr* block,
+  RedefinitionInstr* EnsureRedefinition(Instruction* prev,
                                         Definition* original,
                                         CompileType compile_type);
 

@@ -420,6 +420,7 @@ void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
 
 
 bool FlowGraph::IsReceiver(Definition* def) const {
+  def = def->OriginalDefinition();  // Could be redefined.
   if (def->IsParameter()) return (def->AsParameter()->index() == 0);
   if (!def->IsPhi() || graph_entry()->catch_entries().is_empty()) return false;
   PhiInstr* phi = def->AsPhi();
@@ -1292,20 +1293,20 @@ void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
 }
 
 
-RedefinitionInstr* FlowGraph::EnsureRedefinition(BlockEntryInstr* block,
+RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
                                                  Definition* original,
                                                  CompileType compile_type) {
-  RedefinitionInstr* first = block->next()->AsRedefinition();
-  if (first != NULL && (first->type() != NULL)) {
+  RedefinitionInstr* first = prev->next()->AsRedefinition();
+  if (first != NULL && (first->constrained_type() != NULL)) {
     if ((first->value()->definition() == original) &&
-        first->type()->IsEqualTo(&compile_type)) {
+        first->constrained_type()->IsEqualTo(&compile_type)) {
       // Already redefined. Do nothing.
       return NULL;
     }
   }
   RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
-  redef->set_type(new CompileType(compile_type));
-  InsertAfter(block, redef, NULL, FlowGraph::kValue);
+  redef->set_constrained_type(new CompileType(compile_type));
+  InsertAfter(prev, redef, NULL, FlowGraph::kValue);
   RenameDominatedUses(original, redef, redef);
   return redef;
 }

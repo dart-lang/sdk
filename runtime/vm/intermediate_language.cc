@@ -1938,6 +1938,18 @@ Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) {
+    return NULL;
+  }
+  if ((constrained_type() != NULL) &&
+      Type()->IsEqualTo(value()->definition()->Type())) {
+    return value()->definition();
+  }
+  return this;
+}
+
+
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (recognized_kind()) {
     case MethodRecognizer::kObjectArrayLength:

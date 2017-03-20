@@ -37,6 +37,10 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
       PolymorphicInstanceCallInstr* instr);
   virtual void VisitBranch(BranchInstr* instr);
 
+  void CheckNonNullSelector(Instruction* call,
+                            Definition* receiver,
+                            const String& function_name);
+
   // Current reaching type of the definition. Valid only during dominator tree
   // traversal.
   CompileType* TypeOf(Definition* def);
