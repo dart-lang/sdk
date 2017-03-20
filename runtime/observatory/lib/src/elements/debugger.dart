@@ -1242,39 +1242,12 @@ class VmNameCommand extends DebuggerCommand {
       'Syntax: vm name <name>\n';
 }
 
-class VmRestartCommand extends DebuggerCommand {
-  VmRestartCommand(Debugger debugger) : super(debugger, 'restart', []);
-
-  Future handleModalInput(String line) async {
-    if (line == 'yes') {
-      debugger.console.printRed('Restarting VM...');
-      await debugger.vm.restart();
-      debugger.input.exitMode();
-    } else if (line == 'no') {
-      debugger.console.printRed('VM restart canceled.');
-      debugger.input.exitMode();
-    } else {
-      debugger.console.printRed("Please type 'yes' or 'no'");
-    }
-  }
-
-  Future run(List<String> args) async {
-    debugger.input.enterMode('Restart vm? (yes/no)', handleModalInput);
-  }
-
-  String helpShort = 'Restart a Dart virtual machine';
-
-  String helpLong = 'Restart a Dart virtual machine.\n'
-      '\n'
-      'Syntax: vm restart\n';
-}
 
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger)
       : super(debugger, 'vm', [
           new VmListCommand(debugger),
           new VmNameCommand(debugger),
-          new VmRestartCommand(debugger),
         ]);
 
   Future run(List<String> args) async {

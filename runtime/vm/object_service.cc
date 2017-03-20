@@ -997,7 +997,6 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
   jsobj.AddProperty("_is_user_initiated", is_user_initiated());
-  jsobj.AddProperty("_is_vm_restart", is_vm_restart());
 }
 
 

@@ -635,17 +635,18 @@ void IsolateReloadContext::Reload(bool force_reload,
   TIR_Print("---- EXITED TAG HANDLER\n");
 
   if (result.IsUnwindError()) {
-    // We can only propagate errors when there are Dart frames on the stack.
-    // TODO(johnmccutchan): Fix dartbug.com/29092.
     if (thread->top_exit_frame_info() == 0) {
-      FATAL(
-          "Got an Unwind Error in the middle of a reload. "
-          "http://dartbug.com/29092");
+      // We can only propagate errors when there are Dart frames on the stack.
+      // In this case there are no Dart frames on the stack and we set the
+      // thread's sticky error. This error will be returned to the message
+      // handler.
+      thread->set_sticky_error(Error::Cast(result));
+    } else {
+      // If the tag handler returns with an UnwindError error, propagate it and
+      // give up.
+      Exceptions::PropagateError(Error::Cast(result));
+      UNREACHABLE();
     }
-    // If the tag handler returns with an UnwindError error, propagate it and
-    // give up.
-    Exceptions::PropagateError(Error::Cast(result));
-    UNREACHABLE();
   }
 
   // Other errors (e.g. a parse error) are captured by the reload system.

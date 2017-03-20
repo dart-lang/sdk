@@ -274,6 +274,14 @@ void Thread::clear_sticky_error() {
 }
 
 
+RawError* Thread::get_and_clear_sticky_error() {
+  NoSafepointScope nss;
+  RawError* return_value = sticky_error_;
+  sticky_error_ = Error::null();
+  return return_value;
+}
+
+
 const char* Thread::TaskKindToCString(TaskKind kind) {
   switch (kind) {
     case kUnknownTask:

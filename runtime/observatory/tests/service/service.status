@@ -27,9 +27,6 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 debugger_location_second_test: Pass, Slow
 debugger_location_test: Pass, Slow
 
-# Can be slow in debug mode, as well.
-vm_restart_test: Pass, Slow
-
 # These tests are slow on simulators.
 [ $arch == simarm || $arch == simmips || $arch == simarm64 ]
 *: Pass, Slow
@@ -64,7 +61,6 @@ evaluate_activation_test/scope: RuntimeError # Issue 27806
 get_object_rpc_test: RuntimeError # Issue 27806
 get_source_report_test: RuntimeError # Issue 27806
 set_name_rpc_test: RuntimeError # Issue 27806
-vm_restart_test: CompileTimeError # Issue 27806
 
 debugger_location_second_test: Skip # Issue 28180
 

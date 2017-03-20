@@ -761,8 +761,6 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
       *exit_code = kCompilationErrorExitCode;                                  \
     } else if (Dart_IsApiError(result)) {                                      \
       *exit_code = kApiErrorExitCode;                                          \
-    } else if (Dart_IsVMRestartRequest(result)) {                              \
-      *exit_code = kRestartRequestExitCode;                                    \
     } else {                                                                   \
       *exit_code = kErrorExitCode;                                             \
     }                                                                          \
@@ -1215,11 +1213,6 @@ static void GenerateAppAOTSnapshot() {
 
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
-    if (Dart_IsVMRestartRequest(result)) {                                     \
-      Dart_ExitScope();                                                        \
-      Dart_ShutdownIsolate();                                                  \
-      return true;                                                             \
-    }                                                                          \
     const int exit_code = Dart_IsCompilationError(result)                      \
                               ? kCompilationErrorExitCode                      \
                               : kErrorExitCode;                                \
@@ -1253,10 +1246,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       commandline_packages_file, NULL, &error, &exit_code);
   if (isolate == NULL) {
     delete[] isolate_name;
-    if (exit_code == kRestartRequestExitCode) {
-      free(error);
-      return true;
-    }
     Log::PrintErr("%s\n", error);
     free(error);
     error = NULL;
@@ -1411,8 +1400,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       result = Dart_RunLoop();
       // Generate an app snapshot after execution if specified.
       if (gen_snapshot_kind == kAppJIT) {
-        if (!Dart_IsCompilationError(result) &&
-            !Dart_IsVMRestartRequest(result)) {
+        if (!Dart_IsCompilationError(result)) {
           Snapshot::GenerateAppJIT(snapshot_filename);
         }
       }

@@ -37,8 +37,6 @@ static const int kApiErrorExitCode = 253;
 static const int kCompilationErrorExitCode = 254;
 // Exit code indicating an unhandled error that is not a compilation error.
 static const int kErrorExitCode = 255;
-// Exit code indicating a vm restart request.  Never returned to the user.
-static const int kRestartRequestExitCode = 1000;
 
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
@@ -48,8 +46,6 @@ static const int kRestartRequestExitCode = 1000;
       exit_code = kCompilationErrorExitCode;                                   \
     } else if (Dart_IsApiError(result)) {                                      \
       exit_code = kApiErrorExitCode;                                           \
-    } else if (Dart_IsVMRestartRequest(result)) {                              \
-      exit_code = kRestartRequestExitCode;                                     \
     } else {                                                                   \
       exit_code = kErrorExitCode;                                              \
     }                                                                          \

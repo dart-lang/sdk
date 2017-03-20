@@ -20,7 +20,6 @@ library_dependency_test: RuntimeError # There are no imports and exports in kern
 # 'VMServiceIO_Shutdown' (0 arguments) cannot be found
 # because of '--compile_all'
 capture_stdio_test: CompileTimeError
-vm_restart_test: CompileTimeError
 address_mapper_test: CompileTimeError
 
 ###

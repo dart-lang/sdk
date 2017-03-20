@@ -5421,9 +5421,6 @@ class UnwindError : public Error {
   bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
   void set_is_user_initiated(bool value) const;
 
-  bool is_vm_restart() const { return raw_ptr()->is_vm_restart_; }
-  void set_is_vm_restart(bool value) const;
-
   RawString* message() const { return raw_ptr()->message_; }
 
   static intptr_t InstanceSize() {

@@ -15406,7 +15406,6 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
   }
   result.set_message(message);
   result.set_is_user_initiated(false);
-  result.set_is_vm_restart(false);
   return result.raw();
 }
 
@@ -15418,11 +15417,6 @@ void UnwindError::set_message(const String& message) const {
 
 void UnwindError::set_is_user_initiated(bool value) const {
   StoreNonPointer(&raw_ptr()->is_user_initiated_, value);
-}
-
-
-void UnwindError::set_is_vm_restart(bool value) const {
-  StoreNonPointer(&raw_ptr()->is_vm_restart_, value);
 }
 
 

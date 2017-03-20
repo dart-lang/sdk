@@ -853,10 +853,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
   }
 
-  Future restart() {
-    return invokeRpc('_restartVM', {});
-  }
-
   Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
