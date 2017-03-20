@@ -58,12 +58,6 @@ class StrongModeStaticTypeAnalyzer2Test_Driver
 
   @failingTest
   @override
-  test_genericMethod_override_covariant_field() async {
-    return super.test_genericMethod_override_covariant_field();
-  }
-
-  @failingTest
-  @override
   test_genericMethod_tearoff() {
     return super.test_genericMethod_tearoff();
   }

@@ -3067,9 +3067,9 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   List<int> get parametersInheritingCovariant => _parametersInheritingCovariant ??= <int>[];
 
   /**
-   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
-   * corresponding to parameters that inherit `@covariant` behavior from a base
-   * class.
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
+   * [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
+   * that inherit `@covariant` behavior from a base class.
    */
   void set parametersInheritingCovariant(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
@@ -11057,6 +11057,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   int _inferredTypeSlot;
+  int _inheritsCovariantSlot;
   UnlinkedExecutableBuilder _initializer;
   bool _isConst;
   bool _isCovariant;
@@ -11112,6 +11113,22 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   void set inferredTypeSlot(int value) {
     assert(value == null || value >= 0);
     this._inferredTypeSlot = value;
+  }
+
+  @override
+  int get inheritsCovariantSlot => _inheritsCovariantSlot ??= 0;
+
+  /**
+   * If this is an instance non-final field, a nonzero slot id which is unique
+   * within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then the parameter of the
+   * synthetic setter inherits `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  void set inheritsCovariantSlot(int value) {
+    assert(value == null || value >= 0);
+    this._inheritsCovariantSlot = value;
   }
 
   @override
@@ -11239,11 +11256,12 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     this._visibleOffset = value;
   }
 
-  UnlinkedVariableBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isCovariant, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedVariableBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isCovariant, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
       _documentationComment = documentationComment,
       _inferredTypeSlot = inferredTypeSlot,
+      _inheritsCovariantSlot = inheritsCovariantSlot,
       _initializer = initializer,
       _isConst = isConst,
       _isCovariant = isCovariant,
@@ -11293,6 +11311,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     signature.addBool(this._initializer != null);
     this._initializer?.collectApiSignature(signature);
     signature.addBool(this._isCovariant == true);
+    signature.addInt(this._inheritsCovariantSlot ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -11332,6 +11351,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(9, _inferredTypeSlot);
+    }
+    if (_inheritsCovariantSlot != null && _inheritsCovariantSlot != 0) {
+      fbBuilder.addUint32(15, _inheritsCovariantSlot);
     }
     if (offset_initializer != null) {
       fbBuilder.addOffset(13, offset_initializer);
@@ -11387,6 +11409,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   int _inferredTypeSlot;
+  int _inheritsCovariantSlot;
   idl.UnlinkedExecutable _initializer;
   bool _isConst;
   bool _isCovariant;
@@ -11421,6 +11444,12 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   int get inferredTypeSlot {
     _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
     return _inferredTypeSlot;
+  }
+
+  @override
+  int get inheritsCovariantSlot {
+    _inheritsCovariantSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+    return _inheritsCovariantSlot;
   }
 
   @override
@@ -11498,6 +11527,7 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
+    if (inheritsCovariantSlot != 0) _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
     if (isConst != false) _result["isConst"] = isConst;
     if (isCovariant != false) _result["isCovariant"] = isCovariant;
@@ -11518,6 +11548,7 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     "codeRange": codeRange,
     "documentationComment": documentationComment,
     "inferredTypeSlot": inferredTypeSlot,
+    "inheritsCovariantSlot": inheritsCovariantSlot,
     "initializer": initializer,
     "isConst": isConst,
     "isCovariant": isCovariant,

@@ -1530,7 +1530,6 @@ class C implements A, B {
 ''');
   }
 
-  @failingTest
   test_instanceField_inheritsCovariant_fromSetter_field() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {

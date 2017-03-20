@@ -824,9 +824,9 @@ abstract class LinkedUnit extends base.SummaryClass {
   List<int> get constCycles;
 
   /**
-   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
-   * corresponding to parameters that inherit `@covariant` behavior from a base
-   * class.
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
+   * [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
+   * that inherit `@covariant` behavior from a base class.
    */
   @Id(3)
   List<int> get parametersInheritingCovariant;
@@ -3222,6 +3222,17 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(9)
   int get inferredTypeSlot;
+
+  /**
+   * If this is an instance non-final field, a nonzero slot id which is unique
+   * within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then the parameter of the
+   * synthetic setter inherits `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  @Id(15)
+  int get inheritsCovariantSlot;
 
   /**
    * The synthetic initializer function of the variable.  Absent if the variable

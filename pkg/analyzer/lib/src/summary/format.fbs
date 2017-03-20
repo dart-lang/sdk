@@ -1407,9 +1407,9 @@ table LinkedUnit {
   constCycles:[uint] (id: 2);
 
   /**
-   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
-   * corresponding to parameters that inherit `@covariant` behavior from a base
-   * class.
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
+   * [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
+   * that inherit `@covariant` behavior from a base class.
    */
   parametersInheritingCovariant:[uint] (id: 3);
 
@@ -2805,6 +2805,16 @@ table UnlinkedVariable {
    * inferred for this variable, so its static type is `dynamic`.
    */
   inferredTypeSlot:uint (id: 9);
+
+  /**
+   * If this is an instance non-final field, a nonzero slot id which is unique
+   * within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then the parameter of the
+   * synthetic setter inherits `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  inheritsCovariantSlot:uint (id: 15);
 
   /**
    * The synthetic initializer function of the variable.  Absent if the variable

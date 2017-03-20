@@ -994,6 +994,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           variables.type == null;
       b.initializer =
           serializeInitializerFunction(variable.initializer, serializeBodyExpr);
+      if (isField && !isDeclaredStatic && !variables.isFinal) {
+        b.inheritsCovariantSlot = assignSlot();
+      }
       if (variable.initializer != null &&
           (variables.isFinal || variables.isConst)) {
         b.propagatedTypeSlot = assignSlot();

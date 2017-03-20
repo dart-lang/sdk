@@ -7717,6 +7717,7 @@ final v = 42 is num;
     expect(variable.isStatic, isFalse);
     expect(variable.isFinal, isFalse);
     expect(variable.initializer, isNull);
+    expect(variable.inheritsCovariantSlot, isNot(0));
     expect(findExecutable('i', executables: cls.executables), isNull);
     expect(findExecutable('i=', executables: cls.executables), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -7728,6 +7729,7 @@ final v = 42 is num;
     UnlinkedVariable variable =
         serializeClassText('class C { static const int i = 0; }').fields[0];
     expect(variable.isConst, isTrue);
+    expect(variable.inheritsCovariantSlot, 0);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [0]);
   }
@@ -7750,6 +7752,7 @@ class C {
     UnlinkedVariable variable =
         serializeClassText('class C { final int i = 0; }').fields[0];
     expect(variable.isFinal, isTrue);
+    expect(variable.inheritsCovariantSlot, 0);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [0]);
   }
@@ -7871,6 +7874,7 @@ class C<T> {
         serializeClassText('class C { static int i; }').fields[0];
     expect(variable.isStatic, isTrue);
     expect(variable.initializer, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
     expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
@@ -7890,18 +7894,21 @@ class C<T> {
     expect(variable.isStatic, isTrue);
     expect(variable.isFinal, isTrue);
     expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
   }
 
   test_field_static_final_untyped() {
     UnlinkedVariable variable =
         serializeClassText('class C { static final x = 0; }').fields[0];
     expect(variable.initializer.bodyExpr, isNotNull);
+    expect(variable.inheritsCovariantSlot, 0);
   }
 
   test_field_untyped() {
     UnlinkedVariable variable =
         serializeClassText('class C { var x = 0; }').fields[0];
     expect(variable.initializer.bodyExpr, isNotNull);
+    expect(variable.inheritsCovariantSlot, isNot(0));
   }
 
   test_fully_linked_references_follow_other_references() {

@@ -4335,6 +4335,7 @@ class PropertyAccessorElementForLink_Variable extends Object
 
   final VariableElementForLink variable;
   FunctionTypeImpl _type;
+  ParameterElementForLink_VariableSetter _parameter;
   List<ParameterElement> _parameters;
 
   PropertyAccessorElementForLink_Variable(this.variable, this.isSetter);
@@ -4378,7 +4379,8 @@ class PropertyAccessorElementForLink_Variable extends Object
     if (_parameters == null) {
       _parameters = <ParameterElementForLink_VariableSetter>[];
       if (isSetter) {
-        _parameters.add(new ParameterElementForLink_VariableSetter(this));
+        _parameter = new ParameterElementForLink_VariableSetter(this);
+        _parameters.add(_parameter);
       }
     }
     return _parameters;
@@ -4421,7 +4423,14 @@ class PropertyAccessorElementForLink_Variable extends Object
       !Identifier.isPrivateName(name) || identical(this.library, library);
 
   @override
-  void link(CompilationUnitElementInBuildUnit compilationUnit) {}
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    if (isSetter && _parameter != null) {
+      if (_parameter.inheritsCovariant) {
+        compilationUnit._storeInheritsCovariant(
+            variable.unlinkedVariable.inheritsCovariantSlot);
+      }
+    }
+  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -7800,6 +7800,16 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
+  bool get inheritsCovariant {
+    PropertyInducingElement variable = setter.variable;
+    if (variable is FieldElementImpl && variable._unlinkedVariable != null) {
+      return enclosingUnit.resynthesizerContext
+          .inheritsCovariant(variable._unlinkedVariable.inheritsCovariantSlot);
+    }
+    return super.inheritsCovariant;
+  }
+
+  @override
   bool get isCovariant {
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
