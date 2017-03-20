@@ -2543,9 +2543,11 @@ RawError* Service::MaybePause(Isolate* isolate, const Error& error) {
   if (!isolate->IsPaused()) {
     if (isolate->should_pause_post_service_request()) {
       isolate->set_should_pause_post_service_request(false);
-      // Before pausing, restore the sticky error. The debugger will return it
-      // from PausePostRequest.
-      Thread::Current()->set_sticky_error(error);
+      if (!error.IsNull()) {
+        // Before pausing, restore the sticky error. The debugger will return it
+        // from PausePostRequest.
+        Thread::Current()->set_sticky_error(error);
+      }
       return isolate->PausePostRequest();
     }
   }

@@ -634,6 +634,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   // WEIRD CONTROL FLOW ENDS.
   TIR_Print("---- EXITED TAG HANDLER\n");
 
+  // Re-enable the background compiler. Do this before propagating any errors.
+  BackgroundCompiler::Enable();
+
   if (result.IsUnwindError()) {
     if (thread->top_exit_frame_info() == 0) {
       // We can only propagate errors when there are Dart frames on the stack.
@@ -724,8 +727,6 @@ void IsolateReloadContext::FinalizeFailedLoad(const Error& error) {
 void IsolateReloadContext::CommonFinalizeTail() {
   ReportOnJSON(js_);
   reload_finalized_ = true;
-  // As a final step, re-enable the background compiler.
-  BackgroundCompiler::Enable();
 }
 
 
