@@ -73,6 +73,9 @@
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
+  P(dwarf_stack_traces, bool, false,                                           \
+    "Emit DWARF line number and inlining info"                                 \
+    "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
   R(enable_malloc_hooks, false, bool, false,                                   \
     "Enable native memory statistic collection. Enabled by default in Debug "  \

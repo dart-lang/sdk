@@ -172,6 +172,8 @@
     'double_conversion.cc',
     'double_conversion.h',
     'double_internals.h',
+    'dwarf.cc',
+    'dwarf.h',
     'exceptions.cc',
     'exceptions.h',
     'exceptions_test.cc',

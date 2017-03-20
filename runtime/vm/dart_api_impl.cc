@@ -6679,6 +6679,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                             &image_writer, &image_writer);
 
   writer.WriteFullSnapshot();
+  image_writer.Finalize();
   *assembly_size = image_writer.AssemblySize();
 
   return Api::Success();
@@ -6703,6 +6704,11 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
+  if (FLAG_dwarf_stack_traces) {
+    return Api::NewError(
+        "--dwarf_stack_traces requires creating an AOT snapshot as assembly.");
+  }
+
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
