@@ -985,10 +985,10 @@ class TokenType {
       const TokenType._('HASH', TokenClass.NO_CLASS, '#');
 
   static const TokenType INDEX =
-      const TokenType._('INDEX', TokenClass.UNARY_POSTFIX_OPERATOR, '[]');
+      const TokenType._('INDEX', TokenClass.NO_CLASS, '[]');
 
   static const TokenType INDEX_EQ =
-      const TokenType._('INDEX_EQ', TokenClass.UNARY_POSTFIX_OPERATOR, '[]=');
+      const TokenType._('INDEX_EQ', TokenClass.NO_CLASS, '[]=');
 
   static const TokenType LT =
       const TokenType._('LT', TokenClass.RELATIONAL_OPERATOR, '<');
@@ -1009,7 +1009,7 @@ class TokenType {
       const TokenType._('MINUS_EQ', TokenClass.ASSIGNMENT_OPERATOR, '-=');
 
   static const TokenType MINUS_MINUS =
-      const TokenType._('MINUS_MINUS', TokenClass.UNARY_PREFIX_OPERATOR, '--');
+      const TokenType._('MINUS_MINUS', TokenClass.UNARY_POSTFIX_OPERATOR, '--');
 
   static const TokenType OPEN_CURLY_BRACKET =
       const TokenType._('OPEN_CURLY_BRACKET', TokenClass.NO_CLASS, '{');
@@ -1039,7 +1039,7 @@ class TokenType {
       const TokenType._('PLUS_EQ', TokenClass.ASSIGNMENT_OPERATOR, '+=');
 
   static const TokenType PLUS_PLUS =
-      const TokenType._('PLUS_PLUS', TokenClass.UNARY_PREFIX_OPERATOR, '++');
+      const TokenType._('PLUS_PLUS', TokenClass.UNARY_POSTFIX_OPERATOR, '++');
 
   static const TokenType QUESTION =
       const TokenType._('QUESTION', TokenClass.CONDITIONAL_OPERATOR, '?');
@@ -1174,10 +1174,12 @@ class TokenType {
    * Return `true` if this token type represents an operator.
    */
   bool get isOperator =>
-      _tokenClass != TokenClass.NO_CLASS &&
-      this != OPEN_PAREN &&
-      this != OPEN_SQUARE_BRACKET &&
-      this != PERIOD;
+      this == INDEX ||
+      this == INDEX_EQ ||
+      (_tokenClass != TokenClass.NO_CLASS &&
+          this != OPEN_PAREN &&
+          this != OPEN_SQUARE_BRACKET &&
+          this != PERIOD);
 
   /**
    * Return `true` if this type of token represents a relational operator.

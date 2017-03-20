@@ -263,4 +263,14 @@ class ScannerTest_RoundTrip extends ScannerTest {
       assertIsOperator(tt.lexeme, operatorTokenTypes.contains(tt));
     }
   }
+
+  void test_precedence() {
+    for (TokenType tt in allTokenTypes) {
+      for (PrecedenceInfo info in PrecedenceInfo.all) {
+        if (info.value == tt.lexeme || info.value == tt.name.toLowerCase()) {
+          expect(tt.precedence, info.precedence, reason: tt.name);
+        }
+      }
+    }
+  }
 }

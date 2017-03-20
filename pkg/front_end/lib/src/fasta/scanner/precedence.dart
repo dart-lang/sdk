@@ -112,18 +112,18 @@ const PrecedenceInfo PERIOD_PERIOD_INFO = const PrecedenceInfo(
     isOperator: true);
 
 const PrecedenceInfo BANG_INFO =
-    const PrecedenceInfo('!', 0, BANG_TOKEN, isOperator: true);
+    const PrecedenceInfo('!', 15, BANG_TOKEN, isOperator: true);
 const PrecedenceInfo COLON_INFO = const PrecedenceInfo(':', 0, COLON_TOKEN);
 const PrecedenceInfo INDEX_INFO =
     const PrecedenceInfo('[]', 0, INDEX_TOKEN, isOperator: true);
 const PrecedenceInfo MINUS_MINUS_INFO = const PrecedenceInfo(
-    '--', POSTFIX_PRECEDENCE, MINUS_MINUS_TOKEN,
+    '--', 16, MINUS_MINUS_TOKEN,
     isOperator: true);
 const PrecedenceInfo PLUS_PLUS_INFO = const PrecedenceInfo(
-    '++', POSTFIX_PRECEDENCE, PLUS_PLUS_TOKEN,
+    '++', 16, PLUS_PLUS_TOKEN,
     isOperator: true);
 const PrecedenceInfo TILDE_INFO =
-    const PrecedenceInfo('~', 0, TILDE_TOKEN, isOperator: true);
+    const PrecedenceInfo('~', 15, TILDE_TOKEN, isOperator: true);
 
 const PrecedenceInfo FUNCTION_INFO =
     const PrecedenceInfo('=>', 0, FUNCTION_TOKEN);
@@ -253,7 +253,7 @@ const PrecedenceInfo STAR_INFO =
 const PrecedenceInfo TILDE_SLASH_INFO =
     const PrecedenceInfo('~/', 14, TILDE_SLASH_TOKEN, isOperator: true);
 
-const int POSTFIX_PRECEDENCE = 15;
+const int POSTFIX_PRECEDENCE = 16;
 const PrecedenceInfo PERIOD_INFO =
     const PrecedenceInfo('.', POSTFIX_PRECEDENCE, PERIOD_TOKEN);
 const PrecedenceInfo QUESTION_PERIOD_INFO = const PrecedenceInfo(
