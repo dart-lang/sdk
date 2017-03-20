@@ -74,27 +74,6 @@ class ScannerTest_RoundTrip extends ScannerTest {
     super.test_comment_generic_method_type_list();
   }
 
-  @override
-  @failingTest
-  void test_scriptTag_withArgs() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support script tag
-    super.test_scriptTag_withArgs();
-  }
-
-  @override
-  @failingTest
-  void test_scriptTag_withoutSpace() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support script tag
-    super.test_scriptTag_withoutSpace();
-  }
-
-  @override
-  @failingTest
-  void test_scriptTag_withSpace() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support script tag
-    super.test_scriptTag_withSpace();
-  }
-
   void test_pseudo_keywords() {
     var pseudoAnalyzerKeywords = new Set<Keyword>.from([
       Keyword.ABSTRACT,
