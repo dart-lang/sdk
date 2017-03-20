@@ -9768,7 +9768,7 @@ F f;
           library,
           r'''
 typedef dynamic F<T extends num>(T p);
-F f;
+F<num> f;
 ''');
     } else {
       checkElementText(
@@ -13715,14 +13715,14 @@ F f;
           library,
           r'''
 typedef U F<T, U>(T t);
-F f;
+F<int, String> f;
 ''');
     } else {
       checkElementText(
           library,
           r'''
 typedef U F<T, U>(T t);
-F f;
+F<int, String> f;
 ''');
     }
   }
