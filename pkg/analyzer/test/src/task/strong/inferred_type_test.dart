@@ -21,6 +21,9 @@ void main() {
 }
 
 abstract class InferredTypeMixin {
+  /// Extra top-level errors if needed due to being analyze multiple times.
+  bool get hasExtraTaskModelPass => true;
+
   /**
    * If `true` then types of local elements may be checked.
    */
@@ -36,9 +39,6 @@ abstract class InferredTypeMixin {
    * unit element.
    */
   Future<CompilationUnitElement> checkFileElement(String content);
-
-  /// Extra top-level errors if needed due to being analyze multiple times.
-  bool get hasExtraTaskModelPass => true;
 
   test_asyncClosureReturnType_flatten() async {
     var mainUnit = await checkFileElement('''
@@ -670,19 +670,6 @@ main() {
         'C<dynamic>');
   }
 
-  test_constructors_inferFromArguments_downwardsFromConstructor() {
-    return checkFileElement(r'''
-class C<T> { C(List<T> list); }
-
-var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(/*info:INFERRED_TYPE_LITERAL*/[123]);
-C<int> y = x;
-
-var a = new C<dynamic>([123]);
-// This one however works.
-var b = new C<Object>(/*info:INFERRED_TYPE_LITERAL*/[123]);
-    ''');
-  }
-
   test_constructors_inferFromArguments_argumentNotAssignable() async {
     var infos = 'info:INFERRED_TYPE_ALLOCATION';
     var errors = '';
@@ -735,6 +722,19 @@ void f() {
   C<int> c2 = c;
   const D<int> d = /*info:INFERRED_TYPE_ALLOCATION*/const D();
 }
+    ''');
+  }
+
+  test_constructors_inferFromArguments_downwardsFromConstructor() {
+    return checkFileElement(r'''
+class C<T> { C(List<T> list); }
+
+var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(/*info:INFERRED_TYPE_LITERAL*/[123]);
+C<int> y = x;
+
+var a = new C<dynamic>([123]);
+// This one however works.
+var b = new C<Object>(/*info:INFERRED_TYPE_LITERAL*/[123]);
     ''');
   }
 
@@ -860,6 +860,15 @@ class Pair<T, U> {
   Pair<U, T> get reversed => /*info:INFERRED_TYPE_ALLOCATION*/new Pair(u, t);
 }
     ''');
+  }
+
+  test_constructors_tooManyPositionalArguments() async {
+    var unit = await checkFileElement(r'''
+class A<T> {}
+var a = /*info:INFERRED_TYPE_ALLOCATION*/new A/*error:EXTRA_POSITIONAL_ARGUMENTS*/(42);
+    ''');
+    var vars = unit.topLevelVariables;
+    expect(vars[0].type.toString(), 'A<dynamic>');
   }
 
   test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() async {
@@ -4143,6 +4152,14 @@ test2() {
   ''');
   }
 
+  test_listLiteralsCanInferNull_topLevel() async {
+    var unit = await checkFileElement(r'''
+var x = /*info:INFERRED_TYPE_LITERAL*/[null];
+''');
+    var x = unit.topLevelVariables[0];
+    expect(x.type.toString(), 'List<Null>');
+  }
+
   test_listLiteralsCanInferNullBottom() async {
     if (!mayCheckTypesOfLocals) {
       return;
@@ -4154,14 +4171,6 @@ test1() {
 }
 ''');
     var x = unit.functions[0].localVariables[0];
-    expect(x.type.toString(), 'List<Null>');
-  }
-
-  test_listLiteralsCanInferNull_topLevel() async {
-    var unit = await checkFileElement(r'''
-var x = /*info:INFERRED_TYPE_LITERAL*/[null];
-''');
-    var x = unit.topLevelVariables[0];
     expect(x.type.toString(), 'List<Null>');
   }
 
@@ -5050,6 +5059,21 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
+  test_blockBodiedLambdas_noReturn_topLevel() =>
+      super.test_blockBodiedLambdas_noReturn_topLevel();
+
+  @failingTest
+  @override
+  test_listLiteralsCanInferNull_topLevel() =>
+      super.test_listLiteralsCanInferNull_topLevel();
+
+  @failingTest
+  @override
+  test_mapLiteralsCanInferNull_topLevel() =>
+      super.test_mapLiteralsCanInferNull_topLevel();
+
+  @failingTest
+  @override
   test_nullCoalescingOperator() async {
     await super.test_nullCoalescingOperator();
   }
@@ -5142,19 +5166,4 @@ class InferredTypeTest_Driver extends InferredTypeTest {
     await super
         .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
-
-  @failingTest
-  @override
-  test_blockBodiedLambdas_noReturn_topLevel() =>
-      super.test_blockBodiedLambdas_noReturn_topLevel();
-
-  @failingTest
-  @override
-  test_listLiteralsCanInferNull_topLevel() =>
-      super.test_listLiteralsCanInferNull_topLevel();
-
-  @failingTest
-  @override
-  test_mapLiteralsCanInferNull_topLevel() =>
-      super.test_mapLiteralsCanInferNull_topLevel();
 }

@@ -777,7 +777,7 @@ bool vOr;
   test_initializer_methodInvocation_hasTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
-  List<T> m<T>(int p) => null;
+  List<T> m<T>() => null;
 }
 var vWithTypeArgument = new A().m<int>();
 var vWithoutTypeArgument = new A().m();
