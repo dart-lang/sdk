@@ -1516,6 +1516,31 @@ class C implements A, B {
 ''');
   }
 
+  test_instanceField_functionTypeAlias_doesNotUseItsTypeParameter() async {
+    var library = await _encodeDecodeLibrary(r'''
+typedef F<T>();
+
+class A<T> {
+  F<T> get x => null;
+}
+
+class B extends A<int> {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef dynamic F<T>();
+class A<T> {
+  F<T> get x {}
+}
+class B extends A<int> {
+  F<int> get x {}
+}
+''');
+  }
+
   test_instanceField_inheritsCovariant_fromSetter_field() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
