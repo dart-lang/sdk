@@ -17,11 +17,11 @@ import 'string_canonicalizer.dart';
 /**
  * A token that doubles as a linked list.
  */
-abstract class Token {
+abstract class Token implements analyzer.Token {
   /**
    * The character offset of the start of this token within the source text.
    */
-  final int charOffset;
+  int charOffset;
 
   Token(this.charOffset);
 
@@ -130,13 +130,102 @@ abstract class Token {
 
   bool get isBuiltInIdentifier => false;
 
+  @override
   bool get isOperator => info.isOperator;
 
+  @override
   bool get isUserDefinableOperator => info.isUserDefinableOperator;
 
+  @override
   analyzer.TokenType get type => info;
 
+  @override
   int get offset => charOffset;
+
+  @override
+  set offset(int newOffset) {
+    charOffset = newOffset;
+  }
+
+  @override
+  int get length => charCount;
+
+  @override
+  int get end => charEnd;
+
+  @override
+  analyzer.Token get previous => previousToken;
+
+  @override
+  set previous(analyzer.Token newToken) {
+    previousToken = newToken as Token;
+  }
+
+  @override
+  void applyDelta(int delta) {
+    charOffset += delta;
+    Token token = precedingComments;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
+
+  @override
+  analyzer.Token copy() {
+    return copyWithoutComments()
+      ..precedingComments = copyComments(precedingComments) as Token;
+  }
+
+  @override
+  analyzer.Token copyComments(analyzer.Token token) {
+    if (token == null) {
+      return null;
+    }
+    Token head = token.copy();
+    Token tail = head;
+    token = token.next;
+    while (token != null) {
+      tail = tail.setNext(token.copy());
+      token = token.next;
+    }
+    return head;
+  }
+
+  /// Return a copy of the receiver without [preceedingComments].
+  Token copyWithoutComments();
+
+  @override
+  bool get isSynthetic => charCount == 0;
+
+  @override
+  analyzer.Keyword get keyword => null;
+
+  @override
+  bool matchesAny(List<analyzer.TokenType> types) {
+    for (analyzer.TokenType type in types) {
+      if (this.type == type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  analyzer.Token setNext(analyzer.Token token) {
+    next = token as Token;
+    next.previousToken = this;
+    return token;
+  }
+
+  @override
+  analyzer.Token setNextWithoutSettingPrevious(analyzer.Token token) {
+    next = token as Token;
+    return token;
+  }
+
+  @override
+  Object value() => lexeme;
 }
 
 /**
@@ -157,6 +246,9 @@ class SymbolToken extends Token {
   String toString() => "SymbolToken($lexeme)";
 
   bool get isEof => info == EOF_INFO;
+
+  @override
+  Token copyWithoutComments() => new SymbolToken(info, charOffset);
 }
 
 /**
@@ -197,6 +289,12 @@ class KeywordToken extends Token {
   }
 
   String toString() => "KeywordToken($lexeme)";
+
+  @override
+  Token copyWithoutComments() => new KeywordToken(keyword, charOffset);
+
+  @override
+  Object value() => keyword;
 }
 
 /**
@@ -262,6 +360,9 @@ class StringToken extends Token {
     }
   }
 
+  StringToken._(this.info, this.valueOrLazySubstring, int charOffset)
+      : super(charOffset);
+
   String get lexeme {
     if (valueOrLazySubstring is String) {
       return valueOrLazySubstring;
@@ -299,6 +400,10 @@ class StringToken extends Token {
   static String decodeUtf8(List<int> data, int start, int end, bool asciiOnly) {
     return canonicalizer.canonicalize(data, start, end, asciiOnly);
   }
+
+  @override
+  Token copyWithoutComments() =>
+      new StringToken._(info, valueOrLazySubstring, charOffset);
 }
 
 /**

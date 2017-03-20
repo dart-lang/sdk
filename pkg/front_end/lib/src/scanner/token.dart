@@ -692,8 +692,9 @@ abstract class Token implements SyntacticEntity {
   void applyDelta(int delta);
 
   /**
-   * Return a newly created token that is a copy of this token but that is not a
-   * part of any token stream.
+   * Return a newly created token that is a copy of this tokens
+   * including any [preceedingComment] tokens,
+   * but that is not a part of any token stream.
    */
   Token copy();
 

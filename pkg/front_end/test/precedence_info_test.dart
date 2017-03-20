@@ -112,6 +112,12 @@ class PrecedenceInfoTest {
     for (TokenType tt in allTokenTypes) {
       assertLexeme(tt.lexeme);
     }
+    assertLexeme('1.0'); // DOUBLE
+    assertLexeme('0xA'); // HEXADECIMAL
+    assertLexeme('1'); // INT
+    assertLexeme('var'); // KEYWORD
+    assertLexeme('#!/'); // SCRIPT_TAG
+    assertLexeme('"foo"'); // STRING
     if (includeLazyAssignmentOperators) {
       assertLexeme('&&=');
       assertLexeme('||=');
@@ -454,5 +460,55 @@ class PrecedenceInfoTest {
         expect(token.type.precedence, precedence, reason: source);
       }
     });
+  }
+
+  void test_identity() {
+    var exceptions = <TokenType>[
+      // Null lexeme - no corresponding PrecedenceInfo
+      TokenType.MULTI_LINE_COMMENT,
+      TokenType.SINGLE_LINE_COMMENT,
+      TokenType.GENERIC_METHOD_TYPE_LIST,
+      TokenType.GENERIC_METHOD_TYPE_ASSIGN,
+
+      // Manually compared below
+      TokenType.DOUBLE,
+      TokenType.HEXADECIMAL,
+      TokenType.INT,
+      TokenType.KEYWORD,
+      TokenType.SCRIPT_TAG,
+      TokenType.STRING,
+      TokenType.STRING_INTERPOLATION_EXPRESSION,
+      TokenType.STRING_INTERPOLATION_IDENTIFIER,
+    ];
+
+    void assertLexeme(String source, TokenType tt) {
+      var scanner = new StringScanner(source, includeComments: true);
+      var token = scanner.tokenize();
+      expect(token.type, same(tt), reason: source);
+    }
+
+    for (TokenType tt in allTokenTypes) {
+      if (!exceptions.contains(tt)) {
+        assertLexeme(tt.lexeme, tt);
+      }
+    }
+    expect(DOUBLE_INFO, same(TokenType.DOUBLE));
+    expect(HEXADECIMAL_INFO, same(TokenType.HEXADECIMAL));
+    expect(INT_INFO, same(TokenType.INT));
+    expect(KEYWORD_INFO, same(TokenType.KEYWORD));
+    expect(SCRIPT_INFO, same(TokenType.SCRIPT_TAG));
+    expect(STRING_INFO, same(TokenType.STRING));
+
+    assertLexeme('1.0', TokenType.DOUBLE);
+    assertLexeme('0xA', TokenType.HEXADECIMAL);
+    assertLexeme('1', TokenType.INT);
+    assertLexeme('var', TokenType.KEYWORD);
+    assertLexeme('#!/', TokenType.SCRIPT_TAG);
+    assertLexeme('"foo"',TokenType.STRING);
+
+    expect(STRING_INTERPOLATION_INFO,
+        same(TokenType.STRING_INTERPOLATION_EXPRESSION));
+    expect(STRING_INTERPOLATION_IDENTIFIER_INFO,
+        same(TokenType.STRING_INTERPOLATION_IDENTIFIER));
   }
 }

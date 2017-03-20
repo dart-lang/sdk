@@ -79,6 +79,11 @@ abstract class ErrorToken extends Token {
   int get endOffset => null;
 
   BeginGroupToken get begin => null;
+
+  @override
+  Token copyWithoutComments() {
+    throw 'unsupported operation';
+  }
 }
 
 /// Represents an encoding error.
