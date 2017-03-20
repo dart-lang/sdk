@@ -19,9 +19,7 @@ class DartTypeUtilities {
           extendsClass(type.superclass, className, library));
 
   static Element getCanonicalElement(Element element) =>
-      element is PropertyAccessorElement
-          ? element.variable
-          : element;
+      element is PropertyAccessorElement ? element.variable : element;
 
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {
@@ -68,7 +66,7 @@ class DartTypeUtilities {
         .forEach((c) {
       nodes
         ..add(c)
-        ..addAll(traverseNodesInDFS(c));
+        ..addAll(traverseNodesInDFS(c, excludeCriteria: excludeCriteria));
     });
     return nodes;
   }
