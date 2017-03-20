@@ -154,10 +154,12 @@ void Dwarf::WriteAbbreviations() {
 // DIEs. Each DIE begins with an abbreviation code, and the abbreviation
 // describes the attributes of that DIE and their representation.
 
-#if defined(HOST_OS_MACOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   Print(".section __DWARF,__debug_abbrev,regular,debug\n");
-#else
+#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
   Print(".section .debug_abbrev,\"\"\n");
+#else
+  UNIMPLEMENTED();
 #endif
 
   uleb128(kCompilationUnit);     // Abbrev code.
@@ -227,10 +229,12 @@ void Dwarf::WriteAbbreviations() {
 void Dwarf::WriteCompilationUnit() {
 // 7.5.1.1 Compilation Unit Header
 
-#if defined(HOST_OS_MACOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   Print(".section __DWARF,__debug_info,regular,debug\n");
-#else
+#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
   Print(".section .debug_info,\"\"\n");
+#else
+  UNIMPLEMENTED();
 #endif
   Print(".Ldebug_info:\n");
 
@@ -455,10 +459,12 @@ void Dwarf::WriteInliningNode(InliningNode* node,
 
 
 void Dwarf::WriteLines() {
-#if defined(HOST_OS_MACOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   Print(".section __DWARF,__debug_line,regular,debug\n");
-#else
+#elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
   Print(".section .debug_line,\"\"\n");
+#else
+  UNIMPLEMENTED();
 #endif
 
   // 6.2.4 The Line Number Program Header

@@ -108,23 +108,34 @@ config("dart_config") {
     dart_target_arch = "dbc"
   }
 
+  if (target_os == "android") {
+    defines += [ "TARGET_OS_ANDROID" ]
+  } else if (target_os == "fuchsia") {
+    defines += [ "TARGET_OS_FUCHSIA" ]
+  } else if (target_os == "ios") {
+    defines += [ "TARGET_OS_MACOS" ]
+    defines += [ "TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "linux") {
+    defines += [ "TARGET_OS_LINUX" ]
+  } else if (target_os == "mac") {
+    defines += [ "TARGET_OS_MACOS" ]
+  } else if (target_os == "win") {
+    defines += [ "TARGET_OS_WINDOWS" ]
+  } else {
+    print("Unknown target_os: $target_os")
+    assert(false)
+  }
+
   if (dart_target_arch != "") {
     if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
       defines += [ "TARGET_ARCH_ARM" ]
-      if (target_os == "mac" || target_os == "ios") {
-        defines += [ "TARGET_ABI_IOS" ]
-      } else {
-        defines += [ "TARGET_ABI_EABI" ]
-      }
     } else if (dart_target_arch == "armv6" || dart_target_arch == "simarmv6") {
       defines += [ "TARGET_ARCH_ARM" ]
       defines += [ "TARGET_ARCH_ARM_6" ]
-      defines += [ "TARGET_ABI_EABI" ]
     } else if (dart_target_arch == "armv5te" ||
                dart_target_arch == "simarmv5te") {
       defines += [ "TARGET_ARCH_ARM" ]
       defines += [ "TARGET_ARCH_ARM_5TE" ]
-      defines += [ "TARGET_ABI_EABI" ]
     } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
       defines += [ "TARGET_ARCH_ARM64" ]
     } else if (dart_target_arch == "mips" || dart_target_arch == "simmips") {
@@ -140,7 +151,7 @@ config("dart_config") {
       defines += [ "TARGET_ARCH_DBC" ]
       defines += [ "USING_SIMULATOR" ]
     } else {
-      print("Invalid $dart_target_arch")
+      print("Invalid dart_target_arch: $dart_target_arch")
       assert(false)
     }
   }

@@ -901,13 +901,13 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   FrameUnwindEpilogue();
 
-#if defined(HOST_OS_LINUX)
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
+    defined(TARGET_OS_FUCHSIA)
   assembly_stream_.Print(".section .rodata\n");
-#elif defined(HOST_OS_MACOS)
+#elif defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   assembly_stream_.Print(".const\n");
 #else
-  // Unsupported platform.
-  UNREACHABLE();
+  UNIMPLEMENTED();
 #endif
 
   const char* data_symbol =
@@ -959,14 +959,14 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_.Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
 
 #elif defined(TARGET_ARCH_ARM)
-#if defined(TARGET_ABI_EABI)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+  COMPILE_ASSERT(FP == R7);
+  assembly_stream_.Print(".cfi_def_cfa r7, 0\n");   // CFA is fp+j0
+  assembly_stream_.Print(".cfi_offset r7, 0\n");    // saved fp is *(CFA+0)
+#else
   COMPILE_ASSERT(FP == R11);
   assembly_stream_.Print(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
   assembly_stream_.Print(".cfi_offset r11, 0\n");   // saved fp is *(CFA+0)
-#elif defined(TARGET_ABI_IOS)
-  COMPILE_ASSERT(FP == R7);
-  assembly_stream_.Print(".cfi_def_cfa r7, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset r7, 0\n");   // saved fp is *(CFA+0)
 #endif
   assembly_stream_.Print(".cfi_offset lr, 4\n");    // saved pc is *(CFA+4)
   // saved sp is CFA+8
@@ -980,16 +980,16 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_.Print(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
 
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
-#if defined(TARGET_ABI_EABI)
-  COMPILE_ASSERT(FP == R11);
-  assembly_stream_.Print(".fnstart\n");
-  assembly_stream_.Print(".save {r11, lr}\n");
-  assembly_stream_.Print(".setfp r11, sp, #0\n");
-#elif defined(TARGET_ABI_IOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
   assembly_stream_.Print(".fnstart\n");
   assembly_stream_.Print(".save {r7, lr}\n");
   assembly_stream_.Print(".setfp r7, sp, #0\n");
+#else
+  COMPILE_ASSERT(FP == R11);
+  assembly_stream_.Print(".fnstart\n");
+  assembly_stream_.Print(".save {r11, lr}\n");
+  assembly_stream_.Print(".setfp r11, sp, #0\n");
 #endif
 
 #elif defined(TARGET_ARCH_MIPS)
