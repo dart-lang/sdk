@@ -8,7 +8,7 @@ import 'error_token.dart' show ErrorToken;
 
 import 'keyword.dart' show Keyword;
 
-import 'precedence.dart' show COMMENT_INFO, EOF_INFO, PrecedenceInfo;
+import 'precedence.dart' show EOF_INFO, PrecedenceInfo;
 
 import 'token.dart'
     show BeginGroupToken, KeywordToken, StringToken, SymbolToken, Token;
@@ -225,9 +225,9 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     }
   }
 
-  void appendComment(start, bool asciiOnly) {
+  void appendComment(start, PrecedenceInfo info, bool asciiOnly) {
     if (!includeComments) return;
-    Token newComment = createSubstringToken(COMMENT_INFO, start, asciiOnly);
+    Token newComment = createSubstringToken(info, start, asciiOnly);
     if (comments == null) {
       comments = newComment;
       commentsTail = comments;

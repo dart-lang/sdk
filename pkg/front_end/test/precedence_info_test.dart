@@ -118,6 +118,7 @@ class PrecedenceInfoTest {
     assertLexeme('var'); // KEYWORD
     assertLexeme('#!/'); // SCRIPT_TAG
     assertLexeme('"foo"'); // STRING
+    assertLexeme('bar'); // IDENTIFIER
     if (includeLazyAssignmentOperators) {
       assertLexeme('&&=');
       assertLexeme('||=');
@@ -345,11 +346,10 @@ class PrecedenceInfoTest {
       '~/',
     ];
     assertInfo((String source, fasta.Token token) {
-      expect(token.type.isUserDefinableOperator,
-          userDefinableOperatorLexemes.contains(source),
-          reason: source);
-      expect(token.isUserDefinableOperator,
-          userDefinableOperatorLexemes.contains(source),
+      var userDefinable = userDefinableOperatorLexemes.contains(source);
+      expect(token.type.isUserDefinableOperator, userDefinable, reason: source);
+      expect(token.isUserDefinableOperator, userDefinable, reason: source);
+      expect(fasta.isUserDefinableOperator(token.lexeme), userDefinable,
           reason: source);
     });
   }
@@ -504,7 +504,7 @@ class PrecedenceInfoTest {
     assertLexeme('1', TokenType.INT);
     assertLexeme('var', TokenType.KEYWORD);
     assertLexeme('#!/', TokenType.SCRIPT_TAG);
-    assertLexeme('"foo"',TokenType.STRING);
+    assertLexeme('"foo"', TokenType.STRING);
 
     expect(STRING_INTERPOLATION_INFO,
         same(TokenType.STRING_INTERPOLATION_EXPRESSION));

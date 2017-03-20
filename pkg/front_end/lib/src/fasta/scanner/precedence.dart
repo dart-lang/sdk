@@ -93,7 +93,8 @@ class PrecedenceInfo implements TokenType {
     STRING_INTERPOLATION_INFO,
     STRING_INTERPOLATION_IDENTIFIER_INFO,
     HEXADECIMAL_INFO,
-    COMMENT_INFO,
+    SINGLE_LINE_COMMENT_INFO,
+    MULTI_LINE_COMMENT_INFO,
   ];
 
   @override
@@ -337,8 +338,7 @@ const PrecedenceInfo QUESTION_PERIOD_INFO = const PrecedenceInfo(
 const PrecedenceInfo KEYWORD_INFO =
     const PrecedenceInfo('keyword', 'KEYWORD', 0, KEYWORD_TOKEN);
 
-const PrecedenceInfo EOF_INFO =
-    const PrecedenceInfo('', 'EOF', 0, EOF_TOKEN);
+const PrecedenceInfo EOF_INFO = const PrecedenceInfo('', 'EOF', 0, EOF_TOKEN);
 
 /// Precedence info used by synthetic tokens that are created during parser
 /// recovery (non-analyzer use case).
@@ -391,5 +391,8 @@ const PrecedenceInfo STRING_INTERPOLATION_IDENTIFIER_INFO =
 const PrecedenceInfo HEXADECIMAL_INFO =
     const PrecedenceInfo('hexadecimal', 'HEXADECIMAL', 0, HEXADECIMAL_TOKEN);
 
-const PrecedenceInfo COMMENT_INFO =
-    const PrecedenceInfo('comment', 'COMMENT', 0, COMMENT_TOKEN);
+const PrecedenceInfo SINGLE_LINE_COMMENT_INFO =
+    const PrecedenceInfo('comment', 'SINGLE_LINE_COMMENT', 0, COMMENT_TOKEN);
+
+const PrecedenceInfo MULTI_LINE_COMMENT_INFO =
+    const PrecedenceInfo('comment', 'MULTI_LINE_COMMENT', 0, COMMENT_TOKEN);

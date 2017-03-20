@@ -350,10 +350,10 @@ Token fromAnalyzerToken(analyzer.Token token) {
       }
       break;
     case TokenType.MULTI_LINE_COMMENT:
-      return string(COMMENT_INFO);
+      return string(MULTI_LINE_COMMENT_INFO);
     // case TokenType.SCRIPT_TAG
     case TokenType.SINGLE_LINE_COMMENT:
-      return string(COMMENT_INFO);
+      return string(SINGLE_LINE_COMMENT_INFO);
     case TokenType.STRING:
       return string(STRING_INFO);
     case TokenType.AMPERSAND:

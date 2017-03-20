@@ -186,7 +186,7 @@ abstract class AbstractScanner implements Scanner {
   void appendGtGt(PrecedenceInfo info);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendComment(start, bool asciiOnly);
+  void appendComment(start, PrecedenceInfo info, bool asciiOnly);
 
   /// Append [token] to the token stream.
   void appendErrorToken(ErrorToken token);
@@ -279,7 +279,6 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeSlashOrComment(next);
     }
 
-
     if (identical(next, $OPEN_CURLY_BRACKET)) {
       appendBeginGroup(OPEN_CURLY_BRACKET_INFO);
       return advance();
@@ -289,7 +288,7 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeString(next, scanOffset, false);
     }
 
-    if(identical(next, $_)){
+    if (identical(next, $_)) {
       return tokenizeKeywordOrIdentifier(next, true);
     }
 
@@ -347,7 +346,7 @@ abstract class AbstractScanner implements Scanner {
       return tokenizePlus(next);
     }
 
-    if(identical(next, $$)){
+    if (identical(next, $$)) {
       return tokenizeKeywordOrIdentifier(next, true);
     }
 
@@ -730,7 +729,7 @@ abstract class AbstractScanner implements Scanner {
           identical($CR, next) ||
           identical($EOF, next)) {
         if (!asciiOnly) handleUnicode(start);
-        appendComment(start, asciiOnly);
+        appendComment(start, SINGLE_LINE_COMMENT_INFO, asciiOnly);
         return next;
       }
     }
@@ -754,7 +753,7 @@ abstract class AbstractScanner implements Scanner {
           if (0 == nesting) {
             if (!asciiOnlyLines) handleUnicode(unicodeStart);
             next = advance();
-            appendComment(start, asciiOnlyComment);
+            appendComment(start, MULTI_LINE_COMMENT_INFO, asciiOnlyComment);
             break;
           } else {
             next = advance();

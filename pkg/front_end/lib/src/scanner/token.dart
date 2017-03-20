@@ -899,13 +899,11 @@ abstract class TokenType {
 
   static const TokenType KEYWORD = fasta.KEYWORD_INFO;
 
-  static const TokenType MULTI_LINE_COMMENT =
-      const fasta.PrecedenceInfo(null, 'MULTI_LINE_COMMENT', 0, -1);
+  static const TokenType MULTI_LINE_COMMENT = fasta.MULTI_LINE_COMMENT_INFO;
 
   static const TokenType SCRIPT_TAG = fasta.SCRIPT_INFO;
 
-  static const TokenType SINGLE_LINE_COMMENT =
-      const fasta.PrecedenceInfo(null, 'SINGLE_LINE_COMMENT', 0, -1);
+  static const TokenType SINGLE_LINE_COMMENT = fasta.SINGLE_LINE_COMMENT_INFO;
 
   static const TokenType STRING = fasta.STRING_INFO;
 

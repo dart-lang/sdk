@@ -29,6 +29,50 @@ class TokenTest {
     expect(token.precedingComments.offset, 12);
   }
 
+  void test_comments() {
+    var source = '''
+/// Single line dartdoc comment
+class Foo {
+  /**
+   * Multi-line dartdoc comment
+   */
+  void bar() {
+    // Single line comment
+    int x = 0;
+    /* Multi-line comment */
+    x = x + 1;
+  }
+}
+''';
+    var scanner = new StringScanner(source, includeComments: true);
+    fasta.Token token = scanner.tokenize();
+
+    Token nextComment() {
+      while (!token.isEof) {
+        Token comment = token.precedingComments;
+        token = token.next;
+        if (comment != null) return comment;
+      }
+      return null;
+    }
+
+    fasta.Token comment = nextComment();
+    expect(comment.lexeme, contains('Single line dartdoc comment'));
+    expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
+
+    comment = nextComment();
+    expect(comment.lexeme, contains('Multi-line dartdoc comment'));
+    expect(comment.type, TokenType.MULTI_LINE_COMMENT);
+
+    comment = nextComment();
+    expect(comment.lexeme, contains('Single line comment'));
+    expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
+
+    comment = nextComment();
+    expect(comment.lexeme, contains('Multi-line comment'));
+    expect(comment.type, TokenType.MULTI_LINE_COMMENT);
+  }
+
   void test_copy() {
     String source = '/* 1 */ /* 2 */ main() {print("hello"); return;}';
     int commentCount = 0;
