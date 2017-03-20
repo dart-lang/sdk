@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _Closure implements Function {
-
   bool operator ==(other) native "Closure_equals";
 
   int get hashCode native "Closure_hashCode";

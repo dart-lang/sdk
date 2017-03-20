@@ -99,8 +99,8 @@ testSimpleReadWriteClose() async {
           break;
         case RawSocketEvent.WRITE:
           assert(!client.writeEventsEnabled);
-          bytesWritten += client.write(
-              data, bytesWritten, data.length - bytesWritten);
+          bytesWritten +=
+              client.write(data, bytesWritten, data.length - bytesWritten);
           print("client WRITE event: $bytesWritten written");
           if (bytesWritten < data.length) {
             client.writeEventsEnabled = true;
@@ -119,11 +119,14 @@ testSimpleReadWriteClose() async {
           print("client CLOSED event");
           closedEventReceived = true;
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
-    },
-    onError: (e) { print("client ERROR $e"); },
-    onDone: () {assert(closedEventReceived);});
+    }, onError: (e) {
+      print("client ERROR $e");
+    }, onDone: () {
+      assert(closedEventReceived);
+    });
   });
 
   {
@@ -151,8 +154,8 @@ testSimpleReadWriteClose() async {
         case RawSocketEvent.WRITE:
           assert(bytesRead == 0);
           assert(!socket.writeEventsEnabled);
-          bytesWritten += socket.write(
-              data, bytesWritten, data.length - bytesWritten);
+          bytesWritten +=
+              socket.write(data, bytesWritten, data.length - bytesWritten);
           print("server WRITE event: ${bytesWritten} written");
           if (bytesWritten < data.length) {
             socket.writeEventsEnabled = true;
@@ -171,11 +174,12 @@ testSimpleReadWriteClose() async {
           print("server CLOSED event");
           closedEventReceived = true;
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
-    },
-    onError: (e) { print("server ERROR $e"); },
-    onDone: () {
+    }, onError: (e) {
+      print("server ERROR $e");
+    }, onDone: () {
       assert(closedEventReceived);
       completer.complete(null);
     });
@@ -245,8 +249,8 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
           break;
         case RawSocketEvent.WRITE:
           assert(!client.writeEventsEnabled);
-          bytesWritten += client.write(
-              data, bytesWritten, data.length - bytesWritten);
+          bytesWritten +=
+              client.write(data, bytesWritten, data.length - bytesWritten);
           print("client WRITE event: $bytesWritten written");
           if (bytesWritten < data.length) {
             client.writeEventsEnabled = true;
@@ -265,10 +269,12 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
           print("client CLOSED event");
           closedEventReceived = true;
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
-    },
-    onDone: () {assert(closedEventReceived);});
+    }, onDone: () {
+      assert(closedEventReceived);
+    });
   });
 
   {
@@ -300,8 +306,8 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
         case RawSocketEvent.WRITE:
           assert(bytesRead == 0);
           assert(!socket.writeEventsEnabled);
-          bytesWritten += socket.write(
-              data, bytesWritten, data.length - bytesWritten);
+          bytesWritten +=
+              socket.write(data, bytesWritten, data.length - bytesWritten);
           print("server WRITE event: ${bytesWritten} written");
           if (bytesWritten < data.length) {
             socket.writeEventsEnabled = true;
@@ -320,10 +326,10 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
           print("server CLOSED event");
           closedEventReceived = true;
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
-    },
-    onDone: () {
+    }, onDone: () {
       assert(closedEventReceived);
       completer.complete(null);
     });
@@ -342,7 +348,9 @@ Future testGoogleHttp(SecurityContext context, String outcome) async {
     request.followRedirects = false;
     var response = await request.close();
     assert('pass' == outcome);
-    try { await response.drain(); } catch (e) {
+    try {
+      await response.drain();
+    } catch (e) {
       print('drain failed: $e');
     }
   } catch (e) {
@@ -368,7 +376,9 @@ Future testGoogleHttps(SecurityContext context, String outcome) async {
     request.followRedirects = false;
     var response = await request.close();
     assert('pass' == outcome);
-    try { await response.drain(); } catch (e) {
+    try {
+      await response.drain();
+    } catch (e) {
       print('drain failed: $e');
     }
   } catch (e) {

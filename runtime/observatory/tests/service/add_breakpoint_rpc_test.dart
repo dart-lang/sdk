@@ -21,9 +21,9 @@ int incValue(int amount) {
 }
 
 Future testMain() async {
-  incValue(incValue(1));  // line A.
+  incValue(incValue(1)); // line A.
 
-  incValue(incValue(1));  // line B.
+  incValue(incValue(1)); // line B.
 
   await deferredLib.loadLibrary();
   deferredLib.deferredTest();
@@ -95,10 +95,10 @@ var tests = [
     expect((await rootLib.evaluate('value')).valueAsString, equals('1'));
 
     // Remove the breakpoints.
-    expect((await isolate.removeBreakpoint(futureBpt1)).type,
-           equals('Success'));
-    expect((await isolate.removeBreakpoint(futureBpt2)).type,
-           equals('Success'));
+    expect(
+        (await isolate.removeBreakpoint(futureBpt1)).type, equals('Success'));
+    expect(
+        (await isolate.removeBreakpoint(futureBpt2)).type, equals('Success'));
   },
 
   // Test breakpoints in deferred libraries (latent breakpoints).
@@ -106,7 +106,7 @@ var tests = [
     var rootLib = isolate.rootLibrary;
     var uri = rootLib.scripts[0].uri;
     var lastSlashPos = uri.lastIndexOf('/');
-    var deferredUri =uri.substring(0, lastSlashPos) + '/deferred_library.dart';
+    var deferredUri = uri.substring(0, lastSlashPos) + '/deferred_library.dart';
 
     // Latent breakpoint.
     var latentBpt1 = await isolate.addBreakpointByScriptUri(deferredUri, 15);
@@ -116,8 +116,7 @@ var tests = [
     expect(await latentBpt1.location.getColumn(), equals(null));
 
     // Latent breakpoint with specific column.
-    var latentBpt2 =
-    await isolate.addBreakpointByScriptUri(deferredUri, 15, 3);
+    var latentBpt2 = await isolate.addBreakpointByScriptUri(deferredUri, 15, 3);
     expect(latentBpt2.number, equals(4));
     expect(latentBpt2.resolved, isFalse);
     expect(await latentBpt2.location.getLine(), equals(15));
@@ -150,7 +149,7 @@ var tests = [
 
     // The first breakpoint hits before value is modified.
     expect((await rootLib.evaluate('deferredLib.value')).valueAsString,
-           equals('0'));
+        equals('0'));
 
     stream = await isolate.vm.getEventStream(VM.kDebugStream);
     completer = new Completer();
@@ -165,15 +164,14 @@ var tests = [
 
     // The second breakpoint hits after value has been modified once.
     expect((await rootLib.evaluate('deferredLib.value')).valueAsString,
-           equals('-1'));
+        equals('-1'));
 
     // Remove the breakpoints.
-    expect((await isolate.removeBreakpoint(latentBpt1)).type,
-           equals('Success'));
-    expect((await isolate.removeBreakpoint(latentBpt2)).type,
-           equals('Success'));
+    expect(
+        (await isolate.removeBreakpoint(latentBpt1)).type, equals('Success'));
+    expect(
+        (await isolate.removeBreakpoint(latentBpt2)).type, equals('Success'));
   },
-
 
   // Test resolution of column breakpoints.
   (Isolate isolate) async {
@@ -202,17 +200,15 @@ var tests = [
     var caughtException = false;
     try {
       await isolate.addBreakpoint(script, 20, 0);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             "addBreakpoint: invalid 'column' parameter: 0");
+      expect(e.message, "addBreakpoint: invalid 'column' parameter: 0");
     }
     expect(caughtException, isTrue);
   },
 ];
 
 main(args) => runIsolateTests(args, tests,
-                              testeeConcurrent: testMain,
-                              pause_on_start: true);
+    testeeConcurrent: testMain, pause_on_start: true);

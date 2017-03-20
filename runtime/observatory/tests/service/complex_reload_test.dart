@@ -14,8 +14,7 @@ import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 // Chop off the file name.
-String baseDirectory =
-    path.dirname(Platform.script.path) + '/';
+String baseDirectory = path.dirname(Platform.script.path) + '/';
 
 Uri baseUri = Platform.script.replace(path: baseDirectory);
 Uri spawnUri = baseUri.resolveUri(Uri.parse('complex_reload/v1/main.dart'));
@@ -24,12 +23,9 @@ Uri v3Uri = baseUri.resolveUri(Uri.parse('complex_reload/v3/main.dart'));
 
 testMain() async {
   print(baseUri);
-  debugger();  // Stop here.
+  debugger(); // Stop here.
   // Spawn the child isolate.
-  I.Isolate isolate =
-      await I.Isolate.spawnUri(spawnUri,
-                               [],
-                               null);
+  I.Isolate isolate = await I.Isolate.spawnUri(spawnUri, [], null);
   print(isolate);
   debugger();
 }
@@ -67,7 +63,7 @@ var tests = [
 
     // Reload to v2.
     var response = await slaveIsolate.reloadSources(
-       rootLibUri: v2Uri.toString(),
+      rootLibUri: v2Uri.toString(),
     );
     expect(response['success'], isTrue);
 

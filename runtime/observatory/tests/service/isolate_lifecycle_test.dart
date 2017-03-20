@@ -16,8 +16,7 @@ final spawnCount = 4;
 final resumeCount = spawnCount ~/ 2;
 final isolates = [];
 
-void spawnEntry(int i) {
-}
+void spawnEntry(int i) {}
 
 Future during() async {
   debugger();
@@ -44,7 +43,6 @@ var tests = [
     expect(vm.isolates.length, 1);
     await hasStoppedAtBreakpoint(vm.isolates[0]);
   },
-
   (VM vm) async {
     Completer completer = new Completer();
     var stream = await vm.getEventStream(VM.kIsolateStream);
@@ -70,14 +68,12 @@ var tests = [
     expect(runnableCount, spawnCount);
     expect(vm.isolates.length, spawnCount + 1);
   },
-
   (VM vm) async {
     // Load each isolate.
     for (var isolate in vm.isolates) {
       await isolate.load();
     }
   },
-
   (VM vm) async {
     Completer completer = new Completer();
     var stream = await vm.getEventStream(VM.kDebugStream);
@@ -95,8 +91,6 @@ var tests = [
     }
     expect(numPaused(vm), spawnCount + 1);
   },
-
-
   (VM vm) async {
     var resumedReceived = 0;
     Completer completer = new Completer();
@@ -122,19 +116,17 @@ var tests = [
       try {
         resumesIssued++;
         await isolate.resume();
-      } catch(_) {}
+      } catch (_) {}
       if (resumesIssued == resumeCount) {
         break;
       }
     }
     await completer.future;
   },
-
   (VM vm) async {
     expect(numPaused(vm), spawnCount + 1 - resumeCount);
   },
 ];
 
-main(args) async => runVMTests(args, tests,
-                               testeeConcurrent: during,
-                               pause_on_exit: true);
+main(args) async =>
+    runVMTests(args, tests, testeeConcurrent: during, pause_on_exit: true);

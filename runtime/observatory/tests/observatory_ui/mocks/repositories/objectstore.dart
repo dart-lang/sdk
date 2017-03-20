@@ -17,5 +17,5 @@ class ObjectStoreRepositoryMock implements M.ObjectStoreRepository {
   }
 
   ObjectStoreRepositoryMock({ObjectStoreRepositoryMockGetter getter})
-    : _getter = getter;
+      : _getter = getter;
 }

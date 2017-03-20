@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch class Object {
-
+@patch
+class Object {
   // The VM has its own implementation of equals.
-  @patch bool operator ==(other) native "Object_equals";
+  @patch
+  bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
   // in a weak table in the VM. A new hashCode value is calculated using a
@@ -29,29 +30,30 @@
     return result;
   }
 
-  @patch int get hashCode => _objectHashCode(this);
+  @patch
+  int get hashCode => _objectHashCode(this);
   int get _identityHashCode => _objectHashCode(this);
 
-  @patch String toString() native "Object_toString";
+  @patch
+  String toString() native "Object_toString";
   // A statically dispatched version of Object.toString.
   static String _toString(obj) native "Object_toString";
 
-  _noSuchMethod(bool isMethod,
-                String memberName,
-                int type,
-                List arguments,
-                Map<String, dynamic> namedArguments)
-      native "Object_noSuchMethod";
+  _noSuchMethod(bool isMethod, String memberName, int type, List arguments,
+      Map<String, dynamic> namedArguments) native "Object_noSuchMethod";
 
-  @patch dynamic noSuchMethod(Invocation invocation) {
-    return _noSuchMethod(invocation.isMethod,
-                         internal.Symbol.getName(invocation.memberName),
-                         invocation._type,
-                         invocation.positionalArguments,
-                         _symbolMapToStringMap(invocation.namedArguments));
+  @patch
+  dynamic noSuchMethod(Invocation invocation) {
+    return _noSuchMethod(
+        invocation.isMethod,
+        internal.Symbol.getName(invocation.memberName),
+        invocation._type,
+        invocation.positionalArguments,
+        _symbolMapToStringMap(invocation.namedArguments));
   }
 
-  @patch Type get runtimeType native "Object_runtimeType";
+  @patch
+  Type get runtimeType native "Object_runtimeType";
 
   static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
 

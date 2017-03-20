@@ -4,18 +4,14 @@
 
 part of manual_inspector_test;
 
-functionInPart() {
-
-}
+functionInPart() {}
 
 set explicitSetter(x) {}
 
 get explicitGetter {}
-
 
 class D {
   set explicitSetter(x) {}
 
   get explicitGetter {}
 }
-

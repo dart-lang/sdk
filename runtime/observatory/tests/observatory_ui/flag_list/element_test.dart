@@ -18,9 +18,8 @@ main() {
 
   group('instantiation', () {
     test('default', () {
-      final e = new FlagListElement(vm, events,
-                                    new FlagsRepositoryMock(),
-                                    notifications);
+      final e = new FlagListElement(
+          vm, events, new FlagsRepositoryMock(), notifications);
       expect(e, isNotNull, reason: 'element correctly created');
     });
   });
@@ -43,8 +42,8 @@ main() {
       expect(e.children.length, isNonZero, reason: 'has elements');
       expect(e.querySelectorAll(nTag).length, equals(1));
       expect(e.querySelectorAll('.flag').length, equals(flags.length));
-      expect(e.querySelectorAll('.flag.modified').length,
-          equals(modified.length));
+      expect(
+          e.querySelectorAll('.flag.modified').length, equals(modified.length));
       expect(e.querySelectorAll('.flag.unmodified').length,
           equals(unmodifed.length));
       expect(e.querySelectorAll('.flag').length, equals(flags.length));

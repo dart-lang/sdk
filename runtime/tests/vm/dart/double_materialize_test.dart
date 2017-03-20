@@ -20,4 +20,3 @@ void main() {
   x = f(x, 5.0, 1.0);
   Expect.equals(509512.0, x);
 }
-

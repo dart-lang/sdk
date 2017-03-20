@@ -7,16 +7,23 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-printSync() {  // Line 10
+printSync() {
+  // Line 10
   print('sync');
 }
-printAsync() async {  // Line 13
+
+printAsync() async {
+  // Line 13
   print('async');
 }
-printAsyncStar() async* {  // Line 16
+
+printAsyncStar() async* {
+  // Line 16
   print('async*');
 }
-printSyncStar() sync* {  // Line 19
+
+printSyncStar() sync* {
+  // Line 19
   print('sync*');
 }
 
@@ -27,14 +34,14 @@ testeeDo() {
   // the breakpoints because we need the event loop to remain
   // operational for the async bodies to run.
   print('testee waiting');
-  while(!testerReady);
+  while (!testerReady);
 
   printSync();
   var future = printAsync();
   var stream = printAsyncStar();
   var iterator = printSyncStar();
 
-  print('middle');  // Line 37.
+  print('middle'); // Line 37.
 
   future.then((v) => print(v));
   stream.toList();
@@ -64,10 +71,9 @@ testAsync(Isolate isolate) async {
 
   var hits = [];
 
-  isolate.rootLibrary.evaluate('testerReady = true;')
-      .then((Instance result) {
-        expect(result.valueAsString, equals('true'));
-      });
+  isolate.rootLibrary.evaluate('testerReady = true;').then((Instance result) {
+    expect(result.valueAsString, equals('true'));
+  });
 
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   await for (ServiceEvent event in stream) {

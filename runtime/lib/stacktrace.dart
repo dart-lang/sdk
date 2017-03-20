@@ -6,4 +6,3 @@
 class _StackTrace implements StackTrace {
   // toString() is overridden on the C++ side.
 }
-

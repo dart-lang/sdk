@@ -33,50 +33,48 @@ Future setupProcesses() async {
 
   Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
     closeDown();
-    var result = JSON.encode({'type' : 'foobar'});
+    var result = JSON.encode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
   Future<ServiceExtensionResponse> setup(ignored_a, ignored_b) async {
     try {
       process1 = await io.Process.start(io.Platform.executable, args);
-      process2 = await io.Process.start(io.Platform.executable,
-                                        args..add('foobar'));
+      process2 =
+          await io.Process.start(io.Platform.executable, args..add('foobar'));
       var codeFilePath = dir.path + io.Platform.pathSeparator + "other_file";
       var codeFile = new io.File(codeFilePath);
-      await codeFile.writeAsString(
-          '''
+      await codeFile.writeAsString('''
           import "dart:io";
 
           void main() async {
             await stdin.drain();
           }
           ''');
-      process3 = await io.Process.start(io.Platform.executable,
-                                        [codeFilePath]);
+      process3 = await io.Process.start(io.Platform.executable, [codeFilePath]);
     } catch (e) {
       closeDown();
       throw e;
     }
 
-    var result =
-      JSON.encode({'type': 'foobar',
-                   'pids' : [process1.pid, process2.pid, process3.pid]});
+    var result = JSON.encode({
+      'type': 'foobar',
+      'pids': [process1.pid, process2.pid, process3.pid]
+    });
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
   Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) async {
     process3.stdin.close();
-    var result = JSON.encode({'type' : 'foobar'});
+    var result = JSON.encode({'type': 'foobar'});
     var returnValue =
         new Future.value(new ServiceExtensionResponse.result(result));
-    return  process3.exitCode.then((int exit) => returnValue);
+    return process3.exitCode.then((int exit) => returnValue);
   }
 
   registerExtension('ext.dart.io.cleanup', cleanup);
   registerExtension('ext.dart.io.setup', setup);
   registerExtension('ext.dart.io.closeStdin', closeStdin);
-
 }
 
 var processTests = [
@@ -91,14 +89,14 @@ var processTests = [
       expect(all['data'].length, equals(3));
 
       var first = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getProcessById', { 'id' : all['data'][0]['id'] });
+          'ext.dart.io.getProcessById', {'id': all['data'][0]['id']});
       expect(first['name'], io.Platform.executable);
       expect(first['pid'], equals(setup['pids'][0]));
       expect(first['arguments'].contains('foobar'), isFalse);
       expect(first['startedAt'], greaterThan(0));
 
       var second = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getProcessById', { 'id' : all['data'][1]['id'] });
+          'ext.dart.io.getProcessById', {'id': all['data'][1]['id']});
       expect(second['name'], io.Platform.executable);
       expect(second['pid'], equals(setup['pids'][1]));
       expect(second['arguments'].contains('foobar'), isTrue);
@@ -107,7 +105,7 @@ var processTests = [
       expect(second['startedAt'], greaterThanOrEqualTo(first['startedAt']));
 
       var third = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getProcessById', { 'id' : all['data'][2]['id'] });
+          'ext.dart.io.getProcessById', {'id': all['data'][2]['id']});
       expect(third['name'], io.Platform.executable);
       expect(third['pid'], equals(setup['pids'][2]));
       expect(third['pid'] != first['pid'], isTrue);
@@ -124,5 +122,5 @@ var processTests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, processTests,
-                                    testeeBefore:setupProcesses);
+main(args) async =>
+    runIsolateTests(args, processTests, testeeBefore: setupProcesses);

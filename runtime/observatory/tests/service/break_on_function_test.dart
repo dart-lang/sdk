@@ -11,7 +11,8 @@ import 'dart:developer';
 
 const int LINE_A = 14;
 
-testFunction(flag) {  // Line A.
+testFunction(flag) {
+  // Line A.
   if (flag) {
     print("Yes");
   } else {
@@ -27,29 +28,28 @@ testMain() {
 }
 
 var tests = [
-
-hasStoppedAtBreakpoint,
+  hasStoppedAtBreakpoint,
 
 // Add breakpoint
-(Isolate isolate) async {
-  var rootLib = await isolate.rootLibrary.load();
-  var function = rootLib.functions.singleWhere((f) => f.name == 'testFunction');
+  (Isolate isolate) async {
+    var rootLib = await isolate.rootLibrary.load();
+    var function =
+        rootLib.functions.singleWhere((f) => f.name == 'testFunction');
 
-  var bpt = await isolate.addBreakpointAtEntry(function);
-  expect(bpt is Breakpoint, isTrue);
-  print(bpt);
-},
+    var bpt = await isolate.addBreakpointAtEntry(function);
+    expect(bpt is Breakpoint, isTrue);
+    print(bpt);
+  },
 
-resumeIsolate,
+  resumeIsolate,
 
-hasStoppedAtBreakpoint,
-stoppedAtLine(LINE_A),
-resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_A),
+  resumeIsolate,
 
-hasStoppedAtBreakpoint,
-stoppedAtLine(LINE_A),
-resumeIsolate,
-
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_A),
+  resumeIsolate,
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testMain);

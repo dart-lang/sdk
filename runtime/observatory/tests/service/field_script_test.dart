@@ -22,7 +22,7 @@ var tests = [
     var fields = lib.variables;
     expect(fields.length, 2);
     print(lib.variables);
-    for(Field f in fields) {
+    for (Field f in fields) {
       await f.load();
       String locationString = await f.location.toUserString();
       if (f.name == "tests") {

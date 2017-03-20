@@ -13,12 +13,10 @@ import 'test_helper.dart';
 
 class _DummyClass {
   static var dummyVar = 11;
-  void dummyFunction() {
-  }
+  void dummyFunction() {}
 }
 
-class _DummySubClass extends _DummyClass {
-}
+class _DummySubClass extends _DummyClass {}
 
 void warmup() {
   // Silence analyzer.
@@ -458,7 +456,7 @@ var tests = [
     var evalResult = await eval(isolate, 'uint8List');
     var params = {
       'objectId': evalResult['id'],
-      'count' : 2,
+      'count': 2,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
@@ -484,8 +482,8 @@ var tests = [
     var evalResult = await eval(isolate, 'uint8List');
     var params = {
       'objectId': evalResult['id'],
-      'offset' : 2,
-      'count' : 2,
+      'offset': 2,
+      'count': 2,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
@@ -511,8 +509,8 @@ var tests = [
     var evalResult = await eval(isolate, 'uint8List');
     var params = {
       'objectId': evalResult['id'],
-      'offset' : 100,
-      'count' : 2,
+      'offset': 100,
+      'count': 2,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
@@ -561,7 +559,7 @@ var tests = [
     var evalResult = await eval(isolate, 'uint64List');
     var params = {
       'objectId': evalResult['id'],
-      'count' : 2,
+      'count': 2,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
@@ -587,8 +585,8 @@ var tests = [
     var evalResult = await eval(isolate, 'uint64List');
     var params = {
       'objectId': evalResult['id'],
-      'offset' : 2,
-      'count' : 2,
+      'offset': 2,
+      'count': 2,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
@@ -614,8 +612,8 @@ var tests = [
     var evalResult = await eval(isolate, 'uint64List');
     var params = {
       'objectId': evalResult['id'],
-      'offset' : 100,
-      'count' : 2,
+      'offset': 100,
+      'count': 2,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Instance'));
@@ -678,12 +676,12 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.message,
-             "getObject: invalid 'objectId' parameter: libraries/9999999");
+          "getObject: invalid 'objectId' parameter: libraries/9999999");
     }
     expect(caughtException, isTrue);
   },
@@ -721,12 +719,12 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.message,
-             "getObject: invalid 'objectId' parameter: scripts/9999999");
+          "getObject: invalid 'objectId' parameter: scripts/9999999");
     }
     expect(caughtException, isTrue);
   },
@@ -768,12 +766,12 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.message,
-             "getObject: invalid 'objectId' parameter: classes/9999999");
+          "getObject: invalid 'objectId' parameter: classes/9999999");
     }
     expect(caughtException, isTrue);
   },
@@ -808,12 +806,12 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             startsWith("getObject: invalid 'objectId' parameter: "));
+      expect(
+          e.message, startsWith("getObject: invalid 'objectId' parameter: "));
     }
     expect(caughtException, isTrue);
   },
@@ -853,12 +851,12 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             startsWith("getObject: invalid 'objectId' parameter: "));
+      expect(
+          e.message, startsWith("getObject: invalid 'objectId' parameter: "));
     }
     expect(caughtException, isTrue);
   },
@@ -896,12 +894,12 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             startsWith("getObject: invalid 'objectId' parameter: "));
+      expect(
+          e.message, startsWith("getObject: invalid 'objectId' parameter: "));
     }
     expect(caughtException, isTrue);
   },
@@ -930,8 +928,10 @@ var tests = [
     expect(result['_objectPool'], isNotNull);
     expect(result['_disassembly'], isNotNull);
     expect(result['_descriptors'], isNotNull);
-    expect(result['_inlinedFunctions'], anyOf([isNull, new isInstanceOf<List>()]));
-    expect(result['_inlinedIntervals'], anyOf([isNull, new isInstanceOf<List>()]));
+    expect(
+        result['_inlinedFunctions'], anyOf([isNull, new isInstanceOf<List>()]));
+    expect(
+        result['_inlinedIntervals'], anyOf([isNull, new isInstanceOf<List>()]));
   },
 
   // invalid code.
@@ -942,15 +942,14 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('getObject', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             "getObject: invalid 'objectId' parameter: code/0");
+      expect(e.message, "getObject: invalid 'objectId' parameter: code/0");
     }
     expect(caughtException, isTrue);
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeBefore:warmup);
+main(args) async => runIsolateTests(args, tests, testeeBefore: warmup);

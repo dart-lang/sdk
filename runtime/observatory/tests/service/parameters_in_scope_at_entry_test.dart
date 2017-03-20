@@ -21,16 +21,17 @@ fooClosure() {
   theClosureFunction(param) {
     return param;
   }
+
   return theClosureFunction;
 }
 
 testMain() {
   debugger();
-  foo("in-scope");  // Line A.
+  foo("in-scope"); // Line A.
 
   var f = fooClosure();
   debugger();
-  f("in-scope");  // Line B.
+  f("in-scope"); // Line B.
 }
 
 var tests = [
@@ -50,7 +51,6 @@ var tests = [
     expect(param['value'].valueAsString, equals("in-scope"));
   },
   resumeIsolate,
-
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (isolate) => isolate.stepInto(),

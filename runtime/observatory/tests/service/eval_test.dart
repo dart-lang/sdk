@@ -30,12 +30,11 @@ void testFunction() {
 }
 
 var tests = [
-
-hasStoppedAtBreakpoint,
+  hasStoppedAtBreakpoint,
 
 // Evaluate against library, class, and instance.
-(Isolate isolate) {
-  return isolate.getStack().then((ServiceMap stack) {
+  (Isolate isolate) {
+    return isolate.getStack().then((ServiceMap stack) {
       // Make sure we are in the right place.
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(2));
@@ -48,30 +47,29 @@ hasStoppedAtBreakpoint,
 
       List evals = [];
       evals.add(lib.evaluate('globalVar + 5').then((result) {
-            print(result);
-            expect(result.valueAsString, equals('105'));
-          }));
+        print(result);
+        expect(result.valueAsString, equals('105'));
+      }));
       evals.add(lib.evaluate('globalVar + staticVar + 5').then((result) {
-            expect(result.type, equals('Error'));
-          }));
+        expect(result.type, equals('Error'));
+      }));
       evals.add(cls.evaluate('globalVar + staticVar + 5').then((result) {
-            print(result);
-            expect(result.valueAsString, equals('1105'));
-          }));
+        print(result);
+        expect(result.valueAsString, equals('1105'));
+      }));
       evals.add(cls.evaluate('this + 5').then((result) {
-            expect(result.type, equals('Error'));
-          }));
+        expect(result.type, equals('Error'));
+      }));
       evals.add(instance.evaluate('this + 5').then((result) {
-            print(result);
-            expect(result.valueAsString, equals('10005'));
-          }));
+        print(result);
+        expect(result.valueAsString, equals('10005'));
+      }));
       evals.add(instance.evaluate('this + frog').then((result) {
-            expect(result.type, equals('Error'));
-          }));
+        expect(result.type, equals('Error'));
+      }));
       return Future.wait(evals);
-  });
-},
-
+    });
+  },
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);

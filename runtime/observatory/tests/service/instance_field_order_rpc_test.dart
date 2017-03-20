@@ -13,6 +13,7 @@ class Super {
   var z = 1;
   var y = 2;
 }
+
 class Sub extends Super {
   var y = 3;
   var x = 4;

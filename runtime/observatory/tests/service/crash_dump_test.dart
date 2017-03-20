@@ -33,4 +33,4 @@ var tests = [
   }
 ];
 
-main(args) async => runVMTests(args, tests, testeeBefore:warmup);
+main(args) async => runVMTests(args, tests, testeeBefore: warmup);

@@ -45,10 +45,7 @@ Function _asyncErrorWrapperHelper(continuation) {
 ///
 /// Returns the result of registering with `.then`.
 Future _awaitHelper(
-    var object,
-    Function thenCallback,
-    Function errorCallback,
-    var awaiter) {
+    var object, Function thenCallback, Function errorCallback, var awaiter) {
   if (object is! Future) {
     object = new _Future().._setValue(object);
   } else if (object is! _Future) {
@@ -179,9 +176,10 @@ class _AsyncStarStreamController {
   }
 
   _AsyncStarStreamController(this.asyncStarBody) {
-    controller = new StreamController(onListen: this.onListen,
-                                      onResume: this.onResume,
-                                      onCancel: this.onCancel);
+    controller = new StreamController(
+        onListen: this.onListen,
+        onResume: this.onResume,
+        onCancel: this.onCancel);
   }
 
   onListen() {
@@ -213,16 +211,20 @@ class _AsyncStarStreamController {
   }
 }
 
-@patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
+@patch
+void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
 
-@patch class _Future<T> {
+@patch
+class _Future<T> {
   /// The closure implementing the async[*]-body that is `await`ing this future.
   Function _awaiter;
 }
 
-@patch class _StreamImpl<T> {
+@patch
+class _StreamImpl<T> {
   /// The closure implementing the async[*]-body that is `await`ing this future.
   Function _awaiter;
+
   /// The closure implementing the async-generator body that is creating events
   /// for this stream.
   Function _generator;
@@ -230,11 +232,10 @@ class _AsyncStarStreamController {
 
 /// Returns a [StackTrace] object containing the synchronous prefix for this
 /// asynchronous method.
-Object _asyncStackTraceHelper()
-    native "StackTrace_asyncStackTraceHelper";
+Object _asyncStackTraceHelper() native "StackTrace_asyncStackTraceHelper";
 
 void _clearAsyncThreadStackTrace()
     native "StackTrace_clearAsyncThreadStackTrace";
 
-void _setAsyncThreadStackTrace(StackTrace stackTrace) native
-    "StackTrace_setAsyncThreadStackTrace";
+void _setAsyncThreadStackTrace(StackTrace stackTrace)
+    native "StackTrace_setAsyncThreadStackTrace";

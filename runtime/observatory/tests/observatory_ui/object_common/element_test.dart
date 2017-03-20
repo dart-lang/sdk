@@ -26,8 +26,7 @@ main() {
   final instances = new InstanceRepositoryMock();
   test('instantiation', () {
     final e = new ObjectCommonElement(isolate, object, retainedSizes,
-                                      reachableSizes, inbounds, paths,
-                                      instances);
+        reachableSizes, inbounds, paths, instances);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.object, equals(object));
@@ -35,8 +34,7 @@ main() {
   group('elements', () {
     test('created after attachment', () async {
       final e = new ObjectCommonElement(isolate, object, retainedSizes,
-                                        reachableSizes, inbounds, paths,
-                                        instances);
+          reachableSizes, inbounds, paths, instances);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');
@@ -49,20 +47,17 @@ main() {
     });
     test('created after attachment', () async {
       const value = const GuardedMock<InstanceMock>.fromValue(
-        const InstanceMock(valueAsString: '10')
-      );
+          const InstanceMock(valueAsString: '10'));
       bool invoked = false;
       final reachableSizes = new ReachableSizeRepositoryMock(
-        getter: expectAsync((i, id) async {
-          expect(i, equals(isolate));
-          expect(id, equals(object.id));
-          invoked = true;
-          return value;
-        }, count: 1)
-      );
+          getter: expectAsync((i, id) async {
+        expect(i, equals(isolate));
+        expect(id, equals(object.id));
+        invoked = true;
+        return value;
+      }, count: 1));
       final e = new ObjectCommonElement(isolate, object, retainedSizes,
-                                        reachableSizes, inbounds, paths,
-                                        instances);
+          reachableSizes, inbounds, paths, instances);
       document.body.append(e);
       await e.onRendered.first;
       expect(invoked, isFalse);
@@ -79,20 +74,17 @@ main() {
     });
     test('created after attachment', () async {
       const value = const GuardedMock<InstanceMock>.fromValue(
-        const InstanceMock(valueAsString: '10')
-      );
+          const InstanceMock(valueAsString: '10'));
       bool invoked = false;
       final retainedSizes = new RetainedSizeRepositoryMock(
-        getter: expectAsync((i, id) async {
-          expect(i, equals(isolate));
-          expect(id, equals(object.id));
-          invoked = true;
-          return value;
-        }, count: 1)
-      );
+          getter: expectAsync((i, id) async {
+        expect(i, equals(isolate));
+        expect(id, equals(object.id));
+        invoked = true;
+        return value;
+      }, count: 1));
       final e = new ObjectCommonElement(isolate, object, retainedSizes,
-                                        reachableSizes, inbounds, paths,
-                                        instances);
+          reachableSizes, inbounds, paths, instances);
       document.body.append(e);
       await e.onRendered.first;
       expect(invoked, isFalse);
