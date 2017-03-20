@@ -4,6 +4,13 @@
 
 // test w/ `pub run test -N prefer_final_fields`
 
+class FalsePositiveWhenReturn {
+  int _value = 0;
+  int getValue() {
+    return ++_value; // OK
+  }
+}
+
 class BadImmutable {
   var _label = 'hola mundo! BadImmutable'; // LINT
   var label = 'hola mundo! BadImmutable'; // OK
@@ -27,10 +34,11 @@ class GoodMutable {
 }
 
 class MultipleMutable {
+  final int _someOther;
   var _label = 'hola mundo! GoodMutable', _offender = 'mumble mumble!'; // LINT
   var _never_initialized_field; // OK
 
-  MultipleMutable() : _someOther = 5;
+  MultipleMutable.foo() : _someOther = 5;
 
   MultipleMutable(this._someOther);
 
@@ -53,5 +61,22 @@ class D {
 
 void accessD_f() {
   D d = new D();
-  d._f  = 42;
+  d._f = 42;
+}
+
+class E {
+  int _f = 0; // LINT
+
+  void useItInRightHandSide() {
+    // ignore: unused_local_variable
+    int a = _f;
+  }
+}
+
+class F{
+  var _array = new List<int>(5); // LINT
+
+  void foo() {
+    _array[0] = 3;
+  }
 }
