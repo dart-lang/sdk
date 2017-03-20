@@ -90,12 +90,9 @@ class PlatformWin {
       const DWORD request = out_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
       SetConsoleMode(out, request);
     }
-    HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD in_mode;
-    if ((in != INVALID_HANDLE_VALUE) && GetConsoleMode(in, &in_mode)) {
-      const DWORD request = in_mode | ENABLE_VIRTUAL_TERMINAL_INPUT;
-      SetConsoleMode(in, request);
-    }
+    // TODO(28984): Due to issue #29104, we cannot set
+    // ENABLE_VIRTUAL_TERMINAL_INPUT here, as it causes ENABLE_PROCESSED_INPUT
+    // to be ignored.
   }
 
   static void RestoreConsole() {
