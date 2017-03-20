@@ -443,16 +443,6 @@ abstract class EntityRef extends base.SummaryClass {
   EntityRef get syntheticReturnType;
 
   /**
-   * If this [EntityRef] is a result of type inference, and so contained within
-   * [LinkedUnit.types], and was computed as a result of top-level type
-   * inference, which failed for this target, contains the list of one or more
-   * errors describing the failure.  The [reference] must point at `dynamic` in
-   * this case.
-   */
-  @Id(8)
-  List<TopLevelInferenceError> get topLevelInferenceErrors;
-
-  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it (if any).
    */
@@ -843,6 +833,12 @@ abstract class LinkedUnit extends base.SummaryClass {
   List<LinkedReference> get references;
 
   /**
+   * The list of type inference errors.
+   */
+  @Id(4)
+  List<TopLevelInferenceError> get topLevelInferenceErrors;
+
+  /**
    * List associating slot ids found inside the unlinked summary for the
    * compilation unit with propagated and inferred types.
    */
@@ -1117,11 +1113,24 @@ enum ReferenceKind {
  */
 abstract class TopLevelInferenceError extends base.SummaryClass {
   /**
-   * The message describing the error.
+   * The kind of the error.
+   */
+  @Id(1)
+  TopLevelInferenceErrorKind get kind;
+
+  /**
+   * The slot id (which is unique within the compilation unit) identifying the
+   * target of type inference with which this [TopLevelInferenceError] is
+   * associated.
    */
   @Id(0)
-  String get message;
+  int get slot;
 }
+
+/**
+ * Enum used to indicate the kind of the error during top-level inference.
+ */
+enum TopLevelInferenceErrorKind { assignment, instanceGetter }
 
 /**
  * Enum used to indicate the style of a typedef.

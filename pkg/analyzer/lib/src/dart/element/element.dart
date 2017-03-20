@@ -7280,6 +7280,20 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   /**
+   * Return the error reported during type inference for this variable, or
+   * `null` if this variable is not a subject of type inference, or there was
+   * no error.
+   */
+  TopLevelInferenceError get typeInferenceError {
+    if (_unlinkedVariable != null) {
+      return enclosingUnit.resynthesizerContext
+          .getTypeInferenceError(_unlinkedVariable.inferredTypeSlot);
+    }
+    // We don't support type inference errors without linking.
+    return null;
+  }
+
+  /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
    */
   UnlinkedExpr get _unlinkedConst => _unlinkedVariable?.initializer?.bodyExpr;
@@ -8309,6 +8323,12 @@ abstract class ResynthesizerContext {
    * Build explicit top-level variables.
    */
   UnitExplicitTopLevelVariables buildTopLevelVariables();
+
+  /**
+   * Return the error reported during type inference for the given [slot],
+   * or `null` if there was no error.
+   */
+  TopLevelInferenceError getTypeInferenceError(int slot);
 
   /**
    * Return `true` if the given parameter [slot] inherits `@covariant` behavior.

@@ -1340,6 +1340,18 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       }
     }
   }
+
+  /**
+   * Store the given error [error] in the given [slot].
+   */
+  void _storeLinkedTypeError(int slot, TopLevelInferenceErrorBuilder error) {
+    if (slot != 0) {
+      if (error != null) {
+        error.slot = slot;
+        _linkedUnit.topLevelInferenceErrors.add(error);
+      }
+    }
+  }
 }
 
 /**
@@ -1982,7 +1994,7 @@ class ExprTypeComputer {
   int strPtr = 0;
   int assignmentOperatorPtr = 0;
 
-  bool hasError = false;
+  TopLevelInferenceErrorKind errorKind;
 
   factory ExprTypeComputer(FunctionElementForLink_Local functionElement) {
     CompilationUnitElementForLink unit = functionElement.compilationUnit;
@@ -2051,7 +2063,7 @@ class ExprTypeComputer {
           try {
             _doPushReference();
           } on _InferenceFailedError {
-            hasError = true;
+            errorKind = TopLevelInferenceErrorKind.instanceGetter;
             return DynamicTypeImpl.instance;
           }
           break;
@@ -2059,7 +2071,7 @@ class ExprTypeComputer {
           try {
             _doExtractProperty();
           } on _InferenceFailedError {
-            hasError = true;
+            errorKind = TopLevelInferenceErrorKind.instanceGetter;
             return DynamicTypeImpl.instance;
           }
           break;
@@ -2146,7 +2158,7 @@ class ExprTypeComputer {
         case UnlinkedExprOperation.assignToIndex:
         case UnlinkedExprOperation.assignToProperty:
         case UnlinkedExprOperation.assignToRef:
-          hasError = true;
+          errorKind = TopLevelInferenceErrorKind.assignment;
           return DynamicTypeImpl.instance;
         case UnlinkedExprOperation.await:
           _doAwait();
@@ -2158,7 +2170,7 @@ class ExprTypeComputer {
           try {
             _doInvokeMethodRef();
           } on _InferenceFailedError {
-            hasError = true;
+            errorKind = TopLevelInferenceErrorKind.instanceGetter;
             return DynamicTypeImpl.instance;
           }
           break;
@@ -2669,7 +2681,11 @@ class FieldElementForLink_ClassField extends VariableElementForLink
           unlinkedVariable.inferredTypeSlot,
           isStatic ? inferredType : _inferredInstanceType,
           _typeParameterContext);
-      initializer?.link(compilationUnit);
+      if (initializer != null) {
+        compilationUnit._storeLinkedTypeError(
+            unlinkedVariable.inferredTypeSlot, initializer._inferredError);
+        initializer.link(compilationUnit);
+      }
     }
   }
 
@@ -2877,6 +2893,7 @@ class FunctionElementForLink_Initializer extends Object
 
   List<FunctionElementForLink_Local_NonSynthetic> _functions;
   DartType _inferredReturnType;
+  TopLevelInferenceErrorBuilder _inferredError;
 
   FunctionElementForLink_Initializer(this._variable);
 
@@ -2969,6 +2986,12 @@ class FunctionElementForLink_Initializer extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  void _setInferredError(TopLevelInferenceErrorBuilder error) {
+    assert(!_hasTypeBeenInferred);
+    _inferredError = error;
+  }
+
+  @override
   void _setInferredType(DartType type) {
     assert(!_hasTypeBeenInferred);
     _inferredReturnType = type;
@@ -2988,6 +3011,12 @@ abstract class FunctionElementForLink_Local
    * Indicates whether type inference has completed for this function.
    */
   bool get _hasTypeBeenInferred;
+
+  /**
+   * Stores the given [error] as the type inference error for this function.
+   * Should only be called if [_hasTypeBeenInferred] is `false`.
+   */
+  void _setInferredError(TopLevelInferenceErrorBuilder error);
 
   /**
    * Stores the given [type] as the inferred return type for this function.
@@ -3082,6 +3111,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void _setInferredError(TopLevelInferenceErrorBuilder error) {}
 
   @override
   void _setInferredType(DartType type) {
@@ -4632,6 +4664,8 @@ class TopLevelVariableElementForLink extends VariableElementForLink
       if (typeInferenceNode != null) {
         compilationUnit._storeLinkedType(
             unlinkedVariable.inferredTypeSlot, inferredType, null);
+        compilationUnit._storeLinkedTypeError(
+            unlinkedVariable.inferredTypeSlot, initializer._inferredError);
       }
       initializer?.link(compilationUnit);
     }
@@ -4777,7 +4811,9 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     } else {
       var computer = new ExprTypeComputer(functionElement);
       DartType bodyType = computer.compute();
-      if (computer.hasError) {
+      if (computer.errorKind != null) {
+        functionElement._setInferredError(
+            new TopLevelInferenceErrorBuilder(kind: computer.errorKind));
         functionElement._setInferredType(DynamicTypeImpl.instance);
       } else {
         if (functionElement.isAsynchronous) {

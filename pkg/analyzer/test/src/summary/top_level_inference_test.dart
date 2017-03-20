@@ -120,13 +120,12 @@ var a = 1;
 var t1 = (a = 2);
 var t2 = (a += 2);
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
 int a;
-dynamic t1;
-dynamic t2;
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
 ''');
   }
 
@@ -139,7 +138,6 @@ var a = new A();
 var t1 = (a.f = 1);
 var t2 = (a.f += 2);
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -147,8 +145,8 @@ class A {
   int f;
 }
 A a;
-dynamic t1;
-dynamic t2;
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
 ''');
   }
 
@@ -162,7 +160,6 @@ C c;
 var t1 = (c.f = 1);
 var t2 = (c.f += 2);
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -172,8 +169,8 @@ class I {
 abstract class C implements I {
 }
 C c;
-dynamic t1;
-dynamic t2;
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
 ''');
   }
 
@@ -187,7 +184,6 @@ C getC() => null;
 var t1 = (getC().f = 1);
 var t2 = (getC().f += 2);
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -196,8 +192,8 @@ class I {
 }
 abstract class C implements I {
 }
-dynamic t1;
-dynamic t2;
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
 C getC() {}
 ''');
   }
@@ -239,7 +235,6 @@ A newA() => new A();
 B newB() => new B();
 C newC() => new C();
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -256,15 +251,15 @@ class X {
   A a;
   B b;
   C c;
-  dynamic t01;
-  dynamic t02;
-  dynamic t03;
-  dynamic t11;
-  dynamic t12;
-  dynamic t13;
-  dynamic t21;
-  dynamic t22;
-  dynamic t23;
+  dynamic t01/*error: instanceGetter*/;
+  dynamic t02/*error: instanceGetter*/;
+  dynamic t03/*error: instanceGetter*/;
+  dynamic t11/*error: instanceGetter*/;
+  dynamic t12/*error: instanceGetter*/;
+  dynamic t13/*error: instanceGetter*/;
+  dynamic t21/*error: instanceGetter*/;
+  dynamic t22/*error: instanceGetter*/;
+  dynamic t23/*error: instanceGetter*/;
 }
 A newA() {}
 B newB() {}
@@ -280,14 +275,13 @@ class C {
 C f() => null;
 var x = f().b;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
 class C {
   bool b;
 }
-dynamic x;
+dynamic x/*error: instanceGetter*/;
 C f() {}
 ''');
   }
@@ -327,7 +321,6 @@ class B {
   static var t = new A().f;
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -335,7 +328,7 @@ class A {
   int f;
 }
 class B {
-  static dynamic t;
+  static dynamic t/*error: instanceGetter*/;
 }
 ''');
   }
@@ -348,7 +341,6 @@ class C {
 C c;
 var x = c.b;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -356,7 +348,7 @@ class C {
   bool b;
 }
 C c;
-dynamic x;
+dynamic x/*error: instanceGetter*/;
 ''');
   }
 
@@ -369,7 +361,6 @@ abstract class C implements I {}
 C c;
 var x = c.b;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -379,7 +370,7 @@ class I {
 abstract class C implements I {
 }
 C c;
-dynamic x;
+dynamic x/*error: instanceGetter*/;
 ''');
   }
 
@@ -392,7 +383,6 @@ abstract class C implements I {}
 C f() => null;
 var x = f().b;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -401,7 +391,7 @@ class I {
 }
 abstract class C implements I {
 }
-dynamic x;
+dynamic x/*error: instanceGetter*/;
 C f() {}
 ''');
   }
@@ -412,12 +402,11 @@ dynamic f() => null;
 var s = f().toString();
 var h = f().hashCode;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
 String s;
-dynamic h;
+dynamic h/*error: instanceGetter*/;
 dynamic f() {}
 ''');
   }
@@ -428,13 +417,12 @@ dynamic d;
 var s = d.toString();
 var h = d.hashCode;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
 dynamic d;
 String s;
-dynamic h;
+dynamic h/*error: instanceGetter*/;
 ''');
   }
 
@@ -448,7 +436,6 @@ class D {
 }
 final x = C.d.i;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -458,7 +445,7 @@ class C {
 class D {
   int i;
 }
-final dynamic x;
+final dynamic x/*error: instanceGetter*/;
 ''');
   }
 
@@ -472,7 +459,6 @@ class D {
 }
 var x = C.d.i;
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -482,7 +468,7 @@ class C {
 class D {
   int i;
 }
-dynamic x;
+dynamic x/*error: instanceGetter*/;
 ''');
   }
 

@@ -210,6 +210,15 @@ enum ReferenceKind : byte {
 }
 
 /**
+ * Enum used to indicate the kind of the error during top-level inference.
+ */
+enum TopLevelInferenceErrorKind : byte {
+  assignment,
+
+  instanceGetter
+}
+
+/**
  * Enum used to indicate the style of a typedef.
  */
 enum TypedefStyle : byte {
@@ -1195,15 +1204,6 @@ table EntityRef {
   syntheticReturnType:EntityRef (id: 5);
 
   /**
-   * If this [EntityRef] is a result of type inference, and so contained within
-   * [LinkedUnit.types], and was computed as a result of top-level type
-   * inference, which failed for this target, contains the list of one or more
-   * errors describing the failure.  The [reference] must point at `dynamic` in
-   * this case.
-   */
-  topLevelInferenceErrors:[TopLevelInferenceError] (id: 8);
-
-  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it (if any).
    */
@@ -1424,6 +1424,11 @@ table LinkedUnit {
   references:[LinkedReference] (id: 0);
 
   /**
+   * The list of type inference errors.
+   */
+  topLevelInferenceErrors:[TopLevelInferenceError] (id: 4);
+
+  /**
    * List associating slot ids found inside the unlinked summary for the
    * compilation unit with propagated and inferred types.
    */
@@ -1601,9 +1606,16 @@ table PackageIndex {
  */
 table TopLevelInferenceError {
   /**
-   * The message describing the error.
+   * The kind of the error.
    */
-  message:string (id: 0);
+  kind:TopLevelInferenceErrorKind (id: 1);
+
+  /**
+   * The slot id (which is unique within the compilation unit) identifying the
+   * target of type inference with which this [TopLevelInferenceError] is
+   * associated.
+   */
+  slot:uint (id: 0);
 }
 
 /**

@@ -1428,6 +1428,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  TopLevelInferenceError getTypeInferenceError(int slot) {
+    return _unitResynthesizer.getTypeInferenceError(slot);
+  }
+
+  @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
       {bool defaultVoid: false,
@@ -1615,6 +1620,22 @@ class _UnitResynthesizer {
       return null;
     }
     return buildType(type, typeParameterContext);
+  }
+
+  /**
+   * Return the error reported during type inference for the given [slot],
+   * or `null` if there were no error.
+   */
+  TopLevelInferenceError getTypeInferenceError(int slot) {
+    if (slot == 0) {
+      return null;
+    }
+    for (TopLevelInferenceError error in linkedUnit.topLevelInferenceErrors) {
+      if (error.slot == slot) {
+        return error;
+      }
+    }
+    return null;
   }
 
   /**

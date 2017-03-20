@@ -4074,7 +4074,7 @@ const v = 'abc'.length;
       checkElementText(
           library,
           r'''
-const dynamic v = 'abc'.
+const dynamic v/*error: instanceGetter*/ = 'abc'.
         length/*location: dart:core;String;length?*/;
 ''');
     } else {
@@ -4097,7 +4097,7 @@ const v = S.length;
           library,
           r'''
 const String S = 'abc';
-const dynamic v =
+const dynamic v/*error: instanceGetter*/ =
         S/*location: test.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
@@ -4128,7 +4128,7 @@ const v = S.length;
           library,
           r'''
 import 'a.dart';
-const dynamic v =
+const dynamic v/*error: instanceGetter*/ =
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
@@ -4159,7 +4159,7 @@ const v = p.S.length;
           library,
           r'''
 import 'a.dart' as p;
-const dynamic v =
+const dynamic v/*error: instanceGetter*/ =
         p/*location: null*/.
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
@@ -5463,7 +5463,7 @@ enum E {
 }
 final E vValue;
 final List<E> vValues;
-final dynamic vIndex;
+final dynamic vIndex/*error: instanceGetter*/;
 ''');
     } else {
       checkElementText(

@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
 
 /**
@@ -693,6 +694,18 @@ class _ElementWriter {
     writeType2(type);
 
     writeName(e);
+
+    if (e is NonParameterVariableElementImpl) {
+      TopLevelInferenceError inferenceError =
+          (e as NonParameterVariableElementImpl).typeInferenceError;
+      if (inferenceError != null) {
+        String kindName = inferenceError.kind.toString();
+        if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
+          kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
+        }
+        buffer.write('/*error: $kindName*/');
+      }
+    }
 
     if (e is ConstVariableElement) {
       Expression initializer = (e as ConstVariableElement).constantInitializer;

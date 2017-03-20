@@ -64,6 +64,19 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   }
 }
 
+class _TopLevelInferenceErrorKindReader extends fb.Reader<idl.TopLevelInferenceErrorKind> {
+  const _TopLevelInferenceErrorKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.TopLevelInferenceErrorKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
+    return index < idl.TopLevelInferenceErrorKind.values.length ? idl.TopLevelInferenceErrorKind.values[index] : idl.TopLevelInferenceErrorKind.assignment;
+  }
+}
+
 class _TypedefStyleReader extends fb.Reader<idl.TypedefStyle> {
   const _TypedefStyleReader() : super();
 
@@ -1807,7 +1820,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   int _slot;
   List<UnlinkedParamBuilder> _syntheticParams;
   EntityRefBuilder _syntheticReturnType;
-  List<TopLevelInferenceErrorBuilder> _topLevelInferenceErrors;
   List<EntityRefBuilder> _typeArguments;
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
@@ -1922,20 +1934,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   }
 
   @override
-  List<TopLevelInferenceErrorBuilder> get topLevelInferenceErrors => _topLevelInferenceErrors ??= <TopLevelInferenceErrorBuilder>[];
-
-  /**
-   * If this [EntityRef] is a result of type inference, and so contained within
-   * [LinkedUnit.types], and was computed as a result of top-level type
-   * inference, which failed for this target, contains the list of one or more
-   * errors describing the failure.  The [reference] must point at `dynamic` in
-   * this case.
-   */
-  void set topLevelInferenceErrors(List<TopLevelInferenceErrorBuilder> value) {
-    this._topLevelInferenceErrors = value;
-  }
-
-  @override
   List<EntityRefBuilder> get typeArguments => _typeArguments ??= <EntityRefBuilder>[];
 
   /**
@@ -1957,14 +1955,13 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     this._typeParameters = value;
   }
 
-  EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<UnlinkedParamBuilder> syntheticParams, EntityRefBuilder syntheticReturnType, List<TopLevelInferenceErrorBuilder> topLevelInferenceErrors, List<EntityRefBuilder> typeArguments, List<UnlinkedTypeParamBuilder> typeParameters})
+  EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<UnlinkedParamBuilder> syntheticParams, EntityRefBuilder syntheticReturnType, List<EntityRefBuilder> typeArguments, List<UnlinkedTypeParamBuilder> typeParameters})
     : _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
       _paramReference = paramReference,
       _reference = reference,
       _slot = slot,
       _syntheticParams = syntheticParams,
       _syntheticReturnType = syntheticReturnType,
-      _topLevelInferenceErrors = topLevelInferenceErrors,
       _typeArguments = typeArguments,
       _typeParameters = typeParameters;
 
@@ -1974,7 +1971,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   void flushInformative() {
     _syntheticParams?.forEach((b) => b.flushInformative());
     _syntheticReturnType?.flushInformative();
-    _topLevelInferenceErrors?.forEach((b) => b.flushInformative());
     _typeArguments?.forEach((b) => b.flushInformative());
     _typeParameters?.forEach((b) => b.flushInformative());
   }
@@ -2020,21 +2016,12 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
         x?.collectApiSignature(signature);
       }
     }
-    if (this._topLevelInferenceErrors == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._topLevelInferenceErrors.length);
-      for (var x in this._topLevelInferenceErrors) {
-        x?.collectApiSignature(signature);
-      }
-    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_implicitFunctionTypeIndices;
     fb.Offset offset_syntheticParams;
     fb.Offset offset_syntheticReturnType;
-    fb.Offset offset_topLevelInferenceErrors;
     fb.Offset offset_typeArguments;
     fb.Offset offset_typeParameters;
     if (!(_implicitFunctionTypeIndices == null || _implicitFunctionTypeIndices.isEmpty)) {
@@ -2045,9 +2032,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     }
     if (_syntheticReturnType != null) {
       offset_syntheticReturnType = _syntheticReturnType.finish(fbBuilder);
-    }
-    if (!(_topLevelInferenceErrors == null || _topLevelInferenceErrors.isEmpty)) {
-      offset_topLevelInferenceErrors = fbBuilder.writeList(_topLevelInferenceErrors.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_typeArguments == null || _typeArguments.isEmpty)) {
       offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
@@ -2073,9 +2057,6 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     }
     if (offset_syntheticReturnType != null) {
       fbBuilder.addOffset(5, offset_syntheticReturnType);
-    }
-    if (offset_topLevelInferenceErrors != null) {
-      fbBuilder.addOffset(8, offset_topLevelInferenceErrors);
     }
     if (offset_typeArguments != null) {
       fbBuilder.addOffset(1, offset_typeArguments);
@@ -2106,7 +2087,6 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
   int _slot;
   List<idl.UnlinkedParam> _syntheticParams;
   idl.EntityRef _syntheticReturnType;
-  List<idl.TopLevelInferenceError> _topLevelInferenceErrors;
   List<idl.EntityRef> _typeArguments;
   List<idl.UnlinkedTypeParam> _typeParameters;
 
@@ -2147,12 +2127,6 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
   }
 
   @override
-  List<idl.TopLevelInferenceError> get topLevelInferenceErrors {
-    _topLevelInferenceErrors ??= const fb.ListReader<idl.TopLevelInferenceError>(const _TopLevelInferenceErrorReader()).vTableGet(_bc, _bcOffset, 8, const <idl.TopLevelInferenceError>[]);
-    return _topLevelInferenceErrors;
-  }
-
-  @override
   List<idl.EntityRef> get typeArguments {
     _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
     return _typeArguments;
@@ -2175,7 +2149,6 @@ abstract class _EntityRefMixin implements idl.EntityRef {
     if (slot != 0) _result["slot"] = slot;
     if (syntheticParams.isNotEmpty) _result["syntheticParams"] = syntheticParams.map((_value) => _value.toJson()).toList();
     if (syntheticReturnType != null) _result["syntheticReturnType"] = syntheticReturnType.toJson();
-    if (topLevelInferenceErrors.isNotEmpty) _result["topLevelInferenceErrors"] = topLevelInferenceErrors.map((_value) => _value.toJson()).toList();
     if (typeArguments.isNotEmpty) _result["typeArguments"] = typeArguments.map((_value) => _value.toJson()).toList();
     if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
     return _result;
@@ -2189,7 +2162,6 @@ abstract class _EntityRefMixin implements idl.EntityRef {
     "slot": slot,
     "syntheticParams": syntheticParams,
     "syntheticReturnType": syntheticReturnType,
-    "topLevelInferenceErrors": topLevelInferenceErrors,
     "typeArguments": typeArguments,
     "typeParameters": typeParameters,
   };
@@ -3049,6 +3021,7 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   List<int> _constCycles;
   List<int> _parametersInheritingCovariant;
   List<LinkedReferenceBuilder> _references;
+  List<TopLevelInferenceErrorBuilder> _topLevelInferenceErrors;
   List<EntityRefBuilder> _types;
 
   @override
@@ -3092,6 +3065,16 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   }
 
   @override
+  List<TopLevelInferenceErrorBuilder> get topLevelInferenceErrors => _topLevelInferenceErrors ??= <TopLevelInferenceErrorBuilder>[];
+
+  /**
+   * The list of type inference errors.
+   */
+  void set topLevelInferenceErrors(List<TopLevelInferenceErrorBuilder> value) {
+    this._topLevelInferenceErrors = value;
+  }
+
+  @override
   List<EntityRefBuilder> get types => _types ??= <EntityRefBuilder>[];
 
   /**
@@ -3102,10 +3085,11 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     this._types = value;
   }
 
-  LinkedUnitBuilder({List<int> constCycles, List<int> parametersInheritingCovariant, List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
+  LinkedUnitBuilder({List<int> constCycles, List<int> parametersInheritingCovariant, List<LinkedReferenceBuilder> references, List<TopLevelInferenceErrorBuilder> topLevelInferenceErrors, List<EntityRefBuilder> types})
     : _constCycles = constCycles,
       _parametersInheritingCovariant = parametersInheritingCovariant,
       _references = references,
+      _topLevelInferenceErrors = topLevelInferenceErrors,
       _types = types;
 
   /**
@@ -3113,6 +3097,7 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
    */
   void flushInformative() {
     _references?.forEach((b) => b.flushInformative());
+    _topLevelInferenceErrors?.forEach((b) => b.flushInformative());
     _types?.forEach((b) => b.flushInformative());
   }
 
@@ -3152,12 +3137,21 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
         signature.addInt(x);
       }
     }
+    if (this._topLevelInferenceErrors == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._topLevelInferenceErrors.length);
+      for (var x in this._topLevelInferenceErrors) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_constCycles;
     fb.Offset offset_parametersInheritingCovariant;
     fb.Offset offset_references;
+    fb.Offset offset_topLevelInferenceErrors;
     fb.Offset offset_types;
     if (!(_constCycles == null || _constCycles.isEmpty)) {
       offset_constCycles = fbBuilder.writeListUint32(_constCycles);
@@ -3167,6 +3161,9 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     }
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_topLevelInferenceErrors == null || _topLevelInferenceErrors.isEmpty)) {
+      offset_topLevelInferenceErrors = fbBuilder.writeList(_topLevelInferenceErrors.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_types == null || _types.isEmpty)) {
       offset_types = fbBuilder.writeList(_types.map((b) => b.finish(fbBuilder)).toList());
@@ -3180,6 +3177,9 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     }
     if (offset_references != null) {
       fbBuilder.addOffset(0, offset_references);
+    }
+    if (offset_topLevelInferenceErrors != null) {
+      fbBuilder.addOffset(4, offset_topLevelInferenceErrors);
     }
     if (offset_types != null) {
       fbBuilder.addOffset(1, offset_types);
@@ -3204,6 +3204,7 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
   List<int> _constCycles;
   List<int> _parametersInheritingCovariant;
   List<idl.LinkedReference> _references;
+  List<idl.TopLevelInferenceError> _topLevelInferenceErrors;
   List<idl.EntityRef> _types;
 
   @override
@@ -3225,6 +3226,12 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
   }
 
   @override
+  List<idl.TopLevelInferenceError> get topLevelInferenceErrors {
+    _topLevelInferenceErrors ??= const fb.ListReader<idl.TopLevelInferenceError>(const _TopLevelInferenceErrorReader()).vTableGet(_bc, _bcOffset, 4, const <idl.TopLevelInferenceError>[]);
+    return _topLevelInferenceErrors;
+  }
+
+  @override
   List<idl.EntityRef> get types {
     _types ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
     return _types;
@@ -3238,6 +3245,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
     if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
     if (parametersInheritingCovariant.isNotEmpty) _result["parametersInheritingCovariant"] = parametersInheritingCovariant;
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
+    if (topLevelInferenceErrors.isNotEmpty) _result["topLevelInferenceErrors"] = topLevelInferenceErrors.map((_value) => _value.toJson()).toList();
     if (types.isNotEmpty) _result["types"] = types.map((_value) => _value.toJson()).toList();
     return _result;
   }
@@ -3247,6 +3255,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
     "constCycles": constCycles,
     "parametersInheritingCovariant": parametersInheritingCovariant,
     "references": references,
+    "topLevelInferenceErrors": topLevelInferenceErrors,
     "types": types,
   };
 
@@ -4227,20 +4236,35 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
 }
 
 class TopLevelInferenceErrorBuilder extends Object with _TopLevelInferenceErrorMixin implements idl.TopLevelInferenceError {
-  String _message;
+  idl.TopLevelInferenceErrorKind _kind;
+  int _slot;
 
   @override
-  String get message => _message ??= '';
+  idl.TopLevelInferenceErrorKind get kind => _kind ??= idl.TopLevelInferenceErrorKind.assignment;
 
   /**
-   * The message describing the error.
+   * The kind of the error.
    */
-  void set message(String value) {
-    this._message = value;
+  void set kind(idl.TopLevelInferenceErrorKind value) {
+    this._kind = value;
   }
 
-  TopLevelInferenceErrorBuilder({String message})
-    : _message = message;
+  @override
+  int get slot => _slot ??= 0;
+
+  /**
+   * The slot id (which is unique within the compilation unit) identifying the
+   * target of type inference with which this [TopLevelInferenceError] is
+   * associated.
+   */
+  void set slot(int value) {
+    assert(value == null || value >= 0);
+    this._slot = value;
+  }
+
+  TopLevelInferenceErrorBuilder({idl.TopLevelInferenceErrorKind kind, int slot})
+    : _kind = kind,
+      _slot = slot;
 
   /**
    * Flush [informative] data recursively.
@@ -4252,17 +4276,17 @@ class TopLevelInferenceErrorBuilder extends Object with _TopLevelInferenceErrorM
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._message ?? '');
+    signature.addInt(this._slot ?? 0);
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_message;
-    if (_message != null) {
-      offset_message = fbBuilder.writeString(_message);
-    }
     fbBuilder.startTable();
-    if (offset_message != null) {
-      fbBuilder.addOffset(0, offset_message);
+    if (_kind != null && _kind != idl.TopLevelInferenceErrorKind.assignment) {
+      fbBuilder.addUint8(1, _kind.index);
+    }
+    if (_slot != null && _slot != 0) {
+      fbBuilder.addUint32(0, _slot);
     }
     return fbBuilder.endTable();
   }
@@ -4281,12 +4305,19 @@ class _TopLevelInferenceErrorImpl extends Object with _TopLevelInferenceErrorMix
 
   _TopLevelInferenceErrorImpl(this._bc, this._bcOffset);
 
-  String _message;
+  idl.TopLevelInferenceErrorKind _kind;
+  int _slot;
 
   @override
-  String get message {
-    _message ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
-    return _message;
+  idl.TopLevelInferenceErrorKind get kind {
+    _kind ??= const _TopLevelInferenceErrorKindReader().vTableGet(_bc, _bcOffset, 1, idl.TopLevelInferenceErrorKind.assignment);
+    return _kind;
+  }
+
+  @override
+  int get slot {
+    _slot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
+    return _slot;
   }
 }
 
@@ -4294,13 +4325,15 @@ abstract class _TopLevelInferenceErrorMixin implements idl.TopLevelInferenceErro
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (message != '') _result["message"] = message;
+    if (kind != idl.TopLevelInferenceErrorKind.assignment) _result["kind"] = kind.toString().split('.')[1];
+    if (slot != 0) _result["slot"] = slot;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "message": message,
+    "kind": kind,
+    "slot": slot,
   };
 
   @override
