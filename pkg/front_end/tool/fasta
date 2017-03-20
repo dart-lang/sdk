@@ -47,6 +47,10 @@ case "${1//_/-}" in
       stop "Usage: $1 dillfile [output]"
     fi
     ;;
+  testing)
+    SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"
+    set -- "$@" "--config=${REPO_DIR}/pkg/front_end/test/fasta/testing.json"
+    ;;
   *)
     stop "'$1' isn't a valid subcommand."
     ;;
@@ -54,4 +58,4 @@ esac
 
 shift
 
-exec "${DART_VM}" -c "${SCRIPT}" "$@"
+DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64} exec "${DART_VM}" -c "${SCRIPT}" "$@"
