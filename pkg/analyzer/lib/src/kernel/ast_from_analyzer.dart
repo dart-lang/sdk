@@ -2528,7 +2528,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         assert(defaultConstructor.enclosingElement == node.element);
         if (!defaultConstructor.isSynthetic) {
           throw 'Non-synthetic default constructor not in list of members. '
-              '${node} $element $defaultConstructor';
+              '$node $element $defaultConstructor';
         }
         var memberNode = scope.getMemberReference(defaultConstructor);
         classNode.addMember(memberNode);

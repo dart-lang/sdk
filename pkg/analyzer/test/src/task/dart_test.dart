@@ -876,7 +876,6 @@ part of my_lib;
     } else {
       _assertErrorsWithCodes(
           [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-      AnalysisError error = errorListener.errors[0];
     }
   }
 
@@ -899,7 +898,6 @@ part of libB;
     } else {
       _assertErrorsWithCodes(
           [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-      AnalysisError error = errorListener.errors[0];
     }
   }
 
