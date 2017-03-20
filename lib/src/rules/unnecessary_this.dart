@@ -85,11 +85,14 @@ class _UnnecessaryThisVisitor extends ScopedVisitor {
       lookUpElement = DartTypeUtilities.getCanonicalElement(
           nameScope.lookup(parent.methodName, definingLibrary));
       localElement = parent.methodName.bestElement;
-    } else {
+    }
+    // Error in code
+    if (localElement == null) {
       return null;
     }
-
-    if (lookUpElement == localElement) {
+    // If localElement was resolved, but lookUpElement was not, that means
+    // the element is defined in an ancestor class.
+    if (lookUpElement == localElement || lookUpElement == null) {
       rule.reportLint(parent);
     }
   }

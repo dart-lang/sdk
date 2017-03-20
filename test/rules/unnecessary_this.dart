@@ -4,6 +4,34 @@
 
 // test w/ `pub run test -N unnecessary_this`
 
+void bar() {}
+
+int x;
+
+class Parent {
+  int x, y;
+  void bar() {}
+  void foo() {}
+}
+
+class Child extends Parent {
+  void SuperclassMethodWithTopLevelFunction() {
+    this.bar(); // OK
+  }
+
+  void SuperclassMethodWithoutTopLevelFunction() {
+    this.foo(); // LINT
+  }
+
+  void SuperclassVariableWithTopLevelVariable(int a) {
+    this.x = a; // OK
+  }
+
+  void SuperclassVariableWithoutTopLevelVariable(int a) {
+    this.y = a; // LINT
+  }
+}
+
 void duplicate() {}
 
 class A {
@@ -28,6 +56,7 @@ class A {
 
   void barMethod() {
     if (x == y) {
+      // ignore: unused_element
       void fooMethod() {
         // local function
       }
