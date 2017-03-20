@@ -4,6 +4,8 @@
 
 library fasta.scanner.token;
 
+import '../../scanner/token.dart' as analyzer;
+
 import 'keyword.dart' show Keyword;
 
 import 'precedence.dart' show BAD_INPUT_INFO, EOF_INFO, PrecedenceInfo;
@@ -126,9 +128,15 @@ abstract class Token {
 
   bool get isEof => false;
 
+  bool get isBuiltInIdentifier => false;
+
   bool get isOperator => info.isOperator;
 
-  bool get isBuiltInIdentifier => false;
+  bool get isUserDefinableOperator => info.isUserDefinableOperator;
+
+  analyzer.TokenType get type => info;
+
+  int get offset => charOffset;
 }
 
 /**
