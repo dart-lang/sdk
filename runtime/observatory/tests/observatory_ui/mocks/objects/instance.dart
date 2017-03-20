@@ -18,19 +18,12 @@ class InstanceRefMock implements M.InstanceRef {
   final M.FunctionRef closureFunction;
   final M.ContextRef closureContext;
 
-  const InstanceRefMock(
-      {this.id: 'instance-id',
-      this.name: 'instance-name',
-      this.kind: M.InstanceKind.vNull,
-      this.clazz,
-      this.valueAsString: 'null',
-      this.valueAsStringIsTruncated,
-      this.length,
-      this.typeClass,
-      this.parameterizedClass,
-      this.pattern,
-      this.closureFunction,
-      this.closureContext});
+  const InstanceRefMock({this.id: 'instance-id', this.name: 'instance-name',
+                         this.kind: M.InstanceKind.vNull, this.clazz,
+                         this.valueAsString: 'null',
+                         this.valueAsStringIsTruncated, this.length,
+                         this.typeClass, this.parameterizedClass, this.pattern,
+                         this.closureFunction, this.closureContext});
 }
 
 class InstanceMock implements M.Instance {
@@ -72,42 +65,20 @@ class InstanceMock implements M.Instance {
   final M.InstanceRef oneByteBytecode;
   final M.InstanceRef twoByteBytecode;
 
-  const InstanceMock(
-      {this.id: 'instance-id',
-      this.name: 'instance-name',
-      this.vmName: 'instance-vmName',
-      this.kind: M.InstanceKind.vNull,
-      this.clazz: const ClassRefMock(),
-      this.size: 0,
-      this.valueAsString: 'null',
-      this.valueAsStringIsTruncated,
-      this.length,
-      this.typeClass,
-      this.parameterizedClass,
-      this.pattern,
-      this.closureFunction,
-      this.closureContext,
-      this.offset,
-      this.count,
-      this.typedElements,
-      this.fields,
-      this.nativeFields,
-      this.elements,
-      this.associations,
-      this.key,
-      this.value,
-      this.referent,
-      this.typeArguments,
-      this.parameterIndex,
-      this.targetType,
-      this.bound,
-      this.activationBreakpoint,
-      this.isCaseSensitive,
-      this.isMultiLine,
-      this.oneByteFunction,
-      this.twoByteFunction,
-      this.externalOneByteFunction,
-      this.externalTwoByteFunction,
-      this.oneByteBytecode,
-      this.twoByteBytecode});
+  const InstanceMock({this.id: 'instance-id', this.name: 'instance-name',
+                      this.vmName: 'instance-vmName',
+                      this.kind: M.InstanceKind.vNull,
+                      this.clazz: const ClassRefMock(), this.size: 0,
+                      this.valueAsString: 'null', this.valueAsStringIsTruncated,
+                      this.length, this.typeClass, this.parameterizedClass,
+                      this.pattern, this.closureFunction, this.closureContext,
+                      this.offset, this.count, this.typedElements, this.fields,
+                      this.nativeFields, this.elements, this.associations,
+                      this.key, this.value, this.referent, this.typeArguments,
+                      this.parameterIndex, this.targetType, this.bound,
+                      this.activationBreakpoint, this.isCaseSensitive,
+                      this.isMultiLine, this.oneByteFunction,
+                      this.twoByteFunction, this.externalOneByteFunction,
+                      this.externalTwoByteFunction, this.oneByteBytecode,
+                      this.twoByteBytecode});
 }

@@ -23,21 +23,20 @@ Function genCopyingBlock() {
 }
 
 Function genFullBlock() {
-  var x = 42; // I must captured in a context.
+  var x = 42;  // I must captured in a context.
   block() => x;
   x++;
   return block;
 }
 
 Function genFullBlockWithChain() {
-  var x = 420; // I must captured in a context.
+  var x = 420;  // I must captured in a context.
   outerBlock() {
     var y = 4200;
     innerBlock() => x + y;
     y++;
     return innerBlock;
   }
-
   x++;
   return outerBlock();
 }
@@ -50,90 +49,94 @@ void script() {
 }
 
 var tests = [
-  (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
-        Field field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
-        return field.load().then((_) {
-          return field.staticValue.load().then((Instance block) {
-            expect(block.isClosure, isTrue);
-            expect(block.closureContext.isContext, isTrue);
-            expect(block.closureContext.length, equals(0));
-            return block.closureContext.load().then((Context ctxt) {
-              expect(ctxt.parentContext, isNull);
+
+(Isolate isolate) =>
+  isolate.rootLibrary.load().then((Library lib) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
+    return field.load().then((_) {
+      return field.staticValue.load().then((Instance block) {
+        expect(block.isClosure, isTrue);
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(0));
+        return block.closureContext.load().then((Context ctxt) {
+          expect(ctxt.parentContext, isNull);
+        });
+      });
+    });
+  }),
+
+(Isolate isolate) =>
+  isolate.rootLibrary.load().then((Library lib) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
+    return field.load().then((_) {
+      return field.staticValue.load().then((Instance block) {
+        expect(block.isClosure, isTrue);
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
+          expect(ctxt.variables.single.value.asValue.isString, isTrue);
+          expect(ctxt.variables.single.value.asValue.valueAsString,
+              equals('I could be copied into the block'));
+          expect(ctxt.parentContext.isContext, isTrue);
+          expect(ctxt.parentContext.length, equals(0));
+          return ctxt.parentContext.load().then((Context outerCtxt) {
+            expect(outerCtxt.parentContext, isNull);
+          });
+        });
+      });
+    });
+  }),
+
+(Isolate isolate) =>
+  isolate.rootLibrary.load().then((Library lib) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
+    return field.load().then((_) {
+      return field.staticValue.load().then((Instance block) {
+        expect(block.isClosure, isTrue);
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
+          expect(ctxt.variables.single.value.asValue.isInt, isTrue);
+          expect(ctxt.variables.single.value.asValue.valueAsString, equals('43'));
+          expect(ctxt.parentContext.isContext, isTrue);
+          expect(ctxt.parentContext.length, equals(0));
+          return ctxt.parentContext.load().then((Context outerCtxt) {
+            expect(outerCtxt.parentContext, isNull);
+          });
+        });
+      });
+    });
+  }),
+
+(Isolate isolate) =>
+  isolate.rootLibrary.load().then((Library lib) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
+    return field.load().then((_) {
+      return field.staticValue.load().then((Instance block) {
+        expect(block.isClosure, isTrue);
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
+          expect(ctxt.variables.single.value.asValue.isInt, isTrue);
+          expect(ctxt.variables.single.value.asValue.valueAsString,
+              equals('4201'));
+          expect(ctxt.parentContext.isContext, isTrue);
+          expect(ctxt.parentContext.length, equals(1));
+          return ctxt.parentContext.load().then((Context outerCtxt) {
+            expect(outerCtxt.variables.single.value.asValue.isInt, isTrue);
+            expect(outerCtxt.variables.single.value.asValue.valueAsString,
+                equals('421'));
+            expect(outerCtxt.parentContext.isContext, isTrue);
+            expect(outerCtxt.parentContext.length, equals(0));
+            return outerCtxt.parentContext.load().then((Context outerCtxt2) {
+                expect(outerCtxt2.parentContext, isNull);
             });
           });
         });
-      }),
-  (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
-        Field field =
-            lib.variables.singleWhere((v) => v.name == 'copyingBlock');
-        return field.load().then((_) {
-          return field.staticValue.load().then((Instance block) {
-            expect(block.isClosure, isTrue);
-            expect(block.closureContext.isContext, isTrue);
-            expect(block.closureContext.length, equals(1));
-            return block.closureContext.load().then((Context ctxt) {
-              expect(ctxt.variables.single.value.asValue.isString, isTrue);
-              expect(ctxt.variables.single.value.asValue.valueAsString,
-                  equals('I could be copied into the block'));
-              expect(ctxt.parentContext.isContext, isTrue);
-              expect(ctxt.parentContext.length, equals(0));
-              return ctxt.parentContext.load().then((Context outerCtxt) {
-                expect(outerCtxt.parentContext, isNull);
-              });
-            });
-          });
-        });
-      }),
-  (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
-        Field field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
-        return field.load().then((_) {
-          return field.staticValue.load().then((Instance block) {
-            expect(block.isClosure, isTrue);
-            expect(block.closureContext.isContext, isTrue);
-            expect(block.closureContext.length, equals(1));
-            return block.closureContext.load().then((Context ctxt) {
-              expect(ctxt.variables.single.value.asValue.isInt, isTrue);
-              expect(ctxt.variables.single.value.asValue.valueAsString,
-                  equals('43'));
-              expect(ctxt.parentContext.isContext, isTrue);
-              expect(ctxt.parentContext.length, equals(0));
-              return ctxt.parentContext.load().then((Context outerCtxt) {
-                expect(outerCtxt.parentContext, isNull);
-              });
-            });
-          });
-        });
-      }),
-  (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
-        Field field =
-            lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
-        return field.load().then((_) {
-          return field.staticValue.load().then((Instance block) {
-            expect(block.isClosure, isTrue);
-            expect(block.closureContext.isContext, isTrue);
-            expect(block.closureContext.length, equals(1));
-            return block.closureContext.load().then((Context ctxt) {
-              expect(ctxt.variables.single.value.asValue.isInt, isTrue);
-              expect(ctxt.variables.single.value.asValue.valueAsString,
-                  equals('4201'));
-              expect(ctxt.parentContext.isContext, isTrue);
-              expect(ctxt.parentContext.length, equals(1));
-              return ctxt.parentContext.load().then((Context outerCtxt) {
-                expect(outerCtxt.variables.single.value.asValue.isInt, isTrue);
-                expect(outerCtxt.variables.single.value.asValue.valueAsString,
-                    equals('421'));
-                expect(outerCtxt.parentContext.isContext, isTrue);
-                expect(outerCtxt.parentContext.length, equals(0));
-                return outerCtxt.parentContext
-                    .load()
-                    .then((Context outerCtxt2) {
-                  expect(outerCtxt2.parentContext, isNull);
-                });
-              });
-            });
-          });
-        });
-      }),
+      });
+    });
+  }),
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

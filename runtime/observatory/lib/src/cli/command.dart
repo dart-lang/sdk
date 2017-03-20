@@ -253,7 +253,8 @@ abstract class Command extends _CommandBase {
   toString() => 'Command(${name})';
 }
 
-abstract class CommandException implements Exception {}
+abstract class CommandException implements Exception {
+}
 
 class AmbiguousCommandException extends CommandException {
   AmbiguousCommandException(this.command, this.matches);
@@ -263,8 +264,8 @@ class AmbiguousCommandException extends CommandException {
 
   @override
   String toString() {
-    List<String> matchNames =
-        matches.map((Command command) => '${command.fullName}').toList();
+    List<String> matchNames = matches.map(
+        (Command command) => '${command.fullName}').toList();
     return "Command '$command' is ambiguous: $matchNames";
   }
 }

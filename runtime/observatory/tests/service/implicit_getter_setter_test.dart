@@ -40,6 +40,7 @@ testGetter(Isolate isolate) async {
   expect(classDouble.name, equals('_Double'));
 }
 
+
 testSetter(Isolate isolate) async {
   Library rootLibrary = await isolate.rootLibrary.load();
   expect(rootLibrary.classes.length, equals(1));
@@ -61,6 +62,7 @@ testSetter(Isolate isolate) async {
   Class classDouble = await field.guardClass.load();
   expect(classDouble.name, equals('_Double'));
 }
+
 
 var tests = [testGetter, testSetter];
 

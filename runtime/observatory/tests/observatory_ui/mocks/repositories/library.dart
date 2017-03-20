@@ -4,15 +4,16 @@
 
 part of mocks;
 
-typedef Future<M.Library> LibraryRepositoryMockCallback(
-    M.IsolateRef isolate, String id);
+typedef Future<M.Library> LibraryRepositoryMockCallback(M.IsolateRef isolate,
+                                                        String id);
 
 class LibraryRepositoryMock implements M.LibraryRepository {
   final LibraryRepositoryMockCallback _get;
 
-  LibraryRepositoryMock({LibraryRepositoryMockCallback getter}) : _get = getter;
+  LibraryRepositoryMock({LibraryRepositoryMockCallback getter})
+    : _get = getter;
 
-  Future<M.Library> get(M.IsolateRef isolate, String id) {
+  Future<M.Library> get(M.IsolateRef isolate, String id){
     if (_get != null) {
       return _get(isolate, id);
     }

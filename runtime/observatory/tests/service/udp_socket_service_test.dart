@@ -12,14 +12,14 @@ import 'test_helper.dart';
 Future setupUDP() async {
   var server = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   server.listen((io.RawSocketEvent event) {
-    if (event == io.RawSocketEvent.READ) {
+    if(event == io.RawSocketEvent.READ) {
       io.Datagram dg = server.receive();
       dg.data.forEach((x) => true);
     }
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   client.send(UTF8.encoder.convert('foobar'),
-      new io.InternetAddress('127.0.0.1'), server.port);
+              new io.InternetAddress('127.0.0.1'), server.port);
 }
 
 var udpTests = [
@@ -39,7 +39,7 @@ var udpTests = [
     expect(result['data'][1]['name'].startsWith('127.0.0.1:'), isTrue);
 
     var server = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', {'id': result['data'][0]['id']});
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(server['id'], equals(result['data'][0]['id']));
     expect(server['remotePort'], equals('NA'));
     expect(server['remoteHost'], equals('NA'));
@@ -59,7 +59,7 @@ var udpTests = [
     expect(server['readCount'], greaterThanOrEqualTo(1));
 
     var client = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', {'id': result['data'][1]['id']});
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][1]['id'] });
     expect(client['id'], equals(result['data'][1]['id']));
     expect(client['remotePort'], equals('NA'));
     expect(client['remoteHost'], equals('NA'));
@@ -80,4 +80,4 @@ var udpTests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, udpTests, testeeBefore: setupUDP);
+main(args) async => runIsolateTests(args, udpTests, testeeBefore:setupUDP);

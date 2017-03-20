@@ -34,6 +34,7 @@ testeeDo() {
   });
 }
 
+
 checkAsyncVarDescriptors(Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
@@ -43,6 +44,7 @@ checkAsyncVarDescriptors(Isolate isolate) async {
   expect(vars, equals('param1 local1')); // no :async_op et al
 }
 
+
 checkAsyncStarVarDescriptors(Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
@@ -51,6 +53,7 @@ checkAsyncStarVarDescriptors(Isolate isolate) async {
   var vars = frame.variables.map((v) => v['name']).join(' ');
   expect(vars, equals('param2 local2')); // no :async_op et al
 }
+
 
 var tests = [
   hasStoppedAtBreakpoint, // debugger()

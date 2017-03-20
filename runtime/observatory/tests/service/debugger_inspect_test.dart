@@ -19,22 +19,24 @@ void testeeDo() {
 }
 
 var tests = [
-  (Isolate isolate) async {
-    Completer completer = new Completer();
-    var stream = await isolate.vm.getEventStream(VM.kDebugStream);
-    var subscription;
-    subscription = stream.listen((ServiceEvent event) {
-      if (event.kind == ServiceEvent.kInspect) {
-        expect(event.inspectee.clazz.name, equals('Point'));
-        subscription.cancel();
-        completer.complete();
-      }
-    });
 
-    // Start listening for events first.
-    await isolate.rootLibrary.evaluate('testeeDo();');
-    return completer.future;
-  },
+(Isolate isolate) async {
+  Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
+  var subscription;
+  subscription = stream.listen((ServiceEvent event) {
+    if (event.kind == ServiceEvent.kInspect) {
+      expect(event.inspectee.clazz.name, equals('Point'));
+      subscription.cancel();
+      completer.complete();
+    }
+  });
+
+  // Start listening for events first.
+  await isolate.rootLibrary.evaluate('testeeDo();');
+  return completer.future;
+},
+
 ];
 
 main(args) => runIsolateTests(args, tests);

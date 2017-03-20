@@ -52,11 +52,12 @@ main() {
   });
   group('elements', () {
     test('created after attachment', () async {
-      final repository = new NotificationRepositoryMock(list: [
-        new ExceptionNotificationMock(exception: new Exception("ex")),
-        const EventNotificationMock(event: const VMUpdateEventMock(vm: vm)),
-        const EventNotificationMock(event: const VMUpdateEventMock(vm: vm))
-      ]);
+      final repository =
+          new NotificationRepositoryMock(list: [
+            new ExceptionNotificationMock(exception: new Exception("ex")),
+            const EventNotificationMock(event: const VMUpdateEventMock(vm: vm)),
+            const EventNotificationMock(event: const VMUpdateEventMock(vm: vm))
+          ]);
       final e = new NavNotifyElement(repository);
       document.body.append(e);
       await e.onRendered.first;
@@ -71,11 +72,11 @@ main() {
     test('react to notifyOnPause change', () async {
       final NotificationRepositoryMock repository =
           new NotificationRepositoryMock(list: [
-        new ExceptionNotificationMock(exception: new Exception("ex")),
-        const EventNotificationMock(event: const VMUpdateEventMock()),
-        const EventNotificationMock(
-            event: const PauseStartEventMock(isolate: isolate))
-      ]);
+            new ExceptionNotificationMock(exception: new Exception("ex")),
+            const EventNotificationMock(event: const VMUpdateEventMock()),
+            const EventNotificationMock(
+                event: const PauseStartEventMock(isolate: isolate))
+          ]);
       final e = new NavNotifyElement(repository, notifyOnPause: true);
       document.body.append(e);
       await e.onRendered.first;

@@ -11,7 +11,7 @@ import 'dart:async';
 int counter = 0;
 
 void funcB() {
-  counter++; // line 13
+  counter++;  // line 13
   if (counter % 100000000 == 0) {
     print(counter);
   }
@@ -28,9 +28,10 @@ void testFunction() {
 }
 
 var tests = [
+
 // Go to breakpoint at line 13.
-  (Isolate isolate) {
-    return isolate.rootLibrary.load().then((_) {
+(Isolate isolate) {
+  return isolate.rootLibrary.load().then((_) {
       // Set up a listener to wait for breakpoint events.
       Completer completer = new Completer();
       isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
@@ -48,14 +49,14 @@ var tests = [
       var script = isolate.rootLibrary.scripts[0];
       var line = 13;
       return isolate.addBreakpoint(script, line).then((ServiceObject bpt) {
-        return completer.future; // Wait for breakpoint reached.
+          return completer.future;  // Wait for breakpoint reached.
       });
     });
-  },
+},
 
 // Inspect code objects for top two frames.
-  (Isolate isolate) {
-    return isolate.getStack().then((ServiceMap stack) {
+(Isolate isolate) {
+  return isolate.getStack().then((ServiceMap stack) {
       // Make sure we are in the right place.
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(3));
@@ -69,22 +70,21 @@ var tests = [
 
       List tests = [];
       // Load code from frame 0.
-      tests.add(isolate.getObject(codeId0)
-        ..then((Code code) {
-          expect(code.type, equals('Code'));
-          expect(code.function.name, equals('funcB'));
-          expect(code.hasDisassembly, equals(true));
-        }));
+      tests.add(isolate.getObject(codeId0)..then((Code code) {
+            expect(code.type, equals('Code'));
+            expect(code.function.name, equals('funcB'));
+            expect(code.hasDisassembly, equals(true));
+          }));
       // Load code from frame 0.
-      tests.add(isolate.getObject(codeId1)
-        ..then((Code code) {
-          expect(code.type, equals('Code'));
-          expect(code.function.name, equals('funcA'));
-          expect(code.hasDisassembly, equals(true));
-        }));
+      tests.add(isolate.getObject(codeId1)..then((Code code) {
+            expect(code.type, equals('Code'));
+            expect(code.function.name, equals('funcA'));
+            expect(code.hasDisassembly, equals(true));
+          }));
       return Future.wait(tests);
-    });
-  },
+  });
+},
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);

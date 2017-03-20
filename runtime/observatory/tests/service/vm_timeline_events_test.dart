@@ -66,5 +66,6 @@ var tests = [
   },
 ];
 
-main(args) async =>
-    runIsolateTests(args, tests, testeeConcurrent: primeDartTimeline);
+main(args) async => runIsolateTests(args,
+                                    tests,
+                                    testeeConcurrent: primeDartTimeline);

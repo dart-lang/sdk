@@ -4,8 +4,7 @@
 // Dart core library.
 
 // VM implementation of DateTime.
-@patch
-class DateTime {
+@patch class DateTime {
   // Natives.
   // The natives have been moved up here to work around Issue 10401.
   static int _getCurrentMicros() native "DateTime_currentTimeMicros";
@@ -31,41 +30,44 @@ class DateTime {
 
   List __parts;
 
-  @patch
-  DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc: false})
+  @patch DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
+                                             {bool isUtc: false})
       : this._withValue(
-            millisecondsSinceEpoch * Duration.MICROSECONDS_PER_MILLISECOND,
-            isUtc: isUtc);
+          millisecondsSinceEpoch * Duration.MICROSECONDS_PER_MILLISECOND,
+          isUtc: isUtc);
 
-  @patch
-  DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc: false})
+  @patch DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
+                                             {bool isUtc: false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
-  @patch
-  DateTime._internal(int year, int month, int day, int hour, int minute,
-      int second, int millisecond, int microsecond, bool isUtc)
+  @patch DateTime._internal(int year,
+                                 int month,
+                                 int day,
+                                 int hour,
+                                 int minute,
+                                 int second,
+                                 int millisecond,
+                                 int microsecond,
+                                 bool isUtc)
       : this.isUtc = isUtc,
-        this._value = _brokenDownDateToValue(year, month, day, hour, minute,
-            second, millisecond, microsecond, isUtc) {
+        this._value = _brokenDownDateToValue(
+            year, month, day, hour, minute, second, millisecond, microsecond,
+            isUtc) {
     if (_value == null) throw new ArgumentError();
     if (isUtc == null) throw new ArgumentError();
   }
 
-  @patch
-  DateTime._now()
+  @patch DateTime._now()
       : isUtc = false,
-        _value = _getCurrentMicros() {}
+        _value = _getCurrentMicros() {
+  }
 
-  @patch
-  String get timeZoneName {
+  @patch String get timeZoneName {
     if (isUtc) return "UTC";
     return _timeZoneName(microsecondsSinceEpoch);
   }
 
-  @patch
-  Duration get timeZoneOffset {
+  @patch Duration get timeZoneOffset {
     if (isUtc) return new Duration();
     int offsetInSeconds = _timeZoneOffsetInSeconds(microsecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
@@ -73,18 +75,17 @@ class DateTime {
 
   /** The first list contains the days until each month in non-leap years. The
     * second list contains the days in leap years. */
-  static const List<List<int>> _DAYS_UNTIL_MONTH = const [
-    const [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
-    const [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-  ];
+  static const List<List<int>> _DAYS_UNTIL_MONTH =
+      const [const [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
+             const [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]];
 
   static List _computeUpperPart(int localMicros) {
     const int DAYS_IN_4_YEARS = 4 * 365 + 1;
     const int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
     const int DAYS_IN_400_YEARS = 4 * DAYS_IN_100_YEARS + 1;
     const int DAYS_1970_TO_2000 = 30 * 365 + 7;
-    const int DAYS_OFFSET =
-        1000 * DAYS_IN_400_YEARS + 5 * DAYS_IN_400_YEARS - DAYS_1970_TO_2000;
+    const int DAYS_OFFSET = 1000 * DAYS_IN_400_YEARS + 5 * DAYS_IN_400_YEARS -
+                            DAYS_1970_TO_2000;
     const int YEARS_OFFSET = 400000;
 
     int resultYear = 0;
@@ -92,8 +93,8 @@ class DateTime {
     int resultDay = 0;
 
     // Always round down.
-    final int daysSince1970 =
-        _flooredDivision(localMicros, Duration.MICROSECONDS_PER_DAY);
+    final int daysSince1970 = _flooredDivision(localMicros,
+                                               Duration.MICROSECONDS_PER_DAY);
     int days = daysSince1970;
     days += DAYS_OFFSET;
     resultYear = 400 * (days ~/ DAYS_IN_400_YEARS) - YEARS_OFFSET;
@@ -116,8 +117,8 @@ class DateTime {
 
     List<int> daysUntilMonth = _DAYS_UNTIL_MONTH[isLeap ? 1 : 0];
     for (resultMonth = 12;
-        daysUntilMonth[resultMonth - 1] > days;
-        resultMonth--) {
+         daysUntilMonth[resultMonth - 1] > days;
+         resultMonth--) {
       // Do nothing.
     }
     resultDay = days - daysUntilMonth[resultMonth - 1] + 1;
@@ -130,8 +131,8 @@ class DateTime {
         _flooredDivision(localMicros, Duration.MICROSECONDS_PER_SECOND) %
             Duration.SECONDS_PER_MINUTE;
 
-    int resultMinute =
-        _flooredDivision(localMicros, Duration.MICROSECONDS_PER_MINUTE);
+    int resultMinute = _flooredDivision(localMicros,
+                                        Duration.MICROSECONDS_PER_MINUTE);
     resultMinute %= Duration.MINUTES_PER_HOUR;
 
     int resultHour =
@@ -142,8 +143,7 @@ class DateTime {
     // starts with Monday. Monday has the value 1 up to Sunday with 7.
     // 1970-1-1 was a Thursday.
     int resultWeekday = ((daysSince1970 + DateTime.THURSDAY - DateTime.MONDAY) %
-            DateTime.DAYS_PER_WEEK) +
-        DateTime.MONDAY;
+          DateTime.DAYS_PER_WEEK) + DateTime.MONDAY;
 
     List list = new List(_YEAR_INDEX + 1);
     list[_MICROSECOND_INDEX] = resultMicrosecond;
@@ -165,56 +165,42 @@ class DateTime {
     return __parts;
   }
 
-  @patch
-  DateTime add(Duration duration) {
-    return new DateTime._withValue(_value + duration.inMicroseconds,
-        isUtc: isUtc);
+  @patch DateTime add(Duration duration) {
+    return new DateTime._withValue(
+        _value + duration.inMicroseconds, isUtc: isUtc);
   }
 
-  @patch
-  DateTime subtract(Duration duration) {
-    return new DateTime._withValue(_value - duration.inMicroseconds,
-        isUtc: isUtc);
+  @patch DateTime subtract(Duration duration) {
+    return new DateTime._withValue(
+        _value - duration.inMicroseconds, isUtc: isUtc);
   }
 
-  @patch
-  Duration difference(DateTime other) {
+  @patch Duration difference(DateTime other) {
     return new Duration(microseconds: _value - other._value);
   }
 
-  @patch
-  int get millisecondsSinceEpoch =>
+  @patch int get millisecondsSinceEpoch =>
       _value ~/ Duration.MICROSECONDS_PER_MILLISECOND;
 
-  @patch
-  int get microsecondsSinceEpoch => _value;
+  @patch int get microsecondsSinceEpoch => _value;
 
-  @patch
-  int get microsecond => _parts[_MICROSECOND_INDEX];
+  @patch int get microsecond => _parts[_MICROSECOND_INDEX];
 
-  @patch
-  int get millisecond => _parts[_MILLISECOND_INDEX];
+  @patch int get millisecond => _parts[_MILLISECOND_INDEX];
 
-  @patch
-  int get second => _parts[_SECOND_INDEX];
+  @patch int get second => _parts[_SECOND_INDEX];
 
-  @patch
-  int get minute => _parts[_MINUTE_INDEX];
+  @patch int get minute => _parts[_MINUTE_INDEX];
 
-  @patch
-  int get hour => _parts[_HOUR_INDEX];
+  @patch int get hour => _parts[_HOUR_INDEX];
 
-  @patch
-  int get day => _parts[_DAY_INDEX];
+  @patch int get day => _parts[_DAY_INDEX];
 
-  @patch
-  int get weekday => _parts[_WEEKDAY_INDEX];
+  @patch int get weekday => _parts[_WEEKDAY_INDEX];
 
-  @patch
-  int get month => _parts[_MONTH_INDEX];
+  @patch int get month => _parts[_MONTH_INDEX];
 
-  @patch
-  int get year => _parts[_YEAR_INDEX];
+  @patch int get year => _parts[_YEAR_INDEX];
 
   /**
    * Returns the amount of microseconds in UTC that represent the same values
@@ -246,10 +232,10 @@ class DateTime {
   // Returns the days since 1970 for the start of the given [year].
   // [year] may be before epoch.
   static int _dayFromYear(int year) {
-    return 365 * (year - 1970) +
-        _flooredDivision(year - 1969, 4) -
-        _flooredDivision(year - 1901, 100) +
-        _flooredDivision(year - 1601, 400);
+    return 365 * (year - 1970)
+            + _flooredDivision(year - 1969, 4)
+            - _flooredDivision(year - 1901, 100)
+            + _flooredDivision(year - 1601, 400);
   }
 
   static bool _isLeapYear(y) {
@@ -258,9 +244,10 @@ class DateTime {
   }
 
   /// Converts the given broken down date to microseconds.
-  @patch
-  static int _brokenDownDateToValue(int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond, bool isUtc) {
+  @patch static int _brokenDownDateToValue(
+      int year, int month, int day,
+      int hour, int minute, int second, int millisecond, int microsecond,
+      bool isUtc) {
     // Simplify calculations by working with zero-based month.
     --month;
     // Deal with under and overflow.
@@ -278,8 +265,9 @@ class DateTime {
     int days = day - 1;
     days += _DAYS_UNTIL_MONTH[_isLeapYear(year) ? 1 : 0][month];
     days += _dayFromYear(year);
-    int microsecondsSinceEpoch = days * Duration.MICROSECONDS_PER_DAY +
-        hour * Duration.MICROSECONDS_PER_HOUR +
+    int microsecondsSinceEpoch =
+        days   * Duration.MICROSECONDS_PER_DAY    +
+        hour   * Duration.MICROSECONDS_PER_HOUR   +
         minute * Duration.MICROSECONDS_PER_MINUTE +
         second * Duration.MICROSECONDS_PER_SECOND +
         millisecond * Duration.MICROSECONDS_PER_MILLISECOND +
@@ -389,8 +377,8 @@ class DateTime {
   static int _equivalentSeconds(int microsecondsSinceEpoch) {
     const int CUT_OFF_SECONDS = 0x7FFFFFFF;
 
-    int secondsSinceEpoch = _flooredDivision(
-        microsecondsSinceEpoch, Duration.MICROSECONDS_PER_SECOND);
+    int secondsSinceEpoch = _flooredDivision(microsecondsSinceEpoch,
+                                             Duration.MICROSECONDS_PER_SECOND);
 
     if (secondsSinceEpoch.abs() > CUT_OFF_SECONDS) {
       int year = _yearsFromSecondsSinceEpoch(secondsSinceEpoch);

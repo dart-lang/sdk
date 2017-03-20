@@ -13,24 +13,21 @@ Uri _unsupportedUriBase() {
 // value for Uri.base.
 _UriBaseClosure _uriBaseClosure = _unsupportedUriBase;
 
-@patch
-class Uri {
-  @patch
-  static Uri get base => _uriBaseClosure();
+@patch class Uri {
+  @patch static Uri get base => _uriBaseClosure();
 }
 
-@patch
-class _Uri {
+@patch class _Uri {
   static final bool _isWindowsCached = _isWindowsPlatform;
 
   static bool get _isWindowsPlatform native "Uri_isWindowsPlatform";
 
-  @patch
-  static bool get _isWindows => _isWindowsCached;
+  @patch static bool get _isWindows => _isWindowsCached;
 
-  @patch
-  static String _uriEncode(List<int> canonicalTable, String text,
-      Encoding encoding, bool spaceToPlus) {
+  @patch static String _uriEncode(List<int> canonicalTable,
+                                       String text,
+                                       Encoding encoding,
+                                       bool spaceToPlus) {
     // First check if the text will be changed by encoding.
     int i = 0;
     if (identical(encoding, UTF8) ||
@@ -66,10 +63,9 @@ class _Uri {
         result.writeCharCode(_PLUS);
       } else {
         const String hexDigits = '0123456789ABCDEF';
-        result
-          ..writeCharCode(_PERCENT)
-          ..writeCharCode(hexDigits.codeUnitAt(byte >> 4))
-          ..writeCharCode(hexDigits.codeUnitAt(byte & 0x0f));
+        result..writeCharCode(_PERCENT)
+              ..writeCharCode(hexDigits.codeUnitAt(byte >> 4))
+              ..writeCharCode(hexDigits.codeUnitAt(byte & 0x0f));
       }
     }
     return result.toString();

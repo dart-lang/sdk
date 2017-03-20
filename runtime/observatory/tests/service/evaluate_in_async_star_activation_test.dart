@@ -23,32 +23,39 @@ testFunction() async {
 }
 
 var tests = [
-  hasStoppedAtBreakpoint,
-  (Isolate isolate) async {
-    // Make sure we are in the right place.
-    var stack = await isolate.getStack();
-    var topFrame = 0;
-    expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 15);
 
-    var result = await isolate.evalFrame(topFrame, "x");
-    print(result);
-    expect(result.valueAsString, equals("3"));
-  },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  (Isolate isolate) async {
-    // Make sure we are in the right place.
-    var stack = await isolate.getStack();
-    var topFrame = 0;
-    expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 18);
+hasStoppedAtBreakpoint,
 
-    var result = await isolate.evalFrame(topFrame, "z");
-    print(result);
-    expect(result.valueAsString, equals("7"));
-  },
-  resumeIsolate,
+(Isolate isolate) async {
+  // Make sure we are in the right place.
+  var stack = await isolate.getStack();
+  var topFrame = 0;
+  expect(stack.type, equals('Stack'));
+  expect(await stack['frames'][topFrame].location.getLine(), 15);
+
+  var result = await isolate.evalFrame(topFrame, "x");
+  print(result);
+  expect(result.valueAsString, equals("3"));
+},
+
+resumeIsolate,
+
+hasStoppedAtBreakpoint,
+
+(Isolate isolate) async {
+  // Make sure we are in the right place.
+  var stack = await isolate.getStack();
+  var topFrame = 0;
+  expect(stack.type, equals('Stack'));
+  expect(await stack['frames'][topFrame].location.getLine(), 18);
+
+  var result = await isolate.evalFrame(topFrame, "z");
+  print(result);
+  expect(result.valueAsString, equals("7"));
+},
+
+resumeIsolate,
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);

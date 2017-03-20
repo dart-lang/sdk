@@ -29,6 +29,7 @@ var tests = [
 
     await completer.future;
     expect(isolate.name, equals('Barbara'));
+
   }
 ];
 

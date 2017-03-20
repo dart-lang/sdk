@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch
-class RegExp {
-  @patch
-  factory RegExp(String source,
-      {bool multiLine: false, bool caseSensitive: true}) {
-    _RegExpHashKey key = new _RegExpHashKey(source, multiLine, caseSensitive);
+@patch class RegExp {
+  @patch factory RegExp(String source,
+                              {bool multiLine: false,
+                               bool caseSensitive: true}) {
+    _RegExpHashKey key = new _RegExpHashKey(
+        source, multiLine, caseSensitive);
     _RegExpHashValue value = _cache[key];
 
     if (value == null) {
@@ -19,7 +19,8 @@ class RegExp {
 
       value = new _RegExpHashValue(
           new _RegExp(source,
-              multiLine: multiLine, caseSensitive: caseSensitive),
+                              multiLine: multiLine,
+                              caseSensitive: caseSensitive),
           key);
       _cache[key] = value;
     } else {
@@ -50,6 +51,7 @@ class RegExp {
       new LinkedList<_RegExpHashKey>();
 }
 
+
 // Represents both a key in the regular expression cache as well as its
 // corresponding entry in the LRU list.
 class _RegExpHashKey extends LinkedListEntry<_RegExpHashKey> {
@@ -60,12 +62,13 @@ class _RegExpHashKey extends LinkedListEntry<_RegExpHashKey> {
   _RegExpHashKey(this.pattern, this.multiLine, this.caseSensitive);
 
   int get hashCode => pattern.hashCode;
-  bool operator ==(_RegExpHashKey that) {
+  bool operator==(_RegExpHashKey that) {
     return (this.pattern == that.pattern) &&
-        (this.multiLine == that.multiLine) &&
-        (this.caseSensitive == that.caseSensitive);
+           (this.multiLine == that.multiLine) &&
+           (this.caseSensitive == that.caseSensitive);
   }
 }
+
 
 // Represents a value in the regular expression cache. Contains a pointer
 // back to the key in order to access the corresponding LRU entry.
@@ -75,6 +78,7 @@ class _RegExpHashValue {
 
   _RegExpHashValue(this.regexp, this.key);
 }
+
 
 class _RegExpMatch implements Match {
   _RegExpMatch(this._regexp, this.input, this._match);
@@ -125,10 +129,12 @@ class _RegExpMatch implements Match {
   static const int _MATCH_PAIR = 2;
 }
 
+
 class _RegExp implements RegExp {
-  factory _RegExp(String pattern,
+  factory _RegExp(
+      String pattern,
       {bool multiLine: false,
-      bool caseSensitive: true}) native "RegExp_factory";
+       bool caseSensitive: true}) native "RegExp_factory";
 
   Match firstMatch(String str) {
     if (str is! String) throw new ArgumentError(str);
@@ -193,18 +199,18 @@ class _RegExp implements RegExp {
 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // '0' - '7'
-    0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // '8' - '9'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // '0' - '7'
+    0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // '8' - '9'
 
-    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'A' - 'G'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'H' - 'O'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'P' - 'W'
-    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, // 'X' - 'Z', '_'
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'A' - 'G'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'H' - 'O'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'P' - 'W'
+    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff,  // 'X' - 'Z', '_'
 
-    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'a' - 'g'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'h' - 'o'
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // 'p' - 'w'
-    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, // 'x' - 'z'
+    0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'a' - 'g'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'h' - 'o'
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,  // 'p' - 'w'
+    0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00,  // 'x' - 'z'
     // Latin-1 range
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -227,7 +233,8 @@ class _RegExp implements RegExp {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ];
 
-  List _ExecuteMatch(String str, int start_index) native "RegExp_ExecuteMatch";
+  List _ExecuteMatch(String str, int start_index)
+      native "RegExp_ExecuteMatch";
 
   List _ExecuteMatchSticky(String str, int start_index)
       native "RegExp_ExecuteMatchSticky";
@@ -254,7 +261,7 @@ class _AllMatchesIterator implements Iterator<Match> {
   Match get current => _current;
 
   bool moveNext() {
-    if (_re == null) return false; // Cleared after a failed match.
+    if (_re == null) return false;  // Cleared after a failed match.
     if (_nextIndex <= _str.length) {
       var match = _re._ExecuteMatch(_str, _nextIndex);
       if (match != null) {

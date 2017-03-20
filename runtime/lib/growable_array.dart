@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _GrowableList<T> extends ListBase<T> {
+
   void insert(int index, T element) {
     if ((index < 0) || (index > length)) {
       throw new RangeError.range(index, 0, length);
@@ -99,11 +100,12 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   factory _GrowableList.withCapacity(int capacity) {
-    var data = new _List((capacity == 0) ? _kDefaultCapacity : capacity);
+    var data = new _List((capacity == 0)? _kDefaultCapacity : capacity);
     return new _GrowableList<T>.withData(data);
   }
 
-  factory _GrowableList.withData(_List data) native "GrowableList_allocate";
+  factory _GrowableList.withData(_List data)
+    native "GrowableList_allocate";
 
   int get _capacity native "GrowableList_getCapacity";
 
@@ -168,7 +170,8 @@ class _GrowableList<T> extends ListBase<T> {
   void addAll(Iterable<T> iterable) {
     var len = length;
     final cid = ClassID.getID(iterable);
-    final isVMList = (cid == ClassID.cidArray) ||
+    final isVMList =
+        (cid == ClassID.cidArray) ||
         (cid == ClassID.cidGrowableObjectArray) ||
         (cid == ClassID.cidImmutableArray);
     if (isVMList || (iterable is EfficientLengthIterable)) {
@@ -228,8 +231,7 @@ class _GrowableList<T> extends ListBase<T> {
   T get single {
     if (length == 1) return this[0];
     if (length == 0) throw IterableElementError.noElement();
-    throw IterableElementError.tooMany();
-    ;
+    throw IterableElementError.tooMany();;
   }
 
   void _grow(int new_capacity) {
@@ -346,7 +348,7 @@ class _GrowableList<T> extends ListBase<T> {
     return new ListIterator<T>(this);
   }
 
-  List<T> toList({bool growable: true}) {
+  List<T> toList({ bool growable: true }) {
     var length = this.length;
     if (length > 0) {
       List list = growable ? new _List(length) : new _List<T>(length);

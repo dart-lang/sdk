@@ -16,7 +16,8 @@ var port2;
 
 void warmup() {
   port1 = new RawReceivePort(null);
-  port2 = new RawReceivePort((_) {});
+  port2 = new RawReceivePort((_) {
+  });
 }
 
 int countHandlerMatches(ports, matcher) {
@@ -51,4 +52,4 @@ var tests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeBefore: warmup);
+main(args) async => runIsolateTests(args, tests, testeeBefore:warmup);

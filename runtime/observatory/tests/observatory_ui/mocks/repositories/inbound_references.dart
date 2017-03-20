@@ -4,8 +4,8 @@
 
 part of mocks;
 
-typedef Future<M.InboundReferences> InboundReferencesRepositoryMockGetter(
-    M.IsolateRef i, String id);
+typedef Future<M.InboundReferences>
+        InboundReferencesRepositoryMockGetter(M.IsolateRef i, String id);
 
 class InboundReferencesRepositoryMock implements M.InboundReferencesRepository {
   final InboundReferencesRepositoryMockGetter _getter;
@@ -19,5 +19,5 @@ class InboundReferencesRepositoryMock implements M.InboundReferencesRepository {
 
   InboundReferencesRepositoryMock(
       {InboundReferencesRepositoryMockGetter getter})
-      : _getter = getter;
+    : _getter = getter;
 }

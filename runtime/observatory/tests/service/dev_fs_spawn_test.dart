@@ -16,8 +16,8 @@ var tests = [
     // Create a new fs.
     var fsName = 'scratch';
     var result = await vm.invokeRpcNoUpgrade('_createDevFS', {
-      'fsName': fsName,
-    });
+        'fsName': fsName,
+      });
     expect(result['type'], equals('FileSystem'));
     expect(result['name'], equals('scratch'));
     expect(result['uri'], new isInstanceOf<String>());
@@ -27,48 +27,51 @@ var tests = [
     // delivered asynchronously.
     Completer completer = new Completer();
     var sub;
-    sub = await vm.listenEventStream(VM.kIsolateStream, (ServiceEvent event) {
-      if (event.kind == ServiceEvent.kIsolateSpawn) {
-        expect(event.spawnToken, equals('someSpawnToken'));
-        expect(event.spawnError,
-            startsWith('IsolateSpawnException: Unable to spawn isolate: '));
-        expect(event.isolate, isNull);
-        completer.complete();
-        sub.cancel();
-      }
-    });
+    sub = await vm.listenEventStream(
+      VM.kIsolateStream,
+      (ServiceEvent event) {
+        if (event.kind == ServiceEvent.kIsolateSpawn) {
+          expect(event.spawnToken, equals('someSpawnToken'));
+          expect(event.spawnError, startsWith(
+              'IsolateSpawnException: Unable to spawn isolate: '));
+          expect(event.isolate, isNull);
+          completer.complete();
+          sub.cancel();
+        }
+      });
 
     result = await vm.invokeRpcNoUpgrade('_spawnUri', {
-      'token': 'someSpawnToken',
-      'uri': '${fsUri}doesnotexist.dart',
+        'token': 'someSpawnToken',
+        'uri': '${fsUri}doesnotexist.dart',
     });
     expect(result['type'], equals('Success'));
     await completer.future;
 
     // Delete the fs.
     result = await vm.invokeRpcNoUpgrade('_deleteDevFS', {
-      'fsName': fsName,
+        'fsName': fsName,
     });
     expect(result['type'], equals('Success'));
   },
+
   (VM vm) async {
     // Create a new fs.
     var fsName = 'scratch';
     var result = await vm.invokeRpcNoUpgrade('_createDevFS', {
-      'fsName': fsName,
-    });
+        'fsName': fsName,
+      });
     expect(result['type'], equals('FileSystem'));
     expect(result['name'], equals('scratch'));
     expect(result['uri'], new isInstanceOf<String>());
     var fsUri = result['uri'];
 
     var filePaths = [
-      'devfs_file0.dart',
-      'devfs_file1.dart',
-      'devfs_file2.dart'
+        'devfs_file0.dart',
+        'devfs_file1.dart',
+        'devfs_file2.dart'
     ];
     var scripts = [
-      '''
+'''
 import 'dart:developer';
 proofOfLife() => 'I live!';
 main() {
@@ -76,7 +79,7 @@ main() {
   debugger();
 }
 ''',
-      '''
+'''
 import 'dart:developer';
 var globalArgs;
 proofOfLife() => 'I live, \${globalArgs}!';
@@ -86,7 +89,7 @@ main(args) {
   debugger();
 }
 ''',
-      '''
+'''
 import 'dart:developer';
 var globalArgs;
 var globalMsg;
@@ -115,18 +118,20 @@ main(args, msg) {
     // that we are notified.
     Completer completer = new Completer();
     var sub;
-    sub = await vm.listenEventStream(VM.kIsolateStream, (ServiceEvent event) {
-      if (event.kind == ServiceEvent.kIsolateSpawn) {
-        expect(event.spawnToken, equals('mySpawnToken0'));
-        expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file0.dart\$main'));
-        completer.complete(event.isolate);
-        sub.cancel();
-      }
-    });
+    sub = await vm.listenEventStream(
+      VM.kIsolateStream,
+      (ServiceEvent event) {
+        if (event.kind == ServiceEvent.kIsolateSpawn) {
+          expect(event.spawnToken, equals('mySpawnToken0'));
+          expect(event.isolate, isNotNull);
+          expect(event.isolate.name, equals('devfs_file0.dart\$main'));
+          completer.complete(event.isolate);
+          sub.cancel();
+        }
+      });
     result = await vm.invokeRpcNoUpgrade('_spawnUri', {
-      'token': 'mySpawnToken0',
-      'uri': '${fsUri}${filePaths[0]}',
+        'token': 'mySpawnToken0',
+        'uri': '${fsUri}${filePaths[0]}',
     });
     expect(result['type'], equals('Success'));
     var spawnedIsolate = await completer.future;
@@ -143,19 +148,21 @@ main(args, msg) {
 
     // Spawn the script with arguments.
     completer = new Completer();
-    sub = await vm.listenEventStream(VM.kIsolateStream, (ServiceEvent event) {
-      if (event.kind == ServiceEvent.kIsolateSpawn) {
-        expect(event.spawnToken, equals('mySpawnToken1'));
-        expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file1.dart\$main'));
-        completer.complete(event.isolate);
-        sub.cancel();
-      }
-    });
+    sub = await vm.listenEventStream(
+      VM.kIsolateStream,
+      (ServiceEvent event) {
+        if (event.kind == ServiceEvent.kIsolateSpawn) {
+          expect(event.spawnToken, equals('mySpawnToken1'));
+          expect(event.isolate, isNotNull);
+          expect(event.isolate.name, equals('devfs_file1.dart\$main'));
+          completer.complete(event.isolate);
+          sub.cancel();
+        }
+      });
     result = await vm.invokeRpcNoUpgrade('_spawnUri', {
-      'token': 'mySpawnToken1',
-      'uri': '${fsUri}${filePaths[1]}',
-      'args': ['one', 'two', 'three']
+        'token': 'mySpawnToken1',
+        'uri': '${fsUri}${filePaths[1]}',
+        'args': ['one', 'two', 'three']
     });
     expect(result['type'], equals('Success'));
     spawnedIsolate = await completer.future;
@@ -172,20 +179,22 @@ main(args, msg) {
 
     // Spawn the script with arguments and message
     completer = new Completer();
-    sub = await vm.listenEventStream(VM.kIsolateStream, (ServiceEvent event) {
-      if (event.kind == ServiceEvent.kIsolateSpawn) {
-        expect(event.spawnToken, equals('mySpawnToken2'));
-        expect(event.isolate, isNotNull);
-        expect(event.isolate.name, equals('devfs_file2.dart\$main'));
-        completer.complete(event.isolate);
-        sub.cancel();
-      }
-    });
+    sub = await vm.listenEventStream(
+      VM.kIsolateStream,
+      (ServiceEvent event) {
+        if (event.kind == ServiceEvent.kIsolateSpawn) {
+          expect(event.spawnToken, equals('mySpawnToken2'));
+          expect(event.isolate, isNotNull);
+          expect(event.isolate.name, equals('devfs_file2.dart\$main'));
+          completer.complete(event.isolate);
+          sub.cancel();
+        }
+      });
     result = await vm.invokeRpcNoUpgrade('_spawnUri', {
-      'token': 'mySpawnToken2',
-      'uri': '${fsUri}${filePaths[2]}',
-      'args': ['A', 'B', 'C'],
-      'message': 'test'
+        'token': 'mySpawnToken2',
+        'uri': '${fsUri}${filePaths[2]}',
+        'args': ['A', 'B', 'C'],
+        'message': 'test'
     });
     expect(result['type'], equals('Success'));
     spawnedIsolate = await completer.future;
@@ -202,7 +211,7 @@ main(args, msg) {
 
     // Delete the fs.
     result = await vm.invokeRpcNoUpgrade('_deleteDevFS', {
-      'fsName': fsName,
+        'fsName': fsName,
     });
     expect(result['type'], equals('Success'));
   },

@@ -30,10 +30,11 @@ main() {
     ];
     const isolatePorts = const PortsMock(elements: elements);
     final ports = new PortsRepositoryMock(
-        getter: expectAsync((i) async {
-      expect(i, equals(isolate));
-      return isolatePorts;
-    }, count: 1));
+      getter: expectAsync((i) async {
+        expect(i, equals(isolate));
+        return isolatePorts;
+      }, count: 1)
+    );
     final instances = new InstanceRepositoryMock();
     final e = new PortsElement(vm, isolate, events, notifs, ports, instances);
     document.body.append(e);

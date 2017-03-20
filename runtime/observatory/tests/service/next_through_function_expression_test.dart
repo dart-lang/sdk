@@ -12,7 +12,6 @@ codeXYZ(int i) {
   innerOne() {
     return i * i;
   }
-
   return innerOne();
 }
 

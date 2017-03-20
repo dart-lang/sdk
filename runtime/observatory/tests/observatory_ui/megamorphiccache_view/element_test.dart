@@ -27,41 +27,26 @@ main() {
   final paths = new RetainingPathRepositoryMock();
   final instances = new InstanceRepositoryMock();
   test('instantiation', () {
-    final e = new MegamorphicCacheViewElement(
-        vm,
-        isolate,
-        cache,
-        events,
-        notifs,
-        caches,
-        retainedSizes,
-        reachableSizes,
-        inbounds,
-        paths,
-        instances);
+    final e = new MegamorphicCacheViewElement(vm, isolate, cache, events,
+                                              notifs, caches, retainedSizes,
+                                              reachableSizes, inbounds, paths,
+                                              instances);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.cache, equals(cache));
   });
   test('elements created after attachment', () async {
     final caches = new MegamorphicCacheRepositoryMock(
-        getter: expectAsync((i, id) async {
-      expect(i, equals(isolate));
-      expect(id, equals(cache.id));
-      return cache;
-    }, count: 1));
-    final e = new MegamorphicCacheViewElement(
-        vm,
-        isolate,
-        cache,
-        events,
-        notifs,
-        caches,
-        retainedSizes,
-        reachableSizes,
-        inbounds,
-        paths,
-        instances);
+      getter: expectAsync((i, id) async {
+        expect(i, equals(isolate));
+        expect(id, equals(cache.id));
+        return cache;
+      }, count: 1)
+    );
+    final e = new MegamorphicCacheViewElement(vm, isolate, cache, events,
+                                              notifs, caches, retainedSizes,
+                                              reachableSizes, inbounds, paths,
+                                              instances);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

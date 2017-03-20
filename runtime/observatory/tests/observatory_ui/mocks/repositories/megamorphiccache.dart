@@ -4,17 +4,17 @@
 
 part of mocks;
 
-typedef Future<M.MegamorphicCache> MegamorphicCacheRepositoryMockCallback(
-    M.IsolateRef isolate, String id);
+typedef Future<M.MegamorphicCache>
+        MegamorphicCacheRepositoryMockCallback(M.IsolateRef isolate, String id);
 
 class MegamorphicCacheRepositoryMock implements M.MegamorphicCacheRepository {
   final MegamorphicCacheRepositoryMockCallback _get;
 
   MegamorphicCacheRepositoryMock(
-      {MegamorphicCacheRepositoryMockCallback getter})
-      : _get = getter;
+    {MegamorphicCacheRepositoryMockCallback getter})
+    : _get = getter;
 
-  Future<M.MegamorphicCache> get(M.IsolateRef isolate, String id, {int count}) {
+  Future<M.MegamorphicCache> get(M.IsolateRef isolate, String id, {int count}){
     if (_get != null) {
       return _get(isolate, id);
     }

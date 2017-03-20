@@ -10,7 +10,7 @@ const String file = "next_through_for_loop_with_break_and_continue_test.dart";
 
 code() {
   int count = 0;
-  for (int i = 0; i < 42; ++i) {
+  for(int i = 0; i < 42; ++i) {
     if (i == 2) {
       continue;
     }

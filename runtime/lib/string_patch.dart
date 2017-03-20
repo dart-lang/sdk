@@ -7,47 +7,41 @@ const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
-@patch
-class String {
-  @patch
-  factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]) {
-    if (charCodes is! Iterable)
-      throw new ArgumentError.value(charCodes, "charCodes");
+@patch class String {
+  @patch factory String.fromCharCodes(Iterable<int> charCodes,
+                                      [int start = 0, int end]) {
+    if (charCodes is! Iterable) throw new ArgumentError.value(charCodes, "charCodes");
     if (start is! int) throw new ArgumentError.value(start, "start");
     if (end != null && end is! int) throw new ArgumentError.value(end, "end");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
-  @patch
-  factory String.fromCharCode(int charCode) {
+  @patch factory String.fromCharCode(int charCode) {
     if (charCode >= 0) {
       if (charCode <= 0xff) {
         return _OneByteString._allocate(1).._setAt(0, charCode);
       }
       if (charCode <= 0xffff) {
-        return _StringBase._createFromCodePoints(
-            new _List(1)..[0] = charCode, 0, 1);
+        return _StringBase._createFromCodePoints(new _List(1)..[0] = charCode,
+                                                 0, 1);
       }
       if (charCode <= 0x10ffff) {
         var low = 0xDC00 | (charCode & 0x3ff);
         int bits = charCode - 0x10000;
         var high = 0xD800 | (bits >> 10);
-        return _StringBase._createFromCodePoints(
-            new _List(2)
-              ..[0] = high
-              ..[1] = low,
-            0,
-            2);
+        return  _StringBase._createFromCodePoints(new _List(2)..[0] = high
+                                                              ..[1] = low,
+                                                  0, 2);
       }
     }
     throw new RangeError.range(charCode, 0, 0x10ffff);
   }
 
-  @patch
-  const factory String.fromEnvironment(String name, {String defaultValue})
+  @patch const factory String.fromEnvironment(String name,
+                                              {String defaultValue})
       native "String_fromEnvironment";
 }
+
 
 /**
  * [_StringBase] contains common methods used by concrete String
@@ -85,7 +79,8 @@ abstract class _StringBase {
   static const int _maxJoinReplaceOneByteStringLength = 500;
 
   factory _StringBase._uninstantiable() {
-    throw new UnsupportedError("_StringBase can't be instaniated");
+    throw new UnsupportedError(
+        "_StringBase can't be instaniated");
   }
 
   int get hashCode native "String_getHashCode";
@@ -94,7 +89,7 @@ abstract class _StringBase {
     // Alternatively return false and override it on one-byte string classes.
     int id = ClassID.getID(this);
     return id == ClassID.cidOneByteString ||
-        id == ClassID.cidExternalOneByteString;
+           id == ClassID.cidExternalOneByteString;
   }
 
   /**
@@ -107,8 +102,9 @@ abstract class _StringBase {
    * The [limit] is an upper limit on the character codes in the iterable.
    * It's `null` if unknown.
    */
-  static String createFromCharCodes(
-      Iterable<int> charCodes, int start, int end, int limit) {
+  static String createFromCharCodes(Iterable<int> charCodes,
+                                    int start, int end,
+                                    int limit) {
     if (start == null) throw new ArgumentError.notNull("start");
     if (charCodes == null) throw new ArgumentError(charCodes);
     // TODO(srdjan): Also skip copying of wide typed arrays.
@@ -156,14 +152,14 @@ abstract class _StringBase {
     return bits;
   }
 
-  static String _createStringFromIterable(
-      Iterable<int> charCodes, int start, int end) {
+  static String _createStringFromIterable(Iterable<int> charCodes,
+                                          int start, int end) {
     // Treat charCodes as Iterable.
     if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
       end = RangeError.checkValidRange(start, end, length);
-      List charCodeList =
-          new List.from(charCodes.take(end).skip(start), growable: false);
+      List charCodeList = new List.from(charCodes.take(end).skip(start),
+                                        growable: false);
       return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
     }
     // Don't know length of iterable, so iterate and see if all the values
@@ -176,7 +172,7 @@ abstract class _StringBase {
       }
     }
     List charCodeList;
-    int bits = 0; // Bitwise-or of all char codes in list.
+    int bits = 0;  // Bitwise-or of all char codes in list.
     if (end == null) {
       var list = [];
       while (it.moveNext()) {
@@ -226,7 +222,7 @@ abstract class _StringBase {
 
   String operator [](int index) native "String_charAt";
 
-  int codeUnitAt(int index); // Implemented in the subclasses.
+  int codeUnitAt(int index);  // Implemented in the subclasses.
 
   int get length native "String_getLength";
 
@@ -246,7 +242,8 @@ abstract class _StringBase {
     if (identical(this, other)) {
       return true;
     }
-    if ((other is! String) || (this.length != other.length)) {
+    if ((other is! String) ||
+        (this.length != other.length)) {
       return false;
     }
     final len = this.length;
@@ -392,10 +389,10 @@ abstract class _StringBase {
   // Checks for one-byte whitespaces only.
   static bool _isOneByteWhitespace(int codeUnit) {
     if (codeUnit <= 32) {
-      return ((codeUnit == 32) || // Space.
-          ((codeUnit <= 13) && (codeUnit >= 9))); // CR, LF, TAB, etc.
+      return ((codeUnit == 32) ||  // Space.
+              ((codeUnit <= 13) && (codeUnit >= 9)));  // CR, LF, TAB, etc.
     }
-    return (codeUnit == 0x85) || (codeUnit == 0xA0); // NEL, NBSP.
+    return (codeUnit == 0x85) || (codeUnit == 0xA0);  // NEL, NBSP.
   }
 
   // Characters with Whitespace property (Unicode 6.2).
@@ -415,18 +412,21 @@ abstract class _StringBase {
   // BOM: 0xFEFF
   static bool _isTwoByteWhitespace(int codeUnit) {
     if (codeUnit <= 32) {
-      return (codeUnit == 32) || ((codeUnit <= 13) && (codeUnit >= 9));
+      return (codeUnit == 32) ||
+             ((codeUnit <= 13) && (codeUnit >= 9));
     }
     if (codeUnit < 0x85) return false;
     if ((codeUnit == 0x85) || (codeUnit == 0xA0)) return true;
     return (codeUnit <= 0x200A)
-        ? ((codeUnit == 0x1680) || (codeUnit == 0x180E) || (0x2000 <= codeUnit))
-        : ((codeUnit == 0x2028) ||
-            (codeUnit == 0x2029) ||
-            (codeUnit == 0x202F) ||
-            (codeUnit == 0x205F) ||
-            (codeUnit == 0x3000) ||
-            (codeUnit == 0xFEFF));
+            ? ((codeUnit == 0x1680) ||
+               (codeUnit == 0x180E) ||
+               (0x2000 <= codeUnit))
+            : ((codeUnit == 0x2028) ||
+               (codeUnit == 0x2029) ||
+               (codeUnit == 0x202F) ||
+               (codeUnit == 0x205F) ||
+               (codeUnit == 0x3000) ||
+               (codeUnit == 0xFEFF));
   }
 
   int _firstNonWhitespace() {
@@ -505,7 +505,7 @@ abstract class _StringBase {
     return _substringUnchecked(0, last + 1);
   }
 
-  String operator *(int times) {
+  String operator*(int times) {
     if (times <= 0) return "";
     if (times == 1) return this;
     StringBuffer buffer = new StringBuffer(this);
@@ -546,8 +546,9 @@ abstract class _StringBase {
     return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
   }
 
-  String replaceFirst(Pattern pattern, String replacement,
-      [int startIndex = 0]) {
+  String replaceFirst(Pattern pattern,
+                      String replacement,
+                      [int startIndex = 0]) {
     if (pattern is! Pattern) {
       throw new ArgumentError("${pattern} is not a Pattern");
     }
@@ -558,9 +559,9 @@ abstract class _StringBase {
       throw new ArgumentError("${startIndex} is not an int");
     }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
-    Iterator iterator = startIndex == 0
-        ? pattern.allMatches(this).iterator
-        : pattern.allMatches(this, startIndex).iterator;
+    Iterator iterator =
+        startIndex == 0 ? pattern.allMatches(this).iterator
+                        : pattern.allMatches(this, startIndex).iterator;
     if (!iterator.moveNext()) return this;
     Match match = iterator.current;
     return replaceRange(match.start, match.end, replacement);
@@ -585,8 +586,8 @@ abstract class _StringBase {
     _addReplaceSlice(slices, 0, start);
     if (replacement.length > 0) slices.add(replacement);
     _addReplaceSlice(slices, end, length);
-    return _joinReplaceAllResult(
-        this, slices, totalLength, replacementIsOneByte);
+    return _joinReplaceAllResult(this, slices, totalLength,
+                                 replacementIsOneByte);
   }
 
   static int _addReplaceSlice(List matches, int start, int end) {
@@ -631,15 +632,17 @@ abstract class _StringBase {
       // TODO(lrn): Is there a cut-off point, or is runtime always faster?
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
-    return _joinReplaceAllResult(this, matches, length, replacementIsOneByte);
+    return _joinReplaceAllResult(this, matches, length,
+                                 replacementIsOneByte);
   }
 
   /**
    * As [_joinReplaceAllResult], but knowing that the result
    * is always a [_OneByteString].
    */
-  static String _joinReplaceAllOneByteResult(
-      String base, List matches, int length) {
+  static String _joinReplaceAllOneByteResult(String base,
+                                             List matches,
+                                             int length) {
     _OneByteString result = _OneByteString._allocate(length);
     int writeIndex = 0;
     for (int i = 0; i < matches.length; i++) {
@@ -686,9 +689,8 @@ abstract class _StringBase {
    * If they are, then we have to check the base string slices to know
    * whether the result must be a one-byte string.
    */
-  static String
-      _joinReplaceAllResult(String base, List matches, int length,
-          bool replacementStringsAreOneByte)
+  static String _joinReplaceAllResult(String base, List matches, int length,
+                                      bool replacementStringsAreOneByte)
       native "StringBase_joinReplaceAllResult";
 
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
@@ -714,12 +716,12 @@ abstract class _StringBase {
         this._isOneByte) {
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
-    return _joinReplaceAllResult(
-        this, matches, length, replacementStringsAreOneByte);
+    return _joinReplaceAllResult(this, matches, length,
+                                 replacementStringsAreOneByte);
   }
 
   String replaceFirstMapped(Pattern pattern, String replace(Match match),
-      [int startIndex = 0]) {
+                            [int startIndex = 0]) {
     if (pattern == null) throw new ArgumentError.notNull("pattern");
     if (replace == null) throw new ArgumentError.notNull("replace");
     if (startIndex == null) throw new ArgumentError.notNull("startIndex");
@@ -735,8 +737,8 @@ abstract class _StringBase {
   static String _matchString(Match match) => match[0];
   static String _stringIdentity(String string) => string;
 
-  String _splitMapJoinEmptyString(
-      String onMatch(Match match), String onNonMatch(String nonMatch)) {
+  String _splitMapJoinEmptyString(String onMatch(Match match),
+                                  String onNonMatch(String nonMatch)) {
     // Pattern is the empty string.
     StringBuffer buffer = new StringBuffer();
     int length = this.length;
@@ -765,7 +767,8 @@ abstract class _StringBase {
   }
 
   String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
+                      {String onMatch(Match match),
+                       String onNonMatch(String nonMatch)}) {
     if (pattern is! Pattern) {
       throw new ArgumentError("${pattern} is not a Pattern");
     }
@@ -884,7 +887,7 @@ abstract class _StringBase {
       }
       int endIndex = match.end;
       if (startIndex == endIndex && endIndex == previousIndex) {
-        ++startIndex; // empty match, advance and restart
+        ++startIndex;  // empty match, advance and restart
         continue;
       }
       result.add(this.substring(previousIndex, match.start));
@@ -916,7 +919,9 @@ abstract class _StringBase {
       native "String_concatRange";
 }
 
+
 class _OneByteString extends _StringBase implements String {
+
   factory _OneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_OneByteString can only be allocated by the VM");
@@ -1013,14 +1018,14 @@ class _OneByteString extends _StringBase implements String {
     return super.contains(pattern, start);
   }
 
-  String operator *(int times) {
+  String operator*(int times) {
     if (times <= 0) return "";
     if (times == 1) return this;
     int length = this.length;
-    if (this.isEmpty) return this; // Don't clone empty string.
+    if (this.isEmpty) return this;  // Don't clone empty string.
     _OneByteString result = _OneByteString._allocate(length * times);
     int index = 0;
-    for (int i = 0; i < times; i++) {
+    for (int i = 0; i < times; i ++) {
       for (int j = 0; j < length; j++) {
         result._setAt(index++, this.codeUnitAt(j));
       }
@@ -1188,8 +1193,10 @@ class _OneByteString extends _StringBase implements String {
   // set using _setAt.
   static _OneByteString _allocate(int length) native "OneByteString_allocate";
 
-  static _OneByteString _allocateFromOneByteList(List<int> list, int start,
-      int end) native "OneByteString_allocateFromOneByteList";
+
+  static _OneByteString _allocateFromOneByteList(List<int> list,
+                                                 int start, int end)
+      native "OneByteString_allocateFromOneByteList";
 
   // This is internal helper method. Code point value must be a valid
   // Latin1 value (0..0xFF), index must be valid.
@@ -1213,6 +1220,7 @@ class _OneByteString extends _StringBase implements String {
   }
 }
 
+
 class _TwoByteString extends _StringBase implements String {
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1233,6 +1241,7 @@ class _TwoByteString extends _StringBase implements String {
   }
 }
 
+
 class _ExternalOneByteString extends _StringBase implements String {
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1252,6 +1261,7 @@ class _ExternalOneByteString extends _StringBase implements String {
   static int _getCid() native "ExternalOneByteString_getCid";
 }
 
+
 class _ExternalTwoByteString extends _StringBase implements String {
   factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1269,11 +1279,12 @@ class _ExternalTwoByteString extends _StringBase implements String {
   }
 }
 
+
 class _StringMatch implements Match {
   const _StringMatch(this.start, this.input, this.pattern);
 
   int get end => start + pattern.length;
-  String operator [](int g) => group(g);
+  String operator[](int g) => group(g);
   int get groupCount => 0;
 
   String group(int group) {
@@ -1295,6 +1306,7 @@ class _StringMatch implements Match {
   final String input;
   final String pattern;
 }
+
 
 class _StringAllMatchesIterable extends Iterable<Match> {
   final String _input;

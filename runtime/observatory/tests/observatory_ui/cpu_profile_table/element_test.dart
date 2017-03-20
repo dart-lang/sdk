@@ -29,16 +29,18 @@ main() {
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created', () async {
-    final controller =
-        new StreamController<M.SampleProfileLoadingProgressEvent>.broadcast();
-    final profiles = new IsolateSampleProfileRepositoryMock(getter:
-        (M.IsolateRef i, M.SampleProfileTag t, bool clear, bool forceFetch) {
-      expect(i, equals(isolate));
-      expect(t, isNotNull);
-      expect(clear, isFalse);
-      expect(forceFetch, isFalse);
-      return controller.stream;
-    });
+    final controller
+        = new StreamController<M.SampleProfileLoadingProgressEvent>.broadcast();
+    final profiles = new IsolateSampleProfileRepositoryMock(
+      getter: (M.IsolateRef i, M.SampleProfileTag t, bool clear,
+          bool forceFetch) {
+        expect(i, equals(isolate));
+        expect(t, isNotNull);
+        expect(clear, isFalse);
+        expect(forceFetch, isFalse);
+        return controller.stream;
+      }
+    );
     final e = new CpuProfileTableElement(vm, isolate, events, notifs, profiles);
     document.body.append(e);
     await e.onRendered.first;
@@ -47,19 +49,25 @@ main() {
     expect(e.querySelectorAll(cTag).length, isZero);
     expect(e.querySelectorAll(tTag).length, isZero);
     controller.add(new SampleProfileLoadingProgressEventMock(
-        progress: new SampleProfileLoadingProgressMock(
-            status: M.SampleProfileLoadingStatus.fetching)));
+      progress: new SampleProfileLoadingProgressMock(
+        status: M.SampleProfileLoadingStatus.fetching
+      )
+    ));
     await e.onRendered.first;
     expect(e.querySelectorAll(sTag).length, equals(1));
     expect(e.querySelectorAll(cTag).length, isZero);
     expect(e.querySelectorAll(tTag).length, isZero);
     controller.add(new SampleProfileLoadingProgressEventMock(
-        progress: new SampleProfileLoadingProgressMock(
-            status: M.SampleProfileLoadingStatus.loading)));
+      progress: new SampleProfileLoadingProgressMock(
+        status: M.SampleProfileLoadingStatus.loading
+      )
+    ));
     controller.add(new SampleProfileLoadingProgressEventMock(
-        progress: new SampleProfileLoadingProgressMock(
-            status: M.SampleProfileLoadingStatus.loaded,
-            profile: new SampleProfileMock())));
+      progress: new SampleProfileLoadingProgressMock(
+        status: M.SampleProfileLoadingStatus.loaded,
+        profile: new SampleProfileMock()
+      )
+    ));
     controller.close();
     await e.onRendered.first;
     expect(e.querySelectorAll(sTag).length, equals(1));

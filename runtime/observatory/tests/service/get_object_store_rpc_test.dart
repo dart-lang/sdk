@@ -19,28 +19,29 @@ bool isClosureFunctionsList(NamedField field) {
 }
 
 var tests = [
+
 // Initial data fetch and verify we've hit the breakpoint.
-  (Isolate isolate) async {
-    await isolate.rootLibrary.load();
-    var script = isolate.rootLibrary.scripts[0];
-    await script.load();
-    await hasStoppedAtBreakpoint(isolate);
-    // Sanity check.
-    expect(isolate.pauseEvent is M.PauseBreakpointEvent, isTrue);
-  },
+(Isolate isolate) async {
+  await isolate.rootLibrary.load();
+  var script = isolate.rootLibrary.scripts[0];
+  await script.load();
+  await hasStoppedAtBreakpoint(isolate);
+  // Sanity check.
+  expect(isolate.pauseEvent is M.PauseBreakpointEvent, isTrue);
+},
 
 // Get object_store.
-  (Isolate isolate) async {
-    var object_store = await isolate.getObjectStore();
-    expect(object_store.runtimeType, equals(ObjectStore));
-    // Sanity check.
-    expect(object_store.fields.length, greaterThanOrEqualTo(1));
-    // Checking Closures.
-    expect(object_store.fields.singleWhere(isClosureFunctionsList), isNotNull);
-    expect(object_store.fields.singleWhere(isClosureFunctionsList).value.isList,
-        isTrue);
-  }
+(Isolate isolate) async {
+  var object_store = await isolate.getObjectStore();
+  expect(object_store.runtimeType, equals(ObjectStore));
+  // Sanity check.
+  expect(object_store.fields.length, greaterThanOrEqualTo(1));
+  // Checking Closures.
+  expect(object_store.fields.singleWhere(isClosureFunctionsList), isNotNull);
+  expect(object_store.fields.singleWhere(isClosureFunctionsList).value.isList, isTrue);
+}
+
 ];
 
-main(args) =>
-    runIsolateTestsSynchronous(args, tests, testeeConcurrent: doDebugger);
+main(args) => runIsolateTestsSynchronous(args, tests,
+                                          testeeConcurrent: doDebugger);

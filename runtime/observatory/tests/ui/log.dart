@@ -9,7 +9,8 @@ import 'package:logging/logging.dart';
 main() {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((logRecord) {
-    developer.log(logRecord.message,
+    developer.log(
+        logRecord.message,
         time: logRecord.time,
         sequenceNumber: logRecord.sequenceNumber,
         level: logRecord.level.value,

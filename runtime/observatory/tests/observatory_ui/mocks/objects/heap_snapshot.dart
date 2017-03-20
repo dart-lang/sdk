@@ -12,11 +12,8 @@ class HeapSnapshotMock implements M.HeapSnapshot {
   final M.HeapSnapshotDominatorNode dominatorTree;
   final Iterable<M.HeapSnapshotClassReferences> classReferences;
 
-  const HeapSnapshotMock(
-      {this.timestamp,
-      this.objects: 0,
-      this.references: 0,
-      this.size: 0,
+  const HeapSnapshotMock({this.timestamp, this.objects: 0,
+      this.references: 0, this.size: 0,
       this.dominatorTree: const HeapSnapshotDominatorNodeMock(),
       this.classReferences: const []});
 }
@@ -27,11 +24,9 @@ class HeapSnapshotDominatorNodeMock implements M.HeapSnapshotDominatorNode {
   final Future<M.ObjectRef> object;
   final Iterable<M.HeapSnapshotDominatorNode> children;
 
-  const HeapSnapshotDominatorNodeMock(
-      {this.shallowSize: 1,
-      this.retainedSize: 1,
-      this.object,
-      this.children: const []});
+  const HeapSnapshotDominatorNodeMock({this.shallowSize: 1,
+                                       this.retainedSize: 1,
+                                       this.object, this.children: const []});
 }
 
 class HeapSnapshotClassReferencesMock implements M.HeapSnapshotClassReferences {
@@ -42,13 +37,11 @@ class HeapSnapshotClassReferencesMock implements M.HeapSnapshotClassReferences {
   final Iterable<M.HeapSnapshotClassInbound> inbounds;
   final Iterable<M.HeapSnapshotClassOutbound> outbounds;
 
-  const HeapSnapshotClassReferencesMock(
-      {this.clazz: const ClassRefMock(),
-      this.instances: 1,
-      this.shallowSize: 1,
-      this.retainedSize: 2,
-      this.inbounds: const [],
-      this.outbounds: const []});
+  const HeapSnapshotClassReferencesMock({this.clazz: const ClassRefMock(),
+                                         this.instances: 1, this.shallowSize: 1,
+                                         this.retainedSize: 2,
+                                         this.inbounds: const [],
+                                         this.outbounds: const []});
 }
 
 class HeapSnapshotClassInboundMock implements M.HeapSnapshotClassInbound {
@@ -57,11 +50,9 @@ class HeapSnapshotClassInboundMock implements M.HeapSnapshotClassInbound {
   final int shallowSize;
   final int retainedSize;
 
-  const HeapSnapshotClassInboundMock(
-      {this.source: const ClassRefMock(),
-      this.count: 1,
-      this.shallowSize: 1,
-      this.retainedSize: 2});
+  const HeapSnapshotClassInboundMock({this.source: const ClassRefMock(),
+                                      this.count: 1, this.shallowSize: 1,
+                                      this.retainedSize: 2});
 }
 
 class HeapSnapshotClassOutboundMock implements M.HeapSnapshotClassOutbound {
@@ -69,9 +60,7 @@ class HeapSnapshotClassOutboundMock implements M.HeapSnapshotClassOutbound {
   final int count;
   final int shallowSize;
   final int retainedSize;
-  const HeapSnapshotClassOutboundMock(
-      {this.target: const ClassRefMock(),
-      this.count: 1,
-      this.shallowSize: 1,
-      this.retainedSize: 2});
+  const HeapSnapshotClassOutboundMock({this.target: const ClassRefMock(),
+                                       this.count: 1, this.shallowSize: 1,
+                                       this.retainedSize: 2});
 }

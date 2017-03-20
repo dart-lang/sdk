@@ -10,7 +10,7 @@ const String file = "next_through_for_each_loop_test.dart";
 
 code() {
   List<int> data = [1, 2, 3, 4];
-  for (int datapoint in data) {
+  for(int datapoint in data) {
     print(datapoint);
   }
 }

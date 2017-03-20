@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 class _FilterImpl extends NativeFieldWrapperClass1 implements _Filter {
   void process(List<int> data, int start, int end) native "Filter_Process";
 
@@ -19,22 +20,24 @@ class _ZLibInflateFilter extends _FilterImpl {
 
 class _ZLibDeflateFilter extends _FilterImpl {
   _ZLibDeflateFilter(bool gzip, int level, int windowBits, int memLevel,
-      int strategy, List<int> dictionary, bool raw) {
+                     int strategy, List<int> dictionary, bool raw) {
     _init(gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
-  void _init(bool gzip, int level, int windowBits, int memLevel, int strategy,
-      List<int> dictionary, bool raw) native "Filter_CreateZLibDeflate";
+  void _init(bool gzip, int level, int windowBits, int memLevel,
+             int strategy, List<int> dictionary, bool raw)
+      native "Filter_CreateZLibDeflate";
 }
 
-@patch
-class _Filter {
-  @patch
-  static _Filter _newZLibDeflateFilter(bool gzip, int level, int windowBits,
-          int memLevel, int strategy, List<int> dictionary, bool raw) =>
-      new _ZLibDeflateFilter(
-          gzip, level, windowBits, memLevel, strategy, dictionary, raw);
-  @patch
-  static _Filter _newZLibInflateFilter(
-          int windowBits, List<int> dictionary, bool raw) =>
+@patch class _Filter {
+  @patch static _Filter _newZLibDeflateFilter(bool gzip, int level,
+                                                    int windowBits, int memLevel,
+                                                    int strategy,
+                                                    List<int> dictionary,
+                                                    bool raw) =>
+      new _ZLibDeflateFilter(gzip, level, windowBits, memLevel, strategy,
+                             dictionary, raw);
+  @patch static _Filter _newZLibInflateFilter(int windowBits,
+                                                    List<int> dictionary,
+                                                    bool raw) =>
       new _ZLibInflateFilter(windowBits, dictionary, raw);
 }

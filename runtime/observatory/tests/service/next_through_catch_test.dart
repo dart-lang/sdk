@@ -12,13 +12,13 @@ code() {
   try {
     var value = "world";
     throw "Hello, $value";
-  } catch (e, st) {
+  } catch(e, st) {
     print(e);
     print(st);
   }
   try {
     throw "Hello, world";
-  } catch (e, st) {
+  } catch(e, st) {
     print(e);
     print(st);
   }

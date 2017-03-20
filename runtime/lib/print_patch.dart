@@ -8,8 +8,7 @@ import 'dart:core' hide Symbol;
 // string is a line, but it may contain "\n" characters.
 typedef void _PrintClosure(String line);
 
-@patch
-void printToConsole(String line) {
+@patch void printToConsole(String line) {
   _printClosure(line);
 }
 

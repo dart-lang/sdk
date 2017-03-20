@@ -314,29 +314,30 @@ class MergedObjectVertex {
     var cids = _graph._cids;
     var size = 0;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+    while (sibling != SENTINEL &&
+           cids[sibling] == cids[_id]) {
       size += _graph._shallowSizes[sibling];
       sibling = _graph._mergedDomNext[sibling];
     }
     return size;
   }
-
   int get retainedSize {
     var cids = _graph._cids;
     var size = 0;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+    while (sibling != SENTINEL &&
+           cids[sibling] == cids[_id]) {
       size += _graph._retainedSizes[sibling];
       sibling = _graph._mergedDomNext[sibling];
     }
     return size;
   }
-
   int get instanceCount {
     var cids = _graph._cids;
     var count = 0;
     var sibling = _id;
-    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+    while (sibling != SENTINEL &&
+           cids[sibling] == cids[_id]) {
       count++;
       sibling = _graph._mergedDomNext[sibling];
     }
@@ -353,7 +354,8 @@ class MergedObjectVertex {
     // Walk the list of children and look for the representative objects, i.e.
     // the first sibling of each cid.
     while (child != SENTINEL) {
-      if (prev == SENTINEL || cids[prev] != cids[child]) {
+      if (prev == SENTINEL ||
+          cids[prev] != cids[child]) {
         domChildren.add(new MergedObjectVertex._(child, _graph));
       }
       prev = child;
@@ -500,9 +502,9 @@ class ObjectGraph {
 
   int _kObjectAlignment;
   int _kStackCid;
-  int _N; // Objects in the snapshot.
-  int _Nconnected; // Objects reachable from root.
-  int _E; // References in the snapshot.
+  int _N;  // Objects in the snapshot.
+  int _Nconnected;  // Objects reachable from root.
+  int _E;  // References in the snapshot.
   int _size;
 
   // Indexed by node id, with id 0 representing invalid/uninitialized.
@@ -692,8 +694,8 @@ class ObjectGraph {
           var startSuccIndex = firstSuccs[i];
           var limitSuccIndex = firstSuccs[i + 1];
           for (var succIndex = startSuccIndex;
-              succIndex < limitSuccIndex;
-              succIndex++) {
+               succIndex < limitSuccIndex;
+               succIndex++) {
             succs[succIndex] = SENTINEL;
           }
         }
@@ -940,7 +942,7 @@ class ObjectGraph {
       retainedSizes[doms[v]] += retainedSizes[v];
     }
 
-    assert(retainedSizes[ROOT] == size); // Root retains everything.
+    assert(retainedSizes[ROOT] == size);  // Root retains everything.
 
     _retainedSizes = retainedSizes;
     _size = size;
@@ -965,16 +967,16 @@ class ObjectGraph {
 
   // Merge the given lists according to the given key in ascending order.
   // Returns the head of the merged list.
-  static int _mergeSorted(
-      int head1, int head2, Uint32List next, Uint16List key) {
+  static int _mergeSorted(int head1, int head2,
+                          Uint32List next, Uint16List key) {
     var head = head1;
     var beforeInsert = SENTINEL;
     var afterInsert = head1;
     var startInsert = head2;
 
     while (startInsert != SENTINEL) {
-      while (
-          (afterInsert != SENTINEL) && (key[afterInsert] <= key[startInsert])) {
+      while ((afterInsert != SENTINEL) &&
+             (key[afterInsert] <= key[startInsert])) {
         beforeInsert = afterInsert;
         afterInsert = next[beforeInsert];
       }
@@ -1017,7 +1019,8 @@ class ObjectGraph {
       int head1 = head;
       int slow = head;
       int fast = head;
-      while (next[fast] != SENTINEL && next[next[fast]] != SENTINEL) {
+      while (next[fast] != SENTINEL &&
+             next[next[fast]] != SENTINEL) {
         slow = next[slow];
         fast = next[next[fast]];
       }
@@ -1055,7 +1058,8 @@ class ObjectGraph {
       int cid = cids[parent1];
       int slow = parent1;
       int fast = parent1;
-      while (next[fast] != end && next[next[fast]] != end) {
+      while (next[fast] != end &&
+             next[next[fast]] != end) {
         slow = next[slow];
         fast = next[next[fast]];
       }
@@ -1091,7 +1095,8 @@ class ObjectGraph {
 
         // Find next sibling with a different cid.
         var after = child;
-        while (after != SENTINEL && cids[after] == cids[child]) {
+        while (after != SENTINEL &&
+               cids[after] == cids[child]) {
           after = next[after];
         }
 

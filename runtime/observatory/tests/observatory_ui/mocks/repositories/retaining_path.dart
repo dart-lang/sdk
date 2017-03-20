@@ -4,8 +4,8 @@
 
 part of mocks;
 
-typedef Future<M.RetainingPath> RetainingPathRepositoryMockGetter(
-    M.IsolateRef i, String id);
+typedef Future<M.RetainingPath>
+        RetainingPathRepositoryMockGetter(M.IsolateRef i, String id);
 
 class RetainingPathRepositoryMock implements M.RetainingPathRepository {
   final RetainingPathRepositoryMockGetter _getter;
@@ -18,5 +18,5 @@ class RetainingPathRepositoryMock implements M.RetainingPathRepository {
   }
 
   RetainingPathRepositoryMock({RetainingPathRepositoryMockGetter getter})
-      : _getter = getter;
+    : _getter = getter;
 }

@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 foo(x) => bar(x);
 
 bar(x) {
-  if (x == null) throw 42; // throw at position 11:18
+  if (x == null) throw 42;  // throw at position 11:18
   return x + 1;
 }
 
@@ -21,13 +21,11 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "A");
-    Expect.isTrue(
-        s.contains("optimized_stacktrace_line_and_column_test.dart:11:18"),
-        "B");
+    Expect.isTrue(s.contains("optimized_stacktrace_line_and_column_test.dart:11:18"), "B");
   }
 
   // Optimized.
-  for (var i = 0; i < 10000; i++) foo(42);
+  for (var i=0; i<10000; i++) foo(42);
   try {
     foo(null);
     Expect.fail("Unreachable");
@@ -35,19 +33,18 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "C");
-    Expect.isTrue(
-        s.contains("optimized_stacktrace_line_and_column_test.dart:11:18"),
-        "D");
+    Expect.isTrue(s.contains("optimized_stacktrace_line_and_column_test.dart:11:18"), "D");
   }
 }
+
 
 // (2) Test checked mode exceptions.
 maximus(x) => moritz(x);
 
 moritz(x) {
-  if (x == 333) return 42 ? 0 : 1; // Throws in checked mode.
-  if (x == 777) {
-    bool b = x; // Throws in checked mode.
+  if (x == 333)  return 42 ? 0 : 1;  // Throws in checked mode.
+  if (x == 777)   {
+    bool b = x;  // Throws in checked mode.
     return b;
   }
 
@@ -55,7 +52,7 @@ moritz(x) {
 }
 
 test2() {
-  for (var i = 0; i < 100000; i++) maximus(42);
+  for (var i=0; i<100000; i++) maximus(42);
   try {
     maximus(333);
   } catch (e, stacktrace) {

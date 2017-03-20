@@ -16,55 +16,57 @@ const int LINE_A = 26;
 const int LINE_B = 27;
 const int LINE_C = 28;
 
-class NotGeneric {}
+class NotGeneric { }
 
 testeeMain() {
   var x = new List(1);
   var y = 7;
   debugger();
   print("Statement");
-  x[0] = 3; // Line A.
-  x is NotGeneric; // Line B.
-  y & 4; // Line C.
+  x[0] = 3;         // Line A.
+  x is NotGeneric;  // Line B.
+  y & 4;            // Line C.
 }
 
 var tests = [
-  hasStoppedAtBreakpoint,
+
+hasStoppedAtBreakpoint,
 
 // Add breakpoints.
-  (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
-    var script = rootLib.scripts[0];
+(Isolate isolate) async {
+  var rootLib = await isolate.rootLibrary.load();
+  var script = rootLib.scripts[0];
 
-    var bpt1 = await isolate.addBreakpoint(script, LINE_A);
-    print(bpt1);
-    expect(bpt1.resolved, isTrue);
-    expect(await bpt1.location.getLine(), equals(LINE_A));
+  var bpt1 = await isolate.addBreakpoint(script, LINE_A);
+  print(bpt1);
+  expect(bpt1.resolved, isTrue);
+  expect(await bpt1.location.getLine(), equals(LINE_A));
 
-    var bpt2 = await isolate.addBreakpoint(script, LINE_B);
-    print(bpt2);
-    expect(bpt2.resolved, isTrue);
-    expect(await bpt2.location.getLine(), equals(LINE_B));
+  var bpt2 = await isolate.addBreakpoint(script, LINE_B);
+  print(bpt2);
+  expect(bpt2.resolved, isTrue);
+  expect(await bpt2.location.getLine(), equals(LINE_B));
 
-    var bpt3 = await isolate.addBreakpoint(script, LINE_C);
-    print(bpt3);
-    expect(bpt3.resolved, isTrue);
-    expect(await bpt3.location.getLine(), equals(LINE_C));
-  },
+  var bpt3 = await isolate.addBreakpoint(script, LINE_C);
+  print(bpt3);
+  expect(bpt3.resolved, isTrue);
+  expect(await bpt3.location.getLine(), equals(LINE_C));
+},
 
-  resumeIsolate,
+resumeIsolate,
 
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
-  resumeIsolate,
+hasStoppedAtBreakpoint,
+stoppedAtLine(LINE_A),
+resumeIsolate,
 
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_B),
-  resumeIsolate,
+hasStoppedAtBreakpoint,
+stoppedAtLine(LINE_B),
+resumeIsolate,
 
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
-  resumeIsolate,
+hasStoppedAtBreakpoint,
+stoppedAtLine(LINE_C),
+resumeIsolate,
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testeeMain);

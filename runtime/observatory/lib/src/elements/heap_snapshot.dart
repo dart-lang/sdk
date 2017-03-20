@@ -140,7 +140,9 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
 
   Future _refresh() async {
     _progress = null;
-    _progressStream = _snapshots.get(isolate, roots: _roots, gc: true);
+    _progressStream = _snapshots.get(isolate,
+                                     roots: _roots,
+                                     gc: true);
     _r.dirty();
     _progressStream.listen((e) {
       _progress = e.progress;
@@ -279,13 +281,14 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         ]);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTree:
-        _tree = new VirtualTreeElement(_createMergedDominator,
-            _updateMergedDominator, _getChildrenMergedDominator,
+        _tree = new VirtualTreeElement(
+            _createMergedDominator, _updateMergedDominator,
+            _getChildrenMergedDominator,
             items: _getChildrenMergedDominator(_snapshot.mergedDominatorTree),
             queue: _r.queue);
         _tree.expand(_snapshot.mergedDominatorTree);
         final text = 'A heap dominator tree, where siblings with the same class'
-            ' have been merged into a single node.';
+                     ' have been merged into a single node.';
         report.addAll([
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
@@ -373,7 +376,6 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         .where((child) => child.retainedSize >= kMinRetainedSize)
         .take(kMaxChildren);
   }
-
   static _getChildrenMergedDominator(M.HeapSnapshotMergedDominatorNode node) {
     final list = node.children.toList();
     list.sort((a, b) => b.retainedSize - a.retainedSize);
@@ -412,7 +414,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       wrapper
         ..text = ''
         ..children = [
-          new AnchorElement(href: Uris.debugger(isolate))..text = 'stack frames'
+          new AnchorElement(href: Uris.debugger(isolate))
+            ..text = 'stack frames'
         ];
     } else {
       node.object.then((object) {
@@ -442,7 +445,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       wrapper
         ..text = ''
         ..children = [
-          new AnchorElement(href: Uris.debugger(isolate))..text = 'stack frames'
+          new AnchorElement(href: Uris.debugger(isolate))
+            ..text = 'stack frames'
         ];
     } else {
       node.klass.then((klass) {

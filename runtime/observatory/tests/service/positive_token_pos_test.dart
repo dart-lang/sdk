@@ -9,13 +9,12 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-helper() async {
-  // Line 12, Col 16 is the open brace.
+helper() async {  // Line 12, Col 16 is the open brace.
 }
 
 testMain() {
   debugger();
-  helper(); // Line 17, Col 3 is the position of the function call.
+  helper();  // Line 17, Col 3 is the position of the function call.
 }
 
 var tests = [
@@ -23,6 +22,7 @@ var tests = [
   markDartColonLibrariesDebuggable,
   stoppedAtLine(17),
   stepInto,
+
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     expect(stack['frames'].length, greaterThan(3));

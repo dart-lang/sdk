@@ -99,9 +99,8 @@ class VMConnectElement extends HtmlElement implements Renderable {
                     ..children = _targets.list().map((target) {
                       final ObservatoryApplication app =
                           ObservatoryApplication.app;
-                      final bool current = (app != null)
-                          ? app.isConnectedVMTarget(target)
-                          : false;
+                      final bool current = (app != null) ?
+                          app.isConnectedVMTarget(target) : false;
                       return new LIElement()
                         ..children = [
                           new VMConnectTargetElement(target,

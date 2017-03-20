@@ -20,19 +20,14 @@ class ContextMock implements M.Context {
   final M.Context parentContext;
   final Iterable<M.ContextElement> variables;
 
-  const ContextMock(
-      {this.id: 'context-id',
-      this.vmName: 'context-vmName',
-      this.clazz: const ClassMock(),
-      this.size: 0,
-      this.length,
-      this.parentContext,
-      this.variables: const []});
+  const ContextMock({this.id: 'context-id', this.vmName: 'context-vmName',
+                     this.clazz: const ClassMock(), this.size: 0, this.length,
+                     this.parentContext, this.variables: const []});
 }
 
 class ContextElementMock implements M.ContextElement {
   final GuardedMock<M.InstanceRef> value;
 
-  const ContextElementMock(
-      {this.value: const GuardedMock.fromValue(const InstanceRefMock())});
+  const ContextElementMock({this.value: const GuardedMock.fromValue(
+      const InstanceRefMock())});
 }

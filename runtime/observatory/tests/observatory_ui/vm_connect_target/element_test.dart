@@ -22,13 +22,13 @@ main() {
       expect(e.current, isFalse, reason: 'default to not current');
     });
     test('isCurrent: false', () {
-      final e = new VMConnectTargetElement(t, current: false);
+      final e = new VMConnectTargetElement(t, current:false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.target, t, reason: 'target not setted');
       expect(e.current, isFalse, reason: 'default to not current');
     });
     test('isCurrent: true', () {
-      final e = new VMConnectTargetElement(t, current: true);
+      final e = new VMConnectTargetElement(t, current:true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.target, t, reason: 'target not setted');
       expect(e.current, isTrue, reason: 'default to not current');

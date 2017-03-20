@@ -54,4 +54,4 @@ var tests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeBefore: warmup);
+main(args) async => runIsolateTests(args, tests, testeeBefore:warmup);

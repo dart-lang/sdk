@@ -19,9 +19,9 @@ const int LINE_B = 24;
 // This tests the asyncStepOver command.
 asyncFunction() async {
   debugger();
-  print('a'); // LINE_A
+  print('a');  // LINE_A
   await new Future.delayed(new Duration(seconds: 2));
-  print('b'); // LINE_B
+  print('b');  // LINE_B
 }
 
 testMain() {
@@ -31,9 +31,9 @@ testMain() {
 var tests = [
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
-  stepOver, // At new Duration().
-  stepOver, // At new Future.delayed().
-  stepOver, // At async.
+  stepOver,  // At new Duration().
+  stepOver,  // At new Future.delayed().
+  stepOver,  // At async.
   // Check that we are at the async statement
   (Isolate isolate) async {
     expect(M.isAtAsyncSuspension(isolate.pauseEvent), isTrue);

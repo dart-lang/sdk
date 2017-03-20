@@ -5,20 +5,20 @@
 
 // VM implementation of double.
 
-@patch
-class double {
-  static double _nativeParse(String str, int start, int end)
-      native "Double_parse";
+@patch class double {
+
+  static double _nativeParse(String str,
+                             int start, int end) native "Double_parse";
 
   static double _tryParseDouble(var str, var start, var end) {
     assert(start < end);
-    const int _DOT = 0x2e; // '.'
-    const int _ZERO = 0x30; // '0'
-    const int _MINUS = 0x2d; // '-'
-    const int _N = 0x4e; // 'N'
-    const int _a = 0x61; // 'a'
-    const int _I = 0x49; // 'I'
-    const int _e = 0x65; // 'e'
+    const int _DOT = 0x2e;    // '.'
+    const int _ZERO = 0x30;   // '0'
+    const int _MINUS = 0x2d;  // '-'
+    const int _N = 0x4e;      // 'N'
+    const int _a = 0x61;      // 'a'
+    const int _I = 0x49;      // 'I'
+    const int _e = 0x65;      // 'e'
     int exponent = 0;
     // Set to non-zero if a digit is seen. Avoids accepting ".".
     bool digitsSeen = false;
@@ -56,7 +56,7 @@ class double {
     }
     for (int i = start; i < end; i++) {
       int c = str.codeUnitAt(i);
-      int digit = c ^ _ZERO; // '0'-'9' characters are now 0-9 integers.
+      int digit = c ^ _ZERO;  // '0'-'9' characters are now 0-9 integers.
       if (digit <= 9) {
         doubleValue = 10.0 * doubleValue + digit;
         // Doubles at or above this value (2**53) might have lost precission.
@@ -78,9 +78,9 @@ class double {
         return null;
       }
     }
-    if (!digitsSeen) return null; // No digits.
+    if (!digitsSeen) return null;  // No digits.
     if (exponent == 0) return sign * doubleValue;
-    const P10 = POWERS_OF_TEN; // From shared library
+    const P10 = POWERS_OF_TEN;  // From shared library
     if (exponent < 0) {
       int negExponent = -exponent;
       if (negExponent >= P10.length) return null;
@@ -93,7 +93,7 @@ class double {
   static double _parse(var str) {
     int len = str.length;
     int start = str._firstNonWhitespace();
-    if (start == len) return null; // All whitespace.
+    if (start == len) return null;  // All whitespace.
     int end = str._lastNonWhitespace() + 1;
     assert(start < end);
     var result = _tryParseDouble(str, start, end);

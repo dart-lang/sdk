@@ -16,5 +16,6 @@ class PortsRepositoryMock implements M.PortsRepository {
     return new Future.value(new PortsMock());
   }
 
-  PortsRepositoryMock({PortsRepositoryMockGetter getter}) : _getter = getter;
+  PortsRepositoryMock({PortsRepositoryMockGetter getter})
+    : _getter = getter;
 }

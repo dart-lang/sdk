@@ -19,7 +19,7 @@ void testFunction() {
   int i = 0;
   while (i == 0) {
     debugger();
-    print('loop'); // Line A.
+    print('loop');  // Line A.
     print('loop');
   }
 }
@@ -33,7 +33,8 @@ class TestDebugger extends Debugger {
   int currentFrame = 0;
 }
 
-void debugger_location_dummy_function() {}
+void debugger_location_dummy_function() {
+}
 
 class DebuggerLocationTestFoo {
   DebuggerLocationTestFoo(this.field);
@@ -45,7 +46,8 @@ class DebuggerLocationTestFoo {
   int field;
 }
 
-class DebuggerLocationTestBar {}
+class DebuggerLocationTestBar {
+}
 
 Future<Debugger> initDebugger(Isolate isolate) {
   return isolate.getStack().then((stack) {
@@ -54,100 +56,100 @@ Future<Debugger> initDebugger(Isolate isolate) {
 }
 
 var tests = [
-  hasStoppedAtBreakpoint,
+
+hasStoppedAtBreakpoint,
 
 // Parse '' => current position
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, '');
-    expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('debugger_location_test.dart:$LINE_A:5'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, '');
+  expect(loc.valid, isTrue);
+  expect(loc.toString(), equals('debugger_location_test.dart:$LINE_A:5'));
+},
 
 // Parse line
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, '18');
-    expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('debugger_location_test.dart:18'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, '18');
+  expect(loc.valid, isTrue);
+  expect(loc.toString(), equals('debugger_location_test.dart:18'));
+},
 
 // Parse line + col
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, '16:11');
-    expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('debugger_location_test.dart:16:11'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, '16:11');
+  expect(loc.valid, isTrue);
+  expect(loc.toString(), equals('debugger_location_test.dart:16:11'));
+},
 
 // Parse script + line
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15');
-    expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('unittest.dart:15'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15');
+  expect(loc.valid, isTrue);
+  expect(loc.toString(), equals('unittest.dart:15'));
+},
 
 // Parse script + line + col
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15:10');
-    expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('unittest.dart:15:10'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, 'unittest.dart:15:10');
+  expect(loc.valid, isTrue);
+  expect(loc.toString(), equals('unittest.dart:15:10'));
+},
 
 // Parse bad script
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'bad.dart:15');
-    expect(loc.valid, isFalse);
-    expect(loc.toString(),
-        equals('invalid source location (Script \'bad.dart\' not found)'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, 'bad.dart:15');
+  expect(loc.valid, isFalse);
+  expect(loc.toString(), equals(
+      'invalid source location (Script \'bad.dart\' not found)'));
+},
 
 // Parse function
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'testFunction');
-    expect(loc.valid, isTrue);
-    expect(loc.toString(), equals('testFunction'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, 'testFunction');
+  expect(loc.valid, isTrue);
+  expect(loc.toString(), equals('testFunction'));
+},
 
 // Parse bad function
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'doesNotReallyExist');
-    expect(loc.valid, isFalse);
-    expect(
-        loc.toString(),
-        equals(
-            'invalid source location (Function \'doesNotReallyExist\' not found)'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, 'doesNotReallyExist');
+  expect(loc.valid, isFalse);
+  expect(loc.toString(), equals(
+      'invalid source location (Function \'doesNotReallyExist\' not found)'));
+},
 
 // Parse constructor
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc = await DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo');
-    expect(loc.valid, isTrue);
-    // TODO(turnidge): Printing a constructor currently adds
-    // another class qualifier at the front.  Do we want to change
-    // this to be more consistent?
-    expect(loc.toString(),
-        equals('DebuggerLocationTestFoo.DebuggerLocationTestFoo'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc = await DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo');
+  expect(loc.valid, isTrue);
+  // TODO(turnidge): Printing a constructor currently adds
+  // another class qualifier at the front.  Do we want to change
+  // this to be more consistent?
+  expect(loc.toString(), equals(
+      'DebuggerLocationTestFoo.DebuggerLocationTestFoo'));
+},
 
 // Parse named constructor
-  (Isolate isolate) async {
-    var debugger = await initDebugger(isolate);
-    var loc =
-        await DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo.named');
-    expect(loc.valid, isTrue);
-    // TODO(turnidge): Printing a constructor currently adds
-    // another class qualifier at the front.  Do we want to change
-    // this to be more consistent?
-    expect(loc.toString(),
-        equals('DebuggerLocationTestFoo.DebuggerLocationTestFoo.named'));
-  },
+(Isolate isolate) async {
+  var debugger = await initDebugger(isolate);
+  var loc =
+      await DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo.named');
+  expect(loc.valid, isTrue);
+  // TODO(turnidge): Printing a constructor currently adds
+  // another class qualifier at the front.  Do we want to change
+  // this to be more consistent?
+  expect(loc.toString(), equals(
+      'DebuggerLocationTestFoo.DebuggerLocationTestFoo.named'));
+},
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);

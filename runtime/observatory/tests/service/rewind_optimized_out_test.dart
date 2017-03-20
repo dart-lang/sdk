@@ -32,25 +32,26 @@ b3(x) {
   if (global >= 100) {
     debugger();
   }
-  global = global + 1; // Line A
+  global = global + 1;  // Line A
   return sum;
 }
 
 @alwaysInline
-b2(x) => b3(x); // Line B
+b2(x) => b3(x);  // Line B
 
 @alwaysInline
-b1(x) => b2(x); // Line C
+b1(x) => b2(x);  // Line C
 
 test() {
   while (true) {
-    b1(10000); // Line D
+    b1(10000);  // Line D
   }
 }
 
 var tests = [
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
+
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
     var result = await isolate.rootLibrary.evaluate('global');
@@ -62,25 +63,25 @@ var tests = [
     bool caughtException;
     try {
       result = await isolate.rewind(1);
-      expect(false, isTrue, reason: 'Unreachable');
-    } on ServerRpcException catch (e) {
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kCannotResume));
-      expect(
-          e.message,
-          startsWith('Cannot rewind to frame 1 due to conflicting compiler '
-              'optimizations. Run the vm with --no-prune-dead-locals '
-              'to disallow these optimizations. Next valid rewind '
-              'frame is '));
+      expect(e.message,
+             startsWith('Cannot rewind to frame 1 due to conflicting compiler '
+                        'optimizations. Run the vm with --no-prune-dead-locals '
+                        'to disallow these optimizations. Next valid rewind '
+                        'frame is '));
     }
     expect(caughtException, isTrue);
   },
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: test, extraArgs: [
-      '--trace-rewind',
-      '--prune-dead-locals',
-      '--enable-inlining-annotations',
-      '--no-background-compilation',
-      '--optimization-counter-threshold=10'
-    ]);
+
+main(args) => runIsolateTests(args, tests, testeeConcurrent: test,
+                              extraArgs:
+                              ['--trace-rewind',
+                               '--prune-dead-locals',
+                               '--enable-inlining-annotations',
+                               '--no-background-compilation',
+                               '--optimization-counter-threshold=10']);

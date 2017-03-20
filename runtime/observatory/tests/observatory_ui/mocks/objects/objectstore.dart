@@ -14,6 +14,6 @@ class NamedFieldMock implements M.NamedField {
   final String name;
   final M.ObjectRef value;
 
-  const NamedFieldMock(
-      {this.name: 'field-name', this.value: const InstanceRefMock()});
+  const NamedFieldMock({this.name: 'field-name',
+                        this.value: const InstanceRefMock()});
 }

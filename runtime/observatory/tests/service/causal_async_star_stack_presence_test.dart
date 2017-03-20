@@ -15,14 +15,14 @@ const LINE_C = 20;
 
 foobar() async* {
   debugger();
-  yield 1; // LINE_B.
+  yield 1;     // LINE_B.
   debugger();
-  yield 2; // LINE_C.
+  yield 2;     // LINE_C.
 }
 
 helper() async {
   debugger();
-  print('helper'); // LINE_A.
+  print('helper');  // LINE_A.
   await for (var i in foobar()) {
     print('helper $i');
   }
@@ -43,14 +43,17 @@ var tests = [
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
+
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     // Has causal frames (we are inside an async function)
     expect(stack['asyncCausalFrames'], isNotNull);
   },
+
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
+
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     // Has causal frames (we are inside a function called by an async function)
@@ -58,5 +61,6 @@ var tests = [
   },
 ];
 
-main(args) =>
-    runIsolateTestsSynchronous(args, tests, testeeConcurrent: testMain);
+main(args) => runIsolateTestsSynchronous(args,
+                                         tests,
+                                         testeeConcurrent: testMain);

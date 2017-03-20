@@ -12,6 +12,7 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
+
 // testee state.
 String selfId;
 Core.Isolate childIsolate;
@@ -55,7 +56,8 @@ var tests = [
 
     // Grab the child isolate.
     localChildIsolate =
-        vm.isolates.firstWhere((Service.Isolate i) => i != initialIsolate);
+        vm.isolates.firstWhere(
+            (Service.Isolate i) => i != initialIsolate);
     expect(localChildIsolate, isNotNull);
 
     // Reload the initial isolate.
@@ -84,4 +86,5 @@ var tests = [
   }
 ];
 
-main(args) async => runVMTests(args, tests, testeeConcurrent: testeeMain);
+main(args) async => runVMTests(args, tests,
+    testeeConcurrent: testeeMain);
