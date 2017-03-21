@@ -714,7 +714,7 @@ internal_library_test/02: MissingStaticWarning # Issue 28823
 main_not_a_function_test/01: MissingStaticWarning # Issue 28823
 main_test/03: MissingStaticWarning # Issue 28823
 no_main_test/01: MissingStaticWarning # Issue 28823
-regress_23089_test: CompileTimeError # Issue 28823
+regress_23089_test: Skip # was: CompileTimeError # Issue 28823
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 super_setter_test: StaticWarning # Issue 28823
 try_catch4_test: StaticWarning # Issue 28823
