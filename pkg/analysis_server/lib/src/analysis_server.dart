@@ -23,6 +23,7 @@ import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
@@ -109,6 +110,11 @@ class AnalysisServer {
    * to stdin. This should be removed once the underlying problem is fixed.
    */
   static int performOperationDelayFrequency = 25;
+
+  /**
+   * IDE options for this server instance.
+   */
+  IdeOptions ideOptions;
 
   /**
    * The options of this server instance.
@@ -461,6 +467,7 @@ class AnalysisServer {
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
+    ideOptions = new IdeOptionsImpl();
   }
 
   /**
@@ -529,16 +536,16 @@ class AnalysisServer {
       _onContextsChangedController.stream;
 
   /**
-   * The stream that is notified when a single file has been analyzed.
-   */
-  Stream get onFileAnalyzed => _onFileAnalyzedController.stream;
-
-  /**
    * The stream that is notified when a single file has been added. This exists
    * as a temporary stopgap for plugins, until the official plugin API is
    * complete.
    */
   Stream get onFileAdded => _onFileAddedController.stream;
+
+  /**
+   * The stream that is notified when a single file has been analyzed.
+   */
+  Stream get onFileAnalyzed => _onFileAnalyzedController.stream;
 
   /**
    * The stream that is notified when a single file has been changed. This
