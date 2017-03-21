@@ -7,7 +7,6 @@ library linter.src.rules.prefer_final_fields;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -64,6 +63,24 @@ class GoodMutable {
 ```
 ''';
 
+bool _isMutated(
+        VariableDeclaration variable, CompilationUnit compilationUnit) =>
+    DartTypeUtilities
+        .traverseNodesInDFS(compilationUnit)
+        .any((n) =>
+            (n is AssignmentExpression &&
+                DartTypeUtilities
+                        .getCanonicalElementFromIdentifier(n.leftHandSide) ==
+                    variable.element) ||
+            (n is PrefixExpression &&
+                DartTypeUtilities
+                        .getCanonicalElementFromIdentifier(n.operand) ==
+                    variable.element) ||
+            (n is PostfixExpression &&
+                DartTypeUtilities
+                        .getCanonicalElementFromIdentifier(n.operand) ==
+                    variable.element));
+
 class PreferFinalFields extends LintRule {
   _Visitor _visitor;
 
@@ -109,22 +126,7 @@ class _Visitor extends SimpleAstVisitor {
         return;
       }
 
-      final isMutated = DartTypeUtilities
-          .traverseNodesInDFS(compilationUnit)
-          .where((n) =>
-              n is SimpleIdentifier && n.bestElement is PropertyAccessorElement)
-          .any((n) {
-        SimpleIdentifier identifier = n as SimpleIdentifier;
-        PropertyAccessorElement bestElement =
-            identifier.bestElement as PropertyAccessorElement;
-        if (bestElement.variable != variable.element) {
-          return false;
-        }
-
-        return identifier.getAncestor((a) => a is AssignmentExpression) !=
-                null ||
-            identifier.getAncestor((a) => a is ExpressionStatement) != null;
-      });
+      final isMutated = _isMutated(variable, compilationUnit);
 
       if (isMutated) {
         return;

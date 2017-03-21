@@ -21,6 +21,19 @@ class DartTypeUtilities {
   static Element getCanonicalElement(Element element) =>
       element is PropertyAccessorElement ? element.variable : element;
 
+  static Element getCanonicalElementFromIdentifier(Expression node) {
+    if (node is ParenthesizedExpression) {
+      return getCanonicalElementFromIdentifier(node.expression);
+    }
+    Element element;
+    if (node is Identifier) {
+      element = node.bestElement;
+    } else if (node is PropertyAccess) {
+      element = node.propertyName.bestElement;
+    }
+    return getCanonicalElement(element);
+  }
+
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {
     if (type is! InterfaceType) {
