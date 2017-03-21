@@ -73,14 +73,15 @@ class DartTypeUtilities {
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
       {AstNodePredicate excludeCriteria}) {
     LinkedHashSet<AstNode> nodes = new LinkedHashSet();
-    node.childEntities
-        .where((c) =>
-            c is AstNode && (excludeCriteria == null || !excludeCriteria(c)))
-        .forEach((c) {
-      nodes
-        ..add(c)
-        ..addAll(traverseNodesInDFS(c, excludeCriteria: excludeCriteria));
-    });
+    void recursiveCall(node) {
+      if (node is AstNode &&
+          (excludeCriteria == null || !excludeCriteria(node))) {
+        nodes.add(node);
+        node.childEntities.forEach(recursiveCall);
+      }
+    }
+
+    node.childEntities.forEach(recursiveCall);
     return nodes;
   }
 

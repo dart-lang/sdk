@@ -83,22 +83,24 @@ void bad() {
 ''';
 
 bool _onlyLiterals(Expression expression) {
-  final literalsOnBothSides = expression is BinaryExpression &&
-      (_onlyLiterals(expression.leftOperand) &&
-          _onlyLiterals(expression.rightOperand));
-  final ifNullOperatorWithLiteral = expression is BinaryExpression &&
-      (_onlyLiterals(expression.leftOperand) ||
-          _onlyLiterals(expression.rightOperand)) &&
-      expression.operator.type == TokenType.QUESTION_QUESTION;
-  final literalNegation =
-      expression is PrefixExpression && _onlyLiterals(expression.operand);
-  final parenthesizedLiteral = expression is ParenthesizedExpression &&
-      _onlyLiterals(expression.expression);
-  return expression is Literal ||
-      literalsOnBothSides ||
-      ifNullOperatorWithLiteral ||
-      literalNegation ||
-      parenthesizedLiteral;
+  if (expression is Literal) {
+    return true;
+  }
+  if (expression is ParenthesizedExpression) {
+    return _onlyLiterals(expression.expression);
+  }
+  if (expression is PrefixExpression) {
+    return _onlyLiterals(expression.operand);
+  }
+  if (expression is BinaryExpression) {
+    if (expression.operator.type == TokenType.QUESTION_QUESTION) {
+      return _onlyLiterals(expression.leftOperand) ||
+          _onlyLiterals(expression.rightOperand);
+    }
+    return _onlyLiterals(expression.leftOperand) &&
+        _onlyLiterals(expression.rightOperand);
+  }
+  return false;
 }
 
 class LiteralOnlyBooleanExpressions extends LintRule {
