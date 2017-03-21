@@ -193,6 +193,7 @@ class AndroidHelper {
 class AdbDevice {
   static const _adbServerStartupTime = const Duration(seconds: 3);
   String _deviceId;
+  Map<String, String> _cachedData = new Map<String, String>();
 
   String get deviceId => _deviceId;
 
@@ -245,6 +246,19 @@ class AdbDevice {
    */
   Future pushData(Path local, Path remote) {
     return _adbCommand(['push', '$local', '$remote']);
+  }
+
+  /**
+   * Upload data to the device, unless [local] is the same as the most recently
+   * used source for [remote].
+   */
+  Future pushCachedData(String local, String remote) {
+    if (_cachedData[remote] == local) {
+      return new Future.value(new AdbCommandResult(
+          "Skipped cached push", "", "", 0, false));
+    }
+    _cachedData[remote] = local;
+    return _adbCommand(['push', local, remote]);
   }
 
   /**
@@ -416,6 +430,7 @@ class AdbDevicePool {
           'No android devices found. '
           'Please make sure "adb devices" shows your device!');
     }
+    print("Found ${devices.length} Android devices.");
     return new AdbDevicePool(devices);
   }
 
