@@ -8,7 +8,17 @@ import '../../scanner/token.dart' as analyzer;
 
 import 'keyword.dart' show Keyword;
 
-import 'precedence.dart' show BAD_INPUT_INFO, EOF_INFO, PrecedenceInfo;
+import 'precedence.dart'
+    show
+        AS_INFO,
+        BAD_INPUT_INFO,
+        EOF_INFO,
+        IDENTIFIER_INFO,
+        IS_INFO,
+        KEYWORD_INFO,
+        MULTI_LINE_COMMENT_INFO,
+        SINGLE_LINE_COMMENT_INFO,
+        PrecedenceInfo;
 
 import 'token_constants.dart' show IDENTIFIER_TOKEN;
 
@@ -145,7 +155,10 @@ abstract class Token implements analyzer.TokenWithComment {
   bool get isUserDefinableOperator => info.isUserDefinableOperator;
 
   @override
-  analyzer.TokenType get type => info;
+  analyzer.TokenType get type {
+    // Analyzer has a different concept of what is a Keyword type.
+    return info == AS_INFO || info == IS_INFO ? KEYWORD_INFO : info;
+  }
 
   @override
   int get offset => charOffset;
@@ -265,11 +278,19 @@ class SymbolToken extends Token {
  * The [endGroup] token points to the matching closing bracked in case
  * it can be identified during scanning.
  */
-class BeginGroupToken extends SymbolToken {
+class BeginGroupToken extends SymbolToken implements analyzer.BeginToken {
   Token endGroup;
 
   BeginGroupToken(PrecedenceInfo info, int charOffset)
       : super(info, charOffset);
+
+  @override
+  analyzer.Token get endToken => endGroup;
+
+  @override
+  void set endToken(analyzer.Token token) {
+    endGroup = token;
+  }
 }
 
 /**
@@ -302,7 +323,22 @@ class KeywordToken extends Token {
   Token copyWithoutComments() => new KeywordToken(keyword, charOffset);
 
   @override
-  Object value() => keyword;
+  Object value() {
+    // Analyzer has different set of keyword tokens
+    // TODO(danrubel): Remove special case for "deferred" once dartbug.com/29069
+    // is fixed.
+    return isPseudo && !identical("deferred", lexeme) ? lexeme : keyword;
+  }
+
+  @override
+  analyzer.TokenType get type {
+    // Analyzer considers pseudo-keywords to be identifiers
+    // TODO(danrubel): Remove special case for "deferred" once dartbug.com/29069
+    // is fixed.
+    return isPseudo && !identical("deferred", lexeme)
+        ? IDENTIFIER_INFO
+        : KEYWORD_INFO;
+  }
 }
 
 /**

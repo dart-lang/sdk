@@ -457,7 +457,7 @@ class PrecedenceInfoTest {
       for (String source in lexemes) {
         var scanner = new StringScanner(source, includeComments: true);
         var token = scanner.tokenize();
-        expect(token.type.precedence, precedence, reason: source);
+        expect(token.info.precedence, precedence, reason: source);
       }
     });
   }

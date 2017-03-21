@@ -238,6 +238,7 @@ analyzer.CommentToken toAnalyzerCommentToken(Token token) {
 /// information.
 Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
   Token tokenHead = new SymbolToken(EOF_INFO, -1);
+  tokenHead.previous = tokenHead;
   Token tokenTail = tokenHead;
 
   // Both fasta and analyzer have links from a "BeginToken" to its matching
@@ -316,6 +317,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
       tokenTail.next.previousToken = tokenTail;
       tokenTail.next.precedingCommentTokens =
           translateComments(analyzerToken.precedingComments);
+      tokenTail.next.next = tokenTail.next;
       return tokenHead.next;
     }
     analyzerToken = translateAndAppend(analyzerToken);
