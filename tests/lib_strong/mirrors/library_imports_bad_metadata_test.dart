@@ -4,7 +4,7 @@
 
 library test.library_imports_bad_metadata;
 
-@undefined // //# 01: compile-time error
+@undefined // /// 01: compile-time error
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

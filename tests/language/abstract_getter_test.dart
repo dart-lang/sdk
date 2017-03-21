@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 
 class Foo {
   // Intentionally abstract:
-  get i; // //# 01: static type warning
+  get i; // /// 01: static type warning
 }
 
 class Bar {
@@ -17,9 +17,9 @@ class Bar {
 noMethod(e) => e is NoSuchMethodError;
 
 checkIt(f) {
-  Expect.throws(() { f.i = 'hi'; }, noMethod); // //# 01: continued
-  Expect.throws(() { print(f.i); }, noMethod); // //# 01: continued
-  Expect.throws(() { print(f.i()); }, noMethod); // //# 01: continued
+  Expect.throws(() { f.i = 'hi'; }, noMethod); // /// 01: continued
+  Expect.throws(() { print(f.i); }, noMethod); // /// 01: continued
+  Expect.throws(() { print(f.i()); }, noMethod); // /// 01: continued
 }
 
 main() {

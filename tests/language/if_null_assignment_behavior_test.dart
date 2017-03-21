@@ -126,10 +126,10 @@ class C {
 
   void instanceTest() {
     // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
-    vGetValue = 1; check(1, () => v ??= bad(), ['$s.v']); //# 01: ok
-    yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']); //# 02: ok
-    check(1, () => finalOne ??= bad(), []); //# 03: static type warning
-    yGetValue = 1; checkThrows(noMethod, () => finalNull ??= y, ['y']); //# 04: static type warning
+    vGetValue = 1; check(1, () => v ??= bad(), ['$s.v']); /// 01: ok
+    yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']); /// 02: ok
+    check(1, () => finalOne ??= bad(), []); /// 03: static type warning
+    yGetValue = 1; checkThrows(noMethod, () => finalNull ??= y, ['y']); /// 04: static type warning
   }
 }
 
@@ -145,8 +145,8 @@ class D extends C {
   void derivedInstanceTest() {
     // super.v ??= e is equivalent to
     // ((x) => x == null ? super.v = e : x)(super.v)
-    vGetValue = 1; check(1, () => super.v ??= bad(), ['$s.v']); //# 05: ok
-    yGetValue = 1; check(1, () => super.v ??= y, ['$s.v', 'y', '$s.v=1']); //# 06: ok
+    vGetValue = 1; check(1, () => super.v ??= bad(), ['$s.v']); /// 05: ok
+    yGetValue = 1; check(1, () => super.v ??= y, ['$s.v', 'y', '$s.v=1']); /// 06: ok
   }
 }
 
@@ -159,56 +159,56 @@ main() {
   new D('d').derivedInstanceTest();
 
   // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
-  xGetValue = 1; check(1, () => x ??= bad(), ['x']); //# 07: ok
-  yGetValue = 1; check(1, () => x ??= y, ['x', 'y', 'x=1']); //# 08: ok
-  h.xGetValue = 1; check(1, () => h.x ??= bad(), ['h.x']); //# 09: ok
-  yGetValue = 1; check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']); //# 10: ok
-  { var l = 1; check(1, () => l ??= bad(), []); } //# 11: ok
-  { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); } //# 12: ok
-  { final l = 1; check(1, () => l ??= bad(), []); } //# 13: static type warning
-  { final l = null; yGetValue = 1; checkThrows(noMethod, () => l ??= y, ['y']); } //# 14: static type warning
-  check(C, () => C ??= bad(), []); //# 15: static type warning
-  h ??= null; //# 29: compile-time error
-  h[0] ??= null; //# 30: compile-time error
+  xGetValue = 1; check(1, () => x ??= bad(), ['x']); /// 07: ok
+  yGetValue = 1; check(1, () => x ??= y, ['x', 'y', 'x=1']); /// 08: ok
+  h.xGetValue = 1; check(1, () => h.x ??= bad(), ['h.x']); /// 09: ok
+  yGetValue = 1; check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']); /// 10: ok
+  { var l = 1; check(1, () => l ??= bad(), []); } /// 11: ok
+  { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); } /// 12: ok
+  { final l = 1; check(1, () => l ??= bad(), []); } /// 13: static type warning
+  { final l = null; yGetValue = 1; checkThrows(noMethod, () => l ??= y, ['y']); } /// 14: static type warning
+  check(C, () => C ??= bad(), []); /// 15: static type warning
+  h ??= null; /// 29: compile-time error
+  h[0] ??= null; /// 30: compile-time error
 
   // C.v ??= e is equivalent to ((x) => x == null ? C.v = e : x)(C.v)
-  C.xGetValue = 1; check(1, () => C.x ??= bad(), ['C.x']); //# 16: ok
-  yGetValue = 1; check(1, () => C.x ??= y, ['C.x', 'y', 'C.x=1']); //# 17: ok
-  h.C.xGetValue = 1; check(1, () => h.C.x ??= bad(), ['h.C.x']); //# 18: ok
-  yGetValue = 1; check(1, () => h.C.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); //# 19: ok
+  C.xGetValue = 1; check(1, () => C.x ??= bad(), ['C.x']); /// 16: ok
+  yGetValue = 1; check(1, () => C.x ??= y, ['C.x', 'y', 'C.x=1']); /// 17: ok
+  h.C.xGetValue = 1; check(1, () => h.C.x ??= bad(), ['h.C.x']); /// 18: ok
+  yGetValue = 1; check(1, () => h.C.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); /// 19: ok
 
   // e1.v ??= e2 is equivalent to
   // ((x) => ((y) => y == null ? x.v = e2 : y)(x.v))(e1)
-  xGetValue = new C('x'); xGetValue.vGetValue = 1; //# 20: ok
-  check(1, () => x.v ??= bad(), ['x', 'x.v']); //    //# 20: continued
-  xGetValue = new C('x'); yGetValue = 1; //               //# 21: ok
-  check(1, () => x.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); //# 21: continued
-  fValue = new C('f()'); fValue.vGetValue = 1; //      //# 22: ok
-  check(1, () => f().v ??= bad(), ['f()', 'f().v']); //# 22: continued
-  fValue = new C('f()'); yGetValue = 1; //                         //# 23: ok
-  check(1, () => f().v ??= y, ['f()', 'f().v', 'y', 'f().v=1']); //# 23: continued
+  xGetValue = new C('x'); xGetValue.vGetValue = 1; /// 20: ok
+  check(1, () => x.v ??= bad(), ['x', 'x.v']); //    /// 20: continued
+  xGetValue = new C('x'); yGetValue = 1; //               /// 21: ok
+  check(1, () => x.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); /// 21: continued
+  fValue = new C('f()'); fValue.vGetValue = 1; //      /// 22: ok
+  check(1, () => f().v ??= bad(), ['f()', 'f().v']); /// 22: continued
+  fValue = new C('f()'); yGetValue = 1; //                         /// 23: ok
+  check(1, () => f().v ??= y, ['f()', 'f().v', 'y', 'f().v=1']); /// 23: continued
 
   // e1[e2] ??= e3 is equivalent to
   // ((a, i) => ((x) => x == null ? a[i] = e3 : x)(a[i]))(e1, e2)
-  xGetValue = new C('x'); yGetValue = 1; xGetValue.indexGetValue = 2; //# 24: ok
-  check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']); //                //# 24: continued
-  xGetValue = new C('x'); yGetValue = 1; zGetValue = 2; //         //# 25: ok
-  check(2, () => x[y] ??= z, ['x', 'y', 'x[1]', 'z', 'x[1]=2']); //# 25: continued
+  xGetValue = new C('x'); yGetValue = 1; xGetValue.indexGetValue = 2; /// 24: ok
+  check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']); //                /// 24: continued
+  xGetValue = new C('x'); yGetValue = 1; zGetValue = 2; //         /// 25: ok
+  check(2, () => x[y] ??= z, ['x', 'y', 'x[1]', 'z', 'x[1]=2']); /// 25: continued
 
   // e1?.v ??= e2 is equivalent to ((x) => x == null ? null : x.v ??= e2)(e1).
-  check(null, () => x?.v ??= bad(), ['x']); //# 26: ok
-  xGetValue = new C('x'); xGetValue.vGetValue = 1; //# 27: ok
-  check(1, () => x?.v ??= bad(), ['x', 'x.v']); //    //# 27: continued
-  xGetValue = new C('x'); yGetValue = 1; //                //# 28: ok
-  check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); //# 28: continued
+  check(null, () => x?.v ??= bad(), ['x']); /// 26: ok
+  xGetValue = new C('x'); xGetValue.vGetValue = 1; /// 27: ok
+  check(1, () => x?.v ??= bad(), ['x', 'x.v']); //    /// 27: continued
+  xGetValue = new C('x'); yGetValue = 1; //                /// 28: ok
+  check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); /// 28: continued
 
   // C?.v ??= e2 is equivalent to C.v ??= e2.
-  C.xGetValue = 1; //                        //# 29: ok
-  check(1, () => C?.x ??= bad(), ['C.x']); //# 29: continued
-  h.C.xgetValue = 1; //                          //# 30: ok
-  check(1, () => h.c?.x ??= bad(), ['h.C.x']); //# 30: continued
-  yGetValue = 1; //                                    //# 31: ok
-  check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']); //# 31: continued
-  yGetValue = 1; //                                          //# 32: ok
-  check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); //# 32: continued
+  C.xGetValue = 1; //                        /// 29: ok
+  check(1, () => C?.x ??= bad(), ['C.x']); /// 29: continued
+  h.C.xgetValue = 1; //                          /// 30: ok
+  check(1, () => h.c?.x ??= bad(), ['h.C.x']); /// 30: continued
+  yGetValue = 1; //                                    /// 31: ok
+  check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']); /// 31: continued
+  yGetValue = 1; //                                          /// 32: ok
+  check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); /// 32: continued
 }

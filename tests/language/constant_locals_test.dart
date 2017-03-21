@@ -7,13 +7,13 @@
 import "package:expect/expect.dart";
 
 void main() {
-  const c1; //# 01: compile-time error
+  const c1; /// 01: compile-time error
   const c2 = 0;
-  const c3 = field; //# 02: compile-time error
-  const c4 = finalField; //# 03: compile-time error
+  const c3 = field; /// 02: compile-time error
+  const c4 = finalField; /// 03: compile-time error
   const c5 = constField;
-  const c6 = method(); //# 04: compile-time error
-  const c7 = new Class(); //# 05: compile-time error
+  const c6 = method(); /// 04: compile-time error
+  const c7 = new Class(); /// 05: compile-time error
   const c8 = const Class();
 }
 

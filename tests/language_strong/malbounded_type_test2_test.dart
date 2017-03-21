@@ -18,7 +18,7 @@ class A<T extends num> { }
 
 class B<T> {
   test() {
-    new A() is A<T>; // //# static type warning
+    new A() is A<T>; // /// static type warning
   }
 }
 

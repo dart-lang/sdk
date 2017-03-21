@@ -4,8 +4,8 @@
 
 main() {
   for(
-      const //                          //# 01: compile-time error
-      final //                          //# 02: ok
+      const //                          /// 01: compile-time error
+      final //                          /// 02: ok
       int x in const [1, 2, 3]) {
     break;
   }

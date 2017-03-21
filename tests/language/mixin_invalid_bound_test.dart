@@ -22,14 +22,14 @@ class D<T> extends S<T> with M<bool> { }
 class E<T> extends S<bool> with M<T> { }
 
 main() {
-  new A<int>(); // //# 01: static type warning
-  new A<bool>(); // //# 02: static type warning, dynamic type error
-  new B<int>(); // //# 03: static type warning
-  new B<bool>(); // //# 04: static type warning, dynamic type error
-  new C<int>(); // //# 05: static type warning
-  new C<bool>(); // //# 06: static type warning, dynamic type error
-  new D<int>(); // //# 07: static type warning, dynamic type error
-  new D<bool>(); // //# 08: static type warning, dynamic type error
-  new E<int>(); // //# 09: static type warning, dynamic type error
-  new E<bool>(); // //# 10: static type warning, dynamic type error
+  new A<int>(); // /// 01: static type warning
+  new A<bool>(); // /// 02: static type warning, dynamic type error
+  new B<int>(); // /// 03: static type warning
+  new B<bool>(); // /// 04: static type warning, dynamic type error
+  new C<int>(); // /// 05: static type warning
+  new C<bool>(); // /// 06: static type warning, dynamic type error
+  new D<int>(); // /// 07: static type warning, dynamic type error
+  new D<bool>(); // /// 08: static type warning, dynamic type error
+  new E<int>(); // /// 09: static type warning, dynamic type error
+  new E<bool>(); // /// 10: static type warning, dynamic type error
 }

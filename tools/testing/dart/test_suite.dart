@@ -36,9 +36,9 @@ import 'browser_test.dart';
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
 RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
-// Require at least one non-space character before '//[/#]'
+// Require at least one non-space character before '///'
 RegExp multiTestRegExp = new RegExp(r"\S *"
-    r"//[#/] \w+:(.*)");
+    r"/// \w+:(.*)");
 RegExp dartExtension = new RegExp(r'\.dart$');
 
 /**
@@ -308,8 +308,7 @@ abstract class TestSuite {
     if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
       // Handle reload special cases.
       if (expectations.contains(Expectation.COMPILETIME_ERROR) ||
-          testCase.hasCompileError ||
-          testCase.expectCompileError) {
+          testCase.hasCompileError || testCase.expectCompileError) {
         // Running a test that expects a compilation error with hot reloading
         // is redundant with a regular run of the test.
         return;
@@ -384,7 +383,7 @@ abstract class TestSuite {
 
   String createOutputDirectory(Path testPath, String optionsName) {
     var checked = configuration['checked'] ? '-checked' : '';
-    var strong = configuration['strong'] ? '-strong' : '';
+    var strong =  configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
@@ -395,7 +394,7 @@ abstract class TestSuite {
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration['checked'] ? '-checked' : '';
-    var strong = configuration['strong'] ? '-strong' : '';
+    var strong =  configuration['strong'] ? '-strong' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var csp = configuration['csp'] ? '-csp' : '';
     var sdk = configuration['use_sdk'] ? '-sdk' : '';
@@ -835,13 +834,12 @@ class StandardTestSuite extends TestSuite {
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
-      group.add(doMultitest(
-          filePath,
-          buildDir,
-          suiteDir,
-          createTestCase,
-          (configuration['hot_reload'] ||
-              configuration['hot_reload_rollback'])));
+      group.add(doMultitest(filePath,
+                            buildDir,
+                            suiteDir,
+                            createTestCase,
+                            (configuration['hot_reload'] ||
+                             configuration['hot_reload_rollback'])));
     } else {
       createTestCase(filePath, filePath, optionsFromFile['hasCompileError'],
           optionsFromFile['hasRuntimeError'],
@@ -1135,8 +1133,8 @@ class StandardTestSuite extends TestSuite {
       String optionsName =
           multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
       String tempDir = createOutputDirectory(info.filePath, optionsName);
-      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages, info,
-          testName, expectations, vmOptions, tempDir);
+      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages,
+          info, testName, expectations, vmOptions, tempDir);
     }
   }
 
@@ -1403,8 +1401,8 @@ class StandardTestSuite extends TestSuite {
       args = [];
     }
     args.addAll(TestUtils.standardOptions(configuration));
-    String packages = packagesArgument(
-        optionsFromFile['packageRoot'], optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args.add('--out=$outputFile');
     args.add(inputFile);
@@ -1424,8 +1422,8 @@ class StandardTestSuite extends TestSuite {
   Command _polymerDeployCommand(
       String inputFile, String outputDir, optionsFromFile) {
     List<String> args = [];
-    String packages = packagesArgument(
-        optionsFromFile['packageRoot'], optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) args.add(packages);
     args
       ..add('package:polymer/deploy.dart')
@@ -1480,8 +1478,8 @@ class StandardTestSuite extends TestSuite {
   List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
 
-    String packages = packagesArgument(
-        optionsFromFile['packageRoot'], optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'],
+                                       optionsFromFile['packages']);
     if (packages != null) {
       args.add(packages);
     }
@@ -1509,15 +1507,17 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packagesArgument(String packageRootFromFile, String packagesFromFile) {
-    if (packageRootFromFile == 'none' || packagesFromFile == 'none') {
+  String packagesArgument(String packageRootFromFile,
+                             String packagesFromFile) {
+    if (packageRootFromFile == 'none' ||
+        packagesFromFile == 'none') {
       return null;
     } else if (packagesFromFile != null) {
       return '--packages=$packagesFromFile';
     } else if (packageRootFromFile != null) {
       return '--package-root=$packageRootFromFile';
     } else {
-      return null;
+    return null;
     }
   }
 
@@ -1717,7 +1717,7 @@ class StandardTestSuite extends TestSuite {
 
   Map optionsFromKernelFile() {
     return const {
-      "vmOptions": const [const []],
+      "vmOptions": const [ const []],
       "sharedOptions": const [],
       "dartOptions": null,
       "packageRoot": null,
@@ -1933,8 +1933,7 @@ class PkgBuildTestSuite extends TestSuite {
         var commands = [
           CommandBuilder.instance.getCopyCommand(directory, checkoutDir),
           CommandBuilder.instance.getPubCommand(
-              "get", pubPath, checkoutDir, cacheDir,
-              arguments: ['--verbose'])
+              "get", pubPath, checkoutDir, cacheDir, arguments: ['--verbose'])
         ];
 
         bool containsWebDirectory = dirExists(directoryPath.append('web'));
@@ -2143,7 +2142,7 @@ class TestUtils {
         configuration['compiler'] == 'dart2appjit' ||
         configuration['compiler'] == 'precompiler') {
       var checked = configuration['checked'] ? '-checked' : '';
-      var strong = configuration['strong'] ? '-strong' : '';
+      var strong =  configuration['strong'] ? '-strong' : '';
       var minified = configuration['minified'] ? '-minified' : '';
       var csp = configuration['csp'] ? '-csp' : '';
       var sdk = configuration['use_sdk'] ? '-sdk' : '';
@@ -2345,7 +2344,7 @@ class TestUtils {
   static List<String> getExtraVmOptions(Map configuration) =>
       getExtraOptions(configuration, 'vm_options');
 
-  static int shortNameCounter = 0; // Make unique short file names on Windows.
+  static int shortNameCounter = 0;  // Make unique short file names on Windows.
 
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {

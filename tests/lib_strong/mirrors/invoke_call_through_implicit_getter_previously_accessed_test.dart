@@ -57,8 +57,8 @@ testInstanceReflective() {
                 im.invoke(#closure, [9, 10]).reflectee);
   Expect.equals('3 C 11 12 13 null',
                 im.invoke(#closureOpt, [11, 12, 13]).reflectee);
-  Expect.equals('4 C 14 15 null 16', //                                       //# named: ok
-                im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); //   //# named: continued
+  Expect.equals('4 C 14 15 null 16', //                                       /// named: ok
+                im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); //   /// named: continued
   Expect.equals('DNU',
                 im.invoke(#doesNotExist, [17, 18]).reflectee);
   Expect.throws(() => im.invoke(#closure, ['wrong arity']),
@@ -96,8 +96,8 @@ testClassReflective() {
                 cm.invoke(#closure, [9, 10]).reflectee);
   Expect.equals('3 11 12 13 null',
                 cm.invoke(#closureOpt, [11, 12, 13]).reflectee);
-  Expect.equals('4 14 15 null 16', //                                        //# named: continued
-                cm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); //  //# named: continued
+  Expect.equals('4 14 15 null 16', //                                        /// named: continued
+                cm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); //  /// named: continued
   Expect.throws(() => cm.invoke(#closure, ['wrong arity']),
                 (e) => e is NoSuchMethodError);
 }
@@ -129,8 +129,8 @@ testLibraryReflective() {
                 lm.invoke(#closure, [9, 10]).reflectee);
   Expect.equals('3 11 12 13 null',
                 lm.invoke(#closureOpt, [11, 12, 13]).reflectee);
-  Expect.equals('4 14 15 null 16', //                                       //# named: continued
-                lm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); // //# named: continued
+  Expect.equals('4 14 15 null 16', //                                       /// named: continued
+                lm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee); // /// named: continued
   Expect.throws(() => lm.invoke(#closure, ['wrong arity']),
                 (e) => e is NoSuchMethodError);
 }

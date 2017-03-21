@@ -15,11 +15,8 @@ final validMultitestOutcomes = new Set<String>.from([
   'checked mode compile-time error'
 ]);
 
-// Require at least one non-space character before '//#'
-// Handle both //# and the legacy /// multitest regexp patterns.
-final _multiTestRegExp = new RegExp(r"\S *//[#/] \w+:(.*)");
-
-final _multiTestRegExpSeperator = new RegExp(r"//[#/]");
+// Require at least one non-space character before '///'
+final _multiTestRegExp = new RegExp(r"\S */// \w+:(.*)");
 
 bool isMultiTest(String contents) => _multiTestRegExp.hasMatch(contents);
 
@@ -40,10 +37,10 @@ bool isMultiTest(String contents) => _multiTestRegExp.hasMatch(contents);
 //
 // For example: file I_am_a_multitest.dart
 //   aaa
-//   bbb //# 02: runtime error
-//   ccc //# 02: continued
-//   ddd //# 07: static type warning
-//   eee //# 10: ok
+//   bbb /// 02: runtime error
+//   ccc /// 02: continued
+//   ddd /// 07: static type warning
+//   eee /// 10: ok
 //   fff
 //
 // should create four tests:
@@ -53,24 +50,24 @@ bool isMultiTest(String contents) => _multiTestRegExp.hasMatch(contents);
 //
 // I_am_a_multitest_02.dart
 //   aaa
-//   bbb //# 02: runtime error
-//   ccc //# 02: continued
+//   bbb /// 02: runtime error
+//   ccc /// 02: continued
 //   fff
 //
 // I_am_a_multitest_07.dart
 //   aaa
-//   ddd //# 07: static type warning
+//   ddd /// 07: static type warning
 //   fff
 //
 // and I_am_a_multitest_10.dart
 //   aaa
-//   eee //# 10: ok
+//   eee /// 10: ok
 //   fff
 //
 // Note that it is possible to indicate more than one acceptable outcome
 // in the case of dynamic and static type warnings
 //   aaa
-//   ddd //# 07: static type warning, dynamic type error
+//   ddd /// 07: static type warning, dynamic type error
 //   fff
 
 void extractTestsFromMultitest(String filePath, String contents,
@@ -145,7 +142,7 @@ void extractTestsFromMultitest(String filePath, String contents,
   }
 }
 
-// Represents a mutlitest annotation in the special //# comment.
+// Represents a mutlitest annotation in the special /// comment.
 class _Annotation {
   String key;
   String rest;
@@ -154,11 +151,11 @@ class _Annotation {
   factory _Annotation.from(String line) {
     // Do an early return with "null" if this is not a valid multitest
     // annotation.
-    if (!line.contains(_multiTestRegExpSeperator)) {
+    if (!line.contains('///')) {
       return null;
     }
     var parts = line
-        .split(_multiTestRegExpSeperator)[1]
+        .split('///')[1]
         .split(':')
         .map((s) => s.trim())
         .where((s) => s.length > 0)

@@ -5,7 +5,7 @@
 library malformed_test;
 
 // This part includes the actual tests.
-part 'malformed2_lib.dart'; //# 00: static type warning
+part 'malformed2_lib.dart'; /// 00: static type warning
 
 bool inCheckedMode() {
   try {
@@ -49,11 +49,11 @@ test(bool expectTypeError, f(), [String message]) {
   }
 }
 
-const Unresolved c1 = 0; //# 01: static type warning, checked mode compile-time error
+const Unresolved c1 = 0; /// 01: static type warning, checked mode compile-time error
 
 void main() {
-  print(c1); //# 01: continued
-  testValue(new List<String>()); //# 00: continued
-  testValue(null); //# 00: continued
+  print(c1); /// 01: continued
+  testValue(new List<String>()); /// 00: continued
+  testValue(null); /// 00: continued
   checkFailures();
 }

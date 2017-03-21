@@ -15,5 +15,5 @@ main() {
     exception = ex;
   }
   Expect.isTrue(exception is String);
-  throw 'foo'; //# 01: runtime error
+  throw 'foo'; /// 01: runtime error
 }

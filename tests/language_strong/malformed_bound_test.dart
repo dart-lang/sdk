@@ -5,13 +5,13 @@
 // Test that a malformed type variable bound is treated as dynamic.
 
 class C<T
-  extends Malformed //# 01: static type warning, runtime error
+  extends Malformed /// 01: static type warning, runtime error
 > {
-  f(T t) => t.foo; //# 01: continued
+  f(T t) => t.foo; /// 01: continued
 }
 
 main() {
   new C<int>()
-    .f(1) //# 01: continued
+    .f(1) /// 01: continued
   ;
 }

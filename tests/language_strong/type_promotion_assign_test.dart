@@ -27,21 +27,21 @@ void main() {
   A a = new E();
   if (a is B) {
     print(a.a);
-    print(a.b); //# 01: static type warning
+    print(a.b); /// 01: static type warning
     a = null;
   }
   if (a is B) {
     a = null;
     print(a.a);
-    print(a.b); //# 02: static type warning
+    print(a.b); /// 02: static type warning
   }
   if (a is B) {
     print(a.a);
-    print(a.b); //# 03: static type warning
+    print(a.b); /// 03: static type warning
     {
       a = null;
     }
     print(a.a);
-    print(a.b); //# 04: static type warning
+    print(a.b); /// 04: static type warning
   }
 }

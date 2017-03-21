@@ -16,7 +16,7 @@ class B {
 
 class A extends B {
   m() {
-    (super).field = 1; //# 01: compile-time error
+    (super).field = 1; /// 01: compile-time error
   }
 }
 
@@ -27,12 +27,12 @@ class C {
 
 class D extends C {
   D() : super();
-  D.name() : (super).name(); //# 02: compile-time error
+  D.name() : (super).name(); /// 02: compile-time error
 }
 
 main() {
-  Expect.throws(new A().m); //       //# 01: continued
-  Expect.throws(() => new D.name()); //# 02: continued
-  Expect.throws(() => (p).x); //     //# 03: compile-time error
+  Expect.throws(new A().m); //       /// 01: continued
+  Expect.throws(() => new D.name()); /// 02: continued
+  Expect.throws(() => (p).x); //     /// 03: compile-time error
 }
 

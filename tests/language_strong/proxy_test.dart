@@ -15,12 +15,12 @@ const alias = proxy;
 class AliasProxy {}
 
 main() {
-  try { new NonProxy().foo; } catch (e) {} //# 01: static type warning
-  try { new NonProxy().foo(); } catch (e) {} //# 02: static type warning
+  try { new NonProxy().foo; } catch (e) {} /// 01: static type warning
+  try { new NonProxy().foo(); } catch (e) {} /// 02: static type warning
 
-  try { new Proxy().foo; } catch (e) {} //# 03: ok
-  try { new Proxy().foo(); } catch (e) {} //# 04: ok
+  try { new Proxy().foo; } catch (e) {} /// 03: ok
+  try { new Proxy().foo(); } catch (e) {} /// 04: ok
 
-  try { new AliasProxy().foo; } catch (e) {} //# 05: ok
-  try { new AliasProxy().foo(); } catch (e) {} //# 06: ok
+  try { new AliasProxy().foo; } catch (e) {} /// 05: ok
+  try { new AliasProxy().foo(); } catch (e) {} /// 06: ok
 }

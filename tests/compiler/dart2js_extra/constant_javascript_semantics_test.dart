@@ -11,10 +11,10 @@ const y = 12345678901234567890;
 const z = x - y;
 
 const a = 1.0;
-const b = a << 3; // //# 01: compile-time error
+const b = a << 3; // /// 01: compile-time error
 
 const c = -0.0;
-const d = c << 1; // //# 02: compile-time error
+const d = c << 1; // /// 02: compile-time error
 
 foo() => 12345678901234567891 - 12345678901234567890;
 
@@ -24,11 +24,11 @@ main() {
   Expect.equals(0, foo());
   Expect.isTrue(x is double);
   Expect.isTrue(x is int);
-  Expect.equals(8, b); // //# 01: continued
-  Expect.equals(8, 1.0 << 3); // //# 03: static type warning
+  Expect.equals(8, b); // /// 01: continued
+  Expect.equals(8, 1.0 << 3); // /// 03: static type warning
   Expect.isTrue(1 == 1.0);
-  Expect.equals(0, d); // //# 02: continued
-  Expect.equals(0, -0.0 << 1); // //# 04: static type warning
+  Expect.equals(0, d); // /// 02: continued
+  Expect.equals(0, -0.0 << 1); // /// 04: static type warning
   // Make sure the 1 is not shifted into the 32 bit range.
   Expect.equals(0, 0x100000000 >> 3);
   // The dynamic int-check also allows -0.0.

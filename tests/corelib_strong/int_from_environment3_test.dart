@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  const int.fromEnvironment('NOT_FOUND', defaultValue: ''); // //# 01: compile-time error
-  const int.fromEnvironment('NOT_FOUND', defaultValue: true); // //# 02: compile-time error
-  const int.fromEnvironment(null); // //# 03: compile-time error
-  const int.fromEnvironment(1); // //# 04: compile-time error
-  const int.fromEnvironment([]); // //# 05: compile-time error
+  const int.fromEnvironment('NOT_FOUND', defaultValue: ''); // /// 01: compile-time error
+  const int.fromEnvironment('NOT_FOUND', defaultValue: true); // /// 02: compile-time error
+  const int.fromEnvironment(null); // /// 03: compile-time error
+  const int.fromEnvironment(1); // /// 04: compile-time error
+  const int.fromEnvironment([]); // /// 05: compile-time error
 }

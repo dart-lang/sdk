@@ -14,18 +14,18 @@ Future<int> foo2() async {
   return 3;
 }
 
-Future<int> //# wrongTypeParameter: static type warning
+Future<int> /// wrongTypeParameter: static type warning
 foo3() async {
   return "String";
 }
 
 // Future<int, String> is treated like Future<dynamic>
-Future<int, String> //# tooManyTypeParameters: static type warning
+Future<int, String> /// tooManyTypeParameters: static type warning
 foo4() async {
   return "String";
 }
 
-int //# wrongReturnType: static type warning, dynamic type error
+int /// wrongReturnType: static type warning, dynamic type error
 foo5() async {
   return 3;
 }
@@ -35,7 +35,7 @@ Future<int> foo6() async {
   return new Future<int>.value(3);
 }
 
-Future<Future<int>> //# nestedFuture: static type warning
+Future<Future<int>> /// nestedFuture: static type warning
 foo7() async {
   return new Future<int>.value(3);
 }

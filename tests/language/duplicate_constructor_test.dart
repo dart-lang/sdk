@@ -4,7 +4,7 @@
 
 class Foo {
   Foo();
-  Foo(); //# 01: compile-time error
+  Foo(); /// 01: compile-time error
 }
 
 main() {

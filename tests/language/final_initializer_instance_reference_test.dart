@@ -9,9 +9,9 @@ class C {
   const C();
 
   final x = 1;
-  final y = x; //# 01: compile-time error
+  final y = x; /// 01: compile-time error
 }
 
 main() {
-  const C().y; //# 01: continued
+  const C().y; /// 01: continued
 }

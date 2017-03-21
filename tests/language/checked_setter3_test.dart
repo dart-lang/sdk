@@ -19,11 +19,11 @@ class A<T> {
 }
 
 class B<T> {
-  T field = 42; //# 01: static type warning
+  T field = 42; /// 01: static type warning
 }
 
 class C<T> {
-  T field = 42; //# 02: static type warning
+  T field = 42; /// 02: static type warning
 }
 
 main() {
@@ -33,11 +33,11 @@ main() {
   var s = 'foo';
   if (inCheckedMode) {
     Expect.throws(() => a.field = i, (e) => e is TypeError);
-    Expect.throws(() => new B<String>(), (e) => e is TypeError); //# 01: continued
-    Expect.throws(() => c.field = s, (e) => e is TypeError); //# 02: continued
+    Expect.throws(() => new B<String>(), (e) => e is TypeError); /// 01: continued
+    Expect.throws(() => c.field = s, (e) => e is TypeError); /// 02: continued
   } else {
     a.field = i;
-    new B<String>(); //# 01: continued
-    c.field = s; //# 02: continued
+    new B<String>(); /// 01: continued
+    c.field = s; /// 02: continued
   }
 }

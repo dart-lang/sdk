@@ -32,14 +32,14 @@ main() {
   // that constructor properties are correctly set even if the constructor
   // hasn't been fully compiled. On dart2js, we want to check that constructors
   // are retain even if there are no base-level calls.
-  new ClassWithDefaultConstructor(); // //# 01: ok
-  new Class.generativeConstructor(); // //# 01: ok
-  new Class.redirectingGenerativeConstructor(); // //# 01: ok
-  new Class.factoryConstructor(); // //# 01: ok
-  new Class.redirectingFactoryConstructor(); // //# 01: ok
-  const Class.constGenerativeConstructor(); // //# 01: ok
-  const Class.constRedirectingGenerativeConstructor(); // //# 01: ok
-  const Class.constRedirectingFactoryConstructor(); // //# 01: ok
+  new ClassWithDefaultConstructor(); // /// 01: ok
+  new Class.generativeConstructor(); // /// 01: ok
+  new Class.redirectingGenerativeConstructor(); // /// 01: ok
+  new Class.factoryConstructor(); // /// 01: ok
+  new Class.redirectingFactoryConstructor(); // /// 01: ok
+  const Class.constGenerativeConstructor(); // /// 01: ok
+  const Class.constRedirectingGenerativeConstructor(); // /// 01: ok
+  const Class.constRedirectingFactoryConstructor(); // /// 01: ok
 
   cm = reflectClass(ClassWithDefaultConstructor);
   mm = cm.declarations.values

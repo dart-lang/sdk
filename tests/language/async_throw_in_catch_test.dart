@@ -31,7 +31,7 @@ foo1(Tracer tracer) async {
     tracer.trace("a");
     // This await forces dart2js to rewrite the try into a state machine
     // instead of relying on the existing structure.
-    await new Future.value(3); //# forceAwait: ok
+    await new Future.value(3); /// forceAwait: ok
     tracer.trace("b");
     throw "Error";
   } catch (error) {
@@ -48,7 +48,7 @@ foo1(Tracer tracer) async {
 foo2(Tracer tracer) async {
   try {
     tracer.trace("a");
-    await new Future.value(3); //# forceAwait: continued
+    await new Future.value(3); /// forceAwait: continued
     tracer.trace("b");
     throw "Error";
     tracer.trace("c");
@@ -65,7 +65,7 @@ foo2(Tracer tracer) async {
 foo3(Tracer tracer) async {
   try {
     tracer.trace("a");
-    await new Future.value(3); //# forceAwait: continued
+    await new Future.value(3); /// forceAwait: continued
     tracer.trace("b");
     throw "Error";
     tracer.trace("c");
@@ -82,7 +82,7 @@ foo3(Tracer tracer) async {
 foo4(Tracer tracer) async {
   try {
     try {
-      await new Future.value(3); //# forceAwait: continued
+      await new Future.value(3); /// forceAwait: continued
       tracer.trace("a");
       throw "Error";
     } catch(error) {
@@ -102,7 +102,7 @@ foo5(Tracer tracer) async {
   try {
     tracer.trace("a");
     try {
-      await new Future.value(3); //# forceAwait: continued
+      await new Future.value(3); /// forceAwait: continued
       tracer.trace("b");
       throw "Error";
     } catch(error) {
@@ -120,7 +120,7 @@ foo5(Tracer tracer) async {
 foo6(Tracer tracer) async {
   try {
     try {
-      await new Future.value(3); //# forceAwait: continued
+      await new Future.value(3); /// forceAwait: continued
       tracer.trace("a");
       throw "Error";
     } catch(error) {
@@ -141,7 +141,7 @@ foo6(Tracer tracer) async {
 foo7(Tracer tracer) async {
   try {
     try {
-      await new Future.value(3); //# forceAwait: continued
+      await new Future.value(3); /// forceAwait: continued
       tracer.trace("a");
       throw "Error";
     } catch(error) {
@@ -161,7 +161,7 @@ foo7(Tracer tracer) async {
 foo8(Tracer tracer) async {
   try {
     try {
-      await new Future.value(3); //# forceAwait: continued
+      await new Future.value(3); /// forceAwait: continued
       tracer.trace("a");
       throw "Error";
     } catch(error) {
@@ -182,7 +182,7 @@ foo9(Tracer tracer) async {
   try {
     while(true) {
       try {
-        await new Future.value(3); //# forceAwait: continued
+        await new Future.value(3); /// forceAwait: continued
         tracer.trace("a");
         throw "Error";
       } catch(error) {
@@ -212,7 +212,7 @@ foo10(Tracer tracer) async {
         } catch (error) {
           tracer.trace("b");
           try {
-            await new Future.value(3); // //# forceAwait: continued
+            await new Future.value(3); // /// forceAwait: continued
             throw "Error2";
           } catch(error) {
             tracer.trace("c");
@@ -245,7 +245,7 @@ foo11(Tracer tracer) async {
       tracer.trace("a");
       if (firstTime) {
         try {
-          await new Future.value(3); //# forceAwait: continued
+          await new Future.value(3); /// forceAwait: continued
           tracer.trace("b");
           throw "Error";
         } catch(error) {
@@ -274,7 +274,7 @@ foo12(Tracer tracer) async {
       tracer.trace("a");
       if (firstTime) {
         try {
-          await new Future.value(3); //# forceAwait: continued
+          await new Future.value(3); /// forceAwait: continued
           tracer.trace("b");
           throw "Error";
         } catch(error) {
@@ -308,7 +308,7 @@ foo13(Tracer tracer) async {
       tracer.trace("c");
       try {
         try {
-          await new Future.value(3); // //# forceAwait: continued
+          await new Future.value(3); // /// forceAwait: continued
           tracer.trace("d");
           throw "Error";
         } finally {
@@ -332,7 +332,7 @@ foo14(Tracer tracer) async {
     } catch (error) {
       tracer.trace("b");
       try {
-        await new Future.value(3); // //# forceAwait: continued
+        await new Future.value(3); // /// forceAwait: continued
         throw "Error2";
       } catch(error) {
         tracer.trace("c");
@@ -358,7 +358,7 @@ foo15(Tracer tracer) async {
     } catch (error) {
       tracer.trace("b");
       try {
-        await new Future.value(3); // //# forceAwait: continued
+        await new Future.value(3); // /// forceAwait: continued
         throw "Error2";
       } catch(error) {
         tracer.trace("c");
@@ -385,7 +385,7 @@ foo16(Tracer tracer) async {
     } catch (error) {
       tracer.trace("b");
       try {
-        await new Future.value(3); // //# forceAwait: continued
+        await new Future.value(3); // /// forceAwait: continued
         throw "Error2";
       } catch(error) {
         tracer.trace("c");
@@ -412,7 +412,7 @@ foo17(Tracer tracer) async {
       tracer.trace("b");
       throw "Error";
     } catch (error) {
-      await new Future.value(3); // //# forceAwait: continued
+      await new Future.value(3); // /// forceAwait: continued
       Expect.equals("Error", error);
       tracer.trace("c");
     } finally {
@@ -430,7 +430,7 @@ foo18(Tracer tracer) async {
     try {
       tracer.trace("b");
     } finally {
-      await new Future.value(3); // //# forceAwait: continued
+      await new Future.value(3); // /// forceAwait: continued
       tracer.trace("c");
     }
     tracer.trace("d");

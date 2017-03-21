@@ -25,11 +25,11 @@ class C implements I<C> {
 }
 
 main() {
-  foo<C>(<C>[new C(), new C()]); //# 01: ok
+  foo<C>(<C>[new C(), new C()]); /// 01: ok
 
   dynamic bar = foo;
   List<int> list2 = <int>[4, 2];
   // The type int does not extend I<int>.
-  foo<int>(list2); //# 02: compile-time error
-  bar<int>(list2); //# 03: runtime error
+  foo<int>(list2); /// 02: compile-time error
+  bar<int>(list2); /// 03: runtime error
 }

@@ -12,7 +12,7 @@ test(i) {
   // "crash" is not an allowed outcome specifier.
   // Use "ok" instead and mark the status file with "Crash, OK".
   if (i == 18) {
-    break "hit"; //  //# 01: ok
+    break "hit"; //  /// 01: ok
   }
 }
 

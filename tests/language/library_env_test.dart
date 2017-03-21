@@ -21,8 +21,8 @@ main() {
 
 
   bool hasHtmlSupport;
-  hasHtmlSupport = true; //  //# has_html_support: ok
-  hasHtmlSupport = false; // //# has_no_html_support: ok
+  hasHtmlSupport = true; //  /// has_html_support: ok
+  hasHtmlSupport = false; // /// has_no_html_support: ok
 
   if (hasHtmlSupport != null) {
     bool expectedResult = hasHtmlSupport ? true : NOT_PRESENT;
@@ -48,8 +48,8 @@ main() {
   }
 
   bool hasIoSupport;
-  hasIoSupport = true; //  //# has_io_support: ok
-  hasIoSupport = false; // //# has_no_io_support: ok
+  hasIoSupport = true; //  /// has_io_support: ok
+  hasIoSupport = false; // /// has_no_io_support: ok
 
   if (hasIoSupport != null) {
     // Dartium overrides 'dart.library.io' to return "false".
@@ -61,8 +61,8 @@ main() {
   }
 
   bool hasMirrorSupport;
-  hasMirrorSupport = true; //  //# has_mirror_support: ok
-  hasMirrorSupport = false; // //# has_no_mirror_support: ok
+  hasMirrorSupport = true; //  /// has_mirror_support: ok
+  hasMirrorSupport = false; // /// has_no_mirror_support: ok
 
   if (hasMirrorSupport != null) {
     bool expectedResult = hasMirrorSupport ? true : NOT_PRESENT;

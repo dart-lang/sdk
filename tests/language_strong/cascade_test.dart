@@ -65,7 +65,7 @@ main() {
    ..import()..check(4, 7)
    ..["swap"]()()()..check(7, 4);
   a.check(7,4);
-  a..(42); // //# 01: compile-time error
-  a..37; // //# 02: compile-time error
-  a.."foo"; // //# 03: compile-time error
+  a..(42); // /// 01: compile-time error
+  a..37; // /// 02: compile-time error
+  a.."foo"; // /// 03: compile-time error
 }

@@ -29,7 +29,7 @@ class T2 {
   A get field { return getterField; }
 
   // Type C is not assignable to A
-  void set field(C arg) { setterField = arg; } //# 01: static type warning
+  void set field(C arg) { setterField = arg; } /// 01: static type warning
 }
 
 class T3 {
@@ -42,12 +42,12 @@ class T3 {
 
 main() {
   T1 instance1 = new T1();
-  T2 instance2 = new T2(); //# 01: continued
+  T2 instance2 = new T2(); /// 01: continued
   T3 instance3 = new T3();
 
   instance1.field = new B();
   A resultA = instance1.field;
-  instance1.field = new A(); //# 03: dynamic type error
+  instance1.field = new A(); /// 03: dynamic type error
   B resultB = instance1.field;
 
   int result;
@@ -55,7 +55,7 @@ main() {
   Expect.equals(37, result);
 
   // Type 'A' has no method named 'b'
-  instance1.field.b(); //# 02: static type warning
+  instance1.field.b(); /// 02: static type warning
 
   instance3.field = new B();
   result = instance3.field.a();

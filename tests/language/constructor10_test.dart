@@ -11,17 +11,17 @@ class A {
 }
 
 class B extends A {
-  /* // //# 00: compile-time error
+  /* // /// 00: compile-time error
   B() : super(null);
-  */ // //# 00: continued
+  */ // /// 00: continued
 }
 
 // ==========
 
 class Y extends A {
-  /* // //# 01: compile-time error
+  /* // /// 01: compile-time error
   Y() : super(null);
-  */ // //# 01: continued
+  */ // /// 01: continued
 }
 
 class Z extends Y {
@@ -31,9 +31,9 @@ class Z extends Y {
 // ==============
 
 class G extends A {
-  /* // //# 02: compile-time error
+  /* // /// 02: compile-time error
   G() : super(null);
-  */ // //# 02: continued
+  */ // /// 02: continued
 }
 
 class H extends G {

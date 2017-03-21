@@ -141,17 +141,17 @@ void main() {
   }
 
   testDartExecShouldNotBeInCurrentDir();
-  testShouldSucceedWithSourcePlatformExecutable(); //# 00: ok
+  testShouldSucceedWithSourcePlatformExecutable(); /// 00: ok
   // dart:io does not support linking to files in Windows.
   if (!Platform.isWindows) {
-    withTempDir(testExeSymLinked); //# 01: ok
+    withTempDir(testExeSymLinked); /// 01: ok
   }
-  withTempDir(testExeDirSymLinked); //# 02: ok
-  testPathToSDKDir(); //# 03: ok
-  withTempDir(testPathPointsToSymLinkedSDKPath); //# 04: ok
+  withTempDir(testExeDirSymLinked); /// 02: ok
+  testPathToSDKDir(); /// 03: ok
+  withTempDir(testPathPointsToSymLinkedSDKPath); /// 04: ok
   // dart:io does not support linking to files in Windows.
   if (!Platform.isWindows) {
-    withTempDir(testPathToDirWithExeSymLinked); //# 05: ok
+    withTempDir(testPathToDirWithExeSymLinked); /// 05: ok
   }
-  testShouldFailOutsidePath(); //# 06: ok
+  testShouldFailOutsidePath(); /// 06: ok
 }

@@ -36,25 +36,25 @@ test() {
   A a = new A();
   List<A> listA;
 
-  testA(n); //                                                         //# 01: ok
-  testA(a); //                                                         //# 02: ok
-  testListA(listNull); //                                              //# 03: ok
-  testListA(listA); //                                                 //# 04: ok
+  testA(n); //                                                         /// 01: ok
+  testA(a); //                                                         /// 02: ok
+  testListA(listNull); //                                              /// 03: ok
+  testListA(listA); //                                                 /// 04: ok
 
-  testNull(n); //                                                      //# 05: ok
-  testNull(a); //                                                      //# 06: ok
-  testListNull(listNull); //                                           //# 07: ok
-  testListNull(listA); //                                              //# 08: ok
+  testNull(n); //                                                      /// 05: ok
+  testNull(a); //                                                      /// 06: ok
+  testListNull(listNull); //                                           /// 07: ok
+  testListNull(listA); //                                              /// 08: ok
 
-  testReturnA(returnA); //                                             //# 09: ok
-  testReturnA(returnNull); //                                          //# 10: ok
+  testReturnA(returnA); //                                             /// 09: ok
+  testReturnA(returnNull); //                                          /// 10: ok
 
-  testReturnNull(returnA); //                                          //# 11: ok
-  testReturnNull(returnNull); //                                       //# 12: ok
+  testReturnNull(returnA); //                                          /// 11: ok
+  testReturnNull(returnNull); //                                       /// 12: ok
 
-  testTakeA(takeA); //                                                 //# 13: ok
-  testTakeA(takeNull); //                                              //# 14: ok
+  testTakeA(takeA); //                                                 /// 13: ok
+  testTakeA(takeNull); //                                              /// 14: ok
 
-  testTakeNull(takeA); //                                              //# 15: ok
-  testTakeNull(takeNull); //                                           //# 16: ok
+  testTakeNull(takeA); //                                              /// 15: ok
+  testTakeNull(takeNull); //                                           /// 16: ok
 }

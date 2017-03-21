@@ -10,13 +10,13 @@ class A {
 
 main() {
   const A(1);
-  const A(); //# 01: compile-time error, static type warning
-  const A(1, 2); //# 02: compile-time error, static type warning
+  const A(); /// 01: compile-time error, static type warning
+  const A(1, 2); /// 02: compile-time error, static type warning
   const A.named();
-  const A.named(b: 1); //# 03: compile-time error, static type warning
-  const A.named(a: 1, a: 2); //# 04: compile-time error, static type warning
-  const A.named(a: 1, b: 2); //# 05: compile-time error, static type warning
+  const A.named(b: 1); /// 03: compile-time error, static type warning
+  const A.named(a: 1, a: 2); /// 04: compile-time error, static type warning
+  const A.named(a: 1, b: 2); /// 05: compile-time error, static type warning
   const A.optional();
   const A.optional(42);
-  const A.optional(42, 54); //# 06: compile-time error, static type warning
+  const A.optional(42, 54); /// 06: compile-time error, static type warning
 }

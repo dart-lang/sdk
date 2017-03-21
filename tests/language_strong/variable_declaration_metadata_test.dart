@@ -8,28 +8,28 @@
 const annotation = null;
 
 var
-  @annotation //# 01: compile-time error
+  @annotation /// 01: compile-time error
   v1,
-  @annotation //# 02: compile-time error
+  @annotation /// 02: compile-time error
   v2;
 
 int
-  @annotation //# 03: compile-time error
+  @annotation /// 03: compile-time error
   v3,
-  @annotation //# 04: compile-time error
+  @annotation /// 04: compile-time error
   v4;
 
 class C {
   var
-    @annotation //# 05: compile-time error
+    @annotation /// 05: compile-time error
     f1,
-    @annotation //# 06: compile-time error
+    @annotation /// 06: compile-time error
     f2;
 
   int
-    @annotation //# 07: compile-time error
+    @annotation /// 07: compile-time error
     f3,
-    @annotation //# 08: compile-time error
+    @annotation /// 08: compile-time error
     f4;
 }
 
@@ -48,15 +48,15 @@ main() {
   use(c.f4);
 
   var
-    @annotation //# 09: compile-time error
+    @annotation /// 09: compile-time error
     l1,
-    @annotation //# 10: compile-time error
+    @annotation /// 10: compile-time error
     l2;
 
   int
-    @annotation //# 11: compile-time error
+    @annotation /// 11: compile-time error
     l3,
-    @annotation //# 12: compile-time error
+    @annotation /// 12: compile-time error
     l4;
 
   use(l1);
@@ -65,9 +65,9 @@ main() {
   use(l4);
 
   for (var
-         @annotation //# 13: compile-time error
+         @annotation /// 13: compile-time error
          i1 = 0,
-         @annotation //# 14: compile-time error
+         @annotation /// 14: compile-time error
          i2 = 0; ; ) {
     use(i1);
     use(i2);
@@ -75,9 +75,9 @@ main() {
   }
 
   for (int
-         @annotation //# 15: compile-time error
+         @annotation /// 15: compile-time error
          i3 = 0,
-         @annotation //# 16: compile-time error
+         @annotation /// 16: compile-time error
          i4 = 0; ; ) {
     use(i3);
     use(i4);

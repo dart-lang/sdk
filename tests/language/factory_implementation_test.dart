@@ -36,8 +36,8 @@ main() {
   Expect.equals(1, a.x);
   Expect.equals(2, a.y);
 
-  var x = new X(11, 22); // //# 00: dynamic type error
+  var x = new X(11, 22); // /// 00: dynamic type error
   // Check that factory is invoked.
-  Expect.equals(110, x.x); // //# 00: continued
-  Expect.equals(220, x.y); // //# 00: continued
+  Expect.equals(110, x.x); // /// 00: continued
+  Expect.equals(220, x.y); // /// 00: continued
 }

@@ -71,7 +71,7 @@ main() {
 
   test('cannot upgrade interfaces', () {
     expect(() {
-      upgrader.upgrade(new HtmlElementInterface()); //# compile-time error
+      upgrader.upgrade(new HtmlElementInterface()); /// compile-time error
     }, throws);
   });
 
@@ -115,7 +115,7 @@ main() {
   });
 }
 
-class HtmlElementInterface implements HtmlElement { //# compile-time error
+class HtmlElementInterface implements HtmlElement { /// compile-time error
   HtmlElementInterface.created();
 }
 

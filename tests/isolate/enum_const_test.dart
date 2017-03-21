@@ -14,8 +14,8 @@ verify(val) {
 }
 
 main() {
-  test1(); //# 01: ok
-  test2(); //# 02: ok
+  test1(); /// 01: ok
+  test2(); /// 02: ok
 }
 
 test1() => verify(Foo.BAR);

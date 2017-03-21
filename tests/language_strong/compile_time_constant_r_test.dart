@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const x =
-          throw // //# 01: compile-time error
+          throw // /// 01: compile-time error
           "x";
 
 const y = const {0:
-                    throw // //# 02: compile-time error
+                    throw // /// 02: compile-time error
                     "y"};
 
 main() {
   print(x);
   print(y);
   const z =
-            throw // //# 03: compile-time error
+            throw // /// 03: compile-time error
             1+1+1;
   print(z);
 }

@@ -25,7 +25,7 @@ _injectJs() {
 class Foo {
   // Note: it's invalid to provide a default value.
   external static num get42([num b
-      = 3 // //# default_value: compile-time error
+      = 3 // /// default_value: compile-time error
   ]);
   external static num get43([num b]);
 }
@@ -40,14 +40,14 @@ main() {
 
   test('call tearoff from dart with arg', () {
     var f = Foo.get42;
-    expect(f(2), 2); //# explicit_argument: ok
+    expect(f(2), 2); /// explicit_argument: ok
   });
 
   test('call tearoff from dart with default', () {
     var f = Foo.get42;
     // Note: today both SSA and CPS remove the extra argument on static calls,
     // but they fail to do so on tearoffs.
-    expect(f(), 3); //# default_value: continued
+    expect(f(), 3); /// default_value: continued
 
     f = Foo.get43;
     expect(f(), 43);

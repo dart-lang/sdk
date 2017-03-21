@@ -5,10 +5,10 @@
 // Check that metadata on a class 'Super' using subtypes of 'Super' are not
 // considered as cyclic inheritance or lead to crashes.
 
-@Sub1(0) //# 01: ok
+@Sub1(0) /// 01: ok
 class Super {
   final field;
-  @Sub2(1) //# 02: ok
+  @Sub2(1) /// 02: ok
   const Super(this.field);
 }
 

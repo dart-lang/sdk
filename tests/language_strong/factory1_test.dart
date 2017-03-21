@@ -20,7 +20,7 @@ class B<T> extends A<T> {
 
 main() {
   new A<String>.factory();
-  new A<int>.factory(); // //# 00: dynamic type error
+  new A<int>.factory(); // /// 00: dynamic type error
   new B<String>.factory();
-  new B<int>.factory(); // //# 01: dynamic type error
+  new B<int>.factory(); // /// 01: dynamic type error
 }

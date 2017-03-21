@@ -12,9 +12,9 @@ class X<T extends Type> {}
 
 // This line is supposed to cause the warning; the other lines are
 // marked because they don't make sense when [Y] is not defined.
-class Y<U> extends X<U> {} //# 01: static type warning
+class Y<U> extends X<U> {} /// 01: static type warning
 
 main() {
-  X<Type> x = new X<Type>(); //# 01: static type warning
-  Y<Type> y = new Y<Type>(); //# 01: static type warning
+  X<Type> x = new X<Type>(); /// 01: static type warning
+  Y<Type> y = new Y<Type>(); /// 01: static type warning
 }

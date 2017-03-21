@@ -8,9 +8,9 @@ class Foo {
   Foo._(this.greeting) { }
 
   // Const constructor must not redirect to non-const constructor.
-  const Foo.hi() : this._('hi'); // //# 1: compile-time error
+  const Foo.hi() : this._('hi'); // /// 1: compile-time error
 }
 
 main() {
-  const h = const Foo.hi(); // //# 1: continued
+  const h = const Foo.hi(); // /// 1: continued
 }

@@ -24,12 +24,12 @@ runTests() {
   Expect.equals("foo", new A().foo);
   Expect.isTrue(lines.isEmpty);
   var barResult = new A().bar;
-  Expect.equals("bar", barResult); //         //# minif: ok
+  Expect.equals("bar", barResult); //         /// minif: ok
   
   Expect.isTrue(lines.length == 1);
   var line = lines.first;
   Expect.isTrue(line.contains("Warning") &&
-      line.contains("bar") && //              //# minif: continued
+      line.contains("bar") && //              /// minif: continued
       line.contains("minif"));
 }
 

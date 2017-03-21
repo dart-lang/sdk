@@ -10,13 +10,13 @@ class A {
 class B {
   const B() : n = 5;
   final n;
-  static const a; // //# 02: compile-time error
+  static const a; // /// 02: compile-time error
   static const b = 3 + 5;
 }
 
 main() {
-  A.x = 2; // //# 01: static type warning, runtime error
+  A.x = 2; // /// 01: static type warning, runtime error
   new B();
   print(B.b);
-  print(B.a); // //# 02: continued
+  print(B.a); // /// 02: continued
 }

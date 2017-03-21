@@ -4,13 +4,13 @@
 
 import "package:expect/expect.dart";
 
-void badReturnTypeAsync() async {} // //# 01: static type warning
-void badReturnTypeAsyncStar() async* {} // //# 02: static type warning
-void badReturnTypeSyncStar() sync* {} // //# 03: static type warning
+void badReturnTypeAsync() async {} // /// 01: static type warning
+void badReturnTypeAsyncStar() async* {} // /// 02: static type warning
+void badReturnTypeSyncStar() sync* {} // /// 03: static type warning
 
 main() {
   try {
-    badReturnTypeAsync(); // //# 01: continued
+    badReturnTypeAsync(); // /// 01: continued
   } catch(e, st) {
     Expect.isTrue(e is TypeError, "wrong exception type");
     Expect.isTrue(st.toString().contains("badReturnTypeAsync"),
@@ -18,7 +18,7 @@ main() {
   }
 
   try {
-    badReturnTypeAsyncStar(); // //# 02: continued
+    badReturnTypeAsyncStar(); // /// 02: continued
   } catch(e, st) {
     Expect.isTrue(e is TypeError, "wrong exception type");
     Expect.isTrue(st.toString().contains("badReturnTypeAsyncStar"),
@@ -26,7 +26,7 @@ main() {
   }
 
   try {
-    badReturnTypeSyncStar(); // //# 03: continued
+    badReturnTypeSyncStar(); // /// 03: continued
   } catch(e, st) {
     Expect.isTrue(e is TypeError, "wrong exception type");
     Expect.isTrue(st.toString().contains("badReturnTypeSyncStar"),

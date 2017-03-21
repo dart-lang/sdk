@@ -23,7 +23,7 @@ main() {
     'variables');
 
   // dart2js stops testing here.
-  return; // //# 01: ok
+  return; // /// 01: ok
 
   Expect.setEquals(
    ['Method(s(_libraryGetter)'

@@ -9,20 +9,20 @@ class Foo {}
 class Foo2 extends D {}
  
 class A extends 
-  lib. //# extends: compile-time error
+  lib. /// extends: compile-time error
   Foo {} 
 class B implements 
-  lib. //# implements: compile-time error
+  lib. /// implements: compile-time error
   Foo {}
 class C1 {}
 class C = C1 with 
-  lib. //# mixin: compile-time error
+  lib. /// mixin: compile-time error
   Foo; 
 
 class D { 
   D() ;
   factory D.factory() = 
-    lib. //# redirecting_constructor: static type warning
+    lib. /// redirecting_constructor: static type warning
     Foo2;
 }
 
@@ -30,7 +30,7 @@ void main() {
   new A();
   new B();
   new C();
-  Expect.throws(() { //# redirecting_constructor: continued
+  Expect.throws(() { /// redirecting_constructor: continued
     new D.factory();
-  }); //# redirecting_constructor: continued
+  }); /// redirecting_constructor: continued
 }

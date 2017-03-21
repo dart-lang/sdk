@@ -7,5 +7,5 @@ class A {
 }
 
 int main() {
-  new A().e = "String"; //# 01: static type warning, dynamic type error
+  new A().e = "String"; /// 01: static type warning, dynamic type error
 }

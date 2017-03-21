@@ -4,13 +4,19 @@
 
 library testing.multitest;
 
-import 'dart:async' show Stream, StreamTransformer;
+import 'dart:async' show
+    Stream,
+    StreamTransformer;
 
-import 'dart:io' show Directory, File;
+import 'dart:io' show
+    Directory,
+    File;
 
-import 'log.dart' show splitLines;
+import 'log.dart' show
+    splitLines;
 
-import 'test_description.dart' show TestDescription;
+import 'test_description.dart' show
+    TestDescription;
 
 bool isError(Set<String> expectations) {
   if (expectations.contains("compile-time error")) return true;
@@ -26,17 +32,16 @@ bool isCheckedModeError(Set<String> expectations) {
 
 class MultitestTransformer
     implements StreamTransformer<TestDescription, TestDescription> {
-  static RegExp multitestMarker = new RegExp(r"//[#/]");
-  static int _multitestMarkerLength = 3;
+  static const String multitestMarker = "///";
 
   static const List<String> validOutcomesList = const <String>[
-    "ok",
-    "compile-time error",
-    "runtime error",
-    "static type warning",
-    "dynamic type error",
-    "checked mode compile-time error",
-  ];
+      "ok",
+      "compile-time error",
+      "runtime error",
+      "static type warning",
+      "dynamic type error",
+      "checked mode compile-time error",
+    ];
 
   static final Set<String> validOutcomes =
       new Set<String>.from(validOutcomesList);
@@ -47,9 +52,7 @@ class MultitestTransformer
       errors.add(error);
       print(error);
     }
-
-    nextTest:
-    await for (TestDescription test in stream) {
+    nextTest: await for (TestDescription test in stream) {
       String contents = await test.file.readAsString();
       if (!contents.contains(multitestMarker)) {
         yield test;
@@ -71,23 +74,20 @@ class MultitestTransformer
         List<String> subtestOutcomesList;
         if (index != -1) {
           String annotationText =
-              line.substring(index + _multitestMarkerLength).trim();
+              line.substring(index + multitestMarker.length).trim();
           index = annotationText.indexOf(":");
           if (index != -1) {
             subtestName = annotationText.substring(0, index).trim();
-            subtestOutcomesList = annotationText
-                .substring(index + 1)
-                .split(",")
-                .map((s) => s.trim())
-                .toList();
+            subtestOutcomesList = annotationText.substring(index + 1).split(",")
+                .map((s) => s.trim()).toList();
             if (subtestName == "none") {
               reportError(test.formatError(
-                  "$lineNumber: $subtestName can't be used as test name."));
+                      "$lineNumber: $subtestName can't be used as test name."));
               continue nextTest;
             }
             if (subtestOutcomesList.isEmpty) {
-              reportError(test
-                  .formatError("$lineNumber: Expected <testname>:<outcomes>"));
+              reportError(test.formatError(
+                      "$lineNumber: Expected <testname>:<outcomes>"));
               continue nextTest;
             }
           }
@@ -96,8 +96,8 @@ class MultitestTransformer
           List<String> lines = testsAsLines.putIfAbsent(subtestName,
               () => new List<String>.from(linesWithoutAnnotations));
           lines.add(line);
-          Set<String> subtestOutcomes =
-              outcomes.putIfAbsent(subtestName, () => new Set<String>());
+          Set<String> subtestOutcomes = outcomes.putIfAbsent(subtestName,
+              () => new Set<String>());
           if (subtestOutcomesList.length != 1 ||
               subtestOutcomesList.single != "continued") {
             for (String outcome in subtestOutcomesList) {
@@ -105,7 +105,7 @@ class MultitestTransformer
                 subtestOutcomes.add(outcome);
               } else {
                 reportError(test.formatError(
-                    "$lineNumber: '$outcome' isn't a recognized outcome."));
+                        "$lineNumber: '$outcome' isn't a recognized outcome."));
                 continue nextTest;
               }
             }

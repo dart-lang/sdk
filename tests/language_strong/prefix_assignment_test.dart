@@ -16,11 +16,11 @@ class Base {
 
 class Derived extends Base {
   void f() {
-    p = 1; //# 01: compile-time error
+    p = 1; /// 01: compile-time error
   }
 }
 
 main() {
   new Derived().f();
-  p = 1; //# 02: compile-time error
+  p = 1; /// 02: compile-time error
 }

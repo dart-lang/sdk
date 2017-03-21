@@ -10,8 +10,8 @@ library enum_duplicate_test;
 
 import 'package:expect/expect.dart';
 
-import 'enum_duplicate_lib.dart' as lib; //# 01: ok
-import 'enum_duplicate_lib.dart' as lib; //# 02: ok
+import 'enum_duplicate_lib.dart' as lib; /// 01: ok
+import 'enum_duplicate_lib.dart' as lib; /// 02: ok
 
 enum Enum1 {
   A,
@@ -25,9 +25,9 @@ enum Enum2 {
 
 main() {
   Expect.equals('Enum1.A,Enum1.B', Enum1.values.join(','));
-  Expect.equals('Enum1.A,Enum1.B', lib.Enum1.values.join(',')); //# 01: continued
+  Expect.equals('Enum1.A,Enum1.B', lib.Enum1.values.join(',')); /// 01: continued
   Expect.equals('Enum2.A,Enum2.B', Enum2.values.join(','));
-  Expect.equals('Enum2.A,Enum2.B', lib.Enum2.values.join(',')); //# 02: continued
+  Expect.equals('Enum2.A,Enum2.B', lib.Enum2.values.join(',')); /// 02: continued
 }
 
 

@@ -13,26 +13,26 @@ class A {
 
 class B extends A {
   foo(required1
-     /* // //# 00: static type warning
+     /* // /// 00: static type warning
       , { named1: 499 }
-     */ // //# 00: static type warning
+     */ // /// 00: static type warning
      ) {
     return required1;
   }
 
   bar(required1, required2,
       { named1: 13
-      /* // //# 01: static type warning
+      /* // /// 01: static type warning
         , named2: 17
-      */ // //# 01: static type warning
+      */ // /// 01: static type warning
       }) {
     return required1 + required2 * 3 + named1 * 5;
   }
 
   gee({named2: 11
-      /* // //# 02: static type warning
+      /* // /// 02: static type warning
        , named1: 31
-      */ // //# 02: static type warning
+      */ // /// 02: static type warning
       }) {
     return named2 * 99;
   }

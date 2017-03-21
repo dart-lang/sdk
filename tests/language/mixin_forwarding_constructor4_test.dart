@@ -10,15 +10,15 @@ abstract class Mixin {}
 
 class Base {
   Base(
-      {x} //       //# 01: compile-time error
-      {x} //       //# 02: compile-time error
-      {x} //       //# 03: compile-time error
+      {x} //       /// 01: compile-time error
+      {x} //       /// 02: compile-time error
+      {x} //       /// 03: compile-time error
     );
 }
 
 class C extends Base with Mixin {
-  C(); //          //# 02: continued
-  C() : super(); //# 03: continued
+  C(); //          /// 02: continued
+  C() : super(); /// 03: continued
 }
 
 main() {

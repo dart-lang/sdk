@@ -15,7 +15,7 @@ class Super {
 class Sub extends Super {
   Sub() : super();
 
-  var instanceMethod = 87; // //# 01: compile-time error
+  var instanceMethod = 87; // /// 01: compile-time error
 
   superInstanceMethod() => super.instanceMethod();
 }
@@ -26,6 +26,6 @@ main() {
   Sub sub = s;
   print(s.instanceMethod);
   Expect.equals(42, s.superInstanceMethod());
-  Expect.equals(42, sup.superInstanceMethod()); //# 02: static type warning
+  Expect.equals(42, sup.superInstanceMethod()); /// 02: static type warning
   Expect.equals(42, sub.superInstanceMethod());
 }

@@ -8,5 +8,5 @@ import 'regress_19413_foo.dart' as foo;
 import 'regress_19413_bar.dart' as foo;
 
 main() {
-  foo.f(); //# 01: static type warning, runtime error
+  foo.f(); /// 01: static type warning, runtime error
 }

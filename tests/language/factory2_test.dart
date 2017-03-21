@@ -6,7 +6,7 @@ import "dart:collection";
 
 abstract class Link<T> extends IterableBase<T> {
   // does not match constructor for LinkFactory
-  factory Link(T head, [Link<T> tail]) = LinkFactory<T>; //# static type warning
+  factory Link(T head, [Link<T> tail]) = LinkFactory<T>; /// static type warning
   Link<T> prepend(T element);
 }
 
@@ -39,14 +39,14 @@ class LinkEntry<T> extends AbstractLink<T> {
 
 class Fisk {
   // instantiation of abstract class
-  Link<String> nodes = const EmptyLink(); // //# static type warning
+  Link<String> nodes = const EmptyLink(); // /// static type warning
 }
 
 main() {
   new Fisk();
   // instantiation of abstract class
-  new EmptyLink<String>().prepend('hest'); //# static type warning
+  new EmptyLink<String>().prepend('hest'); /// static type warning
   // instantiation of abstract class
-  const EmptyLink<String>().prepend('fisk'); //# static type warning
+  const EmptyLink<String>().prepend('fisk'); /// static type warning
 }
 

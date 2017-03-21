@@ -18,11 +18,11 @@ class E extends B with C implements D {}
 class F extends E {}
 class A extends E with M {}
 class M
-  extends B //# 01: ok
-  extends C //# 02: static type warning
-  extends D //# 03: ok
-  extends E //# 04: ok
-  extends F //# 05: static type warning
+  extends B /// 01: ok
+  extends C /// 02: static type warning
+  extends D /// 03: ok
+  extends E /// 04: ok
+  extends F /// 05: static type warning
   {}
 
 main() {

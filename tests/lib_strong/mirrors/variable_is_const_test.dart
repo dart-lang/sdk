@@ -9,7 +9,7 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class Class {
-  const //# 01: compile-time error
+  const /// 01: compile-time error
       int instanceWouldBeConst = 1;
   var instanceNonConst = 2;
 

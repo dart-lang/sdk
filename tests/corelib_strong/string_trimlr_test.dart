@@ -92,7 +92,7 @@ main() {
     // This line makes string_trimlr_test/none fail but /01 succeede where
     // this bug is in the JS. Both succeede on the VM and where the bug is
     // not. Remove this line and comment if all JS engines fix it.
-    if (i == 0x200b) continue; //             //# 01: ok
+    if (i == 0x200b) continue; //             /// 01: ok
 
     var s = new String.fromCharCode(i);
     Expect.identical(s, s.trimLeft());

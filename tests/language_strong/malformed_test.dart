@@ -76,7 +76,7 @@ void main() {
   checkAsListUnresolved(true, new List<int, String>());
 
   checkIsListDynamic(true, []);
-  checkIsListDynamic(true, <>[]); //# 01: compile-time error
+  checkIsListDynamic(true, <>[]); /// 01: compile-time error
   checkIsListDynamic(false, <int>[]);
   checkIsListDynamic(true, <Unresolved>[]);
   checkIsListDynamic(true, <Unresolved<int>>[]);
@@ -85,7 +85,7 @@ void main() {
   checkIsListDynamic(true, <int, String>[]);
 
   checkIsListDynamic(true, new List());
-  checkIsListDynamic(true, new List<>()); //# 02: compile-time error
+  checkIsListDynamic(true, new List<>()); /// 02: compile-time error
   checkIsListDynamic(true, new List<Unresolved>());
   checkIsListDynamic(true, new List<Unresolved<int>>());
   checkIsListDynamic(true, new List<prefix.Unresolved>());
@@ -94,7 +94,7 @@ void main() {
 
   checkIsMapDynamic(true, true, <dynamic, dynamic>{});
   checkIsMapDynamic(true, true, {});
-  checkIsMapDynamic(true, true, <>{}); //# 03: compile-time error
+  checkIsMapDynamic(true, true, <>{}); /// 03: compile-time error
   checkIsMapDynamic(true, true, <int>{});
   checkIsMapDynamic(false, false, <String, int>{});
   checkIsMapDynamic(true, true, <String, int, String>{});
@@ -104,7 +104,7 @@ void main() {
   checkIsMapDynamic(false, true, <String, prefix.Unresolved<int>>{});
 
   checkIsMapDynamic(true, true, new Map());
-  checkIsMapDynamic(true, true, new Map<>); //# 04: compile-time error
+  checkIsMapDynamic(true, true, new Map<>); /// 04: compile-time error
   checkIsMapDynamic(true, true, new Map<int>());
   checkIsMapDynamic(false, false, new Map<String, int>());
   checkIsMapDynamic(true, true, new Map<String, int, String>());
@@ -163,7 +163,7 @@ void main() {
   try {
     throw 'foo';
   }
-    on undeclared_prefix.Unresolved<int> // //# 06: runtime error
+    on undeclared_prefix.Unresolved<int> // /// 06: runtime error
     catch (e) {
   }
 }

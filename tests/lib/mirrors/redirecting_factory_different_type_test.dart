@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 
 class A {
   factory A(
-    String //  //# 01: static type warning
+    String //  /// 01: static type warning
     x) = B;
   A._();
 }

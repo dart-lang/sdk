@@ -8,7 +8,7 @@ class C<T> {
   const C();
 }
 
-@C() //         //# 01: ok
-@C<dynamic>() //# 02: compile-time error
-@C<int>() //    //# 03: compile-time error
+@C() //         /// 01: ok
+@C<dynamic>() /// 02: compile-time error
+@C<int>() //    /// 03: compile-time error
 main() {}

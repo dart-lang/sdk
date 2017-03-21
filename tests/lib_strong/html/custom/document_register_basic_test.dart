@@ -39,7 +39,7 @@ abstract class BadC extends HtmlElement {
   BadC.created() : super.created();
 }
 
-class BadF implements HtmlElement { //# compile-time error
+class BadF implements HtmlElement { /// compile-time error
   static final tag = 'x-tag-f';
   factory BadF() => new Element.tag(tag);
 }

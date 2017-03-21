@@ -14,13 +14,13 @@ get await => 4;
 test0() async {
   var x = await 7;
   Expect.equals(7, x);
-  var await = 1; // //# await1: compile-time error
+  var await = 1; // /// await1: compile-time error
 }
 
 test1() async {
   var x = await 9;
   Expect.equals(9, x);
-  var y = await; // //# await2: compile-time error
+  var y = await; // /// await2: compile-time error
 }
 
 // For functions that are not declared with the async modifier we allow await to
@@ -29,13 +29,13 @@ test1() async {
 test2() {
   var y = await;
   Expect.equals(4, y);
-  var x = await 1; // //# await3: compile-time error
+  var x = await 1; // /// await3: compile-time error
 }
 
 test3() {
   var await = 3;
   Expect.equals(3, await);
-  var x = await 1; // //# await4: compile-time error
+  var x = await 1; // /// await4: compile-time error
 }
 
 main() {

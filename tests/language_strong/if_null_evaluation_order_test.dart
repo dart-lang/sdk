@@ -31,6 +31,6 @@ main() {
   // status files easier to maintain.
   var _ = null ?? null;
 
-  Expect.equals(1, 1 ?? bad()); //# 01: ok
-  Expect.equals(2, first() ?? second()); //# 02: ok
+  Expect.equals(1, 1 ?? bad()); /// 01: ok
+  Expect.equals(2, first() ?? second()); /// 02: ok
 }

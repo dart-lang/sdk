@@ -19,7 +19,7 @@ class A {
   // staticFun isn't really a static function and should cause a
   // compile-time error.
   static
-  moreStaticFun() {} //# 01: compile-time error
+  moreStaticFun() {} /// 01: compile-time error
   int staticFun(int v1, int v2) {
     return v1 * v2;
   }

@@ -17,9 +17,9 @@ import "empty_library.dart" as p;
 void f(x) {}
 
 main() {
-  f(p); //        //# 01: compile-time error
-  var x = p; //   //# 02: compile-time error
-  var x = p[0]; //# 03: compile-time error
-  p[0] = null; // //# 04: compile-time error
-  p += 0; //      //# 05: compile-time error
+  f(p); //        /// 01: compile-time error
+  var x = p; //   /// 02: compile-time error
+  var x = p[0]; /// 03: compile-time error
+  p[0] = null; // /// 04: compile-time error
+  p += 0; //      /// 05: compile-time error
 }

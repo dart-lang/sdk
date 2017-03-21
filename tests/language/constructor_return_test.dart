@@ -10,26 +10,26 @@ class A {
   int x;
   A(this.x) { return; }
   A.test1(this.x) {
-    return this; // //# 01: compile-time error
+    return this; // /// 01: compile-time error
   }
   A.test2(this.x) {
-    return null; // //# 02: compile-time error
+    return null; // /// 02: compile-time error
   }
   int foo(int y) => x + y;
 }
 
 class B {
-  B() => null; // //# 03: compile-time error
+  B() => null; // /// 03: compile-time error
 }
 
 class C {
   int value;
-  C() : value = 1 { return null; } // //# 04: compile-time error
+  C() : value = 1 { return null; } // /// 04: compile-time error
 }
 
 class D {
   int value;
-  D(): value = 1 => null; // //# 05: compile-time error
+  D(): value = 1 => null; // /// 05: compile-time error
 }
 
 main() {

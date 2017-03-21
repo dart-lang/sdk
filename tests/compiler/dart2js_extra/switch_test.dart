@@ -63,9 +63,9 @@ badswitches(val) {
   // 01 - a label/statement without a following case/default.
   // 02 - a label without a following case/default or statement.
   switch (val) {
-    foo: break; //    //# 01: compile-time error
-    case 2: //        //# 02: compile-time error
-    foo: //           //# 02: continued
+    foo: break; //    /// 01: compile-time error
+    case 2: //        /// 02: compile-time error
+    foo: //           /// 02: continued
   }
 }
 

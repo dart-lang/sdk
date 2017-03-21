@@ -20,7 +20,7 @@ main() {
     port.first.then(expectAsync((msg) {
       String expectedMessage = 're: hi';
       // Should be hi, not hello.
-      expectedMessage = 're: hello'; //# 01: runtime error
+      expectedMessage = 're: hello'; /// 01: runtime error
       expect(msg, equals(expectedMessage));
     }));
 

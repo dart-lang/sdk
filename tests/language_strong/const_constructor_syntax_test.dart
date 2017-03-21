@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  var c0 = const C0(); //# 01: compile-time error
-  var i0 = const I0(); //# 02: compile-time error
+  var c0 = const C0(); /// 01: compile-time error
+  var i0 = const I0(); /// 02: compile-time error
   var c1 = const C1();
-  var c2 = const C2(); //# 03: compile-time error
+  var c2 = const C2(); /// 03: compile-time error
   var c3 = const C3();
 }
 
@@ -20,7 +20,7 @@ class C0 implements I0 {
 
 class C1 {
   const C1();
-  var modifiable; //# 04: compile-time error
+  var modifiable; /// 04: compile-time error
 }
 
 class C2 {
@@ -29,7 +29,7 @@ class C2 {
 
 class C3 {
   const C3()
-      : field = new C0() //# 05: compile-time error
+      : field = new C0() /// 05: compile-time error
   ;
   final field = null;
 }

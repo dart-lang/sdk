@@ -6,7 +6,7 @@ import 'dart:mirrors';
 
 import 'library_metadata2_lib1.dart';
 
-import 'library_metadata2_lib2.dart'; //# 01: compile-time error
+import 'library_metadata2_lib2.dart'; /// 01: compile-time error
 
 void main() {
   for (var library in currentMirrorSystem().libraries.values) {

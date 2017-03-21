@@ -11,7 +11,7 @@ import 'dart:math' as math;
 
 class Math {
   static
-  int // //# 01: static type warning
+  int // /// 01: static type warning
   sqrt(x) => math.sqrt(x);
 }
 

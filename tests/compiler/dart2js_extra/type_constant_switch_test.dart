@@ -11,6 +11,6 @@ var v;
 
 main() {
   switch (v) {
-    case C: break; // //# 01: compile-time error
+    case C: break; // /// 01: compile-time error
   }
 }

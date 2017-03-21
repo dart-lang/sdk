@@ -32,22 +32,22 @@ main() {
   {
     bool got_type_error = false;
     try {
-      FBound<SubBar> fsb = new FBound<SubBar>(); // //# 01: static type warning
+      FBound<SubBar> fsb = new FBound<SubBar>(); // /// 01: static type warning
     } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.
-    Expect.isTrue(got_type_error == isCheckedMode()); // //# 01: continued
+    Expect.isTrue(got_type_error == isCheckedMode()); // /// 01: continued
   }
   FBound<Baz<Bar>> fbb = new FBound<Baz<Bar>>();
   {
     bool got_type_error = false;
     try {
-      FBound<SubBaz<Bar>> fsb = new FBound<SubBaz<Bar>>(); // //# 02: static type warning
+      FBound<SubBaz<Bar>> fsb = new FBound<SubBaz<Bar>>(); // /// 02: static type warning
     } on TypeError catch (error) {
       got_type_error = true;
     }
     // Type error in checked mode only.
-    Expect.isTrue(got_type_error == isCheckedMode()); // //# 02: continued
+    Expect.isTrue(got_type_error == isCheckedMode()); // /// 02: continued
   }
 }

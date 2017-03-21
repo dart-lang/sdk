@@ -28,11 +28,11 @@ main() {
   testIterable(new Set<int>.from([1, 2, 3]), <int>[1, 2, 3]);
   testIterable(new Queue.from([1, 2, 3]), [1, 2, 3]);
   testIterable(new Queue<int>.from(<int>[1, 2, 3]), <int>[1, 2, 3]);
-  testIterable(new Uint8List.fromList(<int>[1, 2, 3]), //    //# 01: ok
-               <int>[1, 2, 3]); //                           //# 01: continued
-  testIterable(new Float32List.fromList([1.0, 2.0, 3.0]), // //# 01: continued
-               <double>[1.0, 2.0, 3.0]); //                  //# 01: continued
-  testIterable("abc".codeUnits, <int>[97, 98, 99]); //       //# 01: continued
+  testIterable(new Uint8List.fromList(<int>[1, 2, 3]), //    /// 01: ok
+               <int>[1, 2, 3]); //                           /// 01: continued
+  testIterable(new Float32List.fromList([1.0, 2.0, 3.0]), // /// 01: continued
+               <double>[1.0, 2.0, 3.0]); //                  /// 01: continued
+  testIterable("abc".codeUnits, <int>[97, 98, 99]); //       /// 01: continued
   testIterable("abc".runes, <int>[97, 98, 99]);
 }
 

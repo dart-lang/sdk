@@ -13,18 +13,18 @@ main() async {
   await lib1.loadLibrary();
   // Split the cases into a multi-test to test each feature separately.
   Expect.isFalse(
-      lib1.fooIs //# is: ok
-      lib1.fooAs //# as: ok
-      lib1.fooAnnotation //# type_annotation: ok
+      lib1.fooIs /// is: ok
+      lib1.fooAs /// as: ok
+      lib1.fooAnnotation /// type_annotation: ok
       ("string")
-      is! String //# none: ok
+      is! String /// none: ok
   );
   await lib2.loadLibrary();
   Expect.isTrue(
-      lib1.fooIs //# is: ok
-      lib1.fooAs //# as: ok
-      lib1.fooAnnotation //# type_annotation: ok
+      lib1.fooIs /// is: ok
+      lib1.fooAs /// as: ok
+      lib1.fooAnnotation /// type_annotation: ok
       (lib2.getInstance())
-      is! String //# none: ok
+      is! String /// none: ok
   );
 }

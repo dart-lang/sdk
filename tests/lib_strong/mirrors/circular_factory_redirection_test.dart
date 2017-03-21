@@ -7,25 +7,25 @@ import "package:expect/expect.dart";
 
 class A {
   A();
-  A.circular() = B.circular; // //# 01: compile-time error
-  const A.circular2() = B.circular2; // //# 02: compile-time error
+  A.circular() = B.circular; // /// 01: compile-time error
+  const A.circular2() = B.circular2; // /// 02: compile-time error
 }
 class B {
   B();
-  B.circular() = C.circular; // //# 01: continued
-  const B.circular2() = C.circular2; // //# 02: continued
+  B.circular() = C.circular; // /// 01: continued
+  const B.circular2() = C.circular2; // /// 02: continued
 }
 class C {
   C();
-  C.circular() = A.circular; // //# 01: continued
-  const C.circular2() = A.circular2; // //# 02: continued
+  C.circular() = A.circular; // /// 01: continued
+  const C.circular2() = A.circular2; // /// 02: continued
 }
 
 main() {
   ClassMirror cm = reflectClass(A);
 
-  new A.circular(); // //# 01: continued
-  new A.circular2(); // //# 02: continued
+  new A.circular(); // /// 01: continued
+  new A.circular2(); // /// 02: continued
 
   Expect.throws(() => cm.newInstance(#circular, []),
                 (e) => e is NoSuchMethodError,

@@ -5,10 +5,10 @@
 class Bad {
   int foo;
   final int bar =
-      foo //# 01: compile-time error
+      foo /// 01: compile-time error
       -1;
   static const int toto =
-      bar //# 02: compile-time error
+      bar /// 02: compile-time error
       -3;
 }
 

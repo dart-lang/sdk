@@ -48,7 +48,7 @@ void main() {
   Expect.equals("-Infinity", double.NEGATIVE_INFINITY.toString());
 
   // Test identities.
-  Expect.isTrue(identical(double.NAN, double.NAN)); // //# 01: ok
+  Expect.isTrue(identical(double.NAN, double.NAN)); // /// 01: ok
   Expect.isTrue(identical(double.INFINITY, double.INFINITY));
   Expect.isTrue(identical(double.NEGATIVE_INFINITY, double.NEGATIVE_INFINITY));
   Expect.isFalse(identical(double.NAN, double.INFINITY));

@@ -11,14 +11,14 @@ class D extends C {
   const D(var d) : super(d);
 }
 
-const c = const C(0.0); //# 01: ok
-const d = const C(0); //# 02: static type warning, checked mode compile-time error
-const e = const D(0.0); //# 03: ok
-const f = const D(0); //# 04: checked mode compile-time error
+const c = const C(0.0); /// 01: ok
+const d = const C(0); /// 02: static type warning, checked mode compile-time error
+const e = const D(0.0); /// 03: ok
+const f = const D(0); /// 04: checked mode compile-time error
 
 main() {
-  print(c); //# 01: continued
-  print(d); //# 02: continued
-  print(e); //# 03: continued
-  print(f); //# 04: continued
+  print(c); /// 01: continued
+  print(d); /// 02: continued
+  print(e); /// 03: continued
+  print(f); /// 04: continued
 }

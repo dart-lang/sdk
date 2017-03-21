@@ -18,14 +18,14 @@ class B implements A {
 class C implements B {
   const C();
   factory C.circular()
-  /* //# 01: compile-time error
+  /* /// 01: compile-time error
      = C;
-  */ = A.circular; //# 01: continued
+  */ = A.circular; /// 01: continued
 
   const factory C.circular2()
-  /* //# 02: compile-time error
+  /* /// 02: compile-time error
      = C;
-  */ = A.circular2; //# 02: continued
+  */ = A.circular2; /// 02: continued
 }
 
 main() {

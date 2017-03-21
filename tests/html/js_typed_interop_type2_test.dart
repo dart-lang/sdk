@@ -47,7 +47,7 @@ main() {
   var d = new D(foo: 4);
   var f = new F(6);
   Expect.equals(testC(d), 4);
-  Expect.equals(testF(f), 6); //# 01: ok
+  Expect.equals(testF(f), 6); /// 01: ok
 }
 
 

@@ -9,16 +9,16 @@ class C<T> {
   C([this.x]);
 
   static staticFunction(bool b) =>
-    b ? T : //                               //# 00: compile-time error
+    b ? T : //                               /// 00: compile-time error
     null;
   factory C.factoryConstructor(bool b) => new C(
-    b ? T : //                               //# 01: ok
+    b ? T : //                               /// 01: ok
     null);
   C.redirectingConstructor(bool b) : this(
-    b ? T : //                               //# 02: ok
+    b ? T : //                               /// 02: ok
     null);
   C.ordinaryConstructor(bool b) : x =
-    b ? T : //                               //# 03: ok
+    b ? T : //                               /// 03: ok
     null;
 }
 

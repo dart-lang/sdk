@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 
 // Default values are not allowed on typedefs.
-typedef int F1({x = 3, y}); //# 01: compile-time error
+typedef int F1({x = 3, y}); /// 01: compile-time error
 
 typedef int functype({x, y, z});
 
@@ -23,7 +23,7 @@ class A {
   factory A.redirectFactory({x, y, z}) = A;
 
   // Default values are not allowed on redirecting factory constructors.
-  factory A.badRedirectFactory({x = 3, y}) = A; //# 02: compile-time error
+  factory A.badRedirectFactory({x = 3, y}) = A; /// 02: compile-time error
 
   int get value => x * y * z;
 
@@ -33,7 +33,7 @@ class A {
 
 main() {
   // Reference the type, or dart2js won't see that the declaration is invalid
-  F1 _ = null; // //# 01: continued
+  F1 _ = null; // /// 01: continued
 
   var a = new A();
 

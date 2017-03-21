@@ -48,31 +48,31 @@ class G<W> implements F {
 main() {
   const A<int> a = const B<int>();
 
-  const C c1 = const C(a); //# 01: ok
-  const C c2 = const C.optional(a); //# 02: ok
-  const C c3 = const C.named(a: a); //# 03: ok
-  const C c4 = const C.untyped(a); //# 04: ok
-  const C c5 = const C.subtyped(a); //# 05: ok
-  const C c5m = const C.redirecting(a); //# 06: ok
+  const C c1 = const C(a); /// 01: ok
+  const C c2 = const C.optional(a); /// 02: ok
+  const C c3 = const C.named(a: a); /// 03: ok
+  const C c4 = const C.untyped(a); /// 04: ok
+  const C c5 = const C.subtyped(a); /// 05: ok
+  const C c5m = const C.redirecting(a); /// 06: ok
 
-  const C c6 = const C<int>(a); //# 07: ok
-  const C c7 = const C<int>.optional(a); //# 08: ok
-  const C c8 = const C<int>.named(a: a); //# 09: ok
-  const C c9 = const C<int>.untyped(a); //# 10: ok
-  const C c10 = const C<int>.subtyped(a); //# 11: ok
-  const C c10m = const C<int>.redirecting(a); //# 12: ok
+  const C c6 = const C<int>(a); /// 07: ok
+  const C c7 = const C<int>.optional(a); /// 08: ok
+  const C c8 = const C<int>.named(a: a); /// 09: ok
+  const C c9 = const C<int>.untyped(a); /// 10: ok
+  const C c10 = const C<int>.subtyped(a); /// 11: ok
+  const C c10m = const C<int>.redirecting(a); /// 12: ok
 
-  const C c11 = const C<double>(a); //# 13: static type warning, checked mode compile-time error
-  const C c12 = const C<double>.optional(a); //# 14: static type warning, checked mode compile-time error
-  const C c13 = const C<double>.named(a: a); //# 15: static type warning, checked mode compile-time error
-  const C c14 = const C<double>.untyped(a); //# 16: static type warning, checked mode compile-time error
-  const C c15 = const C<double>.subtyped(a); //# 17: static type warning, checked mode compile-time error
-  const C c15m = const C<double>.redirecting(a); //# 18: static type warning
+  const C c11 = const C<double>(a); /// 13: static type warning, checked mode compile-time error
+  const C c12 = const C<double>.optional(a); /// 14: static type warning, checked mode compile-time error
+  const C c13 = const C<double>.named(a: a); /// 15: static type warning, checked mode compile-time error
+  const C c14 = const C<double>.untyped(a); /// 16: static type warning, checked mode compile-time error
+  const C c15 = const C<double>.subtyped(a); /// 17: static type warning, checked mode compile-time error
+  const C c15m = const C<double>.redirecting(a); /// 18: static type warning
 
-  const E e1 = const E.redirecting1(0); //# 19: ok
-  const E e2 = const E.redirecting1(''); //# 20: checked mode compile-time error
-  const E e3 = const E.redirecting2(0); //# 21: ok
-  const E e4 = const E.redirecting2(''); //# 22: checked mode compile-time error
-  const E e5 = const E.redirecting3(0); //# 23: ok
-  const E e6 = const E.redirecting3(''); //# 24: checked mode compile-time error
+  const E e1 = const E.redirecting1(0); /// 19: ok
+  const E e2 = const E.redirecting1(''); /// 20: checked mode compile-time error
+  const E e3 = const E.redirecting2(0); /// 21: ok
+  const E e4 = const E.redirecting2(''); /// 22: checked mode compile-time error
+  const E e5 = const E.redirecting3(0); /// 23: ok
+  const E e6 = const E.redirecting3(''); /// 24: checked mode compile-time error
 }
