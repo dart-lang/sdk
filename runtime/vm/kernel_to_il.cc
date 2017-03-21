@@ -1185,21 +1185,6 @@ dart::RawClass* TranslationHelper::LookupClassByKernelClass(
 }
 
 
-dart::RawUnresolvedClass* TranslationHelper::ToUnresolvedClass(
-    Class* kernel_klass) {
-  dart::RawClass* klass = NULL;
-
-  const dart::String& class_name = DartClassName(kernel_klass);
-  Library* kernel_library = Library::Cast(kernel_klass->parent());
-  dart::Library& library =
-      dart::Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
-
-  ASSERT(klass != Object::null());
-  return dart::UnresolvedClass::New(library, class_name,
-                                    TokenPosition::kNoSource);
-}
-
-
 dart::RawField* TranslationHelper::LookupFieldByKernelField(
     Field* kernel_field) {
   TreeNode* node = kernel_field->parent();
@@ -4485,7 +4470,7 @@ void DartTypeTranslator::VisitInterfaceType(InterfaceType* node) {
 
 
   dart::Object& klass =
-      dart::Object::Handle(Z, H.ToUnresolvedClass(node->klass()));
+      dart::Object::Handle(Z, H.LookupClassByKernelClass(node->klass()));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);

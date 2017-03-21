@@ -272,8 +272,6 @@ class TranslationHelper {
   virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
   virtual RawClass* LookupClassByKernelClass(Class* klass);
 
-  RawUnresolvedClass* ToUnresolvedClass(Class* klass);
-
   RawField* LookupFieldByKernelField(Field* field);
   RawFunction* LookupStaticMethodByKernelProcedure(Procedure* procedure);
   RawFunction* LookupConstructorByKernelConstructor(Constructor* constructor);
