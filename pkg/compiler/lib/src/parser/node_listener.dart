@@ -227,8 +227,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -971,7 +971,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endUnnamedFunction(Token token) {
+  void endUnnamedFunction(Token beginToken, Token token) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();

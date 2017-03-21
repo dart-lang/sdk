@@ -201,6 +201,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel});
@@ -230,6 +231,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName);
 

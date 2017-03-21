@@ -319,6 +319,7 @@ class KernelTarget extends TargetImplementation {
           ProcedureKind.Method,
           library,
           -1,
+          -1,
           -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new ExpressionStatement(

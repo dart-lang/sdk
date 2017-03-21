@@ -542,6 +542,7 @@ class Parser {
     bool isNamedParameter = kind == FormalParameterType.NAMED;
 
     Token thisKeyword = null;
+    Token nameToken;
     if (inFunctionType && isNamedParameter) {
       token = parseType(token);
       token =
@@ -559,8 +560,10 @@ class Parser {
       if (optional('this', token)) {
         thisKeyword = token;
         token = expect('.', token.next);
+        nameToken = token;
         token = parseIdentifier(token, IdentifierContext.fieldInitializer);
       } else {
+        nameToken = token;
         token = parseIdentifier(
             token, IdentifierContext.formalParameterDeclaration);
       }
@@ -609,7 +612,7 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(token);
     }
-    listener.endFormalParameter(covariantKeyword, thisKeyword, kind);
+    listener.endFormalParameter(covariantKeyword, thisKeyword, nameToken, kind);
     return token;
   }
 
@@ -1948,6 +1951,7 @@ class Parser {
   }
 
   Token parseFunction(Token token, Token getOrSet) {
+    Token beginToken = token;
     listener.beginFunction(token);
     token = parseModifiers(token);
     if (identical(getOrSet, token)) {
@@ -1982,7 +1986,7 @@ class Parser {
     }
     token = parseQualifiedRestOpt(
         token, IdentifierContext.localFunctionDeclarationContinuation);
-    listener.endFunctionName(token);
+    listener.endFunctionName(beginToken, token);
     if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
     } else {
@@ -1999,6 +2003,7 @@ class Parser {
   }
 
   Token parseUnnamedFunction(Token token) {
+    Token beginToken = token;
     listener.beginUnnamedFunction(token);
     token = parseFormalParameters(token);
     AsyncModifier savedAsyncModifier = asyncState;
@@ -2006,7 +2011,7 @@ class Parser {
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
     asyncState = savedAsyncModifier;
-    listener.endUnnamedFunction(token);
+    listener.endUnnamedFunction(beginToken, token);
     return isBlock ? token.next : token;
   }
 
@@ -2018,12 +2023,13 @@ class Parser {
   }
 
   Token parseFunctionExpression(Token token) {
+    Token beginToken = token;
     listener.beginFunction(token);
     listener.handleModifiers(0);
     token = parseReturnTypeOpt(token);
     listener.beginFunctionName(token);
     token = parseIdentifier(token, IdentifierContext.functionExpressionName);
-    listener.endFunctionName(token);
+    listener.endFunctionName(beginToken, token);
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token);
     listener.handleNoInitializers();

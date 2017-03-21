@@ -147,7 +147,7 @@ class PropertyAccessor extends Accessor {
   static Accessor make(Expression receiver, Name name, Member getter,
       Member setter, int charOffset) {
     if (receiver is ThisExpression) {
-      return new ThisPropertyAccessor(name, getter, setter);
+      return new ThisPropertyAccessor(name, getter, setter, charOffset);
     } else {
       return new PropertyAccessor.internal(
           receiver, name, getter, setter, charOffset);
@@ -185,13 +185,16 @@ class PropertyAccessor extends Accessor {
 class ThisPropertyAccessor extends Accessor {
   Name name;
   Member getter, setter;
+  final int charOffset;
 
-  ThisPropertyAccessor(this.name, this.getter, this.setter);
+  ThisPropertyAccessor(this.name, this.getter, this.setter, this.charOffset);
 
-  _makeRead() => new PropertyGet(new ThisExpression(), name, getter);
+  _makeRead() => new PropertyGet(new ThisExpression(), name, getter)
+    ..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
-    return new PropertySet(new ThisExpression(), name, value, setter);
+    return new PropertySet(new ThisExpression(), name, value, setter)
+      ..fileOffset = charOffset;
   }
 }
 
@@ -426,16 +429,18 @@ class SuperIndexAccessor extends Accessor {
 class StaticAccessor extends Accessor {
   Member readTarget;
   Member writeTarget;
+  int charOffset;
 
-  StaticAccessor(this.readTarget, this.writeTarget);
+  StaticAccessor(this.readTarget, this.writeTarget, this.charOffset);
 
   _makeRead() =>
-      readTarget == null ? makeInvalidRead() : new StaticGet(readTarget);
+      readTarget == null ? makeInvalidRead() : new StaticGet(readTarget)
+        ..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
         ? makeInvalidWrite(value)
-        : new StaticSet(writeTarget, value);
+        : new StaticSet(writeTarget, value)..fileOffset = charOffset;
   }
 }
 

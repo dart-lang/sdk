@@ -225,7 +225,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return list;
   }
 
-  Block popBlock(int count) {
+  Block popBlock(int count, int charOffset) {
     List<dynamic /*Statement | List<Statement>*/ > statements =
         popList(count) ?? <Statement>[];
     List<Statement> copy;
@@ -240,7 +240,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         copy.add(statement);
       }
     }
-    return new Block(copy ?? statements);
+    return new Block(copy ?? statements)..fileOffset = charOffset;
   }
 
   Statement popStatementIfNotNull(Object value) {
@@ -356,7 +356,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       assert(count == 0);
       push(NullValue.Block);
     } else {
-      Block block = popBlock(count);
+      Block block = popBlock(count, beginToken.charOffset);
       exitLocalScope();
       push(block);
     }
@@ -525,7 +525,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (arguments == null) {
         push(new IncompletePropertyAccessor(this, beginToken.charOffset, name));
       } else {
-        push(new SendAccessor(this, endToken.charOffset, name, arguments));
+        push(new SendAccessor(this, beginToken.charOffset, name, arguments));
       }
     } else if (arguments == null) {
       push(receiver);
@@ -820,8 +820,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       List<Expression> expressions = <Expression>[];
       // Contains more than just \' or \".
       if (first.lexeme.length > 1) {
-        expressions
-          .add(new StringLiteral(unescapeFirstStringPart(first.lexeme, quote)));
+        expressions.add(
+            new StringLiteral(unescapeFirstStringPart(first.lexeme, quote)));
       }
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
@@ -836,7 +836,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       // Contains more than just \' or \".
       if (last.lexeme.length > 1) {
         expressions
-          .add(new StringLiteral(unescapeLastStringPart(last.lexeme, quote)));
+            .add(new StringLiteral(unescapeLastStringPart(last.lexeme, quote)));
       }
       push(new StringConcatenation(expressions)
         ..fileOffset = endToken.charOffset);
@@ -885,7 +885,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     debugEvent("ExpressionFunctionBody");
-    endReturnStatement(true, arrowToken, endToken);
+    endReturnStatement(true, arrowToken.next, endToken);
   }
 
   @override
@@ -983,7 +983,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endBlock(int count, Token beginToken, Token endToken) {
     debugEvent("Block");
-    Block block = popBlock(count);
+    Block block = popBlock(count, beginToken.charOffset);
     exitLocalScope();
     push(block);
   }
@@ -1078,7 +1078,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endAwaitExpression(Token beginToken, Token endToken) {
     debugEvent("AwaitExpression");
-    push(new AwaitExpression(popForValue()));
+    push(
+        new AwaitExpression(popForValue())..fileOffset = beginToken.charOffset);
   }
 
   @override
@@ -1313,8 +1314,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     debugEvent("FormalParameter");
     // TODO(ahe): Need beginToken here.
     int charOffset = thisKeyword?.charOffset;
@@ -1417,7 +1418,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       count--;
     }
     FormalParameters formals = new FormalParameters(
-        popList(count) ?? <VariableDeclaration>[], optional);
+        popList(count) ?? <VariableDeclaration>[],
+        optional,
+        beginToken.charOffset);
     push(formals);
     if (inCatchClause || functionNestingLevel != 0) {
       enterLocalScope(formals.computeFormalParameterScope(
@@ -1626,15 +1629,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return throwNoSuchMethodError(target.name.name, arguments, charOffset);
     }
     if (target is Constructor) {
-      return new ConstructorInvocation(target, arguments)..isConst = isConst;
+      return new ConstructorInvocation(target, arguments)
+        ..isConst = isConst
+        ..fileOffset = charOffset;
     } else {
-      return new StaticInvocation(target, arguments)..isConst = isConst;
+      return new StaticInvocation(target, arguments)
+        ..isConst = isConst
+        ..fileOffset = charOffset;
     }
   }
 
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters) {
-
     if (arguments.positional.length < function.requiredParameterCount ||
         arguments.positional.length > function.positionalParameters.length) {
       return false;
@@ -1668,13 +1674,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleNewExpression(Token token) {
     debugEvent("NewExpression");
+    Token nameToken = token.next;
     Arguments arguments = pop();
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
 
     if (arguments == null) {
-      push(buildCompileTimeError("No arguments.", token.charOffset));
+      push(buildCompileTimeError("No arguments.", nameToken.charOffset));
       return;
     }
 
@@ -1699,14 +1706,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         target = getRedirectionTarget(b.target);
         if (target == null) {
           push(buildCompileTimeError(
-              "Cyclic definition of factory '${name}'.", token.charOffset));
+              "Cyclic definition of factory '${name}'.", nameToken.charOffset));
           return;
         }
       }
       if (target is Constructor ||
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         push(buildStaticInvocation(target, arguments,
-            isConst: optional("const", token), charOffset: token.charOffset));
+            isConst: optional("const", token),
+            charOffset: nameToken.charOffset));
         return;
       } else {
         errorName = debugName(type.name, name);
@@ -1715,7 +1723,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       errorName = debugName(getNodeName(type), name);
     }
     errorName ??= name;
-    push(throwNoSuchMethodError(errorName, arguments, token.charOffset));
+    push(throwNoSuchMethodError(errorName, arguments, nameToken.charOffset));
   }
 
   @override
@@ -1764,13 +1772,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFunctionName(Token token) {
+  void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
     VariableDeclaration variable =
         new VariableDeclaration(name.name, isFinal: true);
     push(new FunctionDeclaration(
-        variable, new FunctionNode(new InvalidStatement())));
+        variable, new FunctionNode(new InvalidStatement()))
+      ..fileOffset = beginToken.charOffset);
     scope[variable.name] = new KernelVariableBuilder(
         variable, member ?? classBuilder ?? library, uri);
     enterLocalScope();
@@ -1812,7 +1821,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FormalParameters formals = pop();
     List<TypeParameter> typeParameters = pop();
     push(formals.addToFunction(new FunctionNode(body,
-        typeParameters: typeParameters, asyncMarker: asyncModifier)));
+        typeParameters: typeParameters, asyncMarker: asyncModifier)
+      ..fileOffset = formals.charOffset
+      ..fileEndOffset = endToken.charOffset));
   }
 
   @override
@@ -1830,7 +1841,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endUnnamedFunction(Token token) {
+  void endUnnamedFunction(Token beginToken, Token token) {
     debugEvent("UnnamedFunction");
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
@@ -1839,8 +1850,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitFunction();
     List<TypeParameter> typeParameters = pop();
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
-        typeParameters: typeParameters, asyncMarker: asyncModifier));
-    push(new FunctionExpression(function));
+        typeParameters: typeParameters, asyncMarker: asyncModifier)
+      ..fileOffset = beginToken.charOffset
+      ..fileEndOffset = token.charOffset);
+    push(new FunctionExpression(function)..fileOffset = beginToken.charOffset);
   }
 
   @override
@@ -1966,7 +1979,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endRethrowStatement(Token throwToken, Token endToken) {
     debugEvent("RethrowStatement");
-    push(new ExpressionStatement(new Rethrow()));
+    push(new ExpressionStatement(
+        new Rethrow()..fileOffset = throwToken.charOffset));
   }
 
   @override
@@ -2012,7 +2026,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     debugEvent("YieldStatement");
-    push(new YieldStatement(popForValue(), isYieldStar: starToken != null));
+    push(new YieldStatement(popForValue(), isYieldStar: starToken != null)
+      ..fileOffset = yieldToken.charOffset);
   }
 
   @override
@@ -2061,7 +2076,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Token firstToken,
       Token endToken) {
     debugEvent("SwitchCase");
-    Block block = popBlock(statementCount);
+    Block block = popBlock(statementCount, firstToken.charOffset);
     exitLocalScope();
     List<Label> labels = pop();
     List<Expression> expressions = pop();
@@ -2655,8 +2670,9 @@ class OptionalFormals {
 class FormalParameters {
   final List<VariableDeclaration> required;
   final OptionalFormals optional;
+  final int charOffset;
 
-  FormalParameters(this.required, this.optional);
+  FormalParameters(this.required, this.optional, this.charOffset);
 
   FunctionNode addToFunction(FunctionNode function) {
     function.requiredParameterCount = required.length;

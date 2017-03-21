@@ -17,6 +17,7 @@ import 'kernel_builder.dart'
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
   VariableDeclaration declaration;
+  final int charOffset;
 
   KernelFormalParameterBuilder(
       List<MetadataBuilder> metadata,
@@ -25,7 +26,7 @@ class KernelFormalParameterBuilder
       String name,
       bool hasThis,
       KernelLibraryBuilder compilationUnit,
-      int charOffset)
+      this.charOffset)
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
@@ -33,7 +34,7 @@ class KernelFormalParameterBuilder
     return declaration ??= new VariableDeclaration(name,
         type: type?.build(library) ?? const DynamicType(),
         isFinal: isFinal,
-        isConst: isConst);
+        isConst: isConst)..fileOffset = charOffset;
   }
 
   VariableDeclaration get target => declaration;

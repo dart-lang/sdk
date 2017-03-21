@@ -9,13 +9,16 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/element/element.dart' show Element;
-import 'package:front_end/src/fasta/parser/parser.dart' show FormalParameterType;
-import 'package:front_end/src/fasta/scanner/token.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/parser/parser.dart'
+    show FormalParameterType;
+import 'package:front_end/src/fasta/scanner/token.dart'
+    show BeginGroupToken, Token;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder;
-import 'package:front_end/src/fasta/parser/identifier_context.dart' show IdentifierContext;
+import 'package:front_end/src/fasta/parser/identifier_context.dart'
+    show IdentifierContext;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
     show JumpTargetKind, NullValue, Scope, ScopeListener;
@@ -754,8 +757,8 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     debugEvent("FormalParameter");
     _ParameterDefaultValue defaultValue = pop();
 
@@ -1339,7 +1342,7 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(ofKeyword), uri, name, toAnalyzerToken(semicolon)));
   }
 
-  void endUnnamedFunction(Token token) {
+  void endUnnamedFunction(Token beginToken, Token token) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.  Note that this is tricky due to the handling of initializers
     // in constructors, so the logic should be shared with BodyBuilder as much

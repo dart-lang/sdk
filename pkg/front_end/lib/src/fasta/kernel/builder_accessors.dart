@@ -353,13 +353,18 @@ class SendAccessor extends IncompleteSend {
         if (target != null) {
           if (target is Field) {
             result = buildMethodInvocation(
-                new StaticGet(target), new Name("call"), arguments, charOffset,
+                new StaticGet(target),
+                new Name("call"),
+                arguments,
+                charOffset + (target.name?.name?.length ?? 0),
                 isNullAware: isNullAware);
           } else {
-            result = helper.buildStaticInvocation(target, arguments);
+            result = helper.buildStaticInvocation(target, arguments)
+              ..fileOffset = charOffset;
           }
         } else {
-          result = buildThrowNoSuchMethodError(arguments);
+          result = buildThrowNoSuchMethodError(arguments)
+            ..fileOffset = charOffset;
         }
       }
     } else {
@@ -367,7 +372,7 @@ class SendAccessor extends IncompleteSend {
           helper.toValue(receiver), name, arguments, charOffset,
           isNullAware: isNullAware);
     }
-    return result..fileOffset = charOffset;
+    return result;
   }
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
@@ -565,11 +570,9 @@ class PropertyAccessor extends kernel.PropertyAccessor with BuilderAccessor {
 class StaticAccessor extends kernel.StaticAccessor with BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
   StaticAccessor(
-      this.helper, this.charOffset, Member readTarget, Member writeTarget)
-      : super(readTarget, writeTarget) {
+      this.helper, int charOffset, Member readTarget, Member writeTarget)
+      : super(readTarget, writeTarget, charOffset) {
     assert(readTarget != null || writeTarget != null);
   }
 
@@ -577,8 +580,8 @@ class StaticAccessor extends kernel.StaticAccessor with BuilderAccessor {
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     if (readTarget == null || isFieldOrGetter(readTarget)) {
-      return buildMethodInvocation(
-          buildSimpleRead(), new Name("call"), arguments, charOffset);
+      return buildMethodInvocation(buildSimpleRead(), new Name("call"),
+          arguments, charOffset + (readTarget?.name?.name?.length ?? 0));
     } else {
       return helper.buildStaticInvocation(readTarget, arguments)
         ..fileOffset = charOffset;
@@ -660,11 +663,9 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
     with BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
   ThisPropertyAccessor(
-      this.helper, this.charOffset, Name name, Member getter, Member setter)
-      : super(name, getter, setter);
+      this.helper, int charOffset, Name name, Member getter, Member setter)
+      : super(name, getter, setter, charOffset);
 
   String get plainNameForRead => name.name;
 

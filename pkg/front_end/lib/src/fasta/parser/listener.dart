@@ -172,8 +172,8 @@ class Listener {
 
   void beginFormalParameter(Token token) {}
 
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     logEvent("FormalParameter");
   }
 
@@ -269,7 +269,7 @@ class Listener {
 
   void beginFunctionName(Token token) {}
 
-  void endFunctionName(Token token) {
+  void endFunctionName(Token beginToken, Token token) {
     logEvent("FunctionName");
   }
 
@@ -757,7 +757,7 @@ class Listener {
   /// - Formal parameters
   /// - Async marker
   /// - Body
-  void endUnnamedFunction(Token token) {
+  void endUnnamedFunction(Token beginToken, Token token) {
     logEvent("UnnamedFunction");
   }
 

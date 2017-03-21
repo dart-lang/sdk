@@ -169,6 +169,7 @@ class KernelLibraryBuilder
       AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel}) {
@@ -187,6 +188,7 @@ class KernelLibraryBuilder
           formals,
           this,
           charOffset,
+          charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
     } else {
@@ -201,6 +203,7 @@ class KernelLibraryBuilder
           kind,
           this,
           charOffset,
+          charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
     }
@@ -218,6 +221,7 @@ class KernelLibraryBuilder
       AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName) {
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
@@ -239,6 +243,7 @@ class KernelLibraryBuilder
         ProcedureKind.Factory,
         this,
         charOffset,
+        charOpenParenOffset,
         charEndOffset,
         nativeMethodName,
         redirectionTarget);

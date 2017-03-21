@@ -261,8 +261,8 @@ abstract class ExpressionListener extends StackListener {
     push(new ConstructorName(new TypeRef(type, typeArgs), ctorName?.name));
   }
 
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     debugEvent("FormalParameter");
     assert(ignore);
   }
@@ -284,7 +284,7 @@ abstract class ExpressionListener extends StackListener {
     _endFunction();
   }
 
-  void endFunctionName(Token token) {
+  void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     assert(ignore);
   }
@@ -362,7 +362,7 @@ abstract class ExpressionListener extends StackListener {
     assert(ignore);
   }
 
-  void endUnnamedFunction(token) {
+  void endUnnamedFunction(Token beginToken, Token token) {
     debugEvent("UnnamedFunction");
     _withinFunction--;
     if (ignore) return;
@@ -1002,8 +1002,8 @@ class SummaryBuilder extends StackListener {
     }
   }
 
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     debugEvent("FormalParameter");
     // TODO(sigmund): clean up?
     var nameOrFormal = pop();

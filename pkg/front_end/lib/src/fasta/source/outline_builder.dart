@@ -222,7 +222,7 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addClass(metadata, modifiers, name, typeVariables, supertype,
-        interfaces, beginToken.charOffset);
+        interfaces, classKeyword.next?.charOffset ?? beginToken.charOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -244,6 +244,7 @@ class OutlineBuilder extends UnhandledListener {
     MethodBody kind = pop();
     AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
+    int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     String name = pop();
     TypeBuilder returnType = pop();
@@ -261,6 +262,7 @@ class OutlineBuilder extends UnhandledListener {
         asyncModifier,
         computeProcedureKind(getOrSet),
         beginToken.charOffset,
+        formalsOffset,
         endToken.charOffset,
         nativeMethodName,
         isTopLevel: true);
@@ -294,6 +296,7 @@ class OutlineBuilder extends UnhandledListener {
     }
     AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
+    int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     dynamic nameOrOperator = pop();
     if (Operator.subtract == nameOrOperator && formals == null) {
@@ -322,6 +325,7 @@ class OutlineBuilder extends UnhandledListener {
         asyncModifier,
         kind,
         beginToken.charOffset,
+        formalsOffset,
         endToken.charOffset,
         nativeMethodName,
         isTopLevel: false);
@@ -398,16 +402,21 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     debugEvent("FormalParameter");
     String name = pop();
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     // TODO(ahe): Needs begin token.
-    push(library.addFormalParameter(metadata, modifiers, type, name,
-        thisKeyword != null, thisKeyword?.charOffset ?? -1));
+    push(library.addFormalParameter(
+        metadata,
+        modifiers,
+        type,
+        name,
+        thisKeyword != null,
+        thisKeyword?.charOffset ?? nameToken?.charOffset ?? -1));
   }
 
   @override
@@ -427,6 +436,7 @@ class OutlineBuilder extends UnhandledListener {
       Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
     pop(); // Function type parameters.
+    pop(); // Formals offset
     pop(); // Type variables.
     String name = pop();
     pop(); // Return type.
@@ -480,7 +490,14 @@ class OutlineBuilder extends UnhandledListener {
       }
       formals = new List<FormalParameterBuilder>.from(formals);
     }
+    push(beginToken.charOffset);
     push(formals ?? NullValue.FormalParameters);
+  }
+
+  @override
+  void handleNoFormalParameters(Token token) {
+    push(token.charOffset);
+    super.handleNoFormalParameters(token);
   }
 
   @override
@@ -502,6 +519,7 @@ class OutlineBuilder extends UnhandledListener {
   void handleFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
     List<FormalParameterBuilder> formals = pop();
+    pop(); // formals offset
     List<TypeVariableBuilder> typeVariables = pop();
     TypeBuilder returnType = pop();
     push(library.addFunctionType(
@@ -518,6 +536,7 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder returnType;
     if (equals == null) {
       formals = pop();
+      pop(); // formals offset
       typeVariables = pop();
       name = pop();
       returnType = pop();
@@ -617,6 +636,7 @@ class OutlineBuilder extends UnhandledListener {
     }
     AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
+    int formalsOffset = pop();
     var name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
@@ -628,6 +648,7 @@ class OutlineBuilder extends UnhandledListener {
         asyncModifier,
         redirectionTarget,
         beginToken.charOffset,
+        formalsOffset,
         endToken.charOffset,
         nativeMethodName);
     nativeMethodName = null;

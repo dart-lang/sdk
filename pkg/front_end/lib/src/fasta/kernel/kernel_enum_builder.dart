@@ -120,6 +120,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         ],
         parent,
         charOffset,
+        charOffset,
         charEndOffset);
     members[""] = constructorBuilder;
     int index = 0;
@@ -137,6 +138,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         AsyncMarker.Sync,
         ProcedureKind.Method,
         parent,
+        charOffset,
         charOffset,
         charEndOffset);
     members["toString"] = toStringBuilder;
