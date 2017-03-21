@@ -1006,6 +1006,7 @@ class Expression : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor) = 0;
   TokenPosition position() { return position_; }
+  void set_position(TokenPosition position) { position_ = position; }
 
  protected:
   Expression() : position_(TokenPosition::kNoSource) {}

@@ -811,7 +811,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(new StringLiteral(unescapeString(token.lexeme)));
+      push(new StringLiteral(unescapeString(token.lexeme))
+        ..fileOffset = token.charOffset);
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
@@ -873,7 +874,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(new IntLiteral(int.parse(token.lexeme)));
+    push(
+        new IntLiteral(int.parse(token.lexeme))..fileOffset = token.charOffset);
   }
 
   @override
@@ -1113,19 +1115,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralBool");
     bool value = optional("true", token);
     assert(value || optional("false", token));
-    push(new BoolLiteral(value));
+    push(new BoolLiteral(value)..fileOffset = token.charOffset);
   }
 
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(new DoubleLiteral(double.parse(token.lexeme)));
+    push(new DoubleLiteral(double.parse(token.lexeme))..fileOffset = token.charOffset);
   }
 
   @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
-    push(new NullLiteral());
+    push(new NullLiteral()..fileOffset = token.charOffset);
   }
 
   @override
@@ -2080,8 +2082,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     exitLocalScope();
     List<Label> labels = pop();
     List<Expression> expressions = pop();
-    push(new SwitchCase(expressions, block, isDefault: defaultKeyword != null)
-      ..fileOffset = firstToken.charOffset);
+    List<int> expressionOffsets = <int>[];
+    for (Expression expression in expressions) {
+      expressionOffsets.add(expression.fileOffset);
+    }
+    push(new SwitchCase(expressions, expressionOffsets, block,
+        isDefault: defaultKeyword != null)..fileOffset = firstToken.charOffset);
     push(labels);
   }
 

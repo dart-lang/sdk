@@ -1599,6 +1599,9 @@ SwitchStatement* SwitchStatement::ReadFrom(Reader* reader) {
 SwitchCase* SwitchCase::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   expressions_.ReadFromStatic<Expression>(reader);
+  for (intptr_t i = 0; i < expressions_.length(); ++i) {
+    expressions_[i]->set_position(reader->ReadPosition());
+  }
   is_default_ = reader->ReadBool();
   body_ = Statement::ReadFrom(reader);
   return this;

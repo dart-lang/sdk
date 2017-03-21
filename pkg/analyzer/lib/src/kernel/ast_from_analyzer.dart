@@ -1115,12 +1115,13 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         return scope.emitCompileTimeError(error);
       }
       if (currentCase == null) {
-        currentCase = new ast.SwitchCase(<ast.Expression>[], null);
+        currentCase = new ast.SwitchCase(<ast.Expression>[], <int>[], null);
         cases.add(currentCase);
       }
       if (member is SwitchCase) {
         var expression = scope.buildExpression(member.expression);
         currentCase.expressions.add(expression..parent = currentCase);
+        currentCase.expressionOffsets.add(expression.fileOffset);
       } else {
         currentCase.isDefault = true;
       }

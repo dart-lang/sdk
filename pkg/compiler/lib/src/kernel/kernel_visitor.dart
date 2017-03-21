@@ -1011,10 +1011,13 @@ class KernelVisitor extends Object
   @override
   ir.SwitchCase visitSwitchCase(SwitchCase node) {
     List<ir.Expression> expressions = <ir.Expression>[];
+    List<int> expressionOffsets = <int>[];
     for (var labelOrCase in node.labelsAndCases.nodes) {
       CaseMatch match = labelOrCase.asCaseMatch();
       if (match != null) {
-        expressions.add(visitForValue(match.expression));
+        ir.TreeNode expression = visitForValue(match.expression);
+        expressions.add(expression);
+        expressionOffsets.add(expression.fileOffset);
       } else {
         // Assert that labelOrCase is one of two known types: [CaseMatch] or
         // [Label]. We ignore cases, as any users have been resolved to use the
@@ -1025,7 +1028,8 @@ class KernelVisitor extends Object
     // We ignore the node's statements here, they're generated below in
     // [visitSwitchStatement] once we've set up all the jump targets.
     return associateNode(
-        new ir.SwitchCase(expressions, null, isDefault: node.isDefaultCase),
+        new ir.SwitchCase(expressions, expressionOffsets, null,
+            isDefault: node.isDefaultCase),
         node);
   }
 

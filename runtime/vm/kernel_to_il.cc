@@ -5810,13 +5810,14 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
         TargetEntryInstr* then;
         TargetEntryInstr* otherwise;
 
-        current_instructions += Constant(constant_evaluator_.EvaluateExpression(
-            switch_case->expressions()[j]));
+        Expression* expression = switch_case->expressions()[j];
+        current_instructions +=
+            Constant(constant_evaluator_.EvaluateExpression(expression));
         current_instructions += PushArgument();
         current_instructions += LoadLocal(scopes_->switch_variable);
         current_instructions += PushArgument();
         current_instructions += InstanceCall(
-            TokenPosition::kNoSource, Symbols::EqualOperator(), Token::kEQ,
+            expression->position(), Symbols::EqualOperator(), Token::kEQ,
             /*argument_count=*/2,
             /*num_args_checked=*/2);
         current_instructions += BranchIfTrue(&then, &otherwise);
