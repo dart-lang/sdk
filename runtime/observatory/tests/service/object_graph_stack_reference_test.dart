@@ -20,7 +20,7 @@ int minArraySize = arrayLength * 4;
 void script() {
   var stackSlot = new List(arrayLength);
   debugger();
-  print(stackSlot); // Prevent optimizing away the stack slot.
+  print(stackSlot);  // Prevent optimizing away the stack slot.
 }
 
 checkForStackReferent(Isolate isolate) async {
@@ -38,8 +38,8 @@ checkForStackReferent(Isolate isolate) async {
   ObjectGraph graph = snapshot.graph;
 
   var root = graph.root;
-  var stack =
-      graph.root.dominatorTreeChildren().singleWhere((child) => child.isStack);
+  var stack = graph.root.dominatorTreeChildren()
+      .singleWhere((child) => child.isStack);
   expect(stack.retainedSize, greaterThanOrEqualTo(minArraySize));
 
   bool foundBigArray = false;

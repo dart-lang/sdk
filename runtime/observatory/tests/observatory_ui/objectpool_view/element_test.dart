@@ -28,20 +28,23 @@ main() {
   final instances = new InstanceRepositoryMock();
   test('instantiation', () {
     final e = new ObjectPoolViewElement(vm, isolate, pool, events, notifs,
-        pools, retainedSizes, reachableSizes, inbounds, paths, instances);
+                                        pools, retainedSizes, reachableSizes,
+                                        inbounds, paths, instances);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.pool, equals(pool));
   });
   test('elements created after attachment', () async {
     final pools = new ObjectPoolRepositoryMock(
-        getter: expectAsync((i, id) async {
-      expect(i, equals(isolate));
-      expect(id, equals(pool.id));
-      return pool;
-    }, count: 1));
+      getter: expectAsync((i, id) async {
+        expect(i, equals(isolate));
+        expect(id, equals(pool.id));
+        return pool;
+      }, count: 1)
+    );
     final e = new ObjectPoolViewElement(vm, isolate, pool, events, notifs,
-        pools, retainedSizes, reachableSizes, inbounds, paths, instances);
+                                        pools, retainedSizes, reachableSizes,
+                                        inbounds, paths, instances);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

@@ -8,6 +8,6 @@ class PcDescriptorsRefMock implements M.PcDescriptorsRef {
   final String id;
   final String name;
 
-  const PcDescriptorsRefMock(
-      {this.id: 'pcdescriptors-id', this.name: 'pcdescriptors-name'});
+  const PcDescriptorsRefMock({this.id: 'pcdescriptors-id',
+                              this.name: 'pcdescriptors-name'});
 }

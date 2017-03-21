@@ -18,19 +18,14 @@ var node;
 var uninitialized = new Object();
 
 extractPrivateField(obj, name) {
-  return reflect(obj)
-      .getField(MirrorSystem.getSymbol(name, reflect(obj).type.owner))
-      .reflectee;
+  return reflect(obj).getField(MirrorSystem.getSymbol(name, reflect(obj).type.owner)).reflectee;
 }
 
-class A<T> {}
-
-class B<S extends num> {}
+class A <T> {}
+class B <S extends num> {}
 
 class S {}
-
 class M {}
-
 class MA extends S with M {}
 
 class Node {
@@ -113,7 +108,6 @@ class Node {
       block() => x++ + y++;
       return block;
     }
-
     return outer;
   }
 
@@ -147,8 +141,7 @@ class Node {
     blockCopying = genCopyingBlock();
     blockFull = genFullBlock();
     blockFullWithChain = genFullBlockWithChain();
-    boundedType = extractPrivateField(
-        reflect(new B<int>()).type.typeVariables.single, '_reflectee');
+    boundedType = extractPrivateField(reflect(new B<int>()).type.typeVariables.single, '_reflectee');
     counter = new Counter("CounterName", "Counter description");
     expando = new Expando("expando-name");
     expando[array] = 'The weakly associated value';
@@ -157,12 +150,8 @@ class Node {
     float64x2 = new Float64x2(0.0, 3.14);
     gauge = new Gauge("GaugeName", "Gauge description", 0.0, 100.0);
     growableList = new List();
-    int32x4 = new Int32x4(0, 1, 10, 11);
-    map = {
-      "x-key": "x-value",
-      "y-key": "y-value",
-      "removed-key": "removed-value"
-    };
+    int32x4 = new Int32x4(0,1,10,11);
+    map = { "x-key": "x-value", "y-key": "y-value", "removed-key": "removed-value" };
     map.remove("removed-key");
     mint = 1 << 32;
     mirrorClass = reflectClass(Object);
@@ -178,18 +167,16 @@ class Node {
     stringLatin1 = "blåbærgrød";
     stringSnowflake = "❄";
     stringUnicode = "Îñţérñåţîöñåļîžåţîờñ";
-    stringHebrew = "שלום רב שובך צפורה נחמדת"; // An example of Right-to-Left.
-    stringTrebleClef = "𝄞"; // An example of a surrogate pair.
+    stringHebrew = "שלום רב שובך צפורה נחמדת";  // An example of Right-to-Left.
+    stringTrebleClef = "𝄞";  // An example of a surrogate pair.
     theFalse = false;
     theNull = null;
     theTrue = true;
     type = String;
-    typeParameter =
-        extractPrivateField(reflectClass(A).typeVariables.single, '_reflectee');
+    typeParameter = extractPrivateField(reflectClass(A).typeVariables.single, '_reflectee');
     typedData = extractPrivateField(new ByteData(64), '_typedData');
     userTag = new UserTag("Example tag name");
-    weakProperty =
-        extractPrivateField(expando, '_data').firstWhere((e) => e != null);
+    weakProperty = extractPrivateField(expando, '_data').firstWhere((e) => e != null);
 
     Isolate.spawn(secondMain, "Hello2").then((otherIsolate) {
       isolate = otherIsolate;
@@ -219,7 +206,6 @@ secondMain(msg) {
 }
 
 var typed;
-
 class Typed {
   var float32List = new Float32List(16);
   var float64List = new Float64List(16);

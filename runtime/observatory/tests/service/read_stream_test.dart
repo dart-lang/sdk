@@ -24,7 +24,7 @@ testRoundTrip(final int n) {
 
   expect(stream.isZero, equals(n == 0));
 
-  expect(stream.low, equals((n >> 0) & 0xFFFFFFF));
+  expect(stream.low, equals((n >>  0) & 0xFFFFFFF));
   expect(stream.mid, equals((n >> 28) & 0xFFFFFFF));
   expect(stream.high, equals((n >> 56) & 0xFFFFFFF));
 

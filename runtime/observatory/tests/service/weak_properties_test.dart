@@ -10,9 +10,8 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-class Foo {}
-
-class Bar {}
+class Foo { }
+class Bar { }
 
 var expando;
 var key;
@@ -28,14 +27,13 @@ void script() {
   InstanceMirror expandoMirror = reflect(expando);
   LibraryMirror libcore = expandoMirror.type.owner;
 
-  var entries = expandoMirror
-      .getField(MirrorSystem.getSymbol('_data', libcore))
-      .reflectee;
+  var entries = expandoMirror.getField(MirrorSystem.getSymbol('_data', libcore)).reflectee;
   weak_property = entries.singleWhere((e) => e != null);
   print(weak_property);
 }
 
 var tests = [
+
   (Isolate isolate) async {
     var lib = await isolate.rootLibrary.load();
     Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
@@ -44,8 +42,7 @@ var tests = [
     Field valueField = lib.variables.singleWhere((v) => v.name == 'value');
     await valueField.load();
     Instance value = valueField.staticValue;
-    Field propField =
-        lib.variables.singleWhere((v) => v.name == 'weak_property');
+    Field propField = lib.variables.singleWhere((v) => v.name == 'weak_property');
     await propField.load();
     Instance prop = propField.staticValue;
 
@@ -63,6 +60,7 @@ var tests = [
     expect(loadedProp.value, isNotNull);
     expect(loadedProp.value.clazz, equals(value.clazz));
   },
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

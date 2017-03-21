@@ -10,7 +10,9 @@ class GuardedMock<T> implements M.Guarded {
   final T asValue;
   final M.Sentinel asSentinel;
 
-  const GuardedMock.fromValue(this.asValue) : asSentinel = null;
+  const GuardedMock.fromValue(this.asValue)
+    : asSentinel = null;
 
-  const GuardedMock.fromSentinel(this.asSentinel) : asValue = null;
+  const GuardedMock.fromSentinel(this.asSentinel)
+    : asValue = null;
 }

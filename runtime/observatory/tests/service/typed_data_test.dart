@@ -77,6 +77,7 @@ void script() {
 }
 
 var tests = [
+
   (Isolate isolate) async {
     script();
     var lib = await isolate.rootLibrary.load();
@@ -117,7 +118,6 @@ var tests = [
         expect(actualValue, equals(expectedValue));
       }
     }
-
     expectTypedData("int8List", int8List);
     expectTypedData("int16List", int16List);
     expectTypedData("int32List", int32List);
@@ -133,6 +133,7 @@ var tests = [
     expectTypedData("float32x4List", float32x4List);
     expectTypedData("float64x2List", float64x2List);
   },
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

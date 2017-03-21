@@ -4,10 +4,9 @@
 
 import 'dart:nativewrappers';
 
-@patch
-class _IOCrypto {
-  @patch
-  static Uint8List getRandomBytes(int count) native "Crypto_GetRandomBytes";
+@patch class _IOCrypto {
+  @patch static Uint8List getRandomBytes(int count)
+      native "Crypto_GetRandomBytes";
 }
 
 _setupHooks() {

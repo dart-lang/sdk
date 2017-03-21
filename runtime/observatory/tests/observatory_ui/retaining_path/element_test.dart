@@ -27,16 +27,18 @@ main() {
   });
   test('elements created after attachment', () async {
     const source = const InstanceRefMock(id: 'source-id', name: 'source_name');
-    const path = const RetainingPathMock(
-        elements: const [const RetainingPathItemMock(source: source)]);
+    const path = const RetainingPathMock(elements: const [
+      const RetainingPathItemMock(source: source)
+    ]);
     bool invoked = false;
     final paths = new RetainingPathRepositoryMock(
-        getter: expectAsync((i, id) async {
-      expect(i, equals(isolate));
-      expect(id, equals(object.id));
-      invoked = true;
-      return path;
-    }, count: 1));
+      getter: expectAsync((i, id) async {
+        expect(i, equals(isolate));
+        expect(id, equals(object.id));
+        invoked = true;
+        return path;
+      }, count: 1)
+    );
     final instances = new InstanceRepositoryMock();
     final e = new RetainingPathElement(isolate, object, paths, instances);
     document.body.append(e);

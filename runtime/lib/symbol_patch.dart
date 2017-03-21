@@ -4,13 +4,11 @@
 
 import 'dart:core' hide Symbol;
 
-@patch
-class Symbol {
-  @patch
-  const Symbol(String name) : this._name = name;
+@patch class Symbol {
+  @patch const Symbol(String name)
+      : this._name = name;
 
-  @patch
-  toString() => 'Symbol("${getUnmangledName(this)}")';
+  @patch toString() => 'Symbol("${getUnmangledName(this)}")';
 
   static getUnmangledName(Symbol symbol) {
     String string = Symbol.getName(symbol);
@@ -56,8 +54,7 @@ class Symbol {
     return result.toString();
   }
 
-  @patch
-  int get hashCode {
+  @patch int get hashCode {
     const arbitraryPrime = 664597;
     return 0x1fffffff & (arbitraryPrime * _name.hashCode);
   }

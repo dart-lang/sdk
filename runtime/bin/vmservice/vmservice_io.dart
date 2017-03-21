@@ -146,7 +146,7 @@ Future<List<int>> readFileCallback(Uri path) async {
   return await file.readAsBytes();
 }
 
-Future<List<Map<String, String>>> listFilesCallback(Uri dirPath) async {
+Future<List<Map<String,String>>> listFilesCallback(Uri dirPath) async {
   var dir = new Directory.fromUri(dirPath);
   var dirPathStr = dirPath.path;
   var stream = dir.list(recursive: true);

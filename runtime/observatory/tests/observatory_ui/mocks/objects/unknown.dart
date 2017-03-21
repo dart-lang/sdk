@@ -7,6 +7,6 @@ part of mocks;
 class UnknownObjectRefMock implements M.UnknownObjectRef {
   final String id;
   final String vmType;
-  const UnknownObjectRefMock(
-      {this.id: 'literal-token-id', this.vmType: 'vmType'});
+  const UnknownObjectRefMock({this.id: 'literal-token-id',
+                              this.vmType: 'vmType'});
 }

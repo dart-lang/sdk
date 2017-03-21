@@ -14,12 +14,13 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 var tests = [
-  (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load();
-    Script script = await lib.scripts.single.load();
-    Script script2 = await isolate.getObject(script.id);
-    expect(identical(script, script2), isTrue);
-  },
+(Isolate isolate) async {
+  Library lib = await isolate.rootLibrary.load();
+  Script script = await lib.scripts.single.load();
+  Script script2 = await isolate.getObject(script.id);
+  expect(identical(script, script2), isTrue);
+},
+
 ];
 
 main(args) => runIsolateTests(args, tests);

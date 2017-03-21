@@ -16,6 +16,7 @@ void script() {
 }
 
 var tests = [
+
   (Isolate isolate) async {
     Map metrics = await isolate.refreshDartMetrics();
     expect(metrics.length, equals(1));
@@ -23,24 +24,26 @@ var tests = [
     expect(counter.name, equals('a.b.c'));
     expect(counter.value, equals(1234.5));
   },
+
   (Isolate isolate) async {
-    var params = {'metricId': 'metrics/a.b.c'};
+    var params =  { 'metricId': 'metrics/a.b.c' };
     ServiceMetric counter =
-        await isolate.invokeRpc('_getIsolateMetric', params);
+      await isolate.invokeRpc('_getIsolateMetric', params);
     expect(counter.name, equals('a.b.c'));
     expect(counter.value, equals(1234.5));
   },
+
   (Isolate isolate) async {
     bool caughtException;
     try {
-      await isolate
-          .invokeRpc('_getIsolateMetric', {'metricId': 'metrics/a.b.d'});
-      expect(false, isTrue, reason: 'Unreachable');
+      await isolate.invokeRpc('_getIsolateMetric',
+                              { 'metricId': 'metrics/a.b.d' });
+      expect(false, isTrue, reason:'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.message,
-          "_getIsolateMetric: invalid 'metricId' parameter: metrics/a.b.d");
+             "_getIsolateMetric: invalid 'metricId' parameter: metrics/a.b.d");
     }
     expect(caughtException, isTrue);
   },

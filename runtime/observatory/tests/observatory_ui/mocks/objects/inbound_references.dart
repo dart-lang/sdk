@@ -16,9 +16,7 @@ class InboundReferenceMock implements M.InboundReference {
   final int parentListIndex;
   final int parentWordOffset;
 
-  const InboundReferenceMock(
-      {this.source: const InstanceRefMock(),
-      this.parentField,
-      this.parentListIndex,
-      this.parentWordOffset});
+  const InboundReferenceMock({this.source: const InstanceRefMock(),
+                              this.parentField, this.parentListIndex,
+                              this.parentWordOffset});
 }

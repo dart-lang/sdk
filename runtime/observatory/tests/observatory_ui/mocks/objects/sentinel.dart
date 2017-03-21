@@ -8,7 +8,6 @@ class SentinelMock implements M.Sentinel {
   final M.SentinelKind kind;
   final String valueAsString;
 
-  const SentinelMock(
-      {this.kind: M.SentinelKind.collected,
-      this.valueAsString: 'sentinel-value'});
+  const SentinelMock({this.kind: M.SentinelKind.collected,
+                  this.valueAsString: 'sentinel-value'});
 }

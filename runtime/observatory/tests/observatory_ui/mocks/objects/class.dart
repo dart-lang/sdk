@@ -34,27 +34,12 @@ class ClassMock implements M.Class {
   final bool hasAllocations;
   bool get hasNoAllocations => !hasAllocations;
   final bool traceAllocations;
-  const ClassMock(
-      {this.id: 'c-id',
-      this.name: 'c-name',
-      this.vmName: 'c-name',
-      this.clazz,
-      this.size,
-      this.error,
-      this.isAbstract: false,
-      this.isConst: false,
-      this.isPatch: false,
-      this.library,
-      this.location,
-      this.superclass,
-      this.superType,
-      this.interfaces: const [],
-      this.fields: const [],
-      this.functions: const [],
-      this.mixin,
-      this.subclasses: const [],
-      this.hasAllocations: false,
-      this.newSpace,
-      this.oldSpace,
-      this.traceAllocations: false});
+  const ClassMock({this.id: 'c-id', this.name: 'c-name', this.vmName: 'c-name',
+                   this.clazz, this.size, this.error, this.isAbstract: false,
+                   this.isConst: false, this.isPatch: false, this.library,
+                   this.location, this.superclass, this.superType,
+                   this.interfaces: const [], this.fields: const [],
+                   this.functions: const [], this.mixin,
+                   this.subclasses: const [], this.hasAllocations: false,
+                   this.newSpace, this.oldSpace, this.traceAllocations: false});
 }

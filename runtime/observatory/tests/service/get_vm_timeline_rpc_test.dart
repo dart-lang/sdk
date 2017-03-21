@@ -105,8 +105,10 @@ var tests = [
     int origin = timeOrigin(dartEvents);
     int extent = timeDuration(dartEvents, origin);
     // Query for the timeline with the time window for Dart events.
-    result = await vm.invokeRpcNoUpgrade('_getVMTimeline',
-        {'timeOriginMicros': origin, 'timeExtentMicros': extent});
+    result = await vm.invokeRpcNoUpgrade('_getVMTimeline', {
+      'timeOriginMicros': origin,
+      'timeExtentMicros': extent
+    });
     // Verify that we received fewer events than before.
     expect(result['traceEvents'].length, lessThan(numEvents));
     // Verify that we have the same number of Dart events.

@@ -12,7 +12,7 @@ main() {
   NavNotifyEventElement.tag.ensureRegistration();
 
   final event = new PauseStartEventMock(
-      isolate: new IsolateMock(id: 'isolate-id', name: 'isolate-name'));
+              isolate: new IsolateMock(id: 'isolate-id', name: 'isolate-name'));
   group('instantiation', () {
     final e = new NavNotifyEventElement(event);
     expect(e, isNotNull, reason: 'element correctly created');
@@ -42,21 +42,23 @@ main() {
       e.remove();
     });
     test('navigation after connect', () async {
-      sub = window.onPopState
-          .listen(expectAsync((_) {}, count: 1, reason: 'event is fired'));
+      sub = window.onPopState.listen(expectAsync((_) {}, count: 1,
+        reason: 'event is fired'));
       e.querySelector('a').click();
     });
     test('onDelete events (DOM)', () async {
       sub = e.onDelete.listen(expectAsync((EventDeleteEvent ev) {
         expect(ev, isNotNull, reason: 'event is passed');
-        expect(ev.event, equals(event), reason: 'exception is the same');
+        expect(ev.event, equals(event),
+                                            reason: 'exception is the same');
       }, count: 1, reason: 'event is fired'));
       e.querySelector('button').click();
     });
     test('onDelete events (code)', () async {
       sub = e.onDelete.listen(expectAsync((EventDeleteEvent ev) {
         expect(ev, isNotNull, reason: 'event is passed');
-        expect(ev.event, equals(event), reason: 'exception is the same');
+        expect(ev.event, equals(event),
+                                            reason: 'exception is the same');
       }, count: 1, reason: 'event is fired'));
       e.delete();
     });

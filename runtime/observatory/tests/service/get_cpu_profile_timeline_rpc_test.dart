@@ -22,9 +22,11 @@ testeeDo() {
 
 var tests = [
   (Isolate isolate) async {
-    var params = {'tags': 'VMUser'};
-    var result =
-        await isolate.invokeRpcNoUpgrade('_getCpuProfileTimeline', params);
+    var params = {
+      'tags': 'VMUser'
+    };
+    var result = await isolate.invokeRpcNoUpgrade(
+        '_getCpuProfileTimeline', params);
     print(result);
     expect(result['type'], equals('_CpuProfileTimeline'));
 

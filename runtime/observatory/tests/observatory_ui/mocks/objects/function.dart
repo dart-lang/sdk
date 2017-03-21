@@ -12,13 +12,8 @@ class FunctionRefMock implements M.FunctionRef {
   final bool isConst;
   final M.FunctionKind kind;
 
-  const FunctionRefMock(
-      {this.id,
-      this.name,
-      this.dartOwner,
-      this.isStatic: false,
-      this.isConst: false,
-      this.kind});
+  const FunctionRefMock({this.id, this.name, this.dartOwner,
+      this.isStatic : false, this.isConst : false, this.kind});
 }
 
 class FunctionMock implements M.Function {
@@ -43,27 +38,11 @@ class FunctionMock implements M.Function {
   final bool isRecognized;
   final bool isNative;
   final String vmName;
-  const FunctionMock({
-    this.id,
-    this.name,
-    this.clazz,
-    this.size,
-    this.dartOwner,
-    this.isStatic: false,
-    this.isConst: false,
-    this.kind,
-    this.location,
-    this.code,
-    this.unoptimizedCode,
-    this.field,
-    this.usageCounter: 0,
-    this.icDataArray: const InstanceRefMock(),
-    this.deoptimizations: 0,
-    this.isOptimizable: false,
-    this.isInlinable: false,
-    this.hasIntrinsic: false,
-    this.isRecognized: false,
-    this.isNative: false,
-    this.vmName: 'function-vm-name',
-  });
+  const FunctionMock({this.id, this.name, this.clazz, this.size, this.dartOwner,
+      this.isStatic : false, this.isConst : false, this.kind, this.location,
+      this.code, this.unoptimizedCode, this.field, this.usageCounter: 0,
+      this.icDataArray: const InstanceRefMock(), this.deoptimizations: 0,
+      this.isOptimizable: false, this.isInlinable: false,
+      this.hasIntrinsic: false, this.isRecognized: false, this.isNative: false,
+      this.vmName: 'function-vm-name',});
 }

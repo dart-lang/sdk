@@ -23,23 +23,25 @@ void testFunction() {
 }
 
 var tests = [
-  hasStoppedAtBreakpoint,
+
+hasStoppedAtBreakpoint,
 
 // Evaluate against library, class, and instance.
-  (Isolate isolate) async {
-    var result;
-    result = await isolate.evalFrame(0, 'value');
-    expect(result.valueAsString, equals('10000'));
+(Isolate isolate) async {
+  var result;
+  result = await isolate.evalFrame(0, 'value');
+  expect(result.valueAsString, equals('10000'));
 
-    result = await isolate.evalFrame(0, '_');
-    expect(result.valueAsString, equals('50'));
+  result = await isolate.evalFrame(0, '_');
+  expect(result.valueAsString, equals('50'));
 
-    result = await isolate.evalFrame(0, 'value + _');
-    expect(result.valueAsString, equals('10050'));
+  result = await isolate.evalFrame(0, 'value + _');
+  expect(result.valueAsString, equals('10050'));
 
-    result = await isolate.evalFrame(1, 'i');
-    expect(result.valueAsString, equals('100000000'));
-  },
+  result = await isolate.evalFrame(1, 'i');
+  expect(result.valueAsString, equals('100000000'));
+},
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);

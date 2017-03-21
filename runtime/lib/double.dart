@@ -3,54 +3,48 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _Double implements double {
-  factory _Double.fromInteger(int value) native "Double_doubleFromInteger";
+  factory _Double.fromInteger(int value)
+      native "Double_doubleFromInteger";
 
   // TODO: Make a stared static method for hashCode and _identityHashCode
   //       when semantics are corrected as described in:
   //       https://github.com/dart-lang/sdk/issues/2884
-  int get hashCode => (isNaN || isInfinite) ? 0 : toInt();
-  int get _identityHashCode => (isNaN || isInfinite) ? 0 : toInt();
+  int get hashCode => (isNaN || isInfinite) ?  0 : toInt();
+  int get _identityHashCode => (isNaN || isInfinite) ?  0 : toInt();
 
   double operator +(num other) {
     return _add(other.toDouble());
   }
-
   double _add(double other) native "Double_add";
 
   double operator -(num other) {
     return _sub(other.toDouble());
   }
-
   double _sub(double other) native "Double_sub";
 
   double operator *(num other) {
     return _mul(other.toDouble());
   }
-
   double _mul(double other) native "Double_mul";
 
   int operator ~/(num other) {
     return _trunc_div(other.toDouble());
   }
-
   int _trunc_div(double other) native "Double_trunc_div";
 
   double operator /(num other) {
     return _div(other.toDouble());
   }
-
   double _div(double other) native "Double_div";
 
   double operator %(num other) {
     return _modulo(other.toDouble());
   }
-
   double _modulo(double other) native "Double_modulo";
 
   double remainder(num other) {
     return _remainder(other.toDouble());
   }
-
   double _remainder(double other) native "Double_remainder";
 
   double operator -() native "Double_flipSignBit";
@@ -59,57 +53,46 @@ class _Double implements double {
     if (!(other is num)) return false;
     return _equal(other.toDouble());
   }
-
   bool _equal(double other) native "Double_equal";
   bool _equalToInteger(int other) native "Double_equalToInteger";
   bool operator <(num other) {
     return other > this;
   }
-
   bool operator >(num other) {
     return _greaterThan(other.toDouble());
   }
-
   bool _greaterThan(double other) native "Double_greaterThan";
   bool operator >=(num other) {
     return (this == other) || (this > other);
   }
-
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }
-
   double _addFromInteger(int other) {
     return new _Double.fromInteger(other)._add(this);
   }
-
   double _subFromInteger(int other) {
     return new _Double.fromInteger(other)._sub(this);
   }
-
   double _mulFromInteger(int other) {
     return new _Double.fromInteger(other)._mul(this);
   }
-
   int _truncDivFromInteger(int other) {
     return new _Double.fromInteger(other)._trunc_div(this);
   }
-
   double _moduloFromInteger(int other) {
     return new _Double.fromInteger(other)._modulo(this);
   }
-
   double _remainderFromInteger(int other) {
     return new _Double.fromInteger(other)._remainder(this);
   }
-
   bool _greaterThanFromInteger(int other)
       native "Double_greaterThanFromInteger";
 
   bool get isNegative native "Double_getIsNegative";
   bool get isInfinite native "Double_getIsInfinite";
   bool get isNaN native "Double_getIsNaN";
-  bool get isFinite => !isInfinite && !isNaN; // Can be optimized.
+  bool get isFinite => !isInfinite && !isNaN;  // Can be optimized.
 
   double abs() {
     // Handle negative 0.0.
@@ -120,12 +103,12 @@ class _Double implements double {
   double get sign {
     if (this > 0.0) return 1.0;
     if (this < 0.0) return -1.0;
-    return this; // +/-0.0 or NaN.
+    return this;  // +/-0.0 or NaN.
   }
 
   int round() => roundToDouble().toInt();
   int floor() => floorToDouble().toInt();
-  int ceil() => ceilToDouble().toInt();
+  int ceil () => ceilToDouble().toInt();
   int truncate() => truncateToDouble().toInt();
 
   double roundToDouble() native "Double_round";
@@ -151,13 +134,8 @@ class _Double implements double {
   }
 
   int toInt() native "Double_toInt";
-  num _toBigintOrDouble() {
-    return this;
-  }
-
-  double toDouble() {
-    return this;
-  }
+  num _toBigintOrDouble() { return this; }
+  double toDouble() { return this; }
 
   static const int CACHE_SIZE_LOG2 = 3;
   static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
@@ -215,7 +193,6 @@ class _Double implements double {
 
     return _toStringAsFixed(fractionDigits);
   }
-
   String _toStringAsFixed(int fractionDigits) native "Double_toStringAsFixed";
 
   String toStringAsExponential([int fractionDigits]) {
@@ -246,7 +223,6 @@ class _Double implements double {
 
     return _toStringAsExponential(fractionDigits);
   }
-
   String _toStringAsExponential(int fractionDigits)
       native "Double_toStringAsExponential";
 
@@ -271,7 +247,6 @@ class _Double implements double {
 
     return _toStringAsPrecision(precision);
   }
-
   String _toStringAsPrecision(int fractionDigits)
       native "Double_toStringAsPrecision";
 

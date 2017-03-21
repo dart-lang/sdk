@@ -66,7 +66,8 @@ main() {
       expect(e.children.length, isNonZero, reason: 'has elements');
       e.remove();
       await e.onRendered.first;
-      expect(e.children.length, isZero, reason: 'is empty');
+      expect(e.children.length, isZero,
+        reason: 'is empty');
     });
     test('listen for status changes', () async {
       final e = new SampleBufferControlElement(progress, events.stream);
@@ -86,19 +87,22 @@ main() {
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
       events.add(new SampleProfileLoadingProgressEventMock(
-          progress: new SampleProfileLoadingProgressMock(
-              status: M.SampleProfileLoadingStatus.fetching)));
+        progress: new SampleProfileLoadingProgressMock(
+          status: M.SampleProfileLoadingStatus.fetching
+      )));
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
       events.add(new SampleProfileLoadingProgressEventMock(
-          progress: new SampleProfileLoadingProgressMock(
-              status: M.SampleProfileLoadingStatus.loading)));
+        progress: new SampleProfileLoadingProgressMock(
+          status: M.SampleProfileLoadingStatus.loading
+      )));
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
       events.add(new SampleProfileLoadingProgressEventMock(
-          progress: new SampleProfileLoadingProgressMock(
-              status: M.SampleProfileLoadingStatus.loaded,
-              profile: new SampleProfileMock())));
+        progress: new SampleProfileLoadingProgressMock(
+          status: M.SampleProfileLoadingStatus.loaded,
+          profile: new SampleProfileMock()
+      )));
       events.close();
       await e.onRendered.first;
       expect(e.querySelector('select'), isNotNull);
@@ -107,24 +111,27 @@ main() {
     });
     test('follow updates changes (no tag)', () async {
       final e = new SampleBufferControlElement(progress, events.stream,
-          showTag: false);
+        showTag: false);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
       events.add(new SampleProfileLoadingProgressEventMock(
-          progress: new SampleProfileLoadingProgressMock(
-              status: M.SampleProfileLoadingStatus.fetching)));
+        progress: new SampleProfileLoadingProgressMock(
+          status: M.SampleProfileLoadingStatus.fetching
+      )));
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
       events.add(new SampleProfileLoadingProgressEventMock(
-          progress: new SampleProfileLoadingProgressMock(
-              status: M.SampleProfileLoadingStatus.loading)));
+        progress: new SampleProfileLoadingProgressMock(
+          status: M.SampleProfileLoadingStatus.loading
+      )));
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
       events.add(new SampleProfileLoadingProgressEventMock(
-          progress: new SampleProfileLoadingProgressMock(
-              status: M.SampleProfileLoadingStatus.loaded,
-              profile: new SampleProfileMock())));
+        progress: new SampleProfileLoadingProgressMock(
+          status: M.SampleProfileLoadingStatus.loaded,
+          profile: new SampleProfileMock()
+      )));
       await e.onRendered.first;
       expect(e.querySelector('select'), isNull);
       e.remove();
@@ -143,19 +150,20 @@ main() {
       document.body.append(e);
       await e.onRendered.first;
       events.add(new SampleProfileLoadingProgressEventMock(
-          progress: new SampleProfileLoadingProgressMock(
-              status: M.SampleProfileLoadingStatus.loaded,
-              profile: new SampleProfileMock())));
+        progress: new SampleProfileLoadingProgressMock(
+          status: M.SampleProfileLoadingStatus.loaded,
+          profile: new SampleProfileMock()
+      )));
       await e.onRendered.first;
       expect(e.selectedTag, equals(M.SampleProfileTag.none));
       e.onTagChange.listen(expectAsync((_) {
         expect(e.selectedTag, equals(M.SampleProfileTag.userOnly));
       }, count: 1));
       final select = (e.querySelector('.tag-select') as SelectElement);
-      select.selectedIndex = select.options.indexOf((select.options.toSet()
-            ..removeAll(select.selectedOptions))
-          .toList()
-          .first);
+      select.selectedIndex = select.options.indexOf(
+          (select.options.toSet()
+            ..removeAll(select.selectedOptions)).toList().first
+        );
       select.dispatchEvent(new Event("change"));
       e.remove();
       await e.onRendered.first;

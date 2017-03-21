@@ -12,7 +12,6 @@ codeXYZ(int i) {
   innerOne() {
     return i * i;
   }
-
   return innerOne();
 }
 
@@ -24,8 +23,8 @@ List<String> stops = [];
 List<String> expected = [
   "$file:${LINE_A+0}:13", // on 'i' in 'codeXYZ(int i)'
   "$file:${LINE_A+1}:3", // on 'innerOne'
-  "$file:${LINE_A+5}:18", // on '(', i.e. after 'innerOne' call
-  "$file:${LINE_A+5}:3" // on 'return'
+  "$file:${LINE_A+4}:18", // on '(', i.e. after 'innerOne' call
+  "$file:${LINE_A+4}:3" // on 'return'
 ];
 
 var tests = [

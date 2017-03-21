@@ -32,51 +32,54 @@ b3(x) {
   if (global >= 100) {
     debugger();
   }
-  global = global + 1; // Line A
+  global = global + 1;  // Line A
   return sum;
 }
 
 @alwaysInline
-b2(x) => b3(x); // Line B
+b2(x) => b3(x);  // Line B
 
 @alwaysInline
-b1(x) => b2(x); // Line C
+b1(x) => b2(x);  // Line C
 
 test() {
   while (true) {
-    b1(10000); // Line D
+    b1(10000);  // Line D
   }
 }
 
 var tests = [
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
+
   (Isolate isolate) async {
     // We are not able to rewind frame 0.
     bool caughtException;
     try {
       await isolate.rewind(0);
-      expect(false, isTrue, reason: 'Unreachable');
-    } on ServerRpcException catch (e) {
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kCannotResume));
       expect(e.message, 'Frame must be in bounds [1..9]: saw 0');
     }
     expect(caughtException, isTrue);
   },
+
   (Isolate isolate) async {
     // We are not able to rewind frame 10.
     bool caughtException;
     try {
       await isolate.rewind(10);
-      expect(false, isTrue, reason: 'Unreachable');
-    } on ServerRpcException catch (e) {
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kCannotResume));
       expect(e.message, 'Frame must be in bounds [1..9]: saw 10');
     }
     expect(caughtException, isTrue);
   },
+
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
     var result = await isolate.rootLibrary.evaluate('global');
@@ -88,14 +91,18 @@ var tests = [
     result = await isolate.rewind(1);
     expect(result['type'], equals('Success'));
   },
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
+
   (Isolate isolate) async {
     var result = await isolate.resume();
     expect(result['type'], equals('Success'));
   },
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
+
   (Isolate isolate) async {
     // global still is equal to 100.  We did not execute "global++".
     var result = await isolate.rootLibrary.evaluate('global');
@@ -107,8 +114,10 @@ var tests = [
     result = await isolate.resume();
     expect(result['type'], equals('Success'));
   },
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
+
   (Isolate isolate) async {
     // global is now 101.
     var result = await isolate.rootLibrary.evaluate('global');
@@ -120,8 +129,10 @@ var tests = [
     result = await isolate.rewind(3);
     expect(result['type'], equals('Success'));
   },
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D),
+
   (Isolate isolate) async {
     // Reset global to 0 and start again.
     var result = await isolate.rootLibrary.evaluate('global=0');
@@ -132,8 +143,10 @@ var tests = [
     result = await isolate.resume();
     expect(result['type'], equals('Success'));
   },
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
+
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
     var result = await isolate.rootLibrary.evaluate('global');
@@ -145,14 +158,16 @@ var tests = [
     result = await isolate.rewind(2);
     expect(result['type'], equals('Success'));
   },
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: test, extraArgs: [
-      '--trace-rewind',
-      '--no-prune-dead-locals',
-      '--enable-inlining-annotations',
-      '--no-background-compilation',
-      '--optimization-counter-threshold=10'
-    ]);
+
+main(args) => runIsolateTests(args, tests, testeeConcurrent: test,
+                              extraArgs:
+                              ['--trace-rewind',
+                               '--no-prune-dead-locals',
+                               '--enable-inlining-annotations',
+                               '--no-background-compilation',
+                               '--optimization-counter-threshold=10']);

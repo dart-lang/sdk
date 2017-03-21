@@ -4,15 +4,16 @@
 
 part of mocks;
 
-typedef Future<M.Field> FieldRepositoryMockCallback(
-    M.IsolateRef isolate, String id);
+typedef Future<M.Field> FieldRepositoryMockCallback(M.IsolateRef isolate,
+                                                    String id);
 
 class FieldRepositoryMock implements M.FieldRepository {
   final FieldRepositoryMockCallback _get;
 
-  FieldRepositoryMock({FieldRepositoryMockCallback getter}) : _get = getter;
+  FieldRepositoryMock({FieldRepositoryMockCallback getter})
+    : _get = getter;
 
-  Future<M.Field> get(M.IsolateRef isolate, String id) {
+  Future<M.Field> get(M.IsolateRef isolate, String id){
     if (_get != null) {
       return _get(isolate, id);
     }

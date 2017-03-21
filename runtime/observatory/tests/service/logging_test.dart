@@ -12,7 +12,8 @@ import 'test_helper.dart';
 void init() {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((logRecord) {
-    developer.log(logRecord.message,
+    developer.log(
+        logRecord.message,
         time: logRecord.time,
         sequenceNumber: logRecord.sequenceNumber,
         level: logRecord.level.value,
@@ -49,5 +50,7 @@ var tests = [
   }),
 ];
 
-main(args) =>
-    runIsolateTests(args, tests, testeeBefore: init, testeeConcurrent: run);
+main(args) => runIsolateTests(args,
+                              tests,
+                              testeeBefore: init,
+                              testeeConcurrent: run);

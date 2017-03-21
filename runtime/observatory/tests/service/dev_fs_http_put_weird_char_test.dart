@@ -19,6 +19,7 @@ Future<String> readResponse(HttpClientResponse response) {
   return completer.future;
 }
 
+
 var tests = [
   // Write a file with the \r character in the filename.
   (VM vm) async {
@@ -30,7 +31,7 @@ var tests = [
 
     var result;
     // Create DevFS.
-    result = await vm.invokeRpcNoUpgrade('_createDevFS', {'fsName': fsId});
+    result = await vm.invokeRpcNoUpgrade('_createDevFS', { 'fsName': fsId });
     expect(result['type'], equals('FileSystem'));
     expect(result['name'], equals(fsId));
     expect(result['uri'], new isInstanceOf<String>());
@@ -61,7 +62,8 @@ var tests = [
 
     // Write the file again but this time with the true file contents.
     client = new HttpClient();
-    request = await client.putUrl(Uri.parse(serviceHttpAddress));
+    request =
+        await client.putUrl(Uri.parse(serviceHttpAddress));
     request.headers.add('dev_fs_name', fsId);
     request.headers.add('dev_fs_path_b64', filePathBase64);
     request.add(GZIP.encode(fileContents));
@@ -75,15 +77,15 @@ var tests = [
 
     // Read the file back.
     result = await vm.invokeRpcNoUpgrade('_readDevFSFile', {
-      'fsName': fsId,
-      'path': filePath,
+        'fsName': fsId,
+        'path': filePath,
     });
     expect(result['type'], equals('FSFile'));
     expect(result['fileContents'], equals(fileContentsBase64));
 
     // List all the files in the file system.
     result = await vm.invokeRpcNoUpgrade('_listDevFSFiles', {
-      'fsName': fsId,
+        'fsName': fsId,
     });
     expect(result['type'], equals('FSFileList'));
     expect(result['files'].length, equals(1));
@@ -91,7 +93,7 @@ var tests = [
 
     // Delete DevFS.
     result = await vm.invokeRpcNoUpgrade('_deleteDevFS', {
-      'fsName': fsId,
+        'fsName': fsId,
     });
     expect(result['type'], equals('Success'));
   },

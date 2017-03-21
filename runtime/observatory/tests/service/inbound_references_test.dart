@@ -13,7 +13,7 @@ class Node {
   var edge;
 }
 
-class Edge {}
+class Edge { }
 
 var n, e, array;
 
@@ -27,6 +27,7 @@ void script() {
 }
 
 var tests = [
+
   (Isolate isolate) async {
     var lib = await isolate.rootLibrary.load();
     var field = lib.variables.where((v) => v.name == 'e').single;
@@ -40,16 +41,16 @@ var tests = [
 
     // Assert e is referenced by at least n, array, and the top-level
     // field e.
-    hasReferenceSuchThat((r) =>
-        r['parentField'] != null &&
-        r['parentField'].name == 'edge' &&
-        r['source'].isInstance &&
-        r['source'].clazz.name == 'Node');
-    hasReferenceSuchThat(
-        (r) => r['parentListIndex'] == 1 && r['source'].isList);
-    hasReferenceSuchThat(
-        (r) => r['source'] is Field && r['source'].name == 'e');
+    hasReferenceSuchThat((r) => r['parentField'] != null &&
+                                r['parentField'].name == 'edge' &&
+                                r['source'].isInstance &&
+                                r['source'].clazz.name == 'Node');
+    hasReferenceSuchThat((r) => r['parentListIndex'] == 1 &&
+                                r['source'].isList);
+    hasReferenceSuchThat((r) => r['source'] is Field &&
+                                r['source'].name == 'e');
   }
+
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

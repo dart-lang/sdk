@@ -19,15 +19,15 @@ main() {
 
   group('instantiation', () {
     test('default', () {
-      final e = new VMConnectElement(
-          new TargetRepositoryMock(), load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(new TargetRepositoryMock(),
+          load, new NotificationRepositoryMock());
       expect(e, isNotNull, reason: 'element correctly created');
     });
   });
   test('is correctly listening', () async {
     final targets = new TargetRepositoryMock();
-    final e =
-        new VMConnectElement(targets, load, new NotificationRepositoryMock());
+    final e = new VMConnectElement(targets, load,
+        new NotificationRepositoryMock());
     document.body.append(e);
     await e.onRendered.first;
     expect(targets.hasListeners, isTrue, reason: 'is listening');
@@ -38,11 +38,10 @@ main() {
   group('elements', () {
     test('created after attachment', () async {
       final targets = new TargetRepositoryMock(list: const [
-        const TargetMock(name: 't-1'),
-        const TargetMock(name: 't-2'),
-      ]);
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+          const TargetMock(name: 't-1'), const TargetMock(name: 't-2'),
+          ]);
+      final e = new VMConnectElement(targets, load,
+          new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       expect(targets.listInvoked, isTrue, reason: 'should invoke list()');
@@ -56,8 +55,8 @@ main() {
     test('react to update event', () async {
       final list = <TargetMock>[const TargetMock(name: 't-1')];
       final targets = new TargetRepositoryMock(list: list);
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(targets, load,
+          new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelectorAll(tTag).length, equals(1));
@@ -74,14 +73,12 @@ main() {
     test('add on click', () async {
       final address = 'ws://host:1234/ws';
       final list = <TargetMock>[const TargetMock(name: 't-1')];
-      final targets = new TargetRepositoryMock(
-          list: list,
+      final targets = new TargetRepositoryMock(list: list,
           add: expectAsync((String val) {
             expect(val, equals(address));
           }, count: 1, reason: 'should be invoked'));
-      final e = new VMConnectElement(
-          targets, load, new NotificationRepositoryMock(),
-          address: address);
+      final e = new VMConnectElement(targets, load,
+          new NotificationRepositoryMock(), address: address);
       document.body.append(e);
       await e.onRendered.first;
       (e.querySelector('button.vm_connect') as ButtonElement).click();
@@ -90,13 +87,12 @@ main() {
     });
     test('connect', () async {
       final list = <TargetMock>[const TargetMock(name: 't-1')];
-      final targets = new TargetRepositoryMock(
-          list: list,
+      final targets = new TargetRepositoryMock(list: list,
           setCurrent: expectAsync((TargetMock t) {
             expect(t, equals(list[0]));
           }, count: 1, reason: 'should be invoked'));
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(targets, load,
+          new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       (e.querySelector(tTag) as VMConnectTargetElement).connect();
@@ -105,13 +101,12 @@ main() {
     });
     test('delete', () async {
       final list = <TargetMock>[const TargetMock(name: 't-1')];
-      final targets = new TargetRepositoryMock(
-          list: list,
+      final targets = new TargetRepositoryMock(list: list,
           delete: expectAsync((TargetMock t) {
             expect(t, equals(list[0]));
           }, count: 1, reason: 'should be invoked'));
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(targets, load,
+          new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       (e.querySelector(tTag) as VMConnectTargetElement).delete();

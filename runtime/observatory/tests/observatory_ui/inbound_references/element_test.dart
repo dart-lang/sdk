@@ -21,27 +21,29 @@ main() {
   final inbounds = new InboundReferencesRepositoryMock();
   final instances = new InstanceRepositoryMock();
   test('instantiation', () {
-    final e =
-        new InboundReferencesElement(isolate, object, inbounds, instances);
+    final e = new InboundReferencesElement(isolate, object, inbounds,
+                                           instances);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.object, equals(object));
   });
   test('elements created after attachment', () async {
     const source = const InstanceRefMock(id: 'source-id', name: 'source_name');
-    const references = const InboundReferencesMock(
-        elements: const [const InboundReferenceMock(source: source)]);
+    const references = const InboundReferencesMock(elements: const [
+      const InboundReferenceMock(source: source)
+    ]);
     bool invoked = false;
     final inbounds = new InboundReferencesRepositoryMock(
-        getter: expectAsync((i, id) async {
-      expect(i, equals(isolate));
-      expect(id, equals(object.id));
-      invoked = true;
-      return references;
-    }, count: 1));
+      getter: expectAsync((i, id) async {
+        expect(i, equals(isolate));
+        expect(id, equals(object.id));
+        invoked = true;
+        return references;
+      }, count: 1)
+    );
     final instances = new InstanceRepositoryMock();
-    final e =
-        new InboundReferencesElement(isolate, object, inbounds, instances);
+    final e = new InboundReferencesElement(isolate, object, inbounds,
+                                           instances);
     document.body.append(e);
     await e.onRendered.first;
     expect(invoked, isFalse);

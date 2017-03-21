@@ -40,11 +40,13 @@ class _InvocationMirror implements Invocation {
   void _setMemberNameAndType() {
     if (_functionName.startsWith("get:")) {
       _type = _GETTER;
-      _memberName = new internal.Symbol.unvalidated(_functionName.substring(4));
+      _memberName =
+          new internal.Symbol.unvalidated(_functionName.substring(4));
     } else if (_functionName.startsWith("set:")) {
       _type = _SETTER;
       _memberName =
-          new internal.Symbol.unvalidated(_functionName.substring(4) + "=");
+          new internal.Symbol.unvalidated(
+              _functionName.substring(4) + "=");
     } else {
       _type = _isSuperInvocation ? (_SUPER << _CALL_SHIFT) | _METHOD : _METHOD;
       _memberName = new internal.Symbol.unvalidated(_functionName);
@@ -74,7 +76,7 @@ class _InvocationMirror implements Invocation {
 
   Map<Symbol, dynamic> get namedArguments {
     if (_namedArguments == null) {
-      int numArguments = _argumentsDescriptor[0] - 1; // Exclude receiver.
+      int numArguments = _argumentsDescriptor[0] - 1;  // Exclude receiver.
       int numPositionalArguments = _argumentsDescriptor[1] - 1;
       int numNamedArguments = numArguments - numPositionalArguments;
       if (numNamedArguments == 0) {
@@ -82,9 +84,10 @@ class _InvocationMirror implements Invocation {
       }
       _namedArguments = new Map<Symbol, dynamic>();
       for (int i = 0; i < numNamedArguments; i++) {
-        String arg_name = _argumentsDescriptor[2 + 2 * i];
-        var arg_value = _arguments[_argumentsDescriptor[3 + 2 * i]];
-        _namedArguments[new internal.Symbol.unvalidated(arg_name)] = arg_value;
+        String arg_name = _argumentsDescriptor[2 + 2*i];
+        var arg_value = _arguments[_argumentsDescriptor[3 + 2*i]];
+        _namedArguments[new internal.Symbol.unvalidated(arg_name)] =
+            arg_value;
       }
       _namedArguments = new Map.unmodifiable(_namedArguments);
     }
@@ -119,12 +122,18 @@ class _InvocationMirror implements Invocation {
     return (_type & _TYPE_MASK) == _SETTER;
   }
 
-  _InvocationMirror(this._functionName, this._argumentsDescriptor,
-      this._arguments, this._isSuperInvocation);
+  _InvocationMirror(this._functionName,
+                    this._argumentsDescriptor,
+                    this._arguments,
+                    this._isSuperInvocation);
 
   static _allocateInvocationMirror(String functionName,
-      List argumentsDescriptor, List arguments, bool isSuperInvocation) {
-    return new _InvocationMirror(
-        functionName, argumentsDescriptor, arguments, isSuperInvocation);
+                                   List argumentsDescriptor,
+                                   List arguments,
+                                   bool isSuperInvocation) {
+    return new _InvocationMirror(functionName,
+                                 argumentsDescriptor,
+                                 arguments,
+                                 isSuperInvocation);
   }
 }

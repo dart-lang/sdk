@@ -16,18 +16,18 @@ const LINE_B = 30;
 
 foobar() {
   debugger();
-  print('foobar'); // LINE_C.
+  print('foobar');  // LINE_C.
 }
 
 helper() async {
   debugger();
-  print('helper'); // LINE_A.
+  print('helper');  // LINE_A.
   foobar();
 }
 
 testMain() {
   debugger();
-  helper(); // LINE_B.
+  helper();  // LINE_B.
 }
 
 var tests = [
@@ -41,6 +41,7 @@ var tests = [
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
+
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     // Has causal frames (we are inside an async function)
@@ -50,9 +51,11 @@ var tests = [
     expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
     expect(asyncStack[2].toString(), contains('testMain'));
   },
+
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
+
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     // Has causal frames (we are inside a function called by an async function)
@@ -71,5 +74,6 @@ var tests = [
   },
 ];
 
-main(args) =>
-    runIsolateTestsSynchronous(args, tests, testeeConcurrent: testMain);
+main(args) => runIsolateTestsSynchronous(args,
+                                         tests,
+                                         testeeConcurrent: testMain);

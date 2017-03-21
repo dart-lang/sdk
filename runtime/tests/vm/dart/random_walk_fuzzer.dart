@@ -47,7 +47,7 @@ void main(List<String> args) {
       seed = (seed << 8) | f.readByteSync();
       seed = (seed << 8) | f.readByteSync();
       f.close();
-    } catch (e) {
+    } catch(e) {
       print("Failed to read from /dev/urandom: $e");
     }
 
@@ -108,7 +108,7 @@ void addInstance(var instance) {
 }
 
 void addInstanceMirror(InstanceMirror mirror,
-    [Candidate origin, String message]) {
+                       [Candidate origin, String message]) {
   var c = new Candidate<InstanceMirror>();
   c.mirror = mirror;
   c.origin = origin;
@@ -170,18 +170,18 @@ void setupInterestingValues() {
   addInstance(double.MIN_POSITIVE);
   addInstance(double.MAX_FINITE);
 
-  addInstance("foo"); // ASCII string
-  addInstance("blåbærgrød"); // Latin1 string
-  addInstance("Îñţérñåţîöñåļîžåţîờñ"); // Unicode string
-  addInstance("𝄞"); // Surrogate pairs
-  addInstance("𝄞"[0]); // Surrogate pairs
-  addInstance("𝄞"[1]); // Surrogate pairs
-  addInstance("\u{0}"); // Non-printing charater
-  addInstance("\u{1}"); // Non-printing charater
-  addInstance("f\u{0}oo"); // Internal NUL
-  addInstance("blåbæ\u{0}rgrød"); // Internal NUL
-  addInstance("Îñţérñåţîö\u{0}ñåļîžåţîờñ"); // Internal NUL
-  addInstance("\u{0}𝄞"); // Internal NUL
+  addInstance("foo");  // ASCII string
+  addInstance("blåbærgrød");  // Latin1 string
+  addInstance("Îñţérñåţîöñåļîžåţîờñ");  // Unicode string
+  addInstance("𝄞");  // Surrogate pairs
+  addInstance("𝄞"[0]);  // Surrogate pairs
+  addInstance("𝄞"[1]);  // Surrogate pairs
+  addInstance("\u{0}");  // Non-printing charater
+  addInstance("\u{1}");  // Non-printing charater
+  addInstance("f\u{0}oo");  // Internal NUL
+  addInstance("blåbæ\u{0}rgrød");  // Internal NUL
+  addInstance("Îñţérñåţîö\u{0}ñåļîžåţîờñ");  // Internal NUL
+  addInstance("\u{0}𝄞");  // Internal NUL
 
   for (int len = 0; len < 8; len++) {
     addInstance(fillInt(new Int8List(len)));
@@ -199,7 +199,6 @@ void setupInterestingValues() {
   randomInstance(ignore) {
     return randomElementOf(candidateArguments).mirror.reflectee;
   }
-
   for (int len = 0; len < 8; len++) {
     addInstance(new List.generate(len, randomInstance));
   }
@@ -219,7 +218,7 @@ void fillFloat(TypedData d) {
 
 void setupClasses() {
   currentMirrorSystem().libraries.values.forEach((lib) {
-    if (lib.simpleName == #fuzzer) return; // Don't recurse.
+    if (lib.simpleName == #fuzzer) return;  // Don't recurse.
     addObjectMirror(lib);
     lib.declarations.values.forEach((decl) {
       if (decl is ClassMirror) {
@@ -231,12 +230,11 @@ void setupClasses() {
 
 MethodMirror randomMethodOf(receiver) {
   if (receiver is ClassMirror) {
-    return randomElementOf(receiver.declarations.values
-        .where((d) => d is MethodMirror && d.isStatic)
-        .toList());
+    return randomElementOf(receiver.declarations.values.where(
+        (d) => d is MethodMirror && d.isStatic).toList());
   } else if (receiver is LibraryMirror) {
-    return randomElementOf(
-        receiver.declarations.values.where((d) => d is MethodMirror).toList());
+    return randomElementOf(receiver.declarations.values.where(
+        (d) => d is MethodMirror).toList());
   } else if (receiver is InstanceMirror) {
     var methods = [];
     var cls = receiver.type;
@@ -285,19 +283,19 @@ void fuzz(Candidate c) {
   if (method.isConstructor) {
     try {
       result = receiver.newInstance(method.simpleName, positional, named);
-    } catch (e) {}
+    } catch(e) {}
   } else if (method.isRegularMethod) {
     try {
       result = receiver.invoke(method.simpleName, positional, named);
-    } catch (e) {}
+    } catch(e) {}
   } else if (method.isGetter) {
     try {
       result = receiver.getField(method.simpleName);
-    } catch (e) {}
+    } catch(e) {}
   } else if (method.isSetter) {
     try {
       result = receiver.setField(method.simpleName, positional[0]);
-    } catch (e) {}
+    } catch(e) {}
   }
 
   if (result != null) {
@@ -341,7 +339,7 @@ Map randomNamedArgumentsFor(MethodMirror method) {
 
 void garbageCollect() {
   // Chain a bunch of moderately sized arrays, then let go of them. Using a
-  // moderate size avoids our allocations going directly to a large object
+  // moderate size avoids our allocations going directly to a large object 
   // page in old space.
   var n;
   for (int i = 0; i < 2048; i++) {

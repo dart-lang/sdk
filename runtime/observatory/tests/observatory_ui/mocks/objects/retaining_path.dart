@@ -16,9 +16,7 @@ class RetainingPathItemMock implements M.RetainingPathItem {
   final int parentListIndex;
   final int parentWordOffset;
 
-  const RetainingPathItemMock(
-      {this.source: const InstanceRefMock(),
-      this.parentField,
-      this.parentListIndex,
-      this.parentWordOffset});
+  const RetainingPathItemMock({this.source: const InstanceRefMock(),
+                               this.parentField, this.parentListIndex,
+                               this.parentWordOffset});
 }

@@ -4,12 +4,10 @@
 
 import 'dart:core' hide Symbol;
 
-@patch
-List makeListFixedLength(List growableList)
+@patch List makeListFixedLength(List growableList)
     native "Internal_makeListFixedLength";
 
-@patch
-List makeFixedListUnmodifiable(List fixedLengthList)
+@patch List makeFixedListUnmodifiable(List fixedLengthList)
     native "Internal_makeFixedListUnmodifiable";
 
 class VMLibraryHooks {
@@ -50,11 +48,11 @@ bool _classRangeCheckNegative(int cid, int lowerLimit, int upperLimit) {
 
 // Utility class now only used by the VM.
 class Lists {
-  static void copy(List src, int srcStart, List dst, int dstStart, int count) {
+  static void copy(List src, int srcStart,
+                   List dst, int dstStart, int count) {
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;
-          i >= srcStart;
-          i--, j--) {
+           i >= srcStart; i--, j--) {
         dst[j] = src[i];
       }
     } else {

@@ -209,7 +209,8 @@ class DownCommand extends DebuggerCommand {
       debugger.downFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } catch (e) {
-      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console.print(
+          'frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -243,7 +244,8 @@ class UpCommand extends DebuggerCommand {
       debugger.upFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console.print(
+          'frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -279,7 +281,8 @@ class FrameCommand extends DebuggerCommand {
       debugger.currentFrame = frame;
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console.print(
+          'frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -415,12 +418,12 @@ class RewindCommand extends DebuggerCommand {
         debugger.console.print('rewind expects 0 or 1 argument');
         return;
       } else if (count < 1 || count > debugger.stackDepth) {
-        debugger.console
-            .print('frame must be in range [1..${debugger.stackDepth - 1}]');
+        debugger.console.print(
+            'frame must be in range [1..${debugger.stackDepth - 1}]');
         return;
       }
       await debugger.rewind(count);
-    } on S.ServerRpcException catch (e) {
+    } on S.ServerRpcException catch(e) {
       if (e.code == S.ServerRpcException.kCannotResume) {
         debugger.console.printRed(e.data['details']);
       } else {
@@ -431,7 +434,8 @@ class RewindCommand extends DebuggerCommand {
 
   String helpShort = 'Rewind the stack to a previous frame';
 
-  String helpLong = 'Rewind the stack to a previous frame.\n'
+  String helpLong =
+      'Rewind the stack to a previous frame.\n'
       '\n'
       'Syntax: rewind\n'
       '        rewind <count>\n';
@@ -450,7 +454,7 @@ class ReloadCommand extends DebuggerCommand {
       await debugger.isolate.reloadSources();
       debugger.console.print('reload complete');
       await debugger.refreshStack();
-    } on S.ServerRpcException catch (e) {
+    } on S.ServerRpcException catch(e) {
       if (e.code == S.ServerRpcException.kIsolateReloadBarred ||
           e.code == S.ServerRpcException.kIsolateReloadFailed ||
           e.code == S.ServerRpcException.kIsolateIsReloading) {
@@ -463,7 +467,8 @@ class ReloadCommand extends DebuggerCommand {
 
   String helpShort = 'Reload the sources for the current isolate';
 
-  String helpLong = 'Reload the sources for the current isolate.\n'
+  String helpLong =
+      'Reload the sources for the current isolate.\n'
       '\n'
       'Syntax: reload\n';
 }
@@ -1828,18 +1833,24 @@ class ObservatoryDebugger extends Debugger {
     console.printBold('\$ $command');
     return cmd.runCommand(command).then((_) {
       lastCommand = command;
-    }).catchError((e, s) {
-      console.printRed('Unable to execute command because the connection '
-          'to the VM has been closed');
-    }, test: (e) => e is S.NetworkRpcException).catchError((e, s) {
-      console.printRed(e.toString());
-    }, test: (e) => e is CommandException).catchError((e, s) {
-      if (s != null) {
-        console.printRed('Internal error: $e\n$s');
-      } else {
-        console.printRed('Internal error: $e\n');
+    }).catchError(
+      (e, s) {
+        console.printRed('Unable to execute command because the connection '
+                         'to the VM has been closed');
+      }, test: (e) => e is S.NetworkRpcException
+    ).catchError(
+      (e, s) {
+        console.printRed(e.toString());
+      }, test: (e) => e is CommandException
+    ).catchError(
+      (e, s) {
+        if (s != null) {
+          console.printRed('Internal error: $e\n$s');
+        } else {
+          console.printRed('Internal error: $e\n');
+        }
       }
-    });
+    );
   }
 
   String historyPrev(String command) {
@@ -2406,9 +2417,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   bool _expanded = false;
 
   void setCurrent(bool value) {
-    Future load = (_frame.function != null)
-        ? _frame.function.load()
-        : new Future.value(null);
+    Future load =
+        (_frame.function != null) ?
+        _frame.function.load() :
+        new Future.value(null);
     load.then((func) {
       _current = value;
       if (_current) {
@@ -2468,7 +2480,8 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     }
     if (_frame.kind == M.FrameKind.asyncSuspensionMarker) {
       final content = <Element>[
-        new SpanElement()..children = _createMarkerHeader(_frame.marker)
+        new SpanElement()
+          ..children = _createMarkerHeader(_frame.marker)
       ];
       children = content;
       return;
@@ -2590,7 +2603,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
       new DivElement()
         ..classes = ['frameSummary']
         ..children = content
-    ];
+      ];
   }
 
   List<Element> _createHeader() {
@@ -2644,7 +2657,8 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
       return frame.function == null;
     }
     return (newFrame.function.id == _frame.function.id &&
-        newFrame.location.script.id == frame.location.script.id);
+            newFrame.location.script.id ==
+            frame.location.script.id);
   }
 
   void updateFrame(S.Frame newFrame) {

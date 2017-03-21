@@ -32,7 +32,7 @@ main() {
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');
       expect(e.querySelector('content'), isNotNull,
-          reason: 'has content elements');
+                                                 reason: 'has content elements');
       e.remove();
       await e.onRendered.first;
       expect(e.children.length, isZero, reason: 'is empty');

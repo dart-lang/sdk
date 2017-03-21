@@ -36,13 +36,14 @@ class _SyncIterable extends IterableBase {
 }
 
 class _SyncIterator implements Iterator {
-  bool isYieldEach; // Set by generated code for the yield* statement.
+  bool isYieldEach;  // Set by generated code for the yield* statement.
   Iterator yieldEachIterator;
-  var _current; // Set by generated code for the yield and yield* statement.
+  var _current;  // Set by generated code for the yield and yield* statement.
   _SyncGeneratorCallback _moveNextFn;
 
-  get current =>
-      yieldEachIterator != null ? yieldEachIterator.current : _current;
+  get current => yieldEachIterator != null
+      ? yieldEachIterator.current
+      : _current;
 
   _SyncIterator(this._moveNextFn);
 
@@ -50,7 +51,7 @@ class _SyncIterator implements Iterator {
     if (_moveNextFn == null) {
       return false;
     }
-    while (true) {
+    while(true) {
       if (yieldEachIterator != null) {
         if (yieldEachIterator.moveNext()) {
           return true;
@@ -76,8 +77,6 @@ class _SyncIterator implements Iterator {
   }
 }
 
-@patch
-class StackTrace {
-  @patch
-  static StackTrace get current native "StackTrace_current";
+@patch class StackTrace {
+  @patch static StackTrace get current native "StackTrace_current";
 }

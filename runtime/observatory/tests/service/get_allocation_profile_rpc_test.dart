@@ -12,15 +12,16 @@ import 'test_helper.dart';
 Future sleep(int milliseconds) {
   Completer completer = new Completer();
   Duration duration = new Duration(milliseconds: milliseconds);
-  new Timer(duration, () => completer.complete());
+  new Timer(duration, () => completer.complete() );
   return completer.future;
 }
 
 var tests = [
   (Isolate isolate) async {
-    var params = {};
-    var result =
-        await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+    var params = {
+    };
+    var result = await isolate.invokeRpcNoUpgrade(
+        '_getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
     expect(result.containsKey('dateLastAccumulatorReset'), isFalse);
     expect(result.containsKey('dateLastServiceGC'), isFalse);
@@ -32,7 +33,7 @@ var tests = [
 
     // reset.
     params = {
-      'reset': 'true',
+      'reset' : 'true',
     };
     result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
@@ -53,7 +54,7 @@ var tests = [
 
     // gc.
     params = {
-      'gc': 'full',
+      'gc' : 'full',
     };
     result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
@@ -72,35 +73,38 @@ var tests = [
     var secondGC = result['dateLastAccumulatorReset'];
     expect(secondGC, isNot(equals(firstGC)));
   },
+
   (Isolate isolate) async {
     var params = {
-      'reset': 'banana',
+      'reset' : 'banana',
     };
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
-      expect(false, isTrue, reason: 'Unreachable');
+      expect(false, isTrue, reason:'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.data['details'],
-          "_getAllocationProfile: invalid \'reset\' parameter: banana");
+             "_getAllocationProfile: invalid \'reset\' parameter: banana");
     }
     expect(caughtException, isTrue);
   },
+
   (Isolate isolate) async {
     var params = {
-      'gc': 'banana',
+      'gc' : 'banana',
     };
     bool caughtException;
     try {
-      await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
-      expect(false, isTrue, reason: 'Unreachable');
+      await isolate.invokeRpcNoUpgrade(
+          '_getAllocationProfile', params);
+      expect(false, isTrue, reason:'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.data['details'],
-          "_getAllocationProfile: invalid \'gc\' parameter: banana");
+             "_getAllocationProfile: invalid \'gc\' parameter: banana");
     }
     expect(caughtException, isTrue);
   },

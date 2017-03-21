@@ -9,6 +9,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
+
 /// Test that we correctly remove sockets that have been closed from the list
 /// of open sockets. We explictly leave one socket open.
 
@@ -35,7 +36,7 @@ Future setup() async {
 
   var server = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   server.listen((io.RawSocketEvent event) {
-    if (event == io.RawSocketEvent.READ) {
+    if(event == io.RawSocketEvent.READ) {
       io.Datagram dg = server.receive();
       dg.data.forEach((x) => true);
       server.close();
@@ -43,7 +44,7 @@ Future setup() async {
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
   client.send(UTF8.encoder.convert('foobar'),
-      new io.InternetAddress('127.0.0.1'), server.port);
+              new io.InternetAddress('127.0.0.1'), server.port);
   client.close();
 
   // The one socket to expect.
@@ -60,7 +61,7 @@ var tests = [
     // end of test.
     expect(result['data'].length, equals(1));
     var server = await isolate.invokeRpcNoUpgrade(
-        'ext.dart.io.getSocketByID', {'id': result['data'][0]['id']});
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(server['listening'], isTrue);
     expect(server['lastRead'], equals(0));
     expect(server['totalRead'], equals(0));
@@ -71,4 +72,4 @@ var tests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeBefore: setup);
+main(args) async => runIsolateTests(args, tests, testeeBefore:setup);

@@ -5,13 +5,10 @@
 import 'dart:typed_data';
 import 'dart:_internal' as internal;
 
-@patch
-class HashMap<K, V> {
-  @patch
-  factory HashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)}) {
+@patch class HashMap<K, V> {
+  @patch factory HashMap({ bool equals(K key1, K key2),
+                           int hashCode(K key),
+                           bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -38,16 +35,17 @@ class HashMap<K, V> {
     return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 
-  @patch
-  factory HashMap.identity() = _IdentityHashMap<K, V>;
+  @patch factory HashMap.identity() = _IdentityHashMap<K, V>;
 
   Set<K> _newKeySet();
 }
+
 
 const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
 class _HashMap<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
+
 
   int _elementCount = 0;
   List<_HashMapEntry> _buckets = new List(_INITIAL_CAPACITY);
@@ -85,7 +83,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
     return false;
   }
 
-  V operator [](Object key) {
+  V operator[](Object key) {
     int hashCode = key.hashCode;
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -188,8 +186,9 @@ class _HashMap<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _removeEntry(
-      _HashMapEntry entry, _HashMapEntry previousInBucket, int bucketIndex) {
+  void _removeEntry(_HashMapEntry entry,
+                    _HashMapEntry previousInBucket,
+                    int bucketIndex) {
     if (previousInBucket == null) {
       _buckets[bucketIndex] = entry.next;
     } else {
@@ -197,8 +196,8 @@ class _HashMap<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _addEntry(
-      List buckets, int index, int length, K key, V value, int hashCode) {
+  void _addEntry(List buckets, int index, int length,
+                 K key, V value, int hashCode) {
     _HashMapEntry entry =
         new _HashMapEntry(key, value, hashCode, buckets[index]);
     buckets[index] = entry;
@@ -241,6 +240,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   _CustomHashMap(this._equals, this._hashCode, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
 
+
   bool containsKey(Object key) {
     if (!_validKey(key)) return false;
     int hashCode = _hashCode(key);
@@ -254,7 +254,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
     return false;
   }
 
-  V operator [](Object key) {
+  V operator[](Object key) {
     if (!_validKey(key)) return null;
     int hashCode = _hashCode(key);
     List buckets = _buckets;
@@ -335,6 +335,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 }
 
 class _IdentityHashMap<K, V> extends _HashMap<K, V> {
+
   bool containsKey(Object key) {
     int hashCode = identityHashCode(key);
     List buckets = _buckets;
@@ -347,7 +348,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     return false;
   }
 
-  V operator [](Object key) {
+  V operator[](Object key) {
     int hashCode = identityHashCode(key);
     List buckets = _buckets;
     int index = hashCode & (buckets.length - 1);
@@ -425,6 +426,7 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   Set<K> _newKeySet() => new _IdentityHashSet<K>();
 }
 
+
 class _HashMapEntry {
   final key;
   var value;
@@ -450,7 +452,6 @@ class _HashMapKeyIterable<K> extends _HashMapIterable<K> {
       action(key);
     });
   }
-
   Set<K> toSet() => _map._newKeySet()..addAll(this);
 }
 
@@ -473,8 +474,7 @@ abstract class _HashMapIterator<E> implements Iterator<E> {
   _HashMapEntry _entry;
 
   _HashMapIterator(HashMap map)
-      : _map = map,
-        _stamp = map._modificationCount;
+     : _map = map, _stamp = map._modificationCount;
 
   bool moveNext() {
     if (_stamp != _map._modificationCount) {
@@ -520,13 +520,10 @@ class _HashMapValueIterator<V> extends _HashMapIterator<V> {
   }
 }
 
-@patch
-class HashSet<E> {
-  @patch
-  factory HashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)}) {
+@patch class HashSet<E> {
+  @patch factory HashSet({ bool equals(E e1, E e2),
+                           int hashCode(E e),
+                           bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -553,8 +550,7 @@ class HashSet<E> {
     return new _CustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
-  @patch
-  factory HashSet.identity() = _IdentityHashSet<E>;
+  @patch factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
 class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
@@ -653,7 +649,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   void _filterWhere(bool test(E element), bool removeMatching) {
     int length = _buckets.length;
-    for (int index = 0; index < length; index++) {
+    for (int index =  0; index < length; index++) {
       _HashSetEntry entry = _buckets[index];
       _HashSetEntry previous = null;
       while (entry != null) {
@@ -799,8 +795,7 @@ class _HashSetIterator<E> implements Iterator<E> {
   E _current;
 
   _HashSetIterator(_HashSet hashSet)
-      : _set = hashSet,
-        _modificationCount = hashSet._modificationCount;
+      : _set = hashSet, _modificationCount = hashSet._modificationCount;
 
   bool moveNext() {
     if (_modificationCount != _set._modificationCount) {
@@ -835,7 +830,7 @@ class _LinkedHashMapEntry extends _HashMapEntry {
   var _nextEntry;
   var _previousEntry;
   _LinkedHashMapEntry(key, value, int hashCode, _LinkedHashMapEntry next,
-      this._previousEntry, this._nextEntry)
+                      this._previousEntry, this._nextEntry)
       : super(key, value, hashCode, next) {
     _previousEntry._nextEntry = this;
     _nextEntry._previousEntry = this;
@@ -902,11 +897,11 @@ class _LinkedHashMapValueIterator<V> extends _LinkedHashMapIterator<V> {
   V _getValue(_LinkedHashMapEntry entry) => entry.value;
 }
 
+
 /**
  * A hash-based map that iterates keys and values in key insertion order.
  */
-@patch
-class LinkedHashMap<K, V> {
+@patch class LinkedHashMap<K, V> {
   /// Holds a double-linked list of entries in insertion order.
   /// The fields have the same name as the ones in [_LinkedHashMapEntry],
   /// and this map is itself used as the head entry of the list.
@@ -915,11 +910,9 @@ class LinkedHashMap<K, V> {
   var _nextEntry;
   var _previousEntry;
 
-  @patch
-  factory LinkedHashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)}) {
+  @patch factory LinkedHashMap({ bool equals(K key1, K key2),
+                                       int hashCode(K key),
+                                       bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -946,17 +939,14 @@ class LinkedHashMap<K, V> {
     return new _CompactLinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 
-  @patch
-  factory LinkedHashMap.identity() = _CompactLinkedIdentityHashMap<K, V>;
+  @patch factory LinkedHashMap.identity() =
+      _CompactLinkedIdentityHashMap<K, V>;
 }
 
-@patch
-class LinkedHashSet<E> {
-  @patch
-  factory LinkedHashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)}) {
+@patch class LinkedHashSet<E> {
+  @patch factory LinkedHashSet({ bool equals(E e1, E e2),
+                                       int hashCode(E e),
+                                       bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -983,6 +973,6 @@ class LinkedHashSet<E> {
     return new _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
-  @patch
-  factory LinkedHashSet.identity() = _CompactLinkedIdentityHashSet<E>;
+  @patch factory LinkedHashSet.identity() =
+      _CompactLinkedIdentityHashSet<E>;
 }

@@ -8,8 +8,8 @@ class PersistentHandlesMock implements M.PersistentHandles {
   final Iterable<M.PersistentHandle> elements;
   final Iterable<M.WeakPersistentHandle> weakElements;
 
-  const PersistentHandlesMock(
-      {this.elements: const [], this.weakElements: const []});
+  const PersistentHandlesMock({this.elements: const [],
+                               this.weakElements: const []});
 }
 
 class PersistentHandleMock implements M.PersistentHandle {
@@ -25,10 +25,8 @@ class WeakPersistentHandleMock implements M.WeakPersistentHandle {
   final String callbackSymbolName;
   final String callbackAddress;
 
-  const WeakPersistentHandleMock(
-      {this.object: const InstanceRefMock(),
-      this.externalSize: 0,
-      this.peer: '0x0',
-      this.callbackSymbolName: 'dart::Something()',
-      this.callbackAddress: '0x123456'});
+  const WeakPersistentHandleMock({this.object: const InstanceRefMock(),
+                                  this.externalSize: 0, this.peer: '0x0',
+                                  this.callbackSymbolName: 'dart::Something()',
+                                  this.callbackAddress: '0x123456'});
 }

@@ -23,8 +23,8 @@ main() {
       expect(e.message, equals(''), reason: 'message should be empty');
     });
     test('message', () {
-      final GeneralErrorElement e =
-          new GeneralErrorElement(notifications, message: message);
+      final GeneralErrorElement e = new GeneralErrorElement(notifications,
+          message: message);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.message, isNotNull, reason: 'message should not be null');
       expect(e.message, equals(message), reason: 'message should be the same');
@@ -49,7 +49,8 @@ main() {
           reason: 'should not contain');
       e.message = message;
       await e.onRendered.first;
-      expect(e.innerHtml.contains(message), isTrue, reason: 'should contain');
+      expect(e.innerHtml.contains(message), isTrue,
+          reason: 'should contain');
       e.message = '';
       await e.onRendered.first;
       expect(e.innerHtml.contains(message), isFalse,

@@ -14,6 +14,7 @@ doThrow() {
 
 var tests = [
   hasStoppedAtExit,
+
   (Isolate isolate) async {
     await isolate.reload();
     expect(isolate.error, isNotNull);
@@ -21,5 +22,7 @@ var tests = [
   }
 ];
 
-main(args) => runIsolateTestsSynchronous(args, tests,
-    pause_on_exit: true, testeeConcurrent: doThrow);
+main(args) => runIsolateTestsSynchronous(args,
+                                         tests,
+                                         pause_on_exit: true,
+                                         testeeConcurrent: doThrow);

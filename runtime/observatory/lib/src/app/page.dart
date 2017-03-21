@@ -29,7 +29,7 @@ final _portsRepository = new PortsRepository();
 final _scriptRepository = new ScriptRepository();
 final _singleTargetCacheRepository = new SingleTargetCacheRepository();
 final _stronglyReachangleInstancesRepository =
-    new StronglyReachableInstancesRepository();
+  new StronglyReachableInstancesRepository();
 final _subtypeTestCacheRepository = new SubtypeTestCacheRepository();
 final _topRetainingInstancesRepository = new TopRetainingInstancesRepository();
 final _typeArgumentsRepository = new TypeArgumentsRepository();

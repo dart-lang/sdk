@@ -100,8 +100,10 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
 }
 
 class HeapSnapshotRepository implements M.HeapSnapshotRepository {
-  Stream<HeapSnapshotLoadingProgressEvent> get(M.IsolateRef i,
-      {M.HeapSnapshotRoots roots: M.HeapSnapshotRoots.vm, bool gc: false}) {
+  Stream<HeapSnapshotLoadingProgressEvent> get(
+      M.IsolateRef i,
+      {M.HeapSnapshotRoots roots: M.HeapSnapshotRoots.vm,
+      bool gc: false}) {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     assert(gc != null);

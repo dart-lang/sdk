@@ -28,20 +28,23 @@ main() {
   final instances = new InstanceRepositoryMock();
   test('instantiation', () {
     final e = new ICDataViewElement(vm, isolate, icdata, events, notifs,
-        icdatas, retainedSizes, reachableSizes, inbounds, paths, instances);
+                                     icdatas, retainedSizes, reachableSizes,
+                                     inbounds, paths, instances);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.icdata, equals(icdata));
   });
   test('elements created after attachment', () async {
     final icdatas = new ICDataRepositoryMock(
-        getter: expectAsync((i, id) async {
-      expect(i, equals(isolate));
-      expect(id, equals(icdata.id));
-      return icdata;
-    }, count: 1));
+      getter: expectAsync((i, id) async {
+        expect(i, equals(isolate));
+        expect(id, equals(icdata.id));
+        return icdata;
+      }, count: 1)
+    );
     final e = new ICDataViewElement(vm, isolate, icdata, events, notifs,
-        icdatas, retainedSizes, reachableSizes, inbounds, paths, instances);
+                                     icdatas, retainedSizes, reachableSizes,
+                                     inbounds, paths, instances);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

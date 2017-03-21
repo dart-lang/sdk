@@ -18,7 +18,8 @@ var tests = [
     var getObjectParams = {
       'objectId': isolate.rootLibrary.id,
     };
-    result = await isolate.invokeRpcNoUpgrade('getObject', getObjectParams);
+    result = await isolate.invokeRpcNoUpgrade('getObject',
+                                              getObjectParams);
     expect(result['debuggable'], equals(true));
 
     // Change debuggable to false.
@@ -26,13 +27,15 @@ var tests = [
       'libraryId': isolate.rootLibrary.id,
       'isDebuggable': false,
     };
-    result = await isolate.invokeRpcNoUpgrade(
-        'setLibraryDebuggable', setDebugParams);
+    result = await isolate.invokeRpcNoUpgrade('setLibraryDebuggable',
+                                              setDebugParams);
     expect(result['type'], equals('Success'));
 
     // Verify.
-    result = await isolate.invokeRpcNoUpgrade('getObject', getObjectParams);
+    result = await isolate.invokeRpcNoUpgrade('getObject',
+                                              getObjectParams);
     expect(result['debuggable'], equals(false));
+
   },
 
   // invalid library.
@@ -44,14 +47,13 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('setLibraryDebuggable', params);
-      expect(false, isTrue, reason: 'Unreachable');
-    } on ServerRpcException catch (e) {
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(
-          e.message,
-          "setLibraryDebuggable: "
-          "invalid 'libraryId' parameter: libraries/9999999");
+      expect(e.message,
+             "setLibraryDebuggable: "
+             "invalid 'libraryId' parameter: libraries/9999999");
     }
     expect(caughtException, isTrue);
   },
@@ -59,8 +61,8 @@ var tests = [
   // illegal (dart:_*) library.
   (Isolate isolate) async {
     await isolate.load();
-    Library dartInternal = isolate.libraries
-        .firstWhere((Library library) => library.uri == 'dart:_internal');
+    Library dartInternal = isolate.libraries.firstWhere(
+      (Library library) => library.uri == 'dart:_internal');
     var params = {
       'libraryId': dartInternal.id,
       'isDebuggable': false,
@@ -68,14 +70,13 @@ var tests = [
     bool caughtException;
     try {
       await isolate.invokeRpcNoUpgrade('setLibraryDebuggable', params);
-      expect(false, isTrue, reason: 'Unreachable');
-    } on ServerRpcException catch (e) {
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(
-          e.message,
-          "setLibraryDebuggable: "
-          "illegal 'libraryId' parameter: ${dartInternal.id}");
+      expect(e.message,
+             "setLibraryDebuggable: "
+             "illegal 'libraryId' parameter: ${dartInternal.id}");
     }
     expect(caughtException, isTrue);
   },

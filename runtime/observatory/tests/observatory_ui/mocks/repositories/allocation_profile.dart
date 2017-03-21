@@ -4,20 +4,20 @@
 
 part of mocks;
 
-typedef Future<
-    M
-        .AllocationProfile> AllocationProfileRepositoryMockGetterCallback(
-    M.Isolate id, bool gc, bool force);
+typedef Future<M.AllocationProfile>
+        AllocationProfileRepositoryMockGetterCallback(M.Isolate id,
+                                                      bool gc,
+                                                      bool force);
 
 class AllocationProfileRepositoryMock implements M.AllocationProfileRepository {
   final AllocationProfileRepositoryMockGetterCallback _get;
 
   AllocationProfileRepositoryMock(
       {AllocationProfileRepositoryMockGetterCallback getter})
-      : _get = getter;
+    : _get = getter;
 
-  Future<M.AllocationProfile> get(M.IsolateRef id,
-      {bool gc: false, bool reset: false}) {
+  Future<M.AllocationProfile> get(M.IsolateRef id, {bool gc: false,
+                                                    bool reset: false}){
     if (_get != null) {
       return _get(id, gc, reset);
     }

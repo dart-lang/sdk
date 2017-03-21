@@ -19,8 +19,8 @@ main() {
 
   group('instantiation', () {
     test('default', () {
-      final e = new ClassTreeElement(
-          vm, isolate, events, notifications, new ClassRepositoryMock());
+      final e = new ClassTreeElement(vm, isolate, events, notifications,
+          new ClassRepositoryMock());
       expect(e, isNotNull, reason: 'element correctly created');
     });
   });
@@ -31,17 +31,13 @@ main() {
       const child1_id = 'c1-id';
       const child2 = const ClassMock(id: child2_id);
       const child1_1 = const ClassMock(id: child1_1_id);
-      const child1 =
-          const ClassMock(id: child1_id, subclasses: const [child1_1]);
-      const object =
-          const ClassMock(id: 'o-id', subclasses: const [child1, child2]);
+      const child1 = const ClassMock(id: child1_id,
+                                     subclasses: const [child1_1]);
+      const object = const ClassMock(id: 'o-id',
+                                     subclasses: const [child1, child2]);
       const ids = const [child1_id, child1_1_id, child2_id];
       bool rendered = false;
-      final e = new ClassTreeElement(
-          vm,
-          isolate,
-          events,
-          notifications,
+      final e = new ClassTreeElement(vm, isolate, events, notifications,
           new ClassRepositoryMock(
               object: expectAsync((i) async {
                 expect(i, equals(isolate));
@@ -52,14 +48,10 @@ main() {
                 expect(i, equals(isolate));
                 expect(ids.contains(id), isTrue);
                 switch (id) {
-                  case child1_id:
-                    return child1;
-                  case child1_1_id:
-                    return child1_1;
-                  case child2_id:
-                    return child2;
-                  default:
-                    return null;
+                  case child1_id: return child1;
+                  case child1_1_id: return child1_1;
+                  case child2_id: return child2;
+                  default: return null;
                 }
               }, count: 3)));
       document.body.append(e);

@@ -34,21 +34,12 @@ class ScriptMock implements M.Script {
   int tokenToLine(int token) => _tokenToLine(token);
   int tokenToCol(int token) => _tokenToCol(token);
 
-  const ScriptMock(
-      {this.id: 'script-id',
-      this.vmName: 'script-vmNmae',
-      this.clazz,
-      this.size,
-      this.uri,
-      this.source,
-      this.library: const LibraryRefMock(),
-      TokenToInt tokenToLine,
-      TokenToInt tokenToCol,
-      this.loadTime,
-      this.firstTokenPos,
-      this.lastTokenPos,
-      this.lineOffset,
-      this.columnOffset})
-      : _tokenToLine = tokenToLine,
-        _tokenToCol = tokenToCol;
+  const ScriptMock({this.id: 'script-id', this.vmName: 'script-vmNmae',
+                    this.clazz, this.size, this.uri, this.source,
+                    this.library: const LibraryRefMock(),
+                    TokenToInt tokenToLine, TokenToInt tokenToCol,
+                    this.loadTime, this.firstTokenPos, this.lastTokenPos,
+                    this.lineOffset, this.columnOffset})
+    : _tokenToLine = tokenToLine,
+      _tokenToCol = tokenToCol;
 }

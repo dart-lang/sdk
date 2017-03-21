@@ -36,8 +36,7 @@ testerDo(Isolate isolate) async {
   var topFrame = 0;
   expect(stack.type, equals('Stack'));
   expect(stack['frames'][topFrame].function.name, equals('test'));
-  expect(stack['frames'][topFrame].function.dartOwner.name,
-      equals('Superclass&Klass'));
+  expect(stack['frames'][topFrame].function.dartOwner.name, equals('Superclass&Klass'));
 
   var result;
 
@@ -81,4 +80,4 @@ testerDo(Isolate isolate) async {
   expect(result.valueAsString, equals('OtherLibrary'));
 }
 
-main(args) => runIsolateTests(args, [testerDo], testeeConcurrent: testeeDo);
+main(args) => runIsolateTests(args, [testerDo], testeeConcurrent:testeeDo);

@@ -18,20 +18,20 @@ class SampleProfileLoadingProgressMock
   final Duration loadingTime;
   final M.SampleProfile profile;
 
-  const SampleProfileLoadingProgressMock(
-      {this.status: M.SampleProfileLoadingStatus.disabled,
+  const SampleProfileLoadingProgressMock({
+      this.status: M.SampleProfileLoadingStatus.disabled,
       this.progress: 0.0,
       this.fetchingTime: const Duration(),
       this.loadingTime: const Duration(),
-      this.profile});
+      this.profile
+    });
 }
 
-typedef Stream<
-    M
-        .SampleProfileLoadingProgressEvent> ClassSampleProfileRepositoryMockCallback(
-    M.Isolate isolate, M.ClassRef cls, M.SampleProfileTag tag, bool clear);
-typedef Future ClassSampleProfileRepositoryMockToggleCallback(
-    M.Isolate isolate, M.ClassRef cls);
+typedef Stream<M.SampleProfileLoadingProgressEvent>
+    ClassSampleProfileRepositoryMockCallback(M.Isolate isolate, M.ClassRef cls,
+        M.SampleProfileTag tag, bool clear);
+typedef Future ClassSampleProfileRepositoryMockToggleCallback(M.Isolate isolate,
+    M.ClassRef cls);
 
 class ClassSampleProfileRepositoryMock
     implements M.ClassSampleProfileRepository {
@@ -39,9 +39,8 @@ class ClassSampleProfileRepositoryMock
   final ClassSampleProfileRepositoryMockToggleCallback _enable;
   final ClassSampleProfileRepositoryMockToggleCallback _disable;
 
-  Stream<M.SampleProfileLoadingProgressEvent> get(
-      M.Isolate isolate, M.ClassRef cls, M.SampleProfileTag tag,
-      {bool clear: false}) {
+  Stream<M.SampleProfileLoadingProgressEvent> get(M.Isolate isolate,
+      M.ClassRef cls, M.SampleProfileTag tag, {bool clear: false}) {
     if (_get != null) {
       return _get(isolate, cls, tag, clear);
     }
@@ -64,25 +63,23 @@ class ClassSampleProfileRepositoryMock
 
   ClassSampleProfileRepositoryMock(
       {ClassSampleProfileRepositoryMockCallback getter,
-      ClassSampleProfileRepositoryMockToggleCallback enable,
-      ClassSampleProfileRepositoryMockToggleCallback disable})
-      : _get = getter,
-        _enable = enable,
-        _disable = disable;
+       ClassSampleProfileRepositoryMockToggleCallback enable,
+       ClassSampleProfileRepositoryMockToggleCallback disable})
+    : _get = getter,
+      _enable = enable,
+      _disable = disable;
 }
 
-typedef Stream<
-    M
-        .SampleProfileLoadingProgressEvent> IsolateampleProfileRepositoryMockCallback(
-    M.IsolateRef cls, M.SampleProfileTag tag, bool clear, bool forceFetch);
+typedef Stream<M.SampleProfileLoadingProgressEvent>
+    IsolateampleProfileRepositoryMockCallback(M.IsolateRef cls,
+        M.SampleProfileTag tag, bool clear, bool forceFetch);
 
 class IsolateSampleProfileRepositoryMock
     implements M.IsolateSampleProfileRepository {
   final IsolateampleProfileRepositoryMockCallback _get;
 
-  Stream<M.SampleProfileLoadingProgressEvent> get(
-      M.IsolateRef isolate, M.SampleProfileTag tag,
-      {bool clear: false, bool forceFetch: false}) {
+  Stream<M.SampleProfileLoadingProgressEvent> get(M.IsolateRef isolate,
+      M.SampleProfileTag tag, {bool clear: false, bool forceFetch: false}) {
     if (_get != null) {
       return _get(isolate, tag, clear, forceFetch);
     }
@@ -91,5 +88,5 @@ class IsolateSampleProfileRepositoryMock
 
   IsolateSampleProfileRepositoryMock(
       {IsolateampleProfileRepositoryMockCallback getter})
-      : _get = getter;
+    : _get = getter;
 }

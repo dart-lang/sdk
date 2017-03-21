@@ -340,7 +340,8 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                     ..classes = ['memberValue']
                     ..children = [
                       new CurlyBlockElement(queue: _r.queue)
-                        ..content = threads.map(_populateThreadInfo)
+                        ..content = threads
+                          .map(_populateThreadInfo)
                     ]
                 ]
             ],
@@ -367,7 +368,8 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     return new DivElement()
       ..classes = ['indent']
       ..children = [
-        new SpanElement()..text = '${t.id} ',
+        new SpanElement()
+          ..text = '${t.id} ',
         new CurlyBlockElement(queue: _r.queue)
           ..content = [
             new DivElement()
@@ -377,9 +379,10 @@ class IsolateViewElement extends HtmlElement implements Renderable {
               ..classes = ['indent']
               ..title = '${t.memoryHighWatermark}B'
               ..text =
-                  'native memory usage high watermark ${Utils.formatSize(t.memoryHighWatermark)}',
+              'native memory usage high watermark ${Utils.formatSize(t.memoryHighWatermark)}',
             new DivElement()
-              ..children = t.zones.map((z) => new DivElement()
+              ..children = t.zones
+                .map((z) => new DivElement()
                 ..classes = ['indent']
                 ..children = [
                   new DivElement()
@@ -388,7 +391,8 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                         ..children = [
                           // TODO(bkonyi): zones will always be empty. See
                           // issue #28885.
-                          new SpanElement()..text = 'zone ${index++} ',
+                          new SpanElement()
+                            ..text = 'zone ${index++} ',
                           new CurlyBlockElement(queue: _r.queue)
                             ..content = [
                               new DivElement()
@@ -403,25 +407,27 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                                       new SpanElement()
                                         ..classes = ['memberValue']
                                         ..title = '${z.used}B'
-                                        ..text = Utils.formatSize(z.used)
+                                        ..text =
+                                        Utils.formatSize(z.used)
                                     ],
                                   new DivElement()
                                     ..classes = ['memberItem']
                                     ..children = [
-                                      new SpanElement()
-                                        ..classes = ['memberName']
-                                        ..text = 'capacity',
-                                      new SpanElement()
-                                        ..classes = ['memberValue']
-                                        ..title = '${z.capacity}B'
-                                        ..text = Utils.formatSize(z.capacity)
+                                        new SpanElement()
+                                          ..classes = ['memberName']
+                                          ..text = 'capacity',
+                                        new SpanElement()
+                                          ..classes = ['memberValue']
+                                          ..title = '${z.capacity}B'
+                                          ..text =
+                                          Utils.formatSize(z.capacity)
                                     ]
                                 ]
                             ]
                         ]
                     ]
-                ])
-          ]
+                ]
+          )]
       ];
   }
 

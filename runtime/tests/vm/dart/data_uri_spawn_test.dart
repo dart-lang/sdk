@@ -7,7 +7,7 @@ import "package:unittest/unittest.dart";
 
 Uri toDartDataUri(String source) {
   return Uri.parse("data:application/dart;charset=utf-8,"
-      "${Uri.encodeComponent(source)}");
+                   "${Uri.encodeComponent(source)}");
 }
 
 main() {

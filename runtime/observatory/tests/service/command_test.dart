@@ -35,20 +35,20 @@ class TestCompleteCommand extends Command {
 }
 
 void testCommandComplete() {
-  RootCommand cmd = new RootCommand([
-    new TestCommand(null, 'alpha', []),
-    new TestCommand(null, 'game', [
-      new TestCommand(null, 'checkers', []),
-      new TestCommand(null, 'chess', [])
-    ]),
-    new TestCommand(null, 'gamera', [
-      new TestCommand(null, 'london', []),
-      new TestCommand(null, 'tokyo', []),
-      new TestCommand(null, 'topeka', [])
-    ]),
-    new TestCompleteCommand(
-        null, 'count', [new TestCommand(null, 'chocula', [])])
-  ]);
+  RootCommand cmd =
+      new RootCommand([new TestCommand(null, 'alpha', []),
+
+                       new TestCommand(null, 'game', [
+                           new TestCommand(null, 'checkers', []),
+                           new TestCommand(null, 'chess', [])]),
+
+                       new TestCommand(null, 'gamera', [
+                           new TestCommand(null, 'london', []),
+                           new TestCommand(null, 'tokyo', []),
+                           new TestCommand(null, 'topeka', [])]),
+
+                       new TestCompleteCommand(null, 'count', [
+                           new TestCommand(null, 'chocula', [])])]);
 
   // Show all commands.
   cmd.completeCommand('').then((result) {
@@ -82,8 +82,7 @@ void testCommandComplete() {
 
   // Show all subcommands.
   cmd.completeCommand('gamera ').then((result) {
-    expect(
-        result, equals(['gamera london ', 'gamera tokyo ', 'gamera topeka ']));
+    expect(result, equals(['gamera london ', 'gamera tokyo ', 'gamera topeka ']));
   });
 
   // Subcommand completion.
@@ -119,8 +118,10 @@ void testCommandComplete() {
 
   // Locals + subcommands, show all.
   cmd.completeCommand('count ').then((result) {
-    expect(result,
-        equals(['count chocula ', 'count one ', 'count two ', 'count three ']));
+      expect(result, equals(['count chocula ',
+                             'count one ',
+                             'count two ',
+                             'count three ']));
   });
 
   // Locals + subcommands, single local match.
@@ -151,29 +152,30 @@ void testCommandRunSimple() {
 
   // Full name dispatch works.  Argument passing works.
   cmd.runCommand('alpha dog').then(expectAsync((_) {
-    expect(out.toString(), contains('executing alpha([dog])\n'));
-    out.clear();
-    // Substring dispatch works.
-    cmd.runCommand('al cat mouse').then(expectAsync((_) {
-      expect(out.toString(), contains('executing alpha([cat , mouse])\n'));
-    }));
+      expect(out.toString(), contains('executing alpha([dog])\n'));
+      out.clear();
+      // Substring dispatch works.
+      cmd.runCommand('al cat mouse').then(expectAsync((_) {
+          expect(out.toString(), contains('executing alpha([cat , mouse])\n'));
+      }));
   }));
 }
 
 void testCommandRunSubcommand() {
   // Run a simple command.
   StringBuffer out = new StringBuffer();
-  RootCommand cmd = new RootCommand([
-    new TestCommand(out, 'alpha',
-        [new TestCommand(out, 'beta', []), new TestCommand(out, 'gamma', [])])
-  ]);
+  RootCommand cmd =
+      new RootCommand([
+          new TestCommand(out, 'alpha', [
+              new TestCommand(out, 'beta', []),
+              new TestCommand(out, 'gamma', [])])]);
 
   cmd.runCommand('a b').then(expectAsync((_) {
-    expect(out.toString(), equals('executing beta([])\n'));
-    out.clear();
-    cmd.runCommand('alpha g ').then(expectAsync((_) {
-      expect(out.toString(), equals('executing gamma([])\n'));
-    }));
+      expect(out.toString(), equals('executing beta([])\n'));
+      out.clear();
+      cmd.runCommand('alpha g ').then(expectAsync((_) {
+          expect(out.toString(), equals('executing gamma([])\n'));
+      }));
   }));
 }
 
@@ -190,15 +192,16 @@ void testCommandRunNotFound() {
 void testCommandRunAmbiguous() {
   // Run a simple command.
   StringBuffer out = new StringBuffer();
-  RootCommand cmd = new RootCommand(
-      [new TestCommand(out, 'alpha', []), new TestCommand(out, 'ankle', [])]);
+  RootCommand cmd = new RootCommand([new TestCommand(out, 'alpha', []),
+                                     new TestCommand(out, 'ankle', [])]);
 
   cmd.runCommand('a 55').catchError(expectAsync((e) {
-    expect(e.toString(), equals("Command 'a 55' is ambiguous: [alpha, ankle]"));
-    out.clear();
-    cmd.runCommand('ankl 55').then(expectAsync((_) {
-      expect(out.toString(), equals('executing ankle([55])\n'));
-    }));
+      expect(e.toString(),
+             equals("Command 'a 55' is ambiguous: [alpha, ankle]"));
+      out.clear();
+      cmd.runCommand('ankl 55').then(expectAsync((_) {
+          expect(out.toString(), equals('executing ankle([55])\n'));
+      }));
   }));
 }
 
@@ -207,8 +210,8 @@ void testCommandRunAlias() {
   StringBuffer out = new StringBuffer();
   var aliasCmd = new TestCommand(out, 'alpha', []);
   aliasCmd.alias = 'a';
-  RootCommand cmd =
-      new RootCommand([aliasCmd, new TestCommand(out, 'ankle', [])]);
+  RootCommand cmd = new RootCommand([aliasCmd,
+                                     new TestCommand(out, 'ankle', [])]);
 
   cmd.runCommand('a 55').then(expectAsync((_) {
     expect(out.toString(), equals('executing alpha([55])\n'));
@@ -223,3 +226,4 @@ main() {
   test('run a command which is ambiguous', testCommandRunAmbiguous);
   test('run a command using an alias', testCommandRunAlias);
 }
+

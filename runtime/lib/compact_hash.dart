@@ -18,7 +18,7 @@ abstract class _HashFieldBase {
   // TODO(koda): Consider also using null _index for tiny, linear-search tables.
   Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
 
-  // Cached in-place mask for the hash pattern component.
+  // Cached in-place mask for the hash pattern component. 
   int _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
@@ -63,10 +63,10 @@ abstract class _HashBase {
   // The length of _index is twice the number of entries in _data, and both
   // are doubled when _data is full. Thus, _index will have a max load factor
   // of 1/2, which enables one more bit to be used for the hash.
-  // TODO(koda): Consider growing _data by factor sqrt(2), twice as often.
+  // TODO(koda): Consider growing _data by factor sqrt(2), twice as often. 
   static const int _INITIAL_INDEX_BITS = 3;
   static const int _INITIAL_INDEX_SIZE = 1 << (_INITIAL_INDEX_BITS + 1);
-
+  
   // Unused and deleted entries are marked by 0 and 1, respectively.
   static const int _UNUSED_PAIR = 0;
   static const int _DELETED_PAIR = 1;
@@ -76,9 +76,8 @@ abstract class _HashBase {
   // as unsigned words.
   static int _indexSizeToHashMask(int indexSize) {
     int indexBits = indexSize.bitLength - 2;
-    return internal.is64Bit
-        ? (1 << (32 - indexBits)) - 1
-        : (1 << (30 - indexBits)) - 1;
+    return internal.is64Bit ? (1 << (32 - indexBits)) - 1 :
+                              (1 << (30 - indexBits)) - 1;
   }
 
   static int _hashPattern(int fullHash, int hashMask, int size) {
@@ -93,9 +92,8 @@ abstract class _HashBase {
     // Light, fast shuffle to mitigate bad hashCode (e.g., sequential).
     return ((i << 1) + i) & sizeMask;
   }
-
   static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
-
+  
   // A self-loop is used to mark a deleted key or value.
   static bool _isDeleted(List data, Object keyOrValue) =>
       identical(keyOrValue, data);
@@ -122,11 +120,8 @@ class _IdenticalAndIdentityHashCode {
 
 // VM-internalized implementation of a default-constructed LinkedHashMap.
 class _InternalLinkedHashMap<K, V> extends _HashVMBase
-    with
-        MapMixin<K, V>,
-        _LinkedHashMapMixin<K, V>,
-        _HashBase,
-        _OperatorEqualsAndHashCode
+    with MapMixin<K, V>, _LinkedHashMapMixin<K, V>, _HashBase,
+         _OperatorEqualsAndHashCode
     implements LinkedHashMap<K, V> {
   _InternalLinkedHashMap() {
     _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
@@ -137,7 +132,7 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   }
 }
 
-class _LinkedHashMapMixin<K, V> {
+class _LinkedHashMapMixin<K, V> {  
   int get length => (_usedData >> 1) - _deletedKeys;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;
@@ -152,7 +147,7 @@ class _LinkedHashMapMixin<K, V> {
       _init(_index.length << 1, _hashMask >> 1, _data, _usedData);
     }
   }
-
+  
   void clear() {
     if (!isEmpty) {
       // Use _data.length, since _index might be null.
@@ -197,13 +192,13 @@ class _LinkedHashMapMixin<K, V> {
     }
     return _index.length;
   }
-
+  
   void _insert(K key, V value, int hashPattern, int i) {
     if (_usedData == _data.length) {
       _rehash();
       this[key] = value;
     } else {
-      assert(1 <= hashPattern && hashPattern < (1 << 32));
+      assert(1 <= hashPattern && hashPattern <  (1 << 32));
       final int index = _usedData >> 1;
       assert((index & hashPattern) == 0);
       _index[i] = hashPattern | index;
@@ -211,7 +206,7 @@ class _LinkedHashMapMixin<K, V> {
       _data[_usedData++] = value;
     }
   }
-
+  
   // If key is present, returns the index of the value in _data, else returns
   // the negated insertion point in _index.
   int _findValueOrInsertPoint(K key, int fullHash, int hashPattern, int size) {
@@ -239,8 +234,8 @@ class _LinkedHashMapMixin<K, V> {
     }
     return firstDeleted >= 0 ? -firstDeleted : -i;
   }
-
-  void operator []=(K key, V value) {
+  
+  void operator[]=(K key, V value) {
     final int size = _getIndexLength();
     final int sizeMask = size - 1;
     final int fullHash = _hashCode(key);
@@ -253,7 +248,7 @@ class _LinkedHashMapMixin<K, V> {
       _insert(key, value, hashPattern, i);
     }
   }
-
+  
   V putIfAbsent(K key, V ifAbsent()) {
     final int size = _getIndexLength();
     final int sizeMask = size - 1;
@@ -276,7 +271,7 @@ class _LinkedHashMapMixin<K, V> {
     }
     return value;
   }
-
+  
   V remove(Object key) {
     final int size = _getIndexLength();
     final int sizeMask = size - 1;
@@ -305,7 +300,7 @@ class _LinkedHashMapMixin<K, V> {
     }
     return null;
   }
-
+  
   // If key is absent, return _data (which is never a value).
   Object _getValueOrData(Object key) {
     final int size = _getIndexLength();
@@ -330,14 +325,14 @@ class _LinkedHashMapMixin<K, V> {
     }
     return _data;
   }
-
+  
   bool containsKey(Object key) => !identical(_data, _getValueOrData(key));
-
-  V operator [](Object key) {
+  
+  V operator[](Object key) {
     var v = _getValueOrData(key);
     return identical(_data, v) ? null : v;
   }
-
+  
   bool containsValue(Object value) {
     for (var v in values) {
       // Spec. says this should always use "==", also for identity maps, etc.
@@ -364,12 +359,10 @@ class _LinkedHashMapMixin<K, V> {
 }
 
 class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
-    with
-        MapMixin<K, V>,
-        _LinkedHashMapMixin<K, V>,
-        _HashBase,
-        _IdenticalAndIdentityHashCode
+    with MapMixin<K, V>, _LinkedHashMapMixin<K, V>, _HashBase,
+         _IdenticalAndIdentityHashCode
     implements LinkedHashMap<K, V> {
+
   _CompactLinkedIdentityHashMap() : super(_HashBase._INITIAL_INDEX_SIZE);
 }
 
@@ -385,7 +378,7 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   bool _equals(e1, e2) => _equality(e1, e2);
 
   bool containsKey(Object o) => _validKey(o) ? super.containsKey(o) : false;
-  V operator [](Object o) => _validKey(o) ? super[o] : null;
+  V operator[](Object o) => _validKey(o) ? super[o] : null;
   V remove(Object o) => _validKey(o) ? super.remove(o) : null;
 
   _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
@@ -402,8 +395,8 @@ class _CompactIterable<E> extends IterableBase<E> {
   final int _offset;
   final int _step;
 
-  _CompactIterable(
-      this._table, this._data, this._len, this._offset, this._step);
+  _CompactIterable(this._table, this._data, this._len,
+                   this._offset, this._step);
 
   Iterator<E> get iterator =>
       new _CompactIterator<E>(_table, _data, _len, _offset, _step);
@@ -422,9 +415,8 @@ class _CompactIterator<E> implements Iterator<E> {
   final int _checkSum;
   E current;
 
-  _CompactIterator(table, this._data, this._len, this._offset, this._step)
-      : _table = table,
-        _checkSum = table._checkSum;
+  _CompactIterator(table, this._data, this._len, this._offset, this._step) :
+      _table = table, _checkSum = table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -447,6 +439,7 @@ class _CompactIterator<E> implements Iterator<E> {
 class _CompactLinkedHashSet<E> extends _HashFieldBase
     with _HashBase, _OperatorEqualsAndHashCode, SetMixin<E>
     implements LinkedHashSet<E> {
+
   _CompactLinkedHashSet() : super(_HashBase._INITIAL_INDEX_SIZE >> 1) {
     assert(_HashBase._UNUSED_PAIR == 0);
   }
@@ -532,7 +525,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
         if (d < maxEntries && _equals(key, _data[d])) {
-          return _data[d]; // Note: Must return the existing key.
+          return _data[d];  // Note: Must return the existing key.
         }
       }
       i = _HashBase._nextProbe(i, sizeMask);
@@ -581,12 +574,13 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
 }
 
-class _CompactLinkedIdentityHashSet<E> extends _CompactLinkedHashSet<E>
-    with _IdenticalAndIdentityHashCode {
+class _CompactLinkedIdentityHashSet<E>
+    extends _CompactLinkedHashSet<E> with _IdenticalAndIdentityHashCode {
   Set<E> toSet() => new _CompactLinkedIdentityHashSet<E>()..addAll(this);
 }
 
-class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
+class _CompactLinkedCustomHashSet<E>
+    extends _CompactLinkedHashSet<E> {
   final _equality;
   final _hasher;
   final _validKey;
@@ -603,5 +597,5 @@ class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
 
   Set<E> toSet() =>
       new _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
-        ..addAll(this);
+          ..addAll(this);
 }

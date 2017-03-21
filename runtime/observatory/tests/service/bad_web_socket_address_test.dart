@@ -22,3 +22,4 @@ main() {
 
   test('bad web socket address', testBadWebSocket);
 }
+

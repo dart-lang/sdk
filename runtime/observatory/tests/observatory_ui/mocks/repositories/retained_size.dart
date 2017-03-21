@@ -4,8 +4,8 @@
 
 part of mocks;
 
-typedef Future<M.Guarded<M.Instance>> RetainedSizeRepositoryMockGetter(
-    M.IsolateRef i, String id);
+typedef Future<M.Guarded<M.Instance>>
+        RetainedSizeRepositoryMockGetter(M.IsolateRef i, String id);
 
 class RetainedSizeRepositoryMock implements M.RetainedSizeRepository {
   final RetainedSizeRepositoryMockGetter _getter;
@@ -15,9 +15,10 @@ class RetainedSizeRepositoryMock implements M.RetainedSizeRepository {
       return _getter(i, id);
     }
     return new Future.value(
-        new GuardedMock<M.Instance>.fromSentinel(new SentinelMock()));
+      new GuardedMock<M.Instance>.fromSentinel(new SentinelMock())
+    );
   }
 
   RetainedSizeRepositoryMock({RetainedSizeRepositoryMockGetter getter})
-      : _getter = getter;
+    : _getter = getter;
 }

@@ -4,8 +4,7 @@
 
 // Dart core library.
 
-@patch
-class Null {
+@patch class Null {
   static const _HASH_CODE = 2011; // The year Dart was announced and a prime.
 
   @patch
