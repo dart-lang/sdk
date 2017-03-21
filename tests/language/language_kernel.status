@@ -571,6 +571,7 @@ vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_27671_test: RuntimeError
 vm/type_vm_test: RuntimeError
+vm/closure_memory_retention_test: Skip  # Hits OOM
 
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
@@ -644,7 +645,6 @@ ref_before_declaration_test/none: Crash
 setter_declaration2_negative_test: Crash
 setter_declaration_negative_test: Crash
 try_catch_syntax_test/05: Crash
-vm/closure_memory_retention_test: Skip  # Hits OOM
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
