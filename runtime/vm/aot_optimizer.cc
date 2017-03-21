@@ -1549,9 +1549,10 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     }
   }
 
-  InstanceOfInstr* instance_of =
-      new (Z) InstanceOfInstr(call->token_pos(), new (Z) Value(left),
-                              new (Z) Value(type_args), type, call->deopt_id());
+  InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
+      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
+      NULL,  // TODO(regis): Pass function type args.
+      type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
@@ -1592,8 +1593,9 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     }
   }
   AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args), type,
-      Symbols::InTypeCast(), call->deopt_id());
+      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
+      NULL,  // TODO(regis): Pass function type arguments.
+      type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }
 

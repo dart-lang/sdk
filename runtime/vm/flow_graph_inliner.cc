@@ -2423,6 +2423,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     }
     AssertAssignableInstr* assert_value = new (Z) AssertAssignableInstr(
         token_pos, new (Z) Value(stored_value), new (Z) Value(type_args),
+        NULL,  // TODO(regis): Pass null value for function type arguments.
         value_type, Symbols::Value(), call->deopt_id());
     cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
                                   FlowGraph::kValue);

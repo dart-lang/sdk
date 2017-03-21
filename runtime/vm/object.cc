@@ -4800,6 +4800,7 @@ bool TypeArguments::IsResolved() const {
 
 bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
                                             intptr_t len,
+                                            Genericity genericity,
                                             TrailPtr trail) const {
   ASSERT(!IsNull());
   AbstractType& type = AbstractType::Handle();
@@ -4807,7 +4808,7 @@ bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
     type = TypeAt(from_index + i);
     // If the type argument is null, the type parameterized with this type
     // argument is still being finalized. Skip this null type argument.
-    if (!type.IsNull() && !type.IsInstantiated(trail)) {
+    if (!type.IsNull() && !type.IsInstantiated(genericity, trail)) {
       return false;
     }
   }
@@ -4826,7 +4827,7 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     }
     const TypeParameter& type_param = TypeParameter::Cast(type);
     ASSERT(type_param.IsFinalized());
-    if ((type_param.index() != i)) {
+    if ((type_param.index() != i) || type_param.IsFunctionTypeParameter()) {
       return false;
     }
     // If this type parameter specifies an upper bound, then the type argument
@@ -4885,7 +4886,7 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     }
     const TypeParameter& type_param = TypeParameter::Cast(type_arg);
     ASSERT(type_param.IsFinalized());
-    if ((type_param.index() != i)) {
+    if ((type_param.index() != i) || type_param.IsFunctionTypeParameter()) {
       return false;
     }
   }
@@ -5547,6 +5548,18 @@ void Function::set_parent_function(const Function& value) const {
     ASSERT(IsSignatureFunction());
     SignatureData::Cast(obj).set_parent_function(value);
   }
+}
+
+
+bool Function::HasGenericParent() const {
+  Function& parent = Function::Handle(parent_function());
+  while (!parent.IsNull()) {
+    if (parent.IsGeneric()) {
+      return true;
+    }
+    parent = parent.parent_function();
+  }
+  return false;
 }
 
 
@@ -16049,7 +16062,7 @@ TokenPosition AbstractType::token_pos() const {
 }
 
 
-bool AbstractType::IsInstantiated(TrailPtr trail) const {
+bool AbstractType::IsInstantiated(Genericity genericity, TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -16855,11 +16868,12 @@ RawUnresolvedClass* Type::unresolved_class() const {
 }
 
 
-bool Type::IsInstantiated(TrailPtr trail) const {
+bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
   }
-  if (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated) {
+  if ((genericity == kAny) &&
+      (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated)) {
     return false;
   }
   if (arguments() == TypeArguments::null()) {
@@ -16879,7 +16893,8 @@ bool Type::IsInstantiated(TrailPtr trail) const {
     len = cls.NumTypeParameters();  // Check the type parameters only.
   }
   return (len == 0) ||
-         args.IsSubvectorInstantiated(num_type_args - len, len, trail);
+         args.IsSubvectorInstantiated(num_type_args - len, len, genericity,
+                                      trail);
 }
 
 
@@ -17567,11 +17582,11 @@ const char* Type::ToCString() const {
 }
 
 
-bool TypeRef::IsInstantiated(TrailPtr trail) const {
+bool TypeRef::IsInstantiated(Genericity genericity, TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return true;
   }
-  return AbstractType::Handle(type()).IsInstantiated(trail);
+  return AbstractType::Handle(type()).IsInstantiated(genericity, trail);
 }
 
 
@@ -17729,6 +17744,26 @@ const char* TypeRef::ToCString() const {
 void TypeParameter::SetIsFinalized() const {
   ASSERT(!IsFinalized());
   set_type_state(RawTypeParameter::kFinalizedUninstantiated);
+}
+
+
+bool TypeParameter::IsInstantiated(Genericity genericity,
+                                   TrailPtr trail) const {
+  switch (genericity) {
+    case kAny:
+      return false;
+    case kClass:
+      return IsFunctionTypeParameter();
+    case kFunctions:
+      return IsClassTypeParameter();
+    case kCurrentFunction:
+      return IsClassTypeParameter() || (parent_level() > 0);
+    case kParentFunctions:
+      return IsClassTypeParameter() || (parent_level() == 0);
+    default:
+      UNREACHABLE();
+  }
+  return false;
 }
 
 

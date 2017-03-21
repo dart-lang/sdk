@@ -12588,15 +12588,9 @@ bool Parser::AreFunctionInstantiatorsRequired() const {
 bool Parser::InGenericFunctionScope() const {
   if (!innermost_function().IsNull()) {
     // With one more free tag bit in Function, we could cache this information.
-    if (innermost_function().IsGeneric()) {
+    if (innermost_function().IsGeneric() ||
+        innermost_function().HasGenericParent()) {
       return true;
-    }
-    Function& parent = Function::Handle(innermost_function().parent_function());
-    while (!parent.IsNull()) {
-      if (parent.IsGeneric()) {
-        return true;
-      }
-      parent = parent.parent_function();
     }
   }
   return false;

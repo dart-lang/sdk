@@ -323,15 +323,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Value* BuildInstantiatedTypeArguments(TokenPosition token_pos,
                                         const TypeArguments& type_arguments);
 
-  void BuildTypecheckPushArguments(
-      TokenPosition token_pos,
-      PushArgumentInstr** push_instantiator_type_arguments);
-  void BuildTypecheckArguments(TokenPosition token_pos,
-                               Value** instantiator_type_arguments);
   Value* BuildInstantiator(TokenPosition token_pos);
-  Value* BuildInstantiatorTypeArguments(TokenPosition token_pos,
-                                        const Class& instantiator_class,
-                                        Value* instantiator);
+  Value* BuildInstantiatorTypeArguments(TokenPosition token_pos);
+  Value* BuildFunctionTypeArguments(TokenPosition token_pos);
+  PushArgumentInstr* PushInstantiatorTypeArguments(const AbstractType& type,
+                                                   TokenPosition token_pos);
+  PushArgumentInstr* PushFunctionTypeArguments(const AbstractType& type,
+                                               TokenPosition token_pos);
 
   // Perform a type check on the given value.
   AssertAssignableInstr* BuildAssertAssignable(TokenPosition token_pos,

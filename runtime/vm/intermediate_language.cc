@@ -2069,6 +2069,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // are constant, instantiate the target type here.
   if (dst_type().IsInstantiated()) return this;
 
+  // TODO(regis): Only try to instantiate here if function_type_args is constant
+  // or null and dst_type does not refer to parent function type parameters.
   ConstantInstr* constant_type_args =
       instantiator_type_arguments()->definition()->AsConstant();
   if (constant_type_args != NULL && !constant_type_args->value().IsNull() &&
@@ -2078,7 +2080,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     Error& bound_error = Error::Handle();
     AbstractType& new_dst_type =
         AbstractType::Handle(dst_type().InstantiateFrom(
-            instantiator_type_args, &bound_error, NULL, NULL, Heap::kOld));
+            instantiator_type_args, /* function_type_args, */
+            &bound_error, NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }
@@ -2096,6 +2099,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
+    // TODO(regis): function_type_arguments()->BindTo(null_constant);
   }
   return this;
 }

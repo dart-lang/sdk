@@ -2112,8 +2112,9 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 
 
 Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
-  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
-      TokenPosition::kNoSource, type, *active_class_.klass, Pop());
+  InstantiateTypeInstr* instr = new (Z)
+      InstantiateTypeInstr(TokenPosition::kNoSource, type, Pop(),
+                           NULL);  // TODO(regis): Pop function type arguments.
   Push(instr);
   return Fragment(instr);
 }
@@ -2122,7 +2123,8 @@ Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
 Fragment FlowGraphBuilder::InstantiateTypeArguments(
     const TypeArguments& type_arguments) {
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
-      TokenPosition::kNoSource, type_arguments, *active_class_.klass, Pop());
+      TokenPosition::kNoSource, type_arguments, *active_class_.klass, Pop(),
+      NULL);  // TODO(regis): Pop function type arguments.
   Push(instr);
   return Fragment(instr);
 }
@@ -3737,6 +3739,7 @@ Fragment FlowGraphBuilder::AssertAssignable(const dart::AbstractType& dst_type,
 
   AssertAssignableInstr* instr = new (Z)
       AssertAssignableInstr(TokenPosition::kNoSource, value, type_args,
+                            NULL,  // TODO(regis): Pop function type arguments.
                             dst_type, dst_name, H.thread()->GetNextDeoptId());
   Push(instr);
 
