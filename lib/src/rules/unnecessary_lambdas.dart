@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.element.name != '') {
+    if (node.element.name != '' || node.body.keyword != null) {
       return;
     }
     final body = node.body;
