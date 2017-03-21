@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--optimization-counter-threshold=5 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation --stress-async-stacks
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";

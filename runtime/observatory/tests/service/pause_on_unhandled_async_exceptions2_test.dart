@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
+// VMOptions=--optimization-counter-threshold=5 --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:observatory/models.dart' as M;
@@ -9,7 +10,7 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-const LINE_A = 29;
+const LINE_A = 36;
 
 class Foo {
 
@@ -25,8 +26,14 @@ asyncThrower() async {
 }
 
 testeeMain() async {
+  // Trigger optimization via OSR.
+  var s = 0;
+  for (var i = 0; i < 100; i++) {
+    s += i;
+  }
+  print(s);
   // No try ... catch.
-  await asyncThrower();
+  await asyncThrower();  // LINE_A
 }
 
 var tests = [
