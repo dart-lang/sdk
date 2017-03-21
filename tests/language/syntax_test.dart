@@ -250,7 +250,7 @@ class Bad {
 }
 
 class C {
-  void f;  /// 66: compile-time error
-  static void g;  /// 67: compile-time error
+  void f; // /// 66: compile-time error
+  static void g; // /// 67: compile-time error
 }
 

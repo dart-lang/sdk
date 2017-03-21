@@ -16,8 +16,8 @@ class ValidProxy {}
 class InvalidProxy {}
 
 main() {
-  try { new InvalidProxy().foo; } catch (e) {}  /// 01: static type warning
-  try { new InvalidProxy().foo(); } catch (e) {}  /// 02: static type warning
+  try { new InvalidProxy().foo; } catch (e) {} // /// 01: static type warning
+  try { new InvalidProxy().foo(); } catch (e) {} // /// 02: static type warning
 
   try { new ValidProxy().foo; } catch (e) {} /// 03: ok
   try { new ValidProxy().foo(); } catch (e) {} /// 04: ok

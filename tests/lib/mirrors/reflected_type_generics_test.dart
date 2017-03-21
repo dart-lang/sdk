@@ -57,33 +57,33 @@ main() {
       (e) => e is ArgumentError && e.invalidValue is List,
       "Should throw an ArgumentError if reflecting not a generic class with "
       "empty list of type arguments");
-  Expect.throws(                                                              /// 03: ok
-      () => reflectType(P, [B]),                                              /// 03: continued
-      (e) => e is Error,                                                      /// 03: continued
+  Expect.throws( //                                                             /// 03: ok
+      () => reflectType(P, [B]), //                                             /// 03: continued
+      (e) => e is Error, //                                                     /// 03: continued
       "Should throw an ArgumentError if reflecting not a generic class with " /// 03: continued
-      "some type arguments");                                                 /// 03: continued
+      "some type arguments"); //                                                /// 03: continued
   Expect.throws(
       () => reflectType(A, []),
       (e) => e is ArgumentError && e.invalidValue is List,
       "Should throw an ArgumentError if type argument list is empty for a "
       "generic class");
-  Expect.throws(                                                              /// 04: ok
-      () => reflectType(A, [P, B]),                                           /// 04: continued
-      (e) => e is ArgumentError && e.invalidValue is List,                    /// 04: continued
-      "Should throw an ArgumentError if number of type arguments is not "     /// 04: continued
-      "correct");                                                             /// 04: continued
-  Expect.throws(() => reflectType(B, [P]), (e) => e is Error,             /// 05: ok
-      "Should throw an ArgumentError for non-generic class extending "    /// 05: continued
-      "generic one");                                                     /// 05: continued
+  Expect.throws( //                                                             /// 04: ok
+      () => reflectType(A, [P, B]), //                                          /// 04: continued
+      (e) => e is ArgumentError && e.invalidValue is List, //                   /// 04: continued
+      "Should throw an ArgumentError if number of type arguments is not " //    /// 04: continued
+      "correct"); //                                                            /// 04: continued
+  Expect.throws(() => reflectType(B, [P]), (e) => e is Error, //            /// 05: ok
+      "Should throw an ArgumentError for non-generic class extending " //   /// 05: continued
+      "generic one"); //                                                    /// 05: continued
   Expect.throws(
       () => reflectType(A, ["non-type"]),
       (e) => e is ArgumentError && e.invalidValue is List,
       "Should throw an ArgumentError when any of type arguments is not a Type");
-  Expect.throws(                                                                 /// 06: ok
-      () => reflectType(A, [P, B]),                                               /// 06: continued
-      (e) => e is ArgumentError && e.invalidValue is List,                        /// 06: continued
+  Expect.throws( //                                                                /// 06: ok
+      () => reflectType(A, [P, B]), //                                              /// 06: continued
+      (e) => e is ArgumentError && e.invalidValue is List, //                       /// 06: continued
       "Should throw an ArgumentError if number of type arguments is not correct " /// 06: continued
-      "for generic extending another generic");                                   /// 06: continued
+      "for generic extending another generic"); //                                  /// 06: continued
   Expect.throws(
       () => reflectType(reflectType(F).typeVariables[0].reflectedType, [int]));
   Expect.throws(() => reflectType(FBounded, [int])); /// 02: ok

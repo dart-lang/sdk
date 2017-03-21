@@ -11,7 +11,7 @@ class A {
 }
 
 class B extends A 
-    with Mixin  /// 01: compile-time error
+    with Mixin // /// 01: compile-time error
     {
   const B(foo) : super(foo);
 }

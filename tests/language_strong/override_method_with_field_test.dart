@@ -15,7 +15,7 @@ class Super {
 class Sub extends Super {
   Sub() : super();
 
-  var instanceMethod = 87;  /// 01: compile-time error
+  var instanceMethod = 87; // /// 01: compile-time error
 
   superInstanceMethod() => super.instanceMethod();
 }

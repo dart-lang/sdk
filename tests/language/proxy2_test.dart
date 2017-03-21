@@ -19,8 +19,8 @@ class WrongProxy {}
 class PrefixProxy {}
 
 main() {
-  try { new WrongProxy().foo; } catch (e) {}  /// 01: static type warning
-  try { new WrongProxy().foo(); } catch (e) {}  /// 02: static type warning
+  try { new WrongProxy().foo; } catch (e) {} // /// 01: static type warning
+  try { new WrongProxy().foo(); } catch (e) {} // /// 02: static type warning
 
   try { new PrefixProxy().foo; } catch (e) {} /// 03: ok
   try { new PrefixProxy().foo(); } catch (e) {} /// 04: ok

@@ -28,21 +28,21 @@ bool inCheckedMode() {
 main() {
   ClassMirror superDecl = reflectClass(Super);
   ClassMirror superOfNumAndInt = reflectClass(Fixed).superclass;
-  ClassMirror genericDecl = reflectClass(Generic);  /// 02: continued
-  ClassMirror superOfXAndY = genericDecl.superclass;  /// 02: continued
-  ClassMirror genericOfNumAndDouble = reflect(new Generic<num, double>()).type;  /// 02: continued
-  ClassMirror superOfNumAndDouble = genericOfNumAndDouble.superclass;  /// 02: continued
-  ClassMirror superOfNumAndString = reflectClass(Malbounded).superclass;  /// 01: continued
+  ClassMirror genericDecl = reflectClass(Generic); // /// 02: continued
+  ClassMirror superOfXAndY = genericDecl.superclass; // /// 02: continued
+  ClassMirror genericOfNumAndDouble = reflect(new Generic<num, double>()).type; // /// 02: continued
+  ClassMirror superOfNumAndDouble = genericOfNumAndDouble.superclass; // /// 02: continued
+  ClassMirror superOfNumAndString = reflectClass(Malbounded).superclass; // /// 01: continued
 
   try {
-    ClassMirror genericOfNumAndBool = reflect(new Generic<num, bool>()).type;  /// 02: static type warning
-    ClassMirror superOfNumAndBool = genericOfNumAndBool.superclass;  /// 02: continued
-    Expect.isFalse(genericOfNumAndBool.isOriginalDeclaration);  /// 02: continued
-    Expect.isFalse(superOfNumAndBool.isOriginalDeclaration);  /// 02: continued
-    typeParameters(genericOfNumAndBool, [#X, #Y]);  /// 02: continued
-    typeParameters(superOfNumAndBool, [#T, #R]);  /// 02: continued
-    typeArguments(genericOfNumAndBool, [reflectClass(num), reflectClass(bool)]);  /// 02: continued
-    typeArguments(superOfNumAndBool, [reflectClass(num), reflectClass(bool)]);  /// 02: continued
+    ClassMirror genericOfNumAndBool = reflect(new Generic<num, bool>()).type; // /// 02: static type warning
+    ClassMirror superOfNumAndBool = genericOfNumAndBool.superclass; // /// 02: continued
+    Expect.isFalse(genericOfNumAndBool.isOriginalDeclaration); // /// 02: continued
+    Expect.isFalse(superOfNumAndBool.isOriginalDeclaration); // /// 02: continued
+    typeParameters(genericOfNumAndBool, [#X, #Y]); // /// 02: continued
+    typeParameters(superOfNumAndBool, [#T, #R]); // /// 02: continued
+    typeArguments(genericOfNumAndBool, [reflectClass(num), reflectClass(bool)]); // /// 02: continued
+    typeArguments(superOfNumAndBool, [reflectClass(num), reflectClass(bool)]); // /// 02: continued
     Expect.isFalse(inCheckedMode()); /// 02: continued
   } on TypeError catch(e) {
     Expect.isTrue(inCheckedMode());
@@ -50,35 +50,35 @@ main() {
 
   Expect.isTrue(superDecl.isOriginalDeclaration);
   Expect.isFalse(superOfNumAndInt.isOriginalDeclaration);
-  Expect.isTrue(genericDecl.isOriginalDeclaration);  /// 02: continued
-  Expect.isFalse(superOfXAndY.isOriginalDeclaration);   /// 02: continued
-  Expect.isFalse(genericOfNumAndDouble.isOriginalDeclaration);  /// 02: continued
-  Expect.isFalse(superOfNumAndDouble.isOriginalDeclaration);  /// 02: continued
-  Expect.isFalse(superOfNumAndString.isOriginalDeclaration);  /// 01: continued
+  Expect.isTrue(genericDecl.isOriginalDeclaration); // /// 02: continued
+  Expect.isFalse(superOfXAndY.isOriginalDeclaration); //  /// 02: continued
+  Expect.isFalse(genericOfNumAndDouble.isOriginalDeclaration); // /// 02: continued
+  Expect.isFalse(superOfNumAndDouble.isOriginalDeclaration); // /// 02: continued
+  Expect.isFalse(superOfNumAndString.isOriginalDeclaration); // /// 01: continued
 
   TypeVariableMirror tFromSuper = superDecl.typeVariables[0];
   TypeVariableMirror rFromSuper = superDecl.typeVariables[1];
-  TypeVariableMirror xFromGeneric = genericDecl.typeVariables[0];  /// 02: continued
-  TypeVariableMirror yFromGeneric = genericDecl.typeVariables[1];  /// 02: continued
+  TypeVariableMirror xFromGeneric = genericDecl.typeVariables[0]; // /// 02: continued
+  TypeVariableMirror yFromGeneric = genericDecl.typeVariables[1]; // /// 02: continued
 
   Expect.equals(reflectClass(Object), tFromSuper.upperBound);
   Expect.equals(tFromSuper, rFromSuper.upperBound);
-  Expect.equals(reflectClass(Object), xFromGeneric.upperBound);  /// 02: continued
-  Expect.equals(reflectClass(Object), yFromGeneric.upperBound);  /// 02: continued
+  Expect.equals(reflectClass(Object), xFromGeneric.upperBound); // /// 02: continued
+  Expect.equals(reflectClass(Object), yFromGeneric.upperBound); // /// 02: continued
 
   typeParameters(superDecl, [#T, #R]);
   typeParameters(superOfNumAndInt, [#T, #R]);
-  typeParameters(genericDecl, [#X, #Y]);  /// 02: continued
-  typeParameters(superOfXAndY, [#T, #R]);  /// 02: continued
-  typeParameters(genericOfNumAndDouble, [#X, #Y]);  /// 02: continued
-  typeParameters(superOfNumAndDouble, [#T, #R]);  /// 02: continued
-  typeParameters(superOfNumAndString, [#T, #R]);  /// 01: continued
+  typeParameters(genericDecl, [#X, #Y]); // /// 02: continued
+  typeParameters(superOfXAndY, [#T, #R]); // /// 02: continued
+  typeParameters(genericOfNumAndDouble, [#X, #Y]); // /// 02: continued
+  typeParameters(superOfNumAndDouble, [#T, #R]); // /// 02: continued
+  typeParameters(superOfNumAndString, [#T, #R]); // /// 01: continued
 
   typeArguments(superDecl, []);
   typeArguments(superOfNumAndInt, [reflectClass(num), reflectClass(int)]);
-  typeArguments(genericDecl, []);  /// 02: continued
-  typeArguments(superOfXAndY, [xFromGeneric, yFromGeneric]);  /// 02: continued
-  typeArguments(genericOfNumAndDouble, [reflectClass(num), reflectClass(double)]);  /// 02: continued
-  typeArguments(superOfNumAndDouble, [reflectClass(num), reflectClass(double)]);  /// 02: continued
-  typeArguments(superOfNumAndString, [reflectClass(num), reflectClass(String)]);  /// 01: continued
+  typeArguments(genericDecl, []); // /// 02: continued
+  typeArguments(superOfXAndY, [xFromGeneric, yFromGeneric]); // /// 02: continued
+  typeArguments(genericOfNumAndDouble, [reflectClass(num), reflectClass(double)]); // /// 02: continued
+  typeArguments(superOfNumAndDouble, [reflectClass(num), reflectClass(double)]); // /// 02: continued
+  typeArguments(superOfNumAndString, [reflectClass(num), reflectClass(String)]); // /// 01: continued
 }

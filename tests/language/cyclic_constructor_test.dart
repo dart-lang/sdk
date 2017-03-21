@@ -5,7 +5,7 @@
 class A {
   A.a() : this.b();
   A.b()
-    : this.a()  /// 01: compile-time error
+    : this.a() // /// 01: compile-time error
   ;
   A.c() : this.b();
 }

@@ -34,12 +34,12 @@ void testSwitch(int x) {
           nop(x);
           continue LAST;
         // Avoid warning for "return;"" and "return e;" in same function.
-        case 6:      /// retnon: ok
-          nop(x);    /// retnon: continued
-          return;    /// retnon: continued
-        case 7:      /// retval: ok
-          nop(x);    /// retval: continued
-          return x;  /// retval: continued
+        case 6: //     /// retnon: ok
+          nop(x); //   /// retnon: continued
+          return; //   /// retnon: continued
+        case 7: //     /// retval: ok
+          nop(x); //   /// retval: continued
+          return x; // /// retval: continued
         case 8:
           nop(x);
           throw x;
@@ -67,14 +67,14 @@ void testSwitch(int x) {
           nop(x);
           continue LAST;
         }
-        case 16: {   /// retnon: continued
-          nop(x);    /// retnon: continued
-          return;    /// retnon: continued
-        }            /// retnon: continued
-        case 17: {   /// retval: continued
-          nop(x);    /// retval: continued
-          return x;  /// retval: continued
-        }            /// retval: continued
+        case 16: { //  /// retnon: continued
+          nop(x); //   /// retnon: continued
+          return; //   /// retnon: continued
+        } //           /// retnon: continued
+        case 17: { //  /// retval: continued
+          nop(x); //   /// retval: continued
+          return x; // /// retval: continued
+        } //           /// retval: continued
         case 18: {
           nop(x);
           throw x;
@@ -107,77 +107,77 @@ void testSwitchWarn(x) {
     // Wrap in loop as target for continue/break.
     LOOP: do {
       switch (x) {
-        case 0:                          /// 01: static type warning
-        case 1: {                        /// 01: continued
-          {                              /// 01: continued
-            nop(x);                      /// 01: continued
-            break;  // Break switch.     /// 01: continued
-          }                              /// 01: continued
-        }                                /// 01: continued
-        case 2: {                        /// 02: static type warning
-          {                              /// 02: continued
-            nop(x);                      /// 02: continued
-            break LOOP;                  /// 02: continued
-          }                              /// 02: continued
-        }                                /// 02: continued
-        case 3: {                        /// 03: static type warning
-          {                              /// 03: continued
-            nop(x);                      /// 03: continued
-            continue;  // Continue loop. /// 03: continued
-          }                              /// 03: continued
-        }                                /// 03: continued
-        case 4: {                        /// 04: static type warning
-          {                              /// 04: continued
-            nop(x);                      /// 04: continued
-            continue LOOP;               /// 04: continued
-          }                              /// 04: continued
-        }                                /// 04: continued
-        case 5: {                        /// 05: static type warning
-          {                              /// 05: continued
-            nop(x);                      /// 05: continued
-            continue LAST;               /// 05: continued
-          }                              /// 05: continued
-        }                                /// 05: continued
-        case 6: {                        /// 06: static type warning
-          {                              /// 06: continued
-            nop(x);                      /// 06: continued
-            return;                      /// 06: continued
-          }                              /// 06: continued
-        }                                /// 06: continued
-        case 7: {                        /// 07: static type warning
-          {                              /// 07: continued
-            nop(x);                      /// 07: continued
-            return x;                    /// 07: continued
-          }                              /// 07: continued
-        }                                /// 07: continued
-        case 8: {                        /// 08: static type warning
-          {                              /// 08: continued
-            nop(x);                      /// 08: continued
-            throw x;                     /// 08: continued
-          }                              /// 08: continued
-        }                                /// 08: continued
-        case 9: {                        /// 09: static type warning
-          {                              /// 09: continued
-            nop(x);                      /// 09: continued
-            rethrow;                     /// 09: continued
-          }                              /// 09: continued
-        }                                /// 09: continued
-        case 10:                         /// 10: static type warning
-          while (true) break;            /// 10: continued
-        case 11:                         /// 11: static type warning
-          do break; while (true);        /// 11: continued
-        case 12:                         /// 12: static type warning
-          for (;;) break;                /// 12: continued
-        case 13:                         /// 13: static type warning
-          for (var _ in []) break;       /// 13: continued
-        case 14:                         /// 14: static type warning
-          if (x) break; else break;      /// 14: continued
-        case 15:                         /// 15: static type warning
-          (throw 0);                     /// 15: continued
-        case 16:                         /// 16: static type warning
-          nop(x);      // fallthrough.   /// 16: continued
-        case 17:                         /// 17: static type warning
-          L: break;                      /// 17: continued
+        case 0: //                         /// 01: static type warning
+        case 1: { //                       /// 01: continued
+          { //                             /// 01: continued
+            nop(x); //                     /// 01: continued
+            break;  // Break switch. //    /// 01: continued
+          } //                             /// 01: continued
+        } //                               /// 01: continued
+        case 2: { //                       /// 02: static type warning
+          { //                             /// 02: continued
+            nop(x); //                     /// 02: continued
+            break LOOP; //                 /// 02: continued
+          } //                             /// 02: continued
+        } //                               /// 02: continued
+        case 3: { //                       /// 03: static type warning
+          { //                             /// 03: continued
+            nop(x); //                     /// 03: continued
+            continue; // Continue loop.    /// 03: continued
+          } //                             /// 03: continued
+        } //                               /// 03: continued
+        case 4: { //                       /// 04: static type warning
+          { //                             /// 04: continued
+            nop(x); //                     /// 04: continued
+            continue LOOP; //              /// 04: continued
+          } //                             /// 04: continued
+        } //                               /// 04: continued
+        case 5: { //                       /// 05: static type warning
+          { //                             /// 05: continued
+            nop(x); //                     /// 05: continued
+            continue LAST; //              /// 05: continued
+          } //                             /// 05: continued
+        } //                               /// 05: continued
+        case 6: { //                       /// 06: static type warning
+          { //                             /// 06: continued
+            nop(x); //                     /// 06: continued
+            return; //                     /// 06: continued
+          } //                             /// 06: continued
+        } //                               /// 06: continued
+        case 7: { //                       /// 07: static type warning
+          { //                             /// 07: continued
+            nop(x); //                     /// 07: continued
+            return x; //                   /// 07: continued
+          } //                             /// 07: continued
+        } //                               /// 07: continued
+        case 8: { //                       /// 08: static type warning
+          { //                             /// 08: continued
+            nop(x); //                     /// 08: continued
+            throw x; //                    /// 08: continued
+          } //                             /// 08: continued
+        } //                               /// 08: continued
+        case 9: { //                       /// 09: static type warning
+          { //                             /// 09: continued
+            nop(x); //                     /// 09: continued
+            rethrow; //                    /// 09: continued
+          } //                             /// 09: continued
+        } //                               /// 09: continued
+        case 10: //                        /// 10: static type warning
+          while (true) break; //           /// 10: continued
+        case 11: //                        /// 11: static type warning
+          do break; while (true); //       /// 11: continued
+        case 12: //                        /// 12: static type warning
+          for (;;) break; //               /// 12: continued
+        case 13: //                        /// 13: static type warning
+          for (var _ in []) break; //      /// 13: continued
+        case 14: //                        /// 14: static type warning
+          if (x) break; else break; //     /// 14: continued
+        case 15: //                        /// 15: static type warning
+          (throw 0); //                    /// 15: continued
+        case 16: //                        /// 16: static type warning
+          nop(x); //      fallthrough. //  /// 16: continued
+        case 17: //                        /// 17: static type warning
+          L: break; //                     /// 17: continued
         LAST:
         case 99:
           // Last case can't cause static warning.

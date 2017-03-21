@@ -5,7 +5,7 @@
 class Cake {
   final name;
   const Cake(this.name);
-  const factory BakeMeACake() native "Cake_BakeMeACake";  /// 01: compile-time error
+  const factory BakeMeACake() native "Cake_BakeMeACake"; // /// 01: compile-time error
 }
 
 main() {

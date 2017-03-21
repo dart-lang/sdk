@@ -160,8 +160,8 @@ void test(A a) {
   }
   if (a is D
       && a.a == ""
-      && a.b == ""  /// 42: static type warning
-      && a.c == ""  /// 43: static type warning
+      && a.b == "" // /// 42: static type warning
+      && a.c == "" // /// 43: static type warning
       && a.d == "") {
     print(a.a);
     print(a.b); /// 44: static type warning

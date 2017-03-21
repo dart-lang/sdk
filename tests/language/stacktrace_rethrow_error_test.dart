@@ -13,10 +13,10 @@ aa1() {
     bb1();
     fail();
   } catch(error
-          , stacktrace  /// withtraceparameter: ok
+          , stacktrace // /// withtraceparameter: ok
           ) {
     expectTrace(['gg1', 'ff1', 'ee1', 'dd1', 'cc1', 'bb1', 'aa1'], error.stackTrace);
-    expectTrace(['gg1', 'ff1', 'ee1', 'dd1', 'cc1', 'bb1', 'aa1'], stacktrace);  /// withtraceparameter: continued
+    expectTrace(['gg1', 'ff1', 'ee1', 'dd1', 'cc1', 'bb1', 'aa1'], stacktrace); // /// withtraceparameter: continued
   }
 }
 
@@ -53,10 +53,10 @@ aa2() {
     bb2();
     fail();
   } catch(error
-          , stacktrace  /// withtraceparameter: continued
+          , stacktrace // /// withtraceparameter: continued
           ) {
     expectTrace(['gg2', 'ff2', 'ee2', 'dd2', 'cc2', 'bb2', 'aa2'], error.stackTrace);
-    expectTrace(['gg2', 'ff2', 'ee2', 'dd2', 'cc2', 'bb2', 'aa2'], stacktrace);  /// withtraceparameter: continued
+    expectTrace(['gg2', 'ff2', 'ee2', 'dd2', 'cc2', 'bb2', 'aa2'], stacktrace); // /// withtraceparameter: continued
   }
 }
 
@@ -93,10 +93,10 @@ aa3() {
     bb3();
     fail();
   } catch(error
-          , stacktrace  /// withtraceparameter: continued
+          , stacktrace // /// withtraceparameter: continued
          ) {
     expectTrace(['gg3', 'ff3', 'ee3', 'dd3', 'cc3', 'bb3', 'aa3'], error.stackTrace);
-    expectTrace(['cc3', 'bb3', 'aa3'], stacktrace);  /// withtraceparameter: continued
+    expectTrace(['cc3', 'bb3', 'aa3'], stacktrace); // /// withtraceparameter: continued
   }
 }
 

@@ -13,7 +13,7 @@ class A<T> {}
 class Z<T> {}
 class B extends A {}
 class C
-    extends A<num, int>  /// 01: static type warning
+    extends A<num, int> // /// 01: static type warning
     {}
 class D extends A<int> {}
 class E<S> extends A<S> {}

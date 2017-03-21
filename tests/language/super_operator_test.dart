@@ -68,9 +68,9 @@ main () {
   Expect.equals("r", a[2]);  // operator [] of class A.
 
   a = new B();
-  a += "Tell";   // operator + of class B.
+  a += "Tell"; // operator + of class B.
   Expect.equals("TellTell", a.val);
-  Expect.equals("rr", a[2]);  // operator [] of class B.
+  Expect.equals("rr", a[2]); // operator [] of class B.
 
   a[4] = 1;  // operator []= of class B.
   Expect.equals(43, a.things[4]);

@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 class A {
   toString() {
     if (false
-          || true  /// 01: runtime error
+          || true // /// 01: runtime error
         ) {
       return 499;
     } else {

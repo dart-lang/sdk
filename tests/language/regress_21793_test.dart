@@ -6,9 +6,9 @@
 
 import 'package:expect/expect.dart';
 
-/*   /// 01: static type warning, runtime error
+/* //  /// 01: static type warning, runtime error
 class A { call(x) => x; }
-*/   /// 01: continued
+*/ //  /// 01: continued
 
 main() {
   print(new A()(499));

@@ -180,10 +180,10 @@ var fuzzArgument;
 
 main() {
   fuzzArgument = null;
-  fuzzArgument = 1;  /// smi: ok
-  fuzzArgument = false;  /// false: ok
-  fuzzArgument = 'string';  /// string: ok
-  fuzzArgument = new List(0);  /// emptyarray: ok
+  fuzzArgument = 1; // /// smi: ok
+  fuzzArgument = false; // /// false: ok
+  fuzzArgument = 'string'; // /// string: ok
+  fuzzArgument = new List(0); // /// emptyarray: ok
 
   print('Fuzzing with $fuzzArgument');
 

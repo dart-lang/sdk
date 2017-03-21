@@ -421,18 +421,18 @@ main() {
   for (int i = 0; i < 10; i++) {
     Expect.equals(1234567890123456789, foo());
     Expect.equals(12345678901234567890, bar());
-    testSmiOverflow();  /// overflow: ok
-    testBigintAdd();  /// add: ok
-    testBigintSub();  /// sub: ok
-    testBigintMul();  /// mul: ok
-    testBigintTruncDiv();  /// trunDiv: ok
-    testBigintDiv();  /// div: ok
-    testBigintModulo();  /// mod: ok
-    testBigintModPow();  /// modPow: ok
-    testBigintModInverse();  /// modInv: ok
-    testBigintGcd();  /// gcd: ok
-    testBigintNegate();  /// negate: ok
-    testShiftAmount();  /// shift: ok
+    testSmiOverflow(); // /// overflow: ok
+    testBigintAdd(); // /// add: ok
+    testBigintSub(); // /// sub: ok
+    testBigintMul(); // /// mul: ok
+    testBigintTruncDiv(); // /// trunDiv: ok
+    testBigintDiv(); // /// div: ok
+    testBigintModulo(); // /// mod: ok
+    testBigintModPow(); // /// modPow: ok
+    testBigintModInverse(); // /// modInv: ok
+    testBigintGcd(); // /// gcd: ok
+    testBigintNegate(); // /// negate: ok
+    testShiftAmount(); // /// shift: ok
     Expect.equals(12345678901234567890, (12345678901234567890).abs());
     Expect.equals(12345678901234567890, (-12345678901234567890).abs());
     var a = 10000000000000000000;

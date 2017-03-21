@@ -64,10 +64,10 @@ void testErrors() {
     }
   }
   testIndex(list, name) {
-    testIndexError(list, list.length, name);   // Just too big.
-    testIndexError(list, -1, name);            // Negative.
-    testIndexError(list, 0x123456789, name);   // > 2^32.
-    testIndexError(list, -0x123456789, name);  // < -2^32.
+    testIndexError(list, list.length, name); //   Just too big.
+    testIndexError(list, -1, name); //            Negative.
+    testIndexError(list, 0x123456789, name); //   > 2^32.
+    testIndexError(list, -0x123456789, name); //  < -2^32.
   }
 
   // Slices.

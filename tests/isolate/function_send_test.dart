@@ -171,7 +171,7 @@ void testUnsendable(name, func) {
       try {
         p.send(func);
       } finally {
-        p.send(0);   // Closes echo port.
+        p.send(0); //   Closes echo port.
       }
     })
     .then((p) => throw "unreachable 2",

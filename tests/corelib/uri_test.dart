@@ -498,16 +498,16 @@ void testInvalidUrls() {
       // Success.
     }
   }
-  checkInvalid("s%41://x.x/");      // No escapes in scheme,
-                                    // and no colon before slash in path.
-  checkInvalid("1a://x.x/");        // Scheme must start with letter,
-                                    // and no colon before slash in path.
-  checkInvalid(".a://x.x/");        // Scheme must start with letter,
-                                    // and no colon before slash in path.
-  checkInvalid("_:");               // Character not valid in scheme,
-                                    // and no colon before slash in path.
-  checkInvalid(":");                // Scheme must start with letter,
-                                    // and no colon before slash in path.
+  checkInvalid("s%41://x.x/"); //      No escapes in scheme,
+  //                                   and no colon before slash in path.
+  checkInvalid("1a://x.x/"); //        Scheme must start with letter,
+  //                                   and no colon before slash in path.
+  checkInvalid(".a://x.x/"); //        Scheme must start with letter,
+  //                                   and no colon before slash in path.
+  checkInvalid("_:"); //               Character not valid in scheme,
+  //                                   and no colon before slash in path.
+  checkInvalid(":"); //                Scheme must start with letter,
+  //                                   and no colon before slash in path.
 
   void checkInvalidReplaced(uri, invalid, replacement) {
     var source = uri.replaceAll('{}', invalid);
@@ -525,20 +525,20 @@ void testInvalidUrls() {
   // the input would cause them to be valid (normalization happens after
   // validation).
   var invalidCharsAndReplacements = [
-    "\xe7",      "%C3%A7",       // Arbitrary non-ASCII letter
-    " ",         "%20",          // Space, not allowed anywhere.
-    '"',         "%22",          // Quote, not allowed anywhere
-    "<>",        "%3C%3E",       // Less/greater-than, not allowed anywhere.
-    "\x7f",      "%7F",          // DEL, not allowed anywhere
-    "\xdf",      "%C3%9F",       // German lower-case scharf-S.
-                                 // Becomes ASCII when upper-cased.
-    "\u0130",    "%C4%B0",       // Latin capital dotted I,
-                                 // becomes ASCII lower-case in Turkish.
-    "%\uFB03",   "%25%EF%AC%83", // % + Ligature ffi,
-                                 // becomes ASCII when upper-cased,
-                                 // should not be read as "%FFI".
-    "\u212a",    "%E2%84%AA",    // Kelvin sign. Becomes ASCII when lower-cased.
-    "%1g",       "%251g",        // Invalid escape.
+    "\xe7", "%C3%A7", //            Arbitrary non-ASCII letter
+    " ", "%20", //                  Space, not allowed anywhere.
+    '"', "%22", //                  Quote, not allowed anywhere
+    "<>", "%3C%3E", //              Less/greater-than, not allowed anywhere.
+    "\x7f", "%7F", //               DEL, not allowed anywhere
+    "\xdf", "%C3%9F", //            German lower-case scharf-S.
+    //                              Becomes ASCII when upper-cased.
+    "\u0130", "%C4%B0", //          Latin capital dotted I,
+    //                              becomes ASCII lower-case in Turkish.
+    "%\uFB03", "%25%EF%AC%83", //   % + Ligature ffi,
+    //                              becomes ASCII when upper-cased,
+    //                              should not be read as "%FFI".
+    "\u212a", "%E2%84%AA", //       Kelvin sign. Becomes ASCII when lower-cased.
+    "%1g", "%251g", //              Invalid escape.
     "\u{10000}", "%F0%90%80%80", // Non-BMP character as surrogate pair.
   ];
   for (int i = 0; i < invalidCharsAndReplacements.length; i += 2) {

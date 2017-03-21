@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 class Base {
   int i, j;
   Base.ctor(int this.i
-            , {int this.j: 10}    /// 01: compile-time error
+            , {int this.j: 10} //   /// 01: compile-time error
            ) {
     if (j == null) {
       j = 10;
@@ -29,7 +29,7 @@ class C extends Base with M {
 }
 
 main() {
-  C c1 = new C.foo();             /// 01: compile-time error
+  C c1 = new C.foo(); //            /// 01: compile-time error
   C c2 = new C.bar();
   Expect.equals(1, c2.i);
   Expect.equals(10, c2.j);

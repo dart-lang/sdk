@@ -26,13 +26,13 @@ abstract class B<U extends Base<U>> { // legal
 }
 
 class C1<V
-extends V  /// 03: static type warning
+extends V // /// 03: static type warning
 > {
   V field;
 }
 
 class C2<V
-extends V  /// 04: static type warning
+extends V // /// 04: static type warning
 > implements A<V> {
   V field;
 }
@@ -41,7 +41,7 @@ class D1<W extends Base<W>> {  // legal
   W field;
 }
 
-class D2<W extends Base<W>> implements B<W>{   // legal
+class D2<W extends Base<W>> implements B<W>{ //   legal
   W field;
 }
 

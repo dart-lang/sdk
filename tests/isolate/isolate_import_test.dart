@@ -4,9 +4,9 @@
 
 library IsolateImportNegativeTest;
 // Omitting the following import is an error:
-/*  /// 01: runtime error, static type warning
+/* // /// 01: runtime error, static type warning
 import 'dart:isolate';
-*/  /// 01: continued
+*/ // /// 01: continued
 import 'package:async_helper/async_helper.dart';
 
 void entry(msg) {}

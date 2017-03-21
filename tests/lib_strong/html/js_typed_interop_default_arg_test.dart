@@ -25,7 +25,7 @@ _injectJs() {
 class Foo {
   // Note: it's invalid to provide a default value.
   external static num get42([num b
-      = 3  /// default_value: compile-time error
+      = 3 // /// default_value: compile-time error
   ]);
   external static num get43([num b]);
 }

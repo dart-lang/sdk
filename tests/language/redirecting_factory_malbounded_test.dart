@@ -10,7 +10,7 @@ class Foo<T> extends Bar<T> {
 }
 
 class Bar<T
-            extends num  /// 01: static type warning, dynamic type error
+            extends num // /// 01: static type warning, dynamic type error
                        > {
   factory Bar() {
     return new Foo<T>.create();

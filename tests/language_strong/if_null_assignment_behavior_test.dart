@@ -180,35 +180,35 @@ main() {
   // e1.v ??= e2 is equivalent to
   // ((x) => ((y) => y == null ? x.v = e2 : y)(x.v))(e1)
   xGetValue = new C('x'); xGetValue.vGetValue = 1; /// 20: ok
-  check(1, () => x.v ??= bad(), ['x', 'x.v']);     /// 20: continued
-  xGetValue = new C('x'); yGetValue = 1;                /// 21: ok
+  check(1, () => x.v ??= bad(), ['x', 'x.v']); //    /// 20: continued
+  xGetValue = new C('x'); yGetValue = 1; //               /// 21: ok
   check(1, () => x.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); /// 21: continued
-  fValue = new C('f()'); fValue.vGetValue = 1;       /// 22: ok
+  fValue = new C('f()'); fValue.vGetValue = 1; //      /// 22: ok
   check(1, () => f().v ??= bad(), ['f()', 'f().v']); /// 22: continued
-  fValue = new C('f()'); yGetValue = 1;                          /// 23: ok
+  fValue = new C('f()'); yGetValue = 1; //                         /// 23: ok
   check(1, () => f().v ??= y, ['f()', 'f().v', 'y', 'f().v=1']); /// 23: continued
 
   // e1[e2] ??= e3 is equivalent to
   // ((a, i) => ((x) => x == null ? a[i] = e3 : x)(a[i]))(e1, e2)
   xGetValue = new C('x'); yGetValue = 1; xGetValue.indexGetValue = 2; /// 24: ok
-  check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']);                 /// 24: continued
-  xGetValue = new C('x'); yGetValue = 1; zGetValue = 2;          /// 25: ok
+  check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']); //                /// 24: continued
+  xGetValue = new C('x'); yGetValue = 1; zGetValue = 2; //         /// 25: ok
   check(2, () => x[y] ??= z, ['x', 'y', 'x[1]', 'z', 'x[1]=2']); /// 25: continued
 
   // e1?.v ??= e2 is equivalent to ((x) => x == null ? null : x.v ??= e2)(e1).
   check(null, () => x?.v ??= bad(), ['x']); /// 26: ok
   xGetValue = new C('x'); xGetValue.vGetValue = 1; /// 27: ok
-  check(1, () => x?.v ??= bad(), ['x', 'x.v']);     /// 27: continued
-  xGetValue = new C('x'); yGetValue = 1;                 /// 28: ok
+  check(1, () => x?.v ??= bad(), ['x', 'x.v']); //    /// 27: continued
+  xGetValue = new C('x'); yGetValue = 1; //                /// 28: ok
   check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); /// 28: continued
 
   // C?.v ??= e2 is equivalent to C.v ??= e2.
-  C.xGetValue = 1;                         /// 29: ok
+  C.xGetValue = 1; //                        /// 29: ok
   check(1, () => C?.x ??= bad(), ['C.x']); /// 29: continued
-  h.C.xgetValue = 1;                           /// 30: ok
+  h.C.xgetValue = 1; //                          /// 30: ok
   check(1, () => h.c?.x ??= bad(), ['h.C.x']); /// 30: continued
-  yGetValue = 1;                                     /// 31: ok
+  yGetValue = 1; //                                    /// 31: ok
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']); /// 31: continued
-  yGetValue = 1;                                           /// 32: ok
+  yGetValue = 1; //                                          /// 32: ok
   check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); /// 32: continued
 }

@@ -36,10 +36,10 @@ bool isAbstractClassInstantiationError(e) {
 }
 
 void main() {
-  Expect.throws(interface, isAbstractClassInstantiationError, /// 01: continued
-                "expected AbstractClassInstantiationError");  /// 01: continued
-  Expect.throws(abstractClass, isAbstractClassInstantiationError, /// 02: continued
-                "expected AbstractClassInstantiationError");      /// 02: continued
+  Expect.throws(interface, isAbstractClassInstantiationError, //     /// 01: continued
+                "expected AbstractClassInstantiationError"); //      /// 01: continued
+  Expect.throws(abstractClass, isAbstractClassInstantiationError, // /// 02: continued
+                "expected AbstractClassInstantiationError"); //      /// 02: continued
   Expect.stringEquals('ConcreteSubclass', '${new ConcreteSubclass()}');
   Expect.stringEquals('NonAbstractClass', '${new NonAbstractClass()}');
 }

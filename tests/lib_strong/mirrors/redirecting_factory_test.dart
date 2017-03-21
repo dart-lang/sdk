@@ -43,7 +43,7 @@ class Class<T1, T2> {
 
   factory Class.redirectingFactoryStringTypeParameters(a, b) =
       Class
-        <String>  /// 02: static type warning
+        <String> // /// 02: static type warning
       .factoryNoOptional;
 
   factory Class.redirectingFactoryTypeParameters(a, b) =

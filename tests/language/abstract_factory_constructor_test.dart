@@ -19,7 +19,7 @@ abstract class A1 {
 
 class A2 {
   // Intentionally abstract method.
-  method();  /// 00: static type warning
+  method(); // /// 00: static type warning
   A2.make() {}
 }
 

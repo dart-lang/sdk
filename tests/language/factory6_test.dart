@@ -5,11 +5,11 @@
 import 'package:expect/expect.dart';
 
 abstract class Link<T> {
-  factory Link.Foo() = LinkFactory<T>.Foo;  /// 00: static type warning
+  factory Link.Foo() = LinkFactory<T>.Foo; // /// 00: static type warning
 }
 
 class LinkFactory<T> {
-  factory LinkFactory.Foo() = Foo<T>;  /// 00: continued
+  factory LinkFactory.Foo() = Foo<T>; // /// 00: continued
 }
 
 main() {

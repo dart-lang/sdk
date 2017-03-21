@@ -13,15 +13,15 @@ import 'package:expect/expect.dart';
 
 // Top level field may not have a covariant.
 // Would be considered a minor (acceptable) bug, if it was accepted here too.
-covariant  /// 00: compile-time error
+covariant // /// 00: compile-time error
 int x0;
 
-covariant int covariant;  /// 00b: compile-time error
+covariant int covariant; // /// 00b: compile-time error
 
-int covariant;  /// 00c: ok
+int covariant; // /// 00c: ok
 
 // Getters may never have `covariant`. (Neither on the top-level nor as members)
-covariant  /// 01: compile-time error
+covariant // /// 01: compile-time error
 int get x1 => 499;
 
 // Top level setters may not have a covariant.
@@ -34,11 +34,11 @@ void set x2(
 // The `covariant` is just wrong there.
 
 int
-covariant  /// 03: compile-time error
+covariant // /// 03: compile-time error
 x3;
 
 int
-covariant  /// 04: compile-time error
+covariant // /// 04: compile-time error
 get x4 => 499;
 
 void set x5(
@@ -50,12 +50,12 @@ void set x5(
 // Same without types.
 
 // Since `covariant` is a built-in identifier, it is not allowed here.
-covariant x6;  /// 06: compile-time error
+covariant x6; // /// 06: compile-time error
 
-covariant covariant;  /// 06b: compile-time error
+covariant covariant; // /// 06b: compile-time error
 
 // Getters may never have `covariant`.
-covariant  /// 07: compile-time error
+covariant // /// 07: compile-time error
 get x7 => 499;
 
 // Top level setters may not have a covariant.
@@ -68,11 +68,11 @@ void set x8(
 void set x9(covariant) {}
 
 // Covariant won't work on return types.
-covariant  /// 10: compile-time error
+covariant // /// 10: compile-time error
 int f10() => 499;
 
 // Covariant won't work as a return type.
-covariant  /// 11: compile-time error
+covariant // /// 11: compile-time error
 f11() => 499;
 
 // Covariant should not work on top-level methods.
@@ -118,27 +118,27 @@ int f17(
 // On its own, `covariant` is just a parameter name.
 int f18(covariant) => covariant;
 
-covariant;  /// 19: compile-time error
+covariant; // /// 19: compile-time error
 
 // All of the above as statics in a class.
 class A {
   // Static fields may not have a covariant.
   // Would be considered a minor (acceptable) bug, if it was accepted here too.
   static
-  covariant  /// 20: compile-time error
+  covariant // /// 20: compile-time error
   int x20;
 
-  static covariant int covariant  /// 20b: compile-time error
+  static covariant int covariant // /// 20b: compile-time error
 
-  static int covariant;  /// 20c: ok
+  static int covariant; // /// 20c: ok
 
   // Getters may never have `covariant`.
   static
-  covariant  /// 21: compile-time error
+  covariant // /// 21: compile-time error
   int get x21 => 499;
 
   // Getters may never have `covariant`.
-  covariant  /// 21b: compile-time error
+  covariant // /// 21b: compile-time error
   static
   int get x21b => 499;
 
@@ -152,11 +152,11 @@ class A {
   // The `covariant` is just wrong there.
 
   static int
-  covariant  /// 23: compile-time error
+  covariant // /// 23: compile-time error
   x23;
 
   static int
-  covariant  /// 24: compile-time error
+  covariant // /// 24: compile-time error
   get x24 => 499;
 
   static void set x25(
@@ -170,10 +170,10 @@ class A {
 
   // Getters may never have `covariant`.
   static
-  covariant  /// 27: compile-time error
+  covariant // /// 27: compile-time error
   get x27 => 499;
 
-  covariant  /// 27b: compile-time error
+  covariant // /// 27b: compile-time error
   static
   get x27b => 499;
 
@@ -188,19 +188,19 @@ class A {
 
   // Covariant won't work on return types.
   static
-  covariant  /// 30: compile-time error
+  covariant // /// 30: compile-time error
   int f30() => 499;
 
-  covariant  /// 30b: compile-time error
+  covariant // /// 30b: compile-time error
   static
   int f30b() => 499;
 
   // Covariant won't work as a return type.
   static
-  covariant  /// 31: compile-time error
+  covariant // /// 31: compile-time error
   f31() => 499;
 
-  covariant  /// 31b: compile-time error
+  covariant // /// 31b: compile-time error
   static
   f31b() => 499;
 
@@ -247,35 +247,35 @@ class A {
   // `Covariant` on its own is just a parameter name.
   static int f38(covariant) => covariant;
 
-  static covariant;  /// 39: compile-time error
+  static covariant; // /// 39: compile-time error
 
 }
 
 // All of the above as instance members in a class.
 class B {
-  covariant  /// 40: ok
+  covariant // /// 40: ok
   int x40;
 
-  covariant int covariant;  /// 40b: ok
+  covariant int covariant; // /// 40b: ok
 
-  int covariant;            /// 40c: ok
+  int covariant; //           /// 40c: ok
 
   // Getters may never have `covariant`.
-  covariant  /// 41: compile-time error
+  covariant // /// 41: compile-time error
   int get x41 => 499;
 
   void set x42(
-      covariant  /// 42: ok
+      covariant // /// 42: ok
       int val) {}
 
   // `covariant` in the wrong position.
   int
-  covariant  /// 43: compile-time error
+  covariant // /// 43: compile-time error
   x43;
 
   // `covariant` in the wrong position.
   int
-  covariant  /// 44: compile-time error
+  covariant // /// 44: compile-time error
   get x44 => 499;
 
   void set x45(
@@ -288,26 +288,26 @@ class B {
   covariant covariant; /// 46b: compile-time error
 
   // Getters may never have `covariant`.
-  covariant  /// 47: compile-time error
+  covariant // /// 47: compile-time error
   get x47 => 499;
 
   void set x48(
-      covariant  /// 48: ok
+      covariant // /// 48: ok
       val) {}
 
   // If there is no type, then `covariant` is simply the parameter name:
   void set x49(covariant) {}
 
   // Covariant won't work on return types.
-  covariant  /// 50: compile-time error
+  covariant // /// 50: compile-time error
   int f50() => 499;
 
   // Covariant won't work as a return type.
-  covariant  /// 51: compile-time error
+  covariant // /// 51: compile-time error
   f51() => 499;
 
   int f52(
-      covariant  /// 52: ok
+      covariant // /// 52: ok
       int x) => 499;
 
   // `Covariant` must be in front of the types.
@@ -317,7 +317,7 @@ class B {
       x) => 499;
 
   int f54(
-      covariant  /// 54: ok
+      covariant // /// 54: ok
       final x) => 499;
 
   // `Covariant` must be in front of modifiers.
@@ -327,7 +327,7 @@ class B {
       x) => 499;
 
   int f56(
-      covariant  /// 56: ok
+      covariant // /// 56: ok
       final int x) => 499;
 
   // `Covariant` must be in front of modifiers.
@@ -340,15 +340,15 @@ class B {
   // `Covariant` on its own is just a parameter name.
   int f58(covariant) => covariant;
 
-  covariant;  /// 59: compile-time error
+  covariant; // /// 59: compile-time error
 }
 
 void use(x) {}
 
 main() {
   x0 = 0;
-  covariant = 0;  /// 00b: continued
-  covariant = 0;  /// 00c: continued
+  covariant = 0; // /// 00b: continued
+  covariant = 0; // /// 00c: continued
   use(x1);
   x2 = 499;
   use(x3);
@@ -368,11 +368,11 @@ main() {
   use(f16(3));
   use(f17(3));
   Expect.equals(123, f18(123));
-  use(covariant);  /// 19: continued
+  use(covariant); // /// 19: continued
 
   A.x20 = 0;
-  A.covariant = 0;  /// 20b: continued
-  A.covariant = 0;  /// 20c: continued
+  A.covariant = 0; // /// 20b: continued
+  A.covariant = 0; // /// 20c: continued
   use(A.x21);
   use(A.x21b);
   A.x22 = 499;
@@ -395,12 +395,12 @@ main() {
   use(A.f36(3));
   use(A.f37(3));
   Expect.equals(1234, A.f38(1234));
-  use(A.covariant);  /// 39: continued
+  use(A.covariant); // /// 39: continued
 
   var b = new B();
   b.x40 = 0;
-  b.covariant = 0;  /// 40b: continued
-  b.covariant = 0;  /// 40c: continued
+  b.covariant = 0; // /// 40b: continued
+  b.covariant = 0; // /// 40c: continued
   use(b.x41);
   b.x42 = 499;
   use(b.x43);
@@ -420,5 +420,5 @@ main() {
   use(b.f56(3));
   use(b.f57(3));
   Expect.equals(12345, b.f58(12345));
-  use(B.covariant);  /// 59: continued
+  use(B.covariant); // /// 59: continued
 }

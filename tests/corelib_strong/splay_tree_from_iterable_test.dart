@@ -147,7 +147,7 @@ void typedTest() {
 
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
-      key: id as dynamic,     // wrong type.
+      key: id as dynamic, //     wrong type.
       value: value
     );
   });
@@ -155,7 +155,7 @@ void typedTest() {
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
       key: key,
-      value: id as dynamic   // wrong type.
+      value: id as dynamic //   wrong type.
     );
   });
 

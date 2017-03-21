@@ -12,7 +12,7 @@ void main() {
   // Dart2js must not infer that the type-intersection of int and -0.0 is empty.
   // It must get an interceptor for the addition (`i += 3`), or use the native
   // JS + operation.
-  int i = MINUS_ZERO;  /// 01: continued
-  i += 3;              /// 01: continued
-  Expect.equals(3, i); /// 01: continued
+  int i = MINUS_ZERO; //  /// 01: continued
+  i += 3; //              /// 01: continued
+  Expect.equals(3, i); // /// 01: continued
 }

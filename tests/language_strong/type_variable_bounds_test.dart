@@ -7,7 +7,7 @@
 class Foo<T extends num> {
   Foo();
 
-  factory Foo.bad() = XFoo;  /// 00: static type warning
+  factory Foo.bad() = XFoo; // /// 00: static type warning
 
   factory Foo.good() = Foo;
 

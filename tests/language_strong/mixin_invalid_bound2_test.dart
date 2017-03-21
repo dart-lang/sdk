@@ -22,19 +22,19 @@ class D<U, V> extends S<U, V> with M<double, int> { }
 class E<U, V> extends S<double, int> with M<U, V> { }
 
 main() {
-  new A<int, int>();  /// 01: static type warning
-  new A<double, int>();  /// 02: static type warning, dynamic type error
-  new A<bool, bool>();  /// 03: static type warning, dynamic type error
-  new B<int, int>();  /// 04: static type warning
-  new B<double, int>();  /// 05: static type warning, dynamic type error
-  new B<bool, bool>();  /// 06: static type warning, dynamic type error
-  new C<int, int>();  /// 07: static type warning
-  new C<double, int>();  /// 08: static type warning, dynamic type error
-  new C<bool, bool>();  /// 09: static type warning, dynamic type error
-  new D<int, int>();  /// 10: static type warning, dynamic type error
-  new D<double, int>();  /// 11: static type warning, dynamic type error
-  new D<bool, bool>();  /// 12: static type warning, dynamic type error
-  new E<int, int>();  /// 12: static type warning, dynamic type error
-  new E<double, int>();  /// 13: static type warning, dynamic type error
-  new E<bool, bool>();  /// 14: static type warning, dynamic type error
+  new A<int, int>(); // /// 01: static type warning
+  new A<double, int>(); // /// 02: static type warning, dynamic type error
+  new A<bool, bool>(); // /// 03: static type warning, dynamic type error
+  new B<int, int>(); // /// 04: static type warning
+  new B<double, int>(); // /// 05: static type warning, dynamic type error
+  new B<bool, bool>(); // /// 06: static type warning, dynamic type error
+  new C<int, int>(); // /// 07: static type warning
+  new C<double, int>(); // /// 08: static type warning, dynamic type error
+  new C<bool, bool>(); // /// 09: static type warning, dynamic type error
+  new D<int, int>(); // /// 10: static type warning, dynamic type error
+  new D<double, int>(); // /// 11: static type warning, dynamic type error
+  new D<bool, bool>(); // /// 12: static type warning, dynamic type error
+  new E<int, int>(); // /// 12: static type warning, dynamic type error
+  new E<double, int>(); // /// 13: static type warning, dynamic type error
+  new E<bool, bool>(); // /// 14: static type warning, dynamic type error
 }

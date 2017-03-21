@@ -11,9 +11,9 @@ set height(x) { throw "error: top-level setter called"; }
 width() { throw "error: top-level function called"; }
 
 abstract class A {
-  int get length;     // Abstract instance getter.
-  set height(int x);  // Abstract instance setter.
-  int width();        // Abstract instance method.
+  int get length; //    Abstract instance getter.
+  set height(int x); // Abstract instance setter.
+  int width(); //       Abstract instance method.
 
   // Must resolve to non-abstract length getter in subclass.
   get useLength => length;

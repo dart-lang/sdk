@@ -14,7 +14,7 @@ main() {
   bool foundError = false;
   try {
     // Parameter b passed twice, as positional and named.
-    test(10, 25, b: 26);  /// static type warning
+    test(10, 25, b: 26); // /// static type warning
   } on NoSuchMethodError catch (e) {
     foundError = true;
   }

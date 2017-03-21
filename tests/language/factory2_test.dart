@@ -39,7 +39,7 @@ class LinkEntry<T> extends AbstractLink<T> {
 
 class Fisk {
   // instantiation of abstract class
-  Link<String> nodes = const EmptyLink();  /// static type warning
+  Link<String> nodes = const EmptyLink(); // /// static type warning
 }
 
 main() {

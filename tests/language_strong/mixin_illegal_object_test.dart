@@ -7,12 +7,12 @@
 class S { }
 
 class C0 extends S
-with Object                       /// 01: compile-time error
+with Object //                      /// 01: compile-time error
 { }
 
-class C1 = S with Object;         /// 02: compile-time error
+class C1 = S with Object; //        /// 02: compile-time error
 
 main() {
   new C0();
-  new C1();                       /// 02: continued
+  new C1(); //                      /// 02: continued
 }

@@ -45,7 +45,7 @@ main() {
   it2.moveNext(); /// copyParameters: continued
   Expect.equals(2, it1.current);
   // TODO(sigurdm): Check up on the spec here.
-  Expect.equals(2, it2.current);  /// copyParameters: continued
+  Expect.equals(2, it2.current); // /// copyParameters: continued
   Expect.isFalse(it1.moveNext());
   // Test that two `moveNext()` calls are fine.
   Expect.isFalse(it1.moveNext());

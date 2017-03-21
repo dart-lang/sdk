@@ -10,8 +10,8 @@ import "package:expect/expect.dart";
 class C {}
 
 class D {
-  get hest => 1;  /// 04: continued
-  set hest(val) {}  /// 05: continued
+  get hest => 1; // /// 04: continued
+  set hest(val) {} // /// 05: continued
 }
 
 get fisk => 2; /// 09: continued
@@ -28,75 +28,75 @@ alwaysThrows() {
 }
 
 test01() {
-  C.hest = 1;  /// 01: static type warning
+  C.hest = 1; // /// 01: static type warning
 }
 
 test02() {
-  C.hest;  /// 02: static type warning
+  C.hest; // /// 02: static type warning
 }
 
 test03() {
-  C.hest();  /// 03: static type warning
+  C.hest(); // /// 03: static type warning
 }
 
 test04() {
-  D.hest = 1;  /// 04: static type warning
+  D.hest = 1; // /// 04: static type warning
 }
 
 test05() {
-  D.hest;  /// 05: static type warning
+  D.hest; // /// 05: static type warning
 }
 
 test06() {
-  fisk = 1;  /// 06: static type warning
+  fisk = 1; // /// 06: static type warning
 }
 
 test07() {
-  fisk;  /// 07: static type warning
+  fisk; // /// 07: static type warning
 }
 
 test08() {
-  fisk();  /// 08: static type warning
+  fisk(); // /// 08: static type warning
 }
 
 test09() {
-  fisk = 1;  /// 09: static type warning
+  fisk = 1; // /// 09: static type warning
 }
 
 test10() {
-  fisk;  /// 10: static type warning
+  fisk; // /// 10: static type warning
 }
 
 main() {
   expectNsme(alwaysThrows);
   expectNsme(
-    test01  /// 01: continued
+    test01 // /// 01: continued
   );
   expectNsme(
-    test02  /// 02: continued
+    test02 // /// 02: continued
   );
   expectNsme(
-    test03  /// 03: continued
+    test03 // /// 03: continued
   );
   expectNsme(
-    test04  /// 04: continued
+    test04 // /// 04: continued
   );
   expectNsme(
-    test05  /// 05: continued
+    test05 // /// 05: continued
   );
   expectNsme(
-    test06  /// 06: continued
+    test06 // /// 06: continued
   );
   expectNsme(
-    test07  /// 07: continued
+    test07 // /// 07: continued
   );
   expectNsme(
-    test08  /// 08: continued
+    test08 // /// 08: continued
   );
   expectNsme(
-    test09  /// 09: continued
+    test09 // /// 09: continued
   );
   expectNsme(
-    test10  /// 10: continued
+    test10 // /// 10: continued
   );
 }

@@ -65,7 +65,7 @@ class StaticFieldTest {
 
 
 class StaticField1RunNegativeTest {
-  static  /// 01: static type warning, runtime error
+  static // /// 01: static type warning, runtime error
     var x;
   testMain() {
     var foo = new StaticField1RunNegativeTest();
@@ -75,7 +75,7 @@ class StaticField1RunNegativeTest {
 }
 
 class StaticField1aRunNegativeTest {
-  static  /// 02: static type warning, runtime error
+  static // /// 02: static type warning, runtime error
     void m() {}
 
   testMain() {
@@ -97,7 +97,7 @@ class StaticField2RunNegativeTest {
 }
 
 class StaticField2aRunNegativeTest {
-  static   /// 04: static type warning, runtime error
+  static //  /// 04: static type warning, runtime error
     void m() {}
 
   testMain() {

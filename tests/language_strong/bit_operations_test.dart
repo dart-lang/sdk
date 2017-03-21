@@ -181,12 +181,12 @@ int shiftRight(int a, int b) { return a >> b; }
 void testPrecedence(int a, int b, int c, int d) {
   // & binds stronger than ^, which binds stronger than |.
   int result = a & b ^ c | d & b ^ c;
-  Expect.equals(((a & b) ^ c) | ((d & b) ^ c), result);     // &^|
-  Expect.notEquals((a & (b ^ c)) | (d & (b ^ c)), result);  // ^&|
-  Expect.notEquals((a & b) ^ (c | (d & b)) ^ c, result);    // &|^
-  Expect.notEquals((a & b) ^ ((c | d) & b) ^ c, result);    // |&^
-  Expect.notEquals(a & (b ^ (c | d)) & (b ^ c), result);    // |^&
-  Expect.notEquals(a & ((b ^ c) | d) & (b ^ c), result);    // ^|&
+  Expect.equals(((a & b) ^ c) | ((d & b) ^ c), result); //     &^|
+  Expect.notEquals((a & (b ^ c)) | (d & (b ^ c)), result); //  ^&|
+  Expect.notEquals((a & b) ^ (c | (d & b)) ^ c, result); //    &|^
+  Expect.notEquals((a & b) ^ ((c | d) & b) ^ c, result); //    |&^
+  Expect.notEquals(a & (b ^ (c | d)) & (b ^ c), result); //    |^&
+  Expect.notEquals(a & ((b ^ c) | d) & (b ^ c), result); //    ^|&
   // Binds stronger than relational operators.
   Expect.equals((a & b) < (c & d), a & b < c & d);
   // Binds weaker than shift operators.

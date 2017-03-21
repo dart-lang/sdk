@@ -33,7 +33,7 @@ class A {
 
 main() {
   // Reference the type, or dart2js won't see that the declaration is invalid
-  F1 _ = null;  /// 01: continued
+  F1 _ = null; // /// 01: continued
 
   var a = new A();
 

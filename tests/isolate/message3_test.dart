@@ -151,10 +151,10 @@ void runTests(SendPort ping, Queue checks) {
     Expect.isTrue(x is List);
     Expect.listEquals([1, 2], x);
     // Make sure the list is immutable.
-    Expect.throws(() => x[0] = 0);  /// constList: ok
+    Expect.throws(() => x[0] = 0); // /// constList: ok
     // List must not be extendable.
     Expect.throws(() => x.add(3));
-    Expect.identical(x, constList);  /// constList_identical: ok
+    Expect.identical(x, constList); // /// constList_identical: ok
   });
 
   Uint8List uint8 = new Uint8List(2);
@@ -172,8 +172,8 @@ void runTests(SendPort ping, Queue checks) {
   uint16[0] = 0;
   uint16[1] = 1;
   ByteBuffer byteBuffer = uint16.buffer;
-  ping.send(byteBuffer);  /// byteBuffer: ok
-  checks.add(             /// byteBuffer: ok
+  ping.send(byteBuffer); // /// byteBuffer: ok
+  checks.add( //            /// byteBuffer: ok
   (x) {
     Expect.isTrue(x is ByteBuffer);
     Uint16List uint16View = new Uint16List.view(x);
@@ -181,14 +181,14 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(0, uint16View[0]);
     Expect.equals(1, uint16View[1]);
   }
-  )                      /// byteBuffer: ok
+  ) //                      /// byteBuffer: ok
   ;
 
   Int32x4List list32x4 = new Int32x4List(2);
   list32x4[0] = new Int32x4(1, 2, 3, 4);
   list32x4[1] = new Int32x4(5, 6, 7, 8);
-  ping.send(list32x4);   /// int32x4: ok
-  checks.add(            /// int32x4: ok
+  ping.send(list32x4); //   /// int32x4: ok
+  checks.add( //            /// int32x4: ok
   (x) {
     Expect.isTrue(x is Int32x4List);
     Expect.equals(2, x.length);
@@ -203,7 +203,7 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(7, entry2.z);
     Expect.equals(8, entry2.w);
   }
-  )                     /// int32x4: ok
+  ) //                    /// int32x4: ok
   ;
 
   ping.send({"foo": 499, "bar": 32});
@@ -277,7 +277,7 @@ void runTests(SendPort ping, Queue checks) {
     print(x.length);
     Expect.equals(1, x.length);
     Expect.equals(499, x['foo']);
-    Expect.identical(constMap, x);  /// constMap: ok
+    Expect.identical(constMap, x); // /// constMap: ok
     Expect.throws(() => constMap['bar'] = 42);
   });
 
@@ -352,17 +352,17 @@ void runTests(SendPort ping, Queue checks) {
     Expect.throws(() => x.field2 = 22);
   });
 
-  ping.send(new E(E.fooFun));  /// fun: ok
-  checks.add((x) {             /// fun: continued
-    Expect.equals(E.fooFun, x.fun);  /// fun: continued
-    Expect.equals(499, x.fun());     /// fun: continued
-  });                                /// fun: continued
+  ping.send(new E(E.fooFun)); //       /// fun: ok
+  checks.add((x) { //                  /// fun: continued
+    Expect.equals(E.fooFun, x.fun); // /// fun: continued
+    Expect.equals(499, x.fun()); //    /// fun: continued
+  }); //                               /// fun: continued
 
-  ping.send(new E(barFun));  /// fun: continued
-  checks.add((x) {           /// fun: continued
-    Expect.equals(barFun, x.fun);  /// fun: continued
-    Expect.equals(42, x.fun());    /// fun: continued
-  });                              /// fun: continued
+  ping.send(new E(barFun)); //         /// fun: continued
+  checks.add((x) { //                  /// fun: continued
+    Expect.equals(barFun, x.fun); //   /// fun: continued
+    Expect.equals(42, x.fun()); //     /// fun: continued
+  }); //                               /// fun: continued
 
   Expect.throws(() => ping.send(new E(new E(null).instanceFun)));
 
@@ -377,7 +377,7 @@ void runTests(SendPort ping, Queue checks) {
   ping.send(constF);
   checks.add((x) {
     Expect.equals("field", x.field);
-    Expect.identical(constF, x);  /// constInstance: ok
+    Expect.identical(constF, x); // /// constInstance: ok
   });
 
   G g1 = new G(nonConstF);
@@ -399,14 +399,14 @@ void runTests(SendPort ping, Queue checks) {
     Expect.isFalse(identical(g1, x));
     F f = x.field;
     Expect.equals("field", f.field);
-    Expect.identical(constF, f);  /// constInstance: continued
+    Expect.identical(constF, f); // /// constInstance: continued
   });
   checks.add((x) {  // g3.
     Expect.isTrue(x is G);
-    Expect.identical(g3, x);  /// constInstance: continued
+    Expect.identical(g3, x); // /// constInstance: continued
     F f = x.field;
     Expect.equals("field", f.field);
-    Expect.identical(constF, f);  /// constInstance: continued
+    Expect.identical(constF, f); // /// constInstance: continued
   });
 
   // Make sure objects in a map are serialized and deserialized in the correct

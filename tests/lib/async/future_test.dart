@@ -973,8 +973,8 @@ void testTypes() {
              new Future<int>.delayed(Duration.ZERO, () => value));
     testType("Future.microtask($value)",
              new Future<int>.microtask(() => value));
-    testType("Future.sync($value)", new Future<int>.sync(() => value));  /// 01: ok
-    testType("Future.sync(future($value))",                              /// 01: continued
+    testType("Future.sync($value)", new Future<int>.sync(() => value)); // /// 01: ok
+    testType("Future.sync(future($value))", //                             /// 01: continued
              new Future<int>.sync(() async => new Future.value(value))); /// 01: continued
     testType("Future.value($value)", new Future<int>.value(value));
   }

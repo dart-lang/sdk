@@ -163,7 +163,7 @@ void main() {
   try {
     throw 'foo';
   }
-    on undeclared_prefix.Unresolved<int>  /// 06: runtime error
+    on undeclared_prefix.Unresolved<int> // /// 06: runtime error
     catch (e) {
   }
 }

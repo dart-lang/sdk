@@ -32,7 +32,7 @@ class A {
   int _x;
   A(this._x);
 
-  A.fail() async;  /// constructor2: compile-time error
+  A.fail() async; // /// constructor2: compile-time error
   factory A.create() async {return null; } /// constructor3: compile-time error
 
   int someMethod(int param1, int param2, int param3) async => _x + param2; /// type-mismatch3: static type warning, dynamic type error
@@ -47,11 +47,11 @@ class A {
 class B {
   final _y;
   const B._internal(this._y);
-  const factory B.createConst(int y) async = A._internal;  /// constructor4: compile-time error
+  const factory B.createConst(int y) async = A._internal; // /// constructor4: compile-time error
 
   B() : _y = null;
 
-  set dontDoThat(value) async {}  /// setter1: compile-time error
+  set dontDoThat(value) async {} // /// setter1: compile-time error
 }
 
 
@@ -61,8 +61,8 @@ main() {
   asyncReturn = topLevelFunction();
   Expect.isTrue(asyncReturn is Future);
 
-  int a1 = topLevelWithParameter(2);  /// type-mismatch1: static type warning, dynamic type error
-  int a2 = topLevelWithParameterWrongType(2);  /// type-mismatch2: continued
+  int a1 = topLevelWithParameter(2); // /// type-mismatch1: static type warning, dynamic type error
+  int a2 = topLevelWithParameterWrongType(2); // /// type-mismatch2: continued
   asyncReturn = topLevelWithParameter(4);
   Expect.isTrue(asyncReturn is Future);
   asyncReturn.then((int result) => Expect.equals(result, 11));
@@ -82,13 +82,13 @@ main() {
 
   A a = new A(13);
 
-  asyncReturn = a.someMethod(1,2,3);  /// type-mismatch3: continued
-  Expect.isTrue(asyncReturn is Future);  /// type-mismatch3: continued
-  asyncReturn.then((int result) => Expect.equals(result, 15));  /// type-mismatch3: continued
+  asyncReturn = a.someMethod(1,2,3); // /// type-mismatch3: continued
+  Expect.isTrue(asyncReturn is Future); // /// type-mismatch3: continued
+  asyncReturn.then((int result) => Expect.equals(result, 15)); // /// type-mismatch3: continued
 
-  asyncReturn = a.getter;  /// type-mismatch4: continued
-  Expect.isTrue(asyncReturn is Future);  /// type-mismatch4: continued
-  asyncReturn.then((int result) => Expect.equals(result, 18));  /// type-mismatch4: continued
+  asyncReturn = a.getter; // /// type-mismatch4: continued
+  Expect.isTrue(asyncReturn is Future); // /// type-mismatch4: continued
+  asyncReturn.then((int result) => Expect.equals(result, 18)); // /// type-mismatch4: continued
 
   var b = new A(9);
   asyncReturn = a + b;
@@ -115,9 +115,9 @@ main() {
   Expect.isTrue(asyncReturn is Future);
   asyncReturn.then((int result) => Expect.equals(result, 28));
 
-  var b1 = const B.createConst(4);  /// constructor4: compile-time error
+  var b1 = const B.createConst(4); // /// constructor4: compile-time error
   var b2 = new B();
-  b2.dontDoThat = 4;  /// setter1: compile-time error
+  b2.dontDoThat = 4; // /// setter1: compile-time error
 
   var checkAsync = (var someFunc) {
     var toTest = someFunc();

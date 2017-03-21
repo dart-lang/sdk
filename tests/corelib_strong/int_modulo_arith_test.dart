@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 import "dart:math" show pow;
 
-var smallNumber = 1234567890;   // is 31-bit integer.
+var smallNumber = 1234567890; //   is 31-bit integer.
 var mediumNumber = 1234567890123456;  // is 53-bit integer
 var bigNumber = 590295810358705600000;  // is > 64-bit integer, exact as double.
 
@@ -118,7 +118,7 @@ testModInverse() {
   test(137, smallNumber, 856087223);
   test(mediumNumber, 137, 77);
   test(137, mediumNumber, 540686667207353);
-  test(bigNumber, 137, 128);                  /// bignum: ok
+  test(bigNumber, 137, 128); //                 /// bignum: ok
   // Bigger numbers as modulo is tested in big_integer_arith_vm_test.dart.
   // Big doubles are not co-prime, so there is nothing to test for dart2js.
 }
@@ -169,15 +169,15 @@ testGcd() {
 
   // Format:
   //  test(value1, value2, expectedResult);
-  test(1, 1, 1);     // both are 1
-  test(1, 2, 1);     // one is 1
-  test(3, 5, 1);     // coprime.
+  test(1, 1, 1); //     both are 1
+  test(1, 2, 1); //     one is 1
+  test(3, 5, 1); //     coprime.
   test(37, 37, 37);  // Same larger prime.
 
   test(9999, 7272, 909);  // Larger numbers
 
   test(0, 1000, 1000);  // One operand is zero.
-  test(0, 0, 0);        // Both operands are zero.
+  test(0, 0, 0); //        Both operands are zero.
 
   // Multiplying both operands by a number multiplies result by same number.
   test(693, 609, 21);
@@ -203,7 +203,7 @@ testGcd() {
 }
 
 main() {
-  testModPow();  /// modPow: ok
+  testModPow(); // /// modPow: ok
   testModInverse();
   testGcd();
 }

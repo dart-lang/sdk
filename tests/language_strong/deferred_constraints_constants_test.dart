@@ -10,27 +10,27 @@ import "deferred_constraints_constants_lib.dart" deferred as lib;
 
 const myConst1 =
   lib.constantInstance; /// reference1: compile-time error
-  /*                    /// reference1: continued
+  /* //                   /// reference1: continued
   499;
-  */                    /// reference1: continued
+  */ //                   /// reference1: continued
 const myConst2 =
   lib.Const.instance; /// reference2: compile-time error
-  /*                  /// reference2: continued
+  /* //                 /// reference2: continued
   499;
-  */                  /// reference2: continued
+  */ //                 /// reference2: continued
 
 void f1({a:
   const lib.Const() /// default_argument1: compile-time error
-  /*                   /// default_argument1: continued
+  /* //                  /// default_argument1: continued
   499
-  */                   /// default_argument1: continued
+  */ //                  /// default_argument1: continued
 }) {}
 
 void f2({a:
   lib.constantInstance /// default_argument2: compile-time error
-  /*                         /// default_argument2: continued
+  /* //                        /// default_argument2: continued
   499
-  */                         /// default_argument2: continued
+  */ //                        /// default_argument2: continued
 }) {}
 
 @lib.Const() /// metadata1: compile-time error

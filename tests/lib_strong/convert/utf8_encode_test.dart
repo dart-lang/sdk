@@ -36,11 +36,11 @@ void testEncodeSlice() {
   Expect.listEquals([0x42, 0x43, 0x44],
                     encoder.convert(ascii, 1, 4));
 
-  Expect.throws(() => encoder.convert(ascii, -1));    // start < 0.
-  Expect.throws(() => encoder.convert(ascii, 6));     // start > length
+  Expect.throws(() => encoder.convert(ascii, -1)); //    start < 0.
+  Expect.throws(() => encoder.convert(ascii, 6)); //     start > length
   Expect.throws(() => encoder.convert(ascii, 0, -1)); // end < 0
-  Expect.throws(() => encoder.convert(ascii, 0, 6));  // end > length
-  Expect.throws(() => encoder.convert(ascii, 3, 2));  // end < start
+  Expect.throws(() => encoder.convert(ascii, 0, 6)); //  end > length
+  Expect.throws(() => encoder.convert(ascii, 3, 2)); //  end < start
 
   var unicode = "\u0081\u0082\u1041\u{10101}";
 

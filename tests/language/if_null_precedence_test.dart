@@ -48,7 +48,7 @@ main() {
   if (checkedMode) {
     Expect.throws(() => false || 1 ?? true, assertionError); /// 07: static type warning
   } else {
-    Expect.equals(false, false || 1 ?? true);                /// 07: continued
+    Expect.equals(false, false || 1 ?? true); //               /// 07: continued
   }
 
   if (checkedMode) {
@@ -57,8 +57,8 @@ main() {
     Expect.throws(() => false || null ?? true, assertionError); /// 08: ok
   } else {
     // An incorrect parse of "a || (b ?? c)" would result in c being evaluated.
-    int i = 0;                                                  /// 08: continued
-    Expect.equals(false, false || null ?? i++ == 0);            /// 08: continued
-    Expect.equals(0, i);                                        /// 08: continued
+    int i = 0; //                                                 /// 08: continued
+    Expect.equals(false, false || null ?? i++ == 0); //           /// 08: continued
+    Expect.equals(0, i); //                                       /// 08: continued
   }
 }

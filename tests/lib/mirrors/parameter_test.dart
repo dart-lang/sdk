@@ -79,7 +79,7 @@ main() {
          barConstructor.returnType);
 
   // dart2js stops testing here.
-  return;  /// 01: ok
+  return; // /// 01: ok
 
   MethodMirror bazConstructor = constructors[#B.baz];
   expect('Method(s(B.baz) in s(B), constructor)', bazConstructor);

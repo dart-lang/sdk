@@ -5,12 +5,12 @@
 // Test that a type parameter cannot be repeated.
 
 class Foo<T
-    , T  /// 00: compile-time error
+    , T // /// 00: compile-time error
     > {
 }
 
 main() {
   new Foo<String
-      , String  /// 00: continued
+      , String // /// 00: continued
       >();
 }

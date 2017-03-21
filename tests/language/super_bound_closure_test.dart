@@ -76,14 +76,14 @@ class B extends A {
   fooIntercept27() => confuse(super.lastWhere)(0);
   fooIntercept28() => confuse(super.lastWhere)(3, orElse: 77);
 
-  bar([var optional]) => -1;        /// 01: static type warning
-  bar2({ namedOptional }) => -1;    /// 01: continued
-  bar3(x, [var optional]) => -1;    /// 01: continued
+  bar([var optional]) => -1; //       /// 01: static type warning
+  bar2({ namedOptional }) => -1; //   /// 01: continued
+  bar3(x, [var optional]) => -1; //   /// 01: continued
   bar4(x, { namedOptional }) => -1; /// 01: continued
 
-  gee([var optional]) => -1;        /// 01: continued
-  gee2({ namedOptional }) => -1;    /// 01: continued
-  gee3(x, [var optional]) => -1;    /// 01: continued
+  gee([var optional]) => -1; //       /// 01: continued
+  gee2({ namedOptional }) => -1; //   /// 01: continued
+  gee3(x, [var optional]) => -1; //   /// 01: continued
   gee4(x, { namedOptional }) => -1; /// 01: continued
 
   add([var optional = 33]) => -1;
@@ -109,18 +109,18 @@ main() {
   t = b.shuffle() + b.toList() + b.lastIndexOf(1) + b.lastWhere(2);
   Expect.equals(-4, t);
 
-  Expect.equals(499, b.foo());  /// 01: continued
+  Expect.equals(499, b.foo()); // /// 01: continued
   Expect.equals(500, b.foo2()); /// 01: continued
-  Expect.equals(42, b.foo3());  /// 01: continued
+  Expect.equals(42, b.foo3()); // /// 01: continued
   Expect.equals(117, b.foo4()); /// 01: continued
   Expect.equals(498, b.foo5()); /// 01: continued
   Expect.equals(468, b.foo6()); /// 01: continued
   Expect.equals(426, b.foo7()); /// 01: continued
   Expect.equals(502, b.foo8()); /// 01: continued
 
-  Expect.equals(499, b.fooGee());  /// 01: continued
+  Expect.equals(499, b.fooGee()); // /// 01: continued
   Expect.equals(500, b.fooGee2()); /// 01: continued
-  Expect.equals(42, b.fooGee3());  /// 01: continued
+  Expect.equals(42, b.fooGee3()); // /// 01: continued
   Expect.equals(117, b.fooGee4()); /// 01: continued
   Expect.equals(498, b.fooGee5()); /// 01: continued
   Expect.equals(468, b.fooGee6()); /// 01: continued

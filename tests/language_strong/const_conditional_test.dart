@@ -46,11 +46,11 @@ void main() {
   Expect.identical(var1, cond2a); /// 03: continued
   Expect.identical(nonConst, cond2b); /// 04: continued
 
-  Expect.identical(var0, cond3);  /// 05: continued
+  Expect.identical(var0, cond3); // /// 05: continued
   Expect.identical(nonConst, cond3a); /// 06: continued
   Expect.identical(var0, cond3b); /// 07: continued
 
-  Expect.identical(var1, cond4);  /// 08: continued
+  Expect.identical(var1, cond4); // /// 08: continued
   Expect.identical(var1, cond4a); /// 09: continued
   Expect.identical(nonConst, cond4b); /// 10: continued
 }

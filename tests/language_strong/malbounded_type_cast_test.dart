@@ -5,8 +5,8 @@
 import 'package:expect/expect.dart';
 
 class Super<T extends num> {}
-class Malbounded1 implements Super<String> {}  /// static type warning
-class Malbounded2 extends Super<String> {}  /// static type warning
+class Malbounded1 implements Super<String> {} // /// static type warning
+class Malbounded2 extends Super<String> {} // /// static type warning
 
 main() {
   bool inCheckedMode = false;

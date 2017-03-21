@@ -4,9 +4,9 @@
 
 import "package:expect/expect.dart";
 
-/*    /// 01: runtime error
+/* //   /// 01: runtime error
 get topLevel => 42;
-*/   /// 01: continued
+*/ //  /// 01: continued
 set topLevel(var value) { }
 
 main() {

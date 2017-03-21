@@ -37,8 +37,8 @@ testFinal() {
     throw "catch this!";
     } catch (e, s) {
       // Test that the error and stack trace variables are final.
-      e = null;  /// 10: runtime error
-      s = null;  /// 11: runtime error
+      e = null; // /// 10: runtime error
+      s = null; // /// 11: runtime error
     }
 }
 

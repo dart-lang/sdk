@@ -8,29 +8,29 @@
 
 library BlackListedTest;
 
-class MyBool extends Bool {}  /// 01: compile-time error
+class MyBool extends Bool {} // /// 01: compile-time error
 
-class MyDouble extends Double {}  /// 02: compile-time error
+class MyDouble extends Double {} // /// 02: compile-time error
 
-class MyObjectArray extends ObjectArray {}  /// 03: compile-time error
+class MyObjectArray extends ObjectArray {} // /// 03: compile-time error
 
-class MyImmutableArray extends ImmutableArray {}  /// 04: compile-time error
+class MyImmutableArray extends ImmutableArray {} // /// 04: compile-time error
 
-class MyGrowableObjectArray extends GrowableObjectArray {}  /// 05: compile-time error
+class MyGrowableObjectArray extends GrowableObjectArray {} // /// 05: compile-time error
 
-class MyIntegerImplementation extends IntegerImplementation {}  /// 06: compile-time error
+class MyIntegerImplementation extends IntegerImplementation {} // /// 06: compile-time error
 
-class MySmi extends Smi {}  /// 07: compile-time error
+class MySmi extends Smi {} // /// 07: compile-time error
 
-class MyMint extends Mint {}  /// 08: compile-time error
+class MyMint extends Mint {} // /// 08: compile-time error
 
-class MyBigint extends Bigint {}  /// 09: compile-time error
+class MyBigint extends Bigint {} // /// 09: compile-time error
 
-class MyOneByteString extends OneByteString {}  /// 10: compile-time error
+class MyOneByteString extends OneByteString {} // /// 10: compile-time error
 
-class MyTwoByteString extends TwoByteString {}  /// 11: compile-time error
+class MyTwoByteString extends TwoByteString {} // /// 11: compile-time error
 
-class MyFourByteString extends FourByteString {}  /// 12: compile-time error
+class MyFourByteString extends FourByteString {} // /// 12: compile-time error
 
 main() {
   new MyBool(); /// 01: continued

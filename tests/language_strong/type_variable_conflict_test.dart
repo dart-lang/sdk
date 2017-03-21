@@ -8,22 +8,22 @@
 import "package:expect/expect.dart";
 
 class G1<T> {
-  var T;  /// 01: compile-time error
+  var T; // /// 01: compile-time error
 }
 class G2<T> {
-  get T {}  /// 02: compile-time error
+  get T {} // /// 02: compile-time error
 }
 class G3<T> {
-  T() {}  /// 03: compile-time error
+  T() {} // /// 03: compile-time error
 }
 class G4<T> {
-  static var T;  /// 04: compile-time error
+  static var T; // /// 04: compile-time error
 }
 class G5<T> {
-  static get T {}  /// 05: compile-time error
+  static get T {} // /// 05: compile-time error
 }
 class G6<T> {
-  static T() {}  /// 06: compile-time error
+  static T() {} // /// 06: compile-time error
 }
 
 main() {

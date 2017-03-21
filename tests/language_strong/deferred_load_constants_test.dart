@@ -24,11 +24,11 @@ main() {
     Expect.identical(toplevel, foo.toplevel);
     Expect.identical(C.staticfun, foo.C.staticfun);
     // Access through deferred prefix is not a constant expression.
-    Expect.throws(() => const [foo.c]);            /// 01: compile-time error
-    Expect.throws(() => const [foo.C]);            /// 02: compile-time error
-    Expect.throws(() => const [foo.funtype]);      /// 03: compile-time error
-    Expect.throws(() => const [foo.toplevel]);     /// 04: compile-time error
-    Expect.throws(() => const [foo.C.staticfun]);  /// 05: compile-time error
+    Expect.throws(() => const [foo.c]); //           /// 01: compile-time error
+    Expect.throws(() => const [foo.C]); //           /// 02: compile-time error
+    Expect.throws(() => const [foo.funtype]); //     /// 03: compile-time error
+    Expect.throws(() => const [foo.toplevel]); //    /// 04: compile-time error
+    Expect.throws(() => const [foo.C.staticfun]); // /// 05: compile-time error
 
     asyncEnd();
   });

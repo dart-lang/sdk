@@ -6,8 +6,8 @@
 // Only a number literal can be preceded by a "+'".
 
 main() {
-  var a = + 1;       /// 01: compile-time error
-  var x = +"foo";    /// 02: compile-time error
-  var x = + "foo";   /// 03: compile-time error
+  var a = + 1; //      /// 01: compile-time error
+  var x = +"foo"; //   /// 02: compile-time error
+  var x = + "foo"; //  /// 03: compile-time error
 }
 

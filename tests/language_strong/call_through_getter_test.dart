@@ -34,7 +34,7 @@ class CallThroughGetterTest {
       TOP_LEVEL_CONST(); /// static type warning
     });
     expectThrowsNoSuchMethod(() {
-      (TOP_LEVEL_CONST)();  /// static type warning
+      (TOP_LEVEL_CONST)(); // /// static type warning
     });
   }
 

@@ -39,8 +39,8 @@ class C {
     Expect.equals(local_const, local_final);
     Expect.equals(local_final, local_var);
     var metadata = reflectClass(C).metadata[0].reflectee; /// 01: ok
-    Expect.equals(top_const, metadata);                   /// 01: continued
-    Expect.equals(local_var, metadata);                   /// 01: continued
+    Expect.equals(top_const, metadata); //                  /// 01: continued
+    Expect.equals(local_var, metadata); //                  /// 01: continued
   }
 }
 

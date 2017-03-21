@@ -35,9 +35,9 @@ main() {
 }
 
 final F0 = 42;
-final F1;                 /// 03: continued
+final F1; //                /// 03: continued
 final int F2 = 87;
-final int F3;             /// 04: continued
+final int F3; //            /// 04: continued
 
 class Point {
   final x, y;
