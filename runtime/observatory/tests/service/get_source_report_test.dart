@@ -63,10 +63,13 @@ hasStoppedAtBreakpoint,
 
   var expectedRange = {
     'scriptIndex': 0,
-    'startPos': 39,
-    'endPos': 88,
+    'startPos': ifKernel(489, 39),
+    'endPos': ifKernel(633, 88),
     'compiled': true,
-    'coverage': {'hits': [54, 72, 82], 'misses': [60]}
+    'coverage': {
+      'hits': ifKernel([539, 590, 619], [54, 72, 82]),
+      'misses': ifKernel([552], [60])
+    }
   };
 
   // Full script

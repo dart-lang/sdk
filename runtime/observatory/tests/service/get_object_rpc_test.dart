@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'dart:convert' show BASE64;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 class _DummyClass {
@@ -658,8 +659,9 @@ var tests = [
     expect(result['uri'], startsWith('file:'));
     expect(result['uri'], endsWith('get_object_rpc_test.dart'));
     expect(result['debuggable'], equals(true));
-    expect(result['dependencies'].length, isPositive);
-    expect(result['dependencies'][0]['target']['type'], equals('@Library'));
+    expect(result['dependencies'].length, ifKernel(isZero, isPositive));
+    nonKernelExecute(() => expect(
+        result['dependencies'][0]['target']['type'], equals('@Library')));
     expect(result['scripts'].length, isPositive);
     expect(result['scripts'][0]['type'], equals('@Script'));
     expect(result['variables'].length, isPositive);
@@ -704,7 +706,7 @@ var tests = [
     expect(result['id'], startsWith('libraries/'));
     expect(result['uri'], startsWith('file:'));
     expect(result['uri'], endsWith('get_object_rpc_test.dart'));
-    expect(result['_kind'], equals('script'));
+    expect(result['_kind'], equals(ifKernel('kernel', 'script')));
     expect(result['library']['type'], equals('@Library'));
     expect(result['source'], startsWith('// Copyright (c)'));
     expect(result['tokenPosTable'].length, isPositive);
