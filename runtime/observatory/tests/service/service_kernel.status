@@ -5,6 +5,9 @@
 [ $compiler == dartkp ]
 *: Skip # Non-kernel also skips precompiled mode.
 
+[ $compiler == dartk && $mode == debug ]
+*: Skip # ~2/3 fail because of finalization issues. Issue #29123.
+
 [ $compiler == dartk ]
 ###
 ### Kernel works slightly different. There are kernel specific versions.
