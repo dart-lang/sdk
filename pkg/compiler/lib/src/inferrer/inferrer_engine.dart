@@ -44,8 +44,6 @@ import 'type_system.dart';
 class InferrerEngine {
   final Map<Element, TypeInformation> defaultTypeOfParameter =
       new Map<Element, TypeInformation>();
-  final List<CallSiteTypeInformation> allocatedCalls =
-      <CallSiteTypeInformation>[];
   final WorkQueue workQueue = new WorkQueue();
   final Element mainElement;
   final Set<Element> analyzedElements = new Set<Element>();
@@ -555,7 +553,7 @@ class InferrerEngine {
   }
 
   void processLoopInformation() {
-    allocatedCalls.forEach((info) {
+    types.allocatedCalls.forEach((info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
         closedWorldRefiner.addFunctionCalledInLoop(info.calledElement);
@@ -604,7 +602,7 @@ class InferrerEngine {
     workQueue.addAll(types.typeInformations.values);
     workQueue.addAll(types.allocatedTypes);
     workQueue.addAll(types.allocatedClosures);
-    workQueue.addAll(allocatedCalls);
+    workQueue.addAll(types.allocatedCalls);
   }
 
   /**
@@ -853,7 +851,7 @@ class InferrerEngine {
       }
     }
     info.addToGraph(this);
-    allocatedCalls.add(info);
+    types.allocatedCalls.add(info);
     updateSideEffects(sideEffects, selector, callee);
     return info;
   }
@@ -896,7 +894,7 @@ class InferrerEngine {
         inLoop);
 
     info.addToGraph(this);
-    allocatedCalls.add(info);
+    types.allocatedCalls.add(info);
     return info;
   }
 
@@ -941,7 +939,7 @@ class InferrerEngine {
         arguments,
         inLoop);
     info.addToGraph(this);
-    allocatedCalls.add(info);
+    types.allocatedCalls.add(info);
     return info;
   }
 
@@ -989,8 +987,8 @@ class InferrerEngine {
   void clear() {
     void cleanup(TypeInformation info) => info.cleanup();
 
-    allocatedCalls.forEach(cleanup);
-    allocatedCalls.clear();
+    types.allocatedCalls.forEach(cleanup);
+    types.allocatedCalls.clear();
 
     defaultTypeOfParameter.clear();
 

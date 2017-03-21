@@ -39,8 +39,12 @@ class TypeSystem {
   final Map<TypeMask, TypeInformation> concreteTypes =
       new Map<TypeMask, TypeInformation>();
 
-  /// List of [TypeInformation]s allocated inside method bodies (calls,
-  /// narrowing, phis, and containers).
+  /// List of [TypeInformation]s for calls inside method bodies.
+  final List<CallSiteTypeInformation> allocatedCalls =
+      <CallSiteTypeInformation>[];
+
+  /// List of [TypeInformation]s allocated inside method bodies (narrowing,
+  /// phis, and containers).
   final List<TypeInformation> allocatedTypes = <TypeInformation>[];
 
   Iterable<TypeInformation> get allTypes => [
@@ -49,6 +53,7 @@ class TypeSystem {
         allocatedMaps.values,
         allocatedClosures,
         concreteTypes.values,
+        allocatedCalls,
         allocatedTypes
       ].expand((x) => x);
 
