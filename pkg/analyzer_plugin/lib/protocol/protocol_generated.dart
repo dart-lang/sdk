@@ -42,7 +42,8 @@ class AddContentOverlay implements HasToJson {
     this.content = content;
   }
 
-  factory AddContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AddContentOverlay.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -52,7 +53,8 @@ class AddContentOverlay implements HasToJson {
       }
       String content;
       if (json.containsKey("content")) {
-        content = jsonDecoder.decodeString(jsonPath + ".content", json["content"]);
+        content =
+            jsonDecoder.decodeString(jsonPath + ".content", json["content"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "content");
       }
@@ -74,7 +76,7 @@ class AddContentOverlay implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AddContentOverlay) {
       return content == other.content;
     }
@@ -229,7 +231,9 @@ class AnalysisError implements HasToJson {
     this._hasFix = value;
   }
 
-  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, String code, {String correction, bool hasFix}) {
+  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
+      Location location, String message, String code,
+      {String correction, bool hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
@@ -239,38 +243,44 @@ class AnalysisError implements HasToJson {
     this.hasFix = hasFix;
   }
 
-  factory AnalysisError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisError.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       AnalysisErrorSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new AnalysisErrorSeverity.fromJson(jsonDecoder, jsonPath + ".severity", json["severity"]);
+        severity = new AnalysisErrorSeverity.fromJson(
+            jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "severity");
       }
       AnalysisErrorType type;
       if (json.containsKey("type")) {
-        type = new AnalysisErrorType.fromJson(jsonDecoder, jsonPath + ".type", json["type"]);
+        type = new AnalysisErrorType.fromJson(
+            jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(jsonDecoder, jsonPath + ".location", json["location"]);
+        location = new Location.fromJson(
+            jsonDecoder, jsonPath + ".location", json["location"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "location");
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+        message =
+            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "message");
       }
       String correction;
       if (json.containsKey("correction")) {
-        correction = jsonDecoder.decodeString(jsonPath + ".correction", json["correction"]);
+        correction = jsonDecoder.decodeString(
+            jsonPath + ".correction", json["correction"]);
       }
       String code;
       if (json.containsKey("code")) {
@@ -282,7 +292,8 @@ class AnalysisError implements HasToJson {
       if (json.containsKey("hasFix")) {
         hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
       }
-      return new AnalysisError(severity, type, location, message, code, correction: correction, hasFix: hasFix);
+      return new AnalysisError(severity, type, location, message, code,
+          correction: correction, hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
     }
@@ -309,7 +320,7 @@ class AnalysisError implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisError) {
       return severity == other.severity &&
           type == other.type &&
@@ -377,7 +388,8 @@ class AnalysisErrorFixes implements HasToJson {
     this._fixes = value;
   }
 
-  AnalysisErrorFixes(AnalysisError error, {List<PrioritizedSourceChange> fixes}) {
+  AnalysisErrorFixes(AnalysisError error,
+      {List<PrioritizedSourceChange> fixes}) {
     this.error = error;
     if (fixes == null) {
       this.fixes = <PrioritizedSourceChange>[];
@@ -386,20 +398,27 @@ class AnalysisErrorFixes implements HasToJson {
     }
   }
 
-  factory AnalysisErrorFixes.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisErrorFixes.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       AnalysisError error;
       if (json.containsKey("error")) {
-        error = new AnalysisError.fromJson(jsonDecoder, jsonPath + ".error", json["error"]);
+        error = new AnalysisError.fromJson(
+            jsonDecoder, jsonPath + ".error", json["error"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "error");
       }
       List<PrioritizedSourceChange> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(
+            jsonPath + ".fixes",
+            json["fixes"],
+            (String jsonPath, Object json) =>
+                new PrioritizedSourceChange.fromJson(
+                    jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
@@ -413,7 +432,8 @@ class AnalysisErrorFixes implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["error"] = error.toJson();
-    result["fixes"] = fixes.map((PrioritizedSourceChange value) => value.toJson()).toList();
+    result["fixes"] =
+        fixes.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
   }
 
@@ -421,10 +441,11 @@ class AnalysisErrorFixes implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisErrorFixes) {
       return error == other.error &&
-          listEqual(fixes, other.fixes, (PrioritizedSourceChange a, PrioritizedSourceChange b) => a == b);
+          listEqual(fixes, other.fixes,
+              (PrioritizedSourceChange a, PrioritizedSourceChange b) => a == b);
     }
     return false;
   }
@@ -450,16 +471,20 @@ class AnalysisErrorFixes implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorSeverity implements Enum {
-  static const AnalysisErrorSeverity INFO = const AnalysisErrorSeverity._("INFO");
+  static const AnalysisErrorSeverity INFO =
+      const AnalysisErrorSeverity._("INFO");
 
-  static const AnalysisErrorSeverity WARNING = const AnalysisErrorSeverity._("WARNING");
+  static const AnalysisErrorSeverity WARNING =
+      const AnalysisErrorSeverity._("WARNING");
 
-  static const AnalysisErrorSeverity ERROR = const AnalysisErrorSeverity._("ERROR");
+  static const AnalysisErrorSeverity ERROR =
+      const AnalysisErrorSeverity._("ERROR");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisErrorSeverity> VALUES = const <AnalysisErrorSeverity>[INFO, WARNING, ERROR];
+  static const List<AnalysisErrorSeverity> VALUES =
+      const <AnalysisErrorSeverity>[INFO, WARNING, ERROR];
 
   @override
   final String name;
@@ -478,11 +503,12 @@ class AnalysisErrorSeverity implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory AnalysisErrorSeverity.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisErrorSeverity.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new AnalysisErrorSeverity(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -512,26 +538,40 @@ class AnalysisErrorSeverity implements Enum {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorType implements Enum {
-  static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
+  static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR =
+      const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
-  static const AnalysisErrorType COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
+  static const AnalysisErrorType COMPILE_TIME_ERROR =
+      const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
   static const AnalysisErrorType HINT = const AnalysisErrorType._("HINT");
 
   static const AnalysisErrorType LINT = const AnalysisErrorType._("LINT");
 
-  static const AnalysisErrorType STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
+  static const AnalysisErrorType STATIC_TYPE_WARNING =
+      const AnalysisErrorType._("STATIC_TYPE_WARNING");
 
-  static const AnalysisErrorType STATIC_WARNING = const AnalysisErrorType._("STATIC_WARNING");
+  static const AnalysisErrorType STATIC_WARNING =
+      const AnalysisErrorType._("STATIC_WARNING");
 
-  static const AnalysisErrorType SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
+  static const AnalysisErrorType SYNTACTIC_ERROR =
+      const AnalysisErrorType._("SYNTACTIC_ERROR");
 
   static const AnalysisErrorType TODO = const AnalysisErrorType._("TODO");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisErrorType> VALUES = const <AnalysisErrorType>[CHECKED_MODE_COMPILE_TIME_ERROR, COMPILE_TIME_ERROR, HINT, LINT, STATIC_TYPE_WARNING, STATIC_WARNING, SYNTACTIC_ERROR, TODO];
+  static const List<AnalysisErrorType> VALUES = const <AnalysisErrorType>[
+    CHECKED_MODE_COMPILE_TIME_ERROR,
+    COMPILE_TIME_ERROR,
+    HINT,
+    LINT,
+    STATIC_TYPE_WARNING,
+    STATIC_WARNING,
+    SYNTACTIC_ERROR,
+    TODO
+  ];
 
   @override
   final String name;
@@ -560,11 +600,12 @@ class AnalysisErrorType implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory AnalysisErrorType.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisErrorType.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new AnalysisErrorType(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -623,7 +664,8 @@ class AnalysisErrorsParams implements HasToJson {
     this.errors = errors;
   }
 
-  factory AnalysisErrorsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisErrorsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -636,7 +678,11 @@ class AnalysisErrorsParams implements HasToJson {
       }
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
-        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+        errors = jsonDecoder.decodeList(
+            jsonPath + ".errors",
+            json["errors"],
+            (String jsonPath, Object json) =>
+                new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "errors");
       }
@@ -655,7 +701,8 @@ class AnalysisErrorsParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["errors"] = errors.map((AnalysisError value) => value.toJson()).toList();
+    result["errors"] =
+        errors.map((AnalysisError value) => value.toJson()).toList();
     return result;
   }
 
@@ -667,10 +714,11 @@ class AnalysisErrorsParams implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisErrorsParams) {
       return file == other.file &&
-          listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
+          listEqual(errors, other.errors,
+              (AnalysisError a, AnalysisError b) => a == b);
     }
     return false;
   }
@@ -730,7 +778,8 @@ class AnalysisFoldingParams implements HasToJson {
     this.regions = regions;
   }
 
-  factory AnalysisFoldingParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisFoldingParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -743,7 +792,11 @@ class AnalysisFoldingParams implements HasToJson {
       }
       List<FoldingRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(
+            jsonPath + ".regions",
+            json["regions"],
+            (String jsonPath, Object json) =>
+                new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
@@ -762,7 +815,8 @@ class AnalysisFoldingParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["regions"] = regions.map((FoldingRegion value) => value.toJson()).toList();
+    result["regions"] =
+        regions.map((FoldingRegion value) => value.toJson()).toList();
     return result;
   }
 
@@ -774,10 +828,11 @@ class AnalysisFoldingParams implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisFoldingParams) {
       return file == other.file &&
-          listEqual(regions, other.regions, (FoldingRegion a, FoldingRegion b) => a == b);
+          listEqual(regions, other.regions,
+              (FoldingRegion a, FoldingRegion b) => a == b);
     }
     return false;
   }
@@ -820,20 +875,26 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
     this.events = events;
   }
 
-  factory AnalysisHandleWatchEventsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisHandleWatchEventsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<WatchEvent> events;
       if (json.containsKey("events")) {
-        events = jsonDecoder.decodeList(jsonPath + ".events", json["events"], (String jsonPath, Object json) => new WatchEvent.fromJson(jsonDecoder, jsonPath, json));
+        events = jsonDecoder.decodeList(
+            jsonPath + ".events",
+            json["events"],
+            (String jsonPath, Object json) =>
+                new WatchEvent.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "events");
       }
       return new AnalysisHandleWatchEventsParams(events);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.handleWatchEvents params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.handleWatchEvents params", json);
     }
   }
 
@@ -845,7 +906,8 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["events"] = events.map((WatchEvent value) => value.toJson()).toList();
+    result["events"] =
+        events.map((WatchEvent value) => value.toJson()).toList();
     return result;
   }
 
@@ -858,9 +920,10 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisHandleWatchEventsParams) {
-      return listEqual(events, other.events, (WatchEvent a, WatchEvent b) => a == b);
+      return listEqual(
+          events, other.events, (WatchEvent a, WatchEvent b) => a == b);
     }
     return false;
   }
@@ -888,7 +951,7 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisHandleWatchEventsResult) {
       return true;
     }
@@ -947,7 +1010,8 @@ class AnalysisHighlightsParams implements HasToJson {
     this.regions = regions;
   }
 
-  factory AnalysisHighlightsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisHighlightsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -960,7 +1024,11 @@ class AnalysisHighlightsParams implements HasToJson {
       }
       List<HighlightRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(
+            jsonPath + ".regions",
+            json["regions"],
+            (String jsonPath, Object json) =>
+                new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
@@ -979,7 +1047,8 @@ class AnalysisHighlightsParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["regions"] = regions.map((HighlightRegion value) => value.toJson()).toList();
+    result["regions"] =
+        regions.map((HighlightRegion value) => value.toJson()).toList();
     return result;
   }
 
@@ -991,10 +1060,11 @@ class AnalysisHighlightsParams implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisHighlightsParams) {
       return file == other.file &&
-          listEqual(regions, other.regions, (HighlightRegion a, HighlightRegion b) => a == b);
+          listEqual(regions, other.regions,
+              (HighlightRegion a, HighlightRegion b) => a == b);
     }
     return false;
   }
@@ -1085,14 +1155,16 @@ class AnalysisNavigationParams implements HasToJson {
     this._files = value;
   }
 
-  AnalysisNavigationParams(String file, List<NavigationRegion> regions, List<NavigationTarget> targets, List<String> files) {
+  AnalysisNavigationParams(String file, List<NavigationRegion> regions,
+      List<NavigationTarget> targets, List<String> files) {
     this.file = file;
     this.regions = regions;
     this.targets = targets;
     this.files = files;
   }
 
-  factory AnalysisNavigationParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisNavigationParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -1105,19 +1177,28 @@ class AnalysisNavigationParams implements HasToJson {
       }
       List<NavigationRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(
+            jsonPath + ".regions",
+            json["regions"],
+            (String jsonPath, Object json) =>
+                new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
       List<NavigationTarget> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder.decodeList(
+            jsonPath + ".targets",
+            json["targets"],
+            (String jsonPath, Object json) =>
+                new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
@@ -1136,8 +1217,10 @@ class AnalysisNavigationParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["regions"] = regions.map((NavigationRegion value) => value.toJson()).toList();
-    result["targets"] = targets.map((NavigationTarget value) => value.toJson()).toList();
+    result["regions"] =
+        regions.map((NavigationRegion value) => value.toJson()).toList();
+    result["targets"] =
+        targets.map((NavigationTarget value) => value.toJson()).toList();
     result["files"] = files;
     return result;
   }
@@ -1150,11 +1233,13 @@ class AnalysisNavigationParams implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisNavigationParams) {
       return file == other.file &&
-          listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b) &&
-          listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
+          listEqual(regions, other.regions,
+              (NavigationRegion a, NavigationRegion b) => a == b) &&
+          listEqual(targets, other.targets,
+              (NavigationTarget a, NavigationTarget b) => a == b) &&
           listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
@@ -1217,7 +1302,8 @@ class AnalysisOccurrencesParams implements HasToJson {
     this.occurrences = occurrences;
   }
 
-  factory AnalysisOccurrencesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisOccurrencesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -1230,7 +1316,11 @@ class AnalysisOccurrencesParams implements HasToJson {
       }
       List<Occurrences> occurrences;
       if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder.decodeList(jsonPath + ".occurrences", json["occurrences"], (String jsonPath, Object json) => new Occurrences.fromJson(jsonDecoder, jsonPath, json));
+        occurrences = jsonDecoder.decodeList(
+            jsonPath + ".occurrences",
+            json["occurrences"],
+            (String jsonPath, Object json) =>
+                new Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "occurrences");
       }
@@ -1240,7 +1330,8 @@ class AnalysisOccurrencesParams implements HasToJson {
     }
   }
 
-  factory AnalysisOccurrencesParams.fromNotification(Notification notification) {
+  factory AnalysisOccurrencesParams.fromNotification(
+      Notification notification) {
     return new AnalysisOccurrencesParams.fromJson(
         new ResponseDecoder(null), "params", notification.params);
   }
@@ -1249,7 +1340,8 @@ class AnalysisOccurrencesParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["occurrences"] = occurrences.map((Occurrences value) => value.toJson()).toList();
+    result["occurrences"] =
+        occurrences.map((Occurrences value) => value.toJson()).toList();
     return result;
   }
 
@@ -1261,10 +1353,11 @@ class AnalysisOccurrencesParams implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisOccurrencesParams) {
       return file == other.file &&
-          listEqual(occurrences, other.occurrences, (Occurrences a, Occurrences b) => a == b);
+          listEqual(occurrences, other.occurrences,
+              (Occurrences a, Occurrences b) => a == b);
     }
     return false;
   }
@@ -1324,7 +1417,8 @@ class AnalysisOutlineParams implements HasToJson {
     this.outline = outline;
   }
 
-  factory AnalysisOutlineParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisOutlineParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -1337,7 +1431,11 @@ class AnalysisOutlineParams implements HasToJson {
       }
       List<Outline> outline;
       if (json.containsKey("outline")) {
-        outline = jsonDecoder.decodeList(jsonPath + ".outline", json["outline"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
+        outline = jsonDecoder.decodeList(
+            jsonPath + ".outline",
+            json["outline"],
+            (String jsonPath, Object json) =>
+                new Outline.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "outline");
       }
@@ -1368,7 +1466,7 @@ class AnalysisOutlineParams implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisOutlineParams) {
       return file == other.file &&
           listEqual(outline, other.outline, (Outline a, Outline b) => a == b);
@@ -1419,14 +1517,16 @@ class AnalysisReanalyzeParams implements RequestParams {
     this.roots = roots;
   }
 
-  factory AnalysisReanalyzeParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisReanalyzeParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<String> roots;
       if (json.containsKey("roots")) {
-        roots = jsonDecoder.decodeList(jsonPath + ".roots", json["roots"], jsonDecoder.decodeString);
+        roots = jsonDecoder.decodeList(
+            jsonPath + ".roots", json["roots"], jsonDecoder.decodeString);
       }
       return new AnalysisReanalyzeParams(roots: roots);
     } else {
@@ -1457,7 +1557,7 @@ class AnalysisReanalyzeParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisReanalyzeParams) {
       return listEqual(roots, other.roots, (String a, String b) => a == b);
     }
@@ -1487,7 +1587,7 @@ class AnalysisReanalyzeResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisReanalyzeResult) {
       return true;
     }
@@ -1516,18 +1616,27 @@ class AnalysisReanalyzeResult implements ResponseResult {
 class AnalysisService implements Enum {
   static const AnalysisService FOLDING = const AnalysisService._("FOLDING");
 
-  static const AnalysisService HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
+  static const AnalysisService HIGHLIGHTS =
+      const AnalysisService._("HIGHLIGHTS");
 
-  static const AnalysisService NAVIGATION = const AnalysisService._("NAVIGATION");
+  static const AnalysisService NAVIGATION =
+      const AnalysisService._("NAVIGATION");
 
-  static const AnalysisService OCCURRENCES = const AnalysisService._("OCCURRENCES");
+  static const AnalysisService OCCURRENCES =
+      const AnalysisService._("OCCURRENCES");
 
   static const AnalysisService OUTLINE = const AnalysisService._("OUTLINE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisService> VALUES = const <AnalysisService>[FOLDING, HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE];
+  static const List<AnalysisService> VALUES = const <AnalysisService>[
+    FOLDING,
+    HIGHLIGHTS,
+    NAVIGATION,
+    OCCURRENCES,
+    OUTLINE
+  ];
 
   @override
   final String name;
@@ -1550,11 +1659,12 @@ class AnalysisService implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory AnalysisService.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisService.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new AnalysisService(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -1596,20 +1706,23 @@ class AnalysisSetContextBuilderOptionsParams implements RequestParams {
     this.options = options;
   }
 
-  factory AnalysisSetContextBuilderOptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisSetContextBuilderOptionsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       ContextBuilderOptions options;
       if (json.containsKey("options")) {
-        options = new ContextBuilderOptions.fromJson(jsonDecoder, jsonPath + ".options", json["options"]);
+        options = new ContextBuilderOptions.fromJson(
+            jsonDecoder, jsonPath + ".options", json["options"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "options");
       }
       return new AnalysisSetContextBuilderOptionsParams(options);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.setContextBuilderOptions params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.setContextBuilderOptions params", json);
     }
   }
 
@@ -1634,7 +1747,7 @@ class AnalysisSetContextBuilderOptionsParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetContextBuilderOptionsParams) {
       return options == other.options;
     }
@@ -1664,7 +1777,7 @@ class AnalysisSetContextBuilderOptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetContextBuilderOptionsResult) {
       return true;
     }
@@ -1706,20 +1819,26 @@ class AnalysisSetContextRootsParams implements RequestParams {
     this.roots = roots;
   }
 
-  factory AnalysisSetContextRootsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisSetContextRootsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<ContextRoot> roots;
       if (json.containsKey("roots")) {
-        roots = jsonDecoder.decodeList(jsonPath + ".roots", json["roots"], (String jsonPath, Object json) => new ContextRoot.fromJson(jsonDecoder, jsonPath, json));
+        roots = jsonDecoder.decodeList(
+            jsonPath + ".roots",
+            json["roots"],
+            (String jsonPath, Object json) =>
+                new ContextRoot.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "roots");
       }
       return new AnalysisSetContextRootsParams(roots);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.setContextRoots params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.setContextRoots params", json);
     }
   }
 
@@ -1744,9 +1863,10 @@ class AnalysisSetContextRootsParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetContextRootsParams) {
-      return listEqual(roots, other.roots, (ContextRoot a, ContextRoot b) => a == b);
+      return listEqual(
+          roots, other.roots, (ContextRoot a, ContextRoot b) => a == b);
     }
     return false;
   }
@@ -1774,7 +1894,7 @@ class AnalysisSetContextRootsResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetContextRootsResult) {
       return true;
     }
@@ -1816,20 +1936,23 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
     this.files = files;
   }
 
-  factory AnalysisSetPriorityFilesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisSetPriorityFilesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
       return new AnalysisSetPriorityFilesParams(files);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.setPriorityFiles params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.setPriorityFiles params", json);
     }
   }
 
@@ -1854,7 +1977,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetPriorityFilesParams) {
       return listEqual(files, other.files, (String a, String b) => a == b);
     }
@@ -1884,7 +2007,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetPriorityFilesResult) {
       return true;
     }
@@ -1924,24 +2047,32 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
     this._subscriptions = value;
   }
 
-  AnalysisSetSubscriptionsParams(Map<AnalysisService, List<String>> subscriptions) {
+  AnalysisSetSubscriptionsParams(
+      Map<AnalysisService, List<String>> subscriptions) {
     this.subscriptions = subscriptions;
   }
 
-  factory AnalysisSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisSetSubscriptionsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder.decodeMap(jsonPath + ".subscriptions", json["subscriptions"], keyDecoder: (String jsonPath, Object json) => new AnalysisService.fromJson(jsonDecoder, jsonPath, json), valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString));
+        subscriptions = jsonDecoder.decodeMap(
+            jsonPath + ".subscriptions", json["subscriptions"],
+            keyDecoder: (String jsonPath, Object json) =>
+                new AnalysisService.fromJson(jsonDecoder, jsonPath, json),
+            valueDecoder: (String jsonPath, Object json) => jsonDecoder
+                .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
       return new AnalysisSetSubscriptionsParams(subscriptions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.setSubscriptions params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.setSubscriptions params", json);
     }
   }
 
@@ -1953,7 +2084,8 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["subscriptions"] = mapMap(subscriptions, keyCallback: (AnalysisService value) => value.toJson());
+    result["subscriptions"] = mapMap(subscriptions,
+        keyCallback: (AnalysisService value) => value.toJson());
     return result;
   }
 
@@ -1966,9 +2098,13 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetSubscriptionsParams) {
-      return mapEqual(subscriptions, other.subscriptions, (List<String> a, List<String> b) => listEqual(a, b, (String a, String b) => a == b));
+      return mapEqual(
+          subscriptions,
+          other.subscriptions,
+          (List<String> a, List<String> b) =>
+              listEqual(a, b, (String a, String b) => a == b));
     }
     return false;
   }
@@ -1996,7 +2132,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisSetSubscriptionsResult) {
       return true;
     }
@@ -2040,20 +2176,34 @@ class AnalysisUpdateContentParams implements RequestParams {
     this.files = files;
   }
 
-  factory AnalysisUpdateContentParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory AnalysisUpdateContentParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeUnion(jsonPath, json, "type", {"add": (String jsonPath, Object json) => new AddContentOverlay.fromJson(jsonDecoder, jsonPath, json), "change": (String jsonPath, Object json) => new ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json), "remove": (String jsonPath, Object json) => new RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)}));
+        files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"],
+            valueDecoder: (String jsonPath, Object json) =>
+                jsonDecoder.decodeUnion(jsonPath, json, "type", {
+                  "add": (String jsonPath, Object json) =>
+                      new AddContentOverlay.fromJson(
+                          jsonDecoder, jsonPath, json),
+                  "change": (String jsonPath, Object json) =>
+                      new ChangeContentOverlay.fromJson(
+                          jsonDecoder, jsonPath, json),
+                  "remove": (String jsonPath, Object json) =>
+                      new RemoveContentOverlay.fromJson(
+                          jsonDecoder, jsonPath, json)
+                }));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
       return new AnalysisUpdateContentParams(files);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.updateContent params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.updateContent params", json);
     }
   }
 
@@ -2065,7 +2215,8 @@ class AnalysisUpdateContentParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["files"] = mapMap(files, valueCallback: (dynamic value) => value.toJson());
+    result["files"] =
+        mapMap(files, valueCallback: (dynamic value) => value.toJson());
     return result;
   }
 
@@ -2078,7 +2229,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisUpdateContentParams) {
       return mapEqual(files, other.files, (dynamic a, dynamic b) => a == b);
     }
@@ -2108,7 +2259,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is AnalysisUpdateContentResult) {
       return true;
     }
@@ -2151,7 +2302,8 @@ class ChangeContentOverlay implements HasToJson {
     this.edits = edits;
   }
 
-  factory ChangeContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ChangeContentOverlay.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -2161,7 +2313,11 @@ class ChangeContentOverlay implements HasToJson {
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(
+            jsonPath + ".edits",
+            json["edits"],
+            (String jsonPath, Object json) =>
+                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
@@ -2183,9 +2339,10 @@ class ChangeContentOverlay implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ChangeContentOverlay) {
-      return listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+      return listEqual(
+          edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
   }
@@ -2245,7 +2402,8 @@ class CompletionGetSuggestionsParams implements RequestParams {
     this.offset = offset;
   }
 
-  factory CompletionGetSuggestionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory CompletionGetSuggestionsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -2264,7 +2422,8 @@ class CompletionGetSuggestionsParams implements RequestParams {
       }
       return new CompletionGetSuggestionsParams(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "completion.getSuggestions params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "completion.getSuggestions params", json);
     }
   }
 
@@ -2290,10 +2449,9 @@ class CompletionGetSuggestionsParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is CompletionGetSuggestionsParams) {
-      return file == other.file &&
-          offset == other.offset;
+      return file == other.file && offset == other.offset;
     }
     return false;
   }
@@ -2382,44 +2540,56 @@ class CompletionGetSuggestionsResult implements ResponseResult {
     this._results = value;
   }
 
-  CompletionGetSuggestionsResult(int replacementOffset, int replacementLength, List<CompletionSuggestion> results) {
+  CompletionGetSuggestionsResult(int replacementOffset, int replacementLength,
+      List<CompletionSuggestion> results) {
     this.replacementOffset = replacementOffset;
     this.replacementLength = replacementLength;
     this.results = results;
   }
 
-  factory CompletionGetSuggestionsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory CompletionGetSuggestionsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       int replacementOffset;
       if (json.containsKey("replacementOffset")) {
-        replacementOffset = jsonDecoder.decodeInt(jsonPath + ".replacementOffset", json["replacementOffset"]);
+        replacementOffset = jsonDecoder.decodeInt(
+            jsonPath + ".replacementOffset", json["replacementOffset"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "replacementOffset");
       }
       int replacementLength;
       if (json.containsKey("replacementLength")) {
-        replacementLength = jsonDecoder.decodeInt(jsonPath + ".replacementLength", json["replacementLength"]);
+        replacementLength = jsonDecoder.decodeInt(
+            jsonPath + ".replacementLength", json["replacementLength"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "replacementLength");
       }
       List<CompletionSuggestion> results;
       if (json.containsKey("results")) {
-        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        results = jsonDecoder.decodeList(
+            jsonPath + ".results",
+            json["results"],
+            (String jsonPath, Object json) =>
+                new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "results");
       }
-      return new CompletionGetSuggestionsResult(replacementOffset, replacementLength, results);
+      return new CompletionGetSuggestionsResult(
+          replacementOffset, replacementLength, results);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "completion.getSuggestions result", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "completion.getSuggestions result", json);
     }
   }
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
     return new CompletionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response.result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
   }
 
   @override
@@ -2427,7 +2597,8 @@ class CompletionGetSuggestionsResult implements ResponseResult {
     Map<String, dynamic> result = {};
     result["replacementOffset"] = replacementOffset;
     result["replacementLength"] = replacementLength;
-    result["results"] = results.map((CompletionSuggestion value) => value.toJson()).toList();
+    result["results"] =
+        results.map((CompletionSuggestion value) => value.toJson()).toList();
     return result;
   }
 
@@ -2440,11 +2611,12 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is CompletionGetSuggestionsResult) {
       return replacementOffset == other.replacementOffset &&
           replacementLength == other.replacementLength &&
-          listEqual(results, other.results, (CompletionSuggestion a, CompletionSuggestion b) => a == b);
+          listEqual(results, other.results,
+              (CompletionSuggestion a, CompletionSuggestion b) => a == b);
     }
     return false;
   }
@@ -2844,7 +3016,28 @@ class CompletionSuggestion implements HasToJson {
     this._importUri = value;
   }
 
-  CompletionSuggestion(CompletionSuggestionKind kind, int relevance, String completion, int selectionOffset, int selectionLength, bool isDeprecated, bool isPotential, {String docSummary, String docComplete, String declaringType, String defaultArgumentListString, List<int> defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, bool hasNamedParameters, String parameterName, String parameterType, String importUri}) {
+  CompletionSuggestion(
+      CompletionSuggestionKind kind,
+      int relevance,
+      String completion,
+      int selectionOffset,
+      int selectionLength,
+      bool isDeprecated,
+      bool isPotential,
+      {String docSummary,
+      String docComplete,
+      String declaringType,
+      String defaultArgumentListString,
+      List<int> defaultArgumentListTextRanges,
+      Element element,
+      String returnType,
+      List<String> parameterNames,
+      List<String> parameterTypes,
+      int requiredParameterCount,
+      bool hasNamedParameters,
+      String parameterName,
+      String parameterType,
+      String importUri}) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -2868,110 +3061,151 @@ class CompletionSuggestion implements HasToJson {
     this.importUri = importUri;
   }
 
-  factory CompletionSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory CompletionSuggestion.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       CompletionSuggestionKind kind;
       if (json.containsKey("kind")) {
-        kind = new CompletionSuggestionKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = new CompletionSuggestionKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
       int relevance;
       if (json.containsKey("relevance")) {
-        relevance = jsonDecoder.decodeInt(jsonPath + ".relevance", json["relevance"]);
+        relevance =
+            jsonDecoder.decodeInt(jsonPath + ".relevance", json["relevance"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "relevance");
       }
       String completion;
       if (json.containsKey("completion")) {
-        completion = jsonDecoder.decodeString(jsonPath + ".completion", json["completion"]);
+        completion = jsonDecoder.decodeString(
+            jsonPath + ".completion", json["completion"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "completion");
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
-        selectionOffset = jsonDecoder.decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+        selectionOffset = jsonDecoder.decodeInt(
+            jsonPath + ".selectionOffset", json["selectionOffset"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "selectionOffset");
       }
       int selectionLength;
       if (json.containsKey("selectionLength")) {
-        selectionLength = jsonDecoder.decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+        selectionLength = jsonDecoder.decodeInt(
+            jsonPath + ".selectionLength", json["selectionLength"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "selectionLength");
       }
       bool isDeprecated;
       if (json.containsKey("isDeprecated")) {
-        isDeprecated = jsonDecoder.decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
+        isDeprecated = jsonDecoder.decodeBool(
+            jsonPath + ".isDeprecated", json["isDeprecated"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isDeprecated");
       }
       bool isPotential;
       if (json.containsKey("isPotential")) {
-        isPotential = jsonDecoder.decodeBool(jsonPath + ".isPotential", json["isPotential"]);
+        isPotential = jsonDecoder.decodeBool(
+            jsonPath + ".isPotential", json["isPotential"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isPotential");
       }
       String docSummary;
       if (json.containsKey("docSummary")) {
-        docSummary = jsonDecoder.decodeString(jsonPath + ".docSummary", json["docSummary"]);
+        docSummary = jsonDecoder.decodeString(
+            jsonPath + ".docSummary", json["docSummary"]);
       }
       String docComplete;
       if (json.containsKey("docComplete")) {
-        docComplete = jsonDecoder.decodeString(jsonPath + ".docComplete", json["docComplete"]);
+        docComplete = jsonDecoder.decodeString(
+            jsonPath + ".docComplete", json["docComplete"]);
       }
       String declaringType;
       if (json.containsKey("declaringType")) {
-        declaringType = jsonDecoder.decodeString(jsonPath + ".declaringType", json["declaringType"]);
+        declaringType = jsonDecoder.decodeString(
+            jsonPath + ".declaringType", json["declaringType"]);
       }
       String defaultArgumentListString;
       if (json.containsKey("defaultArgumentListString")) {
-        defaultArgumentListString = jsonDecoder.decodeString(jsonPath + ".defaultArgumentListString", json["defaultArgumentListString"]);
+        defaultArgumentListString = jsonDecoder.decodeString(
+            jsonPath + ".defaultArgumentListString",
+            json["defaultArgumentListString"]);
       }
       List<int> defaultArgumentListTextRanges;
       if (json.containsKey("defaultArgumentListTextRanges")) {
-        defaultArgumentListTextRanges = jsonDecoder.decodeList(jsonPath + ".defaultArgumentListTextRanges", json["defaultArgumentListTextRanges"], jsonDecoder.decodeInt);
+        defaultArgumentListTextRanges = jsonDecoder.decodeList(
+            jsonPath + ".defaultArgumentListTextRanges",
+            json["defaultArgumentListTextRanges"],
+            jsonDecoder.decodeInt);
       }
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
+        element = new Element.fromJson(
+            jsonDecoder, jsonPath + ".element", json["element"]);
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(
+            jsonPath + ".returnType", json["returnType"]);
       }
       List<String> parameterNames;
       if (json.containsKey("parameterNames")) {
-        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder.decodeString);
+        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames",
+            json["parameterNames"], jsonDecoder.decodeString);
       }
       List<String> parameterTypes;
       if (json.containsKey("parameterTypes")) {
-        parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder.decodeString);
+        parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes",
+            json["parameterTypes"], jsonDecoder.decodeString);
       }
       int requiredParameterCount;
       if (json.containsKey("requiredParameterCount")) {
-        requiredParameterCount = jsonDecoder.decodeInt(jsonPath + ".requiredParameterCount", json["requiredParameterCount"]);
+        requiredParameterCount = jsonDecoder.decodeInt(
+            jsonPath + ".requiredParameterCount",
+            json["requiredParameterCount"]);
       }
       bool hasNamedParameters;
       if (json.containsKey("hasNamedParameters")) {
-        hasNamedParameters = jsonDecoder.decodeBool(jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
+        hasNamedParameters = jsonDecoder.decodeBool(
+            jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
       }
       String parameterName;
       if (json.containsKey("parameterName")) {
-        parameterName = jsonDecoder.decodeString(jsonPath + ".parameterName", json["parameterName"]);
+        parameterName = jsonDecoder.decodeString(
+            jsonPath + ".parameterName", json["parameterName"]);
       }
       String parameterType;
       if (json.containsKey("parameterType")) {
-        parameterType = jsonDecoder.decodeString(jsonPath + ".parameterType", json["parameterType"]);
+        parameterType = jsonDecoder.decodeString(
+            jsonPath + ".parameterType", json["parameterType"]);
       }
       String importUri;
       if (json.containsKey("importUri")) {
-        importUri = jsonDecoder.decodeString(jsonPath + ".importUri", json["importUri"]);
+        importUri = jsonDecoder.decodeString(
+            jsonPath + ".importUri", json["importUri"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, defaultArgumentListString: defaultArgumentListString, defaultArgumentListTextRanges: defaultArgumentListTextRanges, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType, importUri: importUri);
+      return new CompletionSuggestion(kind, relevance, completion,
+          selectionOffset, selectionLength, isDeprecated, isPotential,
+          docSummary: docSummary,
+          docComplete: docComplete,
+          declaringType: declaringType,
+          defaultArgumentListString: defaultArgumentListString,
+          defaultArgumentListTextRanges: defaultArgumentListTextRanges,
+          element: element,
+          returnType: returnType,
+          parameterNames: parameterNames,
+          parameterTypes: parameterTypes,
+          requiredParameterCount: requiredParameterCount,
+          hasNamedParameters: hasNamedParameters,
+          parameterName: parameterName,
+          parameterType: parameterType,
+          importUri: importUri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion", json);
     }
@@ -3036,7 +3270,7 @@ class CompletionSuggestion implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is CompletionSuggestion) {
       return kind == other.kind &&
           relevance == other.relevance &&
@@ -3049,11 +3283,14 @@ class CompletionSuggestion implements HasToJson {
           docComplete == other.docComplete &&
           declaringType == other.declaringType &&
           defaultArgumentListString == other.defaultArgumentListString &&
-          listEqual(defaultArgumentListTextRanges, other.defaultArgumentListTextRanges, (int a, int b) => a == b) &&
+          listEqual(defaultArgumentListTextRanges,
+              other.defaultArgumentListTextRanges, (int a, int b) => a == b) &&
           element == other.element &&
           returnType == other.returnType &&
-          listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
-          listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
+          listEqual(parameterNames, other.parameterNames,
+              (String a, String b) => a == b) &&
+          listEqual(parameterTypes, other.parameterTypes,
+              (String a, String b) => a == b) &&
           requiredParameterCount == other.requiredParameterCount &&
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
@@ -3114,9 +3351,11 @@ class CompletionSuggestionKind implements Enum {
    * the invocation and the parameterNames, parameterTypes, and
    * requiredParameterCount attributes are defined.
    */
-  static const CompletionSuggestionKind ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
+  static const CompletionSuggestionKind ARGUMENT_LIST =
+      const CompletionSuggestionKind._("ARGUMENT_LIST");
 
-  static const CompletionSuggestionKind IMPORT = const CompletionSuggestionKind._("IMPORT");
+  static const CompletionSuggestionKind IMPORT =
+      const CompletionSuggestionKind._("IMPORT");
 
   /**
    * The element identifier should be inserted at the completion location. For
@@ -3124,36 +3363,52 @@ class CompletionSuggestionKind implements Enum {
    * suggestions of this kind, the element attribute is defined and the
    * completion field is the element's identifier.
    */
-  static const CompletionSuggestionKind IDENTIFIER = const CompletionSuggestionKind._("IDENTIFIER");
+  static const CompletionSuggestionKind IDENTIFIER =
+      const CompletionSuggestionKind._("IDENTIFIER");
 
   /**
    * The element is being invoked at the completion location. For example,
    * 'someMethod' in x.someMethod();. For suggestions of this kind, the element
    * attribute is defined and the completion field is the element's identifier.
    */
-  static const CompletionSuggestionKind INVOCATION = const CompletionSuggestionKind._("INVOCATION");
+  static const CompletionSuggestionKind INVOCATION =
+      const CompletionSuggestionKind._("INVOCATION");
 
   /**
    * A keyword is being suggested. For suggestions of this kind, the completion
    * is the keyword.
    */
-  static const CompletionSuggestionKind KEYWORD = const CompletionSuggestionKind._("KEYWORD");
+  static const CompletionSuggestionKind KEYWORD =
+      const CompletionSuggestionKind._("KEYWORD");
 
   /**
    * A named argument for the current call site is being suggested. For
    * suggestions of this kind, the completion is the named argument identifier
    * including a trailing ':' and a space.
    */
-  static const CompletionSuggestionKind NAMED_ARGUMENT = const CompletionSuggestionKind._("NAMED_ARGUMENT");
+  static const CompletionSuggestionKind NAMED_ARGUMENT =
+      const CompletionSuggestionKind._("NAMED_ARGUMENT");
 
-  static const CompletionSuggestionKind OPTIONAL_ARGUMENT = const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
+  static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
+      const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
-  static const CompletionSuggestionKind PARAMETER = const CompletionSuggestionKind._("PARAMETER");
+  static const CompletionSuggestionKind PARAMETER =
+      const CompletionSuggestionKind._("PARAMETER");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<CompletionSuggestionKind> VALUES = const <CompletionSuggestionKind>[ARGUMENT_LIST, IMPORT, IDENTIFIER, INVOCATION, KEYWORD, NAMED_ARGUMENT, OPTIONAL_ARGUMENT, PARAMETER];
+  static const List<CompletionSuggestionKind> VALUES =
+      const <CompletionSuggestionKind>[
+    ARGUMENT_LIST,
+    IMPORT,
+    IDENTIFIER,
+    INVOCATION,
+    KEYWORD,
+    NAMED_ARGUMENT,
+    OPTIONAL_ARGUMENT,
+    PARAMETER
+  ];
 
   @override
   final String name;
@@ -3182,11 +3437,12 @@ class CompletionSuggestionKind implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory CompletionSuggestionKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory CompletionSuggestionKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new CompletionSuggestionKind(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -3244,7 +3500,8 @@ class ContextBuilderOptions implements HasToJson {
    * any file in the root directory or a parent of the root directory. The
    * field will be omitted if the normal lookup mechanism should be used.
    */
-  List<String> get defaultAnalysisOptionsFilePath => _defaultAnalysisOptionsFilePath;
+  List<String> get defaultAnalysisOptionsFilePath =>
+      _defaultAnalysisOptionsFilePath;
 
   /**
    * The file path of the analysis options file that should be used in place of
@@ -3291,7 +3548,8 @@ class ContextBuilderOptions implements HasToJson {
    * mechanism. The field will be omitted if the normal lookup mechanism should
    * be used.
    */
-  List<String> get defaultPackagesDirectoryPath => _defaultPackagesDirectoryPath;
+  List<String> get defaultPackagesDirectoryPath =>
+      _defaultPackagesDirectoryPath;
 
   /**
    * The file path of the packages directory that should be used in place of
@@ -3303,7 +3561,12 @@ class ContextBuilderOptions implements HasToJson {
     this._defaultPackagesDirectoryPath = value;
   }
 
-  ContextBuilderOptions({String dartSdkSummaryPath, List<String> defaultAnalysisOptionsFilePath, Map<String, String> declaredVariables, List<String> defaultPackageFilePath, List<String> defaultPackagesDirectoryPath}) {
+  ContextBuilderOptions(
+      {String dartSdkSummaryPath,
+      List<String> defaultAnalysisOptionsFilePath,
+      Map<String, String> declaredVariables,
+      List<String> defaultPackageFilePath,
+      List<String> defaultPackagesDirectoryPath}) {
     this.dartSdkSummaryPath = dartSdkSummaryPath;
     this.defaultAnalysisOptionsFilePath = defaultAnalysisOptionsFilePath;
     this.declaredVariables = declaredVariables;
@@ -3311,32 +3574,50 @@ class ContextBuilderOptions implements HasToJson {
     this.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
   }
 
-  factory ContextBuilderOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ContextBuilderOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       String dartSdkSummaryPath;
       if (json.containsKey("dartSdkSummaryPath")) {
-        dartSdkSummaryPath = jsonDecoder.decodeString(jsonPath + ".dartSdkSummaryPath", json["dartSdkSummaryPath"]);
+        dartSdkSummaryPath = jsonDecoder.decodeString(
+            jsonPath + ".dartSdkSummaryPath", json["dartSdkSummaryPath"]);
       }
       List<String> defaultAnalysisOptionsFilePath;
       if (json.containsKey("defaultAnalysisOptionsFilePath")) {
-        defaultAnalysisOptionsFilePath = jsonDecoder.decodeList(jsonPath + ".defaultAnalysisOptionsFilePath", json["defaultAnalysisOptionsFilePath"], jsonDecoder.decodeString);
+        defaultAnalysisOptionsFilePath = jsonDecoder.decodeList(
+            jsonPath + ".defaultAnalysisOptionsFilePath",
+            json["defaultAnalysisOptionsFilePath"],
+            jsonDecoder.decodeString);
       }
       Map<String, String> declaredVariables;
       if (json.containsKey("declaredVariables")) {
-        declaredVariables = jsonDecoder.decodeMap(jsonPath + ".declaredVariables", json["declaredVariables"], valueDecoder: jsonDecoder.decodeString);
+        declaredVariables = jsonDecoder.decodeMap(
+            jsonPath + ".declaredVariables", json["declaredVariables"],
+            valueDecoder: jsonDecoder.decodeString);
       }
       List<String> defaultPackageFilePath;
       if (json.containsKey("defaultPackageFilePath")) {
-        defaultPackageFilePath = jsonDecoder.decodeList(jsonPath + ".defaultPackageFilePath", json["defaultPackageFilePath"], jsonDecoder.decodeString);
+        defaultPackageFilePath = jsonDecoder.decodeList(
+            jsonPath + ".defaultPackageFilePath",
+            json["defaultPackageFilePath"],
+            jsonDecoder.decodeString);
       }
       List<String> defaultPackagesDirectoryPath;
       if (json.containsKey("defaultPackagesDirectoryPath")) {
-        defaultPackagesDirectoryPath = jsonDecoder.decodeList(jsonPath + ".defaultPackagesDirectoryPath", json["defaultPackagesDirectoryPath"], jsonDecoder.decodeString);
+        defaultPackagesDirectoryPath = jsonDecoder.decodeList(
+            jsonPath + ".defaultPackagesDirectoryPath",
+            json["defaultPackagesDirectoryPath"],
+            jsonDecoder.decodeString);
       }
-      return new ContextBuilderOptions(dartSdkSummaryPath: dartSdkSummaryPath, defaultAnalysisOptionsFilePath: defaultAnalysisOptionsFilePath, declaredVariables: declaredVariables, defaultPackageFilePath: defaultPackageFilePath, defaultPackagesDirectoryPath: defaultPackagesDirectoryPath);
+      return new ContextBuilderOptions(
+          dartSdkSummaryPath: dartSdkSummaryPath,
+          defaultAnalysisOptionsFilePath: defaultAnalysisOptionsFilePath,
+          declaredVariables: declaredVariables,
+          defaultPackageFilePath: defaultPackageFilePath,
+          defaultPackagesDirectoryPath: defaultPackagesDirectoryPath);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ContextBuilderOptions", json);
     }
@@ -3367,13 +3648,21 @@ class ContextBuilderOptions implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ContextBuilderOptions) {
       return dartSdkSummaryPath == other.dartSdkSummaryPath &&
-          listEqual(defaultAnalysisOptionsFilePath, other.defaultAnalysisOptionsFilePath, (String a, String b) => a == b) &&
-          mapEqual(declaredVariables, other.declaredVariables, (String a, String b) => a == b) &&
-          listEqual(defaultPackageFilePath, other.defaultPackageFilePath, (String a, String b) => a == b) &&
-          listEqual(defaultPackagesDirectoryPath, other.defaultPackagesDirectoryPath, (String a, String b) => a == b);
+          listEqual(
+              defaultAnalysisOptionsFilePath,
+              other.defaultAnalysisOptionsFilePath,
+              (String a, String b) => a == b) &&
+          mapEqual(declaredVariables, other.declaredVariables,
+              (String a, String b) => a == b) &&
+          listEqual(defaultPackageFilePath, other.defaultPackageFilePath,
+              (String a, String b) => a == b) &&
+          listEqual(
+              defaultPackagesDirectoryPath,
+              other.defaultPackagesDirectoryPath,
+              (String a, String b) => a == b);
     }
     return false;
   }
@@ -3382,7 +3671,8 @@ class ContextBuilderOptions implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, dartSdkSummaryPath.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultAnalysisOptionsFilePath.hashCode);
+    hash =
+        JenkinsSmiHash.combine(hash, defaultAnalysisOptionsFilePath.hashCode);
     hash = JenkinsSmiHash.combine(hash, declaredVariables.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultPackageFilePath.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultPackagesDirectoryPath.hashCode);
@@ -3440,7 +3730,8 @@ class ContextRoot implements HasToJson {
     this.exclude = exclude;
   }
 
-  factory ContextRoot.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ContextRoot.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3453,7 +3744,8 @@ class ContextRoot implements HasToJson {
       }
       List<String> exclude;
       if (json.containsKey("exclude")) {
-        exclude = jsonDecoder.decodeList(jsonPath + ".exclude", json["exclude"], jsonDecoder.decodeString);
+        exclude = jsonDecoder.decodeList(
+            jsonPath + ".exclude", json["exclude"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "exclude");
       }
@@ -3475,7 +3767,7 @@ class ContextRoot implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ContextRoot) {
       return root == other.root &&
           listEqual(exclude, other.exclude, (String a, String b) => a == b);
@@ -3497,9 +3789,10 @@ class ContextRoot implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertGetterToMethodFeedback extends RefactoringFeedback implements HasToJson {
+class ConvertGetterToMethodFeedback extends RefactoringFeedback
+    implements HasToJson {
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ConvertGetterToMethodFeedback) {
       return true;
     }
@@ -3517,9 +3810,10 @@ class ConvertGetterToMethodFeedback extends RefactoringFeedback implements HasTo
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertGetterToMethodOptions extends RefactoringOptions implements HasToJson {
+class ConvertGetterToMethodOptions extends RefactoringOptions
+    implements HasToJson {
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ConvertGetterToMethodOptions) {
       return true;
     }
@@ -3537,9 +3831,10 @@ class ConvertGetterToMethodOptions extends RefactoringOptions implements HasToJs
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertMethodToGetterFeedback extends RefactoringFeedback implements HasToJson {
+class ConvertMethodToGetterFeedback extends RefactoringFeedback
+    implements HasToJson {
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ConvertMethodToGetterFeedback) {
       return true;
     }
@@ -3557,9 +3852,10 @@ class ConvertMethodToGetterFeedback extends RefactoringFeedback implements HasTo
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertMethodToGetterOptions extends RefactoringOptions implements HasToJson {
+class ConvertMethodToGetterOptions extends RefactoringOptions
+    implements HasToJson {
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ConvertMethodToGetterOptions) {
       return true;
     }
@@ -3635,7 +3931,8 @@ class EditGetAssistsParams implements RequestParams {
     this.length = length;
   }
 
-  factory EditGetAssistsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetAssistsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3687,7 +3984,7 @@ class EditGetAssistsParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetAssistsParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -3735,14 +4032,20 @@ class EditGetAssistsResult implements ResponseResult {
     this.assists = assists;
   }
 
-  factory EditGetAssistsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetAssistsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<PrioritizedSourceChange> assists;
       if (json.containsKey("assists")) {
-        assists = jsonDecoder.decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
+        assists = jsonDecoder.decodeList(
+            jsonPath + ".assists",
+            json["assists"],
+            (String jsonPath, Object json) =>
+                new PrioritizedSourceChange.fromJson(
+                    jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "assists");
       }
@@ -3754,13 +4057,16 @@ class EditGetAssistsResult implements ResponseResult {
 
   factory EditGetAssistsResult.fromResponse(Response response) {
     return new EditGetAssistsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response.result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["assists"] = assists.map((PrioritizedSourceChange value) => value.toJson()).toList();
+    result["assists"] =
+        assists.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
   }
 
@@ -3773,9 +4079,10 @@ class EditGetAssistsResult implements ResponseResult {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetAssistsResult) {
-      return listEqual(assists, other.assists, (PrioritizedSourceChange a, PrioritizedSourceChange b) => a == b);
+      return listEqual(assists, other.assists,
+          (PrioritizedSourceChange a, PrioritizedSourceChange b) => a == b);
     }
     return false;
   }
@@ -3851,7 +4158,8 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
     this.length = length;
   }
 
-  factory EditGetAvailableRefactoringsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetAvailableRefactoringsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3876,7 +4184,8 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
       }
       return new EditGetAvailableRefactoringsParams(file, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAvailableRefactorings params", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.getAvailableRefactorings params", json);
     }
   }
 
@@ -3903,7 +4212,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetAvailableRefactoringsParams) {
       return file == other.file &&
           offset == other.offset &&
@@ -3961,32 +4270,41 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
     this.kinds = kinds;
   }
 
-  factory EditGetAvailableRefactoringsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetAvailableRefactoringsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<RefactoringKind> kinds;
       if (json.containsKey("kinds")) {
-        kinds = jsonDecoder.decodeList(jsonPath + ".kinds", json["kinds"], (String jsonPath, Object json) => new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
+        kinds = jsonDecoder.decodeList(
+            jsonPath + ".kinds",
+            json["kinds"],
+            (String jsonPath, Object json) =>
+                new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kinds");
       }
       return new EditGetAvailableRefactoringsResult(kinds);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAvailableRefactorings result", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "edit.getAvailableRefactorings result", json);
     }
   }
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
     return new EditGetAvailableRefactoringsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response.result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kinds"] = kinds.map((RefactoringKind value) => value.toJson()).toList();
+    result["kinds"] =
+        kinds.map((RefactoringKind value) => value.toJson()).toList();
     return result;
   }
 
@@ -3999,9 +4317,10 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetAvailableRefactoringsResult) {
-      return listEqual(kinds, other.kinds, (RefactoringKind a, RefactoringKind b) => a == b);
+      return listEqual(
+          kinds, other.kinds, (RefactoringKind a, RefactoringKind b) => a == b);
     }
     return false;
   }
@@ -4060,7 +4379,8 @@ class EditGetFixesParams implements RequestParams {
     this.offset = offset;
   }
 
-  factory EditGetFixesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetFixesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -4105,10 +4425,9 @@ class EditGetFixesParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetFixesParams) {
-      return file == other.file &&
-          offset == other.offset;
+      return file == other.file && offset == other.offset;
     }
     return false;
   }
@@ -4151,14 +4470,19 @@ class EditGetFixesResult implements ResponseResult {
     this.fixes = fixes;
   }
 
-  factory EditGetFixesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetFixesResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(
+            jsonPath + ".fixes",
+            json["fixes"],
+            (String jsonPath, Object json) =>
+                new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
@@ -4170,13 +4494,16 @@ class EditGetFixesResult implements ResponseResult {
 
   factory EditGetFixesResult.fromResponse(Response response) {
     return new EditGetFixesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response.result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["fixes"] = fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
+    result["fixes"] =
+        fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
     return result;
   }
 
@@ -4189,9 +4516,10 @@ class EditGetFixesResult implements ResponseResult {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetFixesResult) {
-      return listEqual(fixes, other.fixes, (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
+      return listEqual(fixes, other.fixes,
+          (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
     }
     return false;
   }
@@ -4318,7 +4646,9 @@ class EditGetRefactoringParams implements RequestParams {
     this._options = value;
   }
 
-  EditGetRefactoringParams(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) {
+  EditGetRefactoringParams(RefactoringKind kind, String file, int offset,
+      int length, bool validateOnly,
+      {RefactoringOptions options}) {
     this.kind = kind;
     this.file = file;
     this.offset = offset;
@@ -4327,14 +4657,16 @@ class EditGetRefactoringParams implements RequestParams {
     this.options = options;
   }
 
-  factory EditGetRefactoringParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetRefactoringParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       RefactoringKind kind;
       if (json.containsKey("kind")) {
-        kind = new RefactoringKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = new RefactoringKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -4358,15 +4690,19 @@ class EditGetRefactoringParams implements RequestParams {
       }
       bool validateOnly;
       if (json.containsKey("validateOnly")) {
-        validateOnly = jsonDecoder.decodeBool(jsonPath + ".validateOnly", json["validateOnly"]);
+        validateOnly = jsonDecoder.decodeBool(
+            jsonPath + ".validateOnly", json["validateOnly"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "validateOnly");
       }
       RefactoringOptions options;
       if (json.containsKey("options")) {
-        options = new RefactoringOptions.fromJson(jsonDecoder, jsonPath + ".options", json["options"], kind);
+        options = new RefactoringOptions.fromJson(
+            jsonDecoder, jsonPath + ".options", json["options"], kind);
       }
-      return new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options);
+      return new EditGetRefactoringParams(
+          kind, file, offset, length, validateOnly,
+          options: options);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring params", json);
     }
@@ -4402,7 +4738,7 @@ class EditGetRefactoringParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetRefactoringParams) {
       return kind == other.kind &&
           file == other.file &&
@@ -4563,7 +4899,13 @@ class EditGetRefactoringResult implements ResponseResult {
     this._potentialEdits = value;
   }
 
-  EditGetRefactoringResult(List<RefactoringProblem> initialProblems, List<RefactoringProblem> optionsProblems, List<RefactoringProblem> finalProblems, {RefactoringFeedback feedback, SourceChange change, List<String> potentialEdits}) {
+  EditGetRefactoringResult(
+      List<RefactoringProblem> initialProblems,
+      List<RefactoringProblem> optionsProblems,
+      List<RefactoringProblem> finalProblems,
+      {RefactoringFeedback feedback,
+      SourceChange change,
+      List<String> potentialEdits}) {
     this.initialProblems = initialProblems;
     this.optionsProblems = optionsProblems;
     this.finalProblems = finalProblems;
@@ -4572,42 +4914,60 @@ class EditGetRefactoringResult implements ResponseResult {
     this.potentialEdits = potentialEdits;
   }
 
-  factory EditGetRefactoringResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory EditGetRefactoringResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
       if (json.containsKey("initialProblems")) {
-        initialProblems = jsonDecoder.decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        initialProblems = jsonDecoder.decodeList(
+            jsonPath + ".initialProblems",
+            json["initialProblems"],
+            (String jsonPath, Object json) =>
+                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "initialProblems");
       }
       List<RefactoringProblem> optionsProblems;
       if (json.containsKey("optionsProblems")) {
-        optionsProblems = jsonDecoder.decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        optionsProblems = jsonDecoder.decodeList(
+            jsonPath + ".optionsProblems",
+            json["optionsProblems"],
+            (String jsonPath, Object json) =>
+                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "optionsProblems");
       }
       List<RefactoringProblem> finalProblems;
       if (json.containsKey("finalProblems")) {
-        finalProblems = jsonDecoder.decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        finalProblems = jsonDecoder.decodeList(
+            jsonPath + ".finalProblems",
+            json["finalProblems"],
+            (String jsonPath, Object json) =>
+                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "finalProblems");
       }
       RefactoringFeedback feedback;
       if (json.containsKey("feedback")) {
-        feedback = new RefactoringFeedback.fromJson(jsonDecoder, jsonPath + ".feedback", json["feedback"], json);
+        feedback = new RefactoringFeedback.fromJson(
+            jsonDecoder, jsonPath + ".feedback", json["feedback"], json);
       }
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(jsonDecoder, jsonPath + ".change", json["change"]);
+        change = new SourceChange.fromJson(
+            jsonDecoder, jsonPath + ".change", json["change"]);
       }
       List<String> potentialEdits;
       if (json.containsKey("potentialEdits")) {
-        potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder.decodeString);
+        potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits",
+            json["potentialEdits"], jsonDecoder.decodeString);
       }
-      return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
+      return new EditGetRefactoringResult(
+          initialProblems, optionsProblems, finalProblems,
+          feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring result", json);
     }
@@ -4615,15 +4975,23 @@ class EditGetRefactoringResult implements ResponseResult {
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
     return new EditGetRefactoringResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response.result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["initialProblems"] = initialProblems.map((RefactoringProblem value) => value.toJson()).toList();
-    result["optionsProblems"] = optionsProblems.map((RefactoringProblem value) => value.toJson()).toList();
-    result["finalProblems"] = finalProblems.map((RefactoringProblem value) => value.toJson()).toList();
+    result["initialProblems"] = initialProblems
+        .map((RefactoringProblem value) => value.toJson())
+        .toList();
+    result["optionsProblems"] = optionsProblems
+        .map((RefactoringProblem value) => value.toJson())
+        .toList();
+    result["finalProblems"] = finalProblems
+        .map((RefactoringProblem value) => value.toJson())
+        .toList();
     if (feedback != null) {
       result["feedback"] = feedback.toJson();
     }
@@ -4645,14 +5013,18 @@ class EditGetRefactoringResult implements ResponseResult {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is EditGetRefactoringResult) {
-      return listEqual(initialProblems, other.initialProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
-          listEqual(optionsProblems, other.optionsProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
-          listEqual(finalProblems, other.finalProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+      return listEqual(initialProblems, other.initialProblems,
+              (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          listEqual(optionsProblems, other.optionsProblems,
+              (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          listEqual(finalProblems, other.finalProblems,
+              (RefactoringProblem a, RefactoringProblem b) => a == b) &&
           feedback == other.feedback &&
           change == other.change &&
-          listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
+          listEqual(potentialEdits, other.potentialEdits,
+              (String a, String b) => a == b);
     }
     return false;
   }
@@ -4693,7 +5065,13 @@ class Element implements HasToJson {
   static const int FLAG_PRIVATE = 0x10;
   static const int FLAG_DEPRECATED = 0x20;
 
-  static int makeFlags({isAbstract: false, isConst: false, isFinal: false, isStatic: false, isPrivate: false, isDeprecated: false}) {
+  static int makeFlags(
+      {isAbstract: false,
+      isConst: false,
+      isFinal: false,
+      isStatic: false,
+      isPrivate: false,
+      isDeprecated: false}) {
     int flags = 0;
     if (isAbstract) flags |= FLAG_ABSTRACT;
     if (isConst) flags |= FLAG_CONST;
@@ -4835,7 +5213,11 @@ class Element implements HasToJson {
     this._typeParameters = value;
   }
 
-  Element(ElementKind kind, String name, int flags, {Location location, String parameters, String returnType, String typeParameters}) {
+  Element(ElementKind kind, String name, int flags,
+      {Location location,
+      String parameters,
+      String returnType,
+      String typeParameters}) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -4845,14 +5227,16 @@ class Element implements HasToJson {
     this.typeParameters = typeParameters;
   }
 
-  factory Element.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory Element.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey("kind")) {
-        kind = new ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = new ElementKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -4864,7 +5248,8 @@ class Element implements HasToJson {
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(jsonDecoder, jsonPath + ".location", json["location"]);
+        location = new Location.fromJson(
+            jsonDecoder, jsonPath + ".location", json["location"]);
       }
       int flags;
       if (json.containsKey("flags")) {
@@ -4874,17 +5259,24 @@ class Element implements HasToJson {
       }
       String parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder.decodeString(jsonPath + ".parameters", json["parameters"]);
+        parameters = jsonDecoder.decodeString(
+            jsonPath + ".parameters", json["parameters"]);
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(
+            jsonPath + ".returnType", json["returnType"]);
       }
       String typeParameters;
       if (json.containsKey("typeParameters")) {
-        typeParameters = jsonDecoder.decodeString(jsonPath + ".typeParameters", json["typeParameters"]);
+        typeParameters = jsonDecoder.decodeString(
+            jsonPath + ".typeParameters", json["typeParameters"]);
       }
-      return new Element(kind, name, flags, location: location, parameters: parameters, returnType: returnType, typeParameters: typeParameters);
+      return new Element(kind, name, flags,
+          location: location,
+          parameters: parameters,
+          returnType: returnType,
+          typeParameters: typeParameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Element", json);
     }
@@ -4922,7 +5314,7 @@ class Element implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is Element) {
       return kind == other.kind &&
           name == other.name &&
@@ -4981,9 +5373,11 @@ class Element implements HasToJson {
 class ElementKind implements Enum {
   static const ElementKind CLASS = const ElementKind._("CLASS");
 
-  static const ElementKind CLASS_TYPE_ALIAS = const ElementKind._("CLASS_TYPE_ALIAS");
+  static const ElementKind CLASS_TYPE_ALIAS =
+      const ElementKind._("CLASS_TYPE_ALIAS");
 
-  static const ElementKind COMPILATION_UNIT = const ElementKind._("COMPILATION_UNIT");
+  static const ElementKind COMPILATION_UNIT =
+      const ElementKind._("COMPILATION_UNIT");
 
   static const ElementKind CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
 
@@ -4997,7 +5391,8 @@ class ElementKind implements Enum {
 
   static const ElementKind FUNCTION = const ElementKind._("FUNCTION");
 
-  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
+  static const ElementKind FUNCTION_TYPE_ALIAS =
+      const ElementKind._("FUNCTION_TYPE_ALIAS");
 
   static const ElementKind GETTER = const ElementKind._("GETTER");
 
@@ -5005,7 +5400,8 @@ class ElementKind implements Enum {
 
   static const ElementKind LIBRARY = const ElementKind._("LIBRARY");
 
-  static const ElementKind LOCAL_VARIABLE = const ElementKind._("LOCAL_VARIABLE");
+  static const ElementKind LOCAL_VARIABLE =
+      const ElementKind._("LOCAL_VARIABLE");
 
   static const ElementKind METHOD = const ElementKind._("METHOD");
 
@@ -5015,16 +5411,40 @@ class ElementKind implements Enum {
 
   static const ElementKind SETTER = const ElementKind._("SETTER");
 
-  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind._("TOP_LEVEL_VARIABLE");
+  static const ElementKind TOP_LEVEL_VARIABLE =
+      const ElementKind._("TOP_LEVEL_VARIABLE");
 
-  static const ElementKind TYPE_PARAMETER = const ElementKind._("TYPE_PARAMETER");
+  static const ElementKind TYPE_PARAMETER =
+      const ElementKind._("TYPE_PARAMETER");
 
   static const ElementKind UNKNOWN = const ElementKind._("UNKNOWN");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, ENUM, ENUM_CONSTANT, FIELD, FILE, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNKNOWN];
+  static const List<ElementKind> VALUES = const <ElementKind>[
+    CLASS,
+    CLASS_TYPE_ALIAS,
+    COMPILATION_UNIT,
+    CONSTRUCTOR,
+    ENUM,
+    ENUM_CONSTANT,
+    FIELD,
+    FILE,
+    FUNCTION,
+    FUNCTION_TYPE_ALIAS,
+    GETTER,
+    LABEL,
+    LIBRARY,
+    LOCAL_VARIABLE,
+    METHOD,
+    PARAMETER,
+    PREFIX,
+    SETTER,
+    TOP_LEVEL_VARIABLE,
+    TYPE_PARAMETER,
+    UNKNOWN
+  ];
 
   @override
   final String name;
@@ -5079,11 +5499,12 @@ class ElementKind implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory ElementKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ElementKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new ElementKind(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -5195,7 +5616,10 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
     this._lengths = value;
   }
 
-  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths, {List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths}) {
+  ExtractLocalVariableFeedback(
+      List<String> names, List<int> offsets, List<int> lengths,
+      {List<int> coveringExpressionOffsets,
+      List<int> coveringExpressionLengths}) {
     this.coveringExpressionOffsets = coveringExpressionOffsets;
     this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
@@ -5203,40 +5627,53 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
     this.lengths = lengths;
   }
 
-  factory ExtractLocalVariableFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExtractLocalVariableFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<int> coveringExpressionOffsets;
       if (json.containsKey("coveringExpressionOffsets")) {
-        coveringExpressionOffsets = jsonDecoder.decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder.decodeInt);
+        coveringExpressionOffsets = jsonDecoder.decodeList(
+            jsonPath + ".coveringExpressionOffsets",
+            json["coveringExpressionOffsets"],
+            jsonDecoder.decodeInt);
       }
       List<int> coveringExpressionLengths;
       if (json.containsKey("coveringExpressionLengths")) {
-        coveringExpressionLengths = jsonDecoder.decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder.decodeInt);
+        coveringExpressionLengths = jsonDecoder.decodeList(
+            jsonPath + ".coveringExpressionLengths",
+            json["coveringExpressionLengths"],
+            jsonDecoder.decodeInt);
       }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
+        names = jsonDecoder.decodeList(
+            jsonPath + ".names", json["names"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "names");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+        offsets = jsonDecoder.decodeList(
+            jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
+        lengths = jsonDecoder.decodeList(
+            jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(names, offsets, lengths, coveringExpressionOffsets: coveringExpressionOffsets, coveringExpressionLengths: coveringExpressionLengths);
+      return new ExtractLocalVariableFeedback(names, offsets, lengths,
+          coveringExpressionOffsets: coveringExpressionOffsets,
+          coveringExpressionLengths: coveringExpressionLengths);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "extractLocalVariable feedback", json);
     }
   }
 
@@ -5259,10 +5696,12 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ExtractLocalVariableFeedback) {
-      return listEqual(coveringExpressionOffsets, other.coveringExpressionOffsets, (int a, int b) => a == b) &&
-          listEqual(coveringExpressionLengths, other.coveringExpressionLengths, (int a, int b) => a == b) &&
+      return listEqual(coveringExpressionOffsets,
+              other.coveringExpressionOffsets, (int a, int b) => a == b) &&
+          listEqual(coveringExpressionLengths, other.coveringExpressionLengths,
+              (int a, int b) => a == b) &&
           listEqual(names, other.names, (String a, String b) => a == b) &&
           listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           listEqual(lengths, other.lengths, (int a, int b) => a == b);
@@ -5334,7 +5773,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
     this.extractAll = extractAll;
   }
 
-  factory ExtractLocalVariableOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExtractLocalVariableOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -5347,17 +5787,20 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
       }
       bool extractAll;
       if (json.containsKey("extractAll")) {
-        extractAll = jsonDecoder.decodeBool(jsonPath + ".extractAll", json["extractAll"]);
+        extractAll = jsonDecoder.decodeBool(
+            jsonPath + ".extractAll", json["extractAll"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "extractAll");
       }
       return new ExtractLocalVariableOptions(name, extractAll);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable options", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "extractLocalVariable options", json);
     }
   }
 
-  factory ExtractLocalVariableOptions.fromRefactoringParams(EditGetRefactoringParams refactoringParams, Request request) {
+  factory ExtractLocalVariableOptions.fromRefactoringParams(
+      EditGetRefactoringParams refactoringParams, Request request) {
     return new ExtractLocalVariableOptions.fromJson(
         new RequestDecoder(request), "options", refactoringParams.options);
   }
@@ -5374,10 +5817,9 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ExtractLocalVariableOptions) {
-      return name == other.name &&
-          extractAll == other.extractAll;
+      return name == other.name && extractAll == other.extractAll;
     }
     return false;
   }
@@ -5542,7 +5984,15 @@ class ExtractMethodFeedback extends RefactoringFeedback {
     this._lengths = value;
   }
 
-  ExtractMethodFeedback(int offset, int length, String returnType, List<String> names, bool canCreateGetter, List<RefactoringMethodParameter> parameters, List<int> offsets, List<int> lengths) {
+  ExtractMethodFeedback(
+      int offset,
+      int length,
+      String returnType,
+      List<String> names,
+      bool canCreateGetter,
+      List<RefactoringMethodParameter> parameters,
+      List<int> offsets,
+      List<int> lengths) {
     this.offset = offset;
     this.length = length;
     this.returnType = returnType;
@@ -5553,7 +6003,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
     this.lengths = lengths;
   }
 
-  factory ExtractMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExtractMethodFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -5572,41 +6023,52 @@ class ExtractMethodFeedback extends RefactoringFeedback {
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(
+            jsonPath + ".returnType", json["returnType"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "returnType");
       }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
+        names = jsonDecoder.decodeList(
+            jsonPath + ".names", json["names"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "names");
       }
       bool canCreateGetter;
       if (json.containsKey("canCreateGetter")) {
-        canCreateGetter = jsonDecoder.decodeBool(jsonPath + ".canCreateGetter", json["canCreateGetter"]);
+        canCreateGetter = jsonDecoder.decodeBool(
+            jsonPath + ".canCreateGetter", json["canCreateGetter"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "canCreateGetter");
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(
+            jsonPath + ".parameters",
+            json["parameters"],
+            (String jsonPath, Object json) =>
+                new RefactoringMethodParameter.fromJson(
+                    jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+        offsets = jsonDecoder.decodeList(
+            jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
+        lengths = jsonDecoder.decodeList(
+            jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "lengths");
       }
-      return new ExtractMethodFeedback(offset, length, returnType, names, canCreateGetter, parameters, offsets, lengths);
+      return new ExtractMethodFeedback(offset, length, returnType, names,
+          canCreateGetter, parameters, offsets, lengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback", json);
     }
@@ -5620,7 +6082,9 @@ class ExtractMethodFeedback extends RefactoringFeedback {
     result["returnType"] = returnType;
     result["names"] = names;
     result["canCreateGetter"] = canCreateGetter;
-    result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson()).toList();
+    result["parameters"] = parameters
+        .map((RefactoringMethodParameter value) => value.toJson())
+        .toList();
     result["offsets"] = offsets;
     result["lengths"] = lengths;
     return result;
@@ -5630,14 +6094,18 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ExtractMethodFeedback) {
       return offset == other.offset &&
           length == other.length &&
           returnType == other.returnType &&
           listEqual(names, other.names, (String a, String b) => a == b) &&
           canCreateGetter == other.canCreateGetter &&
-          listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
+          listEqual(
+              parameters,
+              other.parameters,
+              (RefactoringMethodParameter a, RefactoringMethodParameter b) =>
+                  a == b) &&
           listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
@@ -5772,7 +6240,8 @@ class ExtractMethodOptions extends RefactoringOptions {
     this._extractAll = value;
   }
 
-  ExtractMethodOptions(String returnType, bool createGetter, String name, List<RefactoringMethodParameter> parameters, bool extractAll) {
+  ExtractMethodOptions(String returnType, bool createGetter, String name,
+      List<RefactoringMethodParameter> parameters, bool extractAll) {
     this.returnType = returnType;
     this.createGetter = createGetter;
     this.name = name;
@@ -5780,20 +6249,23 @@ class ExtractMethodOptions extends RefactoringOptions {
     this.extractAll = extractAll;
   }
 
-  factory ExtractMethodOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExtractMethodOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(
+            jsonPath + ".returnType", json["returnType"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "returnType");
       }
       bool createGetter;
       if (json.containsKey("createGetter")) {
-        createGetter = jsonDecoder.decodeBool(jsonPath + ".createGetter", json["createGetter"]);
+        createGetter = jsonDecoder.decodeBool(
+            jsonPath + ".createGetter", json["createGetter"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "createGetter");
       }
@@ -5805,23 +6277,31 @@ class ExtractMethodOptions extends RefactoringOptions {
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(
+            jsonPath + ".parameters",
+            json["parameters"],
+            (String jsonPath, Object json) =>
+                new RefactoringMethodParameter.fromJson(
+                    jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
       }
       bool extractAll;
       if (json.containsKey("extractAll")) {
-        extractAll = jsonDecoder.decodeBool(jsonPath + ".extractAll", json["extractAll"]);
+        extractAll = jsonDecoder.decodeBool(
+            jsonPath + ".extractAll", json["extractAll"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "extractAll");
       }
-      return new ExtractMethodOptions(returnType, createGetter, name, parameters, extractAll);
+      return new ExtractMethodOptions(
+          returnType, createGetter, name, parameters, extractAll);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod options", json);
     }
   }
 
-  factory ExtractMethodOptions.fromRefactoringParams(EditGetRefactoringParams refactoringParams, Request request) {
+  factory ExtractMethodOptions.fromRefactoringParams(
+      EditGetRefactoringParams refactoringParams, Request request) {
     return new ExtractMethodOptions.fromJson(
         new RequestDecoder(request), "options", refactoringParams.options);
   }
@@ -5832,7 +6312,9 @@ class ExtractMethodOptions extends RefactoringOptions {
     result["returnType"] = returnType;
     result["createGetter"] = createGetter;
     result["name"] = name;
-    result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson()).toList();
+    result["parameters"] = parameters
+        .map((RefactoringMethodParameter value) => value.toJson())
+        .toList();
     result["extractAll"] = extractAll;
     return result;
   }
@@ -5841,12 +6323,16 @@ class ExtractMethodOptions extends RefactoringOptions {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is ExtractMethodOptions) {
       return returnType == other.returnType &&
           createGetter == other.createGetter &&
           name == other.name &&
-          listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
+          listEqual(
+              parameters,
+              other.parameters,
+              (RefactoringMethodParameter a, RefactoringMethodParameter b) =>
+                  a == b) &&
           extractAll == other.extractAll;
     }
     return false;
@@ -5884,14 +6370,22 @@ class FoldingKind implements Enum {
 
   static const FoldingKind DIRECTIVES = const FoldingKind._("DIRECTIVES");
 
-  static const FoldingKind DOCUMENTATION_COMMENT = const FoldingKind._("DOCUMENTATION_COMMENT");
+  static const FoldingKind DOCUMENTATION_COMMENT =
+      const FoldingKind._("DOCUMENTATION_COMMENT");
 
-  static const FoldingKind TOP_LEVEL_DECLARATION = const FoldingKind._("TOP_LEVEL_DECLARATION");
+  static const FoldingKind TOP_LEVEL_DECLARATION =
+      const FoldingKind._("TOP_LEVEL_DECLARATION");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<FoldingKind> VALUES = const <FoldingKind>[COMMENT, CLASS_MEMBER, DIRECTIVES, DOCUMENTATION_COMMENT, TOP_LEVEL_DECLARATION];
+  static const List<FoldingKind> VALUES = const <FoldingKind>[
+    COMMENT,
+    CLASS_MEMBER,
+    DIRECTIVES,
+    DOCUMENTATION_COMMENT,
+    TOP_LEVEL_DECLARATION
+  ];
 
   @override
   final String name;
@@ -5914,11 +6408,12 @@ class FoldingKind implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory FoldingKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory FoldingKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new FoldingKind(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -5994,14 +6489,16 @@ class FoldingRegion implements HasToJson {
     this.length = length;
   }
 
-  factory FoldingRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory FoldingRegion.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       FoldingKind kind;
       if (json.containsKey("kind")) {
-        kind = new FoldingKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = new FoldingKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -6036,7 +6533,7 @@ class FoldingRegion implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is FoldingRegion) {
       return kind == other.kind &&
           offset == other.offset &&
@@ -6118,14 +6615,16 @@ class HighlightRegion implements HasToJson {
     this.length = length;
   }
 
-  factory HighlightRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory HighlightRegion.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       HighlightRegionType type;
       if (json.containsKey("type")) {
-        type = new HighlightRegionType.fromJson(jsonDecoder, jsonPath + ".type", json["type"]);
+        type = new HighlightRegionType.fromJson(
+            jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
       }
@@ -6160,7 +6659,7 @@ class HighlightRegion implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is HighlightRegion) {
       return type == other.type &&
           offset == other.offset &&
@@ -6261,50 +6760,63 @@ class HighlightRegion implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class HighlightRegionType implements Enum {
-  static const HighlightRegionType ANNOTATION = const HighlightRegionType._("ANNOTATION");
+  static const HighlightRegionType ANNOTATION =
+      const HighlightRegionType._("ANNOTATION");
 
-  static const HighlightRegionType BUILT_IN = const HighlightRegionType._("BUILT_IN");
+  static const HighlightRegionType BUILT_IN =
+      const HighlightRegionType._("BUILT_IN");
 
   static const HighlightRegionType CLASS = const HighlightRegionType._("CLASS");
 
-  static const HighlightRegionType COMMENT_BLOCK = const HighlightRegionType._("COMMENT_BLOCK");
+  static const HighlightRegionType COMMENT_BLOCK =
+      const HighlightRegionType._("COMMENT_BLOCK");
 
-  static const HighlightRegionType COMMENT_DOCUMENTATION = const HighlightRegionType._("COMMENT_DOCUMENTATION");
+  static const HighlightRegionType COMMENT_DOCUMENTATION =
+      const HighlightRegionType._("COMMENT_DOCUMENTATION");
 
-  static const HighlightRegionType COMMENT_END_OF_LINE = const HighlightRegionType._("COMMENT_END_OF_LINE");
+  static const HighlightRegionType COMMENT_END_OF_LINE =
+      const HighlightRegionType._("COMMENT_END_OF_LINE");
 
-  static const HighlightRegionType CONSTRUCTOR = const HighlightRegionType._("CONSTRUCTOR");
+  static const HighlightRegionType CONSTRUCTOR =
+      const HighlightRegionType._("CONSTRUCTOR");
 
-  static const HighlightRegionType DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
+  static const HighlightRegionType DIRECTIVE =
+      const HighlightRegionType._("DIRECTIVE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
+  static const HighlightRegionType DYNAMIC_TYPE =
+      const HighlightRegionType._("DYNAMIC_TYPE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
+  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION =
+      const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
+  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE =
+      const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION = const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
+  static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION =
+      const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE = const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
+  static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE =
+      const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
 
   static const HighlightRegionType ENUM = const HighlightRegionType._("ENUM");
 
-  static const HighlightRegionType ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
+  static const HighlightRegionType ENUM_CONSTANT =
+      const HighlightRegionType._("ENUM_CONSTANT");
 
   /**
    * Only for version 1 of highlight.
@@ -6314,250 +6826,380 @@ class HighlightRegionType implements Enum {
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType FIELD_STATIC = const HighlightRegionType._("FIELD_STATIC");
+  static const HighlightRegionType FIELD_STATIC =
+      const HighlightRegionType._("FIELD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType FUNCTION = const HighlightRegionType._("FUNCTION");
+  static const HighlightRegionType FUNCTION =
+      const HighlightRegionType._("FUNCTION");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType FUNCTION_DECLARATION = const HighlightRegionType._("FUNCTION_DECLARATION");
+  static const HighlightRegionType FUNCTION_DECLARATION =
+      const HighlightRegionType._("FUNCTION_DECLARATION");
 
-  static const HighlightRegionType FUNCTION_TYPE_ALIAS = const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
+  static const HighlightRegionType FUNCTION_TYPE_ALIAS =
+      const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType GETTER_DECLARATION = const HighlightRegionType._("GETTER_DECLARATION");
+  static const HighlightRegionType GETTER_DECLARATION =
+      const HighlightRegionType._("GETTER_DECLARATION");
 
-  static const HighlightRegionType IDENTIFIER_DEFAULT = const HighlightRegionType._("IDENTIFIER_DEFAULT");
+  static const HighlightRegionType IDENTIFIER_DEFAULT =
+      const HighlightRegionType._("IDENTIFIER_DEFAULT");
 
-  static const HighlightRegionType IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const HighlightRegionType INSTANCE_FIELD_DECLARATION = const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
+  static const HighlightRegionType IMPORT_PREFIX =
+      const HighlightRegionType._("IMPORT_PREFIX");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INSTANCE_FIELD_REFERENCE = const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
+  static const HighlightRegionType INSTANCE_FIELD_DECLARATION =
+      const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INSTANCE_GETTER_DECLARATION = const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
+  static const HighlightRegionType INSTANCE_FIELD_REFERENCE =
+      const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INSTANCE_GETTER_REFERENCE = const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
+  static const HighlightRegionType INSTANCE_GETTER_DECLARATION =
+      const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INSTANCE_METHOD_DECLARATION = const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
+  static const HighlightRegionType INSTANCE_GETTER_REFERENCE =
+      const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INSTANCE_METHOD_REFERENCE = const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
+  static const HighlightRegionType INSTANCE_METHOD_DECLARATION =
+      const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INSTANCE_SETTER_DECLARATION = const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
+  static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
+      const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INSTANCE_SETTER_REFERENCE = const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
+  static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
+      const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType INVALID_STRING_ESCAPE = const HighlightRegionType._("INVALID_STRING_ESCAPE");
+  static const HighlightRegionType INSTANCE_SETTER_REFERENCE =
+      const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
 
-  static const HighlightRegionType KEYWORD = const HighlightRegionType._("KEYWORD");
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INVALID_STRING_ESCAPE =
+      const HighlightRegionType._("INVALID_STRING_ESCAPE");
+
+  static const HighlightRegionType KEYWORD =
+      const HighlightRegionType._("KEYWORD");
 
   static const HighlightRegionType LABEL = const HighlightRegionType._("LABEL");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType LIBRARY_NAME = const HighlightRegionType._("LIBRARY_NAME");
+  static const HighlightRegionType LIBRARY_NAME =
+      const HighlightRegionType._("LIBRARY_NAME");
 
-  static const HighlightRegionType LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
+  static const HighlightRegionType LITERAL_BOOLEAN =
+      const HighlightRegionType._("LITERAL_BOOLEAN");
 
-  static const HighlightRegionType LITERAL_DOUBLE = const HighlightRegionType._("LITERAL_DOUBLE");
+  static const HighlightRegionType LITERAL_DOUBLE =
+      const HighlightRegionType._("LITERAL_DOUBLE");
 
-  static const HighlightRegionType LITERAL_INTEGER = const HighlightRegionType._("LITERAL_INTEGER");
+  static const HighlightRegionType LITERAL_INTEGER =
+      const HighlightRegionType._("LITERAL_INTEGER");
 
-  static const HighlightRegionType LITERAL_LIST = const HighlightRegionType._("LITERAL_LIST");
+  static const HighlightRegionType LITERAL_LIST =
+      const HighlightRegionType._("LITERAL_LIST");
 
-  static const HighlightRegionType LITERAL_MAP = const HighlightRegionType._("LITERAL_MAP");
+  static const HighlightRegionType LITERAL_MAP =
+      const HighlightRegionType._("LITERAL_MAP");
 
-  static const HighlightRegionType LITERAL_STRING = const HighlightRegionType._("LITERAL_STRING");
+  static const HighlightRegionType LITERAL_STRING =
+      const HighlightRegionType._("LITERAL_STRING");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType LOCAL_FUNCTION_DECLARATION = const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
+  static const HighlightRegionType LOCAL_FUNCTION_DECLARATION =
+      const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType LOCAL_FUNCTION_REFERENCE = const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
+  static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
+      const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType LOCAL_VARIABLE = const HighlightRegionType._("LOCAL_VARIABLE");
+  static const HighlightRegionType LOCAL_VARIABLE =
+      const HighlightRegionType._("LOCAL_VARIABLE");
 
-  static const HighlightRegionType LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
+  static const HighlightRegionType LOCAL_VARIABLE_DECLARATION =
+      const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
+  static const HighlightRegionType LOCAL_VARIABLE_REFERENCE =
+      const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType METHOD = const HighlightRegionType._("METHOD");
+  static const HighlightRegionType METHOD =
+      const HighlightRegionType._("METHOD");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType METHOD_DECLARATION = const HighlightRegionType._("METHOD_DECLARATION");
+  static const HighlightRegionType METHOD_DECLARATION =
+      const HighlightRegionType._("METHOD_DECLARATION");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType METHOD_DECLARATION_STATIC = const HighlightRegionType._("METHOD_DECLARATION_STATIC");
+  static const HighlightRegionType METHOD_DECLARATION_STATIC =
+      const HighlightRegionType._("METHOD_DECLARATION_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType METHOD_STATIC = const HighlightRegionType._("METHOD_STATIC");
+  static const HighlightRegionType METHOD_STATIC =
+      const HighlightRegionType._("METHOD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType PARAMETER = const HighlightRegionType._("PARAMETER");
+  static const HighlightRegionType PARAMETER =
+      const HighlightRegionType._("PARAMETER");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType SETTER_DECLARATION = const HighlightRegionType._("SETTER_DECLARATION");
+  static const HighlightRegionType SETTER_DECLARATION =
+      const HighlightRegionType._("SETTER_DECLARATION");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_VARIABLE = const HighlightRegionType._("TOP_LEVEL_VARIABLE");
+  static const HighlightRegionType TOP_LEVEL_VARIABLE =
+      const HighlightRegionType._("TOP_LEVEL_VARIABLE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType PARAMETER_DECLARATION = const HighlightRegionType._("PARAMETER_DECLARATION");
+  static const HighlightRegionType PARAMETER_DECLARATION =
+      const HighlightRegionType._("PARAMETER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType PARAMETER_REFERENCE = const HighlightRegionType._("PARAMETER_REFERENCE");
+  static const HighlightRegionType PARAMETER_REFERENCE =
+      const HighlightRegionType._("PARAMETER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType STATIC_FIELD_DECLARATION = const HighlightRegionType._("STATIC_FIELD_DECLARATION");
+  static const HighlightRegionType STATIC_FIELD_DECLARATION =
+      const HighlightRegionType._("STATIC_FIELD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType STATIC_GETTER_DECLARATION = const HighlightRegionType._("STATIC_GETTER_DECLARATION");
+  static const HighlightRegionType STATIC_GETTER_DECLARATION =
+      const HighlightRegionType._("STATIC_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType STATIC_GETTER_REFERENCE = const HighlightRegionType._("STATIC_GETTER_REFERENCE");
+  static const HighlightRegionType STATIC_GETTER_REFERENCE =
+      const HighlightRegionType._("STATIC_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType STATIC_METHOD_DECLARATION = const HighlightRegionType._("STATIC_METHOD_DECLARATION");
+  static const HighlightRegionType STATIC_METHOD_DECLARATION =
+      const HighlightRegionType._("STATIC_METHOD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType STATIC_METHOD_REFERENCE = const HighlightRegionType._("STATIC_METHOD_REFERENCE");
+  static const HighlightRegionType STATIC_METHOD_REFERENCE =
+      const HighlightRegionType._("STATIC_METHOD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType STATIC_SETTER_DECLARATION = const HighlightRegionType._("STATIC_SETTER_DECLARATION");
+  static const HighlightRegionType STATIC_SETTER_DECLARATION =
+      const HighlightRegionType._("STATIC_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType STATIC_SETTER_REFERENCE = const HighlightRegionType._("STATIC_SETTER_REFERENCE");
+  static const HighlightRegionType STATIC_SETTER_REFERENCE =
+      const HighlightRegionType._("STATIC_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION = const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION =
+      const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE = const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
+      const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
+      const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE =
+      const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION =
+      const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE =
+      const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION = const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
+      const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
 
-  static const HighlightRegionType TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
+  static const HighlightRegionType TYPE_NAME_DYNAMIC =
+      const HighlightRegionType._("TYPE_NAME_DYNAMIC");
 
-  static const HighlightRegionType TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE = const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+  static const HighlightRegionType TYPE_PARAMETER =
+      const HighlightRegionType._("TYPE_PARAMETER");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const HighlightRegionType VALID_STRING_ESCAPE = const HighlightRegionType._("VALID_STRING_ESCAPE");
+  static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE =
+      const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType VALID_STRING_ESCAPE =
+      const HighlightRegionType._("VALID_STRING_ESCAPE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[ANNOTATION, BUILT_IN, CLASS, COMMENT_BLOCK, COMMENT_DOCUMENTATION, COMMENT_END_OF_LINE, CONSTRUCTOR, DIRECTIVE, DYNAMIC_TYPE, DYNAMIC_LOCAL_VARIABLE_DECLARATION, DYNAMIC_LOCAL_VARIABLE_REFERENCE, DYNAMIC_PARAMETER_DECLARATION, DYNAMIC_PARAMETER_REFERENCE, ENUM, ENUM_CONSTANT, FIELD, FIELD_STATIC, FUNCTION, FUNCTION_DECLARATION, FUNCTION_TYPE_ALIAS, GETTER_DECLARATION, IDENTIFIER_DEFAULT, IMPORT_PREFIX, INSTANCE_FIELD_DECLARATION, INSTANCE_FIELD_REFERENCE, INSTANCE_GETTER_DECLARATION, INSTANCE_GETTER_REFERENCE, INSTANCE_METHOD_DECLARATION, INSTANCE_METHOD_REFERENCE, INSTANCE_SETTER_DECLARATION, INSTANCE_SETTER_REFERENCE, INVALID_STRING_ESCAPE, KEYWORD, LABEL, LIBRARY_NAME, LITERAL_BOOLEAN, LITERAL_DOUBLE, LITERAL_INTEGER, LITERAL_LIST, LITERAL_MAP, LITERAL_STRING, LOCAL_FUNCTION_DECLARATION, LOCAL_FUNCTION_REFERENCE, LOCAL_VARIABLE, LOCAL_VARIABLE_DECLARATION, LOCAL_VARIABLE_REFERENCE, METHOD, METHOD_DECLARATION, METHOD_DECLARATION_STATIC, METHOD_STATIC, PARAMETER, SETTER_DECLARATION, TOP_LEVEL_VARIABLE, PARAMETER_DECLARATION, PARAMETER_REFERENCE, STATIC_FIELD_DECLARATION, STATIC_GETTER_DECLARATION, STATIC_GETTER_REFERENCE, STATIC_METHOD_DECLARATION, STATIC_METHOD_REFERENCE, STATIC_SETTER_DECLARATION, STATIC_SETTER_REFERENCE, TOP_LEVEL_FUNCTION_DECLARATION, TOP_LEVEL_FUNCTION_REFERENCE, TOP_LEVEL_GETTER_DECLARATION, TOP_LEVEL_GETTER_REFERENCE, TOP_LEVEL_SETTER_DECLARATION, TOP_LEVEL_SETTER_REFERENCE, TOP_LEVEL_VARIABLE_DECLARATION, TYPE_NAME_DYNAMIC, TYPE_PARAMETER, UNRESOLVED_INSTANCE_MEMBER_REFERENCE, VALID_STRING_ESCAPE];
+  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[
+    ANNOTATION,
+    BUILT_IN,
+    CLASS,
+    COMMENT_BLOCK,
+    COMMENT_DOCUMENTATION,
+    COMMENT_END_OF_LINE,
+    CONSTRUCTOR,
+    DIRECTIVE,
+    DYNAMIC_TYPE,
+    DYNAMIC_LOCAL_VARIABLE_DECLARATION,
+    DYNAMIC_LOCAL_VARIABLE_REFERENCE,
+    DYNAMIC_PARAMETER_DECLARATION,
+    DYNAMIC_PARAMETER_REFERENCE,
+    ENUM,
+    ENUM_CONSTANT,
+    FIELD,
+    FIELD_STATIC,
+    FUNCTION,
+    FUNCTION_DECLARATION,
+    FUNCTION_TYPE_ALIAS,
+    GETTER_DECLARATION,
+    IDENTIFIER_DEFAULT,
+    IMPORT_PREFIX,
+    INSTANCE_FIELD_DECLARATION,
+    INSTANCE_FIELD_REFERENCE,
+    INSTANCE_GETTER_DECLARATION,
+    INSTANCE_GETTER_REFERENCE,
+    INSTANCE_METHOD_DECLARATION,
+    INSTANCE_METHOD_REFERENCE,
+    INSTANCE_SETTER_DECLARATION,
+    INSTANCE_SETTER_REFERENCE,
+    INVALID_STRING_ESCAPE,
+    KEYWORD,
+    LABEL,
+    LIBRARY_NAME,
+    LITERAL_BOOLEAN,
+    LITERAL_DOUBLE,
+    LITERAL_INTEGER,
+    LITERAL_LIST,
+    LITERAL_MAP,
+    LITERAL_STRING,
+    LOCAL_FUNCTION_DECLARATION,
+    LOCAL_FUNCTION_REFERENCE,
+    LOCAL_VARIABLE,
+    LOCAL_VARIABLE_DECLARATION,
+    LOCAL_VARIABLE_REFERENCE,
+    METHOD,
+    METHOD_DECLARATION,
+    METHOD_DECLARATION_STATIC,
+    METHOD_STATIC,
+    PARAMETER,
+    SETTER_DECLARATION,
+    TOP_LEVEL_VARIABLE,
+    PARAMETER_DECLARATION,
+    PARAMETER_REFERENCE,
+    STATIC_FIELD_DECLARATION,
+    STATIC_GETTER_DECLARATION,
+    STATIC_GETTER_REFERENCE,
+    STATIC_METHOD_DECLARATION,
+    STATIC_METHOD_REFERENCE,
+    STATIC_SETTER_DECLARATION,
+    STATIC_SETTER_REFERENCE,
+    TOP_LEVEL_FUNCTION_DECLARATION,
+    TOP_LEVEL_FUNCTION_REFERENCE,
+    TOP_LEVEL_GETTER_DECLARATION,
+    TOP_LEVEL_GETTER_REFERENCE,
+    TOP_LEVEL_SETTER_DECLARATION,
+    TOP_LEVEL_SETTER_REFERENCE,
+    TOP_LEVEL_VARIABLE_DECLARATION,
+    TYPE_NAME_DYNAMIC,
+    TYPE_PARAMETER,
+    UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
+    VALID_STRING_ESCAPE
+  ];
 
   @override
   final String name;
@@ -6716,11 +7358,12 @@ class HighlightRegionType implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory HighlightRegionType.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory HighlightRegionType.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new HighlightRegionType(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -6779,7 +7422,8 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
     this.occurrences = occurrences;
   }
 
-  factory InlineLocalVariableFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory InlineLocalVariableFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -6792,13 +7436,15 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
       }
       int occurrences;
       if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder.decodeInt(jsonPath + ".occurrences", json["occurrences"]);
+        occurrences = jsonDecoder.decodeInt(
+            jsonPath + ".occurrences", json["occurrences"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "occurrences");
       }
       return new InlineLocalVariableFeedback(name, occurrences);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "inlineLocalVariable feedback", json);
+      throw jsonDecoder.mismatch(
+          jsonPath, "inlineLocalVariable feedback", json);
     }
   }
 
@@ -6814,10 +7460,9 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is InlineLocalVariableFeedback) {
-      return name == other.name &&
-          occurrences == other.occurrences;
+      return name == other.name && occurrences == other.occurrences;
     }
     return false;
   }
@@ -6836,9 +7481,10 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class InlineLocalVariableOptions extends RefactoringOptions implements HasToJson {
+class InlineLocalVariableOptions extends RefactoringOptions
+    implements HasToJson {
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is InlineLocalVariableOptions) {
       return true;
     }
@@ -6911,34 +7557,40 @@ class InlineMethodFeedback extends RefactoringFeedback {
     this._isDeclaration = value;
   }
 
-  InlineMethodFeedback(String methodName, bool isDeclaration, {String className}) {
+  InlineMethodFeedback(String methodName, bool isDeclaration,
+      {String className}) {
     this.className = className;
     this.methodName = methodName;
     this.isDeclaration = isDeclaration;
   }
 
-  factory InlineMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory InlineMethodFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       String className;
       if (json.containsKey("className")) {
-        className = jsonDecoder.decodeString(jsonPath + ".className", json["className"]);
+        className = jsonDecoder.decodeString(
+            jsonPath + ".className", json["className"]);
       }
       String methodName;
       if (json.containsKey("methodName")) {
-        methodName = jsonDecoder.decodeString(jsonPath + ".methodName", json["methodName"]);
+        methodName = jsonDecoder.decodeString(
+            jsonPath + ".methodName", json["methodName"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "methodName");
       }
       bool isDeclaration;
       if (json.containsKey("isDeclaration")) {
-        isDeclaration = jsonDecoder.decodeBool(jsonPath + ".isDeclaration", json["isDeclaration"]);
+        isDeclaration = jsonDecoder.decodeBool(
+            jsonPath + ".isDeclaration", json["isDeclaration"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isDeclaration");
       }
-      return new InlineMethodFeedback(methodName, isDeclaration, className: className);
+      return new InlineMethodFeedback(methodName, isDeclaration,
+          className: className);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback", json);
     }
@@ -6959,7 +7611,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is InlineMethodFeedback) {
       return className == other.className &&
           methodName == other.methodName &&
@@ -7028,20 +7680,23 @@ class InlineMethodOptions extends RefactoringOptions {
     this.inlineAll = inlineAll;
   }
 
-  factory InlineMethodOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory InlineMethodOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       bool deleteSource;
       if (json.containsKey("deleteSource")) {
-        deleteSource = jsonDecoder.decodeBool(jsonPath + ".deleteSource", json["deleteSource"]);
+        deleteSource = jsonDecoder.decodeBool(
+            jsonPath + ".deleteSource", json["deleteSource"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "deleteSource");
       }
       bool inlineAll;
       if (json.containsKey("inlineAll")) {
-        inlineAll = jsonDecoder.decodeBool(jsonPath + ".inlineAll", json["inlineAll"]);
+        inlineAll =
+            jsonDecoder.decodeBool(jsonPath + ".inlineAll", json["inlineAll"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "inlineAll");
       }
@@ -7051,7 +7706,8 @@ class InlineMethodOptions extends RefactoringOptions {
     }
   }
 
-  factory InlineMethodOptions.fromRefactoringParams(EditGetRefactoringParams refactoringParams, Request request) {
+  factory InlineMethodOptions.fromRefactoringParams(
+      EditGetRefactoringParams refactoringParams, Request request) {
     return new InlineMethodOptions.fromJson(
         new RequestDecoder(request), "options", refactoringParams.options);
   }
@@ -7068,10 +7724,9 @@ class InlineMethodOptions extends RefactoringOptions {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is InlineMethodOptions) {
-      return deleteSource == other.deleteSource &&
-          inlineAll == other.inlineAll;
+      return deleteSource == other.deleteSource && inlineAll == other.inlineAll;
     }
     return false;
   }
@@ -7144,20 +7799,26 @@ class LinkedEditGroup implements HasToJson {
     this._suggestions = value;
   }
 
-  LinkedEditGroup(List<Position> positions, int length, List<LinkedEditSuggestion> suggestions) {
+  LinkedEditGroup(List<Position> positions, int length,
+      List<LinkedEditSuggestion> suggestions) {
     this.positions = positions;
     this.length = length;
     this.suggestions = suggestions;
   }
 
-  factory LinkedEditGroup.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory LinkedEditGroup.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       List<Position> positions;
       if (json.containsKey("positions")) {
-        positions = jsonDecoder.decodeList(jsonPath + ".positions", json["positions"], (String jsonPath, Object json) => new Position.fromJson(jsonDecoder, jsonPath, json));
+        positions = jsonDecoder.decodeList(
+            jsonPath + ".positions",
+            json["positions"],
+            (String jsonPath, Object json) =>
+                new Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "positions");
       }
@@ -7169,7 +7830,11 @@ class LinkedEditGroup implements HasToJson {
       }
       List<LinkedEditSuggestion> suggestions;
       if (json.containsKey("suggestions")) {
-        suggestions = jsonDecoder.decodeList(jsonPath + ".suggestions", json["suggestions"], (String jsonPath, Object json) => new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        suggestions = jsonDecoder.decodeList(
+            jsonPath + ".suggestions",
+            json["suggestions"],
+            (String jsonPath, Object json) =>
+                new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "suggestions");
       }
@@ -7187,9 +7852,12 @@ class LinkedEditGroup implements HasToJson {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["positions"] = positions.map((Position value) => value.toJson()).toList();
+    result["positions"] =
+        positions.map((Position value) => value.toJson()).toList();
     result["length"] = length;
-    result["suggestions"] = suggestions.map((LinkedEditSuggestion value) => value.toJson()).toList();
+    result["suggestions"] = suggestions
+        .map((LinkedEditSuggestion value) => value.toJson())
+        .toList();
     return result;
   }
 
@@ -7212,11 +7880,13 @@ class LinkedEditGroup implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is LinkedEditGroup) {
-      return listEqual(positions, other.positions, (Position a, Position b) => a == b) &&
+      return listEqual(
+              positions, other.positions, (Position a, Position b) => a == b) &&
           length == other.length &&
-          listEqual(suggestions, other.suggestions, (LinkedEditSuggestion a, LinkedEditSuggestion b) => a == b);
+          listEqual(suggestions, other.suggestions,
+              (LinkedEditSuggestion a, LinkedEditSuggestion b) => a == b);
     }
     return false;
   }
@@ -7277,7 +7947,8 @@ class LinkedEditSuggestion implements HasToJson {
     this.kind = kind;
   }
 
-  factory LinkedEditSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory LinkedEditSuggestion.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -7290,7 +7961,8 @@ class LinkedEditSuggestion implements HasToJson {
       }
       LinkedEditSuggestionKind kind;
       if (json.containsKey("kind")) {
-        kind = new LinkedEditSuggestionKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = new LinkedEditSuggestionKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -7312,10 +7984,9 @@ class LinkedEditSuggestion implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is LinkedEditSuggestion) {
-      return value == other.value &&
-          kind == other.kind;
+      return value == other.value && kind == other.kind;
     }
     return false;
   }
@@ -7342,18 +8013,23 @@ class LinkedEditSuggestion implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditSuggestionKind implements Enum {
-  static const LinkedEditSuggestionKind METHOD = const LinkedEditSuggestionKind._("METHOD");
+  static const LinkedEditSuggestionKind METHOD =
+      const LinkedEditSuggestionKind._("METHOD");
 
-  static const LinkedEditSuggestionKind PARAMETER = const LinkedEditSuggestionKind._("PARAMETER");
+  static const LinkedEditSuggestionKind PARAMETER =
+      const LinkedEditSuggestionKind._("PARAMETER");
 
-  static const LinkedEditSuggestionKind TYPE = const LinkedEditSuggestionKind._("TYPE");
+  static const LinkedEditSuggestionKind TYPE =
+      const LinkedEditSuggestionKind._("TYPE");
 
-  static const LinkedEditSuggestionKind VARIABLE = const LinkedEditSuggestionKind._("VARIABLE");
+  static const LinkedEditSuggestionKind VARIABLE =
+      const LinkedEditSuggestionKind._("VARIABLE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<LinkedEditSuggestionKind> VALUES = const <LinkedEditSuggestionKind>[METHOD, PARAMETER, TYPE, VARIABLE];
+  static const List<LinkedEditSuggestionKind> VALUES =
+      const <LinkedEditSuggestionKind>[METHOD, PARAMETER, TYPE, VARIABLE];
 
   @override
   final String name;
@@ -7374,11 +8050,12 @@ class LinkedEditSuggestionKind implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory LinkedEditSuggestionKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory LinkedEditSuggestionKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new LinkedEditSuggestionKind(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -7484,7 +8161,8 @@ class Location implements HasToJson {
     this._startColumn = value;
   }
 
-  Location(String file, int offset, int length, int startLine, int startColumn) {
+  Location(
+      String file, int offset, int length, int startLine, int startColumn) {
     this.file = file;
     this.offset = offset;
     this.length = length;
@@ -7492,7 +8170,8 @@ class Location implements HasToJson {
     this.startColumn = startColumn;
   }
 
-  factory Location.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory Location.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -7517,13 +8196,15 @@ class Location implements HasToJson {
       }
       int startLine;
       if (json.containsKey("startLine")) {
-        startLine = jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
+        startLine =
+            jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startLine");
       }
       int startColumn;
       if (json.containsKey("startColumn")) {
-        startColumn = jsonDecoder.decodeInt(jsonPath + ".startColumn", json["startColumn"]);
+        startColumn = jsonDecoder.decodeInt(
+            jsonPath + ".startColumn", json["startColumn"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startColumn");
       }
@@ -7548,7 +8229,7 @@ class Location implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is Location) {
       return file == other.file &&
           offset == other.offset &&
@@ -7578,7 +8259,7 @@ class Location implements HasToJson {
  */
 class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is MoveFileFeedback) {
       return true;
     }
@@ -7620,14 +8301,16 @@ class MoveFileOptions extends RefactoringOptions {
     this.newFile = newFile;
   }
 
-  factory MoveFileOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory MoveFileOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       String newFile;
       if (json.containsKey("newFile")) {
-        newFile = jsonDecoder.decodeString(jsonPath + ".newFile", json["newFile"]);
+        newFile =
+            jsonDecoder.decodeString(jsonPath + ".newFile", json["newFile"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "newFile");
       }
@@ -7637,7 +8320,8 @@ class MoveFileOptions extends RefactoringOptions {
     }
   }
 
-  factory MoveFileOptions.fromRefactoringParams(EditGetRefactoringParams refactoringParams, Request request) {
+  factory MoveFileOptions.fromRefactoringParams(
+      EditGetRefactoringParams refactoringParams, Request request) {
     return new MoveFileOptions.fromJson(
         new RequestDecoder(request), "options", refactoringParams.options);
   }
@@ -7653,7 +8337,7 @@ class MoveFileOptions extends RefactoringOptions {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is MoveFileOptions) {
       return newFile == other.newFile;
     }
@@ -7735,7 +8419,8 @@ class NavigationRegion implements HasToJson {
     this.targets = targets;
   }
 
-  factory NavigationRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory NavigationRegion.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -7754,7 +8439,8 @@ class NavigationRegion implements HasToJson {
       }
       List<int> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], jsonDecoder.decodeInt);
+        targets = jsonDecoder.decodeList(
+            jsonPath + ".targets", json["targets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
@@ -7777,7 +8463,7 @@ class NavigationRegion implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is NavigationRegion) {
       return offset == other.offset &&
           length == other.length &&
@@ -7907,7 +8593,8 @@ class NavigationTarget implements HasToJson {
     this._startColumn = value;
   }
 
-  NavigationTarget(ElementKind kind, int fileIndex, int offset, int length, int startLine, int startColumn) {
+  NavigationTarget(ElementKind kind, int fileIndex, int offset, int length,
+      int startLine, int startColumn) {
     this.kind = kind;
     this.fileIndex = fileIndex;
     this.offset = offset;
@@ -7916,20 +8603,23 @@ class NavigationTarget implements HasToJson {
     this.startColumn = startColumn;
   }
 
-  factory NavigationTarget.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory NavigationTarget.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey("kind")) {
-        kind = new ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = new ElementKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
       int fileIndex;
       if (json.containsKey("fileIndex")) {
-        fileIndex = jsonDecoder.decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
+        fileIndex =
+            jsonDecoder.decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fileIndex");
       }
@@ -7947,17 +8637,20 @@ class NavigationTarget implements HasToJson {
       }
       int startLine;
       if (json.containsKey("startLine")) {
-        startLine = jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
+        startLine =
+            jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startLine");
       }
       int startColumn;
       if (json.containsKey("startColumn")) {
-        startColumn = jsonDecoder.decodeInt(jsonPath + ".startColumn", json["startColumn"]);
+        startColumn = jsonDecoder.decodeInt(
+            jsonPath + ".startColumn", json["startColumn"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startColumn");
       }
-      return new NavigationTarget(kind, fileIndex, offset, length, startLine, startColumn);
+      return new NavigationTarget(
+          kind, fileIndex, offset, length, startLine, startColumn);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "NavigationTarget", json);
     }
@@ -7979,7 +8672,7 @@ class NavigationTarget implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is NavigationTarget) {
       return kind == other.kind &&
           fileIndex == other.fileIndex &&
@@ -8067,20 +8760,23 @@ class Occurrences implements HasToJson {
     this.length = length;
   }
 
-  factory Occurrences.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory Occurrences.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
+        element = new Element.fromJson(
+            jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+        offsets = jsonDecoder.decodeList(
+            jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offsets");
       }
@@ -8109,7 +8805,7 @@ class Occurrences implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is Occurrences) {
       return element == other.element &&
           listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
@@ -8215,14 +8911,16 @@ class Outline implements HasToJson {
     this.children = children;
   }
 
-  factory Outline.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory Outline.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
+        element = new Element.fromJson(
+            jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
       }
@@ -8240,7 +8938,11 @@ class Outline implements HasToJson {
       }
       List<Outline> children;
       if (json.containsKey("children")) {
-        children = jsonDecoder.decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
+        children = jsonDecoder.decodeList(
+            jsonPath + ".children",
+            json["children"],
+            (String jsonPath, Object json) =>
+                new Outline.fromJson(jsonDecoder, jsonPath, json));
       }
       return new Outline(element, offset, length, children: children);
     } else {
@@ -8255,7 +8957,8 @@ class Outline implements HasToJson {
     result["offset"] = offset;
     result["length"] = length;
     if (children != null) {
-      result["children"] = children.map((Outline value) => value.toJson()).toList();
+      result["children"] =
+          children.map((Outline value) => value.toJson()).toList();
     }
     return result;
   }
@@ -8264,7 +8967,7 @@ class Outline implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is Outline) {
       return element == other.element &&
           offset == other.offset &&
@@ -8356,26 +9059,30 @@ class PluginErrorParams implements HasToJson {
     this.stackTrace = stackTrace;
   }
 
-  factory PluginErrorParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory PluginErrorParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       bool isFatal;
       if (json.containsKey("isFatal")) {
-        isFatal = jsonDecoder.decodeBool(jsonPath + ".isFatal", json["isFatal"]);
+        isFatal =
+            jsonDecoder.decodeBool(jsonPath + ".isFatal", json["isFatal"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isFatal");
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+        message =
+            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "message");
       }
       String stackTrace;
       if (json.containsKey("stackTrace")) {
-        stackTrace = jsonDecoder.decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
+        stackTrace = jsonDecoder.decodeString(
+            jsonPath + ".stackTrace", json["stackTrace"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "stackTrace");
       }
@@ -8407,7 +9114,7 @@ class PluginErrorParams implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is PluginErrorParams) {
       return isFatal == other.isFatal &&
           message == other.message &&
@@ -8441,7 +9148,7 @@ class PluginShutdownParams implements RequestParams {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is PluginShutdownParams) {
       return true;
     }
@@ -8469,7 +9176,7 @@ class PluginShutdownResult implements ResponseResult {
   }
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is PluginShutdownResult) {
       return true;
     }
@@ -8532,20 +9239,23 @@ class PluginVersionCheckParams implements RequestParams {
     this.version = version;
   }
 
-  factory PluginVersionCheckParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory PluginVersionCheckParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       String byteStorePath;
       if (json.containsKey("byteStorePath")) {
-        byteStorePath = jsonDecoder.decodeString(jsonPath + ".byteStorePath", json["byteStorePath"]);
+        byteStorePath = jsonDecoder.decodeString(
+            jsonPath + ".byteStorePath", json["byteStorePath"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "byteStorePath");
       }
       String version;
       if (json.containsKey("version")) {
-        version = jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
+        version =
+            jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "version");
       }
@@ -8577,10 +9287,9 @@ class PluginVersionCheckParams implements RequestParams {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is PluginVersionCheckParams) {
-      return byteStorePath == other.byteStorePath &&
-          version == other.version;
+      return byteStorePath == other.byteStorePath && version == other.version;
     }
     return false;
   }
@@ -8698,7 +9407,9 @@ class PluginVersionCheckResult implements ResponseResult {
     this._interestingFiles = value;
   }
 
-  PluginVersionCheckResult(bool isCompatible, String name, String version, List<String> interestingFiles, {String contactInfo}) {
+  PluginVersionCheckResult(bool isCompatible, String name, String version,
+      List<String> interestingFiles,
+      {String contactInfo}) {
     this.isCompatible = isCompatible;
     this.name = name;
     this.version = version;
@@ -8706,14 +9417,16 @@ class PluginVersionCheckResult implements ResponseResult {
     this.interestingFiles = interestingFiles;
   }
 
-  factory PluginVersionCheckResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory PluginVersionCheckResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       bool isCompatible;
       if (json.containsKey("isCompatible")) {
-        isCompatible = jsonDecoder.decodeBool(jsonPath + ".isCompatible", json["isCompatible"]);
+        isCompatible = jsonDecoder.decodeBool(
+            jsonPath + ".isCompatible", json["isCompatible"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isCompatible");
       }
@@ -8725,21 +9438,28 @@ class PluginVersionCheckResult implements ResponseResult {
       }
       String version;
       if (json.containsKey("version")) {
-        version = jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
+        version =
+            jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "version");
       }
       String contactInfo;
       if (json.containsKey("contactInfo")) {
-        contactInfo = jsonDecoder.decodeString(jsonPath + ".contactInfo", json["contactInfo"]);
+        contactInfo = jsonDecoder.decodeString(
+            jsonPath + ".contactInfo", json["contactInfo"]);
       }
       List<String> interestingFiles;
       if (json.containsKey("interestingFiles")) {
-        interestingFiles = jsonDecoder.decodeList(jsonPath + ".interestingFiles", json["interestingFiles"], jsonDecoder.decodeString);
+        interestingFiles = jsonDecoder.decodeList(
+            jsonPath + ".interestingFiles",
+            json["interestingFiles"],
+            jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "interestingFiles");
       }
-      return new PluginVersionCheckResult(isCompatible, name, version, interestingFiles, contactInfo: contactInfo);
+      return new PluginVersionCheckResult(
+          isCompatible, name, version, interestingFiles,
+          contactInfo: contactInfo);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "plugin.versionCheck result", json);
     }
@@ -8747,7 +9467,9 @@ class PluginVersionCheckResult implements ResponseResult {
 
   factory PluginVersionCheckResult.fromResponse(Response response) {
     return new PluginVersionCheckResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response.result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
   }
 
   @override
@@ -8772,13 +9494,14 @@ class PluginVersionCheckResult implements ResponseResult {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is PluginVersionCheckResult) {
       return isCompatible == other.isCompatible &&
           name == other.name &&
           version == other.version &&
           contactInfo == other.contactInfo &&
-          listEqual(interestingFiles, other.interestingFiles, (String a, String b) => a == b);
+          listEqual(interestingFiles, other.interestingFiles,
+              (String a, String b) => a == b);
     }
     return false;
   }
@@ -8841,7 +9564,8 @@ class Position implements HasToJson {
     this.offset = offset;
   }
 
-  factory Position.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory Position.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -8876,10 +9600,9 @@ class Position implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is Position) {
-      return file == other.file &&
-          offset == other.offset;
+      return file == other.file && offset == other.offset;
     }
     return false;
   }
@@ -8941,20 +9664,23 @@ class PrioritizedSourceChange implements HasToJson {
     this.change = change;
   }
 
-  factory PrioritizedSourceChange.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory PrioritizedSourceChange.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       int priority;
       if (json.containsKey("priority")) {
-        priority = jsonDecoder.decodeInt(jsonPath + ".priority", json["priority"]);
+        priority =
+            jsonDecoder.decodeInt(jsonPath + ".priority", json["priority"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "priority");
       }
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(jsonDecoder, jsonPath + ".change", json["change"]);
+        change = new SourceChange.fromJson(
+            jsonDecoder, jsonPath + ".change", json["change"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "change");
       }
@@ -8976,10 +9702,9 @@ class PrioritizedSourceChange implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is PrioritizedSourceChange) {
-      return priority == other.priority &&
-          change == other.change;
+      return priority == other.priority && change == other.change;
     }
     return false;
   }
@@ -9004,8 +9729,10 @@ class PrioritizedSourceChange implements HasToJson {
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
-  factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
-    return refactoringFeedbackFromJson(jsonDecoder, jsonPath, json, responseJson);
+  factory RefactoringFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
+    return refactoringFeedbackFromJson(
+        jsonDecoder, jsonPath, json, responseJson);
   }
 
   @override
@@ -9018,7 +9745,7 @@ class RefactoringFeedback implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RefactoringFeedback) {
       return true;
     }
@@ -9050,28 +9777,45 @@ class RefactoringFeedback implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringKind implements Enum {
-  static const RefactoringKind CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
+  static const RefactoringKind CONVERT_GETTER_TO_METHOD =
+      const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
 
-  static const RefactoringKind CONVERT_METHOD_TO_GETTER = const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
+  static const RefactoringKind CONVERT_METHOD_TO_GETTER =
+      const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
 
-  static const RefactoringKind EXTRACT_LOCAL_VARIABLE = const RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
+  static const RefactoringKind EXTRACT_LOCAL_VARIABLE =
+      const RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
 
-  static const RefactoringKind EXTRACT_METHOD = const RefactoringKind._("EXTRACT_METHOD");
+  static const RefactoringKind EXTRACT_METHOD =
+      const RefactoringKind._("EXTRACT_METHOD");
 
-  static const RefactoringKind INLINE_LOCAL_VARIABLE = const RefactoringKind._("INLINE_LOCAL_VARIABLE");
+  static const RefactoringKind INLINE_LOCAL_VARIABLE =
+      const RefactoringKind._("INLINE_LOCAL_VARIABLE");
 
-  static const RefactoringKind INLINE_METHOD = const RefactoringKind._("INLINE_METHOD");
+  static const RefactoringKind INLINE_METHOD =
+      const RefactoringKind._("INLINE_METHOD");
 
   static const RefactoringKind MOVE_FILE = const RefactoringKind._("MOVE_FILE");
 
   static const RefactoringKind RENAME = const RefactoringKind._("RENAME");
 
-  static const RefactoringKind SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
+  static const RefactoringKind SORT_MEMBERS =
+      const RefactoringKind._("SORT_MEMBERS");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RefactoringKind> VALUES = const <RefactoringKind>[CONVERT_GETTER_TO_METHOD, CONVERT_METHOD_TO_GETTER, EXTRACT_LOCAL_VARIABLE, EXTRACT_METHOD, INLINE_LOCAL_VARIABLE, INLINE_METHOD, MOVE_FILE, RENAME, SORT_MEMBERS];
+  static const List<RefactoringKind> VALUES = const <RefactoringKind>[
+    CONVERT_GETTER_TO_METHOD,
+    CONVERT_METHOD_TO_GETTER,
+    EXTRACT_LOCAL_VARIABLE,
+    EXTRACT_METHOD,
+    INLINE_LOCAL_VARIABLE,
+    INLINE_METHOD,
+    MOVE_FILE,
+    RENAME,
+    SORT_MEMBERS
+  ];
 
   @override
   final String name;
@@ -9102,11 +9846,12 @@ class RefactoringKind implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory RefactoringKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RefactoringKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new RefactoringKind(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -9214,7 +9959,9 @@ class RefactoringMethodParameter implements HasToJson {
     this._parameters = value;
   }
 
-  RefactoringMethodParameter(RefactoringMethodParameterKind kind, String type, String name, {String id, String parameters}) {
+  RefactoringMethodParameter(
+      RefactoringMethodParameterKind kind, String type, String name,
+      {String id, String parameters}) {
     this.id = id;
     this.kind = kind;
     this.type = type;
@@ -9222,7 +9969,8 @@ class RefactoringMethodParameter implements HasToJson {
     this.parameters = parameters;
   }
 
-  factory RefactoringMethodParameter.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RefactoringMethodParameter.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -9233,7 +9981,8 @@ class RefactoringMethodParameter implements HasToJson {
       }
       RefactoringMethodParameterKind kind;
       if (json.containsKey("kind")) {
-        kind = new RefactoringMethodParameterKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = new RefactoringMethodParameterKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -9251,9 +10000,11 @@ class RefactoringMethodParameter implements HasToJson {
       }
       String parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder.decodeString(jsonPath + ".parameters", json["parameters"]);
+        parameters = jsonDecoder.decodeString(
+            jsonPath + ".parameters", json["parameters"]);
       }
-      return new RefactoringMethodParameter(kind, type, name, id: id, parameters: parameters);
+      return new RefactoringMethodParameter(kind, type, name,
+          id: id, parameters: parameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameter", json);
     }
@@ -9278,7 +10029,7 @@ class RefactoringMethodParameter implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RefactoringMethodParameter) {
       return id == other.id &&
           kind == other.kind &&
@@ -9313,16 +10064,20 @@ class RefactoringMethodParameter implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringMethodParameterKind implements Enum {
-  static const RefactoringMethodParameterKind REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
+  static const RefactoringMethodParameterKind REQUIRED =
+      const RefactoringMethodParameterKind._("REQUIRED");
 
-  static const RefactoringMethodParameterKind POSITIONAL = const RefactoringMethodParameterKind._("POSITIONAL");
+  static const RefactoringMethodParameterKind POSITIONAL =
+      const RefactoringMethodParameterKind._("POSITIONAL");
 
-  static const RefactoringMethodParameterKind NAMED = const RefactoringMethodParameterKind._("NAMED");
+  static const RefactoringMethodParameterKind NAMED =
+      const RefactoringMethodParameterKind._("NAMED");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RefactoringMethodParameterKind> VALUES = const <RefactoringMethodParameterKind>[REQUIRED, POSITIONAL, NAMED];
+  static const List<RefactoringMethodParameterKind> VALUES =
+      const <RefactoringMethodParameterKind>[REQUIRED, POSITIONAL, NAMED];
 
   @override
   final String name;
@@ -9341,15 +10096,17 @@ class RefactoringMethodParameterKind implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory RefactoringMethodParameterKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RefactoringMethodParameterKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new RefactoringMethodParameterKind(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameterKind", json);
+    throw jsonDecoder.mismatch(
+        jsonPath, "RefactoringMethodParameterKind", json);
   }
 
   @override
@@ -9369,7 +10126,8 @@ class RefactoringMethodParameterKind implements Enum {
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
-  factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, RefactoringKind kind) {
+  factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath,
+      Object json, RefactoringKind kind) {
     return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
   }
 
@@ -9383,7 +10141,7 @@ class RefactoringOptions implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RefactoringOptions) {
       return true;
     }
@@ -9457,32 +10215,37 @@ class RefactoringProblem implements HasToJson {
     this._location = value;
   }
 
-  RefactoringProblem(RefactoringProblemSeverity severity, String message, {Location location}) {
+  RefactoringProblem(RefactoringProblemSeverity severity, String message,
+      {Location location}) {
     this.severity = severity;
     this.message = message;
     this.location = location;
   }
 
-  factory RefactoringProblem.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RefactoringProblem.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       RefactoringProblemSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new RefactoringProblemSeverity.fromJson(jsonDecoder, jsonPath + ".severity", json["severity"]);
+        severity = new RefactoringProblemSeverity.fromJson(
+            jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "severity");
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+        message =
+            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "message");
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(jsonDecoder, jsonPath + ".location", json["location"]);
+        location = new Location.fromJson(
+            jsonDecoder, jsonPath + ".location", json["location"]);
       }
       return new RefactoringProblem(severity, message, location: location);
     } else {
@@ -9505,7 +10268,7 @@ class RefactoringProblem implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RefactoringProblem) {
       return severity == other.severity &&
           message == other.message &&
@@ -9540,7 +10303,8 @@ class RefactoringProblemSeverity implements Enum {
   /**
    * A minor code problem. No example, because it is not used yet.
    */
-  static const RefactoringProblemSeverity INFO = const RefactoringProblemSeverity._("INFO");
+  static const RefactoringProblemSeverity INFO =
+      const RefactoringProblemSeverity._("INFO");
 
   /**
    * A minor code problem. For example names of local variables should be camel
@@ -9548,7 +10312,8 @@ class RefactoringProblemSeverity implements Enum {
    * with an upper case is OK from the language point of view, but it is nice
    * to warn the user.
    */
-  static const RefactoringProblemSeverity WARNING = const RefactoringProblemSeverity._("WARNING");
+  static const RefactoringProblemSeverity WARNING =
+      const RefactoringProblemSeverity._("WARNING");
 
   /**
    * The refactoring technically can be performed, but there is a logical
@@ -9561,19 +10326,22 @@ class RefactoringProblemSeverity implements Enum {
    * the name conflict might be expected, and the user wants to fix it
    * afterwards.
    */
-  static const RefactoringProblemSeverity ERROR = const RefactoringProblemSeverity._("ERROR");
+  static const RefactoringProblemSeverity ERROR =
+      const RefactoringProblemSeverity._("ERROR");
 
   /**
    * A fatal error, which prevents performing the refactoring. For example the
    * name of a local variable being extracted is not a valid identifier, or
    * selection is not a valid expression.
    */
-  static const RefactoringProblemSeverity FATAL = const RefactoringProblemSeverity._("FATAL");
+  static const RefactoringProblemSeverity FATAL =
+      const RefactoringProblemSeverity._("FATAL");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RefactoringProblemSeverity> VALUES = const <RefactoringProblemSeverity>[INFO, WARNING, ERROR, FATAL];
+  static const List<RefactoringProblemSeverity> VALUES =
+      const <RefactoringProblemSeverity>[INFO, WARNING, ERROR, FATAL];
 
   @override
   final String name;
@@ -9594,11 +10362,12 @@ class RefactoringProblemSeverity implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory RefactoringProblemSeverity.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RefactoringProblemSeverity.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new RefactoringProblemSeverity(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -9608,7 +10377,8 @@ class RefactoringProblemSeverity implements Enum {
   /**
    * Returns the [RefactoringProblemSeverity] with the maximal severity.
    */
-  static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>
+  static RefactoringProblemSeverity max(
+          RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>
       maxRefactoringProblemSeverity(a, b);
 
   @override
@@ -9629,7 +10399,8 @@ class RefactoringProblemSeverity implements Enum {
 class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
 
-  factory RemoveContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RemoveContentOverlay.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -9654,7 +10425,7 @@ class RemoveContentOverlay implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RemoveContentOverlay) {
       return true;
     }
@@ -9744,14 +10515,16 @@ class RenameFeedback extends RefactoringFeedback {
     this._oldName = value;
   }
 
-  RenameFeedback(int offset, int length, String elementKindName, String oldName) {
+  RenameFeedback(
+      int offset, int length, String elementKindName, String oldName) {
     this.offset = offset;
     this.length = length;
     this.elementKindName = elementKindName;
     this.oldName = oldName;
   }
 
-  factory RenameFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RenameFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -9770,13 +10543,15 @@ class RenameFeedback extends RefactoringFeedback {
       }
       String elementKindName;
       if (json.containsKey("elementKindName")) {
-        elementKindName = jsonDecoder.decodeString(jsonPath + ".elementKindName", json["elementKindName"]);
+        elementKindName = jsonDecoder.decodeString(
+            jsonPath + ".elementKindName", json["elementKindName"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elementKindName");
       }
       String oldName;
       if (json.containsKey("oldName")) {
-        oldName = jsonDecoder.decodeString(jsonPath + ".oldName", json["oldName"]);
+        oldName =
+            jsonDecoder.decodeString(jsonPath + ".oldName", json["oldName"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "oldName");
       }
@@ -9800,7 +10575,7 @@ class RenameFeedback extends RefactoringFeedback {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RenameFeedback) {
       return offset == other.offset &&
           length == other.length &&
@@ -9850,14 +10625,16 @@ class RenameOptions extends RefactoringOptions {
     this.newName = newName;
   }
 
-  factory RenameOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RenameOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       String newName;
       if (json.containsKey("newName")) {
-        newName = jsonDecoder.decodeString(jsonPath + ".newName", json["newName"]);
+        newName =
+            jsonDecoder.decodeString(jsonPath + ".newName", json["newName"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "newName");
       }
@@ -9867,7 +10644,8 @@ class RenameOptions extends RefactoringOptions {
     }
   }
 
-  factory RenameOptions.fromRefactoringParams(EditGetRefactoringParams refactoringParams, Request request) {
+  factory RenameOptions.fromRefactoringParams(
+      EditGetRefactoringParams refactoringParams, Request request) {
     return new RenameOptions.fromJson(
         new RequestDecoder(request), "options", refactoringParams.options);
   }
@@ -9883,7 +10661,7 @@ class RenameOptions extends RefactoringOptions {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RenameOptions) {
       return newName == other.newName;
     }
@@ -9962,26 +10740,30 @@ class RequestError implements HasToJson {
     this.stackTrace = stackTrace;
   }
 
-  factory RequestError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RequestError.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       RequestErrorCode code;
       if (json.containsKey("code")) {
-        code = new RequestErrorCode.fromJson(jsonDecoder, jsonPath + ".code", json["code"]);
+        code = new RequestErrorCode.fromJson(
+            jsonDecoder, jsonPath + ".code", json["code"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "code");
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+        message =
+            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "message");
       }
       String stackTrace;
       if (json.containsKey("stackTrace")) {
-        stackTrace = jsonDecoder.decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
+        stackTrace = jsonDecoder.decodeString(
+            jsonPath + ".stackTrace", json["stackTrace"]);
       }
       return new RequestError(code, message, stackTrace: stackTrace);
     } else {
@@ -10004,7 +10786,7 @@ class RequestError implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is RequestError) {
       return code == other.code &&
           message == other.message &&
@@ -10045,30 +10827,39 @@ class RequestErrorCode implements Enum {
    * - one or more of the specified edits have an offset or length that is out
    *   of range.
    */
-  static const RequestErrorCode INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
+  static const RequestErrorCode INVALID_OVERLAY_CHANGE =
+      const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
   /**
    * One of the method parameters was invalid.
    */
-  static const RequestErrorCode INVALID_PARAMETER = const RequestErrorCode._("INVALID_PARAMETER");
+  static const RequestErrorCode INVALID_PARAMETER =
+      const RequestErrorCode._("INVALID_PARAMETER");
 
   /**
    * An internal error occurred in the plugin while attempting to respond to a
    * request. Also see the plugin.error notification for errors that occur
    * outside of handling a request.
    */
-  static const RequestErrorCode PLUGIN_ERROR = const RequestErrorCode._("PLUGIN_ERROR");
+  static const RequestErrorCode PLUGIN_ERROR =
+      const RequestErrorCode._("PLUGIN_ERROR");
 
   /**
    * A request was received that the plugin does not recognize, or cannot
    * handle in its current configuration.
    */
-  static const RequestErrorCode UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
+  static const RequestErrorCode UNKNOWN_REQUEST =
+      const RequestErrorCode._("UNKNOWN_REQUEST");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, PLUGIN_ERROR, UNKNOWN_REQUEST];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[
+    INVALID_OVERLAY_CHANGE,
+    INVALID_PARAMETER,
+    PLUGIN_ERROR,
+    UNKNOWN_REQUEST
+  ];
 
   @override
   final String name;
@@ -10089,11 +10880,12 @@ class RequestErrorCode implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory RequestErrorCode.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory RequestErrorCode.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new RequestErrorCode(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
@@ -10180,7 +10972,10 @@ class SourceChange implements HasToJson {
     this._selection = value;
   }
 
-  SourceChange(String message, {List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection}) {
+  SourceChange(String message,
+      {List<SourceFileEdit> edits,
+      List<LinkedEditGroup> linkedEditGroups,
+      Position selection}) {
     this.message = message;
     if (edits == null) {
       this.edits = <SourceFileEdit>[];
@@ -10195,34 +10990,48 @@ class SourceChange implements HasToJson {
     this.selection = selection;
   }
 
-  factory SourceChange.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory SourceChange.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+        message =
+            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "message");
       }
       List<SourceFileEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(
+            jsonPath + ".edits",
+            json["edits"],
+            (String jsonPath, Object json) =>
+                new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
       List<LinkedEditGroup> linkedEditGroups;
       if (json.containsKey("linkedEditGroups")) {
-        linkedEditGroups = jsonDecoder.decodeList(jsonPath + ".linkedEditGroups", json["linkedEditGroups"], (String jsonPath, Object json) => new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
+        linkedEditGroups = jsonDecoder.decodeList(
+            jsonPath + ".linkedEditGroups",
+            json["linkedEditGroups"],
+            (String jsonPath, Object json) =>
+                new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "linkedEditGroups");
       }
       Position selection;
       if (json.containsKey("selection")) {
-        selection = new Position.fromJson(jsonDecoder, jsonPath + ".selection", json["selection"]);
+        selection = new Position.fromJson(
+            jsonDecoder, jsonPath + ".selection", json["selection"]);
       }
-      return new SourceChange(message, edits: edits, linkedEditGroups: linkedEditGroups, selection: selection);
+      return new SourceChange(message,
+          edits: edits,
+          linkedEditGroups: linkedEditGroups,
+          selection: selection);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceChange", json);
     }
@@ -10232,8 +11041,11 @@ class SourceChange implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["message"] = message;
-    result["edits"] = edits.map((SourceFileEdit value) => value.toJson()).toList();
-    result["linkedEditGroups"] = linkedEditGroups.map((LinkedEditGroup value) => value.toJson()).toList();
+    result["edits"] =
+        edits.map((SourceFileEdit value) => value.toJson()).toList();
+    result["linkedEditGroups"] = linkedEditGroups
+        .map((LinkedEditGroup value) => value.toJson())
+        .toList();
     if (selection != null) {
       result["selection"] = selection.toJson();
     }
@@ -10263,18 +11075,19 @@ class SourceChange implements HasToJson {
   /**
    * Returns the [FileEdit] for the given [file], maybe `null`.
    */
-  SourceFileEdit getFileEdit(String file) =>
-      getChangeFileEdit(this, file);
+  SourceFileEdit getFileEdit(String file) => getChangeFileEdit(this, file);
 
   @override
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is SourceChange) {
       return message == other.message &&
-          listEqual(edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b) &&
-          listEqual(linkedEditGroups, other.linkedEditGroups, (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
+          listEqual(edits, other.edits,
+              (SourceFileEdit a, SourceFileEdit b) => a == b) &&
+          listEqual(linkedEditGroups, other.linkedEditGroups,
+              (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
           selection == other.selection;
     }
     return false;
@@ -10391,7 +11204,8 @@ class SourceEdit implements HasToJson {
     this.id = id;
   }
 
-  factory SourceEdit.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory SourceEdit.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -10410,7 +11224,8 @@ class SourceEdit implements HasToJson {
       }
       String replacement;
       if (json.containsKey("replacement")) {
-        replacement = jsonDecoder.decodeString(jsonPath + ".replacement", json["replacement"]);
+        replacement = jsonDecoder.decodeString(
+            jsonPath + ".replacement", json["replacement"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "replacement");
       }
@@ -10450,7 +11265,7 @@ class SourceEdit implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is SourceEdit) {
       return offset == other.offset &&
           length == other.length &&
@@ -10546,7 +11361,8 @@ class SourceFileEdit implements HasToJson {
     }
   }
 
-  factory SourceFileEdit.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory SourceFileEdit.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -10559,13 +11375,18 @@ class SourceFileEdit implements HasToJson {
       }
       int fileStamp;
       if (json.containsKey("fileStamp")) {
-        fileStamp = jsonDecoder.decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
+        fileStamp =
+            jsonDecoder.decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fileStamp");
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(
+            jsonPath + ".edits",
+            json["edits"],
+            (String jsonPath, Object json) =>
+                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
@@ -10592,14 +11413,13 @@ class SourceFileEdit implements HasToJson {
   /**
    * Adds the given [Edit]s.
    */
-  void addAll(Iterable<SourceEdit> edits) =>
-      addAllEditsForSource(this, edits);
+  void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
 
   @override
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is SourceFileEdit) {
       return file == other.file &&
           fileStamp == other.fileStamp &&
@@ -10664,14 +11484,16 @@ class WatchEvent implements HasToJson {
     this.path = path;
   }
 
-  factory WatchEvent.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory WatchEvent.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
       WatchEventType type;
       if (json.containsKey("type")) {
-        type = new WatchEventType.fromJson(jsonDecoder, jsonPath + ".type", json["type"]);
+        type = new WatchEventType.fromJson(
+            jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
       }
@@ -10699,10 +11521,9 @@ class WatchEvent implements HasToJson {
   String toString() => JSON.encode(toJson());
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is WatchEvent) {
-      return type == other.type &&
-          path == other.path;
+      return type == other.type && path == other.path;
     }
     return false;
   }
@@ -10746,7 +11567,11 @@ class WatchEventType implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<WatchEventType> VALUES = const <WatchEventType>[ADD, MODIFY, REMOVE];
+  static const List<WatchEventType> VALUES = const <WatchEventType>[
+    ADD,
+    MODIFY,
+    REMOVE
+  ];
 
   @override
   final String name;
@@ -10765,11 +11590,12 @@ class WatchEventType implements Enum {
     throw new Exception('Illegal enum value: $name');
   }
 
-  factory WatchEventType.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory WatchEventType.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
         return new WatchEventType(json);
-      } catch(_) {
+      } catch (_) {
         // Fall through
       }
     }
