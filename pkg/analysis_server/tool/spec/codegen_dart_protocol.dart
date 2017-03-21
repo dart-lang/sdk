@@ -532,7 +532,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   void emitObjectEqualsMember(TypeObject type, String className) {
     writeln('@override');
-    writeln('bool operator==(other) {');
+    writeln('bool operator ==(other) {');
     indent(() {
       writeln('if (other is $className) {');
       indent(() {

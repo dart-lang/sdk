@@ -84,6 +84,7 @@ abstract class GeneratedContent {
    * package.
    */
   static void generateAll(String pkgPath, Iterable<GeneratedContent> targets) {
+    print("Generating...");
     for (GeneratedContent target in targets) {
       target.generate(pkgPath);
     }
@@ -164,6 +165,7 @@ class GeneratedDirectory extends GeneratedContent {
     Map<String, FileContentsComputer> map = directoryContentsComputer(pkgPath);
     map.forEach((String file, FileContentsComputer fileContentsComputer) {
       File outputFile = new File(posix.join(outputDirectory.path, file));
+      print('  ${outputFile.path}');
       outputFile.writeAsStringSync(fileContentsComputer(pkgPath));
     });
   }
@@ -192,10 +194,15 @@ class GeneratedFile extends GeneratedContent {
 
   GeneratedFile(this.outputPath, this.computeContents);
 
+  bool get isDartFile => outputPath.endsWith('.dart');
+
   @override
   bool check(String pkgPath) {
     File outputFile = output(pkgPath);
     String expectedContents = computeContents(pkgPath);
+    if (isDartFile) {
+      expectedContents = DartFormat.formatText(expectedContents);
+    }
     try {
       String actualContents = outputFile.readAsStringSync();
       // Normalize Windows line endings to Unix line endings so that the
@@ -212,10 +219,38 @@ class GeneratedFile extends GeneratedContent {
 
   @override
   void generate(String pkgPath) {
-    output(pkgPath).writeAsStringSync(computeContents(pkgPath));
+    File outputFile = output(pkgPath);
+    print('  ${outputFile.path}');
+    outputFile.writeAsStringSync(computeContents(pkgPath));
+    if (isDartFile) {
+      DartFormat.formatFile(outputFile);
+    }
   }
 
   @override
   File output(String pkgPath) =>
       new File(join(pkgPath, joinAll(posix.split(outputPath))));
+}
+
+/**
+ * A utility class for invoking dartfmt.
+ */
+class DartFormat {
+  static String get _dartfmtPath {
+    String binName = Platform.isWindows ? 'dartfmt.bat' : 'dartfmt';
+    return join(dirname(Platform.resolvedExecutable), binName);
+  }
+
+  static void formatFile(File file) {
+    ProcessResult result = Process.runSync(_dartfmtPath, ['-w', file.path]);
+    if (result.exitCode != 0) throw result.stderr;
+  }
+
+  static String formatText(String text) {
+    File file = new File(join(Directory.systemTemp.path, 'gen.dart'));
+    file.writeAsStringSync(text);
+    ProcessResult result = Process.runSync(_dartfmtPath, ['-w', file.path]);
+    if (result.exitCode != 0) throw result.stderr;
+    return file.readAsStringSync();
+  }
 }
