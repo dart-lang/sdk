@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch class _StdIOUtils {
-  @patch static Stdin _getStdioInputStream() {
+@patch
+class _StdIOUtils {
+  @patch
+  static Stdin _getStdioInputStream() {
     switch (_getStdioHandleType(0)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
@@ -16,7 +18,8 @@
     }
   }
 
-  @patch static _getStdioOutputStream(int fd) {
+  @patch
+  static _getStdioOutputStream(int fd) {
     assert(fd == 1 || fd == 2);
     switch (_getStdioHandleType(fd)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
@@ -29,7 +32,8 @@
     }
   }
 
-  @patch static int _socketType(Socket socket) {
+  @patch
+  static int _socketType(Socket socket) {
     if (socket is _Socket) return _nativeSocketType(socket._nativeSocket);
     return null;
   }
@@ -37,17 +41,19 @@
   static int _nativeSocketType(_NativeSocket nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
-      throw new FileSystemException(
-          "Error retrieving socket type", "", result);
+      throw new FileSystemException("Error retrieving socket type", "", result);
     }
     return result;
   }
 
-  @patch static _getStdioHandleType(int fd) native "File_GetStdioHandleType";
+  @patch
+  static _getStdioHandleType(int fd) native "File_GetStdioHandleType";
 }
 
-@patch class Stdin {
-  @patch int readByteSync() {
+@patch
+class Stdin {
+  @patch
+  int readByteSync() {
     var result = _readByte();
     if (result is OSError) {
       throw new StdinException("Error reading byte from stdin", result);
@@ -55,28 +61,34 @@
     return result;
   }
 
-  @patch bool get echoMode {
+  @patch
+  bool get echoMode {
     var result = _echoMode();
     if (result is OSError) {
       throw new StdinException("Error getting terminal echo mode", result);
     }
     return result;
   }
-  @patch void set echoMode(bool enabled) {
+
+  @patch
+  void set echoMode(bool enabled) {
     var result = _setEchoMode(enabled);
     if (result is OSError) {
       throw new StdinException("Error setting terminal echo mode", result);
     }
   }
 
-  @patch bool get lineMode {
+  @patch
+  bool get lineMode {
     var result = _lineMode();
     if (result is OSError) {
       throw new StdinException("Error getting terminal line mode", result);
     }
     return result;
   }
-  @patch void set lineMode(bool enabled) {
+
+  @patch
+  void set lineMode(bool enabled) {
     var result = _setLineMode(enabled);
     if (result is OSError) {
       throw new StdinException("Error setting terminal line mode", result);
@@ -99,8 +111,10 @@
   static _supportsAnsiEscapes() native "Stdin_AnsiSupported";
 }
 
-@patch class Stdout {
-  @patch bool _hasTerminal(int fd) {
+@patch
+class Stdout {
+  @patch
+  bool _hasTerminal(int fd) {
     try {
       _terminalSize(fd);
       return true;
@@ -109,8 +123,10 @@
     }
   }
 
-  @patch int _terminalColumns(int fd) => _terminalSize(fd)[0];
-  @patch int _terminalLines(int fd) => _terminalSize(fd)[1];
+  @patch
+  int _terminalColumns(int fd) => _terminalSize(fd)[0];
+  @patch
+  int _terminalLines(int fd) => _terminalSize(fd)[1];
 
   static List _terminalSize(int fd) {
     var size = _getTerminalSize(fd);
@@ -132,7 +148,6 @@
 
   static _getAnsiSupported(int fd) native "Stdout_AnsiSupported";
 }
-
 
 _getStdioHandle(_NativeSocket socket, int num) native "Socket_GetStdioHandle";
 _getSocketType(_NativeSocket nativeSocket) native "Socket_GetType";

@@ -19,9 +19,13 @@ class ObjectPoolMock implements M.ObjectPool {
   final int length;
   final Iterable<M.ObjectPoolEntry> entries;
 
-  const ObjectPoolMock({this.id: 'objectpool-id', this.vmName: 'objpool-vmName',
-                        this.clazz: const ClassRefMock(), this.size: 1,
-                        this.length: 0, this.entries: const []});
+  const ObjectPoolMock(
+      {this.id: 'objectpool-id',
+      this.vmName: 'objpool-vmName',
+      this.clazz: const ClassRefMock(),
+      this.size: 1,
+      this.length: 0,
+      this.entries: const []});
 }
 
 class ObjectPoolEntryMock implements M.ObjectPoolEntry {
@@ -30,8 +34,9 @@ class ObjectPoolEntryMock implements M.ObjectPoolEntry {
   final M.ObjectRef asObject;
   final int asInteger;
 
-  const ObjectPoolEntryMock({this.offset: 0,
-                             this.kind: M.ObjectPoolEntryKind.object,
-                             this.asObject: const InstanceRefMock(),
-                             this.asInteger: null});
+  const ObjectPoolEntryMock(
+      {this.offset: 0,
+      this.kind: M.ObjectPoolEntryKind.object,
+      this.asObject: const InstanceRefMock(),
+      this.asInteger: null});
 }

@@ -40,33 +40,33 @@ getRetainedSize(ServiceObject obj) {
 }
 
 var tests = [
-(Isolate isolate) async {
-  Instance p1 = await rootLibraryFieldValue(isolate, "p1");
-  Instance p2 = await rootLibraryFieldValue(isolate, "p2");
+  (Isolate isolate) async {
+    Instance p1 = await rootLibraryFieldValue(isolate, "p1");
+    Instance p2 = await rootLibraryFieldValue(isolate, "p2");
 
-  // In general, shallow <= retained <= reachable. In this program,
-  // 0 < shallow < retained < reachable.
+    // In general, shallow <= retained <= reachable. In this program,
+    // 0 < shallow < retained < reachable.
 
-  int p1_shallow = p1.size;
-  int p1_retained = await getRetainedSize(p1);
-  int p1_reachable = await getReachableSize(p1);
+    int p1_shallow = p1.size;
+    int p1_retained = await getRetainedSize(p1);
+    int p1_reachable = await getReachableSize(p1);
 
-  expect(0, lessThan(p1_shallow));
-  expect(p1_shallow, lessThan(p1_retained));
-  expect(p1_retained, lessThan(p1_reachable));
+    expect(0, lessThan(p1_shallow));
+    expect(p1_shallow, lessThan(p1_retained));
+    expect(p1_retained, lessThan(p1_reachable));
 
-  int p2_shallow = p2.size;
-  int p2_retained = await getRetainedSize(p2);
-  int p2_reachable = await getReachableSize(p2);
+    int p2_shallow = p2.size;
+    int p2_retained = await getRetainedSize(p2);
+    int p2_reachable = await getReachableSize(p2);
 
-  expect(0, lessThan(p2_shallow));
-  expect(p2_shallow, lessThan(p2_retained));
-  expect(p2_retained, lessThan(p2_reachable));
+    expect(0, lessThan(p2_shallow));
+    expect(p2_shallow, lessThan(p2_retained));
+    expect(p2_retained, lessThan(p2_reachable));
 
-  expect(p1_shallow, equals(p2_shallow));
-  expect(p1_retained, equals(p2_retained));
-  expect(p1_reachable, equals(p2_reachable));
-},
+    expect(p1_shallow, equals(p2_shallow));
+    expect(p1_retained, equals(p2_retained));
+    expect(p1_reachable, equals(p2_reachable));
+  },
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: buildGraph);

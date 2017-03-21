@@ -2,43 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@patch class _File {
-  @patch static _exists(String path) native "File_Exists";
-  @patch static _create(String path) native "File_Create";
-  @patch static _createLink(String path, String target)
-      native "File_CreateLink";
-  @patch static _linkTarget(String path) native "File_LinkTarget";
-  @patch static _deleteNative(String path) native "File_Delete";
-  @patch static _deleteLinkNative(String path) native "File_DeleteLink";
-  @patch static _rename(String oldPath, String newPath)
-      native "File_Rename";
-  @patch static _renameLink(String oldPath, String newPath)
-      native "File_RenameLink";
-  @patch static _copy(String oldPath, String newPath) native "File_Copy";
-  @patch static _lengthFromPath(String path) native "File_LengthFromPath";
-  @patch static _lastModified(String path) native "File_LastModified";
-  @patch static _setLastModified(String path, int millis)
+@patch
+class _File {
+  @patch
+  static _exists(String path) native "File_Exists";
+  @patch
+  static _create(String path) native "File_Create";
+  @patch
+  static _createLink(String path, String target) native "File_CreateLink";
+  @patch
+  static _linkTarget(String path) native "File_LinkTarget";
+  @patch
+  static _deleteNative(String path) native "File_Delete";
+  @patch
+  static _deleteLinkNative(String path) native "File_DeleteLink";
+  @patch
+  static _rename(String oldPath, String newPath) native "File_Rename";
+  @patch
+  static _renameLink(String oldPath, String newPath) native "File_RenameLink";
+  @patch
+  static _copy(String oldPath, String newPath) native "File_Copy";
+  @patch
+  static _lengthFromPath(String path) native "File_LengthFromPath";
+  @patch
+  static _lastModified(String path) native "File_LastModified";
+  @patch
+  static _setLastModified(String path, int millis)
       native "File_SetLastModified";
-  @patch static _lastAccessed(String path) native "File_LastAccessed";
-  @patch static _setLastAccessed(String path, int millis)
+  @patch
+  static _lastAccessed(String path) native "File_LastAccessed";
+  @patch
+  static _setLastAccessed(String path, int millis)
       native "File_SetLastAccessed";
-  @patch static _open(String path, int mode) native "File_Open";
-  @patch static int _openStdio(int fd) native "File_OpenStdio";
+  @patch
+  static _open(String path, int mode) native "File_Open";
+  @patch
+  static int _openStdio(int fd) native "File_OpenStdio";
 }
 
-
-@patch class _RandomAccessFileOps {
-  @patch factory _RandomAccessFileOps(int pointer)
-      => new _RandomAccessFileOpsImpl(pointer);
+@patch
+class _RandomAccessFileOps {
+  @patch
+  factory _RandomAccessFileOps(int pointer) =>
+      new _RandomAccessFileOpsImpl(pointer);
 }
-
 
 class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
-                               implements _RandomAccessFileOps {
+    implements _RandomAccessFileOps {
   _RandomAccessFileOpsImpl._();
 
-  factory _RandomAccessFileOpsImpl(int pointer)
-      => new _RandomAccessFileOpsImpl._().._setPointer(pointer);
+  factory _RandomAccessFileOpsImpl(int pointer) =>
+      new _RandomAccessFileOpsImpl._().._setPointer(pointer);
 
   void _setPointer(int pointer) native "File_SetPointer";
 
@@ -58,7 +72,6 @@ class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
   setTranslation(int translation) native "File_SetTranslation";
 }
 
-
 class _WatcherPath {
   final int pathId;
   final String path;
@@ -67,8 +80,8 @@ class _WatcherPath {
   _WatcherPath(this.pathId, this.path, this.events);
 }
 
-
-@patch class _FileSystemWatcher {
+@patch
+class _FileSystemWatcher {
   static int _id;
   static final Map<int, _WatcherPath> _idMap = {};
 
@@ -80,7 +93,8 @@ class _WatcherPath {
 
   StreamController _broadcastController;
 
-  @patch static Stream<FileSystemEvent> _watch(
+  @patch
+  static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
     if (Platform.isLinux) {
       return new _InotifyFileSystemWatcher(path, events, recursive)._stream;
@@ -89,8 +103,8 @@ class _WatcherPath {
       return new _Win32FileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isMacOS) {
-      return new _FSEventStreamFileSystemWatcher(
-          path, events, recursive)._stream;
+      return new _FSEventStreamFileSystemWatcher(path, events, recursive)
+          ._stream;
     }
     throw new FileSystemException(
         "File system watching is not supported on this platform");
@@ -99,11 +113,10 @@ class _WatcherPath {
   _FileSystemWatcher._(this._path, this._events, this._recursive) {
     if (!isSupported) {
       throw new FileSystemException(
-          "File system watching is not supported on this platform",
-          _path);
+          "File system watching is not supported on this platform", _path);
     }
-    _broadcastController = new StreamController.broadcast(onListen: _listen,
-                                                          onCancel: _cancel);
+    _broadcastController =
+        new StreamController.broadcast(onListen: _listen, onCancel: _cancel);
   }
 
   Stream get _stream => _broadcastController.stream;
@@ -124,8 +137,8 @@ class _WatcherPath {
     try {
       pathId = _watchPath(_id, _path, _events, _recursive);
     } catch (e) {
-      _broadcastController.addError(new FileSystemException(
-          "Failed to watch path", _path, e));
+      _broadcastController
+          .addError(new FileSystemException("Failed to watch path", _path, e));
       _broadcastController.close();
       return;
     }
@@ -184,6 +197,7 @@ class _WatcherPath {
           }
           return path;
         }
+
         bool getIsDir(event) {
           if (Platform.isWindows) {
             // Windows does not get 'isDir' as part of the event.
@@ -191,10 +205,12 @@ class _WatcherPath {
           }
           return (event[0] & FileSystemEvent._IS_DIR) != 0;
         }
+
         void add(id, event) {
           if ((event.type & _pathFromPathId(id).events) == 0) return;
           events.add([id, event]);
         }
+
         void rewriteMove(event, isDir) {
           if (event[3]) {
             add(event[4], new FileSystemCreateEvent._(getPath(event), isDir));
@@ -202,6 +218,7 @@ class _WatcherPath {
             add(event[4], new FileSystemDeleteEvent._(getPath(event), isDir));
           }
         }
+
         int eventCount;
         do {
           eventCount = 0;
@@ -229,7 +246,8 @@ class _WatcherPath {
               if (link > 0) {
                 pair.putIfAbsent(pathId, () => {});
                 if (pair[pathId].containsKey(link)) {
-                  add(event[4],
+                  add(
+                      event[4],
                       new FileSystemMoveEvent._(
                           getPath(pair[pathId][link]), isDir, path));
                   pair[pathId].remove(link);
@@ -258,9 +276,8 @@ class _WatcherPath {
             rewriteMove(event, getIsDir(event));
           }
         }
-      } else if (event == RawSocketEvent.CLOSED) {
-      } else if (event == RawSocketEvent.READ_CLOSED) {
-      } else {
+      } else if (event == RawSocketEvent.CLOSED) {} else if (event ==
+          RawSocketEvent.READ_CLOSED) {} else {
         assert(false);
       }
       events.addAll(stops);
@@ -268,8 +285,8 @@ class _WatcherPath {
     });
   }
 
-  @patch static bool get isSupported
-      native "FileSystemWatcher_IsSupported";
+  @patch
+  static bool get isSupported native "FileSystemWatcher_IsSupported";
 
   static int _initWatcher() native "FileSystemWatcher_InitWatcher";
   static void _closeWatcher(int id) native "FileSystemWatcher_CloseWatcher";
@@ -284,7 +301,6 @@ class _WatcherPath {
       native "FileSystemWatcher_GetSocketId";
 }
 
-
 class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   static final Map<int, StreamController> _idMap = {};
   static StreamSubscription _subscription;
@@ -294,16 +310,16 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
 
   void _newWatcher() {
     int id = _FileSystemWatcher._id;
-    _subscription = _FileSystemWatcher._listenOnSocket(id, id, 0)
-      .listen((event) {
-        if (_idMap.containsKey(event[0])) {
-          if (event[1] != null) {
-            _idMap[event[0]].add(event[1]);
-          } else {
-            _idMap[event[0]].close();
-          }
+    _subscription =
+        _FileSystemWatcher._listenOnSocket(id, id, 0).listen((event) {
+      if (_idMap.containsKey(event[0])) {
+        if (event[1] != null) {
+          _idMap[event[0]].add(event[1]);
+        } else {
+          _idMap[event[0]].close();
         }
-      });
+      }
+    });
   }
 
   void _doneWatcher() {
@@ -326,7 +342,6 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   }
 }
 
-
 class _Win32FileSystemWatcher extends _FileSystemWatcher {
   StreamSubscription _subscription;
   StreamController _controller;
@@ -337,15 +352,15 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
   Stream _pathWatched() {
     var pathId = _watcherPath.pathId;
     _controller = new StreamController();
-    _subscription = _FileSystemWatcher._listenOnSocket(pathId, 0, pathId)
-        .listen((event) {
-          assert(event[0] == pathId);
-          if (event[1] != null) {
-            _controller.add(event[1]);
-          } else {
-            _controller.close();
-          }
-        });
+    _subscription =
+        _FileSystemWatcher._listenOnSocket(pathId, 0, pathId).listen((event) {
+      assert(event[0] == pathId);
+      if (event[1] != null) {
+        _controller.add(event[1]);
+      } else {
+        _controller.close();
+      }
+    });
     return _controller.stream;
   }
 
@@ -354,7 +369,6 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
     _controller.close();
   }
 }
-
 
 class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   StreamSubscription _subscription;
@@ -367,14 +381,14 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
     var pathId = _watcherPath.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
     _controller = new StreamController();
-    _subscription = _FileSystemWatcher._listenOnSocket(socketId, 0, pathId)
-        .listen((event) {
-          if (event[1] != null) {
-            _controller.add(event[1]);
-          } else {
-            _controller.close();
-          }
-        });
+    _subscription =
+        _FileSystemWatcher._listenOnSocket(socketId, 0, pathId).listen((event) {
+      if (event[1] != null) {
+        _controller.add(event[1]);
+      } else {
+        _controller.close();
+      }
+    });
     return _controller.stream;
   }
 
@@ -383,7 +397,6 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
     _controller.close();
   }
 }
-
 
 Uint8List _makeUint8ListView(Uint8List source, int offsetInBytes, int length) {
   return new Uint8List.view(source.buffer, offsetInBytes, length);

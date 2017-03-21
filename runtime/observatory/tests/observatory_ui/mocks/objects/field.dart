@@ -13,9 +13,12 @@ class FieldRefMock implements M.FieldRef {
   final bool isFinal;
   final bool isStatic;
 
-  const FieldRefMock({this.id: 'field-id', this.name: 'field-name',
-                      this.dartOwner,
-                      this.declaredType: const InstanceRefMock(name: 'dynamic'),
-                      this.isConst: false,
-                      this.isFinal: false, this.isStatic: false});
+  const FieldRefMock(
+      {this.id: 'field-id',
+      this.name: 'field-name',
+      this.dartOwner,
+      this.declaredType: const InstanceRefMock(name: 'dynamic'),
+      this.isConst: false,
+      this.isFinal: false,
+      this.isStatic: false});
 }

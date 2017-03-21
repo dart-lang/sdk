@@ -29,7 +29,7 @@ void script() {
   ascii = "Hello, World!";
   latin1 = "blåbærgrød";
   unicode = "Îñţérñåţîöñåļîžåţîờñ";
-  hebrew = "שלום רב שובך צפורה נחמדת";  // Right-to-left text.
+  hebrew = "שלום רב שובך צפורה נחמדת"; // Right-to-left text.
   singleQuotes = "'One,' he said.";
   doubleQuotes = '"Two," he said.';
   newLines = "Windows\r\nSmalltalk\rUnix\n";
@@ -70,7 +70,7 @@ testStrings(Isolate isolate) async {
     expect(value.valueAsStringIsTruncated, isTrue);
   }
 
-  script();  // Need to initialize variables in the testing isolate.
+  script(); // Need to initialize variables in the testing isolate.
   expectFullString('ascii', ascii);
   expectFullString('latin1', latin1);
   expectFullString('unicode', unicode);

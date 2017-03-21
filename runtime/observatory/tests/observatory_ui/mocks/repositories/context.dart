@@ -4,16 +4,15 @@
 
 part of mocks;
 
-typedef Future<M.Context> ContextRepositoryMockCallback(M.IsolateRef isolate,
-                                                          String id);
+typedef Future<M.Context> ContextRepositoryMockCallback(
+    M.IsolateRef isolate, String id);
 
 class ContextRepositoryMock implements M.ContextRepository {
   final ContextRepositoryMockCallback _get;
 
-  ContextRepositoryMock({ContextRepositoryMockCallback getter})
-    : _get = getter;
+  ContextRepositoryMock({ContextRepositoryMockCallback getter}) : _get = getter;
 
-  Future<M.Context> get(M.IsolateRef isolate, String id){
+  Future<M.Context> get(M.IsolateRef isolate, String id) {
     if (_get != null) {
       return _get(isolate, id);
     }

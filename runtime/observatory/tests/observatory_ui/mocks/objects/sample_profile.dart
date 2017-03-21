@@ -26,6 +26,7 @@ class SampleProfileMock implements M.SampleProfile {
     }
     return null;
   }
+
   M.CodeCallTree loadCodeTree(M.ProfileTreeDirection direction) {
     if (_loadCodeTree != null) {
       return _loadCodeTree(direction);
@@ -33,11 +34,15 @@ class SampleProfileMock implements M.SampleProfile {
     return null;
   }
 
-  SampleProfileMock({this.sampleCount: 0, this.stackDepth: 0,
-      this.sampleRate: 1.0, this.timeSpan: 1.0,
-      this.codes: const [], this.functions: const [],
+  SampleProfileMock(
+      {this.sampleCount: 0,
+      this.stackDepth: 0,
+      this.sampleRate: 1.0,
+      this.timeSpan: 1.0,
+      this.codes: const [],
+      this.functions: const [],
       SampleProfileMockLoadFunctionTreeCallback loadFunctionTree,
       SampleProfileMockLoadCodeTreeCallback loadCodeTree})
-    : _loadFunctionTree = loadFunctionTree,
-      _loadCodeTree = loadCodeTree;
+      : _loadFunctionTree = loadFunctionTree,
+        _loadCodeTree = loadCodeTree;
 }

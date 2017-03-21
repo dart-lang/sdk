@@ -10,8 +10,7 @@ import 'test_helper.dart';
 
 var tests = [
   (Isolate isolate) async {
-    var params = {
-    };
+    var params = {};
     var result = await isolate.invokeRpcNoUpgrade('_getHeapMap', params);
     expect(result['type'], equals('HeapMap'));
     expect(result['freeClassId'], isPositive);

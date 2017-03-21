@@ -14,5 +14,5 @@ class FlagsRepositoryMock implements M.FlagsRepository {
   }
 
   FlagsRepositoryMock({Iterable<M.Flag> list: const []})
-    : _list = new List.unmodifiable(list);
+      : _list = new List.unmodifiable(list);
 }

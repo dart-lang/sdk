@@ -31,12 +31,12 @@ main() {
   test('elements created', () async {
     final completer = new Completer<AllocationProfileMock>();
     final repo = new AllocationProfileRepositoryMock(
-      getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
-        expect(i, equals(isolate));
-        expect(gc, isFalse);
-        expect(reset, isFalse);
-        return completer.future;
-      }, count: 1));
+        getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+      expect(i, equals(isolate));
+      expect(gc, isFalse);
+      expect(reset, isFalse);
+      return completer.future;
+    }, count: 1));
     final e = new AllocationProfileElement(vm, isolate, events, notif, repo);
     document.body.append(e);
     await e.onRendered.first;
@@ -54,35 +54,37 @@ main() {
       final completer = new Completer<AllocationProfileMock>();
       int step = 0;
       final repo = new AllocationProfileRepositoryMock(
-        getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
-          expect(i, equals(isolate));
-          switch (step) {
-              case 0:
-                expect(gc, isFalse);
-                expect(reset, isFalse);
-                break;
-              case 1:
-                expect(gc, isFalse);
-                expect(reset, isTrue);
-                break;
-              case 2:
-                expect(gc, isTrue);
-                expect(reset, isFalse);
-                break;
-              case 3:
-                expect(gc, isFalse);
-                expect(reset, isFalse);
-                break;
-          }
-          step++;
-          return completer.future;
-        }, count: 4));
+          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+        expect(i, equals(isolate));
+        switch (step) {
+          case 0:
+            expect(gc, isFalse);
+            expect(reset, isFalse);
+            break;
+          case 1:
+            expect(gc, isFalse);
+            expect(reset, isTrue);
+            break;
+          case 2:
+            expect(gc, isTrue);
+            expect(reset, isFalse);
+            break;
+          case 3:
+            expect(gc, isFalse);
+            expect(reset, isFalse);
+            break;
+        }
+        step++;
+        return completer.future;
+      }, count: 4));
       final e = new AllocationProfileElement(vm, isolate, events, notif, repo);
       document.body.append(e);
       await e.onRendered.first;
       completer.complete(const AllocationProfileMock());
       await e.onRendered.first;
-      e.querySelectorAll(rTag).sublist(1, 4)
+      e
+          .querySelectorAll(rTag)
+          .sublist(1, 4)
           .forEach((NavRefreshElement e) => e.refresh());
       e.remove();
       await e.onRendered.first;
@@ -93,13 +95,13 @@ main() {
       final completer = new Completer<AllocationProfileMock>();
       int count = 0;
       final repo = new AllocationProfileRepositoryMock(
-        getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
-          expect(i, equals(isolate));
-          expect(gc, isFalse);
-          expect(reset, isFalse);
-          count++;
-          return completer.future;
-        }, count: 2));
+          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+        expect(i, equals(isolate));
+        expect(gc, isFalse);
+        expect(reset, isFalse);
+        count++;
+        return completer.future;
+      }, count: 2));
       final e = new AllocationProfileElement(vm, isolate, events, notif, repo);
       document.body.append(e);
       await e.onRendered.first;
@@ -112,11 +114,11 @@ main() {
       expect(count, equals(2));
       // shouldn't trigger
       events.add(new GCEventMock(isolate: new IsolateRefMock(id: 'another')));
-      await (() async {} ());
+      await (() async {}());
       e.querySelector('input[type=\'checkbox\']').click();
       // shouldn't trigger
       events.add(new GCEventMock(isolate: isolate));
-      await (() async {} ());
+      await (() async {}());
       e.remove();
       await e.onRendered.first;
       expect(e.children.length, isZero, reason: 'is empty');
@@ -126,22 +128,24 @@ main() {
       const clazz2 = const ClassRefMock(name: 'class2');
       const clazz3 = const ClassRefMock(name: 'class3');
       const profile = const AllocationProfileMock(members: const [
-        const ClassHeapStatsMock(clazz: clazz2, newSpace: const AllocationsMock(
-          accumulated: const AllocationCountMock(bytes: 10)
-        )),
+        const ClassHeapStatsMock(
+            clazz: clazz2,
+            newSpace: const AllocationsMock(
+                accumulated: const AllocationCountMock(bytes: 10))),
         const ClassHeapStatsMock(clazz: clazz3),
-        const ClassHeapStatsMock(clazz: clazz1, newSpace: const AllocationsMock(
-          accumulated: const AllocationCountMock(bytes: 5)
-        ))
+        const ClassHeapStatsMock(
+            clazz: clazz1,
+            newSpace: const AllocationsMock(
+                accumulated: const AllocationCountMock(bytes: 5)))
       ]);
       final completer = new Completer<AllocationProfileMock>();
       final repo = new AllocationProfileRepositoryMock(
-        getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
-          expect(i, equals(isolate));
-          expect(gc, isFalse);
-          expect(reset, isFalse);
-          return completer.future;
-        }, count: 1));
+          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+        expect(i, equals(isolate));
+        expect(gc, isFalse);
+        expect(reset, isFalse);
+        return completer.future;
+      }, count: 1));
       final e = new AllocationProfileElement(vm, isolate, events, notif, repo);
       document.body.append(e);
       await e.onRendered.first;

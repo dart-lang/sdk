@@ -16,8 +16,7 @@ testParameters(int jjjj, int oooo, [int hhhh, int nnnn]) {
 testMain() {
   int xxx, yyyy, zzzzz;
   for (int i = 0; i < 1; i++) {
-    var foo = () {
-    };
+    var foo = () {};
     debugger();
   }
   var bar = () {
@@ -55,7 +54,7 @@ var tests = [
   hasStoppedAtBreakpoint,
   // We have stopped in the anonymous closure assigned to bar. Verify that
   // variables captured in the context have valid declaration positions.
-  (Isolate isolate) async  {
+  (Isolate isolate) async {
     var stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
     expect(stack['frames'].length, greaterThanOrEqualTo(1));

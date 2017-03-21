@@ -16,11 +16,11 @@ const int LINE_E = 26;
 
 testMain() async {
   debugger();
-  Future future1 = new Future.value();  // LINE_A.
+  Future future1 = new Future.value(); // LINE_A.
   Future future2 = new Future.value();
 
-  await future1;  // LINE_B.
-  await future2;  // LINE_C.
+  await future1; // LINE_B.
+  await future2; // LINE_C.
 
   print('foo1'); // LINE_D.
   print('foo2'); // LINE_E.

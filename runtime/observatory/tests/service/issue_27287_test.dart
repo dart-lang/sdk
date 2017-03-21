@@ -14,8 +14,8 @@ var libVariable;
 
 testMain() {
   debugger();
-  print("Before");  // LINE_A
-  libVariable = 0;  // LINE_B
+  print("Before"); // LINE_A
+  libVariable = 0; // LINE_B
   print("and after");
 }
 

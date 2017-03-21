@@ -40,12 +40,11 @@ var tests = [
     bool caughtException;
     try {
       await vm.invokeRpcNoUpgrade('getIsolate', params);
-      expect(false, isTrue, reason:'Unreachable');
-    } on ServerRpcException catch(e) {
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(e.message,
-             "getIsolate: invalid 'isolateId' parameter: badid");
+      expect(e.message, "getIsolate: invalid 'isolateId' parameter: badid");
     }
     expect(caughtException, isTrue);
   },

@@ -12,7 +12,7 @@ const int LINE_A = 19;
 const int LINE_B = 20;
 const int LINE_C = 21;
 
-foo() async { }
+foo() async {}
 
 doAsync(stop) async {
   if (stop) debugger();
