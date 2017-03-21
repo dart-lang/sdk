@@ -3331,58 +3331,125 @@ class C<T> {
     expectStaticInvokeType('m();', '() → T');
   }
 
-  test_notInstantiatedBound_direct_class_class() async {
+  test_notInstantiatedBound_error_class_argument() async {
     String code = r'''
-class A<T extends int> {}
+class A<K, V extends List<K>> {}
 class C<T extends A> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_direct_class_typedef() async {
-    // Check that if the bound of a class is an uninstantiated typedef
-    // we emit an error
+  test_notInstantiatedBound_error_class_argument2() async {
     String code = r'''
-typedef void F<T extends int>();
-class C<T extends F> {}
+class A<K, V extends List<List<K>>> {}
+class C<T extends A> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_direct_typedef_class() async {
-    // Check that if the bound of a typeded is an uninstantiated class
-    // we emit an error
+  test_notInstantiatedBound_error_class_direct() async {
     String code = r'''
-class C<T extends int> {}
-typedef void F<T extends C>();
+class A<K, V extends K> {}
+class C<T extends A> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_indirect_class_class() async {
+  test_notInstantiatedBound_error_class_indirect() async {
+    String code = r'''
+class A<K, V extends K> {}
+class C<T extends List<A>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_error_typedef_argument() async {
+    String code = r'''
+class A<K, V extends List<K>> {}
+typedef void F<T extends A>();
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_error_typedef_argument2() async {
+    String code = r'''
+class A<K, V extends List<List<K>>> {}
+typedef void F<T extends A>();
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_error_typedef_direct() async {
+    String code = r'''
+class A<K, V extends K> {}
+typedef void F<T extends A>();
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_ok_class() async {
+    String code = r'''
+class A<T extends int> {}
+class C1<T extends A> {}
+class C2<T extends List<A>> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_class2() async {
+    String code = r'''
+class A<T> {}
+class C<T extends A<int>> {}
+class D<T extends C> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_class3() async {
     String code = r'''
 class A<T> {}
 class B<T extends int> {}
 class C<T extends A<B>> {}
 ''';
-    await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
   }
 
-  test_notInstantiatedBound_indirect_class_class2() async {
+  test_notInstantiatedBound_ok_class_class4() async {
     String code = r'''
 class A<K, V> {}
 class B<T extends int> {}
 class C<T extends A<B, B>> {}
 ''';
-    await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-      StrongModeCode.NOT_INSTANTIATED_BOUND
-    ]);
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_typedef() async {
+    String code = r'''
+typedef void F<T extends int>();
+class C<T extends F> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_typedef_class() async {
+    String code = r'''
+class C<T extends int> {}
+typedef void F<T extends C>();
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
   }
 
   test_objectMethodOnFunctions_Anonymous() async {
