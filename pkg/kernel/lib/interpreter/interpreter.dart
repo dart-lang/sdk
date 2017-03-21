@@ -1,7 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library kernerl.interpreter;
+library kernel.interpreter;
 
 import '../ast.dart';
 
@@ -124,38 +124,55 @@ class Evaluator extends ExpressionVisitor1<Value> {
       // Special evaluation of print.
       var res = eval(node.arguments.positional[0], env);
       print(res.value);
-      return new NullValue();
+      return Value.nullInstance;
     } else {
       throw new NotImplemented('Support for statement type '
           '${node.runtimeType} is not implemented');
     }
   }
 
+  Value visitMethodInvocation(MethodInvocation node, env) {
+    // Currently supports only method invocation with <2 arguments and is used
+    // to evaluate implemented operators for int, double and String values.
+    var receiver = eval(node.receiver, env);
+    if (node.arguments.positional.isNotEmpty) {
+      var argValue = eval(node.arguments.positional.first, env);
+      return receiver.invokeMethod(node.name.name, argValue);
+    } else {
+      return receiver.invokeMethod(node.name.name);
+    }
+  }
+
+  Value visitConstructorInvocation(ConstructorInvocation node, env) =>
+      defaultExpression(node, env);
+
   Value visitNot(Not node, env) {
-    return new BoolValue(!eval(node.operand, env).asBool);
+    Value operand = eval(node.operand, env).toBoolean();
+    return identical(operand, Value.trueInstance)
+        ? Value.falseInstance
+        : Value.trueInstance;
   }
 
   Value visitLogicalExpression(LogicalExpression node, env) {
     if ('||' == node.operator) {
-      bool left = eval(node.left, env).asBool;
-      return left
-          ? new BoolValue(true)
-          : new BoolValue(eval(node.right, env).asBool);
+      BoolValue left = eval(node.left, env).toBoolean();
+      return identical(left, Value.trueInstance)
+          ? Value.trueInstance
+          : eval(node.right, env).toBoolean();
     } else {
       assert('&&' == node.operator);
-      bool left = eval(node.left, env).asBool;
-      return !left
-          ? new BoolValue(false)
-          : new BoolValue(eval(node.right, env).asBool);
+      BoolValue left = eval(node.left, env).toBoolean();
+      return identical(left, Value.falseInstance)
+          ? Value.falseInstance
+          : eval(node.right, env).toBoolean();
     }
   }
 
   Value visitConditionalExpression(ConditionalExpression node, env) {
-    if (eval(node.condition, env).asBool) {
-      return eval(node.then, env);
-    } else {
-      return eval(node.otherwise, env);
-    }
+    var condition = eval(node.condition, env).toBoolean();
+    return identical(condition, Value.trueInstance)
+        ? eval(node.then, env)
+        : eval(node.otherwise, env);
   }
 
   Value visitStringConcatenation(StringConcatenation node, env) {
@@ -172,8 +189,9 @@ class Evaluator extends ExpressionVisitor1<Value> {
   Value visitIntLiteral(IntLiteral node, env) => new IntValue(node.value);
   Value visitDoubleLiteral(DoubleLiteral node, env) =>
       new DoubleValue(node.value);
-  Value visitBoolLiteral(BoolLiteral node, env) => new BoolValue(node.value);
-  Value visitNullLiteral(NullLiteral node, env) => new NullValue();
+  Value visitBoolLiteral(BoolLiteral node, env) =>
+      node.value ? Value.trueInstance : Value.falseInstance;
+  Value visitNullLiteral(NullLiteral node, env) => Value.nullInstance;
 
   Value visitLet(Let node, env) {
     var value = eval(node.variable.initializer, env);
@@ -183,49 +201,161 @@ class Evaluator extends ExpressionVisitor1<Value> {
   }
 }
 
+// TODO(zhivkag): Change misleading name.
+// This is representation of a class in the interpreter, not a declaration.
+class ClassDeclaration {
+  static final Map<Reference, ClassDeclaration> _classes =
+      <Reference, ClassDeclaration>{};
+
+  Class currentClass;
+  ClassDeclaration superClass;
+  // The initializers of static fields are evaluated the first time the field
+  // is accessed.
+  List<Value> staticFields = <Value>[];
+  List<Procedure> getters = <Procedure>[];
+  List<Procedure> setters = <Procedure>[];
+  List<Procedure> methods = <Procedure>[];
+
+  factory ClassDeclaration(Reference classRef) {
+    if (_classes.containsKey(classRef)) {
+      return _classes[classRef];
+    }
+    _classes[classRef] = new ClassDeclaration._internal(classRef.asClass);
+    return _classes[classRef];
+  }
+
+  ClassDeclaration._internal(this.currentClass) {
+    if (currentClass.superclass != null) {
+      superClass = new ClassDeclaration(currentClass.superclass.reference);
+    }
+    // TODO: Populate getters, setters and methods.
+  }
+}
+
 abstract class Value {
   Object get value;
-  bool get asBool;
+
+  static final NullValue nullInstance = const NullValue();
+  static final BoolValue trueInstance = const BoolValue(true);
+  static final BoolValue falseInstance = const BoolValue(false);
+
+  const Value();
+
+  BoolValue toBoolean() {
+    return identical(this, Value.trueInstance)
+        ? Value.trueInstance
+        : Value.falseInstance;
+  }
+
+  BoolValue equals(Value other) =>
+      value == other.value ? Value.trueInstance : Value.falseInstance;
+
+  Value invokeMethod(String name, [Value arg]) {
+    throw notImplemented(obj: name);
+  }
+}
+
+class ObjectValue extends Value {
+  List<Value> fields;
+  ClassDeclaration classDeclaration;
+
+  Object get value => this;
+
+  ObjectValue(Constructor constructor, Environment env) {
+    // TODO: Init fields and eval initializers, repeat the same with super.
+    // TODO: Eval the Function body of the constructor, with env expanded with
+    // {VariableDeclaration("this") => this}
+    notImplemented(obj: constructor.name);
+  }
 }
 
 class StringValue extends Value {
-  String value;
+  final String value;
 
-  bool get asBool => false;
+  static final operators = <String, Function>{
+    '[]': (StringValue v1, Value v2) => v1[v2],
+    '==': (StringValue v1, Value v2) => v1.equals(v2)
+  };
 
   StringValue(this.value);
+
+  Value invokeMethod(String name, [Value arg]) {
+    if (!operators.containsKey(name)) {
+      return notImplemented(obj: name);
+    }
+    return operators[name](this, arg);
+  }
+
+  // Operators
+  Value operator [](Value index) => new StringValue(value[index.value]);
 }
 
-class IntValue extends Value {
-  int value;
+abstract class NumValue extends Value {
+  num get value;
 
-  bool get asBool => false;
+  NumValue();
+
+  factory NumValue.fromValue(num value) {
+    if (value is int) {
+      return new IntValue(value);
+    } else {
+      assert(value is double);
+      return new DoubleValue(value);
+    }
+  }
+
+  static final operators = <String, Function>{
+    '+': (NumValue v1, Value v2) => v1 + v2,
+    '-': (NumValue v1, Value v2) => v1 - v2,
+    '>': (NumValue v1, Value v2) => v1 > v2,
+    '<': (NumValue v1, Value v2) => v1 < v2,
+    '==': (NumValue v1, Value v2) => v1.equals(v2),
+    'unary-': (NumValue v1) => -v1,
+  };
+
+  Value invokeMethod(String name, [Value arg]) {
+    if (!operators.containsKey(name)) return notImplemented(obj: name);
+    if (arg == null) return operators[name](this);
+    return operators[name](this, arg);
+  }
+
+  // Operators
+  NumValue operator +(Value other) =>
+      new NumValue.fromValue(value + other.value);
+  NumValue operator -(Value other) =>
+      new NumValue.fromValue(value - other.value);
+  NumValue operator -() => new NumValue.fromValue(-value);
+
+  BoolValue operator >(Value other) =>
+      value > other.value ? Value.trueInstance : Value.falseInstance;
+  BoolValue operator <(Value other) =>
+      value < other.value ? Value.trueInstance : Value.falseInstance;
+}
+
+class IntValue extends NumValue {
+  final int value;
 
   IntValue(this.value);
 }
 
-class DoubleValue extends Value {
-  double value;
-
-  bool get asBool => false;
+class DoubleValue extends NumValue {
+  final double value;
 
   DoubleValue(this.value);
 }
 
 class BoolValue extends Value {
-  bool value;
+  final bool value;
 
-  bool get asBool => value;
-
-  BoolValue(this.value);
+  const BoolValue(this.value);
 }
 
 class NullValue extends Value {
   Object get value => null;
-  bool get asBool => false;
+
+  const NullValue();
 }
 
-Object error(obj) {
-  // TODO: Implement accordingly with support for error handling.
-  throw new ArgumentError(obj);
+notImplemented({String m, Object obj}) {
+  throw new NotImplemented(m ?? 'Evaluation for $obj is not implemented');
 }
