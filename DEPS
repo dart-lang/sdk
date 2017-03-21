@@ -146,7 +146,7 @@ deps = {
       Var("zlib_rev"),
 
   Var("dart_root") + "/third_party/boringssl":
-     (Var("github_dartlang") % "boringssl_gen") + Var("boringssl_gen_rev"),
+      (Var("github_mirror") % "boringssl_gen") + Var("boringssl_gen_rev"),
   Var("dart_root") + "/third_party/boringssl/src":
       "https://boringssl.googlesource.com/boringssl.git" +
       Var("boringssl_rev"),
@@ -254,11 +254,11 @@ deps = {
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_tag"),
   Var("dart_root") + "/third_party/pkg/observable":
-      (Var("github_dartlang") % "observable") + Var("observable_tag"),
+      (Var("github_mirror") % "observable") + Var("observable_tag"),
   Var("dart_root") + "/third_party/pkg/observe":
       (Var("github_mirror") % "observe") + Var("observe_tag"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
-     (Var("github_mirror") % "observatory_pub_packages")
+      (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       (Var("github_mirror") % "package_config") +
