@@ -281,7 +281,7 @@ testSyncApply() {
 }
 
 main() {
-  isDart2js = true; /// 01: ok
+  isDart2js = true; //# 01: ok
 
   testSyncInvoke(reflect(new C())); // InstanceMirror
 

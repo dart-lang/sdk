@@ -21,16 +21,16 @@ class Example {
     {
       bool flag_exception = false;
       try {
-        this.nextVar = 1; // /// 00: static type warning
+        this.nextVar = 1; // //# 00: static type warning
       } catch (excpt) {
         flag_exception = true;
       }
-      Expect.isTrue(flag_exception); //  /// 00: continued
+      Expect.isTrue(flag_exception); //  //# 00: continued
     }
   }
   static test() {
-    nextVar = 0; // /// 01: runtime error
-    this.nextVar = 0; // /// 02: compile-time error
+    nextVar = 0; // //# 01: runtime error
+    this.nextVar = 0; // //# 02: compile-time error
   }
 }
 

@@ -53,5 +53,5 @@ void helperFunction() {
 }
 
 main() {
-  helperFunction(); /// 01: runtime error
+  helperFunction(); //# 01: runtime error
 }

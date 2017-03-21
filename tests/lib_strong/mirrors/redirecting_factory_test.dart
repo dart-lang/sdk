@@ -43,7 +43,7 @@ class Class<T1, T2> {
 
   factory Class.redirectingFactoryStringTypeParameters(a, b) =
       Class
-        <String> // /// 02: static type warning
+        <String> // //# 02: static type warning
       .factoryNoOptional;
 
   factory Class.redirectingFactoryTypeParameters(a, b) =
@@ -85,7 +85,7 @@ main() {
   Expect.isTrue(instanceMirror.reflectee is Class<int, String>);
 
   bool isDart2js = false;
-  isDart2js = true; /// 01: ok
+  isDart2js = true; //# 01: ok
   if (isDart2js) return;
 
   instanceMirror = classMirror.newInstance(

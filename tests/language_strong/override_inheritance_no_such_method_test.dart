@@ -6,45 +6,45 @@
 // concrete classes.
 
 abstract class A {
-  method6(); /// 06: static type warning
-  method7(); /// 07: static type warning
-  method8(); /// 08: ok
+  method6(); //# 06: static type warning
+  method7(); //# 07: static type warning
+  method8(); //# 08: ok
 }
 
 abstract class I {
-  method9(); /// 09: static type warning
-  method10(); /// 10: static type warning
-  method11(); /// 11: ok
+  method9(); //# 09: static type warning
+  method10(); //# 10: static type warning
+  method11(); //# 11: ok
 }
 
-@proxy /// 02: static type warning
-@proxy /// 07: continued
-@proxy /// 10: continued
+@proxy //# 02: static type warning
+@proxy //# 07: continued
+@proxy //# 10: continued
 class Class1 extends A implements I {
-  method1(); /// 01: static type warning
+  method1(); //# 01: static type warning
 
-  method2(); /// 02: continued
+  method2(); //# 02: continued
 
-  noSuchMethod(_) => null; /// 03: ok
-  method3(); /// 03: continued
+  noSuchMethod(_) => null; //# 03: ok
+  method3(); //# 03: continued
 
-  noSuchMethod(_, [__]) => null; /// 04: ok
-  method4(); /// 04: continued
+  noSuchMethod(_, [__]) => null; //# 04: ok
+  method4(); //# 04: continued
 
-  noSuchMethod(_); /// 05: ok
-  method5(); /// 05: continued
+  noSuchMethod(_); //# 05: ok
+  method5(); //# 05: continued
 
-  noSuchMethod(_) => null; /// 08: continued
+  noSuchMethod(_) => null; //# 08: continued
 
-  noSuchMethod(_) => null; /// 11: continued
+  noSuchMethod(_) => null; //# 11: continued
 }
 
-@proxy /// 12: static type warning
+@proxy //# 12: static type warning
 class B {
-  method12(); /// 12: continued
+  method12(); //# 12: continued
 
-  noSuchMethod(_) => null; /// 13: static type warning
-  method13(); /// 13: continued
+  noSuchMethod(_) => null; //# 13: static type warning
+  method13(); //# 13: continued
 }
 
 class Class2 extends B {

@@ -9,7 +9,7 @@ main() {
   print(['x'].where((_) {
     // We actually don't really care for the successful case. We just want to
     // make sure that the test doesn't crash when it is negative.
-    throw 'fisk'; // /// 01: runtime error
+    throw 'fisk'; // //# 01: runtime error
     return true;
   }).toList());
 }

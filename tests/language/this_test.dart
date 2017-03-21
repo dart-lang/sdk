@@ -7,14 +7,14 @@ class Foo {
   f() {}
 
   testMe() {
-    x.this; /// 01: compile-time error
-    x.this(); /// 02: compile-time error
-    x.this.x; /// 03: compile-time error
-    x.this().x; /// 04: compile-time error
-    f().this; /// 05: compile-time error
-    f().this(); /// 06: compile-time error
-    f().this.f(); /// 07: compile-time error
-    f().this().f(); /// 08: compile-time error
+    x.this; //# 01: compile-time error
+    x.this(); //# 02: compile-time error
+    x.this.x; //# 03: compile-time error
+    x.this().x; //# 04: compile-time error
+    f().this; //# 05: compile-time error
+    f().this(); //# 06: compile-time error
+    f().this.f(); //# 07: compile-time error
+    f().this().f(); //# 08: compile-time error
   }
 }
 

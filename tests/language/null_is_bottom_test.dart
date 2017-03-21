@@ -83,60 +83,60 @@ main() {
   var a = new A();
   var listA = new List<A>();
 
-  testA(n); //                                                         /// 01: ok
-  testA(a); //                                                         /// 02: ok
-  testListA(listNull); //                                              /// 03: ok
-  testListA(listA); //                                                 /// 04: ok
-  Expect.isTrue(testIsListA(listNull)); //                             /// 05: ok
-  Expect.isTrue(testIsListA(listA)); //                                /// 06: ok
-  testAsListA(listNull); //                                            /// 07: ok
-  testAsListA(listA); //                                               /// 08: ok
+  testA(n); //                                                         //# 01: ok
+  testA(a); //                                                         //# 02: ok
+  testListA(listNull); //                                              //# 03: ok
+  testListA(listA); //                                                 //# 04: ok
+  Expect.isTrue(testIsListA(listNull)); //                             //# 05: ok
+  Expect.isTrue(testIsListA(listA)); //                                //# 06: ok
+  testAsListA(listNull); //                                            //# 07: ok
+  testAsListA(listA); //                                               //# 08: ok
 
-  testNull(n); //                                                      /// 09: ok
-  testNull(a); //                                      /// 10: dynamic type error
-  testListNull(listNull); //                                           /// 11: ok
-  testListNull(listA); //                              /// 12: dynamic type error
-  Expect.isTrue(testIsListNull(listNull)); //                          /// 13: ok
-  Expect.isFalse(testIsListNull(listA)); //                            /// 14: ok
-  testAsListNull(listNull); //                                         /// 15: ok
-  Expect.throws(() => testAsListNull(listA), (e) => e is CastError); /// 16: ok
+  testNull(n); //                                                      //# 09: ok
+  testNull(a); //                                      //# 10: dynamic type error
+  testListNull(listNull); //                                           //# 11: ok
+  testListNull(listA); //                              //# 12: dynamic type error
+  Expect.isTrue(testIsListNull(listNull)); //                          //# 13: ok
+  Expect.isFalse(testIsListNull(listA)); //                            //# 14: ok
+  testAsListNull(listNull); //                                         //# 15: ok
+  Expect.throws(() => testAsListNull(listA), (e) => e is CastError); //# 16: ok
 
   var returnNull = returnNullFunc;
   var takeNull = takeNullFunc;
   var returnA = returnAFunc;
   var takeA = takeAFunc;
 
-  testReturnA(returnA); //                                             /// 17: ok
-  testReturnA(returnNull); //                                          /// 18: ok
-  Expect.isTrue(testIsReturnA(returnA)); //                            /// 19: ok
-  Expect.isTrue(testIsReturnA(returnNull)); //                         /// 20: ok
-  testAsReturnA(returnA); //                                           /// 21: ok
-  testAsReturnA(returnNull); //                                        /// 22: ok
+  testReturnA(returnA); //                                             //# 17: ok
+  testReturnA(returnNull); //                                          //# 18: ok
+  Expect.isTrue(testIsReturnA(returnA)); //                            //# 19: ok
+  Expect.isTrue(testIsReturnA(returnNull)); //                         //# 20: ok
+  testAsReturnA(returnA); //                                           //# 21: ok
+  testAsReturnA(returnNull); //                                        //# 22: ok
 
   // This is not valid in strong-mode: ()->A <: ()->Null
-  testReturnNull(returnA); //                                          /// 23: ok
-  testReturnNull(returnNull); //                                       /// 24: ok
+  testReturnNull(returnA); //                                          //# 23: ok
+  testReturnNull(returnNull); //                                       //# 24: ok
   // This is not valid in strong-mode: ()->A <: ()->Null
-  Expect.isTrue(testIsReturnNull(returnA)); //                         /// 25: ok
-  Expect.isTrue(testIsReturnNull(returnNull)); //                      /// 26: ok
+  Expect.isTrue(testIsReturnNull(returnA)); //                         //# 25: ok
+  Expect.isTrue(testIsReturnNull(returnNull)); //                      //# 26: ok
   // This is not valid in strong-mode: ()->A <: ()->Null
-  testAsReturnNull(returnA); //                                        /// 27: ok
-  testAsReturnNull(returnNull); //                                     /// 28: ok
+  testAsReturnNull(returnA); //                                        //# 27: ok
+  testAsReturnNull(returnNull); //                                     //# 28: ok
 
-  testTakeA(takeA); //                                                 /// 29: ok
+  testTakeA(takeA); //                                                 //# 29: ok
   // This is not valid in strong-mode: (Null)-> <: (A)->
-  testTakeA(takeNull); //                                              /// 30: ok
-  Expect.isTrue(testIsTakeA(takeA)); //                                /// 31: ok
+  testTakeA(takeNull); //                                              //# 30: ok
+  Expect.isTrue(testIsTakeA(takeA)); //                                //# 31: ok
   // This is not valid in strong-mode: (Null)-> <: (A)->
-  Expect.isTrue(testIsTakeA(takeNull)); //                             /// 32: ok
-  testAsTakeA(takeA); //                                               /// 33: ok
+  Expect.isTrue(testIsTakeA(takeNull)); //                             //# 32: ok
+  testAsTakeA(takeA); //                                               //# 33: ok
   // This is not valid in strong-mode: (Null)-> <: (A)->
-  testAsTakeA(takeNull); //                                            /// 34: ok
+  testAsTakeA(takeNull); //                                            //# 34: ok
 
-  testTakeNull(takeA); //                                              /// 35: ok
-  testTakeNull(takeNull); //                                           /// 36: ok
-  Expect.isTrue(testIsTakeNull(takeA)); //                             /// 37: ok
-  Expect.isTrue(testIsTakeNull(takeNull)); //                          /// 38: ok
-  testAsTakeNull(takeA); //                                            /// 39: ok
-  testAsTakeNull(takeNull); //                                         /// 40: ok
+  testTakeNull(takeA); //                                              //# 35: ok
+  testTakeNull(takeNull); //                                           //# 36: ok
+  Expect.isTrue(testIsTakeNull(takeA)); //                             //# 37: ok
+  Expect.isTrue(testIsTakeNull(takeNull)); //                          //# 38: ok
+  testAsTakeNull(takeA); //                                            //# 39: ok
+  testAsTakeNull(takeNull); //                                         //# 40: ok
 }

@@ -11,7 +11,7 @@ noMethod(e) => e is NoSuchMethodError;
 
 class C<T> {
   f() {
-    Expect.throws(() => T = null, noMethod); /// 01: static type warning
+    Expect.throws(() => T = null, noMethod); //# 01: static type warning
   }
 }
 
@@ -23,7 +23,7 @@ typedef void F();
 
 main() {
   new C<D>().f();
-  Expect.throws(() => D = null, noMethod); /// 02: static type warning
-  Expect.throws(() => E = null, noMethod); /// 03: static type warning
-  Expect.throws(() => F = null, noMethod); /// 04: static type warning
+  Expect.throws(() => D = null, noMethod); //# 02: static type warning
+  Expect.throws(() => E = null, noMethod); //# 03: static type warning
+  Expect.throws(() => F = null, noMethod); //# 04: static type warning
 }

@@ -17,11 +17,11 @@ void main() {
   B b;
   a = a;
   a = subA;
-  a = b; /// 01: static type warning
+  a = b; //# 01: static type warning
   subA = a;
   subA = subA;
-  subA = b; /// 02: static type warning
-  b = a; /// 03: static type warning
-  b = subA; /// 04: static type warning
+  subA = b; //# 02: static type warning
+  b = a; //# 03: static type warning
+  b = subA; //# 04: static type warning
   b = b;
 }

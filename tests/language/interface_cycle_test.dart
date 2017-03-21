@@ -8,11 +8,11 @@ class C implements B {}
 class A implements B {}
 
 class B
-  implements A // /// 01: compile-time error
-  implements A // /// 02: compile-time error
+  implements A // //# 01: compile-time error
+  implements A // //# 02: compile-time error
 {}
 
 main() {
-  new C(); // /// 01: continued
-  new List<C>(); // /// 02: continued
+  new C(); // //# 01: continued
+  new List<C>(); // //# 02: continued
 }

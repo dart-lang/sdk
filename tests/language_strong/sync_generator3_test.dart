@@ -43,6 +43,6 @@ test2() {
 }
 
 main() {
-  test1(); // /// test1: ok
-  test2(); // /// test2: ok
+  test1(); // //# test1: ok
+  test2(); // //# test2: ok
 }

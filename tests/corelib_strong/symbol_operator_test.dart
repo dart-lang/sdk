@@ -28,14 +28,14 @@ main() {
   testSymbol(#[]=, ($[$]=$).lastMember, "[]=");
   testSymbol(const Symbol("unary-"), -$, "unary-");
 
-  testSymbolThrows(">>>"); // /// 03: ok
-  testSymbolThrows("!"); //   /// 03: continued
-  testSymbolThrows("&&"); //  /// 03: continued
-  testSymbolThrows("||"); //  /// 03: continued
-  testSymbolThrows("?"); //   /// 03: continued
-  testSymbolThrows("?:"); //  /// 03: continued
-  testSymbolThrows("#"); //   /// 03: continued
-  testSymbolThrows("//"); //  /// 03: continued
+  testSymbolThrows(">>>"); // //# 03: ok
+  testSymbolThrows("!"); //   //# 03: continued
+  testSymbolThrows("&&"); //  //# 03: continued
+  testSymbolThrows("||"); //  //# 03: continued
+  testSymbolThrows("?"); //   //# 03: continued
+  testSymbolThrows("?:"); //  //# 03: continued
+  testSymbolThrows("#"); //   //# 03: continued
+  testSymbolThrows("//"); //  //# 03: continued
 }
 
 void testSymbol(Symbol constSymbol, var mirrorSymbol, String name) {

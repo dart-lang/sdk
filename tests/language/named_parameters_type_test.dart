@@ -17,7 +17,7 @@ main() {
   anyFunction = funNumOptBool;
   anyFunction = funNumOptBoolX;
   acceptFunNumOptBool(funNumOptBool);
-  acceptFunNumOptBool(funNum); // /// 01: runtime error
-  acceptFunNumOptBool(funNumBool); // /// 02: static type warning, runtime error
-  acceptFunNumOptBool(funNumOptBoolX); // /// 03: static type warning, runtime error
+  acceptFunNumOptBool(funNum); // //# 01: runtime error
+  acceptFunNumOptBool(funNumBool); // //# 02: static type warning, runtime error
+  acceptFunNumOptBool(funNumOptBoolX); // //# 03: static type warning, runtime error
 }

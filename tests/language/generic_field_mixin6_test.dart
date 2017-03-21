@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 
 class M<T> {
-  T field = 0; /// 01: static type warning
+  T field = 0; //# 01: static type warning
 }
 class A<U> {}
 class C1<V> = Object with M<V>;
@@ -15,12 +15,12 @@ class C2 = Object with M<int>;
 class C3 = Object with M<String>;
 
 main() {
-  checkNoDynamicTypeError(() => new C1<int>()); // /// 01: continued
-  checkDynamicTypeError(() => new C1<String>()); /// 01: continued
+  checkNoDynamicTypeError(() => new C1<int>()); // //# 01: continued
+  checkDynamicTypeError(() => new C1<String>()); //# 01: continued
 
-  checkNoDynamicTypeError(() => new C2()); //      /// 01: continued
+  checkNoDynamicTypeError(() => new C2()); //      //# 01: continued
 
-  checkDynamicTypeError(() => new C3()); //        /// 01: continued
+  checkDynamicTypeError(() => new C3()); //        //# 01: continued
 }
 
 /// Returns `true` if the program is running in checked mode.

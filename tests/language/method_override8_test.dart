@@ -8,10 +8,10 @@
 import "package:expect/expect.dart";
 
 class A {
-  var foo = 42; // /// 00: compile-time error
-  get foo => 42; // /// 01: compile-time error
-  foo() => 42; // /// 02: ok
-  set foo(value) { } // /// 03: static type warning
+  var foo = 42; // //# 00: compile-time error
+  get foo => 42; // //# 01: compile-time error
+  foo() => 42; // //# 02: ok
+  set foo(value) { } // //# 03: static type warning
 }
 
 class B extends A {

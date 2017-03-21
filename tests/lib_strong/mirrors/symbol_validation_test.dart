@@ -133,5 +133,5 @@ main() {
     '_', '_x', 'x._y', 'x._', 'x.y._', 'x._.y', '_true'
   ];
   privateSymbols.forEach(invalidSymbol);
-  privateSymbols.forEach(validPrivateSymbol); //  /// 01: ok
+  privateSymbols.forEach(validPrivateSymbol); //  //# 01: ok
 }

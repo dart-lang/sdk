@@ -10,7 +10,7 @@ import "duplicate_interface_lib.dart" show InterfA;
 
 
 // Expect error since InterfA and alib.InterfA refer to the same interface.
-class Foo implements InterfA, alib.InterfA { } /// compile-time error
+class Foo implements InterfA, alib.InterfA { } //# compile-time error
 
 
 main() {

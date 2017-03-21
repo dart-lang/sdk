@@ -9,6 +9,6 @@ class B<T> implements A<T> {}
 class C<S, T> implements B<S>, A<T> {}
 
 main() {
-  A<int> a0 = new C<int, String>(); /// 01: ok
-  A<int> a1 = new C<String, int>(); /// 02: ok
+  A<int> a0 = new C<int, String>(); //# 01: ok
+  A<int> a1 = new C<String, int>(); //# 02: ok
 }

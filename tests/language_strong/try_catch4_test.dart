@@ -13,11 +13,11 @@ foo1() {
   var b = false;
   var entered = false;
   while (true) {
-    if (entered) return b; /// static warning
+    if (entered) return b; //# static warning
     b = 8 == a; // This expression should not be GVN'ed.
     try {
       a = 8;
-      return; /// static warning
+      return; //# static warning
     } finally {
       b = 8 == a;
       entered = true;
@@ -32,12 +32,12 @@ foo2() {
   var b = false;
   var entered = false;
   while (true) {
-    if (entered) return b; /// static warning
+    if (entered) return b; //# static warning
     b = 8 == a; // This expression should not be GVN'ed.
     try {
       a = 8;
       doThrow();
-      return; /// static warning
+      return; //# static warning
     } catch(e) {
       b = 8 == a;
       entered = true;
@@ -50,14 +50,14 @@ foo3() {
   var b = false;
   var entered = false;
   while (true) {
-    if (entered) return b; /// static warning
+    if (entered) return b; //# static warning
     b = 8 == a; // This expression should not be GVN'ed.
     try {
       doThrow();
     } catch(e) {
       a = 8;
       entered = true;
-      return; /// static warning
+      return; //# static warning
     } finally {
       b = 8 == a;
       entered = true;

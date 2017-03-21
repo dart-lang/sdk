@@ -15,7 +15,7 @@ class B implements A {
 class C implements B {
   factory C.bar() = C.foo;
   factory C.foo() = C
-    .bar /// 01: compile-time error
+    .bar //# 01: compile-time error
 ;
   C();
 }

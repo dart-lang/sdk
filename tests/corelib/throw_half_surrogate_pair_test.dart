@@ -7,6 +7,6 @@ main() {
   if (trebleClef.length != 2) throw "String should be a surrogate pair";
   // These uncaught exceptions should not caush the VM to crash attempting to
   // print a malformed string.
-  throw trebleClef[0]; // /// 01: runtime error
-  throw trebleClef[1]; // /// 02: runtime error
+  throw trebleClef[0]; // //# 01: runtime error
+  throw trebleClef[1]; // //# 02: runtime error
 }

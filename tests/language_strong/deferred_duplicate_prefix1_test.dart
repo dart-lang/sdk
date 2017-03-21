@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "deferred_prefix_constraints_lib2.dart" as lib;
-import "deferred_prefix_constraints_lib.dart" deferred as lib; /// 01: compile-time error
+import "deferred_prefix_constraints_lib.dart" deferred as lib; //# 01: compile-time error
 
 void main() {}

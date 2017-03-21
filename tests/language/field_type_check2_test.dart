@@ -6,7 +6,7 @@ class A {
   A a;
 
   bar(c) {
-    c.a = 2; /// 01: dynamic type error
+    c.a = 2; //# 01: dynamic type error
   }
 }
 
@@ -15,6 +15,6 @@ class B {
 }
 
 main() {
-  new A().bar(new A()); /// 01: continued
+  new A().bar(new A()); //# 01: continued
   new A().bar(new B());
 }

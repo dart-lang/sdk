@@ -16,19 +16,19 @@ bool inCheckedMode() {
 }
 
 class MS<U, V
-    extends U /// 01: static type warning
+    extends U //# 01: static type warning
     > { }
 
 class M<U
-    extends V /// 01: continued
+    extends V //# 01: continued
     , V> extends MS<V, U> { }
 
 class NS<U
-    extends V /// 01: continued
+    extends V //# 01: continued
     , V> { }
 
 class N<U, V
-    extends U /// 01: continued
+    extends U //# 01: continued
     > extends NS<V, U> { }
 
 class S<T> { }
@@ -51,7 +51,7 @@ main() {
   new MNA3<num, int, bool>();
   new MNA4<num, int, bool>();
   bool shouldThrow = false
-      || inCheckedMode() /// 01: continued
+      || inCheckedMode() //# 01: continued
       ;
   if (shouldThrow) {
     // Type parameter U of M must extend type parameter V, but

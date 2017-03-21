@@ -63,14 +63,14 @@ main() {
   testList(new List<int>.generate(1, (x) => x + 1));
 
   // Typed lists.
-  testList(new Uint8List(1)..[0] = 1); //  /// 01: ok
-  testList(new Int8List(1)..[0] = 1); //   /// 01: continued
-  testList(new Uint16List(1)..[0] = 1); // /// 01: continued
-  testList(new Int16List(1)..[0] = 1); //  /// 01: continued
-  testList(new Uint32List(1)..[0] = 1); // /// 01: continued
-  testList(new Int32List(1)..[0] = 1); //  /// 01: continued
-  testList(new Uint64List(1)..[0] = 1); // /// 02: ok
-  testList(new Int64List(1)..[0] = 1); //  /// 02: continued
+  testList(new Uint8List(1)..[0] = 1); //  //# 01: ok
+  testList(new Int8List(1)..[0] = 1); //   //# 01: continued
+  testList(new Uint16List(1)..[0] = 1); // //# 01: continued
+  testList(new Int16List(1)..[0] = 1); //  //# 01: continued
+  testList(new Uint32List(1)..[0] = 1); // //# 01: continued
+  testList(new Int32List(1)..[0] = 1); //  //# 01: continued
+  testList(new Uint64List(1)..[0] = 1); // //# 02: ok
+  testList(new Int64List(1)..[0] = 1); //  //# 02: continued
 
   testIterable(new Set<int>()..add(1));
   testIterable(new HashSet<int>()..add(1));

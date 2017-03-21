@@ -157,7 +157,7 @@ void main() {
   testDouble(9007199254740992.0);
   testDouble(1.7976931348623157e+308);
   testDouble(double.INFINITY);
-  testDouble(double.NAN); //         /// 01: ok
+  testDouble(double.NAN); //         //# 01: ok
 
   // Strings that cannot occur from toString of a number.
   testParse("000000000000", 0);

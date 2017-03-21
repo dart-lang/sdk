@@ -31,9 +31,9 @@ void nonThrow5() {
 }
 
 void main() {
-  throw1(); // /// 01: runtime error
-  throw2(); // /// 02: runtime error
-  throw3(); // /// 03: runtime error
-  throw4(); // /// 04: runtime error
+  throw1(); // //# 01: runtime error
+  throw2(); // //# 02: runtime error
+  throw3(); // //# 03: runtime error
+  throw4(); // //# 04: runtime error
   nonThrow5();
 }

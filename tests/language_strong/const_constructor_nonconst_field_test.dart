@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  final int i = f(); /// 01: compile-time error
+  final int i = f(); //# 01: compile-time error
   final int j = 1;
   const A();
 }

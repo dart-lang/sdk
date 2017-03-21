@@ -7,7 +7,7 @@
 class Foo<T extends num> {
   Foo();
 
-  factory Foo.bad() = XFoo; // /// 00: static type warning
+  factory Foo.bad() = XFoo; // //# 00: static type warning
 
   factory Foo.good() = Foo;
 
@@ -20,7 +20,7 @@ abstract class IFoo<T extends num> {
 
 // String is not assignable to num.
 class Baz
-    extends Foo<String> /// 01: static type warning, dynamic type error
+    extends Foo<String> //# 01: static type warning, dynamic type error
 {}
 
 class Biz extends Foo<int> {}
@@ -29,26 +29,26 @@ Foo<int> fi;
 
 // String is not assignable to num.
 Foo
-    <String> /// 02: static type warning, dynamic type error
+    <String> //# 02: static type warning, dynamic type error
   fs;
 
 class Box<T> {
 
   // Box.T is not assignable to num.
-  Foo<T> t; /// 03: static type warning
+  Foo<T> t; //# 03: static type warning
 
   makeFoo() {
     // Box.T is not assignable to num.
-    return new Foo<T>(); /// 04: static type warning, dynamic type error
+    return new Foo<T>(); //# 04: static type warning, dynamic type error
   }
 }
 
 main() {
   // String is not assignable to num.
-  var v1 = new Foo<String>(); /// 05: static type warning, dynamic type error
+  var v1 = new Foo<String>(); //# 05: static type warning, dynamic type error
 
   // String is not assignable to num.
-  Foo<String> v2 = null; /// 06: static type warning
+  Foo<String> v2 = null; //# 06: static type warning
 
   new Baz();
   new Biz();
@@ -61,14 +61,14 @@ main() {
   new Box<String>().makeFoo();
 
   // Fisk does not exist.
-  new Box<Fisk>(); /// 07: static type warning
+  new Box<Fisk>(); //# 07: static type warning
 
   // Too many type arguments.
-  new Box<Object, Object>(); /// 08: static type warning
+  new Box<Object, Object>(); //# 08: static type warning
 
   // Fisk does not exist.
-  Box<Fisk> box = null; /// 09: static type warning
+  Box<Fisk> box = null; //# 09: static type warning
 
   // Too many type arguments.
-  Box<Object, Object> box = null; /// 10: static type warning
+  Box<Object, Object> box = null; //# 10: static type warning
 }

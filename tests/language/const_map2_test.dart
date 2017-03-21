@@ -11,7 +11,7 @@ class A {
 class B implements A {
   const B();
 
-  operator ==(o) => true; // /// 00: compile-time error
+  operator ==(o) => true; // //# 00: compile-time error
 }
 
 @NoInline() @AssumeDynamic()

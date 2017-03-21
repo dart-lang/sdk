@@ -5,13 +5,13 @@
 import 'package:expect/expect.dart';
 
 class Super<T extends num> {}
-class Malbounded1 implements Super<String> {} // /// static type warning
-class Malbounded2 extends Super<String> {} // /// static type warning
+class Malbounded1 implements Super<String> {} // //# static type warning
+class Malbounded2 extends Super<String> {} // //# static type warning
 
 main() {
   bool inCheckedMode = false;
   try {
-    String a = 42; /// static type warning
+    String a = 42; //# static type warning
   } catch (e) {
     inCheckedMode = true;
   }
@@ -28,5 +28,5 @@ main() {
   var s = new Super<int>();
   Expect.throws(() => s as Malbounded1, (e) => e is CastError);
   Expect.throws(() => s as Malbounded2, expectedError);
-  Expect.throws(() => s as Super<String>, expectedError); /// static type warning
+  Expect.throws(() => s as Super<String>, expectedError); //# static type warning
 }

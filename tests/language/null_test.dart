@@ -9,9 +9,9 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class BadInherit
-  extends Null //    /// 01: compile-time error
-  implements Null // /// 02: compile-time error
-  extends Object with Null // /// 03: compile-time error
+  extends Null //    //# 01: compile-time error
+  implements Null // //# 02: compile-time error
+  extends Object with Null // //# 03: compile-time error
     {}
 
 class EqualsNotCalled {

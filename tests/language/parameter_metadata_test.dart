@@ -5,13 +5,13 @@
 // Test that metadata annotations can be handled on nested parameters.
 
 test(
-     @deprecated //   /// 01: ok
+     @deprecated //   //# 01: ok
      f(
-       @deprecated // /// 02: ok
+       @deprecated // //# 02: ok
        a,
-       @deprecated // /// 03: ok
+       @deprecated // //# 03: ok
        g(
-         @deprecated /// 04: ok
+         @deprecated //# 04: ok
          b))) {}
 
 main() {

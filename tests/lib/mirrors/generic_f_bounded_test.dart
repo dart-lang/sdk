@@ -52,7 +52,7 @@ main() {
   typeArguments(realDecl, []);
   typeArguments(sorterDecl, []);
   typeArguments(realSorterDecl, []);
-  typeArguments(magnitudeOfReal, [realDecl]); /// 01: ok
-  typeArguments(sorterOfReal, [realDecl]); /// 01: ok
+  typeArguments(magnitudeOfReal, [realDecl]); //# 01: ok
+  typeArguments(sorterOfReal, [realDecl]); //# 01: ok
   typeArguments(magnitudeOfR, [rFromSorter]);
 }

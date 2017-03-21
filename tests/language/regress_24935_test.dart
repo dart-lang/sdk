@@ -18,7 +18,7 @@ Future main() async {
   // after breaking out of the innermost loop does not
   // crash the VM. In other words, the expected test
   // outcome is an unhandled exception.
-  throw "ball"; /// 01: runtime error
+  throw "ball"; //# 01: runtime error
 }
 
 

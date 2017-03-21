@@ -29,5 +29,5 @@ main() {
   Expect.equals(aOfString, parameterType.parameters.single.type);
 
   ClassMirror typeArgOfSuperclass = cOfString.superclass.typeArguments.single;
-  Expect.equals(aOfString, typeArgOfSuperclass); // /// 01: ok
+  Expect.equals(aOfString, typeArgOfSuperclass); // //# 01: ok
 }

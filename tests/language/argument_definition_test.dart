@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 
 int test(a, {b, c}) {
-  if (?b) return b; // /// 01: compile-time error
+  if (?b) return b; // //# 01: compile-time error
   return a + b + c;
 }
 
