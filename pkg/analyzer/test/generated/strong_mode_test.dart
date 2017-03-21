@@ -1098,6 +1098,176 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);
   }
 
+  test_inference_error_arguments() async {
+    Source source = addSource(r'''
+typedef R F<T, R>(T t);
+
+F<T, T> g<T>(F<T, T> f) => (x) => f(f(x));
+
+test() {
+  var h = g((int x) => 42.0);
+}
+ ''');
+    await computeAnalysisResult(source);
+    _expectInferenceError(
+        source,
+        [
+          StrongModeCode.COULD_NOT_INFER,
+          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+        ],
+        r'''
+Couldn't infer type parameter 'T'.
+
+Tried to infer 'double' for 'T' which doesn't work:
+  Parameter 'f' declared as     '(T) → T'
+                but argument is '(int) → double'.
+
+Consider passing explicit type argument(s) to the generic.
+
+''');
+  }
+
+  test_inference_error_arguments2() async {
+    Source source = addSource(r'''
+typedef R F<T, R>(T t);
+
+F<T, T> g<T>(F<T, T> a, F<T, T> b) => (x) => a(b(x));
+
+test() {
+  var h = g((int x) => 42.0, (double x) => 42);
+}
+ ''');
+    await computeAnalysisResult(source);
+    _expectInferenceError(
+        source,
+        [
+          StrongModeCode.COULD_NOT_INFER,
+          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+        ],
+        r'''
+Couldn't infer type parameter 'T'.
+
+Tried to infer 'num' for 'T' which doesn't work:
+  Parameter 'a' declared as     '(T) → T'
+                but argument is '(int) → double'.
+  Parameter 'b' declared as     '(T) → T'
+                but argument is '(double) → int'.
+
+Consider passing explicit type argument(s) to the generic.
+
+''');
+  }
+
+  test_inference_error_extendsFromReturn() async {
+    // This is not an inference error because we successfully infer Null.
+    Source source = addSource(r'''
+T max<T extends num>(T x, T y) => x;
+
+test() {
+  String hello = max(1, 2);
+}
+ ''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [
+      StrongModeCode.INVALID_CAST_LITERAL,
+      StrongModeCode.INVALID_CAST_LITERAL
+    ]);
+    var unit = analysisResult.unit;
+    var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
+            as VariableDeclarationStatement)
+        .variables
+        .variables[0];
+    var call = h.initializer as MethodInvocation;
+    expect(call.staticInvokeType.toString(), '(Null, Null) → Null');
+  }
+
+  test_inference_error_extendsFromReturn2() async {
+    Source source = addSource(r'''
+typedef R F<T, R>(T t);
+F<T, T> g<T extends num>() => (y) => y;
+
+test() {
+  F<String, String> hello = g();
+}
+ ''');
+    await computeAnalysisResult(source);
+    _expectInferenceError(
+        source,
+        [
+          StrongModeCode.COULD_NOT_INFER,
+        ],
+        r'''
+Couldn't infer type parameter 'T'.
+
+Tried to infer 'String' for 'T' which doesn't work:
+  Type parameter 'T' declared to extend 'num'.
+The type 'String' was inferred from:
+  Return type declared as '(T) → T'
+              used where  '(String) → String' is required.
+
+Consider passing explicit type argument(s) to the generic.
+
+''');
+  }
+
+
+  test_inference_error_genericFunction() async {
+    Source source = addSource(r'''
+T max<T extends num>(T x, T y) => x < y ? y : x;
+abstract class Iterable<T> {
+  T get first;
+  S fold<S>(S s, S f(S s, T t));
+}
+test(Iterable values) {
+  num n = values.fold(values.first as num, max);
+}
+ ''');
+    await computeAnalysisResult(source);
+    _expectInferenceError(
+        source,
+        [
+          StrongModeCode.COULD_NOT_INFER,
+          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+        ],
+        r'''
+Couldn't infer type parameter 'T'.
+
+Tried to infer 'dynamic' for 'T' which doesn't work:
+  Function type declared as '<T extends num>(T, T) → T'
+                used where  '(num, dynamic) → num' is required.
+
+Consider passing explicit type argument(s) to the generic.
+
+''');
+  }
+
+  test_inference_error_returnContext() async {
+    Source source = addSource(r'''
+typedef R F<T, R>(T t);
+
+F<T, T> g<T>(T t) => (x) => t;
+
+test() {
+  F<num, int> h = g(42);
+}
+ ''');
+    await computeAnalysisResult(source);
+    _expectInferenceError(
+        source,
+        [StrongModeCode.COULD_NOT_INFER],
+        r'''
+Couldn't infer type parameter 'T'.
+
+Tried to infer 'num' for 'T' which doesn't work:
+  Return type declared as '(T) → T'
+              used where  '(num) → int' is required.
+
+Consider passing explicit type argument(s) to the generic.
+
+''');
+  }
+
   test_inference_hints() async {
     Source source = addSource(r'''
       void main () {
@@ -2135,6 +2305,23 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     check("f2", _isListOf(_isInt));
     check("f3", _isListOf((DartType type) => _isListOf(_isInt)(type)));
+  }
+
+  /// Verifies the source has the expected [errorCodes] as well as the
+  /// expected [errorMessage].
+  void _expectInferenceError(
+      Source source, List<ErrorCode> errorCodes, String errorMessage) {
+    assertErrors(source, errorCodes);
+    var errors = analysisResults[source]
+        .errors
+        .where((e) => e.errorCode == StrongModeCode.COULD_NOT_INFER)
+        .map((e) => e.message)
+        .toList();
+    expect(errors.length, 1);
+    var actual = errors[0];
+    expect(actual,
+        errorMessage, // Print the literal error message for easy copy+paste:
+        reason: 'Actual error did not match expected error:\n$actual');
   }
 
   /// Helper method for testing `FutureOr<T>`.

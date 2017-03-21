@@ -236,12 +236,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferrer = new _GenericInferrer(typeProvider, this, fnType.typeFormals);
-
-    // Since we're trying to infer the instantiation, we want to ignore type
-    // formals as we check the parameters and return type.
-    var inferFnType =
-        fnType.instantiate(TypeParameterTypeImpl.getTypes(fnType.typeFormals));
-    inferrer.constrainReturnType(inferFnType, contextType);
+    inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
     return inferrer.infer(fnType, fnType.typeFormals,
@@ -1603,6 +1598,19 @@ class _GenericInferrer {
     _matchSubtypeOf(declaredType, contextType, null, origin, covariant: true);
   }
 
+  /// Constrain a universal function type [fnType] used in a context
+  /// [contextType].
+  void constrainGenericFunctionInContext(
+      FunctionType fnType, DartType contextType) {
+    var origin = new _TypeConstraintFromFunctionContext(fnType, contextType);
+
+    // Since we're trying to infer the instantiation, we want to ignore type
+    // formals as we check the parameters and return type.
+    var inferFnType =
+        fnType.instantiate(TypeParameterTypeImpl.getTypes(fnType.typeFormals));
+    _matchSubtypeOf(inferFnType, contextType, null, origin, covariant: true);
+  }
+
   /// Apply an argument constraint, which asserts that the [argument] staticType
   /// is a subtype of the [parameterType].
   void constrainArgument(
@@ -1851,20 +1859,31 @@ class _GenericInferrer {
       var constraints = _constraints[typeParam.element];
       var typeParamBound =
           typeParam.bound.substitute2(inferredTypes, fnTypeParams);
-      if (!typeParamBound.isDynamic) {
-        constraints
-            .add(new _TypeConstraint.fromExtends(typeParam, typeParamBound));
-      }
+
       var inferred = inferredTypes[i];
-      if (constraints.any((c) => !c.isSatisifedBy(_typeSystem, inferred))) {
-        // Heuristic: keep the erroneous type, it should satisfy at least some
-        // of the constraints (e.g. the return context). If we fall back to
-        // instantiateToBounds, we'll typically get more errors (e.g. because
-        // `dynamic` is the most common bound).
-        knownTypes[typeParam] = inferred;
-        errorReporter?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER,
-            errorNode, [typeParam, _formatError(inferred, constraints)]);
-      } else if (UnknownInferredType.isKnown(inferred)) {
+      bool success =
+          constraints.every((c) => c.isSatisifedBy(_typeSystem, inferred));
+      if (success && !typeParamBound.isDynamic) {
+        // If everything else succeeded, check the `extends` constraint.
+        var extendsConstraint =
+            new _TypeConstraint.fromExtends(typeParam, typeParamBound);
+        constraints.add(extendsConstraint);
+        success = extendsConstraint.isSatisifedBy(_typeSystem, inferred);
+      }
+
+      if (!success) {
+        errorReporter?.reportErrorForNode(
+            StrongModeCode.COULD_NOT_INFER,
+            errorNode,
+            [typeParam, _formatError(typeParam, inferred, constraints)]);
+
+        // Heuristic: even if we failed, keep the erroneous type.
+        // It should satisfy at least some of the constraints (e.g. the return
+        // context). If we fall back to instantiateToBounds, we'll typically get
+        // more errors (e.g. because `dynamic` is the most common bound).
+      }
+
+      if (UnknownInferredType.isKnown(inferred)) {
         knownTypes[typeParam] = inferred;
       }
     }
@@ -2039,22 +2058,23 @@ class _GenericInferrer {
     return result;
   }
 
-  String _formatError(
-      DartType inferred, Iterable<_TypeConstraint> constraints) {
-    var intro = "Inferred type '$inferred' does not work with constraints:";
+  String _formatError(TypeParameterType typeParam, DartType inferred,
+      Iterable<_TypeConstraint> constraints) {
+    var intro = "Tried to infer '$inferred' for '$typeParam'"
+        " which doesn't work:";
 
     var constraintsByOrigin = <_TypeConstraintOrigin, List<_TypeConstraint>>{};
     for (var c in constraints) {
       constraintsByOrigin.putIfAbsent(c.origin, () => []).add(c);
     }
 
+    // Only report unique constraint origins.
     Iterable<_TypeConstraint> isSatisified(bool expected) => constraintsByOrigin
         .values
         .where((l) =>
             l.every((c) => c.isSatisifedBy(_typeSystem, inferred)) == expected)
         .expand((i) => i);
 
-    // Only report unique constraint origins.
     String unsatisified = _formatConstraints(isSatisified(false));
     String satisified = _formatConstraints(isSatisified(true));
 
@@ -2074,7 +2094,6 @@ class _GenericInferrer {
             .toList();
 
     int prefixMax = lineParts.map((p) => p[0].length).fold(0, math.max);
-    int middleMax = lineParts.map((p) => p[1].length).fold(0, math.max);
 
     // Use a set to prevent identical message lines.
     // (It's not uncommon for the same constraint to show up in a few places.)
@@ -2082,8 +2101,12 @@ class _GenericInferrer {
       var prefix = parts[0];
       var middle = parts[1];
       var prefixPad = ' ' * (prefixMax - prefix.length);
-      var middlePad = ' ' * (middleMax - middle.length);
-      return '  $prefix$prefixPad $middle$middlePad ${parts[2]}'.trimRight();
+      var middlePad = ' ' * (prefixMax);
+      var end = "";
+      if (parts.length > 2) {
+        end = '\n  $middlePad ${parts[2]}';
+      }
+      return '  $prefix$prefixPad $middle$end';
     }));
 
     return messageLines.join('\n');
@@ -2121,13 +2144,13 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
       //     "Map value"
       prefix = "${genericType.name} $parameterName";
     } else {
-      prefix = "Argument '$parameterName'";
+      prefix = "Parameter '$parameterName'";
     }
 
     return [
       prefix,
-      "inferred as '$argumentType'",
-      "must be a '$parameterType'."
+      "declared as     '$parameterType'",
+      "but argument is '$argumentType'."
     ];
   }
 }
@@ -2143,7 +2166,23 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
     return [
       "Return type",
       "declared as '$declaredType'",
-      "used where a '$contextType' is required."
+      "used where  '$contextType' is required."
+    ];
+  }
+}
+
+class _TypeConstraintFromFunctionContext extends _TypeConstraintOrigin {
+  final DartType contextType;
+  final DartType functionType;
+
+  _TypeConstraintFromFunctionContext(this.functionType, this.contextType);
+
+  @override
+  formatError() {
+    return [
+      "Function type",
+      "declared as '$functionType'",
+      "used where  '$contextType' is required."
     ];
   }
 }
@@ -2158,8 +2197,7 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
   formatError() {
     return [
       "Type parameter '$typeParam'",
-      "declared to extend '$extendsType'.",
-      ""
+      "declared to extend '$extendsType'."
     ];
   }
 }
