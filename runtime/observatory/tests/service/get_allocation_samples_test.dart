@@ -67,8 +67,14 @@ var tests = [
     cpuProfile.buildFunctionCallerAndCallees();
     var tree = cpuProfile.loadCodeTree(M.ProfileTreeDirection.exclusive);
     var node = tree.root;
-    var expected = ['Root', 'DRT_AllocateObject', '[Stub] Allocate Foo',
-                    'test', 'test', '_Closure.call'];
+    var expected = [
+      'Root',
+      'DRT_AllocateObject',
+      '[Stub] Allocate Foo',
+      'test',
+      'test',
+      '_Closure.call'
+    ];
     for (var i = 0; i < expected.length; i++) {
       expect(node.profileCode.code.name, equals(expected[i]));
       // Depth first traversal.
@@ -83,4 +89,4 @@ var tests = [
   resumeIsolate,
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeConcurrent:test);
+main(args) async => runIsolateTests(args, tests, testeeConcurrent: test);

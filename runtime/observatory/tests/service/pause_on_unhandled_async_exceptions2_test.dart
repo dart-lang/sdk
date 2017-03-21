@@ -9,11 +9,9 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-const LINE_A = 29;
+const LINE_A = 27;
 
-class Foo {
-
-}
+class Foo {}
 
 doThrow() {
   throw "TheException"; // Line 13.
@@ -31,7 +29,6 @@ testeeMain() async {
 
 var tests = [
   hasStoppedWithUnhandledException,
-
   (Isolate isolate) async {
     print("We stoppped!");
     var stack = await isolate.getStack();
@@ -42,12 +39,10 @@ var tests = [
     expect(asyncStack[2].kind, equals(M.FrameKind.asyncSuspensionMarker));
     expect(asyncStack[3].toString(), contains('testeeMain'));
     // We've stopped at LINE_A.
-    expect(await asyncStack[3].location.toUserString(),
-           contains('.dart:$LINE_A'));
+    expect(
+        await asyncStack[3].location.toUserString(), contains('.dart:$LINE_A'));
   }
 ];
 
-main(args) => runIsolateTests(args,
-                              tests,
-                              pause_on_unhandled_exceptions: true,
-                              testeeConcurrent: testeeMain);
+main(args) => runIsolateTests(args, tests,
+    pause_on_unhandled_exceptions: true, testeeConcurrent: testeeMain);

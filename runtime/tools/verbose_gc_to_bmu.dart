@@ -56,7 +56,7 @@ class Timeline {
     }
     return result;
   }
-  
+
   // Returns the fraction of non-pause time, or 1.0 for an invalid interval.
   double _utilization(Interval<int> iv) {
     if (_run.begin > iv.begin || iv.end > _run.end || iv.length == 0) {
@@ -68,7 +68,7 @@ class Timeline {
     }
     return 1.0 - (paused / iv.length);
   }
-  
+
   final Interval<int> _run = new Interval<int>(0, 0);
   final List<Interval<int>> _pauses = [];
 }
@@ -80,7 +80,7 @@ Interval<int> parseVerboseGCLine(String line) {
   // Update this (and indices below, if needed) when logging format changes.
   if (fields.length != 25) {
     assert(line.startsWith('[    GC    |  space  | count | start | gc time') ||
-           line.startsWith('[ (isolate)| (reason)|       |  (s)  |   (ms) '));
+        line.startsWith('[ (isolate)| (reason)|       |  (s)  |   (ms) '));
     return new Interval<int>(0, 0);
   }
   var begin = (1e6 * double.parse(fields[2])).floor();
@@ -99,8 +99,8 @@ void main() {
   print('# window_size_ms, bounded_mutator_utilization');
   var minimumSeen = 1.0;
   for (int w = t._run.length;
-       w > 1000 * MINIMUM_WINDOW_SIZE_MS;
-       w = (w * WINDOW_STEP_FACTOR).floor()) {
+      w > 1000 * MINIMUM_WINDOW_SIZE_MS;
+      w = (w * WINDOW_STEP_FACTOR).floor()) {
     minimumSeen = min(minimumSeen, t.minUtilization(w));
     print('${w / 1000}, $minimumSeen');
   }

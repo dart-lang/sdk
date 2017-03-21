@@ -9,7 +9,8 @@ import "dart:_internal" as internal;
 /**
  * Returns a [MirrorSystem] for the current isolate.
  */
-@patch MirrorSystem currentMirrorSystem() {
+@patch
+MirrorSystem currentMirrorSystem() {
   return _Mirrors.currentMirrorSystem();
 }
 
@@ -19,7 +20,8 @@ import "dart:_internal" as internal;
  * This only works if this mirror system is associated with the
  * current running isolate.
  */
-@patch InstanceMirror reflect(Object reflectee) {
+@patch
+InstanceMirror reflect(Object reflectee) {
   return _Mirrors.reflect(reflectee);
 }
 
@@ -29,16 +31,20 @@ import "dart:_internal" as internal;
  *
  * This only works with objects local to the current isolate.
  */
-@patch ClassMirror reflectClass(Type key) {
+@patch
+ClassMirror reflectClass(Type key) {
   return _Mirrors.reflectClass(key);
 }
 
-@patch TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
+@patch
+TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
   return _Mirrors.reflectType(key, typeArguments);
 }
 
-@patch class MirrorSystem {
-  @patch LibraryMirror findLibrary(Symbol libraryName) {
+@patch
+class MirrorSystem {
+  @patch
+  LibraryMirror findLibrary(Symbol libraryName) {
     var candidates =
         libraries.values.where((lib) => lib.simpleName == libraryName);
     if (candidates.length == 1) {
@@ -47,16 +53,18 @@ import "dart:_internal" as internal;
     if (candidates.length > 1) {
       var uris = candidates.map((lib) => lib.uri.toString()).toList();
       throw new Exception("There are multiple libraries named "
-                          "'${getName(libraryName)}': $uris");
+          "'${getName(libraryName)}': $uris");
     }
     throw new Exception("There is no library named '${getName(libraryName)}'");
   }
 
-  @patch static String getName(Symbol symbol) {
+  @patch
+  static String getName(Symbol symbol) {
     return internal.Symbol.getUnmangledName(symbol);
   }
 
-  @patch static Symbol getSymbol(String name, [LibraryMirror library]) {
+  @patch
+  static Symbol getSymbol(String name, [LibraryMirror library]) {
     if ((library != null && library is! _LocalLibraryMirror) ||
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
       throw new ArgumentError(library);

@@ -64,8 +64,8 @@ main() {
         e.remove();
       });
       test('navigation after connect', () async {
-        sub = window.onPopState.listen(expectAsync((_) {}, count: 1,
-          reason: 'event is fired'));
+        sub = window.onPopState
+            .listen(expectAsync((_) {}, count: 1, reason: 'event is fired'));
         e.querySelector('a').click();
       });
       test('onDelete events (DOM)', () async {
@@ -73,7 +73,7 @@ main() {
           expect(event, isNotNull, reason: 'event is passed');
           expect(event.exception, equals(ex), reason: 'exception is the same');
           expect(event.stacktrace, equals(st),
-                                            reason: 'stacktrace is the same');
+              reason: 'stacktrace is the same');
         }, count: 1, reason: 'event is fired'));
         e.querySelector('button').click();
       });
@@ -82,7 +82,7 @@ main() {
           expect(event, isNotNull, reason: 'event is passed');
           expect(event.exception, equals(ex), reason: 'exception is the same');
           expect(event.stacktrace, equals(st),
-                                            reason: 'stacktrace is the same');
+              reason: 'stacktrace is the same');
         }, count: 1, reason: 'event is fired'));
         e.delete();
       });

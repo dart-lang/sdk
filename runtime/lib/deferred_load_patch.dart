@@ -4,12 +4,13 @@
 
 final Set<String> _loadedLibraries = new Set<String>();
 
-@patch class DeferredLibrary {
-  @patch Future<Null> load() {
+@patch
+class DeferredLibrary {
+  @patch
+  Future<Null> load() {
     // Dummy implementation that should eventually be replaced by real
     // implementation.
-    Future future =
-        new Future<Null>.value(null);
+    Future future = new Future<Null>.value(null);
     _loadedLibraries.add(libraryName);
     return future;
   }

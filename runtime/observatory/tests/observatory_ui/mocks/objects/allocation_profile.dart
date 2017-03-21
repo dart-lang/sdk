@@ -11,12 +11,13 @@ class AllocationProfileMock implements M.AllocationProfile {
   final M.HeapSpace oldSpace;
   final Iterable<M.ClassHeapStats> members;
 
-  const AllocationProfileMock({this.lastServiceGC, this.lastAccumulatorReset,
-                               this.newSpace: const HeapSpaceMock(),
-                               this.oldSpace: const HeapSpaceMock(),
-                               this.members: const []});
+  const AllocationProfileMock(
+      {this.lastServiceGC,
+      this.lastAccumulatorReset,
+      this.newSpace: const HeapSpaceMock(),
+      this.oldSpace: const HeapSpaceMock(),
+      this.members: const []});
 }
-
 
 class ClassHeapStatsMock implements M.ClassHeapStats {
   final M.ClassRef clazz;
@@ -25,18 +26,21 @@ class ClassHeapStatsMock implements M.ClassHeapStats {
   final int promotedInstances;
   final int promotedBytes;
 
-  const ClassHeapStatsMock({this.clazz: const ClassRefMock(),
-                            this.newSpace: const AllocationsMock(),
-                            this.oldSpace: const AllocationsMock(),
-                            this.promotedInstances: 0, this.promotedBytes: 0});
+  const ClassHeapStatsMock(
+      {this.clazz: const ClassRefMock(),
+      this.newSpace: const AllocationsMock(),
+      this.oldSpace: const AllocationsMock(),
+      this.promotedInstances: 0,
+      this.promotedBytes: 0});
 }
 
 class AllocationsMock implements M.Allocations {
   final M.AllocationCount accumulated;
   final M.AllocationCount current;
 
-  const AllocationsMock({this.accumulated: const AllocationCountMock(),
-                         this.current: const AllocationCountMock()});
+  const AllocationsMock(
+      {this.accumulated: const AllocationCountMock(),
+      this.current: const AllocationCountMock()});
 }
 
 class AllocationCountMock implements M.AllocationCount {

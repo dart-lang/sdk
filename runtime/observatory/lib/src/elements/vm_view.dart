@@ -213,7 +213,6 @@ class VMViewElement extends HtmlElement implements Renderable {
                     ..classes = ['memberValue']
                     ..text = '${_vm.heapAllocationCount}'
                 ],
- 
               new BRElement(),
               new DivElement()
                 ..classes = ['memberItem']

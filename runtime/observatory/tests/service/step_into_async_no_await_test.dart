@@ -17,7 +17,7 @@ asyncWithoutAwait() async {
 
 testMain() {
   debugger();
-  asyncWithoutAwait();  // Line A.
+  asyncWithoutAwait(); // Line A.
 }
 
 var tests = [
@@ -25,7 +25,7 @@ var tests = [
   stoppedAtLine(LINE_A),
   (isolate) => isolate.stepInto(),
   hasStoppedAtBreakpoint,
-  (isolate) => isolate.getStack(),  // Should not crash.
+  (isolate) => isolate.getStack(), // Should not crash.
   // TODO(rmacnak): stoppedAtLine(12)
   // This doesn't happen because asyncWithoutAwait is marked undebuggable.
   // Probably needs to change to support async-step-into.

@@ -99,22 +99,21 @@ Future asyncStepOver(Isolate isolate) async {
     // Synthetic breakpoint add event. This is the first event we will
     // receive.
     bool isAdd = (event.kind == ServiceEvent.kBreakpointAdded) &&
-                 (event.breakpoint.isSyntheticAsyncContinuation) &&
-                 (event.owner == isolate);
+        (event.breakpoint.isSyntheticAsyncContinuation) &&
+        (event.owner == isolate);
     // Resume after synthetic breakpoint added. This is the second event
     // we will recieve.
     bool isResume = (event.kind == ServiceEvent.kResume) &&
-                    (syntheticBreakpoint != null) &&
-                    (event.owner == isolate);
+        (syntheticBreakpoint != null) &&
+        (event.owner == isolate);
     // Paused at synthetic breakpoint. This is the third event we will
     // receive.
     bool isPaused = (event.kind == ServiceEvent.kPauseBreakpoint) &&
-                    (syntheticBreakpoint != null) &&
-                    (event.breakpoint == syntheticBreakpoint);
+        (syntheticBreakpoint != null) &&
+        (event.breakpoint == syntheticBreakpoint);
     if (isAdd) {
       syntheticBreakpoint = event.breakpoint;
-    } else if (isResume) {
-    } else if (isPaused) {
+    } else if (isResume) {} else if (isPaused) {
       pausedAtSyntheticBreakpoint.complete(isolate);
       syntheticBreakpoint = null;
       cancelSubscription();
@@ -157,21 +156,21 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
-        if ((isolate == event.isolate) && (event.kind == kind)) {
-          if (completer != null) {
-            // Reload to update isolate.pauseEvent.
-            print('Paused with $kind');
-            subscription.cancel();
-            completer.complete(isolate.reload());
-            completer = null;
-          }
+      if ((isolate == event.isolate) && (event.kind == kind)) {
+        if (completer != null) {
+          // Reload to update isolate.pauseEvent.
+          print('Paused with $kind');
+          subscription.cancel();
+          completer.complete(isolate.reload());
+          completer = null;
         }
+      }
     });
 
     // Pause may have happened before we subscribed.
     isolate.reload().then((_) {
       if ((isolate.pauseEvent != null) &&
-         isEventOfKind(isolate.pauseEvent, kind)) {
+          isEventOfKind(isolate.pauseEvent, kind)) {
         // Already waiting at a breakpoint.
         if (completer != null) {
           print('Paused with $kind');
@@ -183,7 +182,7 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
     });
   });
 
-  return completer.future;  // Will complete when breakpoint hit.
+  return completer.future; // Will complete when breakpoint hit.
 }
 
 Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
@@ -210,28 +209,26 @@ Future<Isolate> markDartColonLibrariesDebuggable(Isolate isolate) async {
   await isolate.reload();
   for (Library lib in isolate.libraries) {
     await lib.load();
-    if (lib.uri.startsWith('dart:') &&
-        !lib.uri.startsWith('dart:_')) {
+    if (lib.uri.startsWith('dart:') && !lib.uri.startsWith('dart:_')) {
       var setDebugParams = {
-            'libraryId': lib.id,
-            'isDebuggable': true,
-          };
-      Map<String, dynamic> result =
-          await isolate.invokeRpcNoUpgrade('setLibraryDebuggable',
-                                           setDebugParams);
+        'libraryId': lib.id,
+        'isDebuggable': true,
+      };
+      Map<String, dynamic> result = await isolate.invokeRpcNoUpgrade(
+          'setLibraryDebuggable', setDebugParams);
     }
   }
   return isolate;
 }
 
 IsolateTest reloadSources([bool pause = false]) {
-    return (Isolate isolate) async {
-      Map<String, dynamic> params = <String, dynamic>{ };
-      if (pause == true) {
-        params['pause'] = pause;
-      }
-      return isolate.invokeRpc('reloadSources', params);
-    };
+  return (Isolate isolate) async {
+    Map<String, dynamic> params = <String, dynamic>{};
+    if (pause == true) {
+      params['pause'] = pause;
+    }
+    return isolate.invokeRpc('reloadSources', params);
+  };
 }
 
 // Currying is your friend.
@@ -279,7 +276,6 @@ IsolateTest stoppedAtLine(int line) {
   };
 }
 
-
 IsolateTest stoppedInFunction(String functionName, {bool contains: false}) {
   return (Isolate isolate) async {
     print("Checking we are in function: $functionName");
@@ -292,13 +288,13 @@ IsolateTest stoppedInFunction(String functionName, {bool contains: false}) {
 
     Frame topFrame = stack['frames'][0];
     ServiceFunction function = await topFrame.function.load();
-    final bool matches =
-        contains ? function.name.contains(functionName) :
-                     function.name == functionName;
+    final bool matches = contains
+        ? function.name.contains(functionName)
+        : function.name == functionName;
     if (!matches) {
       StringBuffer sb = new StringBuffer();
       sb.write("Expected to be in function $functionName but "
-               "actually in function ${function.name}");
+          "actually in function ${function.name}");
       sb.write("\nFull stack trace:\n");
       for (Frame f in stack['frames']) {
         await f.function.load();
@@ -313,7 +309,6 @@ IsolateTest stoppedInFunction(String functionName, {bool contains: false}) {
     }
   };
 }
-
 
 Future<Isolate> resumeIsolate(Isolate isolate) {
   Completer completer = new Completer();
@@ -330,21 +325,18 @@ Future<Isolate> resumeIsolate(Isolate isolate) {
   return completer.future;
 }
 
-
 Future resumeAndAwaitEvent(Isolate isolate, stream, onEvent) async {
   Completer completer = new Completer();
   var sub;
-  sub = await isolate.vm.listenEventStream(
-    stream,
-    (ServiceEvent event) {
-      var r = onEvent(event);
-      if (r is! Future) {
-        r = new Future.value(r);
-      }
-      r.then((x) => sub.cancel().then((_) {
-        completer.complete();
-      }));
-    });
+  sub = await isolate.vm.listenEventStream(stream, (ServiceEvent event) {
+    var r = onEvent(event);
+    if (r is! Future) {
+      r = new Future.value(r);
+    }
+    r.then((x) => sub.cancel().then((_) {
+          completer.complete();
+        }));
+  });
   await isolate.resume();
   return completer.future;
 }
@@ -353,7 +345,6 @@ IsolateTest resumeIsolateAndAwaitEvent(stream, onEvent) {
   return (Isolate isolate) async =>
       resumeAndAwaitEvent(isolate, stream, onEvent);
 }
-
 
 Future<Isolate> stepOver(Isolate isolate) async {
   await isolate.stepOver();
@@ -369,7 +360,6 @@ Future<Isolate> stepOut(Isolate isolate) async {
   await isolate.stepOut();
   return hasStoppedAtBreakpoint(isolate);
 }
-
 
 Future isolateIsRunning(Isolate isolate) async {
   await isolate.reload();
@@ -387,9 +377,8 @@ Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   return null;
 }
 
-
-Future<Instance> rootLibraryFieldValue(Isolate isolate,
-                                       String fieldName) async {
+Future<Instance> rootLibraryFieldValue(
+    Isolate isolate, String fieldName) async {
   Library rootLib = await isolate.rootLibrary.load();
   Field field = rootLib.variables.singleWhere((v) => v.name == fieldName);
   await field.load();

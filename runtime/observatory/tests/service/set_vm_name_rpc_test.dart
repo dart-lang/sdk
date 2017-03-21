@@ -23,7 +23,7 @@ var tests = [
         completer.complete();
       }
     });
-    
+
     var result = await vm.setName('Barbara');
     expect(result.type, equals('Success'));
 
@@ -33,5 +33,4 @@ var tests = [
 ];
 
 main(args) async => runVMTests(args, tests,
-                               extraArgs: [ '--trace-service',
-                                            '--trace-service-verbose' ]);
+    extraArgs: ['--trace-service', '--trace-service-verbose']);

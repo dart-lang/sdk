@@ -23,15 +23,13 @@ main() {
       expect(e.disabled, isFalse);
     });
     test('not expanded / not disabled', () {
-      final e = new CurlyBlockElement(expanded: false,
-                                                        disabled: false);
+      final e = new CurlyBlockElement(expanded: false, disabled: false);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isFalse);
     });
     test('not expanded / disabled', () {
-      final e = new CurlyBlockElement(expanded: false,
-                                                        disabled: true);
+      final e = new CurlyBlockElement(expanded: false, disabled: true);
       expect(e, isNotNull, reason: 'element correctly created');
       expect(e.expanded, isFalse);
       expect(e.disabled, isTrue);
@@ -72,8 +70,7 @@ main() {
     expect(e.children.length, isZero, reason: 'is empty');
     document.body.append(e);
     await e.onRendered.first;
-    expect(e.children.length, isNonZero,
-      reason: 'has elements');
+    expect(e.children.length, isNonZero, reason: 'has elements');
     e.remove();
     await e.onRendered.first;
     expect(e.children.length, isZero, reason: 'is empty');
@@ -155,7 +152,7 @@ main() {
       await e.onRendered.first;
     });
     test('fires on toggle', () async {
-      e.onToggle.listen(expectAsync((CurlyBlockToggleEvent event){
+      e.onToggle.listen(expectAsync((CurlyBlockToggleEvent event) {
         expect(event, isNotNull);
         expect(event.control, equals(e));
       }, count: 1));
@@ -163,7 +160,7 @@ main() {
       await e.onRendered.first;
     });
     test('fires on manual toggle', () async {
-      e.onToggle.listen(expectAsync((CurlyBlockToggleEvent event){
+      e.onToggle.listen(expectAsync((CurlyBlockToggleEvent event) {
         expect(event, isNotNull);
         expect(event.control, equals(e));
       }, count: 1));
@@ -171,7 +168,7 @@ main() {
       await e.onRendered.first;
     });
     test('does not fire if setting same expanded value', () async {
-      e.onToggle.listen(expectAsync((_){}, count: 0));
+      e.onToggle.listen(expectAsync((_) {}, count: 0));
       e.expanded = e.expanded;
       await e.onRendered.first;
     });

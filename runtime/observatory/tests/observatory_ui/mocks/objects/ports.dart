@@ -14,6 +14,6 @@ class PortMock implements M.Port {
   final String name;
   final M.ObjectRef handler;
 
-  const PortMock({this.name: 'port-name',
-                  this.handler: const InstanceRefMock()});
+  const PortMock(
+      {this.name: 'port-name', this.handler: const InstanceRefMock()});
 }

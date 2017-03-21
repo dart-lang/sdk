@@ -28,23 +28,20 @@ main() {
   final instances = new InstanceRepositoryMock();
   test('instantiation', () {
     final e = new ContextViewElement(vm, isolate, context, events, notifs,
-                                     contexts, retainedSizes, reachableSizes,
-                                     inbounds, paths, instances);
+        contexts, retainedSizes, reachableSizes, inbounds, paths, instances);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.context, equals(context));
   });
   test('elements created after attachment', () async {
     final contexts = new ContextRepositoryMock(
-      getter: expectAsync((i, id) async {
-        expect(i, equals(isolate));
-        expect(id, equals(context.id));
-        return context;
-      }, count: 1)
-    );
+        getter: expectAsync((i, id) async {
+      expect(i, equals(isolate));
+      expect(id, equals(context.id));
+      return context;
+    }, count: 1));
     final e = new ContextViewElement(vm, isolate, context, events, notifs,
-                                     contexts, retainedSizes, reachableSizes,
-                                     inbounds, paths, instances);
+        contexts, retainedSizes, reachableSizes, inbounds, paths, instances);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

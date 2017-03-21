@@ -20,38 +20,34 @@ void testMain() {
 }
 
 var tests = [
+  hasStoppedAtBreakpoint,
+  (Isolate isolate) async {
+    print('Resuming...');
+    await isolate.resume();
 
-hasStoppedAtBreakpoint,
+    // Wait for the isolate to become idle.  We detect this by querying
+    // the stack until it becomes empty.
+    var frameCount;
+    do {
+      var stack = await isolate.getStack();
+      frameCount = stack['frames'].length;
+      print('Frames: $frameCount');
+      sleep(const Duration(milliseconds: 10));
+    } while (frameCount > 0);
+    print('Isolate is idle.');
+    await isolate.reload();
+    expect(isolate.pauseEvent is M.ResumeEvent, isTrue);
 
-(Isolate isolate) async {
-  print('Resuming...');
-  await isolate.resume();
-
-  // Wait for the isolate to become idle.  We detect this by querying
-  // the stack until it becomes empty.
-  var frameCount;
-  do {
-    var stack = await isolate.getStack();
-    frameCount = stack['frames'].length;
-    print('Frames: $frameCount');
-    sleep(const Duration(milliseconds:10));
-  } while (frameCount > 0);
-  print('Isolate is idle.');
-  await isolate.reload();
-  expect(isolate.pauseEvent is M.ResumeEvent, isTrue);
-
-  // Make sure that the isolate receives an interrupt even when it is
-  // idle. (https://github.com/dart-lang/sdk/issues/24349)
-  var interruptFuture = hasPausedFor(isolate, ServiceEvent.kPauseInterrupted);
-  print('Pausing...');
-  await isolate.pause();
-  await interruptFuture;
-},
-
+    // Make sure that the isolate receives an interrupt even when it is
+    // idle. (https://github.com/dart-lang/sdk/issues/24349)
+    var interruptFuture = hasPausedFor(isolate, ServiceEvent.kPauseInterrupted);
+    print('Pausing...');
+    await isolate.pause();
+    await interruptFuture;
+  },
 ];
 
 main(args) => runIsolateTests(args, tests,
-                              testeeConcurrent: testMain,
-                              verbose_vm: true,
-                              extraArgs: [ '--trace-service',
-                                           '--trace-service-verbose' ]);
+    testeeConcurrent: testMain,
+    verbose_vm: true,
+    extraArgs: ['--trace-service', '--trace-service-verbose']);

@@ -10,7 +10,7 @@ const String file = "next_through_for_each_loop_test.dart";
 
 code() {
   List<int> data = [1, 2, 3, 4];
-  for(int datapoint in data) {
+  for (int datapoint in data) {
     print(datapoint);
   }
 }
@@ -21,31 +21,31 @@ List<String> expected = [
   "$file:${LINE_A+0}:20",
 
   // Twice for some reason on data (on 'data')
-  "$file:${LINE_A+1}:24",
+  "$file:${LINE_A+1}:25",
 
   // An iteration of the loop apparently is "data", "{", then inside loop
   // (on call to 'print')
-  "$file:${LINE_A+1}:24",
-  "$file:${LINE_A+1}:30",
+  "$file:${LINE_A+1}:25",
+  "$file:${LINE_A+1}:31",
   "$file:${LINE_A+2}:5",
 
   // Iteration 2
-  "$file:${LINE_A+1}:24",
-  "$file:${LINE_A+1}:30",
+  "$file:${LINE_A+1}:25",
+  "$file:${LINE_A+1}:31",
   "$file:${LINE_A+2}:5",
 
   // Iteration 3
-  "$file:${LINE_A+1}:24",
-  "$file:${LINE_A+1}:30",
+  "$file:${LINE_A+1}:25",
+  "$file:${LINE_A+1}:31",
   "$file:${LINE_A+2}:5",
 
   // Iteration 4
-  "$file:${LINE_A+1}:24",
-  "$file:${LINE_A+1}:30",
+  "$file:${LINE_A+1}:25",
+  "$file:${LINE_A+1}:31",
   "$file:${LINE_A+2}:5",
 
   // End: Apparently we go to data again, then on the final "}"
-  "$file:${LINE_A+1}:24",
+  "$file:${LINE_A+1}:25",
   "$file:${LINE_A+4}:1"
 ];
 

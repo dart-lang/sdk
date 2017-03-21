@@ -10,21 +10,16 @@ abstract class _AbstractType implements Type {
 }
 
 // Equivalent of RawType.
-class _Type extends _AbstractType {
-}
+class _Type extends _AbstractType {}
 
 // Equivalent of RawTypeRef.
-class _TypeRef extends _AbstractType {
-}
+class _TypeRef extends _AbstractType {}
 
 // Equivalent of RawTypeParameter.
-class _TypeParameter extends _AbstractType {
-}
+class _TypeParameter extends _AbstractType {}
 
 // Equivalent of RawBoundedType.
-class _BoundedType extends _AbstractType {
-}
+class _BoundedType extends _AbstractType {}
 
 // Equivalent of RawMixinAppType.
-class _MixinAppType extends _AbstractType {
-}
+class _MixinAppType extends _AbstractType {}

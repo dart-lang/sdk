@@ -28,6 +28,7 @@ class Test {
       return result;
     }
   }
+
   int func2(var i) {
     var result = 0;
     for (var k = 0; k <= 10; k++) {
@@ -35,6 +36,7 @@ class Test {
     }
     return result;
   }
+
   int func3(var i) {
     var result = 0;
     for (var l = 0; l <= 1; l++) {
@@ -42,6 +44,7 @@ class Test {
     }
     return result;
   }
+
   int func4(var i) {
     var result = 0;
     for (var j = 0; j <= 10; j++) {
@@ -49,6 +52,7 @@ class Test {
     }
     return result;
   }
+
   int func5(var i) {
     if (i >= 520) throw "show me inlined functions";
     return i;

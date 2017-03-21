@@ -7,6 +7,6 @@ part of mocks;
 class LocalVarDescriptorsRefMock implements M.LocalVarDescriptorsRef {
   final String id;
   final String name;
-  const LocalVarDescriptorsRefMock({this.id: 'local-var-id',
-                              this.name: 'local_var_name'});
+  const LocalVarDescriptorsRefMock(
+      {this.id: 'local-var-id', this.name: 'local_var_name'});
 }

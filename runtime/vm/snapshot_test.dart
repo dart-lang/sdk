@@ -12,13 +12,17 @@ class Expect {
 }
 
 class Fields {
-  Fields(int i, int j) : fld1 = i, fld2 = j, fld5 = true {}
+  Fields(int i, int j)
+      : fld1 = i,
+        fld2 = j,
+        fld5 = true {}
   int fld1;
   final int fld2;
   static int fld3;
   static const int fld4 = 10;
   bool fld5;
 }
+
 class FieldsTest {
   static Fields testMain() {
     Fields obj = new Fields(10, 20);
@@ -90,8 +94,7 @@ class LoopBenchmark extends BenchmarkBase {
     // This value has been copied from benchpress.js, so that we can compare
     // performance.
     var result = Loop.loop(200);
-    if (result != 20000)
-      Error.error("Wrong result: $result. Should be: 20000");
+    if (result != 20000) Error.error("Wrong result: $result. Should be: 20000");
   }
 
   static void main() {
@@ -104,14 +107,17 @@ class TowersDisk {
   final int size;
   TowersDisk next;
 
-  TowersDisk(size) : this.size = size, next = null {}
+  TowersDisk(size)
+      : this.size = size,
+        next = null {}
 }
 
 class Towers {
   List<TowersDisk> piles;
   int movesDone;
   Towers(int disks)
-      : piles = new List<TowersDisk>(3), movesDone = 0 {
+      : piles = new List<TowersDisk>(3),
+        movesDone = 0 {
     build(0, disks);
   }
 
@@ -189,13 +195,11 @@ class SieveBenchmark extends BenchmarkBase {
     for (int i = 2; i < size; i++) {
       if (flags[i]) {
         primeCount++;
-        for (int k = i + 1; k <= size; k += i)
-          flags[k - 1] = false;
+        for (int k = i + 1; k <= size; k += i) flags[k - 1] = false;
       }
     }
     return primeCount;
   }
-
 
   void warmup() {
     sieve(100);
@@ -205,8 +209,7 @@ class SieveBenchmark extends BenchmarkBase {
     // This value has been copied from benchpress.js, so that we can compare
     // performance.
     int result = sieve(1000);
-    if (result != 168)
-      Error.error("Wrong result: $result should be: 168");
+    if (result != 168) Error.error("Wrong result: $result should be: 168");
   }
 
   static void main() {
@@ -260,8 +263,7 @@ class PermuteBenchmark extends BenchmarkBase {
     // This value has been copied from benchpress.js, so that we can compare
     // performance.
     int result = new Permute().permute(8);
-    if (result != 8660)
-      Error.error("Wrong result: $result should be: 8660");
+    if (result != 8660) Error.error("Wrong result: $result should be: 8660");
   }
 
   static void main() {
@@ -274,11 +276,8 @@ class PermuteBenchmark extends BenchmarkBase {
 // lists in dart are zero-based, we stay with one-based indexing
 // (wasting one element).
 class Queens {
-  static bool tryQueens(int i,
-                        List<bool> a,
-                        List<bool> b,
-                        List<bool> c,
-                        List<int> x) {
+  static bool tryQueens(
+      int i, List<bool> a, List<bool> b, List<bool> c, List<int> x) {
     int j = 0;
     bool q = false;
     while ((!q) && (j != 8)) {
@@ -316,8 +315,7 @@ class Queens {
       if (i <= 7) c[i + 7] = true;
     }
 
-    if (!tryQueens(1, b, a, c, x))
-      Error.error("Error in queens");
+    if (!tryQueens(1, b, a, c, x)) Error.error("Error in queens");
   }
 }
 
@@ -336,7 +334,6 @@ class QueensBenchmark extends BenchmarkBase {
     new QueensBenchmark().report();
   }
 }
-
 
 // R e c u r s e
 class Recurse {
@@ -365,7 +362,6 @@ class RecurseBenchmark extends BenchmarkBase {
   }
 }
 
-
 // S u m
 class SumBenchmark extends BenchmarkBase {
   const SumBenchmark() : super("Sum");
@@ -392,7 +388,6 @@ class SumBenchmark extends BenchmarkBase {
     new SumBenchmark().report();
   }
 }
-
 
 // H e l p e r   f u n c t i o n s   f o r   s o r t s
 class Random {
@@ -432,14 +427,12 @@ class SortData {
   void check() {
     List<int> a = list;
     int len = a.length;
-    if ((a[0] != min) || a[len - 1] != max)
-      Error.error("List is not sorted");
+    if ((a[0] != min) || a[len - 1] != max) Error.error("List is not sorted");
     for (var i = 1; i < len; i++) {
       if (a[i - 1] > a[i]) Error.error("List is not sorted");
     }
   }
 }
-
 
 // B u b b l e S o r t
 class BubbleSort {
@@ -523,7 +516,6 @@ class QuickSortBenchmark extends BenchmarkBase {
   }
 }
 
-
 // T r e e S o r t
 class TreeNodePress {
   int value;
@@ -534,11 +526,15 @@ class TreeNodePress {
 
   void insert(int n) {
     if (n < value) {
-      if (left == null) left = new TreeNodePress(n);
-      else left.insert(n);
+      if (left == null)
+        left = new TreeNodePress(n);
+      else
+        left.insert(n);
     } else {
-      if (right == null) right = new TreeNodePress(n);
-      else right.insert(n);
+      if (right == null)
+        right = new TreeNodePress(n);
+      else
+        right.insert(n);
     }
   }
 
@@ -548,7 +544,7 @@ class TreeNodePress {
     int value = this.value;
 
     return ((left == null) || ((left.value < value) && left.check())) &&
-           ((right == null) || ((right.value >= value) && right.check()));
+        ((right == null) || ((right.value >= value) && right.check()));
   }
 }
 
@@ -575,7 +571,6 @@ class TreeSortBenchmark extends BenchmarkBase {
   }
 }
 
-
 // T a k
 class TakBenchmark extends BenchmarkBase {
   const TakBenchmark() : super("Tak");
@@ -600,15 +595,14 @@ class TakBenchmark extends BenchmarkBase {
   }
 }
 
-
 // T a k l
 class ListElement {
   final int length;
   final ListElement next;
 
   const ListElement(int length, ListElement next)
-  : this.length = length,
-    this.next = next;
+      : this.length = length,
+        this.next = next;
 
   static ListElement makeList(int length) {
     if (length == 0) return null;
@@ -630,9 +624,7 @@ class ListElement {
 class Takl {
   static ListElement takl(ListElement x, ListElement y, ListElement z) {
     if (ListElement.isShorter(y, x)) {
-      return takl(takl(x.next, y, z),
-                  takl(y.next, z, x),
-                  takl(z.next, x, y));
+      return takl(takl(x.next, y, z), takl(y.next, z, x), takl(z.next, x, y));
     } else {
       return z;
     }
@@ -643,17 +635,15 @@ class TaklBenchmark extends BenchmarkBase {
   const TaklBenchmark() : super("Takl");
 
   void warmup() {
-    Takl.takl(ListElement.makeList(8),
-              ListElement.makeList(4),
-              ListElement.makeList(3));
+    Takl.takl(ListElement.makeList(8), ListElement.makeList(4),
+        ListElement.makeList(3));
   }
 
   void exercise() {
     // This value has been copied from benchpress.js, so that we can compare
     // performance.
     ListElement result = Takl.takl(ListElement.makeList(15),
-                                   ListElement.makeList(10),
-                                   ListElement.makeList(6));
+        ListElement.makeList(10), ListElement.makeList(6));
     if (result.length != 10) {
       int len = result.length;
       Error.error("Wrong result: $len should be: 10");
@@ -670,19 +660,19 @@ class TaklBenchmark extends BenchmarkBase {
 class BenchPress {
   static void mainWithArgs(List<String> args) {
     List<BenchmarkBase> benchmarks = [
-        new BubbleSortBenchmark(),
-        new FibBenchmark(),
-        new LoopBenchmark(),
-        new PermuteBenchmark(),
-        new QueensBenchmark(),
-        new QuickSortBenchmark(),
-        new RecurseBenchmark(),
-        new SieveBenchmark(),
-        new SumBenchmark(),
-        new TakBenchmark(),
-        new TaklBenchmark(),
-        new TowersBenchmark(),
-        new TreeSortBenchmark(),
+      new BubbleSortBenchmark(),
+      new FibBenchmark(),
+      new LoopBenchmark(),
+      new PermuteBenchmark(),
+      new QueensBenchmark(),
+      new QuickSortBenchmark(),
+      new RecurseBenchmark(),
+      new SieveBenchmark(),
+      new SumBenchmark(),
+      new TakBenchmark(),
+      new TaklBenchmark(),
+      new TowersBenchmark(),
+      new TreeSortBenchmark(),
     ];
     if (args.length > 0) {
       String benchName = args[0];
@@ -724,7 +714,7 @@ class BenchmarkBase {
 
   // The benchmark code.
   // This function is not used, if both [warmup] and [exercise] are overwritten.
-  void run() { }
+  void run() {}
 
   // Runs a short version of the benchmark. By default invokes [run] once.
   void warmup() {
@@ -739,10 +729,10 @@ class BenchmarkBase {
   }
 
   // Not measured setup code executed prior to the benchmark runs.
-  void setup() { }
+  void setup() {}
 
   // Not measures teardown code executed after the benchark runs.
-  void teardown() { }
+  void teardown() {}
 
   // Measures the score for this benchmark by executing it repeately until
   // time minimum has been reached.
@@ -763,9 +753,13 @@ class BenchmarkBase {
   double measure() {
     setup();
     // Warmup for at least 100ms. Discard result.
-    measureFor(() { this.warmup(); }, -100);
+    measureFor(() {
+      this.warmup();
+    }, -100);
     // Run the benchmark for at least 2000ms.
-    double result = measureFor(() { this.exercise(); }, -2000);
+    double result = measureFor(() {
+      this.exercise();
+    }, -2000);
     teardown();
     return result;
   }
@@ -774,24 +768,22 @@ class BenchmarkBase {
     double score = measure();
     print("name: $score");
   }
-
 }
+
 class Logger {
   static print(object) {
     printobject(object);
   }
-  static printobject(obj) { }
-}
 
+  static printobject(obj) {}
+}
 
 //
 // Dromaeo ObjectString
 // Adapted from Mozilla JavaScript performance test suite.
 // Microtests of strings (concatenation, methods).
 
-
 class ObjectString extends BenchmarkBase {
-
   const ObjectString() : super("Dromaeo.ObjectString");
 
   static void main() {
@@ -805,8 +797,8 @@ class ObjectString extends BenchmarkBase {
   String getRandomString(int characters) {
     var result = "";
     for (var i = 0; i < characters; i++) {
-      result += Strings.
-          createFromCodePoints([(25 * Math.random()).toInt() + 97]);
+      result +=
+          Strings.createFromCodePoints([(25 * Math.random()).toInt() + 97]);
     }
     result += result;
     result += result;
@@ -923,7 +915,6 @@ class NumberBenchmark {
   }
 }
 
-
 class CodeUnitAtBenchmark {
   CodeUnitAtBenchmark() {}
 
@@ -981,7 +972,7 @@ class SliceBenchmark {
       str = input.substring(input.length - 1, input.length - 1);
       str = input.substring(input.length - 6, input.length - 1);
       str = input.substring(150, 155); //set to 15000 and 15005
-      str = input.substring(120, input.length-1); //set to 12000
+      str = input.substring(120, input.length - 1); //set to 12000
     }
     return str;
   }
@@ -993,7 +984,7 @@ class SubstrBenchmark {
   static String test(String input, var iterations) {
     var str;
     for (var j = 0; j < iterations; j++) {
-      str = input.substring(0, input.length-1);
+      str = input.substring(0, input.length - 1);
       str = input.substring(0, 4);
       str = input.substring(input.length - 1, input.length - 1);
       str = input.substring(input.length - 6, input.length - 6);
@@ -1018,7 +1009,6 @@ class SubstringBenchmark {
       str = input.substring(120, input.length - 2); //set to 12000
     }
     return str;
-
   }
 }
 
@@ -1065,14 +1055,12 @@ class ComparingBenchmark {
 // Benchmarks basic message communication between two isolates.
 
 class Benchmark1 {
-
   static const MESSAGES = 10000;
   static const INIT_MESSAGE = 0;
   static const TERMINATION_MESSAGE = -1;
   static const WARMUP_TIME = 1000;
   static const RUN_TIME = 1000;
   static const RUNS = 5;
-
 
   static int run() {
     return _run;
@@ -1102,7 +1090,6 @@ class Benchmark1 {
 }
 
 class PingPongGame {
-
   PingPongGame()
       : _ping = new ReceivePort(),
         _pingPort = _ping.toSendPort(),
@@ -1177,7 +1164,6 @@ void pong() {
   });
 }
 
-
 class ManyGenericInstanceofTest {
   static testMain() {
     for (int i = 0; i < 5000; i++) {
@@ -1225,7 +1211,7 @@ isolate_negative_test_main() {
   test("ensure isolate code is executed", () {
     SendPort port = spawnFunction(isolate_negative_entry);
     port.call("foo").then(expectAsync1((message) {
-      Expect.equals(true, "Expected fail");   // <=-------- Should fail here.
+      Expect.equals(true, "Expected fail"); // <=-------- Should fail here.
     }));
   });
 }
@@ -1243,14 +1229,21 @@ class MessageTest {
   static const List list2 = const [null, list1, list1, list1, list1];
   static const List list3 = const [list2, 2.0, true, false, 0xfffffffffff];
   static const Map map1 = const {
-    "a=1" : 1, "b=2" : 2, "c=3" : 3,
+    "a=1": 1,
+    "b=2": 2,
+    "c=3": 3,
   };
   static const Map map2 = const {
-    "list1" : list1, "list2" : list2, "list3" : list3,
+    "list1": list1,
+    "list2": list2,
+    "list3": list3,
   };
   static const List list4 = const [map1, map2];
   static const List elms = const [
-      list1, list2, list3, list4,
+    list1,
+    list2,
+    list3,
+    list4,
   ];
 
   static void VerifyMap(Map expected, Map actual) {
@@ -1264,6 +1257,7 @@ class MessageTest {
         Expect.equals(value, actual[key]);
       }
     }
+
     expected.forEach(testForEachMap);
   }
 
@@ -1320,7 +1314,7 @@ message_test_main() {
 
     // Send recursive objects and receive them back.
     List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
-    List local_list2 = [null, local_list1, local_list1 ];
+    List local_list2 = [null, local_list1, local_list1];
     List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
     List sendObject = new List(5);
     sendObject[0] = local_list1;
@@ -1344,8 +1338,8 @@ message_test_main() {
 
     // Shutdown the MessageServer.
     remote.call(-1).then(expectAsync1((int message) {
-        Expect.equals(MessageTest.elms.length + 1, message);
-      }));
+      Expect.equals(MessageTest.elms.length + 1, message);
+    }));
   });
 }
 
@@ -1422,7 +1416,6 @@ void count_main() {
   });
 }
 
-
 // ---------------------------------------------------------------------------
 // tests/isolate/mandel_isolate_test.dart
 // ---------------------------------------------------------------------------
@@ -1441,9 +1434,7 @@ mandel_main() {
   });
 }
 
-
 class MandelbrotState {
-
   MandelbrotState() {
     _result = new List<List<int>>(N);
     _lineProcessedBy = new List<LineProcessorClient>(N);
@@ -1501,9 +1492,7 @@ class MandelbrotState {
   Completer<bool> _validated;
 }
 
-
 class LineProcessorClient {
-
   LineProcessorClient(MandelbrotState this._state, int this._id) {
     _port = spawnFunction(processLines);
   }

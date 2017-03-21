@@ -27,12 +27,11 @@ main() {
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');
     expect(e.innerHtml.contains(isolate.id), isTrue,
-      reason: 'no message in the component');
+        reason: 'no message in the component');
     expect(e.innerHtml.contains(file), isTrue,
-      reason: 'no message in the component');
+        reason: 'no message in the component');
     e.remove();
     await e.onRendered.first;
-    expect(e.children.length, isZero,
-      reason: 'is empty');
+    expect(e.children.length, isZero, reason: 'is empty');
   });
 }
