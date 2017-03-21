@@ -17,7 +17,7 @@ import 'string_canonicalizer.dart';
 /**
  * A token that doubles as a linked list.
  */
-abstract class Token implements analyzer.Token {
+abstract class Token implements analyzer.TokenWithComment {
   /**
    * The character offset of the start of this token within the source text.
    */
@@ -45,7 +45,15 @@ abstract class Token implements analyzer.Token {
    * comments can be reached by following the token stream using [next] until
    * `null` is returned.
    */
-  Token precedingComments;
+  CommentToken precedingCommentTokens;
+
+  @override
+  analyzer.CommentToken get precedingComments => precedingCommentTokens;
+
+  @override
+  void set precedingComments(analyzer.CommentToken token) {
+    precedingCommentTokens = token;
+  }
 
   /**
    * The precedence info for this token. [info] determines the kind and the
@@ -164,7 +172,7 @@ abstract class Token implements analyzer.Token {
   @override
   void applyDelta(int delta) {
     charOffset += delta;
-    Token token = precedingComments;
+    CommentToken token = precedingComments;
     while (token != null) {
       token.applyDelta(delta);
       token = token.next;
@@ -174,7 +182,7 @@ abstract class Token implements analyzer.Token {
   @override
   analyzer.Token copy() {
     return copyWithoutComments()
-      ..precedingComments = copyComments(precedingComments) as Token;
+      ..precedingComments = copyComments(precedingComments);
   }
 
   @override
@@ -302,7 +310,7 @@ class KeywordToken extends Token {
  * number literals, comments, and error tokens, using the corresponding
  * precedence info.
  */
-class StringToken extends Token {
+class StringToken extends Token implements analyzer.StringToken {
   /**
    * The length threshold above which substring tokens are computed lazily.
    *
@@ -404,6 +412,95 @@ class StringToken extends Token {
   @override
   Token copyWithoutComments() =>
       new StringToken._(info, valueOrLazySubstring, charOffset);
+
+  @override
+  String value() => lexeme;
+}
+
+class CommentToken extends StringToken implements analyzer.CommentToken {
+  /**
+   * Creates a lazy comment token. If [canonicalize] is true, the string
+   * is canonicalized before the token is created.
+   */
+  CommentToken.fromSubstring(
+      PrecedenceInfo info, String data, int start, int end, int charOffset,
+      {bool canonicalize: false})
+      : super.fromSubstring(info, data, start, end, charOffset,
+            canonicalize: canonicalize);
+
+  /**
+   * Creates a lazy string token. If [asciiOnly] is false, the byte array
+   * is passed through a UTF-8 decoder.
+   */
+  CommentToken.fromUtf8Bytes(PrecedenceInfo info, List<int> data, int start,
+      int end, bool asciiOnly, int charOffset)
+      : super.fromUtf8Bytes(info, data, start, end, asciiOnly, charOffset);
+
+  CommentToken._(PrecedenceInfo info, valueOrLazySubstring, int charOffset)
+      : super._(info, valueOrLazySubstring, charOffset);
+
+  @override
+  CommentToken copy() =>
+      new CommentToken._(info, valueOrLazySubstring, charOffset);
+
+  @override
+  analyzer.TokenWithComment get parent {
+    Token token = next;
+    while (token is CommentToken) {
+      token = token.next;
+    }
+    return token;
+  }
+
+  @override
+  void set parent(analyzer.TokenWithComment ignored) {
+    throw 'unsupported operation';
+  }
+
+  @override
+  void remove() {
+    // TODO: implement remove
+    throw 'not implemented yet';
+  }
+}
+
+class DartDocToken extends CommentToken
+    implements analyzer.DocumentationCommentToken {
+  /**
+   * The references embedded within the documentation comment.
+   * This list will be empty unless this is a documentation comment that has
+   * references embedded within it.
+   */
+  final List<Token> references = <Token>[];
+
+  /**
+   * Creates a lazy comment token. If [canonicalize] is true, the string
+   * is canonicalized before the token is created.
+   */
+  DartDocToken.fromSubstring(
+      PrecedenceInfo info, String data, int start, int end, int charOffset,
+      {bool canonicalize: false})
+      : super.fromSubstring(info, data, start, end, charOffset,
+            canonicalize: canonicalize);
+
+  /**
+   * Creates a lazy string token. If [asciiOnly] is false, the byte array
+   * is passed through a UTF-8 decoder.
+   */
+  DartDocToken.fromUtf8Bytes(PrecedenceInfo info, List<int> data, int start,
+      int end, bool asciiOnly, int charOffset)
+      : super.fromUtf8Bytes(info, data, start, end, asciiOnly, charOffset);
+
+  DartDocToken._(PrecedenceInfo info, valueOrLazySubstring, int charOffset)
+      : super._(info, valueOrLazySubstring, charOffset);
+
+  @override
+  DartDocToken copy() {
+    DartDocToken copy =
+        new DartDocToken._(info, valueOrLazySubstring, charOffset);
+    references.forEach((ref) => copy.references.add(ref.copy()));
+    return copy;
+  }
 }
 
 /**

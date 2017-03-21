@@ -17,7 +17,7 @@ import 'keyword.dart' show KeywordState, Keyword;
 
 import 'precedence.dart';
 
-import 'token.dart' show BeginGroupToken, SymbolToken, Token;
+import 'token.dart' show BeginGroupToken, CommentToken, SymbolToken, Token;
 
 import 'token_constants.dart';
 
@@ -54,7 +54,7 @@ abstract class AbstractScanner implements Scanner {
    * before they are assigned to the [Token] precedingComments field
    * of a non-comment token. A value of `null` indicates no comment tokens.
    */
-  Token comments;
+  CommentToken comments;
 
   /**
    * A pointer to the last scanned comment token or `null` if none.
@@ -187,6 +187,9 @@ abstract class AbstractScanner implements Scanner {
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendComment(start, PrecedenceInfo info, bool asciiOnly);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void appendDartDoc(start, PrecedenceInfo info, bool asciiOnly);
 
   /// Append [token] to the token stream.
   void appendErrorToken(ErrorToken token);
@@ -722,6 +725,7 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeSingleLineComment(int next, int start) {
     bool asciiOnly = true;
+    bool dartdoc = identical($SLASH, peek());
     while (true) {
       next = advance();
       if (next > 127) asciiOnly = false;
@@ -729,7 +733,11 @@ abstract class AbstractScanner implements Scanner {
           identical($CR, next) ||
           identical($EOF, next)) {
         if (!asciiOnly) handleUnicode(start);
-        appendComment(start, SINGLE_LINE_COMMENT_INFO, asciiOnly);
+        if (dartdoc) {
+          appendDartDoc(start, SINGLE_LINE_COMMENT_INFO, asciiOnly);
+        } else {
+          appendComment(start, SINGLE_LINE_COMMENT_INFO, asciiOnly);
+        }
         return next;
       }
     }
@@ -741,6 +749,7 @@ abstract class AbstractScanner implements Scanner {
     int unicodeStart = start;
     int nesting = 1;
     next = advance();
+    bool dartdoc = identical($STAR, next);
     while (true) {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
@@ -753,7 +762,11 @@ abstract class AbstractScanner implements Scanner {
           if (0 == nesting) {
             if (!asciiOnlyLines) handleUnicode(unicodeStart);
             next = advance();
-            appendComment(start, MULTI_LINE_COMMENT_INFO, asciiOnlyComment);
+            if (dartdoc) {
+              appendDartDoc(start, MULTI_LINE_COMMENT_INFO, asciiOnlyComment);
+            } else {
+              appendComment(start, MULTI_LINE_COMMENT_INFO, asciiOnlyComment);
+            }
             break;
           } else {
             next = advance();

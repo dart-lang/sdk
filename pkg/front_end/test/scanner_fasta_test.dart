@@ -102,7 +102,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
     while (!token.isEof) {
       ++tokenCount;
       // Assert valid comments
-      fasta.Token comment = token.precedingComments;
+      fasta.CommentToken comment = token.precedingComments;
       while (comment != null) {
         ++commentTokenCount;
         expect(comment.info.kind, fasta.COMMENT_TOKEN);
@@ -177,7 +177,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
         new fasta.StringScanner(source, includeComments: true).tokenize();
     while (!token.isEof) {
       expect(token.next.previousToken, token);
-      fasta.Token commentToken = token.precedingComments;
+      fasta.CommentToken commentToken = token.precedingComments;
       while (commentToken != null) {
         if (commentToken.next != null) {
           expect(commentToken.next.previousToken, commentToken);

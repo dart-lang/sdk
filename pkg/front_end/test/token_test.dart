@@ -59,18 +59,22 @@ class Foo {
     fasta.Token comment = nextComment();
     expect(comment.lexeme, contains('Single line dartdoc comment'));
     expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
+    expect(comment, new isInstanceOf<DocumentationCommentToken>());
 
     comment = nextComment();
     expect(comment.lexeme, contains('Multi-line dartdoc comment'));
     expect(comment.type, TokenType.MULTI_LINE_COMMENT);
+    expect(comment, new isInstanceOf<DocumentationCommentToken>());
 
     comment = nextComment();
     expect(comment.lexeme, contains('Single line comment'));
     expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
+    expect(comment, new isInstanceOf<CommentToken>());
 
     comment = nextComment();
     expect(comment.lexeme, contains('Multi-line comment'));
     expect(comment.type, TokenType.MULTI_LINE_COMMENT);
+    expect(comment, new isInstanceOf<CommentToken>());
   }
 
   void test_copy() {

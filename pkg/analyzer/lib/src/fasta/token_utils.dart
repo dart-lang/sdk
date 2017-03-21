@@ -13,7 +13,14 @@ import 'package:front_end/src/fasta/scanner/keyword.dart' show Keyword;
 import 'package:front_end/src/fasta/scanner/precedence.dart';
 
 import 'package:front_end/src/fasta/scanner/token.dart'
-    show BeginGroupToken, KeywordToken, StringToken, SymbolToken, Token;
+    show
+        BeginGroupToken,
+        CommentToken,
+        DartDocToken,
+        KeywordToken,
+        StringToken,
+        SymbolToken,
+        Token;
 
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
@@ -30,7 +37,8 @@ import 'package:front_end/src/scanner/token.dart' as analyzer
         Token,
         TokenWithComment;
 
-import 'package:front_end/src/scanner/errors.dart' as analyzer show ScannerErrorCode;
+import 'package:front_end/src/scanner/errors.dart' as analyzer
+    show ScannerErrorCode;
 
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 
@@ -87,7 +95,7 @@ class ToAnalyzerTokenStreamConverter {
         _translateErrorToken(errorToken);
       } else {
         var translatedToken = translateToken(
-            token, translateCommentTokens(token.precedingComments));
+            token, translateCommentTokens(token.precedingCommentTokens));
         _matchGroups(token, translatedToken);
         translatedToken.setNext(translatedToken);
         _analyzerTokenTail.setNext(translatedToken);
@@ -292,7 +300,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
 
   analyzer.Token translateAndAppend(analyzer.Token analyzerToken) {
     var token = fromAnalyzerToken(analyzerToken);
-    token.precedingComments =
+    token.precedingCommentTokens =
         translateComments(analyzerToken.precedingComments);
     tokenTail.next = token;
     tokenTail.next.previousToken = tokenTail;
@@ -306,7 +314,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     if (analyzerToken.type == TokenType.EOF) {
       tokenTail.next = new SymbolToken(EOF_INFO, analyzerToken.offset);
       tokenTail.next.previousToken = tokenTail;
-      tokenTail.next.precedingComments =
+      tokenTail.next.precedingCommentTokens =
           translateComments(analyzerToken.precedingComments);
       return tokenHead.next;
     }
@@ -350,11 +358,21 @@ Token fromAnalyzerToken(analyzer.Token token) {
       }
       break;
     case TokenType.MULTI_LINE_COMMENT:
-      return string(MULTI_LINE_COMMENT_INFO);
+      if (token.lexeme.startsWith('/**')) {
+        return new DartDocToken.fromSubstring(
+            MULTI_LINE_COMMENT_INFO, token.lexeme, 0, token.lexeme.length, 0);
+      }
+      return new CommentToken.fromSubstring(
+          MULTI_LINE_COMMENT_INFO, token.lexeme, 0, token.lexeme.length, 0);
     case TokenType.SCRIPT_TAG:
       return string(SCRIPT_INFO);
     case TokenType.SINGLE_LINE_COMMENT:
-      return string(SINGLE_LINE_COMMENT_INFO);
+      if (token.lexeme.startsWith('///')) {
+        return new DartDocToken.fromSubstring(
+            SINGLE_LINE_COMMENT_INFO, token.lexeme, 0, token.lexeme.length, 0);
+      }
+      return new CommentToken.fromSubstring(
+          SINGLE_LINE_COMMENT_INFO, token.lexeme, 0, token.lexeme.length, 0);
     case TokenType.STRING:
       return string(STRING_INFO);
     case TokenType.AMPERSAND:
@@ -507,7 +525,8 @@ analyzer.Token toAnalyzerToken(Token token,
   if (token == null) return null;
   analyzer.Token makeStringToken(TokenType tokenType) {
     if (commentToken == null) {
-      return new analyzer.StringToken(tokenType, token.lexeme, token.charOffset);
+      return new analyzer.StringToken(
+          tokenType, token.lexeme, token.charOffset);
     } else {
       return new analyzer.StringTokenWithComment(
           tokenType, token.lexeme, token.charOffset, commentToken);

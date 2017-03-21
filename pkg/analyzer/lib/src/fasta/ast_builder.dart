@@ -188,7 +188,7 @@ class AstBuilder extends ScopeListener {
       // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
       // metadata, but the spec doesn't permit it.
       List<Annotation> metadata;
-      Comment comment = _toAnalyzerComment(token.precedingComments);
+      Comment comment = _toAnalyzerComment(token.precedingCommentTokens);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       if (context.isScopeReference) {
@@ -1653,7 +1653,7 @@ class AstBuilder extends ScopeListener {
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
     if (token.precedingComments != null) {
-      push(_toAnalyzerComment(token.precedingComments));
+      push(_toAnalyzerComment(token.precedingCommentTokens));
     } else {
       push(NullValue.Comments);
     }

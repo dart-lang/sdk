@@ -163,7 +163,7 @@ class MiniAstBuilder extends StackListener {
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
     if (token.precedingComments != null) {
-      push(new Comment(token.precedingComments));
+      push(new Comment(token.precedingCommentTokens));
     } else {
       push(NullValue.Comments);
     }
@@ -389,7 +389,7 @@ class MiniAstBuilder extends StackListener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      var comment = new Comment(token.precedingComments);
+      var comment = new Comment(token.precedingCommentTokens);
       push(new EnumConstantDeclaration(comment, null, token.lexeme));
     } else {
       push(token.lexeme);
