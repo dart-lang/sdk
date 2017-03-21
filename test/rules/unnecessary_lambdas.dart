@@ -78,6 +78,9 @@ void main() {
 // ignore: unused_local_variable
   var d = finalList.removeLast; // OK
 
+  // ignore: unused_local_variable
+  var asyncLambda = (() async => finalList.removeLast()); // OK
+
   finalList.where((e) => e.contains(e)); // OK
 
   // ignore: undefined_getter
