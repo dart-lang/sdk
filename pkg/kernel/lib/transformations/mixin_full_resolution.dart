@@ -187,7 +187,8 @@ class SuperCallResolutionTransformer extends Transformer {
   visitSuperPropertyGet(SuperPropertyGet node) {
     Member target = hierarchy.getDispatchTarget(lookupClass, node.name);
     if (target != null) {
-      return new DirectPropertyGet(new ThisExpression(), target);
+      return new DirectPropertyGet(new ThisExpression(), target)
+        ..fileOffset = node.fileOffset;
     } else {
       return _callNoSuchMethod(node.name.name, new Arguments.empty(), node,
           isGetter: true, isSuper: true);
@@ -199,7 +200,8 @@ class SuperCallResolutionTransformer extends Transformer {
         hierarchy.getDispatchTarget(lookupClass, node.name, setter: true);
     if (target != null) {
       return new DirectPropertySet(
-          new ThisExpression(), target, visit(node.value));
+          new ThisExpression(), target, visit(node.value))
+        ..fileOffset = node.fileOffset;
     } else {
       // Call has to return right-hand-side.
       VariableDeclaration rightHandSide =
