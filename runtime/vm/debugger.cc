@@ -321,6 +321,7 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
+  function_.EnsureHasCompiledUnoptimizedCode();
   code_ = function_.unoptimized_code();
   ctx_ = async_activation.context();
   ASSERT(fp_ == 0);
@@ -1817,8 +1818,7 @@ void Debugger::AppendCodeFrames(Thread* thread,
          it.Advance()) {
       *inlined_code = it.code();
       if (FLAG_trace_debugger_stacktrace) {
-        const Function& function =
-            Function::Handle(zone, inlined_code->function());
+        const Function& function = Function::Handle(zone, it.function());
         ASSERT(!function.IsNull());
         OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
                      function.ToFullyQualifiedCString());
@@ -1954,7 +1954,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
              it.Advance()) {
           inlined_code = it.code();
-          function = inlined_code.function();
+          function = it.function();
           if (FLAG_trace_debugger_stacktrace) {
             ASSERT(!function.IsNull());
             OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
