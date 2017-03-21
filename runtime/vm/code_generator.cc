@@ -277,7 +277,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
-  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
+  ASSERT(!type_arguments.IsUninstantiatedIdentity());
   if (isolate->type_checks()) {
     Error& bound_error = Error::Handle(zone);
     type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
@@ -812,9 +812,9 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
                                            const ArgumentsDescriptor& desc) {
-  const TypeArguments& checked_type_arguments = TypeArguments::Handle();
   Error& error = Error::Handle();
-  bool result = receiver.IsInstanceOf(type, checked_type_arguments, &error);
+  bool result =
+      receiver.IsInstanceOf(type, Object::null_type_arguments(), &error);
   ASSERT(error.IsNull());
   ObjectStore* store = Isolate::Current()->object_store();
   const Function& target =

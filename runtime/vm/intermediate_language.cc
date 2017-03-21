@@ -2073,10 +2073,11 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // or null and dst_type does not refer to parent function type parameters.
   ConstantInstr* constant_type_args =
       instantiator_type_arguments()->definition()->AsConstant();
-  if (constant_type_args != NULL && !constant_type_args->value().IsNull() &&
-      constant_type_args->value().IsTypeArguments()) {
-    const TypeArguments& instantiator_type_args =
-        TypeArguments::Cast(constant_type_args->value());
+  if (constant_type_args != NULL) {
+    ASSERT(constant_type_args->value().IsNull() ||
+           constant_type_args->value().IsTypeArguments());
+    TypeArguments& instantiator_type_args = TypeArguments::Handle();
+    instantiator_type_args ^= constant_type_args->value().raw();
     Error& bound_error = Error::Handle();
     AbstractType& new_dst_type =
         AbstractType::Handle(dst_type().InstantiateFrom(

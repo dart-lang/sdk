@@ -807,7 +807,6 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   ExceptionHandlers& handlers = ExceptionHandlers::Handle();
   Array& handled_types = Array::Handle();
   AbstractType& type = Type::Handle();
-  const TypeArguments& no_instantiator = TypeArguments::Handle();
   const bool is_async =
       function().IsAsyncClosure() || function().IsAsyncGenClosure();
   handlers = code().exception_handlers();
@@ -832,7 +831,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         if (type.IsDynamicType()) {
           return true;
         }
-        if (exc_obj.IsInstanceOf(type, no_instantiator, NULL)) {
+        if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(), NULL)) {
           return true;
         }
       }

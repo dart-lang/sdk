@@ -16720,9 +16720,8 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
   Type& type = Type::Handle(type_class.CanonicalType());
   if (type.IsNull()) {
-    const TypeArguments& no_type_arguments = TypeArguments::Handle();
-    type ^= Type::New(Object::Handle(type_class.raw()), no_type_arguments,
-                      TokenPosition::kNoSource);
+    type ^= Type::New(Object::Handle(type_class.raw()),
+                      Object::null_type_arguments(), TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -17014,7 +17013,8 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
         return false;
       }
 #ifdef DEBUG
-      if (from_index > 0) {
+      if ((from_index > 0) && !type_args.IsNull() &&
+          !other_type_args.IsNull()) {
         // Verify that the type arguments of the super class match, since they
         // depend solely on the type parameters that were just verified to
         // match.

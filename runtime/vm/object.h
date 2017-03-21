@@ -2199,7 +2199,8 @@ class Function : public Object {
   // type parameters of class C, the owner of the function.
   RawString* Signature() const {
     const bool instantiate = false;
-    return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
+    return BuildSignature(instantiate, kInternalName,
+                          Object::null_type_arguments());
   }
 
   // Build a string of the form '(T, {B b, C c}) => R' representing the
@@ -2211,7 +2212,7 @@ class Function : public Object {
   RawString* UserVisibleSignature() const {
     const bool instantiate = false;
     return BuildSignature(instantiate, kUserVisibleName,
-                          TypeArguments::Handle());
+                          Object::null_type_arguments());
   }
 
   // Build a string of the form '(A, {B b, C c}) => D' representing the

@@ -3302,7 +3302,7 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
       UnresolvedClass::Handle(UnresolvedClass::New(LibraryPrefix::Handle(),
                                                    Symbols::Empty(), type_pos));
   const Type& type = Type::Handle(
-      Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
+      Type::New(unresolved_class, Object::null_type_arguments(), type_pos));
   MarkTypeMalformed(prev_error, script, type, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());
