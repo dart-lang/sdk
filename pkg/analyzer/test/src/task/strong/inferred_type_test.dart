@@ -869,6 +869,15 @@ class Pair<T, U> {
     ''');
   }
 
+  test_constructors_tooManyPositionalArguments() async {
+    var unit = await checkFileElement(r'''
+class A<T> {}
+var a = new A/*error:EXTRA_POSITIONAL_ARGUMENTS*/(42);
+''');
+    var vars = unit.topLevelVariables;
+    expect(vars[0].type.toString(), 'A<dynamic>');
+  }
+
   test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() async {
     await checkFileElement('''
 class A {

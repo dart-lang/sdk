@@ -2583,8 +2583,8 @@ class ExprTypeComputer {
 
   FunctionType _inferExecutableType(
       FunctionType rawMethodType,
-      int numNamed,
-      int numPositional,
+      int numNamedArguments,
+      int numPositionalArguments,
       List<String> namedArgNames,
       List<DartType> namedArgTypeList,
       List<DartType> positionalArgTypes,
@@ -2599,36 +2599,46 @@ class ExprTypeComputer {
         }
       } else if (rawMethodType.typeFormals.isNotEmpty &&
           ts is StrongTypeSystemImpl) {
-        List<DartType> paramTypes = <DartType>[];
-        List<DartType> argTypes = <DartType>[];
-        // Add positional parameter and argument types.
-        for (int i = 0; i < numPositional; i++) {
-          ParameterElement parameter = rawMethodType.parameters[i];
-          if (parameter != null) {
-            paramTypes.add(parameter.type);
-            argTypes.add(positionalArgTypes[i]);
-          }
-        }
-        // Prepare named argument types map.
+        // Prepare the named argument types map.
         Map<String, DartType> namedArgTypes = <String, DartType>{};
-        for (int i = 0; i < numNamed; i++) {
+        for (int i = 0; i < numNamedArguments; i++) {
           String name = namedArgNames[i];
           DartType type = namedArgTypeList[i];
           namedArgTypes[name] = type;
         }
-        // Add named parameter and argument types.
-        Map<String, DartType> namedParameterTypes =
-            rawMethodType.namedParameterTypes;
-        namedArgTypes.forEach((String name, DartType argType) {
-          DartType parameterType = namedParameterTypes[name];
-          if (parameterType != null) {
-            paramTypes.add(parameterType);
-            argTypes.add(argType);
+
+        // Fill parameters and the corresponding arguments.
+        List<DartType> parameterTypes = <DartType>[];
+        List<DartType> argumentTypes = <DartType>[];
+        int positionalIndex = 0;
+        int numRequiredParameters = 0;
+        for (ParameterElement parameter in rawMethodType.parameters) {
+          if (parameter.parameterKind == ParameterKind.REQUIRED) {
+            numRequiredParameters++;
+            if (numRequiredParameters > numPositionalArguments) {
+              return null;
+            }
+            parameterTypes.add(parameter.type);
+            argumentTypes.add(positionalArgTypes[positionalIndex]);
+            positionalIndex++;
+          } else if (parameter.parameterKind == ParameterKind.POSITIONAL) {
+            if (positionalIndex < numPositionalArguments) {
+              parameterTypes.add(parameter.type);
+              argumentTypes.add(positionalArgTypes[positionalIndex]);
+              positionalIndex++;
+            }
+          } else if (parameter.parameterKind == ParameterKind.NAMED) {
+            DartType namedArgumentType = namedArgTypes[parameter.name];
+            if (namedArgumentType != null) {
+              parameterTypes.add(parameter.type);
+              argumentTypes.add(namedArgumentType);
+            }
           }
-        });
+        }
+
         // Perform inference.
         FunctionType inferred = ts.inferGenericFunctionCall(rawMethodType,
-            paramTypes, argTypes, rawMethodType.returnType, null);
+            parameterTypes, argumentTypes, rawMethodType.returnType, null);
         return inferred;
       }
     }

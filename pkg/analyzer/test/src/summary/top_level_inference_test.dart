@@ -432,7 +432,7 @@ bool vOr;
   test_initializer_methodInvocation_hasTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
-  List<T> m<T>(int p) => null;
+  List<T> m<T>() => null;
 }
 var vWithTypeArgument = new A().m<int>();
 var vWithoutTypeArgument = new A().m();
@@ -628,6 +628,31 @@ var V = throw 42;
         library,
         r'''
 Null V;
+''');
+  }
+
+  test_instanceField_functionTypeAlias_doesNotUseItsTypeParameter() async {
+    var library = await _encodeDecodeLibrary(r'''
+typedef F<T>();
+
+class A<T> {
+  F<T> get x => null;
+}
+
+class B extends A<int> {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef dynamic F<T>();
+class A<T> {
+  F get x {}
+}
+class B extends A<int> {
+  F get x {}
+}
 ''');
   }
 
