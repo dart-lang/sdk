@@ -1282,7 +1282,7 @@ class StandardTestSuite extends TestSuite {
         var contentShellOptions = [];
 
         contentShellOptions.add('--no-timeout');
-        contentShellOptions.add('--dump-render-tree');
+        contentShellOptions.add('--run-layout-test');
 
         // Disable the GPU under Linux and Dartium. If the GPU is enabled,
         // Chrome may send a termination signal to a test.  The test will be
