@@ -1331,6 +1331,16 @@ var V;
     expect(result.unit.element.types.map((e) => e.name), ['A']);
   }
 
+  test_getResult_recursiveFlatten() async {
+    String content = r'''
+import 'dart:async';
+class C<T> implements Future<C<T>> {}
+''';
+    addTestFile(content);
+    // Should not throw exceptions.
+    await driver.getResult(testFile);
+  }
+
   test_getResult_sameFile_twoUris() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
