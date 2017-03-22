@@ -199,7 +199,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
   }
 
   Future<File> close() =>
-      _openFuture.then<File>((openedFile) => openedFile.close());
+      _openFuture.then((openedFile) => openedFile.close()).then((_) => _file);
 }
 
 // Class for encapsulating the native implementation of files.
@@ -556,7 +556,7 @@ class _File extends FileSystemEntity implements File {
   Future<File> writeAsBytes(List<int> bytes,
       {FileMode mode: FileMode.WRITE, bool flush: false}) {
     return open(mode: mode).then((file) {
-      return file.writeFrom(bytes, 0, bytes.length).then((_) {
+      return file.writeFrom(bytes, 0, bytes.length).then<File>((_) {
         if (flush) return file.flush().then((_) => this);
         return this;
       }).whenComplete(file.close);

@@ -204,8 +204,7 @@ class Base64Codec extends Codec<List<int>, String> {
  *
  * The results are ASCII strings using a restricted alphabet.
  */
-class Base64Encoder extends Converter<List<int>, String>
-    implements ChunkedConverter<List<int>, String, List<int>, String> {
+class Base64Encoder extends Converter<List<int>, String> {
 
   final bool _urlSafe;
 
@@ -476,8 +475,7 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
  *
  * The encoding is required to be properly padded.
  */
-class Base64Decoder extends Converter<String, List<int>>
-    implements ChunkedConverter<String, List<int>, String, List<int>> {
+class Base64Decoder extends Converter<String, List<int>> {
 
   const Base64Decoder();
 
