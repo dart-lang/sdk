@@ -26,22 +26,20 @@ class AnalyticsLogger {
   AnalyticsLogger(Channel channel, String clientID, String analyticsID,
       String appName, String appVersion)
       : this._channel = channel,
-      this._clientID = clientID,
-      this._analyticsID = analyticsID,
-      this._appName = appName,
-      this._appVersion = appVersion,
-      this._messagePrefix =
-        "v=1"
-        "&tid=$analyticsID"
-        "&cid=$clientID"
-        "&an=$appName"
-        "&av=$appVersion";
+        this._clientID = clientID,
+        this._analyticsID = analyticsID,
+        this._appName = appName,
+        this._appVersion = appVersion,
+        this._messagePrefix = "v=1"
+            "&tid=$analyticsID"
+            "&cid=$clientID"
+            "&an=$appName"
+            "&av=$appVersion";
 
   void logAnonymousTiming(String category, String variable, int ms) {
     category = Uri.encodeComponent(category);
     variable = Uri.encodeComponent(variable);
-    _channel.sendData(
-        "${this._messagePrefix}"
+    _channel.sendData("${this._messagePrefix}"
         "&t=timing"
         "&utc=$category"
         "&utv=$variable"
@@ -51,11 +49,9 @@ class AnalyticsLogger {
   void logAnonymousEvent(String category, String event) {
     category = Uri.encodeComponent(category);
     event = Uri.encodeComponent(event);
-    _channel.sendData(
-        "${this._messagePrefix}"
+    _channel.sendData("${this._messagePrefix}"
         "&t=event"
         "&ec=$category"
         "&ea=$event");
   }
 }
-

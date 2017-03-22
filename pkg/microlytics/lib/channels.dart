@@ -22,10 +22,8 @@ class RateLimitingBufferedChannel extends Channel {
   final int _bufferSizeLimit;
   Timer _timer;
 
-  RateLimitingBufferedChannel(
-      this._innerChannel,
-      {int bufferSizeLimit: 10,
-        double packetsPerSecond: 1.0})
+  RateLimitingBufferedChannel(this._innerChannel,
+      {int bufferSizeLimit: 10, double packetsPerSecond: 1.0})
       : this._bufferSizeLimit = bufferSizeLimit {
     if (!(packetsPerSecond > 0)) {
       throw new ArgumentError("packetsPerSecond must be larger than zero.");

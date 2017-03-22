@@ -17,16 +17,15 @@ void main() {
 }
 
 void testBasicEventRead() {
-    TestChannel c = new TestChannel();
-    AnalyticsLogger logger = new AnalyticsLogger(
+  TestChannel c = new TestChannel();
+  AnalyticsLogger logger = new AnalyticsLogger(
       c,
       "2cfac780-31e2-11e4-8c21-0800200c9a66",
       "UA-53895644-1",
       "TestApp",
       "0.42");
-    logger.logAnonymousEvent("video", "play");
-    Expect.isTrue(c.contains(
-      "v=1"
+  logger.logAnonymousEvent("video", "play");
+  Expect.isTrue(c.contains("v=1"
       "&tid=UA-53895644-1"
       "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
       "&an=TestApp"
@@ -37,84 +36,79 @@ void testBasicEventRead() {
 }
 
 void testBasicNegativeEventRead() {
-      TestChannel c = new TestChannel();
-      AnalyticsLogger logger = new AnalyticsLogger(
-        c,
-        "2cfac780-31e2-11e4-8c21-0800200c9a66",
-        "UA-53895644-1",
-        "TestApp",
-        "0.42");
-      logger.logAnonymousEvent("video", "play");
-      Expect.isFalse(c.contains(
-        "v=1"
-        "&tid=UA-53895644-1"
-        "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
-        "&an=TestApp"
-        "&av=XXX"
-        "&t=event"
-        "&ec=video"
-        "&ea=play"));
+  TestChannel c = new TestChannel();
+  AnalyticsLogger logger = new AnalyticsLogger(
+      c,
+      "2cfac780-31e2-11e4-8c21-0800200c9a66",
+      "UA-53895644-1",
+      "TestApp",
+      "0.42");
+  logger.logAnonymousEvent("video", "play");
+  Expect.isFalse(c.contains("v=1"
+      "&tid=UA-53895644-1"
+      "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
+      "&an=TestApp"
+      "&av=XXX"
+      "&t=event"
+      "&ec=video"
+      "&ea=play"));
 }
 
 void testBasicTimingRead() {
-    TestChannel c = new TestChannel();
-    AnalyticsLogger logger = new AnalyticsLogger(
-        c,
-        "2cfac780-31e2-11e4-8c21-0800200c9a66",
-        "UA-53895644-1",
-        "TestApp",
-        "0.42");
-    logger.logAnonymousTiming("video", "delay", 157);
-    Expect.isTrue(c.contains(
-        "v=1"
-        "&tid=UA-53895644-1"
-        "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
-        "&an=TestApp"
-        "&av=0.42"
-        "&t=timing"
-        "&utc=video"
-        "&utv=delay"
-        "&utt=157"));
+  TestChannel c = new TestChannel();
+  AnalyticsLogger logger = new AnalyticsLogger(
+      c,
+      "2cfac780-31e2-11e4-8c21-0800200c9a66",
+      "UA-53895644-1",
+      "TestApp",
+      "0.42");
+  logger.logAnonymousTiming("video", "delay", 157);
+  Expect.isTrue(c.contains("v=1"
+      "&tid=UA-53895644-1"
+      "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
+      "&an=TestApp"
+      "&av=0.42"
+      "&t=timing"
+      "&utc=video"
+      "&utv=delay"
+      "&utt=157"));
 }
 
 void testBasicTimingMultiread() {
-      TestChannel c = new TestChannel();
-      AnalyticsLogger logger = new AnalyticsLogger(
-        c,
-        "2cfac780-31e2-11e4-8c21-0800200c9a66",
-        "UA-53895644-1",
-        "TestApp",
-        "0.42");
-      logger.logAnonymousTiming("video", "delay", 159);
-      logger.logAnonymousTiming("video", "delay", 152);
-      Expect.isTrue(c.contains(
-        "v=1"
-        "&tid=UA-53895644-1"
-        "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
-        "&an=TestApp"
-        "&av=0.42"
-        "&t=timing"
-        "&utc=video"
-        "&utv=delay"
-        "&utt=152"));
-      Expect.isTrue(c.contains(
-        "v=1"
-        "&tid=UA-53895644-1"
-        "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
-        "&an=TestApp"
-        "&av=0.42"
-        "&t=timing"
-        "&utc=video"
-        "&utv=delay"
-        "&utt=159"));
-      Expect.isFalse(c.contains(
-        "v=1"
-        "&tid=UA-53895644-1"
-        "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
-        "&an=TestApp"
-        "&av=0.42"
-        "&t=timing"
-        "&utc=video"
-        "&utv=delay"
-        "&utt=19"));
+  TestChannel c = new TestChannel();
+  AnalyticsLogger logger = new AnalyticsLogger(
+      c,
+      "2cfac780-31e2-11e4-8c21-0800200c9a66",
+      "UA-53895644-1",
+      "TestApp",
+      "0.42");
+  logger.logAnonymousTiming("video", "delay", 159);
+  logger.logAnonymousTiming("video", "delay", 152);
+  Expect.isTrue(c.contains("v=1"
+      "&tid=UA-53895644-1"
+      "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
+      "&an=TestApp"
+      "&av=0.42"
+      "&t=timing"
+      "&utc=video"
+      "&utv=delay"
+      "&utt=152"));
+  Expect.isTrue(c.contains("v=1"
+      "&tid=UA-53895644-1"
+      "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
+      "&an=TestApp"
+      "&av=0.42"
+      "&t=timing"
+      "&utc=video"
+      "&utv=delay"
+      "&utt=159"));
+  Expect.isFalse(c.contains("v=1"
+      "&tid=UA-53895644-1"
+      "&cid=2cfac780-31e2-11e4-8c21-0800200c9a66"
+      "&an=TestApp"
+      "&av=0.42"
+      "&t=timing"
+      "&utc=video"
+      "&utv=delay"
+      "&utt=19"));
 }
