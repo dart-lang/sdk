@@ -104,11 +104,7 @@ class CompileType : public ZoneAllocated {
   static CompileType Create(intptr_t cid, const AbstractType& type);
 
   CompileType CopyNonNullable() const {
-    return CompileType(kNonNullable, cid_, type_);
-  }
-
-  static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
-    return CompileType(is_nullable, cid, NULL);
+    return CompileType(kNonNullable, kIllegalCid, type_);
   }
 
   // Create a new CompileType representing given abstract type. By default
