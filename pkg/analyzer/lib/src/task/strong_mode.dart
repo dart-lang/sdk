@@ -17,6 +17,10 @@ import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart'
+    show FieldElementForLink_ClassField, ParameterElementForLink;
 
 /**
  * Return `true` if the given [expression] is an immediately-evident expression,
@@ -177,6 +181,10 @@ class InstanceMemberInferrer {
       if (parameterType == null) {
         parameterType = type;
       } else if (parameterType != type) {
+        if (parameter is ParameterElementForLink) {
+          parameter.setInferenceError(new TopLevelInferenceErrorBuilder(
+              kind: TopLevelInferenceErrorKind.overrideConflictParameterType));
+        }
         return typeProvider.dynamicType;
       }
     }
@@ -391,6 +399,10 @@ class InstanceMemberInferrer {
     _FieldOverrideInferenceResult typeResult =
         _computeFieldOverrideType(field.getter);
     if (typeResult.isError) {
+      if (field is FieldElementForLink_ClassField) {
+        field.setInferenceError(new TopLevelInferenceErrorBuilder(
+            kind: TopLevelInferenceErrorKind.overrideConflictFieldType));
+      }
       return;
     }
 

@@ -1089,7 +1089,6 @@ class C implements A, B {
   var x;
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -1100,7 +1099,7 @@ abstract class B {
   void set x(String _);
 }
 class C implements A, B {
-  dynamic x;
+  dynamic x/*error: overrideConflictFieldType*/;
 }
 ''');
   }
@@ -1709,7 +1708,6 @@ class C extends A<int> implements B<double> {
   m(a) {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -1720,7 +1718,7 @@ class B<E> {
   void m(E a) {}
 }
 class C extends A<int> implements B<double> {
-  void m(dynamic a) {}
+  void m(dynamic a/*error: overrideConflictParameterType*/) {}
 }
 ''');
   }
@@ -1737,7 +1735,6 @@ class C extends A implements B {
   m(a) {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -1748,7 +1745,7 @@ class B {
   void m(String a) {}
 }
 class C extends A implements B {
-  void m(dynamic a) {}
+  void m(dynamic a/*error: overrideConflictParameterType*/) {}
 }
 ''');
   }
@@ -1818,7 +1815,8 @@ class B extends A {
   m(a, b) {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
+    // It's an error to add a new required parameter, but it is not a
+    // top-level type inference error.
     checkElementText(
         library,
         r'''

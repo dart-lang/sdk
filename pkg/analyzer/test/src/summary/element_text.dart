@@ -599,6 +599,8 @@ class _ElementWriter {
 
     writeName(e);
 
+    writeVariableTypeInferenceError(e);
+
     if (defaultValue != null) {
       buffer.write(defaultValueSeparator);
       writeExpression(defaultValue);
@@ -695,17 +697,7 @@ class _ElementWriter {
 
     writeName(e);
 
-    if (e is NonParameterVariableElementImpl) {
-      TopLevelInferenceError inferenceError =
-          (e as NonParameterVariableElementImpl).typeInferenceError;
-      if (inferenceError != null) {
-        String kindName = inferenceError.kind.toString();
-        if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
-          kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
-        }
-        buffer.write('/*error: $kindName*/');
-      }
-    }
+    writeVariableTypeInferenceError(e);
 
     if (e is ConstVariableElement) {
       Expression initializer = (e as ConstVariableElement).constantInitializer;
@@ -772,6 +764,19 @@ class _ElementWriter {
       buffer.write('${e.uriOffset}, ');
       buffer.write('${e.uriEnd})');
       buffer.write(')');
+    }
+  }
+
+  void writeVariableTypeInferenceError(VariableElement e) {
+    if (e is VariableElementImpl) {
+      TopLevelInferenceError inferenceError = e.typeInferenceError;
+      if (inferenceError != null) {
+        String kindName = inferenceError.kind.toString();
+        if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
+          kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
+        }
+        buffer.write('/*error: $kindName*/');
+      }
     }
   }
 

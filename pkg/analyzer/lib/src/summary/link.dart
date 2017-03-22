@@ -2661,6 +2661,8 @@ class FieldElementForLink_ClassField extends VariableElementForLink
    */
   DartType _inferredInstanceType;
 
+  TopLevelInferenceErrorBuilder _inferenceError;
+
   FieldElementForLink_ClassField(ClassElementForLink_Class enclosingElement,
       UnlinkedVariable unlinkedVariable)
       : enclosingElement = enclosingElement,
@@ -2689,12 +2691,19 @@ class FieldElementForLink_ClassField extends VariableElementForLink
           unlinkedVariable.inferredTypeSlot,
           isStatic ? inferredType : _inferredInstanceType,
           _typeParameterContext);
+      compilationUnit._storeLinkedTypeError(
+          unlinkedVariable.inferredTypeSlot, _inferenceError);
       if (initializer != null) {
         compilationUnit._storeLinkedTypeError(
-            unlinkedVariable.inferredTypeSlot, initializer._inferredError);
+            unlinkedVariable.inferredTypeSlot, initializer._inferenceError);
         initializer.link(compilationUnit);
       }
     }
+  }
+
+  void setInferenceError(TopLevelInferenceErrorBuilder error) {
+    assert(_inferenceError == null);
+    _inferenceError = error;
   }
 
   @override
@@ -2901,7 +2910,7 @@ class FunctionElementForLink_Initializer extends Object
 
   List<FunctionElementForLink_Local_NonSynthetic> _functions;
   DartType _inferredReturnType;
-  TopLevelInferenceErrorBuilder _inferredError;
+  TopLevelInferenceErrorBuilder _inferenceError;
 
   FunctionElementForLink_Initializer(this._variable);
 
@@ -2994,9 +3003,9 @@ class FunctionElementForLink_Initializer extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  void _setInferredError(TopLevelInferenceErrorBuilder error) {
+  void _setInferenceError(TopLevelInferenceErrorBuilder error) {
     assert(!_hasTypeBeenInferred);
-    _inferredError = error;
+    _inferenceError = error;
   }
 
   @override
@@ -3024,7 +3033,7 @@ abstract class FunctionElementForLink_Local
    * Stores the given [error] as the type inference error for this function.
    * Should only be called if [_hasTypeBeenInferred] is `false`.
    */
-  void _setInferredError(TopLevelInferenceErrorBuilder error);
+  void _setInferenceError(TopLevelInferenceErrorBuilder error);
 
   /**
    * Stores the given [type] as the inferred return type for this function.
@@ -3121,7 +3130,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  void _setInferredError(TopLevelInferenceErrorBuilder error) {}
+  void _setInferenceError(TopLevelInferenceErrorBuilder error) {}
 
   @override
   void _setInferredType(DartType type) {
@@ -3991,6 +4000,7 @@ class ParameterElementForLink implements ParameterElementImpl {
   final ParameterParentElementForLink enclosingElement;
 
   DartType _inferredType;
+  TopLevelInferenceErrorBuilder _inferenceError;
   DartType _declaredType;
   bool _inheritsCovariant = false;
 
@@ -4118,6 +4128,8 @@ class ParameterElementForLink implements ParameterElementImpl {
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
         _unlinkedParam.inferredTypeSlot, _inferredType, _typeParameterContext);
+    compilationUnit._storeLinkedTypeError(
+        _unlinkedParam.inferredTypeSlot, _inferenceError);
     if (inheritsCovariant) {
       compilationUnit
           ._storeInheritsCovariant(_unlinkedParam.inheritsCovariantSlot);
@@ -4126,6 +4138,11 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  void setInferenceError(TopLevelInferenceErrorBuilder error) {
+    assert(_inferenceError == null);
+    _inferenceError = error;
+  }
 }
 
 /**
@@ -4673,7 +4690,7 @@ class TopLevelVariableElementForLink extends VariableElementForLink
         compilationUnit._storeLinkedType(
             unlinkedVariable.inferredTypeSlot, inferredType, null);
         compilationUnit._storeLinkedTypeError(
-            unlinkedVariable.inferredTypeSlot, initializer._inferredError);
+            unlinkedVariable.inferredTypeSlot, initializer._inferenceError);
       }
       initializer?.link(compilationUnit);
     }
@@ -4815,14 +4832,14 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
 
   void evaluate(bool inCycle) {
     if (inCycle) {
-      functionElement._setInferredError(new TopLevelInferenceErrorBuilder(
+      functionElement._setInferenceError(new TopLevelInferenceErrorBuilder(
           kind: TopLevelInferenceErrorKind.dependencyCycle));
       functionElement._setInferredType(DynamicTypeImpl.instance);
     } else {
       var computer = new ExprTypeComputer(functionElement);
       DartType bodyType = computer.compute();
       if (computer.errorKind != null) {
-        functionElement._setInferredError(
+        functionElement._setInferenceError(
             new TopLevelInferenceErrorBuilder(kind: computer.errorKind));
         functionElement._setInferredType(DynamicTypeImpl.instance);
       } else {

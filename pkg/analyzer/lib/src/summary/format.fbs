@@ -217,7 +217,13 @@ enum TopLevelInferenceErrorKind : byte {
 
   instanceGetter,
 
-  dependencyCycle
+  dependencyCycle,
+
+  overrideConflictFieldType,
+
+  overrideConflictReturnType,
+
+  overrideConflictParameterType
 }
 
 /**

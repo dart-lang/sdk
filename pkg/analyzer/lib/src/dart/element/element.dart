@@ -7279,11 +7279,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     _type = _checkElementOfType(type);
   }
 
-  /**
-   * Return the error reported during type inference for this variable, or
-   * `null` if this variable is not a subject of type inference, or there was
-   * no error.
-   */
+  @override
   TopLevelInferenceError get typeInferenceError {
     if (_unlinkedVariable != null) {
       return enclosingUnit.resynthesizerContext
@@ -7647,6 +7643,16 @@ class ParameterElementImpl extends VariableElementImpl
   DartType get type {
     _resynthesizeTypeAndParameters();
     return super.type;
+  }
+
+  @override
+  TopLevelInferenceError get typeInferenceError {
+    if (_unlinkedParam != null) {
+      return enclosingUnit.resynthesizerContext
+          .getTypeInferenceError(_unlinkedParam.inferredTypeSlot);
+    }
+    // We don't support type inference errors without linking.
+    return null;
   }
 
   @override
@@ -9042,6 +9048,15 @@ abstract class VariableElementImpl extends ElementImpl
 
   void set type(DartType type) {
     _type = _checkElementOfType(type);
+  }
+
+  /**
+   * Return the error reported during type inference for this variable, or
+   * `null` if this variable is not a subject of type inference, or there was
+   * no error.
+   */
+  TopLevelInferenceError get typeInferenceError {
+    return null;
   }
 
   @override
