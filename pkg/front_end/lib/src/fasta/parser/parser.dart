@@ -90,29 +90,45 @@ class FormalParameterType {
   static final NAMED = const FormalParameterType('named');
 }
 
-/**
- * An event generating parser of Dart programs. This parser expects
- * all tokens in a linked list (aka a token stream).
- *
- * The class [Scanner] is used to generate a token stream. See the
- * file scanner.dart.
- *
- * Subclasses of the class [Listener] are used to listen to events.
- *
- * Most methods of this class belong in one of two major categories:
- * parse methods and peek methods. Parse methods all have the prefix
- * parse, and peek methods all have the prefix peek.
- *
- * Parse methods generate events (by calling methods on [listener])
- * and return the next token to parse. Peek methods do not generate
- * events (except for errors) and may return null.
- *
- * Parse methods are generally named parseGrammarProductionSuffix. The
- * suffix can be one of "opt", or "star". "opt" means zero or one
- * matches, "star" means zero or more matches. For example,
- * [parseMetadataStar] corresponds to this grammar snippet: [:
- * metadata* :], and [parseTypeOpt] corresponds to: [: type? :].
- */
+/// An event generating parser of Dart programs. This parser expects all tokens
+/// in a linked list (aka a token stream).
+///
+/// The class [Scanner] is used to generate a token stream. See the file
+/// [scanner.dart](../scanner.dart).
+///
+/// Subclasses of the class [Listener] are used to listen to events.
+///
+/// Most methods of this class belong in one of three major categories: parse
+/// methods, peek methods, and skip methods. Parse methods all have the prefix
+/// `parse`, peek methods all have the prefix `peek`, and skip methods all have
+/// the prefix `skip`.
+///
+/// Parse methods generate events (by calling methods on [listener]) and return
+/// the next token to parse. Peek methods do not generate events (except for
+/// errors) and may return null. Skip methods are like parse methods, but skip
+/// over some parts of the file being parsed.
+///
+/// Parse methods are generally named `parseGrammarProductionSuffix`. The
+/// suffix can be one of `opt`, or `star`. `opt` means zero or one matches,
+/// `star` means zero or more matches. For example, [parseMetadataStar]
+/// corresponds to this grammar snippet: `metadata*`, and [parseTypeOpt]
+/// corresponds to: `type?`.
+///
+/// ## Implementation Notes
+///
+/// The parser assumes that keywords, built-in identifiers, and other special
+/// words (pseudo-keywords) are all canonicalized. To extend the parser to
+/// recognize a new identifier, one should modify
+/// [keyword.dart](../scanner/keyword.dart) and ensure the identifier is added
+/// to the keyword table.
+///
+/// As a consequence of this, one should not use `==` to compare strings in the
+/// parser. One should favor the methods [optional] and [expected] to recognize
+/// keywords or identifiers. In some cases, it's possible to compare a token's
+/// `stringValue` using [identical], but normally [optional] will suffice.
+///
+/// Historically, we over-used identical, and when identical is used on other
+/// objects than strings, it can often be replaced by `==`.
 class Parser {
   final Listener listener;
 
@@ -389,10 +405,7 @@ class Parser {
     return token;
   }
 
-  /**
-   * Parse
-   * [: '@' qualified (‘.’ identifier)? (arguments)? :]
-   */
+  /// Parse `'@' qualified (‘.’ identifier)? (arguments)?`
   Token parseMetadata(Token token) {
     listener.beginMetadata(token);
     Token atToken = token;
@@ -950,10 +963,8 @@ class Parser {
     return token;
   }
 
-  /**
-   * Returns true if the stringValue of the [token] is either [value1],
-   * [value2], or [value3].
-   */
+  /// Returns true if the stringValue of the [token] is either [value1],
+  /// [value2], or [value3].
   bool isOneOf3(Token token, String value1, String value2, String value3) {
     String stringValue = token.stringValue;
     return value1 == stringValue ||
@@ -961,10 +972,8 @@ class Parser {
         value3 == stringValue;
   }
 
-  /**
-   * Returns true if the stringValue of the [token] is either [value1],
-   * [value2], [value3], or [value4].
-   */
+  /// Returns true if the stringValue of the [token] is either [value1],
+  /// [value2], [value3], or [value4].
   bool isOneOf4(
       Token token, String value1, String value2, String value3, String value4) {
     String stringValue = token.stringValue;
@@ -1578,12 +1587,10 @@ class Parser {
     return token;
   }
 
-  /**
-   * Returns the first token after the type starting at [token].
-   *
-   * This method assumes that [token] is an identifier (or void).
-   * Use [peekAfterIfType] if [token] isn't known to be an identifier.
-   */
+  /// Returns the first token after the type starting at [token].
+  ///
+  /// This method assumes that [token] is an identifier (or void).  Use
+  /// [peekAfterIfType] if [token] isn't known to be an identifier.
   Token peekAfterType(Token token) {
     // We are looking at "identifier ...".
     Token peek = token;
@@ -1599,11 +1606,9 @@ class Parser {
     return peek;
   }
 
-  /**
-   * Returns the first token after the nominal type starting at [token].
-   *
-   * This method assumes that [token] is an identifier (or void).
-   */
+  /// Returns the first token after the nominal type starting at [token].
+  ///
+  /// This method assumes that [token] is an identifier (or void).
   Token peekAfterNominalType(Token token) {
     Token peek = token.next;
     if (identical(peek.kind, PERIOD_TOKEN)) {
@@ -1626,24 +1631,23 @@ class Parser {
     return peek;
   }
 
-  /**
-   * Returns the first token after the function type starting at [token].
-   *
-   * The token must be at the token *after* the `Function` token position. That
-   * is, the return type and the `Function` token must have already been
-   * skipped.
-   *
-   * This function only skips over one function type syntax.
-   * If necessary, this function must be called multiple times.
-   *
-   * Example:
-   * ```
-   * int Function() Function<T>(int)
-   *             ^          ^
-   * A call to this function must be either at `(` or at `<`.
-   * If `token` pointed to the first `(`, then the returned
-   * token points to the second `Function` token.
-   */
+  /// Returns the first token after the function type starting at [token].
+  ///
+  /// The token must be at the token *after* the `Function` token
+  /// position. That is, the return type and the `Function` token must have
+  /// already been skipped.
+  ///
+  /// This function only skips over one function type syntax.  If necessary,
+  /// this function must be called multiple times.
+  ///
+  /// Example:
+  ///
+  ///     int Function() Function<T>(int)
+  ///                 ^          ^
+  ///
+  /// A call to this function must be either at `(` or at `<`.  If `token`
+  /// pointed to the first `(`, then the returned token points to the second
+  /// `Function` token.
   Token peekAfterFunctionType(Token token) {
     // Possible inputs are:
     //    ( ... )
@@ -1671,10 +1675,8 @@ class Parser {
     return peek;
   }
 
-  /**
-   * If [token] is the start of a type, returns the token after that type.
-   * If [token] is not the start of a type, null is returned.
-   */
+  /// If [token] is the start of a type, returns the token after that type.
+  /// If [token] is not the start of a type, null is returned.
   Token peekAfterIfType(Token token) {
     if (!optional('void', token) && !token.isIdentifier()) {
       return null;
@@ -3101,9 +3103,7 @@ class Parser {
     }
   }
 
-  /**
-   * Only called when [:token.kind === STRING_TOKEN:].
-   */
+  /// Only called when `identical(token.kind, STRING_TOKEN)`.
   Token parseSingleLiteralString(Token token) {
     listener.beginLiteralString(token);
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
@@ -3519,11 +3519,9 @@ class Parser {
     return token;
   }
 
-  /**
-   * Peek after the following labels (if any). The following token
-   * is used to determine if the labels belong to a statement or a
-   * switch case.
-   */
+  /// Peek after the following labels (if any). The following token
+  /// is used to determine if the labels belong to a statement or a
+  /// switch case.
   Token peekPastLabels(Token token) {
     while (token.isIdentifier() && optional(':', token.next)) {
       token = token.next.next;
@@ -3531,10 +3529,8 @@ class Parser {
     return token;
   }
 
-  /**
-   * Parse a group of labels, cases and possibly a default keyword and
-   * the statements that they select.
-   */
+  /// Parse a group of labels, cases and possibly a default keyword and the
+  /// statements that they select.
   Token parseSwitchCase(Token token) {
     Token begin = token;
     Token defaultKeyword = null;
