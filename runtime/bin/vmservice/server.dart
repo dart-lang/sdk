@@ -323,38 +323,58 @@ class Server {
     }
 
     // Startup HTTP server.
-    try {
-      var address;
-      if (Platform.isFuchsia) {
-        address = InternetAddress.ANY_IP_V4;
-      } else {
-        var addresses = await InternetAddress.lookup(_ip);
-        // Prefer IPv4 addresses.
-        for (var i = 0; i < addresses.length; i++) {
-          address = addresses[i];
-          if (address.type == InternetAddressType.IP_V4) break;
+    var pollError;
+    var pollStack;
+    Future<bool> poll() async {
+      try {
+        var address;
+        if (Platform.isFuchsia) {
+          address = InternetAddress.ANY_IP_V4;
+        } else {
+          var addresses = await InternetAddress.lookup(_ip);
+          // Prefer IPv4 addresses.
+          for (var i = 0; i < addresses.length; i++) {
+            address = addresses[i];
+            if (address.type == InternetAddressType.IP_V4) break;
+          }
         }
+        _server = await HttpServer.bind(address, _port);
+        return true;
+      } catch (e, st) {
+        pollError = e;
+        pollStack = st;
+        return false;
       }
-      _server = await HttpServer.bind(address, _port);
-      _server.listen(_requestHandler, cancelOnError: true);
-      serverPrint('Observatory listening on $serverAddress');
-      if (Platform.isFuchsia) {
-        // Create a file with the port number.
-        String tmp = Directory.systemTemp.path;
-        String path = "$tmp/dart.services/${_server.port}";
-        serverPrint("Creating $path");
-        new File(path)..createSync(recursive: true);
-      }
-      // Server is up and running.
-      _notifyServerState(serverAddress.toString());
-      onServerAddressChange('$serverAddress');
-      return this;
-    } catch (e, st) {
-      serverPrint('Could not start Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("");
-      onServerAddressChange(null);
-      return this;
     }
+
+    // poll for the network for ~10 seconds.
+    int attempts = 0;
+    final int maxAttempts = 10;
+    while (!await poll()) {
+      attempts++;
+      serverPrint("Observatory server failed to start after $attempts tries");
+      if (attempts > maxAttempts) {
+        serverPrint('Could not start Observatory HTTP server:\n'
+                    '$pollError\n$pollStack\n');
+        _notifyServerState("");
+        onServerAddressChange(null);
+        return this;
+      }
+      await new Future<Null>.delayed(const Duration(seconds: 1));
+    }
+    _server.listen(_requestHandler, cancelOnError: true);
+    serverPrint('Observatory listening on $serverAddress');
+    if (Platform.isFuchsia) {
+      // Create a file with the port number.
+      String tmp = Directory.systemTemp.path;
+      String path = "$tmp/dart.services/${_server.port}";
+      serverPrint("Creating $path");
+      new File(path)..createSync(recursive: true);
+    }
+    // Server is up and running.
+    _notifyServerState(serverAddress.toString());
+    onServerAddressChange('$serverAddress');
+    return this;
   }
 
   Future cleanup(bool force) {
