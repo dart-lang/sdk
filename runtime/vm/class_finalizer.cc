@@ -153,13 +153,18 @@ bool ClassFinalizer::ProcessPendingClasses(bool from_kernel) {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
-      // Classes compiled from Dart sources are finalized more lazily, classes
-      // compiled from Kernel binaries can be finalized now (and should be,
-      // since we will not revisit them).
-      if (from_kernel) {
+    }
+
+    // Classes compiled from Dart sources are finalized more lazily, classes
+    // compiled from Kernel binaries can be finalized now (and should be,
+    // since we will not revisit them).
+    if (from_kernel) {
+      for (intptr_t i = 0; i < class_array.Length(); i++) {
+        cls ^= class_array.At(i);
         FinalizeClass(cls);
       }
     }
+
     if (FLAG_print_classes) {
       for (intptr_t i = 0; i < class_array.Length(); i++) {
         cls ^= class_array.At(i);
