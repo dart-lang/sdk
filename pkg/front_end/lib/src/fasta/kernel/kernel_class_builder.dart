@@ -230,7 +230,7 @@ abstract class KernelClassBuilder
       addWarning(
           declaredMember.fileOffset,
           "The method '$name::${declaredMember.name.name}' has more "
-          "positional arguments than those of overridden method "
+          "required arguments than those of overridden method "
           "'${interfaceMember.enclosingClass.name}::"
           "${interfaceMember.name.name}'.");
     }
