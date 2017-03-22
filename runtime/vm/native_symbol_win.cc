@@ -62,10 +62,12 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   PSYMBOL_INFO pSymbol = reinterpret_cast<PSYMBOL_INFO>(&buffer[0]);
   pSymbol->SizeOfStruct = kSymbolInfoSize;
   pSymbol->MaxNameLen = kMaxNameLength;
-  BOOL r = SymFromAddr(hProcess, address, NULL, pSymbol);
+  DWORD64 displacement;
+  BOOL r = SymFromAddr(hProcess, address, &displacement, pSymbol);
   if (r == FALSE) {
     return NULL;
   }
+  *start = pc - displacement;
   return strdup(pSymbol->Name);
 }
 
