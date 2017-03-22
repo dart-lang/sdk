@@ -1463,7 +1463,21 @@ class AstBuilder extends ScopeListener {
 
     var initializers = <ConstructorInitializer>[];
     for (Object initializerObject in initializerObjects) {
-      if (initializerObject is AssignmentExpression) {
+      if (initializerObject is FunctionExpressionInvocation) {
+        var superExpression = initializerObject.function as SuperExpression;
+        initializers.add(ast.superConstructorInvocation(
+            superExpression.superKeyword,
+            null,
+            null,
+            initializerObject.argumentList));
+      } else if (initializerObject is MethodInvocation) {
+        var superExpression = initializerObject.target as SuperExpression;
+        initializers.add(ast.superConstructorInvocation(
+            superExpression.superKeyword,
+            initializerObject.operator,
+            initializerObject.methodName,
+            initializerObject.argumentList));
+      } else if (initializerObject is AssignmentExpression) {
         analyzer.Token thisKeyword;
         analyzer.Token period;
         SimpleIdentifier fieldName;
