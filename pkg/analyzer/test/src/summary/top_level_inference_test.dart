@@ -653,6 +653,587 @@ class A<T> {
 class B extends A<int> {
   F get x {}
 }
+class C implements A, B {
+  var x;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  int x;
+}
+''');
+  }
+
+  test_instanceField_fromField() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int x;
+  int y;
+  int z;
+}
+class B implements A {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int x;
+  int y;
+  int z;
+}
+class B implements A {
+  int x;
+  synthetic final int y;
+  synthetic int z;
+  int get y {}
+  void set z(int _) {}
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromField_explicitDynamic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  dynamic x;
+}
+class B implements A {
+  var x = 1;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  dynamic x;
+}
+class B implements A {
+  dynamic x;
+}
+''');
+  }
+
+  test_instanceField_fromField_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A<E> {
+  E x;
+  E y;
+  E z;
+}
+class B<T> implements A<T> {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A<E> {
+  E x;
+  E y;
+  E z;
+}
+class B<T> implements A<T> {
+  T x;
+  synthetic final T y;
+  synthetic T z;
+  T get y {}
+  void set z(T _) {}
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromField_implicitDynamic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  var x;
+}
+class B implements A {
+  var x = 1;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  dynamic x;
+}
+class B implements A {
+  dynamic x;
+}
+''');
+  }
+
+  test_instanceField_fromField_narrowType() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  num x;
+}
+class B implements A {
+  var x = 1;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  num x;
+}
+class B implements A {
+  num x;
+}
+''');
+  }
+
+  test_instanceField_fromGetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+  int get y;
+  int get z;
+}
+class B implements A {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+  int get y;
+  int get z;
+}
+class B implements A {
+  int x;
+  int get y {}
+  void set z(int _) {}
+}
+''');
+  }
+
+  test_instanceField_fromGetter_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A<E> {
+  E get x;
+  E get y;
+  E get z;
+}
+class B<T> implements A<T> {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A<E> {
+  E get x;
+  E get y;
+  E get z;
+}
+class B<T> implements A<T> {
+  T x;
+  T get y {}
+  void set z(T _) {}
+}
+''');
+  }
+
+  test_instanceField_fromGetter_multiple_different() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  String get x;
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  String get x;
+}
+class C implements A, B {
+  dynamic get x {}
+}
+''');
+  }
+
+  test_instanceField_fromGetter_multiple_different_dynamic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  dynamic get x;
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  dynamic get x;
+}
+class C implements A, B {
+  dynamic get x {}
+}
+''');
+  }
+
+  test_instanceField_fromGetter_multiple_different_generic() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A<T> {
+  T get x;
+}
+abstract class B<T> {
+  T get x;
+}
+class C implements A<int>, B<String> {
+  get x => null;
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+abstract class A<T> {
+  T get x;
+}
+abstract class B<T> {
+  T get x;
+}
+class C implements A<int>, B<String> {
+  dynamic get x {}
+}
+''');
+  }
+
+  test_instanceField_fromGetter_multiple_same() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  int get x;
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  int get x;
+}
+class C implements A, B {
+  int get x {}
+}
+''');
+  }
+
+  test_instanceField_fromGetterSetter_field() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  var x;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  int x;
+}
+''');
+  }
+
+  test_instanceField_fromGetterSetter_getter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  synthetic final int x;
+  int get x;
+}
+abstract class B {
+  synthetic int x;
+  void set x(int _);
+}
+class C implements A, B {
+  synthetic final int x;
+  int get x {}
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromGetterSetter_setter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  set x(_);
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  synthetic final int x;
+  int get x;
+}
+abstract class B {
+  synthetic String x;
+  void set x(String _);
+}
+class C implements A, B {
+  synthetic dynamic x;
+  void set x(dynamic _);
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromSetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  void set x(int _);
+  void set y(int _);
+  void set z(int _);
+}
+class B implements A {
+  var x;
+  get y => null;
+  set z(_) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  void set x(int _);
+  void set y(int _);
+  void set z(int _);
+}
+class B implements A {
+  int x;
+  int get y {}
+  void set z(int _) {}
+}
+''');
+  }
+
+  test_instanceField_fromSetter_multiple_different() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  void set x(int _);
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  void set x(int _);
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  dynamic get x {}
+}
+''');
+  }
+
+  test_instanceField_fromSetter_multiple_same() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  void set x(int _);
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  void set x(int _);
+}
+abstract class B {
+  void set x(int _);
+}
+class C implements A, B {
+  int get x {}
+}
+''');
+  }
+
+  test_instanceField_functionTypeAlias_doesNotUseItsTypeParameter() async {
+    var library = await _encodeDecodeLibrary(r'''
+typedef F<T>();
+
+class A<T> {
+  F<T> get x => null;
+  List<F<T>> get y => null;
+}
+
+class B extends A<int> {
+  get x => null;
+  get y => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef dynamic F<T>();
+class A<T> {
+  F<T> get x {}
+  List<F<T>> get y {}
+}
+class B extends A<int> {
+  F<int> get x {}
+  List<F<int>> get y {}
+}
+''');
+  }
+
+  test_instanceField_inheritsCovariant_fromSetter_field() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  num get x;
+  void set x(covariant num _);
+}
+class B implements A {
+  int x;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  num get x;
+  void set x(covariant num _);
+}
+class B implements A {
+  int x;
+  synthetic int get x {}
+  synthetic void set x(covariant int _x) {}
+}
+''',
+        withSyntheticAccessors: true);
+  }
+
+  test_instanceField_inheritsCovariant_fromSetter_setter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  num get x;
+  void set x(covariant num _);
+}
+class B implements A {
+  set x(int _) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  num get x;
+  void set x(covariant num _);
+}
+class B implements A {
+  void set x(covariant int _) {}
+}
+''');
+  }
+
+  test_instanceField_initializer() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  var t1 = 1;
+  var t2 = 2.0;
+  var t3 = null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  int t1;
+  double t2;
+  dynamic t3;
+}
 ''');
   }
 
