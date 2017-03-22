@@ -5619,6 +5619,19 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(methodInvocation.argumentList, isNotNull);
   }
 
+  void test_namedArgument() {
+    var invocation = parseExpression('m(a: 1, b: 2)') as MethodInvocation;
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    var a = arguments[0] as NamedExpression;
+    expect(a.name.label.name, 'a');
+    expect(a.expression, isNotNull);
+
+    var b = arguments[1] as NamedExpression;
+    expect(b.name.label.name, 'b');
+    expect(b.expression, isNotNull);
+  }
+
   void test_parsePostfixExpression_none_methodInvocation_question_dot() {
     Expression expression = parsePostfixExpression('a?.m()');
     expect(expression, isNotNull);

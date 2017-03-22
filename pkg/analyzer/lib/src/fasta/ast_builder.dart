@@ -64,6 +64,14 @@ class AstBuilder extends ScopeListener {
     push(token);
   }
 
+  void handleNamedArgument(Token colon) {
+    debugEvent("NamedArgument");
+    Expression expression = pop();
+    SimpleIdentifier name = pop();
+    push(ast.namedExpression(
+        ast.label(name, toAnalyzerToken(colon)), expression));
+  }
+
   @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
