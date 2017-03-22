@@ -382,7 +382,7 @@ class InferrerEngine {
             info.selector.isCall) {
           // This is a constructor call to a class with a call method. So we
           // need to trace the call method here.
-          assert(info.calledElement.isConstructor);
+          assert(info.calledElement.isGenerativeConstructor);
           ClassElement cls = info.calledElement.enclosingClass;
           FunctionElement callMethod = cls.lookupMember(Identifiers.call);
           assert(invariant(cls, callMethod != null));
@@ -844,7 +844,10 @@ class InferrerEngine {
         inLoop);
     // If this class has a 'call' method then we have essentially created a
     // closure here. Register it as such so that it is traced.
-    if (selector != null && selector.isCall && callee.isConstructor) {
+    // Note: we exclude factory constructors because they don't always create an
+    // instance of the type. They are static methods that delegate to some other
+    // generative constructor to do the actual creation of the object.
+    if (selector != null && selector.isCall && callee.isGenerativeConstructor) {
       ClassElement cls = callee.enclosingClass;
       if (cls.callType != null) {
         types.allocatedClosures.add(info);
