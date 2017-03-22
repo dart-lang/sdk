@@ -500,6 +500,11 @@ abstract class Future<T> {
    * In most cases, it is more readable to use [catchError] separately, possibly
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
+   *
+   * Note that futures don't delay reporting of errors until listeners are
+   * added. If the first `then` or `catchError` call happens after this future
+   * has completed with an error then the error is reported as unhandled error.
+   * See the description on [Future].
    */
   Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError});
 
@@ -529,6 +534,11 @@ abstract class Future<T> {
    * If `test` is omitted, it defaults to a function that always returns true.
    * The `test` function should not throw, but if it does, it is handled as
    * if the `onError` function had thrown.
+   *
+   * Note that futures don't delay reporting of errors until listeners are
+   * added. If the first `catchError` (or `then`) call happens after this future
+   * has completed with an error then the error is reported as unhandled error.
+   * See the description on [Future].
    *
    * Example:
    *
