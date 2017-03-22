@@ -215,7 +215,9 @@ abstract class AbstractAnalysisServerIntegrationTest
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill('server failed to exit');
+      // The integer value of the exit code isn't used, but we have to return
+      // an integer to keep the typing correct.
+      return server.kill('server failed to exit').then((_) => -1);
     });
   }
 
