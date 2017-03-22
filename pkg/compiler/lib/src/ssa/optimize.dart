@@ -59,6 +59,7 @@ class SsaOptimizerTask extends CompilerTask {
     CodegenRegistry registry = work.registry;
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
+    SsaLoadElimination loadElimination;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
@@ -85,7 +86,8 @@ class SsaOptimizerTask extends CompilerTask {
         // updated because they now have different inputs.
         new SsaTypePropagator(compiler, closedWorld),
         codeMotion = new SsaCodeMotion(),
-        new SsaLoadElimination(backend, compiler, closedWorld),
+        loadElimination =
+            new SsaLoadElimination(backend, compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         // After GVN and load elimination the same value may be used in code
@@ -110,7 +112,9 @@ class SsaOptimizerTask extends CompilerTask {
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
-      if (codeMotion.movedCode || dce.eliminatedSideEffects) {
+      if (codeMotion.movedCode ||
+          dce.eliminatedSideEffects ||
+          loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
           new SsaTypePropagator(compiler, closedWorld),
           new SsaGlobalValueNumberer(),
@@ -2260,6 +2264,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
+  bool newGvnCandidates = false;
 
   SsaLoadElimination(this.backend, this.compiler, this.closedWorld);
 
@@ -2314,6 +2319,14 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     }
   }
 
+  void checkNewGvnCandidates(HInstruction instruction, HInstruction existing) {
+    if (newGvnCandidates) return;
+    bool hasUseGvn(HInstruction insn) => insn.nonCheck().useGvn();
+    if (instruction.usedBy.any(hasUseGvn) && existing.usedBy.any(hasUseGvn)) {
+      newGvnCandidates = true;
+    }
+  }
+
   void visitFieldGet(HFieldGet instruction) {
     if (instruction.isNullCheck) return;
     FieldEntity element = instruction.element;
@@ -2330,6 +2343,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       MemberEntity element, HInstruction receiver, HInstruction instruction) {
     HInstruction existing = memorySet.lookupFieldValue(element, receiver);
     if (existing != null) {
+      checkNewGvnCandidates(instruction, existing);
       instruction.block.rewriteWithBetterUser(instruction, existing);
       instruction.block.remove(instruction);
     } else {
@@ -2412,6 +2426,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void handleStaticLoad(MemberEntity element, HInstruction instruction) {
     HInstruction existing = memorySet.lookupFieldValue(element, null);
     if (existing != null) {
+      checkNewGvnCandidates(instruction, existing);
       instruction.block.rewriteWithBetterUser(instruction, existing);
       instruction.block.remove(instruction);
     } else {
@@ -2440,6 +2455,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     HInstruction existing =
         memorySet.lookupKeyedValue(receiver, instruction.index);
     if (existing != null) {
+      checkNewGvnCandidates(instruction, existing);
       instruction.block.rewriteWithBetterUser(instruction, existing);
       instruction.block.remove(instruction);
     } else {
