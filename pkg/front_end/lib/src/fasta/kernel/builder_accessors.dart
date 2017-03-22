@@ -12,6 +12,8 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import '../builder/scope.dart' show ProblemBuilder;
+
 import '../errors.dart' show internalError, printUnexpected;
 
 import 'frontend_accessors.dart' as kernel
@@ -54,7 +56,7 @@ abstract class BuilderHelper {
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments);
 
-  Expression buildProblemExpression(Builder builder, String name);
+  Expression buildProblemExpression(ProblemBuilder builder, int charOffset);
 }
 
 abstract class BuilderAccessor implements Accessor {
@@ -347,7 +349,7 @@ class SendAccessor extends IncompleteSend {
         return buildThrowNoSuchMethodError(arguments);
       }
       if (builder.hasProblem) {
-        result = helper.buildProblemExpression(builder, name.name);
+        result = helper.buildProblemExpression(builder, charOffset);
       } else {
         Member target = builder.target;
         if (target != null) {
@@ -443,8 +445,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
         setter = builder.target;
       }
       if (builder.hasProblem) {
-        return helper.buildProblemExpression(builder, name.name)
-          ..fileOffset = charOffset;
+        return helper.buildProblemExpression(builder, charOffset);
       }
       if (getter is Field) {
         if (!getter.isFinal && !getter.isConst) {

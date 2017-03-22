@@ -29,4 +29,11 @@ abstract class TypeBuilder extends Builder {
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
 
   build(LibraryBuilder library);
+
+  @override
+  String get fullNameForErrors {
+    StringBuffer sb = new StringBuffer();
+    printOn(sb);
+    return "$sb";
+  }
 }

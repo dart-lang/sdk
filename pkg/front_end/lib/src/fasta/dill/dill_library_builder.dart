@@ -109,4 +109,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
       String name, Builder builder, Builder other, int charOffset) {
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
+
+  @override
+  String get fullNameForErrors {
+    return library.name ?? "<library '${library.fileUri}'>";
+  }
 }

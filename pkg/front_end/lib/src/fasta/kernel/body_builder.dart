@@ -30,7 +30,7 @@ import '../errors.dart' show formatUnexpected, internalError;
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
 
-import '../builder/scope.dart' show AccessErrorBuilder, AmbiguousBuilder, Scope;
+import '../builder/scope.dart' show ProblemBuilder, Scope;
 
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
 
@@ -2289,14 +2289,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Expression buildProblemExpression(Builder builder, String name) {
-    if (builder is AmbiguousBuilder) {
-      return buildCompileTimeError("Duplicated named: '$name'.");
-    } else if (builder is AccessErrorBuilder) {
-      return buildCompileTimeError("Access error: '$name'.");
-    } else {
-      return internalError("Unhandled: ${builder.runtimeType}");
-    }
+  Expression buildProblemExpression(ProblemBuilder builder, int charOffset) {
+    return buildCompileTimeError(builder.message, charOffset);
   }
 
   @override
@@ -2611,6 +2605,9 @@ class JumpTarget extends Builder {
     }
     users.clear();
   }
+
+  @override
+  String get fullNameForErrors => "<jump-target>";
 }
 
 class LabelTarget extends Builder implements JumpTarget {
@@ -2662,6 +2659,9 @@ class LabelTarget extends Builder implements JumpTarget {
   void resolveGotos(SwitchCase target) {
     internalError("Unsupported operation.");
   }
+
+  @override
+  String get fullNameForErrors => "<label-target>";
 }
 
 class OptionalFormals {

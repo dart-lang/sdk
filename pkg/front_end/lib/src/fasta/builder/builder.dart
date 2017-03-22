@@ -168,6 +168,8 @@ abstract class Builder {
 
   bool get hasProblem => false;
 
+  String get fullNameForErrors;
+
   static Uri getUri(Builder builder) {
     if (builder == null) return internalError("Builder is null.");
     while (builder != null) {

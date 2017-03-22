@@ -93,7 +93,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         } else if (current.isSetter && setterBuilder == null) {
           setterBuilder = current;
         } else {
-          return new AmbiguousBuilder(builder, charOffset, fileUri);
+          return new AmbiguousBuilder(name, builder, charOffset, fileUri);
         }
         current = current.next;
       }

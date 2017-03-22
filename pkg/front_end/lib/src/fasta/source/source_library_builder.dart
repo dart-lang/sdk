@@ -444,6 +444,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   List<TypeVariableBuilder> copyTypeVariables(
       List<TypeVariableBuilder> original);
+
+  @override
+  String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to

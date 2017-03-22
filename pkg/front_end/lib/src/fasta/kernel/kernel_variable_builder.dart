@@ -19,4 +19,7 @@ class KernelVariableBuilder extends Builder {
   bool get isLocal => true;
 
   VariableDeclaration get target => variable;
+
+  @override
+  String get fullNameForErrors => variable.name ?? "<unnamed>";
 }

@@ -18,4 +18,7 @@ class MixedAccessor extends Builder {
             parent.fileUri) {
     next = getter;
   }
+
+  @override
+  String get fullNameForErrors => getter.fullNameForErrors;
 }
