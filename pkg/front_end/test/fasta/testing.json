@@ -131,7 +131,7 @@
 
   "analyze": {
 
-    "options": "../../.analysis_options",
+    "options": "../../analysis_options.yaml",
 
     "uris": [
       "../../lib/src/fasta",
