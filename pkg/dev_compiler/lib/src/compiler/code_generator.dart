@@ -5872,24 +5872,22 @@ class CodeGenerator extends GeneralizingAstVisitor
     return js.statement('#.$code', args);
   }
 
+  // TODO(kevmoo): https://github.com/dart-lang/sdk/issues/27255
+  // TODO(kevmoo): Remove once pkg/angular2 has moved to the new compiler
+  //               See https://github.com/dart-lang/angular2/issues/48
+  /// Temporary workaround *cough* total hack *cough*.
+  ///
   /// Maps whitelisted files to a list of whitelisted methods
   /// within the file.
   ///
   /// If the value is null, the entire file is whitelisted.
   ///
-  // TODO(jmesserly): why is this here, and what can we do to remove it?
-  //
-  // Hard coded lists are completely unnecessary -- if a feature is needed,
-  // metadata, type system features, or command line options are the right way
-  // to express it.
-  //
-  // As it is this is completely unsound and unmaintainable.
-  static Map<String, List<String>> _uncheckedWhitelist = {
-    'dom_renderer.dart': ['moveNodesAfterSibling'],
-    'template_ref.dart': ['createEmbeddedView'],
-    'ng_class.dart': ['_applyIterableChanges'],
-    'ng_for.dart': ['_bulkRemove', '_bulkInsert'],
-    'view_container_ref.dart': ['createEmbeddedView'],
+  static const Map<String, List<String>> _uncheckedWhitelist = const {
+    'dom_renderer.dart': const ['moveNodesAfterSibling'],
+    'template_ref.dart': const ['createEmbeddedView'],
+    'ng_class.dart': const ['_applyIterableChanges'],
+    'ng_for.dart': const ['_bulkRemove', '_bulkInsert'],
+    'view_container_ref.dart': const ['createEmbeddedView'],
     'default_iterable_differ.dart': null,
   };
 

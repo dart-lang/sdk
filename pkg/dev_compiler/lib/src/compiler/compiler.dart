@@ -266,6 +266,8 @@ class CompilerOptions {
   /// Hoist types in type tests
   final bool hoistTypeTests;
 
+  // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
+  //               is fixed.
   final bool useAngular2Whitelist;
 
   /// Enable ES6 destructuring of named parameters. Off by default.
@@ -375,6 +377,8 @@ class CompilerOptions {
           help: 'Name types used in type tests', defaultsTo: true, hide: hide)
       ..addFlag('hoist-type-tests',
           help: 'Hoist types used in type tests', defaultsTo: true, hide: hide)
+      // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
+      //               is fixed.
       ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: hide)
       ..addOption('bazel-mapping',
           help:
