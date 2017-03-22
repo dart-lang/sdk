@@ -77,6 +77,7 @@ io/http_launch_test: Pass, Slow, Timeout  # Issue 28046
 typed_array_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_array_int64_uint64_test: RuntimeError, OK  # Uses Isolate.spawn
 typed_data_isolate_test: SkipByDesign # This test uses dart:io
+dwarf_stack_trace_test: SkipByDesign # This test uses dart:io
 regress_28854_1_test: SkipByDesign # Uses Isolate.spawn
 regress_28854_2_test: SkipByDesign # Uses Isolate.spawn
 io/*: SkipByDesign # Don't run tests using dart:io in the browser
