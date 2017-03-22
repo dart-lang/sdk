@@ -574,14 +574,16 @@ class JavaScriptBackend {
 
   /// Resolution analysis for tracking reflective access to type variables.
   TypeVariableResolutionAnalysis get typeVariableResolutionAnalysis {
-    assert(invariant(NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis == null,
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis == null,
         message: "TypeVariableHandler has already been created."));
     return _typeVariableResolutionAnalysis;
   }
 
   /// Codegen handler for reflective access to type variables.
   TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis {
-    assert(invariant(NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis != null,
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis != null,
         message: "TypeVariableHandler has not been created yet."));
     return _typeVariableCodegenAnalysis;
   }
@@ -906,7 +908,8 @@ class JavaScriptBackend {
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
-    _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(this, helpers, mirrorsData);
+    _typeVariableCodegenAnalysis =
+        new TypeVariableCodegenAnalysis(this, helpers, mirrorsData);
     _lookupMapAnalysis = new LookupMapAnalysis(
         reporter,
         constantSystem,

@@ -300,7 +300,6 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
-
     void addsToContainer(ContainerTypeMask mask) {
       if (mask.allocationNode != null) {
         ListTypeInformation list =
