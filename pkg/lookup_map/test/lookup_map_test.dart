@@ -11,16 +11,22 @@ class Key {
   const Key(this.id);
 }
 
-class A{}
+class A {}
+
 const B = const Key(1);
-class C{}
+
+class C {}
 
 main() {
   test('entries constructor', () {
     var m = const LookupMap(const [
-        A, "the-text-for-A",
-        B, "the-text-for-B",
-        1.2, "the-text-for-1.2"]);
+      A,
+      "the-text-for-A",
+      B,
+      "the-text-for-B",
+      1.2,
+      "the-text-for-1.2"
+    ]);
     expect(m[A], 'the-text-for-A');
     expect(m[B], 'the-text-for-B');
     expect(m[1.2], 'the-text-for-1.2');
@@ -43,7 +49,8 @@ main() {
 
   test('entry shadows nested maps', () {
     var m = const LookupMap(const [
-      A, "the-text-for-A2",
+      A,
+      "the-text-for-A2",
     ], const [
       const LookupMap.pair(A, "the-text-for-A1"),
     ]);
@@ -51,7 +58,7 @@ main() {
   });
 
   test('nested maps shadow in order', () {
-    var m = const LookupMap(const [ ], const [
+    var m = const LookupMap(const [], const [
       const LookupMap.pair(A, "the-text-for-A1"),
       const LookupMap.pair(B, "the-text-for-B2"),
       const LookupMap.pair(A, "the-text-for-A2"),
@@ -65,9 +72,12 @@ main() {
   // sanity.
   test('reachable lookups are not tree-shaken', () {
     var m = const LookupMap(const [
-      A, B,
-      B, C,
-      C, 3.4,
+      A,
+      B,
+      B,
+      C,
+      C,
+      3.4,
     ]);
     expect(m[m[m[A]]], 3.4);
   });

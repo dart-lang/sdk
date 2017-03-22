@@ -4,52 +4,36 @@
 
 library testing.chain;
 
-import 'dart:async' show
-    Future,
-    Stream;
+import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show
-    JSON,
-    JsonEncoder;
+import 'dart:convert' show JSON, JsonEncoder;
 
-import 'dart:io' show
-    Directory,
-    File,
-    FileSystemEntity,
-    exitCode;
+import 'dart:io' show Directory, File, FileSystemEntity, exitCode;
 
-import 'suite.dart' show
-    Suite;
+import 'suite.dart' show Suite;
 
-import '../testing.dart' show
-    TestDescription;
+import '../testing.dart' show TestDescription;
 
-import 'test_dart/status_file_parser.dart' show
-    ReadTestExpectations,
-    TestExpectations;
+import 'test_dart/status_file_parser.dart'
+    show ReadTestExpectations, TestExpectations;
 
-import 'zone_helper.dart' show
-    runGuarded;
+import 'zone_helper.dart' show runGuarded;
 
-import 'error_handling.dart' show
-    withErrorHandling;
+import 'error_handling.dart' show withErrorHandling;
 
-import 'log.dart' show
-    logMessage,
-    logStepComplete,
-    logStepStart,
-    logSuiteComplete,
-    logTestComplete,
-    logUnexpectedResult,
-    splitLines;
+import 'log.dart'
+    show
+        logMessage,
+        logStepComplete,
+        logStepStart,
+        logSuiteComplete,
+        logTestComplete,
+        logUnexpectedResult,
+        splitLines;
 
-import 'multitest.dart' show
-    MultitestTransformer,
-    isError;
+import 'multitest.dart' show MultitestTransformer, isError;
 
-import 'expectation.dart' show
-    Expectation,
-    ExpectationSet;
+import 'expectation.dart' show Expectation, ExpectationSet;
 
 typedef Future<ChainContext> CreateContext(
     Chain suite, Map<String, String> environment);
@@ -74,10 +58,10 @@ class Chain extends Suite {
     Uri source = base.resolve(json["source"]);
     Uri uri = base.resolve(json["path"]);
     Uri statusFile = base.resolve(json["status"]);
-    List<RegExp> pattern = new List<RegExp>.from(
-        json["pattern"].map((String p) => new RegExp(p)));
-    List<RegExp> exclude = new List<RegExp>.from(
-        json["exclude"].map((String p) => new RegExp(p)));
+    List<RegExp> pattern =
+        new List<RegExp>.from(json["pattern"].map((String p) => new RegExp(p)));
+    List<RegExp> exclude =
+        new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
     bool processMultitests = json["process-multitests"] ?? false;
     return new Chain(name, kind, source, uri, statusFile, pattern, exclude,
         processMultitests);
@@ -235,6 +219,7 @@ abstract class ChainContext {
           return future;
         }
       }
+
       // The input of the first step is [description].
       await doStep(description);
     }
@@ -242,8 +227,8 @@ abstract class ChainContext {
     logSuiteComplete();
     if (unexpectedResults.isNotEmpty) {
       unexpectedResults.forEach((TestDescription description, Result result) {
-        logUnexpectedResult(suite, description, result,
-            unexpectedOutcomes[description]);
+        logUnexpectedResult(
+            suite, description, result, unexpectedOutcomes[description]);
       });
       print("${unexpectedResults.length} failed:");
       unexpectedResults.forEach((TestDescription description, Result result) {
@@ -329,8 +314,7 @@ class Result<O> {
 
   Result(this.output, this.outcome, this.error, this.trace);
 
-  Result.pass(O output)
-      : this(output, Expectation.Pass, null, null);
+  Result.pass(O output) : this(output, Expectation.Pass, null, null);
 
   Result.crash(error, StackTrace trace)
       : this(null, Expectation.Crash, error, trace);
@@ -345,15 +329,13 @@ class Result<O> {
   }
 
   Result<O> copyWithOutcome(Expectation outcome) {
-    return new Result<O>(output, outcome, error, trace)
-        ..logs.addAll(logs);
+    return new Result<O>(output, outcome, error, trace)..logs.addAll(logs);
   }
 }
 
 /// This is called from generated code.
-Future<Null> runChain(
-    CreateContext f, Map<String, String> environment, Set<String> selectors,
-    String json) {
+Future<Null> runChain(CreateContext f, Map<String, String> environment,
+    Set<String> selectors, String json) {
   return withErrorHandling(() async {
     Chain suite = new Suite.fromJsonMap(Uri.base, JSON.decode(json));
     print("Running ${suite.name}");

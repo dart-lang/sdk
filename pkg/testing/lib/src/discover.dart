@@ -4,20 +4,11 @@
 
 library testing.discover;
 
-import 'dart:io' show
-    Directory,
-    FileSystemEntity,
-    Platform,
-    Process;
+import 'dart:io' show Directory, FileSystemEntity, Platform, Process;
 
-import 'dart:async' show
-    Future,
-    Stream,
-    StreamController,
-    StreamSubscription;
+import 'dart:async' show Future, Stream, StreamController, StreamSubscription;
 
-import '../testing.dart' show
-  TestDescription;
+import '../testing.dart' show TestDescription;
 
 final Uri packageConfig = computePackageConfig();
 
@@ -72,8 +63,8 @@ Uri computePackageConfig() {
 }
 
 Uri computeDartSdk() {
-  String dartSdkPath = Platform.environment["DART_SDK"]
-      ?? const String.fromEnvironment("DART_SDK");
+  String dartSdkPath = Platform.environment["DART_SDK"] ??
+      const String.fromEnvironment("DART_SDK");
   if (dartSdkPath != null) {
     return Uri.base.resolveUri(new Uri.file(dartSdkPath));
   } else {
@@ -81,10 +72,8 @@ Uri computeDartSdk() {
   }
 }
 
-Future<Process> startDart(
-    Uri program,
-    [List<String> arguments,
-     List<String> vmArguments]) {
+Future<Process> startDart(Uri program,
+    [List<String> arguments, List<String> vmArguments]) {
   List<String> allArguments = <String>[];
   allArguments.addAll(vmArguments ?? dartArguments);
   allArguments.add(program.toFilePath());

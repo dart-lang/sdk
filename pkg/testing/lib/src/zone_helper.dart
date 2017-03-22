@@ -5,29 +5,17 @@
 /// Helper functions for running code in a Zone.
 library testing.zone_helper;
 
-import 'dart:async' show
-    Completer,
-    Future,
-    ZoneSpecification,
-    runZoned;
+import 'dart:async' show Completer, Future, ZoneSpecification, runZoned;
 
-import 'dart:io' show
-    exit,
-    stderr;
+import 'dart:io' show exit, stderr;
 
-import 'dart:isolate' show
-    Capability,
-    Isolate,
-    ReceivePort;
+import 'dart:isolate' show Capability, Isolate, ReceivePort;
 
-import 'log.dart' show
-    logUncaughtError;
+import 'log.dart' show logUncaughtError;
 
-Future runGuarded(
-    Future f(),
+Future runGuarded(Future f(),
     {void printLineOnStdout(line),
-     void handleLateError(error, StackTrace stackTrace)}) {
-
+    void handleLateError(error, StackTrace stackTrace)}) {
   var printWrapper;
   if (printLineOnStdout != null) {
     printWrapper = (_1, _2, _3, String line) {
@@ -50,8 +38,8 @@ Future runGuarded(
       } catch (_) {
         // Ignored.
       }
-      stderr.write("$errorString\n" +
-          (stackTrace == null ? "" : "$stackTrace"));
+      stderr
+          .write("$errorString\n" + (stackTrace == null ? "" : "$stackTrace"));
       stderr.flush();
       exit(255);
     }
@@ -74,10 +62,8 @@ Future runGuarded(
   Isolate.current.setErrorsFatal(false);
   Isolate.current.addErrorListener(errorPort.sendPort);
   return acknowledgeControlMessages(Isolate.current).then((_) {
-    runZoned(
-        () => new Future(f).then(completer.complete),
-        zoneSpecification: specification,
-        onError: handleUncaughtError);
+    runZoned(() => new Future(f).then(completer.complete),
+        zoneSpecification: specification, onError: handleUncaughtError);
 
     return completer.future.whenComplete(() {
       errorPort.close();

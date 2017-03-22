@@ -4,15 +4,11 @@
 
 library testing.error_handling;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    exitCode,
-    stderr;
+import 'dart:io' show exitCode, stderr;
 
-import 'dart:isolate' show
-    ReceivePort;
+import 'dart:isolate' show ReceivePort;
 
 Future withErrorHandling(Future f()) async {
   final ReceivePort port = new ReceivePort();

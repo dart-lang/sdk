@@ -4,56 +4,33 @@
 
 library testing.run;
 
-import 'dart:async' show
-    Future,
-    Stream;
+import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show
-    JSON;
+import 'dart:convert' show JSON;
 
-import 'dart:io' show
-    Platform;
+import 'dart:io' show Platform;
 
-import 'dart:isolate' show
-    Isolate,
-    ReceivePort;
+import 'dart:isolate' show Isolate, ReceivePort;
 
-import 'test_root.dart' show
-    TestRoot;
+import 'test_root.dart' show TestRoot;
 
-import 'test_description.dart' show
-    TestDescription;
+import 'test_description.dart' show TestDescription;
 
-import 'error_handling.dart' show
-    withErrorHandling;
+import 'error_handling.dart' show withErrorHandling;
 
-import 'chain.dart' show
-    CreateContext;
+import 'chain.dart' show CreateContext;
 
-import '../testing.dart' show
-    Chain,
-    ChainContext,
-    TestDescription,
-    listTests;
+import '../testing.dart' show Chain, ChainContext, TestDescription, listTests;
 
-import 'analyze.dart' show
-    Analyze;
+import 'analyze.dart' show Analyze;
 
-import 'log.dart' show
-    isVerbose,
-    logMessage,
-    logNumberedLines,
-    splitLines;
+import 'log.dart' show isVerbose, logMessage, logNumberedLines, splitLines;
 
-import 'suite.dart' show
-    Dart,
-    Suite;
+import 'suite.dart' show Dart, Suite;
 
-import 'test_dart.dart' show
-    TestDart;
+import 'test_dart.dart' show TestDart;
 
-import 'zone_helper.dart' show
-    acknowledgeControlMessages;
+import 'zone_helper.dart' show acknowledgeControlMessages;
 
 Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
   Uri configuration = configurationPath == null
@@ -70,8 +47,8 @@ Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
 /// The optional argument [configurationPath] should be used when
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to `Platform.script`.
-Future<Null> runMe(
-    List<String> arguments, CreateContext f, [String configurationPath]) {
+Future<Null> runMe(List<String> arguments, CreateContext f,
+    [String configurationPath]) {
   return withErrorHandling(() async {
     TestRoot testRoot =
         await computeTestRoot(configurationPath, Platform.script);
@@ -112,15 +89,15 @@ Future<Null> runMe(
 /// The optional argument [configurationPath] should be used when
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to `Uri.base`.
-Future<Null> run(
-    List<String> arguments, List<String> suiteNames,
+Future<Null> run(List<String> arguments, List<String> suiteNames,
     [String configurationPath]) {
   return withErrorHandling(() async {
     TestRoot root = await computeTestRoot(configurationPath, Uri.base);
-    List<Suite> suites = root.suites.where(
-        (Suite suite) => suiteNames.contains(suite.name)).toList();
-    SuiteRunner runner = new SuiteRunner(suites, <String, String>{}, null,
-        new Set<String>(), new Set<String>());
+    List<Suite> suites = root.suites
+        .where((Suite suite) => suiteNames.contains(suite.name))
+        .toList();
+    SuiteRunner runner = new SuiteRunner(
+        suites, <String, String>{}, null, new Set<String>(), new Set<String>());
     String program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {
@@ -135,8 +112,11 @@ Future<Null> runProgram(String program, Uri packages) async {
   Uri dataUri = new Uri.dataFromString(program);
   ReceivePort exitPort = new ReceivePort();
   Isolate isolate = await Isolate.spawnUri(dataUri, <String>[], null,
-      paused: true, onExit: exitPort.sendPort, errorsAreFatal: false,
-      checked: true, packageConfig: packages);
+      paused: true,
+      onExit: exitPort.sendPort,
+      errorsAreFatal: false,
+      checked: true,
+      packageConfig: packages);
   List error;
   var subscription = isolate.errors.listen((data) {
     error = data;
@@ -247,8 +227,8 @@ Future<Null> main() async {
 
   Stream<TestDescription> listDescriptions() async* {
     for (Dart suite in suites.where((Suite suite) => suite is Dart)) {
-      await for (TestDescription description in
-                     listTests(<Uri>[suite.uri], pattern: "")) {
+      await for (TestDescription description
+          in listTests(<Uri>[suite.uri], pattern: "")) {
         testUris.add(await Isolate.resolvePackageUri(description.uri));
         if (shouldRunSuite(suite)) {
           String path = description.file.uri.path;

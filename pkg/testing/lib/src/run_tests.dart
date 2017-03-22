@@ -4,39 +4,29 @@
 
 library testing.run_tests;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    Directory,
-    File,
-    FileSystemEntity;
+import 'dart:io' show Directory, File, FileSystemEntity;
 
-import 'dart:io' as io show
-    exitCode;
+import 'dart:io' as io show exitCode;
 
-import 'dart:isolate' show
-    Isolate;
+import 'dart:isolate' show Isolate;
 
-import 'error_handling.dart' show
-    withErrorHandling;
+import 'error_handling.dart' show withErrorHandling;
 
-import 'test_root.dart' show
-    TestRoot;
+import 'test_root.dart' show TestRoot;
 
-import 'zone_helper.dart' show
-    runGuarded;
+import 'zone_helper.dart' show runGuarded;
 
-import 'log.dart' show
-    enableVerboseOutput,
-    isVerbose,
-    logMessage,
-    logSuiteComplete,
-    logTestComplete;
+import 'log.dart'
+    show
+        enableVerboseOutput,
+        isVerbose,
+        logMessage,
+        logSuiteComplete,
+        logTestComplete;
 
-import 'run.dart' show
-    SuiteRunner,
-    runProgram;
+import 'run.dart' show SuiteRunner, runProgram;
 
 class CommandLine {
   final Set<String> options;
@@ -97,12 +87,11 @@ class CommandLine {
       if (!await new File(configurationPath).exists()) {
         Directory test = new Directory("test");
         if (await test.exists()) {
-          List<FileSystemEntity> candiates =
-              await test.list(recursive: true, followLinks: false)
+          List<FileSystemEntity> candiates = await test
+              .list(recursive: true, followLinks: false)
               .where((FileSystemEntity entity) {
-                  return entity is File &&
-                  entity.uri.path.endsWith("/testing.json");
-                }).toList();
+            return entity is File && entity.uri.path.endsWith("/testing.json");
+          }).toList();
           switch (candiates.length) {
             case 0:
               return fail("Couldn't locate: '$configurationPath'.");
@@ -137,8 +126,7 @@ class CommandLine {
       options = new Set<String>.from(arguments.getRange(0, index - 1));
       arguments = arguments.sublist(index + 1);
     } else {
-      options =
-          arguments.where((argument) => argument.startsWith("-")).toSet();
+      options = arguments.where((argument) => argument.startsWith("-")).toSet();
       arguments =
           arguments.where((argument) => !argument.startsWith("-")).toList();
     }
@@ -153,48 +141,48 @@ fail(String message) {
 }
 
 main(List<String> arguments) => withErrorHandling(() async {
-  CommandLine cl = CommandLine.parse(arguments);
-  if (cl.verbose) {
-    enableVerboseOutput();
-  }
-  Map<String, String> environment = cl.environment;
-  Uri configuration = await cl.configuration;
-  if (configuration == null) return;
-  if (!isVerbose) {
-    print("Use --verbose to display more details.");
-  }
-  TestRoot root = await TestRoot.fromUri(configuration);
-  SuiteRunner runner = new SuiteRunner(root.suites, environment, cl.selectors,
-      cl.selectedSuites, cl.skip);
-  String program = await runner.generateDartProgram();
-  bool hasAnalyzerSuites = await runner.analyze(root.packages);
-  Stopwatch sw = new Stopwatch()..start();
-  if (program == null) {
-    if (!hasAnalyzerSuites) {
-      fail("No tests configured.");
-    }
-  } else {
-    await runProgram(program, root.packages);
-  }
-  print("Running tests took: ${sw.elapsed}.");
-});
+      CommandLine cl = CommandLine.parse(arguments);
+      if (cl.verbose) {
+        enableVerboseOutput();
+      }
+      Map<String, String> environment = cl.environment;
+      Uri configuration = await cl.configuration;
+      if (configuration == null) return;
+      if (!isVerbose) {
+        print("Use --verbose to display more details.");
+      }
+      TestRoot root = await TestRoot.fromUri(configuration);
+      SuiteRunner runner = new SuiteRunner(
+          root.suites, environment, cl.selectors, cl.selectedSuites, cl.skip);
+      String program = await runner.generateDartProgram();
+      bool hasAnalyzerSuites = await runner.analyze(root.packages);
+      Stopwatch sw = new Stopwatch()..start();
+      if (program == null) {
+        if (!hasAnalyzerSuites) {
+          fail("No tests configured.");
+        }
+      } else {
+        await runProgram(program, root.packages);
+      }
+      print("Running tests took: ${sw.elapsed}.");
+    });
 
 Future<Null> runTests(Map<String, Function> tests) =>
-withErrorHandling(() async {
-  int completed = 0;
-  for (String name in tests.keys) {
-    StringBuffer sb = new StringBuffer();
-    try {
-      await runGuarded(() {
-        print("Running test $name");
-        return tests[name]();
-      }, printLineOnStdout: sb.writeln);
-      logMessage(sb);
-    } catch (e) {
-      print(sb);
-      rethrow;
-    }
-    logTestComplete(++completed, 0, tests.length, null, null);
-  }
-  logSuiteComplete();
-});
+    withErrorHandling(() async {
+      int completed = 0;
+      for (String name in tests.keys) {
+        StringBuffer sb = new StringBuffer();
+        try {
+          await runGuarded(() {
+            print("Running test $name");
+            return tests[name]();
+          }, printLineOnStdout: sb.writeln);
+          logMessage(sb);
+        } catch (e) {
+          print(sb);
+          rethrow;
+        }
+        logTestComplete(++completed, 0, tests.length, null, null);
+      }
+      logSuiteComplete();
+    });

@@ -11,9 +11,7 @@ import "dart:io";
 import "path.dart";
 import "status_expression.dart";
 
-import '../expectation.dart' show
-    Expectation,
-    ExpectationSet;
+import '../expectation.dart' show Expectation, ExpectationSet;
 
 final RegExp SplitComment = new RegExp("^([^#]*)(#.*)?\$");
 final RegExp HeaderPattern = new RegExp(r"^\[([^\]]+)\]");
@@ -49,9 +47,8 @@ class Section {
   }
 }
 
-Future<TestExpectations> ReadTestExpectations(
-    List<String> statusFilePaths, Map environment,
-    ExpectationSet expectationSet) {
+Future<TestExpectations> ReadTestExpectations(List<String> statusFilePaths,
+    Map environment, ExpectationSet expectationSet) {
   var testExpectations = new TestExpectations(expectationSet);
   return Future.wait(statusFilePaths.map((String statusFile) {
     return ReadTestExpectationsInto(testExpectations, statusFile, environment);
