@@ -6,7 +6,6 @@
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t01: Crash
-Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t03: Crash
 Language/Classes/Constructors/Constant_Constructors/non_final_instance_variable_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/non_final_instance_variable_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t02: MissingCompileTimeError
@@ -215,7 +214,6 @@ Language/Expressions/Instance_Creation/Const/accessibility_t04: MissingCompileTi
 Language/Expressions/Instance_Creation/Const/accessibility_t05: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t06: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t07: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/arguments_t01: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/constant_constructor_name_t01: MissingCompileTimeError

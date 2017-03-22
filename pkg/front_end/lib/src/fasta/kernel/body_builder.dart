@@ -124,6 +124,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   CloneVisitor cloner;
 
+  bool constantExpressionRequired = false;
+
   BodyBuilder(
       KernelLibraryBuilder library,
       this.member,
@@ -1666,6 +1668,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginNewExpression(Token token) {
+    debugEvent("beginNewExpression");
+    super.push(constantExpressionRequired);
+    if (constantExpressionRequired) {
+      addCompileTimeError(token.charOffset, "Not a constant expression.");
+    }
+    constantExpressionRequired = false;
+  }
+
+  @override
+  void beginConstExpression(Token token) {
+    debugEvent("beginConstExpression");
+    super.push(constantExpressionRequired);
+    constantExpressionRequired = true;
+  }
+
+  @override
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
     Token nameToken = token.next;
@@ -1673,6 +1692,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
+    constantExpressionRequired = pop();
 
     if (arguments == null) {
       push(buildCompileTimeError("No arguments.", nameToken.charOffset));
