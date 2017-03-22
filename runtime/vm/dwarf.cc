@@ -587,7 +587,10 @@ void Dwarf::WriteLines() {
             previous_line = line;
           }
 
-          // 3. Update LNP pc.
+          // 3. Emit LNP row.
+          u1(DW_LNS_copy);
+
+          // 4. Update LNP pc.
           if (previous_code_index == -1) {
             // This variant is relocatable.
             u1(0);                  // This is an extended opcode
@@ -601,10 +604,6 @@ void Dwarf::WriteLines() {
           }
           previous_code_index = i;
           previous_pc_offset = current_pc_offset;
-
-          // 4. Emit LNP row.
-          u1(DW_LNS_copy);
-
           break;
         }
         case CodeSourceMapBuilder::kPushFunction: {

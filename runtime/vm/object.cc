@@ -9163,6 +9163,9 @@ void Script::SetLocationOffset(intptr_t line_offset,
 // position that could be part of a stack trace.
 intptr_t Script::GetTokenLineUsingLineStarts(
     TokenPosition target_token_pos) const {
+  if (target_token_pos.IsNoSource()) {
+    return 0;
+  }
   Zone* zone = Thread::Current()->zone();
   Array& line_starts_array = Array::Handle(zone, line_starts());
   Smi& token_pos = Smi::Handle(zone);
