@@ -51,6 +51,7 @@ case "${1//_/-}" in
     SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"
     set -- "$@" "--config=${REPO_DIR}/pkg/front_end/test/fasta/testing.json"
     ;;
+  generate-messages) SCRIPT="${TOOL_DIR}/generate_messages.dart";;
   *)
     stop "'$1' isn't a valid subcommand."
     ;;
