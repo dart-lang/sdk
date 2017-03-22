@@ -6,7 +6,8 @@ import "dart:_internal" show POWERS_OF_TEN;
 
 // JSON conversion.
 
-@patch _parseJson(String source, reviver(key, value)) {
+@patch
+_parseJson(String source, reviver(key, value)) {
   _BuildJsonListener listener;
   if (reviver == null) {
     listener = new _BuildJsonListener();
@@ -21,10 +22,10 @@ import "dart:_internal" show POWERS_OF_TEN;
   return listener.result;
 }
 
-@patch class Utf8Decoder {
+@patch
+class Utf8Decoder {
   @patch
-  Converter<List<int>, T> fuse<T>(
-      Converter<String, T> next) {
+  Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
       return new _JsonUtf8Decoder(next._reviver, this._allowMalformed)
           as dynamic/*=Converter<List<int>, T>*/;
@@ -37,7 +38,7 @@ import "dart:_internal" show POWERS_OF_TEN;
   @patch
   static String _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int end) {
-    return null;  // This call was not intercepted.
+    return null; // This call was not intercepted.
   }
 }
 
@@ -123,10 +124,21 @@ class _BuildJsonListener extends _JsonListener {
     if (currentContainer is Map) key = stack.removeLast();
   }
 
-  void handleString(String value) { this.value = value; }
-  void handleNumber(num value) { this.value = value; }
-  void handleBool(bool value) { this.value = value; }
-  void handleNull() { this.value = null; }
+  void handleString(String value) {
+    this.value = value;
+  }
+
+  void handleNumber(num value) {
+    this.value = value;
+  }
+
+  void handleBool(bool value) {
+    this.value = value;
+  }
+
+  void handleNull() {
+    this.value = null;
+  }
 
   void beginObject() {
     pushContainer();
@@ -218,7 +230,7 @@ class _NumberBuffer {
   static int _initialCapacity(int minCapacity) {
     minCapacity += kDefaultOverhead;
     if (minCapacity < minCapacity) return minCapacity;
-    minCapacity = (minCapacity + 3) & ~3;  // Round to multiple of four.
+    minCapacity = (minCapacity + 3) & ~3; // Round to multiple of four.
     return minCapacity;
   }
 
@@ -277,109 +289,109 @@ abstract class _ChunkedJsonParser {
   // gets to the next state (not empty, doesn't allow a value).
 
   // State building-block constants.
-  static const int TOP_LEVEL         = 0;
-  static const int INSIDE_ARRAY      = 1;
-  static const int INSIDE_OBJECT     = 2;
-  static const int AFTER_COLON       = 3;  // Always inside object.
+  static const int TOP_LEVEL = 0;
+  static const int INSIDE_ARRAY = 1;
+  static const int INSIDE_OBJECT = 2;
+  static const int AFTER_COLON = 3; // Always inside object.
 
-  static const int ALLOW_STRING_MASK = 8;  // Allowed if zero.
-  static const int ALLOW_VALUE_MASK  = 4;  // Allowed if zero.
-  static const int ALLOW_VALUE       = 0;
-  static const int STRING_ONLY       = 4;
-  static const int NO_VALUES         = 12;
+  static const int ALLOW_STRING_MASK = 8; // Allowed if zero.
+  static const int ALLOW_VALUE_MASK = 4; // Allowed if zero.
+  static const int ALLOW_VALUE = 0;
+  static const int STRING_ONLY = 4;
+  static const int NO_VALUES = 12;
 
   // Objects and arrays are "empty" until their first property/element.
   // At this position, they may either have an entry or a close-bracket.
-  static const int EMPTY             =  0;
-  static const int NON_EMPTY         = 16;
-  static const int EMPTY_MASK        = 16;  // Empty if zero.
+  static const int EMPTY = 0;
+  static const int NON_EMPTY = 16;
+  static const int EMPTY_MASK = 16; // Empty if zero.
 
-  // Actual states                    : Context       | Is empty? | Next?
-  static const int STATE_INITIAL      = TOP_LEVEL     | EMPTY     | ALLOW_VALUE;
-  static const int STATE_END          = TOP_LEVEL     | NON_EMPTY | NO_VALUES;
+  // Actual states               : Context | Is empty? | Next?
+  static const int STATE_INITIAL = TOP_LEVEL | EMPTY | ALLOW_VALUE;
+  static const int STATE_END = TOP_LEVEL | NON_EMPTY | NO_VALUES;
 
-  static const int STATE_ARRAY_EMPTY  = INSIDE_ARRAY  | EMPTY     | ALLOW_VALUE;
-  static const int STATE_ARRAY_VALUE  = INSIDE_ARRAY  | NON_EMPTY | NO_VALUES;
-  static const int STATE_ARRAY_COMMA  = INSIDE_ARRAY  | NON_EMPTY | ALLOW_VALUE;
+  static const int STATE_ARRAY_EMPTY = INSIDE_ARRAY | EMPTY | ALLOW_VALUE;
+  static const int STATE_ARRAY_VALUE = INSIDE_ARRAY | NON_EMPTY | NO_VALUES;
+  static const int STATE_ARRAY_COMMA = INSIDE_ARRAY | NON_EMPTY | ALLOW_VALUE;
 
-  static const int STATE_OBJECT_EMPTY = INSIDE_OBJECT | EMPTY     | STRING_ONLY;
-  static const int STATE_OBJECT_KEY   = INSIDE_OBJECT | NON_EMPTY | NO_VALUES;
-  static const int STATE_OBJECT_COLON = AFTER_COLON   | NON_EMPTY | ALLOW_VALUE;
-  static const int STATE_OBJECT_VALUE = AFTER_COLON   | NON_EMPTY | NO_VALUES;
+  static const int STATE_OBJECT_EMPTY = INSIDE_OBJECT | EMPTY | STRING_ONLY;
+  static const int STATE_OBJECT_KEY = INSIDE_OBJECT | NON_EMPTY | NO_VALUES;
+  static const int STATE_OBJECT_COLON = AFTER_COLON | NON_EMPTY | ALLOW_VALUE;
+  static const int STATE_OBJECT_VALUE = AFTER_COLON | NON_EMPTY | NO_VALUES;
   static const int STATE_OBJECT_COMMA = INSIDE_OBJECT | NON_EMPTY | STRING_ONLY;
 
   // Bits set in state after successfully reading a value.
   // This transitions the state to expect the next punctuation.
-  static const int VALUE_READ_BITS    = NON_EMPTY | NO_VALUES;
+  static const int VALUE_READ_BITS = NON_EMPTY | NO_VALUES;
 
   // Character code constants.
-  static const int BACKSPACE       = 0x08;
-  static const int TAB             = 0x09;
-  static const int NEWLINE         = 0x0a;
+  static const int BACKSPACE = 0x08;
+  static const int TAB = 0x09;
+  static const int NEWLINE = 0x0a;
   static const int CARRIAGE_RETURN = 0x0d;
-  static const int FORM_FEED       = 0x0c;
-  static const int SPACE           = 0x20;
-  static const int QUOTE           = 0x22;
-  static const int PLUS            = 0x2b;
-  static const int COMMA           = 0x2c;
-  static const int MINUS           = 0x2d;
-  static const int DECIMALPOINT    = 0x2e;
-  static const int SLASH           = 0x2f;
-  static const int CHAR_0          = 0x30;
-  static const int CHAR_9          = 0x39;
-  static const int COLON           = 0x3a;
-  static const int CHAR_E          = 0x45;
-  static const int LBRACKET        = 0x5b;
-  static const int BACKSLASH       = 0x5c;
-  static const int RBRACKET        = 0x5d;
-  static const int CHAR_a          = 0x61;
-  static const int CHAR_b          = 0x62;
-  static const int CHAR_e          = 0x65;
-  static const int CHAR_f          = 0x66;
-  static const int CHAR_l          = 0x6c;
-  static const int CHAR_n          = 0x6e;
-  static const int CHAR_r          = 0x72;
-  static const int CHAR_s          = 0x73;
-  static const int CHAR_t          = 0x74;
-  static const int CHAR_u          = 0x75;
-  static const int LBRACE          = 0x7b;
-  static const int RBRACE          = 0x7d;
+  static const int FORM_FEED = 0x0c;
+  static const int SPACE = 0x20;
+  static const int QUOTE = 0x22;
+  static const int PLUS = 0x2b;
+  static const int COMMA = 0x2c;
+  static const int MINUS = 0x2d;
+  static const int DECIMALPOINT = 0x2e;
+  static const int SLASH = 0x2f;
+  static const int CHAR_0 = 0x30;
+  static const int CHAR_9 = 0x39;
+  static const int COLON = 0x3a;
+  static const int CHAR_E = 0x45;
+  static const int LBRACKET = 0x5b;
+  static const int BACKSLASH = 0x5c;
+  static const int RBRACKET = 0x5d;
+  static const int CHAR_a = 0x61;
+  static const int CHAR_b = 0x62;
+  static const int CHAR_e = 0x65;
+  static const int CHAR_f = 0x66;
+  static const int CHAR_l = 0x6c;
+  static const int CHAR_n = 0x6e;
+  static const int CHAR_r = 0x72;
+  static const int CHAR_s = 0x73;
+  static const int CHAR_t = 0x74;
+  static const int CHAR_u = 0x75;
+  static const int LBRACE = 0x7b;
+  static const int RBRACE = 0x7d;
 
   // State of partial value at chunk split.
-  static const int NO_PARTIAL        =  0;
-  static const int PARTIAL_STRING    =  1;
-  static const int PARTIAL_NUMERAL   =  2;
-  static const int PARTIAL_KEYWORD   =  3;
-  static const int MASK_PARTIAL      =  3;
+  static const int NO_PARTIAL = 0;
+  static const int PARTIAL_STRING = 1;
+  static const int PARTIAL_NUMERAL = 2;
+  static const int PARTIAL_KEYWORD = 3;
+  static const int MASK_PARTIAL = 3;
 
   // Partial states for numerals. Values can be |'ed with PARTIAL_NUMERAL.
-  static const int NUM_SIGN          =  0;  // After initial '-'.
-  static const int NUM_ZERO          =  4;  // After '0' as first digit.
-  static const int NUM_DIGIT         =  8;  // After digit, no '.' or 'e' seen.
-  static const int NUM_DOT           = 12;  // After '.'.
-  static const int NUM_DOT_DIGIT     = 16;  // After a decimal digit (after '.').
-  static const int NUM_E             = 20;  // After 'e' or 'E'.
-  static const int NUM_E_SIGN        = 24;  // After '-' or '+' after 'e' or 'E'.
-  static const int NUM_E_DIGIT       = 28;  // After exponent digit.
-  static const int NUM_SUCCESS       = 32;  // Never stored as partial state.
+  static const int NUM_SIGN = 0; // After initial '-'.
+  static const int NUM_ZERO = 4; // After '0' as first digit.
+  static const int NUM_DIGIT = 8; // After digit, no '.' or 'e' seen.
+  static const int NUM_DOT = 12; // After '.'.
+  static const int NUM_DOT_DIGIT = 16; // After a decimal digit (after '.').
+  static const int NUM_E = 20; // After 'e' or 'E'.
+  static const int NUM_E_SIGN = 24; // After '-' or '+' after 'e' or 'E'.
+  static const int NUM_E_DIGIT = 28; // After exponent digit.
+  static const int NUM_SUCCESS = 32; // Never stored as partial state.
 
   // Partial states for strings.
-  static const int STR_PLAIN         =  0;   // Inside string, but not escape.
-  static const int STR_ESCAPE        =  4;   // After '\'.
-  static const int STR_U             = 16;   // After '\u' and 0-3 hex digits.
-  static const int STR_U_COUNT_SHIFT =  2;   // Hex digit count in bits 2-3.
-  static const int STR_U_VALUE_SHIFT =  5;   // Hex digit value in bits 5+.
+  static const int STR_PLAIN = 0; // Inside string, but not escape.
+  static const int STR_ESCAPE = 4; // After '\'.
+  static const int STR_U = 16; // After '\u' and 0-3 hex digits.
+  static const int STR_U_COUNT_SHIFT = 2; // Hex digit count in bits 2-3.
+  static const int STR_U_VALUE_SHIFT = 5; // Hex digit value in bits 5+.
 
   // Partial states for keywords.
-  static const int KWD_TYPE_MASK     = 12;
-  static const int KWD_TYPE_SHIFT    =  2;
-  static const int KWD_NULL          =  0;  // Prefix of "null" seen.
-  static const int KWD_TRUE          =  4;  // Prefix of "true" seen.
-  static const int KWD_FALSE         =  8;  // Prefix of "false" seen.
-  static const int KWD_COUNT_SHIFT   =  4;  // Prefix length in bits 4+.
+  static const int KWD_TYPE_MASK = 12;
+  static const int KWD_TYPE_SHIFT = 2;
+  static const int KWD_NULL = 0; // Prefix of "null" seen.
+  static const int KWD_TRUE = 4; // Prefix of "true" seen.
+  static const int KWD_FALSE = 8; // Prefix of "false" seen.
+  static const int KWD_COUNT_SHIFT = 4; // Prefix length in bits 4+.
 
   // Mask used to mask off two lower bits.
-  static const int TWO_BIT_MASK      = 3;
+  static const int TWO_BIT_MASK = 3;
 
   final _JsonListener listener;
 
@@ -446,7 +458,7 @@ abstract class _ChunkedJsonParser {
    * Restore a state pushed with [saveState].
    */
   int restoreState() {
-    return states.removeLast();  // Throws if empty.
+    return states.removeLast(); // Throws if empty.
   }
 
   /**
@@ -477,7 +489,7 @@ abstract class _ChunkedJsonParser {
         fail(chunkEnd, "Unterminated string");
       } else {
         assert(partialType == PARTIAL_KEYWORD);
-        fail(chunkEnd);  // Incomplete literal.
+        fail(chunkEnd); // Incomplete literal.
       }
     }
     if (state != STATE_END) {
@@ -577,7 +589,7 @@ abstract class _ChunkedJsonParser {
    * The format is expected to be correct.
    */
   int parseInt(int start, int end) {
-    const int asciiBits = 0x7f;  // Integer literals are ASCII only.
+    const int asciiBits = 0x7f; // Integer literals are ASCII only.
     return int.parse(getString(start, end, asciiBits));
   }
 
@@ -589,7 +601,7 @@ abstract class _ChunkedJsonParser {
    * built exactly during parsing.
    */
   double parseDouble(int start, int end) {
-    const int asciiBits = 0x7f;  // Double literals are ASCII only.
+    const int asciiBits = 0x7f; // Double literals are ASCII only.
     return double.parse(getString(start, end, asciiBits));
   }
 
@@ -645,7 +657,8 @@ abstract class _ChunkedJsonParser {
     _NumberBuffer buffer = this.buffer;
     this.buffer = null;
     int end = chunkEnd;
-    toBailout: {
+    toBailout:
+    {
       if (position == end) break toBailout;
       int char = getChar(position);
       int digit = char ^ CHAR_0;
@@ -993,7 +1006,7 @@ abstract class _ChunkedJsonParser {
     int bits = 0;
     while (position < end) {
       int char = getChar(position++);
-      bits |= char;  // Includes final '"', but that never matters.
+      bits |= char; // Includes final '"', but that never matters.
       // BACKSLASH is larger than QUOTE and SPACE.
       if (char > BACKSLASH) {
         continue;
@@ -1039,9 +1052,10 @@ abstract class _ChunkedJsonParser {
    * Returns [chunkEnd] so it can be used as part of a return statement.
    */
   int chunkStringEscapeU(int count, int value) {
-    partialState = PARTIAL_STRING | STR_U |
-                   (count << STR_U_COUNT_SHIFT) |
-                   (value << STR_U_VALUE_SHIFT);
+    partialState = PARTIAL_STRING |
+        STR_U |
+        (count << STR_U_COUNT_SHIFT) |
+        (value << STR_U_VALUE_SHIFT);
     return chunkEnd;
   }
 
@@ -1068,7 +1082,7 @@ abstract class _ChunkedJsonParser {
       int char = getChar(position++);
       if (char > BACKSLASH) continue;
       if (char < SPACE) {
-        return fail(position - 1);  // Control character in string.
+        return fail(position - 1); // Control character in string.
       }
       if (char == QUOTE) {
         int quotePosition = position - 1;
@@ -1090,7 +1104,7 @@ abstract class _ChunkedJsonParser {
       if (position == end) return position;
       start = position;
     }
-    return -1;  // UNREACHABLE.
+    return -1; // UNREACHABLE.
   }
 
   /**
@@ -1106,11 +1120,21 @@ abstract class _ChunkedJsonParser {
     int char = getChar(position++);
     int length = chunkEnd;
     switch (char) {
-      case CHAR_b: char = BACKSPACE; break;
-      case CHAR_f: char = FORM_FEED; break;
-      case CHAR_n: char = NEWLINE; break;
-      case CHAR_r: char = CARRIAGE_RETURN; break;
-      case CHAR_t: char = TAB; break;
+      case CHAR_b:
+        char = BACKSPACE;
+        break;
+      case CHAR_f:
+        char = FORM_FEED;
+        break;
+      case CHAR_n:
+        char = NEWLINE;
+        break;
+      case CHAR_r:
+        char = CARRIAGE_RETURN;
+        break;
+      case CHAR_t:
+        char = TAB;
+        break;
       case SLASH:
       case BACKSLASH:
       case QUOTE:
@@ -1270,7 +1294,7 @@ abstract class _ChunkedJsonParser {
       int expSign = 1;
       int exponent = 0;
       if (char == PLUS || char == MINUS) {
-        expSign = 0x2C - char;  // -1 for MINUS, +1 for PLUS
+        expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
         position++;
         if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
         char = getChar(position);
@@ -1376,8 +1400,10 @@ class _JsonStringParser extends _ChunkedJsonParser {
   }
 }
 
-@patch class JsonDecoder {
-  @patch StringConversionSink startChunkedConversion(Sink<Object> sink) {
+@patch
+class JsonDecoder {
+  @patch
+  StringConversionSink startChunkedConversion(Sink<Object> sink) {
     return new _JsonStringDecoderSink(this._reviver, sink);
   }
 }
@@ -1394,7 +1420,8 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   final Sink<Object> _sink;
 
   _JsonStringDecoderSink(reviver, this._sink)
-      : _reviver = reviver, _parser = _createParser(reviver);
+      : _reviver = reviver,
+        _parser = _createParser(reviver);
 
   static _ChunkedJsonParser _createParser(reviver) {
     _BuildJsonListener listener;
@@ -1491,8 +1518,8 @@ class _Utf8StringBuffer {
    * [missing] values are always the same, but they may differ if continuing
    * after a partial sequence.
    */
-  int addContinuation(List<int> utf8, int position, int end,
-                      int size, int missing, int value) {
+  int addContinuation(
+      List<int> utf8, int position, int end, int size, int missing, int value) {
     int codeEnd = position + missing;
     do {
       if (position == end) {
@@ -1507,8 +1534,11 @@ class _Utf8StringBuffer {
           addCharCode(0xFFFD);
           return position;
         }
-        throw new FormatException("Expected UTF-8 continuation byte, "
-                                  "found $char", utf8, position);
+        throw new FormatException(
+            "Expected UTF-8 continuation byte, "
+            "found $char",
+            utf8,
+            position);
       }
       value = 64 * value + (char & MASK_CONTINUE_VALUE);
       position++;
@@ -1520,7 +1550,9 @@ class _Utf8StringBuffer {
       } else {
         throw new FormatException(
             "Invalid encoding: U+${value.toRadixString(16).padLeft(4, '0')}"
-            " encoded in ${size + 1} bytes.", utf8, position - 1);
+            " encoded in ${size + 1} bytes.",
+            utf8,
+            position - 1);
       }
     }
     addCharCode(value);
@@ -1539,7 +1571,7 @@ class _Utf8StringBuffer {
       }
     }
     if (isLatin1 && char > 0xff) {
-      _to16Bit();  // Also grows a little if close to full.
+      _to16Bit(); // Also grows a little if close to full.
     }
     int length = this.length;
     if (char <= MAX_THREE_BYTE) {
@@ -1592,8 +1624,8 @@ class _Utf8StringBuffer {
       int missing = (partialState >> SHIFT_MISSING) & MASK_TWO_BIT;
       int value = partialState >> SHIFT_VALUE;
       partialState = NO_PARTIAL;
-      position = addContinuation(utf8, position, end,
-                                 continueByteCount, missing, value);
+      position = addContinuation(
+          utf8, position, end, continueByteCount, missing, value);
       if (position == end) return;
     }
     // Keep index and capacity in local variables while looping over
@@ -1618,28 +1650,31 @@ class _Utf8StringBuffer {
           addCharCode(0xFFFD);
           position++;
         } else {
-          throw new FormatException("Unexepected UTF-8 continuation byte",
-                                    utf8, position);
+          throw new FormatException(
+              "Unexepected UTF-8 continuation byte", utf8, position);
         }
-      } else if (char < 0xE0) {  // C0-DF
+      } else if (char < 0xE0) {
+        // C0-DF
         // Two-byte.
-        position = addContinuation(utf8, position + 1, end, 1, 1,
-                                   char & MASK_TWO_BYTE);
-      } else if (char < 0xF0) {  // E0-EF
+        position = addContinuation(
+            utf8, position + 1, end, 1, 1, char & MASK_TWO_BYTE);
+      } else if (char < 0xF0) {
+        // E0-EF
         // Three-byte.
-        position = addContinuation(utf8, position + 1, end, 2, 2,
-                                   char & MASK_THREE_BYTE);
-      } else if (char < 0xF8) {  // F0-F7
+        position = addContinuation(
+            utf8, position + 1, end, 2, 2, char & MASK_THREE_BYTE);
+      } else if (char < 0xF8) {
+        // F0-F7
         // Four-byte.
-        position = addContinuation(utf8, position + 1, end, 3, 3,
-                                   char & MASK_FOUR_BYTE);
+        position = addContinuation(
+            utf8, position + 1, end, 3, 3, char & MASK_FOUR_BYTE);
       } else {
         if (allowMalformed) {
           addCharCode(0xFFFD);
           position++;
         } else {
-          throw new FormatException("Invalid UTF-8 byte: $char",
-                                    utf8, position);
+          throw new FormatException(
+              "Invalid UTF-8 byte: $char", utf8, position);
         }
       }
       index = length;
@@ -1665,8 +1700,8 @@ class _Utf8StringBuffer {
           value >>= 6;
         }
         source[0] = value | (0x3c0 >> (continueByteCount - 1));
-        throw new FormatException("Incomplete UTF-8 sequence",
-                                  source, source.length);
+        throw new FormatException(
+            "Incomplete UTF-8 sequence", source, source.length);
       }
     }
     return new String.fromCharCodes(buffer, 0, length);
@@ -1728,8 +1763,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParser {
   }
 }
 
-double _parseDouble(String source, int start, int end)
-    native "Double_parse";
+double _parseDouble(String source, int start, int end) native "Double_parse";
 
 /**
  * Implements the chunked conversion from a UTF-8 encoding of JSON
