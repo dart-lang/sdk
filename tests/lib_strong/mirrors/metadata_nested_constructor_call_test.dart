@@ -29,33 +29,33 @@ class B {}
 @Box(const Box(const Box()))
 class C {}
 
-@Box(const Box(const MutableBox())) // /// 01: compile-time error
+@Box(const Box(const MutableBox())) // //# 01: compile-time error
 class D {}
 
-@Box(const MutableBox(const Box())) // /// 02: compile-time error
+@Box(const MutableBox(const Box())) // //# 02: compile-time error
 class E {}
 
-@Box(Box()) // /// 03: compile-time error
+@Box(Box()) // //# 03: compile-time error
 class F {}
 
-@Box(Box(const Box())) // /// 04: compile-time error
+@Box(Box(const Box())) // //# 04: compile-time error
 class G {}
 
-@Box(Box(const MutableBox())) // /// 05: compile-time error
+@Box(Box(const MutableBox())) // //# 05: compile-time error
 class H {}
 
-@Box(MutableBox(const Box())) // /// 06: compile-time error
+@Box(MutableBox(const Box())) // //# 06: compile-time error
 class I {}
 
 final closure = () => 42;
-@Box(closure()) // /// 07: compile-time error
+@Box(closure()) // //# 07: compile-time error
 class J {}
 
-@Box(closure) // /// 08: compile-time error
+@Box(closure) // //# 08: compile-time error
 class K {}
 
 function() => 42;
-@Box(function()) // /// 09: compile-time error
+@Box(function()) // //# 09: compile-time error
 class L {}
 
 // N.B. This is legal, but @function is not (tested by metadata_allowed_values).

@@ -14,7 +14,7 @@ class Tag {
   const Tag({named}) : this.name = named;
 }
 
-@Tag(named: undefined) // /// 01: compile-time error
+@Tag(named: undefined) // //# 01: compile-time error
 class A {}
 
 @Tag(named: 'valid')
@@ -25,32 +25,32 @@ class C {
   static const STATIC_FIELD = 3;
 }
 
-@Tag(named: D.instanceMethod()) // /// 02: compile-time error
+@Tag(named: D.instanceMethod()) // //# 02: compile-time error
 class D {
   instanceMethod() {}
 }
 
-@Tag(named: instanceField) // /// 03: compile-time error
+@Tag(named: instanceField) // //# 03: compile-time error
 class E {
   var instanceField;
 }
 
-@Tag(named: F.nonConstStaticField) // /// 04: compile-time error
+@Tag(named: F.nonConstStaticField) // //# 04: compile-time error
 class F {
   static var nonConstStaticField = 6;
 }
 
-@Tag(named: instanceMethod) // /// 05: compile-time error
+@Tag(named: instanceMethod) // //# 05: compile-time error
 class G {
   instanceMethod() {}
 }
 
-@Tag(named: this) // /// 06: compile-time error
+@Tag(named: this) // //# 06: compile-time error
 class H {
   instanceMethod() {}
 }
 
-@Tag(named: super) // /// 07: compile-time error
+@Tag(named: super) // //# 07: compile-time error
 class I {
   instanceMethod() {}
 }

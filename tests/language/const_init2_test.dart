@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const double c = 0.0; /// 01: ok
-const double d = 0; /// 02: static type warning, checked mode compile-time error
+const double c = 0.0; //# 01: ok
+const double d = 0; //# 02: static type warning, checked mode compile-time error
 
 main() {
-  print(c); /// 01: continued
-  print(d); /// 02: continued
+  print(c); //# 01: continued
+  print(d); //# 02: continued
 }

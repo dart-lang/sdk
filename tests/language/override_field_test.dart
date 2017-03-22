@@ -9,9 +9,9 @@ class A {
 }
 
 class B extends A {
-  static int instanceFieldInA; //  /// 01: compile-time error
-  int staticFieldInA; //           /// 02: static type warning
-  static int staticFieldInA; //    /// 03: static type warning
+  static int instanceFieldInA; //  //# 01: compile-time error
+  int staticFieldInA; //           //# 02: static type warning
+  static int staticFieldInA; //    //# 03: static type warning
 }
 
 main() {

@@ -11,7 +11,7 @@ import "package:async_helper/async_helper.dart";
 
 void entry(SendPort replyTo) {
   var message = "foo";
-  message = "bar"; // /// 01: runtime error
+  message = "bar"; // //# 01: runtime error
   replyTo.send(message);
 }
 

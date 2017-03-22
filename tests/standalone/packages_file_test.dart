@@ -28,16 +28,16 @@ main() async {
   asyncStart();
   await setUp();
 
-  await runTests(); //                         /// 01: ok
-  await runTests([spawn]); //                  /// 02: ok
-  await runTests([spawn, spawn]); //           /// 03: ok
-  await runTests([spawnUriInherit]); //        /// 04: ok
-  await runTests([spawnUriInherit, spawn]); // /// 05: ok
-  await runTests([spawn, spawnUriInherit]); // /// 06: ok
+  await runTests(); //                         //# 01: ok
+  await runTests([spawn]); //                  //# 02: ok
+  await runTests([spawn, spawn]); //           //# 03: ok
+  await runTests([spawnUriInherit]); //        //# 04: ok
+  await runTests([spawnUriInherit, spawn]); // //# 05: ok
+  await runTests([spawn, spawnUriInherit]); // //# 06: ok
 
   // Test that spawning a new VM with file paths instead of URIs as arguments
   // gives the same URIs in the internal values.
-  await runTests([asPath]); //                 /// 07: ok
+  await runTests([asPath]); //                 //# 07: ok
 
   // Test that spawnUri can reproduce the behavior of VM command line parameters
   // exactly.
@@ -51,14 +51,14 @@ main() async {
       groups[i % groupCount].add(configurations[i]);
     }
     var group = -1;
-    group = 0; //                              /// 10: ok
-    group = 1; //                              /// 11: ok
-    group = 2; //                              /// 12: ok
-    group = 3; //                              /// 13: ok
-    group = 4; //                              /// 14: ok
-    group = 5; //                              /// 15: ok
-    group = 6; //                              /// 16: ok
-    group = 7; //                              /// 17: ok
+    group = 0; //                              //# 10: ok
+    group = 1; //                              //# 11: ok
+    group = 2; //                              //# 12: ok
+    group = 3; //                              //# 13: ok
+    group = 4; //                              //# 14: ok
+    group = 5; //                              //# 15: ok
+    group = 6; //                              //# 16: ok
+    group = 7; //                              //# 17: ok
     if (group >= 0) {
       for (var other in groups[group]) {
         await runTests([spawnUriOther(other)]);

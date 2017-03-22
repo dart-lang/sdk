@@ -118,7 +118,7 @@ testModInverse() {
   test(137, smallNumber, 856087223);
   test(mediumNumber, 137, 77);
   test(137, mediumNumber, 540686667207353);
-  test(bigNumber, 137, 128); //                 /// bignum: ok
+  test(bigNumber, 137, 128); //                 //# bignum: ok
   // Bigger numbers as modulo is tested in big_integer_arith_vm_test.dart.
   // Big doubles are not co-prime, so there is nothing to test for dart2js.
 }
@@ -203,7 +203,7 @@ testGcd() {
 }
 
 main() {
-  testModPow(); // /// modPow: ok
+  testModPow(); // //# modPow: ok
   testModInverse();
   testGcd();
 }

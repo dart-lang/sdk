@@ -5,25 +5,25 @@
 import 'package:expect/expect.dart';
 
 class A<Ta
-           extends num // /// 02: continued
+           extends num // //# 02: continued
                       > implements B<Ta>, C<Ta> { }
 
 class B<Tb
-           extends num // /// 03: continued
+           extends num // //# 03: continued
                       > {
   factory B() = A<Tb>;
 }
 
 class C<Tc
-           extends num // /// 04: continued
+           extends num // //# 04: continued
                       > {
   factory C() = B<Tc>;
 }
 
 main() {
   new C<int>();
-  new C<String>(); // /// 01: static type warning
-  new C<String>(); // /// 02: static type warning, dynamic type error
-  new C<String>(); // /// 03: static type warning, dynamic type error
-  new C<String>(); // /// 04: static type warning, dynamic type error
+  new C<String>(); // //# 01: static type warning
+  new C<String>(); // //# 02: static type warning, dynamic type error
+  new C<String>(); // //# 03: static type warning, dynamic type error
+  new C<String>(); // //# 04: static type warning, dynamic type error
 }

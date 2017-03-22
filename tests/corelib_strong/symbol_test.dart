@@ -9,7 +9,7 @@ main() {
   print(x = const Symbol('fisk'));
 
   try {
-    print(const Symbol(0)); /// 01: compile-time error
+    print(const Symbol(0)); //# 01: compile-time error
   } on NoSuchMethodError {
     print('Caught NoSuchMethodError');
   } on TypeError {
@@ -17,13 +17,13 @@ main() {
   }
 
   try {
-    print(const Symbol('0')); /// 02: compile-time error
+    print(const Symbol('0')); //# 02: compile-time error
   } on ArgumentError catch (e) {
     print('Caught $e');
   }
 
   try {
-    print(const Symbol('_')); /// 03: compile-time error
+    print(const Symbol('_')); //# 03: compile-time error
   } on ArgumentError catch (e) {
     print('Caught $e');
   }

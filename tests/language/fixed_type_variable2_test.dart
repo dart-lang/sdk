@@ -32,12 +32,12 @@ class IntC extends C<int> {
 }
 
 void main() {
-  testA(); /// 01: ok
-  testNumA(); /// 02: ok
-  testB(); /// 03: ok
-  testStringB(); /// 04: ok
-  testC(); /// 05: ok
-  testIntC(); /// 06: ok
+  testA(); //# 01: ok
+  testNumA(); //# 02: ok
+  testB(); //# 03: ok
+  testStringB(); //# 04: ok
+  testC(); //# 05: ok
+  testIntC(); //# 06: ok
 }
 
 void testA() {

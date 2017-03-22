@@ -18,7 +18,7 @@ main() {
   list[0] = 1;
   Expect.equals(1, list[0]);
 
-  testGrowableList(); /// 01: ok
+  testGrowableList(); //# 01: ok
 }
 
 testGrowableList() {

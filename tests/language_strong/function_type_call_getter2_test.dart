@@ -24,26 +24,26 @@ main() {
   C c = new C();
 
   final
-  Function // /// 00: static type warning, dynamic type error
+  Function // //# 00: static type warning, dynamic type error
   a2 = a;
 
   final
-  F // /// 01: static type warning, dynamic type error
+  F // //# 01: static type warning, dynamic type error
   a3 = a;
 
   final
-  Function // /// 02: static type warning, dynamic type error
+  Function // //# 02: static type warning, dynamic type error
   b2 = b;
 
   final
-  F // /// 03: static type warning, dynamic type error
+  F // //# 03: static type warning, dynamic type error
   b3 = b;
 
   final
-  Function // /// 04: static type warning, dynamic type error
+  Function // //# 04: static type warning, dynamic type error
   c2 = c;
 
   final
-  F // /// 05: static type warning, dynamic type error
+  F // //# 05: static type warning, dynamic type error
   c3 = c;
 }

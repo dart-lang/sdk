@@ -18,5 +18,5 @@ main() {
   var barSupertype = reflect(new Bar()).type.superclass;
   var barSuperclass = barSupertype.originalDeclaration;
   Expect.equals(fooDeclaration, barSuperclass, 'declarations');
-  Expect.equals(fooType, barSupertype, 'types'); /// 01: ok
+  Expect.equals(fooType, barSupertype, 'types'); //# 01: ok
 }

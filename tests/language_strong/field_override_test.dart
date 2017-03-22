@@ -26,13 +26,13 @@ class SubSub extends Super {
   SubSub() : super();
 
   // B2 not assignable to B1
-  B2 field; // /// 01: static type warning
+  B2 field; // //# 01: static type warning
 }
 
 main() {
   SubSub val1 = new SubSub();
-  val1.field = new B2(); /// 02: static type warning, dynamic type error
-  Expect.equals(true, val1.field is B2); /// 02: continued
+  val1.field = new B2(); //# 02: static type warning, dynamic type error
+  Expect.equals(true, val1.field is B2); //# 02: continued
 
   Sub val2 = new Sub();
   val2.field = new A();

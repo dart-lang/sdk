@@ -50,5 +50,5 @@ testTypeVariableOfTypedef() {
 
 main() {
   testTypeVariableOfClass();
-  testTypeVariableOfTypedef(); // /// 01: ok
+  testTypeVariableOfTypedef(); // //# 01: ok
 }

@@ -7,5 +7,5 @@ import "package:expect/expect.dart";
 class C { void a() {} }
 
 void main() {
-  Expect.throws(() => C().a(), (e) => e is NoSuchMethodError); /// 01: static type warning
+  Expect.throws(() => C().a(), (e) => e is NoSuchMethodError); //# 01: static type warning
 }

@@ -116,5 +116,5 @@ testMatchingMessages() {
 
 main() {
   testMessageContents();
-  testMatchingMessages(); /// dart2js: ok
+  testMatchingMessages(); //# dart2js: ok
 }

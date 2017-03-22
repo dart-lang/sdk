@@ -86,14 +86,14 @@ const falseTests = const [
 ];
 
 // Not a constant if it's not written 'identical'.
-const idtest = id(i1, i2); // /// 01: compile-time error
+const idtest = id(i1, i2); // //# 01: compile-time error
 
 // Not a constant if aliased? (Current interpretation, waiting for
 // confirmation).
-class T { //                                    /// 02: compile-time error
-  static const identical = id; //               /// 02: continued
-  static const idtest2 = identical(i1, i2); //  /// 02: continued
-} //                                            /// 02: continued
+class T { //                                    //# 02: compile-time error
+  static const identical = id; //               //# 02: continued
+  static const idtest2 = identical(i1, i2); //  //# 02: continued
+} //                                            //# 02: continued
 
 main() {
   for (int i = 0; i < trueTests.length; i++) {
@@ -103,7 +103,7 @@ main() {
     falseTests[i].test(Expect.isFalse, "false[$i]");
   }
 
-  var x = idtest; // /// 01: continued
-  var x = T.idtest2; // /// 02: continued
+  var x = idtest; // //# 01: continued
+  var x = T.idtest2; // //# 02: continued
 }
 

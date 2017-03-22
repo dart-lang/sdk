@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 foo() async {
   try {
     try {
-      await for (var c in new Stream.fromIterable([])) {} // /// 01: ok
-      await 0; // /// 02: ok
+      await for (var c in new Stream.fromIterable([])) {} // //# 01: ok
+      await 0; // //# 02: ok
     } catch (error) {
     }
   } catch (error) {

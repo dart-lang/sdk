@@ -39,17 +39,17 @@ void testInterface() {
 
   A a = new B();
   if (a is B) { // Promotion B << A.
-    x = a.b; /// 01: ok
+    x = a.b; //# 01: ok
   }
   if (a is C) { // No promotion C !<< A.
-    x = a.c; /// 02: static type warning
+    x = a.c; //# 02: static type warning
   }
   B b = new B();
   if (b is A) { // No promotion B !<< A.
-    x = b.b; /// 03: ok
+    x = b.b; //# 03: ok
   }
   if (x is A) { // No promotion A !<< dynamic.
-    y = x.b; /// 04: ok
+    y = x.b; //# 04: ok
   }
 }
 
@@ -59,24 +59,24 @@ testGeneric() {
 
   D d1 = new E<B>(null);
   if (d1 is E) { // Promotion: E << D.
-    x = d1.e; /// 05: ok
+    x = d1.e; //# 05: ok
   }
   if (d1 is E<A>) { // Promotion: E<A> << D.
-    int a = d1.d; /// 06: static type warning
-    String b = d1.d; /// 07: static type warning
-    x = d1.e; /// 08: ok
+    int a = d1.d; //# 06: static type warning
+    String b = d1.d; //# 07: static type warning
+    x = d1.e; //# 08: ok
   }
 
   D<A> d2 = new E<B>(null);
   if (d2 is E) { // No promotion: E !<< D<A>
-    x = d2.e; /// 09: static type warning
-    int a = d2.e; /// 10: static type warning
-    String b = d2.e; /// 11: static type warning
+    x = d2.e; //# 09: static type warning
+    int a = d2.e; //# 10: static type warning
+    String b = d2.e; //# 11: static type warning
   }
 
   D<A> d3 = new E<B>(new B());
   if (d3 is E<B>) { // Promotion: E<B> << D<A>
-    x = d3.d.b; /// 12: ok
-    x = d3.e.b; /// 13: ok
+    x = d3.d.b; //# 12: ok
+    x = d3.e.b; //# 13: ok
   }
 }

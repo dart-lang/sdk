@@ -13,12 +13,12 @@ int get getter {
 class Class {
   method() {
     try {
-      getter++; /// 01: static type warning
+      getter++; //# 01: static type warning
     } on NoSuchMethodError catch(e) {
-      Expect.isTrue(getter_visited); /// 01: continued
+      Expect.isTrue(getter_visited); //# 01: continued
       return;
     }
-    Expect.fail('Expected NoSuchMethodError'); /// 01: continued
+    Expect.fail('Expected NoSuchMethodError'); //# 01: continued
   }
 }
 

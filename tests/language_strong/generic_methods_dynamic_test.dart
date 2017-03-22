@@ -25,20 +25,20 @@ main() {
   C c = new C();
   dynamic obj = c;
 
-  c.foo<A>(b); /// 01: compile-time error
-  obj.foo<A>(b); /// 02: runtime error
+  c.foo<A>(b); //# 01: compile-time error
+  obj.foo<A>(b); //# 02: runtime error
 
-  c.bar<A>(<B>[new B()]); /// 03: compile-time error
-  obj.bar<A>(<B>[new B()]); /// 04: runtime error
+  c.bar<A>(<B>[new B()]); //# 03: compile-time error
+  obj.bar<A>(<B>[new B()]); //# 04: runtime error
 
-  Expect.equals(c.foo<B>(b), b); /// 05: ok
-  Expect.equals(obj.foo<B>(b), b); /// 05: continued
+  Expect.equals(c.foo<B>(b), b); //# 05: ok
+  Expect.equals(obj.foo<B>(b), b); //# 05: continued
 
-  dynamic x = c.bar<B>(<B>[new B()]); /// 05: continued
-  Expect.isTrue(x is List<B>); /// 05: continued
-  Expect.equals(x.length, 1); /// 05: continued
+  dynamic x = c.bar<B>(<B>[new B()]); //# 05: continued
+  Expect.isTrue(x is List<B>); //# 05: continued
+  Expect.equals(x.length, 1); //# 05: continued
 
-  dynamic y = obj.bar<B>(<B>[new B()]); /// 05: continued
-  Expect.isTrue(y is List<B>); /// 05: continued
-  Expect.equals(y.length, 1); /// 05: continued
+  dynamic y = obj.bar<B>(<B>[new B()]); //# 05: continued
+  Expect.isTrue(y is List<B>); //# 05: continued
+  Expect.equals(y.length, 1); //# 05: continued
 }

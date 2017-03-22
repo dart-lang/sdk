@@ -21,6 +21,6 @@ class C<T> = B<T> with M;
 
 main() {
   new A(null);
-  new C<String>(''); /// 01: ok
-  checkDynamicTypeError(() => new C<String>(0)); /// 02: static type warning
+  new C<String>(''); //# 01: ok
+  checkDynamicTypeError(() => new C<String>(0)); //# 02: static type warning
 }

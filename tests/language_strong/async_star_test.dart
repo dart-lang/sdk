@@ -148,12 +148,12 @@ main() {
     });
 
     // VM issue 2238
-    test("labeled 2", () { //         /// 01: ok
-      f() async* { //                 /// 01: continued
-        label1: label2: yield 0; //   /// 01: continued
-      } //                            /// 01: continued
-      return expectList(f(), [0]); // /// 01: continued
-    }); //                            /// 01: continued
+    test("labeled 2", () { //         //# 01: ok
+      f() async* { //                 //# 01: continued
+        label1: label2: yield 0; //   //# 01: continued
+      } //                            //# 01: continued
+      return expectList(f(), [0]); // //# 01: continued
+    }); //                            //# 01: continued
 
     test("for-loop", () {
       f() async* {
@@ -710,35 +710,35 @@ main() {
       });
     });
 
-    test("canceling while paused at yield", () { //                 /// 02: ok
-      var list = []; //                                             /// 02: continued
-      var sync = new Sync(); //                                     /// 02: continued
-      f() async* { //                                               /// 02: continued
-        list.add("*1"); //                                          /// 02: continued
-        yield 1; //                                                 /// 02: continued
-        await sync.wait(); //                                       /// 02: continued
-        sync.release(); //                                          /// 02: continued
-        list.add("*2"); //                                          /// 02: continued
-        yield 2; //                                                 /// 02: continued
-        list.add("*3"); //                                          /// 02: continued
-      }; //                                                         /// 02: continued
-      var stream = f(); //                                          /// 02: continued
+    test("canceling while paused at yield", () { //                 //# 02: ok
+      var list = []; //                                             //# 02: continued
+      var sync = new Sync(); //                                     //# 02: continued
+      f() async* { //                                               //# 02: continued
+        list.add("*1"); //                                          //# 02: continued
+        yield 1; //                                                 //# 02: continued
+        await sync.wait(); //                                       //# 02: continued
+        sync.release(); //                                          //# 02: continued
+        list.add("*2"); //                                          //# 02: continued
+        yield 2; //                                                 //# 02: continued
+        list.add("*3"); //                                          //# 02: continued
+      }; //                                                         //# 02: continued
+      var stream = f(); //                                          //# 02: continued
       // TODO(jmesserly): added workaround for:
       // https://github.com/dart-lang/dev_compiler/issues/269
-      var sub = stream.listen((x) => list.add(x)); //                         /// 02: continued
-      return sync.wait().whenComplete(() { //                       /// 02: continued
-        expect(list, equals(["*1", 1])); //                         /// 02: continued
-        sub.pause(); //                                             /// 02: continued
-        return sync.wait(); //                                      /// 02: continued
-      }).whenComplete(() { //                                       /// 02: continued
-        expect(list, equals(["*1", 1, "*2"])); //                   /// 02: continued
-        sub.cancel(); //                                            /// 02: continued
-        return new Future.delayed(MS * 200, () { //                 /// 02: continued
-          // Should not have yielded 2 or added *3 while paused. // /// 02: continued
-          expect(list, equals(["*1", 1, "*2"])); //                 /// 02: continued
-        }); //                                                      /// 02: continued
-      }); //                                                        /// 02: continued
-    }); //                                                          /// 02: continued
+      var sub = stream.listen((x) => list.add(x)); //                         //# 02: continued
+      return sync.wait().whenComplete(() { //                       //# 02: continued
+        expect(list, equals(["*1", 1])); //                         //# 02: continued
+        sub.pause(); //                                             //# 02: continued
+        return sync.wait(); //                                      //# 02: continued
+      }).whenComplete(() { //                                       //# 02: continued
+        expect(list, equals(["*1", 1, "*2"])); //                   //# 02: continued
+        sub.cancel(); //                                            //# 02: continued
+        return new Future.delayed(MS * 200, () { //                 //# 02: continued
+          // Should not have yielded 2 or added *3 while paused. // //# 02: continued
+          expect(list, equals(["*1", 1, "*2"])); //                 //# 02: continued
+        }); //                                                      //# 02: continued
+      }); //                                                        //# 02: continued
+    }); //                                                          //# 02: continued
   });
 
   group("await for", () {
@@ -768,16 +768,16 @@ main() {
       });
     });
 
-    test("simple stream - take", () { //          /// 03: ok
-      f(s) async { //                             /// 03: continued
-        var r = 0; //                             /// 03: continued
-        await for(var v in s.take(5)) r += v; //  /// 03: continued
-        return r; //                              /// 03: continued
-      } //                                        /// 03: continued
-      return f(mkStream(10)).then((v) { //        /// 03: continued
-        expect(v, equals(10)); //                 /// 03: continued
-      }); //                                      /// 03: continued
-    }); //                                        /// 03: continued
+    test("simple stream - take", () { //          //# 03: ok
+      f(s) async { //                             //# 03: continued
+        var r = 0; //                             //# 03: continued
+        await for(var v in s.take(5)) r += v; //  //# 03: continued
+        return r; //                              //# 03: continued
+      } //                                        //# 03: continued
+      return f(mkStream(10)).then((v) { //        //# 03: continued
+        expect(v, equals(10)); //                 //# 03: continued
+      }); //                                      //# 03: continued
+    }); //                                        //# 03: continued
 
     test("simple stream reyield", () {
       f(s) async* {
@@ -795,13 +795,13 @@ main() {
       return expectList(f(mkStream(5)), [0, 1, 3, 6, 10]);
     });
 
-    test("simple stream - take, reyield", () { //               /// 04: ok
-      f(s) async* { //                                          /// 04: continued
-        var r = 0; //                                           /// 04: continued
-        await for(var v in s.take(5)) yield r += v; //          /// 04: continued
-      } //                                                      /// 04: continued
-      return expectList(f(mkStream(10)), [0, 1, 3, 6, 10]); //  /// 04: continued
-    }); //                                                      /// 04: continued
+    test("simple stream - take, reyield", () { //               //# 04: ok
+      f(s) async* { //                                          //# 04: continued
+        var r = 0; //                                           //# 04: continued
+        await for(var v in s.take(5)) yield r += v; //          //# 04: continued
+      } //                                                      //# 04: continued
+      return expectList(f(mkStream(10)), [0, 1, 3, 6, 10]); //  //# 04: continued
+    }); //                                                      //# 04: continued
 
     test("nested", () {
       f() async {
@@ -849,28 +849,28 @@ main() {
       });
     });
 
-    test("await pauses loop", () { //                                  /// 05: ok
-      var sc; //                                                       /// 05: continued
-      var i = 0; //                                                    /// 05: continued
-      void send() { //                                                 /// 05: continued
-        if (i == 5) { //                                               /// 05: continued
-          sc.close(); //                                               /// 05: continued
-        } else { //                                                    /// 05: continued
-          sc.add(i++); //                                              /// 05: continued
-        } //                                                           /// 05: continued
-      } //                                                             /// 05: continued
-      sc = new StreamController(onListen: send, onResume: send); //    /// 05: continued
-      f(s) async { //                                                  /// 05: continued
-        var r = 0; //                                                  /// 05: continued
-        await for (var i in s) { //                                    /// 05: continued
-          r += await new Future.delayed(MS * 10, () => i); //          /// 05: continued
-        } //                                                           /// 05: continued
-        return r; //                                                   /// 05: continued
-      } //                                                             /// 05: continued
-      return f(sc.stream).then((v) { //                                /// 05: continued
-        expect(v, equals(10)); //                                      /// 05: continued
-      }); //                                                           /// 05: continued
-    }); //                                                             /// 05: continued
+    test("await pauses loop", () { //                                  //# 05: ok
+      var sc; //                                                       //# 05: continued
+      var i = 0; //                                                    //# 05: continued
+      void send() { //                                                 //# 05: continued
+        if (i == 5) { //                                               //# 05: continued
+          sc.close(); //                                               //# 05: continued
+        } else { //                                                    //# 05: continued
+          sc.add(i++); //                                              //# 05: continued
+        } //                                                           //# 05: continued
+      } //                                                             //# 05: continued
+      sc = new StreamController(onListen: send, onResume: send); //    //# 05: continued
+      f(s) async { //                                                  //# 05: continued
+        var r = 0; //                                                  //# 05: continued
+        await for (var i in s) { //                                    //# 05: continued
+          r += await new Future.delayed(MS * 10, () => i); //          //# 05: continued
+        } //                                                           //# 05: continued
+        return r; //                                                   //# 05: continued
+      } //                                                             //# 05: continued
+      return f(sc.stream).then((v) { //                                //# 05: continued
+        expect(v, equals(10)); //                                      //# 05: continued
+      }); //                                                           //# 05: continued
+    }); //                                                             //# 05: continued
   });
 }
 

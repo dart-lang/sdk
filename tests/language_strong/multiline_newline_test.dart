@@ -32,14 +32,14 @@ main() {
   Expect.isTrue(c2);
   Expect.isTrue(c3);
 
-  const c4 = c1 ? 1 : 2; // /// 01: ok
-  Expect.equals(1, c4); //  /// 01: continued
+  const c4 = c1 ? 1 : 2; // //# 01: ok
+  Expect.equals(1, c4); //  //# 01: continued
 
-  const c5 = c2 ? 2 : 3; // /// 02: ok
-  Expect.equals(2, c5); //  /// 02: continued
+  const c5 = c2 ? 2 : 3; // //# 02: ok
+  Expect.equals(2, c5); //  //# 02: continued
 
-  const c6 = c3 ? 3 : 4; // /// 03: ok
-  Expect.equals(3, c6); //  /// 03: continued
+  const c6 = c3 ? 3 : 4; // //# 03: ok
+  Expect.equals(3, c6); //  //# 03: continued
 
   const c7 =
       cr.constantMultilineString != crlf.constantMultilineString ? true : null;
@@ -51,7 +51,7 @@ main() {
   Expect.isNull(c8);
   Expect.isNull(c9);
 
-  const c10 = c7 ? 1 : 2; // /// 04: compile-time error
-  const c11 = c8 ? 2 : 3; // /// 05: compile-time error
-  const c12 = c9 ? 3 : 4; // /// 06: compile-time error
+  const c10 = c7 ? 1 : 2; // //# 04: compile-time error
+  const c11 = c8 ? 2 : 3; // //# 05: compile-time error
+  const c12 = c9 ? 3 : 4; // //# 06: compile-time error
 }

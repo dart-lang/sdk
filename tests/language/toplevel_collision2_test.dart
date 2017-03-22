@@ -9,10 +9,10 @@ get x => 200;
 set x(var i) { print(i); }
 
 // Error: there is already a getter for x
-int x; //                         /// 00: compile-time error
+int x; //                         //# 00: compile-time error
 
 // Error: there is already a getter named x.
-int x(a, b) { print(a + b); } //  /// 01: compile-time error
+int x(a, b) { print(a + b); } //  //# 01: compile-time error
 
 
 

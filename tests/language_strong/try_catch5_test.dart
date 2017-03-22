@@ -13,12 +13,12 @@ foo1() {
   var b = false;
   var entered = false;
   while (true) {
-    if (entered) return b; /// static warning
+    if (entered) return b; //# static warning
     b = 8 == a; // This expression should not be GVN'ed.
     try {
       try {
         a = 8;
-        return; /// static warning
+        return; //# static warning
       } finally {
         b = 8 == a;
         entered = true;

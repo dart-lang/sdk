@@ -16,7 +16,7 @@ foo() {
 main() {
   final x = null;
   try {
-    x = //   /// 01: static type warning
+    x = //   //# 01: static type warning
         foo();
   } on NoSuchMethodError {
   }

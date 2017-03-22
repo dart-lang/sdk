@@ -8,11 +8,11 @@ import "package:expect/expect.dart";
 
 int bar = 499;
 
-int // /// 01: static type warning
+int // //# 01: static type warning
 get foo => bar;
 
 void set foo(
-             String //  /// 01: continued
+             String //  //# 01: continued
              str) { bar = str.length; }
 
 main() {

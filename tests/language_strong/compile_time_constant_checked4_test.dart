@@ -5,13 +5,13 @@
 class A {
   final _x;
   const A.a1(
-    String /// 01: checked mode compile-time error, static type warning
+    String //# 01: checked mode compile-time error, static type warning
     x) : this.a2(x);
   const A.a2(
-    String /// 02: checked mode compile-time error
+    String //# 02: checked mode compile-time error
     x) : this.a3(x);
   const A.a3(
-    String /// 03: checked mode compile-time error
+    String //# 03: checked mode compile-time error
     x) : _x = x;
 }
 

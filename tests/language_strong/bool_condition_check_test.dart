@@ -20,5 +20,5 @@ class Class {
 }
 
 main() {
-  Expect.equals('', new Class(a: null, b: null).field); /// 01: dynamic type error
+  Expect.equals('', new Class(a: null, b: null).field); //# 01: dynamic type error
 }

@@ -4,9 +4,9 @@
 
 class C<T> {
   const
-    factory /// 01: compile-time error
+    factory //# 01: compile-time error
     C()
-    = C<C<T>> /// 01: continued
+    = C<C<T>> //# 01: continued
     ;
 }
 

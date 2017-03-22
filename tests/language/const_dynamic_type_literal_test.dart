@@ -11,7 +11,7 @@ const d = dynamic;
 const i = int;
 
 void main() {
-  Expect.isTrue(identical(d, dynamic)); /// 01: ok
-  Expect.equals(1, const { d: 1, d: 2 }.length); /// 02: static type warning
-  Expect.equals(2, const { d: 1, i: 2 }.length); /// 03: ok
+  Expect.isTrue(identical(d, dynamic)); //# 01: ok
+  Expect.equals(1, const { d: 1, d: 2 }.length); //# 02: static type warning
+  Expect.equals(2, const { d: 1, i: 2 }.length); //# 03: ok
 }

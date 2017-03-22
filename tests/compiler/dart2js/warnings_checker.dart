@@ -17,6 +17,8 @@ import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'dart:convert';
 
+final _multiTestRegExpSeperator = new RegExp(r"//[#/]");
+
 void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
   bool isWindows = Platform.isWindows;
   Uri script = currentDirectory.resolveUri(Platform.script);
@@ -30,7 +32,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
         Map<int, String> expectedWarnings = {};
         int lineNo = 0;
         for (String line in source.split('\n')) {
-          if (line.contains('///') &&
+          if (line.contains(_multiTestRegExpSeperator) &&
               (line.contains('static type warning') ||
                   line.contains('static warning'))) {
             expectedWarnings[lineNo] = line;

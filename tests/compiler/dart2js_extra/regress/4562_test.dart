@@ -4,7 +4,7 @@
 
 void main() {
   var foo = new Foo();
-  var bar = new Bar(); /// 01: compile-time error
+  var bar = new Bar(); //# 01: compile-time error
 }
 
 class Foo {
@@ -12,5 +12,5 @@ class Foo {
 }
 
 class Bar extends Foo {
-  Bar(); /// 01: continued
+  Bar(); //# 01: continued
 }
