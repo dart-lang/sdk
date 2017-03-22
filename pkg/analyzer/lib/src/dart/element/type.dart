@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -2039,9 +2038,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     List<DartType> newTypeArguments = TypeImpl.substitute(
         typeArguments, argumentTypes, parameterTypes, prune);
-    if (listsEqual(newTypeArguments, typeArguments)) {
-      return this;
-    }
 
     if (isDartAsyncFuture && newTypeArguments.isNotEmpty) {
       //
