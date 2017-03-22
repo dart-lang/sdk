@@ -67,7 +67,9 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   if (r == FALSE) {
     return NULL;
   }
-  *start = pc - displacement;
+  if (start != NULL) {
+    *start = pc - displacement;
+  }
   return strdup(pSymbol->Name);
 }
 
