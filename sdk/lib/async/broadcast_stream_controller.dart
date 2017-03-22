@@ -514,31 +514,3 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
     super._callOnCancel();
   }
 }
-
-// A subscription that never receives any events.
-// It can simulate pauses, but otherwise does nothing.
-class _DoneSubscription<T> implements StreamSubscription<T> {
-  int _pauseCount = 0;
-  void onData(void handleData(T data)) {}
-  void onError(Function handleError) {}
-  void onDone(void handleDone()) {}
-  void pause([Future resumeSignal]) {
-    if (resumeSignal != null) resumeSignal.then(_resume);
-    _pauseCount++;
-  }
-
-  void resume() {
-    _resume(null);
-  }
-
-  void _resume(_) {
-    if (_pauseCount > 0) _pauseCount--;
-  }
-
-  Future cancel() {
-    return new _Future.immediate(null);
-  }
-
-  bool get isPaused => _pauseCount > 0;
-  Future<E> asFuture<E>([E value]) => new _Future<E>();
-}

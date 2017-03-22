@@ -283,7 +283,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Reports whether this stream is a broadcast stream.
+   * Whether this stream is a broadcast stream.
    */
   bool get isBroadcast => false;
 
@@ -396,7 +396,7 @@ abstract class Stream<T> {
    *
    * The returned stream is a broadcast stream if this stream is.
    */
-  Stream<E> asyncMap<E>(convert(T event)) {
+  Stream<E> asyncMap<E>(FutureOr<E> convert(T event)) {
     StreamController<E> controller;
     StreamSubscription<T> subscription;
 
@@ -407,14 +407,14 @@ abstract class Stream<T> {
       final _EventSink<E> eventSink = controller as Object/*=_EventSink<E>*/;
       final addError = eventSink._addError;
       subscription = this.listen((T event) {
-        dynamic newValue;
+        FutureOr<E> newValue;
         try {
           newValue = convert(event);
         } catch (e, s) {
           controller.addError(e, s);
           return;
         }
-        if (newValue is Future) {
+        if (newValue is Future<E>) {
           subscription.pause();
           newValue
               .then(add, onError: addError)
@@ -710,7 +710,8 @@ abstract class Stream<T> {
     StreamSubscription subscription;
     subscription = this.listen(
         (T element) {
-          _runUserCode(() => action(element), (_) {},
+          // TODO(floitsch): the type should be 'void' and inferred.
+          _runUserCode<dynamic>(() => action(element), (_) {},
               _cancelAndErrorClosure(subscription, future));
         },
         onError: future._completeError,
@@ -1169,7 +1170,7 @@ abstract class Stream<T> {
   /**
    * Finds the single element in this stream matching [test].
    *
-   * Like [lastMatch], except that it is an error if more than one
+   * Like [lastWhere], except that it is an error if more than one
    * matching element occurs in the stream.
    */
   Future<T> singleWhere(bool test(T element)) {
@@ -1469,7 +1470,7 @@ abstract class EventSink<T> implements Sink<T> {
   void add(T event);
 
   /** Send an async error to a stream. */
-  void addError(errorEvent, [StackTrace stackTrace]);
+  void addError(Object errorEvent, [StackTrace stackTrace]);
 
   /** Close the sink. No further events can be added after closing. */
   void close();

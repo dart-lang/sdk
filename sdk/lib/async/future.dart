@@ -261,7 +261,7 @@ abstract class Future<T> {
    * See also [Completer] for a way to create and complete a future at a
    * later time that isn't necessarily after a known fixed duration.
    */
-  factory Future.delayed(Duration duration, [computation()]) {
+  factory Future.delayed(Duration duration, [FutureOr<T> computation()]) {
     _Future<T> result = new _Future<T>();
     new Timer(duration, () {
       try {
@@ -422,7 +422,7 @@ abstract class Future<T> {
    * If [f] returns a non-[Future], iteration continues immediately. Otherwise
    * it waits for the returned [Future] to complete.
    */
-  static Future forEach<T>(Iterable<T> input, f(T element)) {
+  static Future forEach<T>(Iterable<T> input, dynamic f(T element)) {
     var iterator = input.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
@@ -445,7 +445,7 @@ abstract class Future<T> {
    * The [f] function must return either a `bool` value or a [Future] completing
    * with a `bool` value.
    */
-  static Future doWhile(f()) {
+  static Future doWhile(FutureOr<bool> f()) {
     _Future doneSignal = new _Future();
     var nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
@@ -599,7 +599,7 @@ abstract class Future<T> {
    *       });
    *     }
    */
-  Future<T> whenComplete(action());
+  Future<T> whenComplete(dynamic action());
 
   /**
    * Creates a [Stream] containing the result of this future.
@@ -626,7 +626,7 @@ abstract class Future<T> {
    * If `onTimeout` is omitted, a timeout will cause the returned future to
    * complete with a [TimeoutException].
    */
-  Future<T> timeout(Duration timeLimit, {onTimeout()});
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()});
 }
 
 /**

@@ -5,8 +5,8 @@
 part of dart.async;
 
 /** Runs user code and takes actions depending on success or failure. */
-_runUserCode(
-    userCode(), onSuccess(value), onError(error, StackTrace stackTrace)) {
+_runUserCode<T>(
+    T userCode(), onSuccess(T value), onError(error, StackTrace stackTrace)) {
   try {
     onSuccess(userCode());
   } catch (e, s) {

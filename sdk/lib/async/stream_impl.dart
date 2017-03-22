@@ -343,13 +343,14 @@ class _BufferingStreamSubscription<T>
       // future to finish we must not report the error.
       if (_isCanceled && !_waitsForCancel) return;
       _state |= _STATE_IN_CALLBACK;
+      // TODO(floitsch): this dynamic should be 'void'.
       if (_onError is ZoneBinaryCallback<dynamic, Object, StackTrace>) {
         ZoneBinaryCallback<dynamic, Object, StackTrace> errorCallback = _onError
             as Object/*=ZoneBinaryCallback<dynamic, Object, StackTrace>*/;
         _zone.runBinaryGuarded(errorCallback, error, stackTrace);
       } else {
-        _zone.runUnaryGuarded<dynamic, dynamic>(
-            _onError as Object/*=ZoneUnaryCallback<dynamic, dynamic>*/, error);
+        _zone.runUnaryGuarded<dynamic, Object>(
+            _onError as Object/*=ZoneUnaryCallback<dynamic, Object>*/, error);
       }
       _state &= ~_STATE_IN_CALLBACK;
     }
@@ -401,7 +402,7 @@ class _BufferingStreamSubscription<T>
    * during the call, and it checks for state changes after the call
    * that should cause further callbacks.
    */
-  void _guardCallback(callback) {
+  void _guardCallback(void callback()) {
     assert(!_inCallback);
     bool wasInputPaused = _isInputPaused;
     _state |= _STATE_IN_CALLBACK;
@@ -551,10 +552,10 @@ typedef void _DataHandler<T>(T value);
 typedef void _DoneHandler();
 
 /** Default data handler, does nothing. */
-void _nullDataHandler(var value) {}
+void _nullDataHandler(Object value) {}
 
 /** Default error handler, reports the error to the current zone's handler. */
-void _nullErrorHandler(error, [StackTrace stackTrace]) {
+void _nullErrorHandler(Object error, [StackTrace stackTrace]) {
   Zone.current.handleUncaughtError(error, stackTrace);
 }
 

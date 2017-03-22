@@ -215,15 +215,27 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
       this._handleData, this._handleError, this._handleDone, this._sink);
 
   void add(S data) {
-    _handleData(data, _sink);
+    if (_handleData != null) {
+      _handleData(data, _sink);
+    } else {
+      _sink.add(data as T);
+    }
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
-    _handleError(error, stackTrace, _sink);
+    if (_handleError != null) {
+      _handleError(error, stackTrace, _sink);
+    } else {
+      _sink.addError(error, stackTrace);
+    }
   }
 
   void close() {
-    _handleDone(_sink);
+    if (_handleDone != null) {
+      _handleDone(_sink);
+    } else {
+      _sink.close();
+    }
   }
 }
 
@@ -238,31 +250,12 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
       void handleError(Object error, StackTrace stackTrace, EventSink<T> sink),
       void handleDone(EventSink<T> sink)})
       : super((EventSink<T> outputSink) {
-          if (handleData == null) handleData = _defaultHandleData;
-          if (handleError == null) handleError = _defaultHandleError;
-          if (handleDone == null) handleDone = _defaultHandleDone;
           return new _HandlerEventSink<S, T>(
               handleData, handleError, handleDone, outputSink);
         });
 
   Stream<T> bind(Stream<S> stream) {
     return super.bind(stream);
-  }
-
-  /** Default data handler forwards all data. */
-  static void _defaultHandleData(var data, EventSink sink) {
-    sink.add(data);
-  }
-
-  /** Default error handler forwards all errors. */
-  static void _defaultHandleError(
-      error, StackTrace stackTrace, EventSink sink) {
-    sink.addError(error, stackTrace);
-  }
-
-  /** Default done handler forwards done. */
-  static void _defaultHandleDone(EventSink sink) {
-    sink.close();
   }
 }
 

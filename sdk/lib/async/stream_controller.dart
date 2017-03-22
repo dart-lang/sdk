@@ -792,12 +792,10 @@ class _SyncStreamController<T> = _StreamController<T>
 
 typedef _NotificationHandler();
 
-Future _runGuarded(_NotificationHandler notificationHandler) {
-  if (notificationHandler == null) return null;
+void _runGuarded(_NotificationHandler notificationHandler) {
+  if (notificationHandler == null) return;
   try {
-    var result = notificationHandler();
-    if (result is Future) return result;
-    return null;
+    notificationHandler();
   } catch (e, s) {
     Zone.current.handleUncaughtError(e, s);
   }

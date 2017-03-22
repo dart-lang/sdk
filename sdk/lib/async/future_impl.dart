@@ -7,9 +7,9 @@ part of dart.async;
 /** The onValue and onError handlers return either a value or a future */
 typedef FutureOr<T> _FutureOnValue<S, T>(S value);
 /** Test used by [Future.catchError] to handle skip some errors. */
-typedef bool _FutureErrorTest(var error);
+typedef bool _FutureErrorTest(Object error);
 /** Used by [WhenFuture]. */
-typedef _FutureAction();
+typedef dynamic _FutureAction();
 
 abstract class _Completer<T> implements Completer<T> {
   final _Future<T> future = new _Future<T>();
@@ -63,11 +63,9 @@ class _FutureListener<S, T> {
   static const int MASK_WHENCOMPLETE = 8;
   static const int STATE_CHAIN = 0;
   static const int STATE_THEN = MASK_VALUE;
-  // TODO(johnmccutchan): Remove the hard coded value. See #26030.
-  static const int STATE_THEN_ONERROR = 3; // MASK_VALUE | MASK_ERROR.
+  static const int STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
   static const int STATE_CATCHERROR = MASK_ERROR;
-  // TODO(johnmccutchan): Remove the hard coded value. See #26030.
-  static const int STATE_CATCHERROR_TEST = 6; // MASK_ERROR | MASK_TEST_ERROR.
+  static const int STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
   static const int STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
   // Listeners on the same future are linked through this link.
   _FutureListener _nextListener = null;
@@ -133,8 +131,7 @@ class _FutureListener<S, T> {
 
   bool matchesErrorTest(AsyncError asyncError) {
     if (!hasErrorTest) return true;
-    _FutureErrorTest test = _errorTest;
-    return _zone.runUnary<bool, dynamic>(_errorTest, asyncError.error);
+    return _zone.runUnary<bool, Object>(_errorTest, asyncError.error);
   }
 
   FutureOr<T> handleError(AsyncError asyncError) {
@@ -145,7 +142,7 @@ class _FutureListener<S, T> {
       return _zone.runBinary(
           typedErrorCallback, asyncError.error, asyncError.stackTrace);
     } else {
-      return _zone.runUnary<FutureOr<T>, dynamic>(
+      return _zone.runUnary<FutureOr<T>, Object>(
           errorCallback, asyncError.error);
     }
   }
@@ -234,7 +231,6 @@ class _Future<T> implements Future<T> {
 
   Future<E> then<E>(FutureOr<E> f(T value), {Function onError}) {
     Zone currentZone = Zone.current;
-    ZoneUnaryCallback registered;
     if (!identical(currentZone, _ROOT_ZONE)) {
       f = currentZone.registerUnaryCallback<FutureOr<E>, T>(f);
       if (onError != null) {
@@ -245,7 +241,8 @@ class _Future<T> implements Future<T> {
   }
 
   // This method is used by async/await.
-  Future<E> _thenNoZoneRegistration<E>(f(T value), Function onError) {
+  Future<E> _thenNoZoneRegistration<E>(
+      FutureOr<E> f(T value), Function onError) {
     _Future<E> result = new _Future<E>();
     _addListener(new _FutureListener<T, E>.then(result, f, onError));
     return result;
@@ -261,7 +258,7 @@ class _Future<T> implements Future<T> {
     return result;
   }
 
-  Future<T> whenComplete(action()) {
+  Future<T> whenComplete(dynamic action()) {
     _Future<T> result = new _Future<T>();
     if (!identical(result._zone, _ROOT_ZONE)) {
       action = result._zone.registerCallback<dynamic>(action);
@@ -453,10 +450,10 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  void _complete(value) {
+  void _complete(FutureOr<T> value) {
     assert(!_isComplete);
-    if (value is Future) {
-      if (value is _Future) {
+    if (value is Future<T>) {
+      if (value is _Future<T>) {
         _chainCoreFuture(value, this);
       } else {
         _chainForeignFuture(value, this);
@@ -477,7 +474,7 @@ class _Future<T> implements Future<T> {
     _propagateToListeners(this, listeners);
   }
 
-  void _completeError(error, [StackTrace stackTrace]) {
+  void _completeError(Object error, [StackTrace stackTrace]) {
     assert(!_isComplete);
 
     _FutureListener listeners = _removeListeners();
@@ -485,7 +482,7 @@ class _Future<T> implements Future<T> {
     _propagateToListeners(this, listeners);
   }
 
-  void _asyncComplete(value) {
+  void _asyncComplete(FutureOr<T> value) {
     assert(!_isComplete);
     // Two corner cases if the value is a future:
     //   1. the future is already completed and an error.
@@ -498,26 +495,23 @@ class _Future<T> implements Future<T> {
     // unhandled error, even though we know we are already going to listen to
     // it.
 
-    if (value is Future) {
-      // Assign to typed variables so we get earlier checks in checked mode.
-      Future<T> typedFuture = value as Object/*=Future<T>*/;
-      if (typedFuture is _Future) {
-        _Future<T> coreFuture = typedFuture;
-        if (coreFuture._hasError) {
+    if (value is Future<T>) {
+      if (value is _Future<T>) {
+        if (value._hasError) {
           // Case 1 from above. Delay completion to enable the user to register
           // callbacks.
           _setPendingComplete();
           _zone.scheduleMicrotask(() {
-            _chainCoreFuture(coreFuture, this);
+            _chainCoreFuture(value, this);
           });
         } else {
-          _chainCoreFuture(coreFuture, this);
+          _chainCoreFuture(value, this);
         }
       } else {
         // Case 2 from above. Chain the future immediately.
         // Note that we are still completing asynchronously (through
         // _chainForeignFuture).
-        _chainForeignFuture(typedFuture, this);
+        _chainForeignFuture(value, this);
       }
       return;
     }
@@ -709,7 +703,7 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future<T> timeout(Duration timeLimit, {onTimeout()}) {
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()}) {
     if (_isComplete) return new _Future.immediate(this);
     _Future<T> result = new _Future<T>();
     Timer timer;
