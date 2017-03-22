@@ -18,7 +18,7 @@ import 'builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
-import 'scope.dart' show AmbiguousBuilder, Scope;
+import 'scope.dart' show AccessErrorBuilder, AmbiguousBuilder, Scope;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -97,7 +97,22 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         }
         current = current.next;
       }
+      if (getterBuilder?.isInstanceMember ?? false) {
+        getterBuilder = null;
+      }
+      if (setterBuilder?.isInstanceMember ?? false) {
+        setterBuilder = null;
+      }
       builder = isSetter ? setterBuilder : getterBuilder;
+      if (builder == null) {
+        if (isSetter && getterBuilder != null) {
+          return new AccessErrorBuilder(
+              name, getterBuilder, charOffset, fileUri);
+        } else if (!isSetter && setterBuilder != null) {
+          return new AccessErrorBuilder(
+              name, setterBuilder, charOffset, fileUri);
+        }
+      }
     }
     if (builder == null) {
       return null;

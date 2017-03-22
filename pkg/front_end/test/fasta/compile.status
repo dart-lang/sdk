@@ -59,7 +59,6 @@ rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: Fail
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
-rasta/static: VerificationError
 rasta/super: Fail
 rasta/super_initializer: Fail
 rasta/super_mixin: Fail

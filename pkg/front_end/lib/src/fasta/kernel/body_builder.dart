@@ -197,6 +197,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return node;
     } else if (node is PrefixBuilder) {
       return buildCompileTimeError("A library can't be used as an expression.");
+    } else if (node is ProblemBuilder) {
+      return buildProblemExpression(node, -1);
     } else {
       return internalError("Unhandled: ${node.runtimeType}");
     }
@@ -718,13 +720,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     isFirstIdentifier = true;
   }
 
-  Builder computeSetter(
-      Builder builder, Scope scope, String name, int charOffset) {
-    if (builder.isSetter) return builder;
-    if (builder.isGetter) return scope.lookupSetter(name, charOffset, uri);
-    return builder.isField ? (builder.isFinal ? null : builder) : null;
-  }
-
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
@@ -769,17 +764,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new StaticAccessor(
           this, charOffset, builder.getter.target, builder.setter.target);
     } else {
-      if (builder is AccessErrorBuilder) {
-        AccessErrorBuilder error = builder;
-        builder = error.builder;
+      if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
+      Builder setter;
+      if (builder.isSetter) {
+        setter = builder;
+      } else if (builder.isGetter) {
+        setter = scope.lookupSetter(name, charOffset, uri);
+      } else if (builder.isField && !builder.isFinal) {
+        setter = builder;
       }
-      if (builder.target == null) {
-        return internalError("Unhandled: ${builder}");
-      }
-      Member getter = builder.target.hasGetter ? builder.target : null;
-      Member setter = builder.target.hasSetter ? builder.target : null;
-      setter ??= computeSetter(builder, scope, name, charOffset)?.target;
-      return new StaticAccessor(this, charOffset, getter, setter);
+      return new StaticAccessor.fromBuilder(this, builder, charOffset, setter);
     }
   }
 

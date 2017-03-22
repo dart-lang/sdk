@@ -12,7 +12,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../builder/scope.dart' show ProblemBuilder;
+import '../builder/scope.dart' show AccessErrorBuilder, ProblemBuilder;
 
 import '../errors.dart' show internalError, printUnexpected;
 
@@ -434,36 +434,21 @@ class IncompletePropertyAccessor extends IncompleteSend {
     }
     if (receiver is KernelClassBuilder) {
       Builder builder = receiver.findStaticBuilder(name.name, charOffset, uri);
-      Member getter = builder?.target;
-      Member setter;
       if (builder == null) {
-        builder = receiver.findStaticBuilder(name.name, charOffset, uri,
+        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+        return buildThrowNoSuchMethodError(null);
+      }
+      Builder setter;
+      if (builder.isSetter) {
+        setter = builder;
+      } else if (builder.isGetter) {
+        setter = receiver.findStaticBuilder(name.name, charOffset, uri,
             isSetter: true);
-        if (builder == null) {
-          return buildThrowNoSuchMethodError(null);
-        }
-        setter = builder.target;
+      } else if (builder.isField && !builder.isFinal) {
+        setter = builder;
       }
-      if (builder.hasProblem) {
-        return helper.buildProblemExpression(builder, charOffset);
-      }
-      if (getter is Field) {
-        if (!getter.isFinal && !getter.isConst) {
-          setter = getter;
-        }
-      } else if (getter is Procedure) {
-        if (getter.isGetter) {
-          builder = receiver.findStaticBuilder(name.name, charOffset, uri,
-              isSetter: true);
-          if (builder != null && !builder.hasProblem) {
-            setter = builder.target;
-          }
-        }
-      }
-      if (getter == null && setter == null) {
-        return internalError("No accessor for '$name'.");
-      }
-      return new StaticAccessor(helper, charOffset, getter, setter);
+      return new StaticAccessor.fromBuilder(
+          helper, builder, charOffset, setter);
     }
     return PropertyAccessor.make(helper, charOffset, helper.toValue(receiver),
         name, null, null, isNullAware);
@@ -575,6 +560,27 @@ class StaticAccessor extends kernel.StaticAccessor with BuilderAccessor {
       this.helper, int charOffset, Member readTarget, Member writeTarget)
       : super(readTarget, writeTarget, charOffset) {
     assert(readTarget != null || writeTarget != null);
+  }
+
+  factory StaticAccessor.fromBuilder(BuilderHelper helper, Builder builder,
+      int charOffset, Builder builderSetter) {
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
+      builder = error.builder;
+      // We should only see an access error here if we've looked up a setter
+      // when not explicitly looking for a setter.
+      assert(builder.isSetter);
+    } else if (builder.target == null) {
+      return internalError("Unhandled: ${builder}");
+    }
+    Member getter = builder.target.hasGetter ? builder.target : null;
+    Member setter = builder.target.hasSetter ? builder.target : null;
+    if (setter == null) {
+      if (builderSetter?.target?.hasSetter ?? false) {
+        setter = builderSetter.target;
+      }
+    }
+    return new StaticAccessor(helper, charOffset, getter, setter);
   }
 
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
@@ -725,7 +731,17 @@ class VariableAccessor extends kernel.VariableAccessor with BuilderAccessor {
 Expression throwNoSuchMethodError(String name, Arguments arguments, Uri uri,
     int charOffset, CoreTypes coreTypes,
     {bool isSuper: false, isGetter: false, isSetter: false}) {
-  printUnexpected(uri, charOffset, "Method not found: '$name'.");
+  String errorName = name;
+  if (isSuper) {
+    errorName = "super.$name";
+  }
+  if (isGetter) {
+    printUnexpected(uri, charOffset, "Getter not found: '$errorName'.");
+  } else if (isSetter) {
+    printUnexpected(uri, charOffset, "Setter not found: '$errorName'.");
+  } else {
+    printUnexpected(uri, charOffset, "Method not found: '$name'.");
+  }
   Constructor constructor =
       coreTypes.getClass("dart:core", "NoSuchMethodError").constructors.first;
   return new Throw(new ConstructorInvocation(

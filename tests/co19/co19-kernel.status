@@ -94,10 +94,7 @@ Language/Classes/Setters/parameter_t05: MissingCompileTimeError
 Language/Classes/Setters/parameter_t06: MissingCompileTimeError
 Language/Classes/Setters/parameter_t07: MissingCompileTimeError
 Language/Classes/Setters/parameter_t08: MissingCompileTimeError
-Language/Classes/Setters/static_setter_t05: RuntimeError
-Language/Classes/Setters/syntax_t01: RuntimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
-Language/Classes/Setters/syntax_t04: RuntimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t03: RuntimeError
@@ -142,9 +139,7 @@ Language/Expressions/Assignment/no_such_method_t06: CompileTimeError
 Language/Expressions/Assignment/no_such_method_t07: CompileTimeError
 Language/Expressions/Assignment/no_such_method_t08: CompileTimeError
 Language/Expressions/Assignment/no_such_method_t09: CompileTimeError
-Language/Expressions/Assignment/static_type_t05: RuntimeError
 Language/Expressions/Assignment/static_type_t06: CompileTimeError
-Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
@@ -212,9 +207,7 @@ Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t01: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t12: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/evaluation_static_t02: Crash
 Language/Expressions/Identifier_Reference/syntax_built_in_t01: CompileTimeError
-Language/Expressions/Identifier_Reference/undeclared_identifier_t04: RuntimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t01: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t03: MissingCompileTimeError
@@ -493,13 +486,10 @@ Language/Types/Type_Declarations/Typedef/self_reference_t17: MissingCompileTimeE
 Language/Types/Type_Void/syntax_t02: MissingCompileTimeError
 Language/Variables/constant_initialization_t01: MissingCompileTimeError
 Language/Variables/constant_initialization_t02: MissingCompileTimeError
-Language/Variables/constant_variable_t03: RuntimeError
-Language/Variables/constant_variable_t04: RuntimeError
 Language/Variables/constant_variable_t05: MissingCompileTimeError
 Language/Variables/constant_variable_t06: MissingCompileTimeError
 Language/Variables/constant_variable_t07: MissingCompileTimeError
 Language/Variables/constant_variable_t08: MissingCompileTimeError
-Language/Variables/constant_variable_t10: RuntimeError
 Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
