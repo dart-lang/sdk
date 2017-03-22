@@ -21,7 +21,7 @@ class DartTypeUtilities {
   static Element getCanonicalElement(Element element) =>
       element is PropertyAccessorElement ? element.variable : element;
 
-  static Element getCanonicalElementFromIdentifier(Expression node) {
+  static Element getCanonicalElementFromIdentifier(AstNode node) {
     if (node is ParenthesizedExpression) {
       return getCanonicalElementFromIdentifier(node.expression);
     }
@@ -32,6 +32,17 @@ class DartTypeUtilities {
       element = node.propertyName.bestElement;
     }
     return getCanonicalElement(element);
+  }
+
+  static Statement getLastStatementInBlock(Block node) {
+    if (node.statements.isEmpty) {
+      return null;
+    }
+    final lastStatement = node.statements.last;
+    if (lastStatement is Block) {
+      return getLastStatementInBlock(lastStatement);
+    }
+    return lastStatement;
   }
 
   static bool implementsAnyInterface(
