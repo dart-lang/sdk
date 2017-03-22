@@ -106,7 +106,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     constructorName ??= "";
     Builder cls = (isPrivate ? members : exports)[className];
     if (cls is ClassBuilder) {
-      // TODO(ahe): This code is similar to code in `handleNewExpression` in
+      // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
       Builder constructor = cls.findConstructorOrFactory(constructorName);
       if (constructor == null) {

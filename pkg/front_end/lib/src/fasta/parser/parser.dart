@@ -3021,9 +3021,10 @@ class Parser {
   Token parseNewExpression(Token token) {
     Token newKeyword = token;
     token = expect('new', token);
+    listener.beginNewExpression(newKeyword);
     token = parseConstructorReference(token);
     token = parseRequiredArguments(token);
-    listener.handleNewExpression(newKeyword);
+    listener.endNewExpression(newKeyword);
     return token;
   }
 
@@ -3042,9 +3043,10 @@ class Parser {
     if (identical(value, '<')) {
       return parseLiteralListOrMapOrFunction(token, constKeyword);
     }
+    listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token);
     token = parseRequiredArguments(token);
-    listener.handleConstExpression(constKeyword);
+    listener.endConstExpression(constKeyword);
     return token;
   }
 

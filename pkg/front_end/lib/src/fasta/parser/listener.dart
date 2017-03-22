@@ -789,7 +789,9 @@ class Listener {
     logEvent("ConditionalExpression");
   }
 
-  void handleConstExpression(Token token) {
+  void beginConstExpression(Token constKeyword) {}
+
+  void endConstExpression(Token token) {
     logEvent("ConstExpression");
   }
 
@@ -886,7 +888,9 @@ class Listener {
     logEvent("NamedArgument");
   }
 
-  void handleNewExpression(Token token) {
+  void beginNewExpression(Token token) {}
+
+  void endNewExpression(Token token) {
     logEvent("NewExpression");
   }
 

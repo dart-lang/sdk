@@ -724,16 +724,16 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleNewExpression(Token token) {
+  void endNewExpression(Token token) {
     NodeList arguments = popNode();
     Node name = popNode();
     pushNode(new NewExpression(token, new Send(null, name, arguments)));
   }
 
   @override
-  void handleConstExpression(Token token) {
+  void endConstExpression(Token token) {
     // [token] carries the 'const' information.
-    handleNewExpression(token);
+    endNewExpression(token);
   }
 
   @override

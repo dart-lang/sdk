@@ -1666,7 +1666,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleNewExpression(Token token) {
+  void endNewExpression(Token token) {
     debugEvent("NewExpression");
     Token nameToken = token.next;
     Arguments arguments = pop();
@@ -1721,9 +1721,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleConstExpression(Token token) {
-    debugEvent("ConstExpression");
-    handleNewExpression(token);
+  void endConstExpression(Token token) {
+    debugEvent("endConstExpression");
+    endNewExpression(token);
   }
 
   @override

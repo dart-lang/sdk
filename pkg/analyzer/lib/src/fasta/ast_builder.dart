@@ -82,7 +82,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleConstExpression(Token token) {
+  void endConstExpression(Token token) {
     debugEvent("ConstExpression");
     _handleInstanceCreation(token);
   }
@@ -95,7 +95,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleNewExpression(Token token) {
+  void endNewExpression(Token token) {
     debugEvent("NewExpression");
     _handleInstanceCreation(token);
   }

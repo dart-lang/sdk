@@ -136,7 +136,7 @@ class ConstExpressionBuilder extends ExpressionListener {
     push(new NamedArg(name.name, value));
   }
 
-  void handleNewExpression(Token token) {
+  void endNewExpression(Token token) {
     debugEvent("NewExpression");
     if (ignore) return;
     pop(); // args
@@ -405,7 +405,8 @@ abstract class ExpressionListener extends StackListener {
     push(new Conditional(cond, trueBranch, falseBranch));
   }
 
-  void handleConstExpression(Token token) {
+  @override
+  void endConstExpression(Token token) {
     debugEvent("ConstExpression");
     if (ignore) return;
     List args = pop();
@@ -666,7 +667,7 @@ class InitializerBuilder extends ExpressionListener {
     push(NullValue.Arguments);
   }
 
-  void handleNewExpression(Token token) {
+  void endNewExpression(Token token) {
     debugEvent("NewExpression");
     if (ignore) return;
     pop(); // args
