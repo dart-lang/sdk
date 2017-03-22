@@ -1294,7 +1294,8 @@ class _ReferenceInfo {
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          if (libraryResynthesizer.summaryResynthesizer.strongMode) {
+          if (libraryResynthesizer.summaryResynthesizer.strongMode &&
+              instantiateToBoundsAllowed) {
             InterfaceType instantiatedToBounds = libraryResynthesizer
                 .summaryResynthesizer.context.typeSystem
                 .instantiateToBounds(element.type) as InterfaceType;
@@ -1319,7 +1320,8 @@ class _ReferenceInfo {
         if (numTypeArguments == numTypeParameters) {
           typeArguments =
               _buildTypeArguments(numTypeArguments, getTypeArgument);
-        } else if (libraryResynthesizer.summaryResynthesizer.strongMode) {
+        } else if (libraryResynthesizer.summaryResynthesizer.strongMode &&
+            instantiateToBoundsAllowed) {
           FunctionType instantiatedToBounds = libraryResynthesizer
               .summaryResynthesizer.context.typeSystem
               .instantiateToBounds(element.type) as FunctionType;

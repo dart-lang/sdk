@@ -58,8 +58,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @override
   bool get mayCheckTypesOfLocals => false;
 
-  bool shouldCompareElementsWithAnalysisContext = true;
-
   @override
   void addFile(String content, {String name: '/main.dart'}) {
     addLibrarySource(name, content);
@@ -159,11 +157,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  test_blockBodiedLambdas_noReturn_topLevel() =>
-      super.test_blockBodiedLambdas_noReturn_topLevel();
-
-  @override
-  @failingTest
   test_blockBodiedLambdas_syncStar_topLevel() async {
     await super.test_blockBodiedLambdas_syncStar_topLevel();
   }
@@ -173,6 +166,21 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   test_circularReference_viaClosures_initializerTypes() async {
     await super.test_circularReference_viaClosures_initializerTypes();
   }
+
+  @override
+  @failingTest
+  test_blockBodiedLambdas_noReturn_topLevel() =>
+      super.test_blockBodiedLambdas_noReturn_topLevel();
+
+  @failingTest
+  @override
+  test_listLiteralsCanInferNull_topLevel() =>
+      super.test_listLiteralsCanInferNull_topLevel();
+
+  @failingTest
+  @override
+  test_mapLiteralsCanInferNull_topLevel() =>
+      super.test_mapLiteralsCanInferNull_topLevel();
 
   test_infer_extractIndex_custom() async {
     var unit = await checkFileElement('''
@@ -533,12 +541,6 @@ var b = a.m();
     await super.test_inferredType_blockClosure_noArgs_noReturn();
   }
 
-  @override
-  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
-    shouldCompareElementsWithAnalysisContext = false;
-    await super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
-  }
-
   test_invokeMethod_notGeneric_genericClass() async {
     var unit = await checkFileElement(r'''
 class C<T> {
@@ -558,16 +560,6 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
-
-  @failingTest
-  @override
-  test_listLiteralsCanInferNull_topLevel() =>
-      super.test_listLiteralsCanInferNull_topLevel();
-
-  @failingTest
-  @override
-  test_mapLiteralsCanInferNull_topLevel() =>
-      super.test_mapLiteralsCanInferNull_topLevel();
 
   @override
   @failingTest
@@ -681,10 +673,8 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
       SummaryResynthesizer resynthesizer, Source source) {
     LibraryElementImpl resynthesized =
         resynthesizer.getLibraryElement(source.uri.toString());
-    if (shouldCompareElementsWithAnalysisContext) {
-      LibraryElementImpl original = context.computeLibraryElement(source);
-      checkLibraryElements(original, resynthesized);
-    }
+    LibraryElementImpl original = context.computeLibraryElement(source);
+    checkLibraryElements(original, resynthesized);
     return resynthesized;
   }
 }

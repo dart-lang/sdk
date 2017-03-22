@@ -5342,9 +5342,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (node is TypeName) {
       if (node.typeArguments == null) {
         DartType type = node.type;
-        if (type is TypeImpl && type.hasTypeParameterReferenceInBound) {
-          _errorReporter.reportErrorForNode(
-              StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
+        if (type is ParameterizedType) {
+          Element element = type.element;
+          if (element is TypeParameterizedElement &&
+              element.typeParameters.any((p) => p.bound != null)) {
+            _errorReporter.reportErrorForNode(
+                StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
+          }
         }
       } else {
         node.typeArguments.arguments.forEach(_checkForNotInstantiatedBound);
