@@ -160,6 +160,14 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
  */
 bool isFlutterInstanceCreationExpression(InstanceCreationExpression newExpr) {
   ClassElement classElement = newExpr.staticElement?.enclosingElement;
+  return isFlutterWidget(classElement);
+}
+
+/**
+ * Return `true` if the given [classElement] has the Flutter class Widget as a
+ * superclass.
+ */
+bool isFlutterWidget(ClassElement classElement) {
   InterfaceType superType = classElement?.allSupertypes?.firstWhere(
       (InterfaceType type) => _FLUTTER_WIDGET_NAME == type.name,
       orElse: () => null);

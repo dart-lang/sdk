@@ -185,7 +185,8 @@ class CompletionDomainHandler implements RequestHandler {
         server.searchEngine,
         source,
         params.offset,
-        performance);
+        performance,
+        server.ideOptions);
     String completionId = (_nextCompletionId++).toString();
 
     _abortCurrentRequest();

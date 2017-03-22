@@ -6,6 +6,7 @@ library test.services.completion.contributor.dart.imported_ref;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../correction/flutter_util.dart';
 import 'completion_contributor_util.dart';
 
 main() {
@@ -4514,12 +4516,31 @@ class B extends A {
 @reflectiveTest
 class ImportedReferenceContributorTest_Driver
     extends ImportedReferenceContributorTest {
+  final IdeOptions generateChildrenBoilerPlate = new IdeOptionsImpl()
+    ..generateFlutterWidgetChildrenBoilerPlate = true;
+
   @override
   bool get enableNewAnalysisDriver => true;
 
-  @override
-  test_enum_deprecated() {
-    // TODO(scheglov) remove it?
+  test_ArgDefaults_Flutter_cons_with_children() async {
+    addMetaPackageSource();
+
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new Container(
+    child: new Row^
+  );
+''');
+
+    await computeSuggestions(options: generateChildrenBoilerPlate);
+
+    assertSuggestConstructor("Row",
+        defaultArgListString: "children: <Widget>[]");
   }
 
   /// Sanity check.  Permutations tested in local_ref_contributor.
@@ -4543,5 +4564,10 @@ void main() {f^}''');
 
     assertSuggestFunction('foo', 'bool',
         defaultArgListString: 'bar, baz: null');
+  }
+
+  @override
+  test_enum_deprecated() {
+    // TODO(scheglov) remove it?
   }
 }

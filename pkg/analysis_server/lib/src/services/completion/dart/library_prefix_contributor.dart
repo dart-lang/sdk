@@ -36,7 +36,8 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       if (completion != null && completion.length > 0) {
         LibraryElement libElem = element.importedLibrary;
         if (libElem != null) {
-          CompletionSuggestion suggestion = createSuggestion(libElem,
+          CompletionSuggestion suggestion = createSuggestion(
+              libElem, request.ideOptions,
               completion: completion,
               kind: CompletionSuggestionKind.IDENTIFIER);
           if (suggestion != null) {

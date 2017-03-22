@@ -7,6 +7,7 @@ library services.completion.contributor.dart.named_constructor;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -56,7 +57,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
         if (type != null) {
           Element classElem = type.element;
           if (classElem is ClassElement) {
-            return _buildSuggestions(libElem, classElem);
+            return _buildSuggestions(libElem, classElem, request.ideOptions);
           }
         }
       }
@@ -65,14 +66,15 @@ class NamedConstructorContributor extends DartCompletionContributor {
   }
 
   List<CompletionSuggestion> _buildSuggestions(
-      LibraryElement libElem, ClassElement classElem) {
+      LibraryElement libElem, ClassElement classElem, IdeOptions options) {
     bool isLocalClassDecl = classElem.library == libElem;
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (ConstructorElement elem in classElem.constructors) {
       if (isLocalClassDecl || !elem.isPrivate) {
         String name = elem.name;
         if (name != null) {
-          CompletionSuggestion s = createSuggestion(elem, completion: name);
+          CompletionSuggestion s =
+              createSuggestion(elem, options, completion: name);
           if (s != null) {
             suggestions.add(s);
           }

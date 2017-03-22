@@ -4,6 +4,7 @@
 
 library services.completion.dart.suggestion.builder;
 
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
@@ -25,7 +26,7 @@ const String DYNAMIC = 'dynamic';
  * If the suggestion is not currently in scope, then specify
  * importForSource as the source to which an import should be added.
  */
-CompletionSuggestion createSuggestion(Element element,
+CompletionSuggestion createSuggestion(Element element, IdeOptions options,
     {String completion,
     CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
     int relevance: DART_RELEVANCE_DEFAULT,
@@ -81,7 +82,8 @@ CompletionSuggestion createSuggestion(Element element,
         (ParameterElement param) => param.parameterKind == ParameterKind.NAMED);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
-    addDefaultArgDetails(suggestion, requiredParameters, namedParameters);
+    addDefaultArgDetails(
+        suggestion, element, requiredParameters, namedParameters, options);
   }
   if (importForSource != null) {
     String srcPath = path.dirname(importForSource.fullName);
@@ -147,7 +149,7 @@ abstract class ElementSuggestionBuilder {
   /**
    * Add a suggestion based upon the given element.
    */
-  void addSuggestion(Element element,
+  void addSuggestion(Element element, IdeOptions ideOptions,
       {String prefix, int relevance: DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
@@ -165,7 +167,7 @@ abstract class ElementSuggestionBuilder {
     if (completion == null || completion.length <= 0) {
       return;
     }
-    CompletionSuggestion suggestion = createSuggestion(element,
+    CompletionSuggestion suggestion = createSuggestion(element, ideOptions,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
       if (element.isSynthetic && element is PropertyAccessorElement) {
@@ -220,16 +222,17 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   final CompletionSuggestionKind kind;
   final bool typesOnly;
   final bool instCreation;
+  final IdeOptions options;
 
-  LibraryElementSuggestionBuilder(
-      this.containingLibrary, this.kind, this.typesOnly, this.instCreation);
+  LibraryElementSuggestionBuilder(this.containingLibrary, this.kind,
+      this.typesOnly, this.instCreation, this.options);
 
   @override
   visitClassElement(ClassElement element) {
     if (instCreation) {
       element.visitChildren(this);
     } else {
-      addSuggestion(element);
+      addSuggestion(element, options);
     }
   }
 
@@ -251,7 +254,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       if (classElem != null) {
         String prefix = classElem.name;
         if (prefix != null && prefix.length > 0) {
-          addSuggestion(element, prefix: prefix);
+          addSuggestion(element, options, prefix: prefix);
         }
       }
     }
@@ -268,14 +271,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_FUNCTION
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, relevance: relevance);
+      addSuggestion(element, options, relevance: relevance);
     }
   }
 
   @override
   visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (!instCreation) {
-      addSuggestion(element);
+      addSuggestion(element, options);
     }
   }
 
@@ -285,7 +288,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, relevance: relevance);
+      addSuggestion(element, options, relevance: relevance);
     }
   }
 }
