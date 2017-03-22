@@ -742,35 +742,6 @@ class ElementListener extends Listener {
         arguments = {"text": "Can't use '${token.lexeme}' as a name here."};
         break;
 
-      case ErrorKind.AbstractNotSync:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "Abstract methods can't use 'async', 'async*', or 'sync*'."
-        };
-        return null; // Ignored. This error is already implemented elsewhere.
-
-      case ErrorKind.SetterNotSync:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "Setters can't use 'async', 'async*', or 'sync*'."
-        };
-        return null; // Ignored. This error is already implemented elsewhere.
-
-      case ErrorKind.FactoryNotSync:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "Factories can't use 'async', 'async*', or 'sync*'."
-        };
-        return null; // Ignored. This error is already implemented elsewhere.
-
-      case ErrorKind.AwaitForNotAsync:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "Asynchronous for-loop can only be used "
-              "in 'async' or 'async*' methods."
-        };
-        return null; // Ignored. This error is already implemented elsewhere.
-
       case ErrorKind.AsyncAsIdentifier:
         errorCode = MessageKind.GENERIC;
         arguments = {
@@ -779,39 +750,15 @@ class ElementListener extends Listener {
         };
         break;
 
+      case ErrorKind.AbstractNotSync:
+      case ErrorKind.SetterNotSync:
+      case ErrorKind.FactoryNotSync:
+      case ErrorKind.AwaitForNotAsync:
       case ErrorKind.YieldNotGenerator:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "'yield' can only be used in 'sync*' or 'async*' methods."
-        };
-        return null; // Ignored. This error is already implemented elsewhere.
-
       case ErrorKind.YieldAsIdentifier:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "'yield' can't be used as an identifier in "
-              "'async', 'async*', or 'sync*' methods."
-        };
-        return null; // Ignored. This error is already implemented elsewhere.
-
       case ErrorKind.GeneratorReturnsValue:
-        errorCode = MessageKind.GENERIC;
-        arguments = {"text": "'sync*' and 'async*' can't return a value."};
-        return null; // Ignored. This error is already implemented elsewhere.
-
       case ErrorKind.AwaitNotAsync:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "'await' can only be used in 'async' or 'async*' methods."
-        };
-        return null; // Ignored. This error is already implemented elsewhere.
-
       case ErrorKind.AwaitAsIdentifier:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "'await' can't be used as an identifier in "
-              "'async', 'async*', or 'sync*' methods."
-        };
         return null; // Ignored. This error is already implemented elsewhere.
     }
     SourceSpan span = reporter.spanFromToken(token);

@@ -286,3 +286,44 @@ UnterminatedToken:
 
 Unspecified:
   template: "#string"
+
+AbstractNotSync:
+  template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
+
+AsyncAsIdentifier:
+  template: "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+
+AwaitAsIdentifier:
+  template: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+
+AwaitNotAsync:
+  template: "'await' can only be used in 'async' or 'async*' methods."
+
+BuiltInIdentifierAsType:
+  template: "Can't use '#lexeme' as a type."
+
+BuiltInIdentifierInDeclaration:
+  template: "Can't use '#lexeme' as a name here."
+
+AwaitForNotAsync:
+  template: "Asynchronous for-loop can only be used in 'async' or 'async*' methods."
+
+FactoryNotSync:
+  template: "Factories can't use 'async', 'async*', or 'sync*'."
+
+GeneratorReturnsValue:
+  template: "'sync*' and 'async*' can't return a value."
+
+InvalidInlineFunctionType:
+  template: "Invalid inline function type."
+  tip: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
+  declaration: "typedef F = Function(int f(String x)); main() { F f; }"
+
+SetterNotSync:
+  template: "Setters can't use 'async', 'async*', or 'sync*'."
+
+YieldAsIdentifier:
+  template: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+
+YieldNotGenerator:
+  template: "'yield' can only be used in 'sync*' or 'async*' methods."
