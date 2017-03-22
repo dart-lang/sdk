@@ -21,7 +21,9 @@ class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
   @override
   idl.IndexNameKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.IndexNameKind.values.length ? idl.IndexNameKind.values[index] : idl.IndexNameKind.topLevel;
+    return index < idl.IndexNameKind.values.length
+        ? idl.IndexNameKind.values[index]
+        : idl.IndexNameKind.topLevel;
   }
 }
 
@@ -34,11 +36,14 @@ class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   @override
   idl.IndexRelationKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.IndexRelationKind.values.length ? idl.IndexRelationKind.values[index] : idl.IndexRelationKind.IS_ANCESTOR_OF;
+    return index < idl.IndexRelationKind.values.length
+        ? idl.IndexRelationKind.values[index]
+        : idl.IndexRelationKind.IS_ANCESTOR_OF;
   }
 }
 
-class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticElementKind> {
+class _IndexSyntheticElementKindReader
+    extends fb.Reader<idl.IndexSyntheticElementKind> {
   const _IndexSyntheticElementKindReader() : super();
 
   @override
@@ -47,7 +52,9 @@ class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticEleme
   @override
   idl.IndexSyntheticElementKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.IndexSyntheticElementKind.values.length ? idl.IndexSyntheticElementKind.values[index] : idl.IndexSyntheticElementKind.notSynthetic;
+    return index < idl.IndexSyntheticElementKind.values.length
+        ? idl.IndexSyntheticElementKind.values[index]
+        : idl.IndexSyntheticElementKind.notSynthetic;
   }
 }
 
@@ -60,11 +67,14 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   @override
   idl.ReferenceKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.ReferenceKind.values.length ? idl.ReferenceKind.values[index] : idl.ReferenceKind.classOrEnum;
+    return index < idl.ReferenceKind.values.length
+        ? idl.ReferenceKind.values[index]
+        : idl.ReferenceKind.classOrEnum;
   }
 }
 
-class _TopLevelInferenceErrorKindReader extends fb.Reader<idl.TopLevelInferenceErrorKind> {
+class _TopLevelInferenceErrorKindReader
+    extends fb.Reader<idl.TopLevelInferenceErrorKind> {
   const _TopLevelInferenceErrorKindReader() : super();
 
   @override
@@ -73,7 +83,9 @@ class _TopLevelInferenceErrorKindReader extends fb.Reader<idl.TopLevelInferenceE
   @override
   idl.TopLevelInferenceErrorKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.TopLevelInferenceErrorKind.values.length ? idl.TopLevelInferenceErrorKind.values[index] : idl.TopLevelInferenceErrorKind.assignment;
+    return index < idl.TopLevelInferenceErrorKind.values.length
+        ? idl.TopLevelInferenceErrorKind.values[index]
+        : idl.TopLevelInferenceErrorKind.assignment;
   }
 }
 
@@ -86,11 +98,14 @@ class _TypedefStyleReader extends fb.Reader<idl.TypedefStyle> {
   @override
   idl.TypedefStyle read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.TypedefStyle.values.length ? idl.TypedefStyle.values[index] : idl.TypedefStyle.functionType;
+    return index < idl.TypedefStyle.values.length
+        ? idl.TypedefStyle.values[index]
+        : idl.TypedefStyle.functionType;
   }
 }
 
-class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedConstructorInitializerKind> {
+class _UnlinkedConstructorInitializerKindReader
+    extends fb.Reader<idl.UnlinkedConstructorInitializerKind> {
   const _UnlinkedConstructorInitializerKindReader() : super();
 
   @override
@@ -99,11 +114,14 @@ class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedCo
   @override
   idl.UnlinkedConstructorInitializerKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.UnlinkedConstructorInitializerKind.values.length ? idl.UnlinkedConstructorInitializerKind.values[index] : idl.UnlinkedConstructorInitializerKind.field;
+    return index < idl.UnlinkedConstructorInitializerKind.values.length
+        ? idl.UnlinkedConstructorInitializerKind.values[index]
+        : idl.UnlinkedConstructorInitializerKind.field;
   }
 }
 
-class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind> {
+class _UnlinkedExecutableKindReader
+    extends fb.Reader<idl.UnlinkedExecutableKind> {
   const _UnlinkedExecutableKindReader() : super();
 
   @override
@@ -112,11 +130,14 @@ class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind
   @override
   idl.UnlinkedExecutableKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.UnlinkedExecutableKind.values.length ? idl.UnlinkedExecutableKind.values[index] : idl.UnlinkedExecutableKind.functionOrMethod;
+    return index < idl.UnlinkedExecutableKind.values.length
+        ? idl.UnlinkedExecutableKind.values[index]
+        : idl.UnlinkedExecutableKind.functionOrMethod;
   }
 }
 
-class _UnlinkedExprAssignOperatorReader extends fb.Reader<idl.UnlinkedExprAssignOperator> {
+class _UnlinkedExprAssignOperatorReader
+    extends fb.Reader<idl.UnlinkedExprAssignOperator> {
   const _UnlinkedExprAssignOperatorReader() : super();
 
   @override
@@ -125,11 +146,14 @@ class _UnlinkedExprAssignOperatorReader extends fb.Reader<idl.UnlinkedExprAssign
   @override
   idl.UnlinkedExprAssignOperator read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.UnlinkedExprAssignOperator.values.length ? idl.UnlinkedExprAssignOperator.values[index] : idl.UnlinkedExprAssignOperator.assign;
+    return index < idl.UnlinkedExprAssignOperator.values.length
+        ? idl.UnlinkedExprAssignOperator.values[index]
+        : idl.UnlinkedExprAssignOperator.assign;
   }
 }
 
-class _UnlinkedExprOperationReader extends fb.Reader<idl.UnlinkedExprOperation> {
+class _UnlinkedExprOperationReader
+    extends fb.Reader<idl.UnlinkedExprOperation> {
   const _UnlinkedExprOperationReader() : super();
 
   @override
@@ -138,7 +162,9 @@ class _UnlinkedExprOperationReader extends fb.Reader<idl.UnlinkedExprOperation> 
   @override
   idl.UnlinkedExprOperation read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.UnlinkedExprOperation.values.length ? idl.UnlinkedExprOperation.values[index] : idl.UnlinkedExprOperation.pushInt;
+    return index < idl.UnlinkedExprOperation.values.length
+        ? idl.UnlinkedExprOperation.values[index]
+        : idl.UnlinkedExprOperation.pushInt;
   }
 }
 
@@ -151,11 +177,15 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   @override
   idl.UnlinkedParamKind read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.UnlinkedParamKind.values.length ? idl.UnlinkedParamKind.values[index] : idl.UnlinkedParamKind.required;
+    return index < idl.UnlinkedParamKind.values.length
+        ? idl.UnlinkedParamKind.values[index]
+        : idl.UnlinkedParamKind.required;
   }
 }
 
-class AnalysisDriverExceptionContextBuilder extends Object with _AnalysisDriverExceptionContextMixin implements idl.AnalysisDriverExceptionContext {
+class AnalysisDriverExceptionContextBuilder extends Object
+    with _AnalysisDriverExceptionContextMixin
+    implements idl.AnalysisDriverExceptionContext {
   String _exception;
   List<AnalysisDriverExceptionFileBuilder> _files;
   String _path;
@@ -172,7 +202,8 @@ class AnalysisDriverExceptionContextBuilder extends Object with _AnalysisDriverE
   }
 
   @override
-  List<AnalysisDriverExceptionFileBuilder> get files => _files ??= <AnalysisDriverExceptionFileBuilder>[];
+  List<AnalysisDriverExceptionFileBuilder> get files =>
+      _files ??= <AnalysisDriverExceptionFileBuilder>[];
 
   /**
    * The state of files when the exception happened.
@@ -201,11 +232,15 @@ class AnalysisDriverExceptionContextBuilder extends Object with _AnalysisDriverE
     this._stackTrace = value;
   }
 
-  AnalysisDriverExceptionContextBuilder({String exception, List<AnalysisDriverExceptionFileBuilder> files, String path, String stackTrace})
-    : _exception = exception,
-      _files = files,
-      _path = path,
-      _stackTrace = stackTrace;
+  AnalysisDriverExceptionContextBuilder(
+      {String exception,
+      List<AnalysisDriverExceptionFileBuilder> files,
+      String path,
+      String stackTrace})
+      : _exception = exception,
+        _files = files,
+        _path = path,
+        _stackTrace = stackTrace;
 
   /**
    * Flush [informative] data recursively.
@@ -245,7 +280,8 @@ class AnalysisDriverExceptionContextBuilder extends Object with _AnalysisDriverE
       offset_exception = fbBuilder.writeString(_exception);
     }
     if (!(_files == null || _files.isEmpty)) {
-      offset_files = fbBuilder.writeList(_files.map((b) => b.finish(fbBuilder)).toList());
+      offset_files =
+          fbBuilder.writeList(_files.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_path != null) {
       offset_path = fbBuilder.writeString(_path);
@@ -270,19 +306,25 @@ class AnalysisDriverExceptionContextBuilder extends Object with _AnalysisDriverE
   }
 }
 
-idl.AnalysisDriverExceptionContext readAnalysisDriverExceptionContext(List<int> buffer) {
+idl.AnalysisDriverExceptionContext readAnalysisDriverExceptionContext(
+    List<int> buffer) {
   fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverExceptionContextReader().read(rootRef, 0);
 }
 
-class _AnalysisDriverExceptionContextReader extends fb.TableReader<_AnalysisDriverExceptionContextImpl> {
+class _AnalysisDriverExceptionContextReader
+    extends fb.TableReader<_AnalysisDriverExceptionContextImpl> {
   const _AnalysisDriverExceptionContextReader();
 
   @override
-  _AnalysisDriverExceptionContextImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverExceptionContextImpl(bc, offset);
+  _AnalysisDriverExceptionContextImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _AnalysisDriverExceptionContextImpl(bc, offset);
 }
 
-class _AnalysisDriverExceptionContextImpl extends Object with _AnalysisDriverExceptionContextMixin implements idl.AnalysisDriverExceptionContext {
+class _AnalysisDriverExceptionContextImpl extends Object
+    with _AnalysisDriverExceptionContextMixin
+    implements idl.AnalysisDriverExceptionContext {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -301,7 +343,10 @@ class _AnalysisDriverExceptionContextImpl extends Object with _AnalysisDriverExc
 
   @override
   List<idl.AnalysisDriverExceptionFile> get files {
-    _files ??= const fb.ListReader<idl.AnalysisDriverExceptionFile>(const _AnalysisDriverExceptionFileReader()).vTableGet(_bc, _bcOffset, 3, const <idl.AnalysisDriverExceptionFile>[]);
+    _files ??= const fb.ListReader<idl.AnalysisDriverExceptionFile>(
+            const _AnalysisDriverExceptionFileReader())
+        .vTableGet(
+            _bc, _bcOffset, 3, const <idl.AnalysisDriverExceptionFile>[]);
     return _files;
   }
 
@@ -318,12 +363,14 @@ class _AnalysisDriverExceptionContextImpl extends Object with _AnalysisDriverExc
   }
 }
 
-abstract class _AnalysisDriverExceptionContextMixin implements idl.AnalysisDriverExceptionContext {
+abstract class _AnalysisDriverExceptionContextMixin
+    implements idl.AnalysisDriverExceptionContext {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (exception != '') _result["exception"] = exception;
-    if (files.isNotEmpty) _result["files"] = files.map((_value) => _value.toJson()).toList();
+    if (files.isNotEmpty)
+      _result["files"] = files.map((_value) => _value.toJson()).toList();
     if (path != '') _result["path"] = path;
     if (stackTrace != '') _result["stackTrace"] = stackTrace;
     return _result;
@@ -331,17 +378,19 @@ abstract class _AnalysisDriverExceptionContextMixin implements idl.AnalysisDrive
 
   @override
   Map<String, Object> toMap() => {
-    "exception": exception,
-    "files": files,
-    "path": path,
-    "stackTrace": stackTrace,
-  };
+        "exception": exception,
+        "files": files,
+        "path": path,
+        "stackTrace": stackTrace,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class AnalysisDriverExceptionFileBuilder extends Object with _AnalysisDriverExceptionFileMixin implements idl.AnalysisDriverExceptionFile {
+class AnalysisDriverExceptionFileBuilder extends Object
+    with _AnalysisDriverExceptionFileMixin
+    implements idl.AnalysisDriverExceptionFile {
   String _content;
   String _path;
 
@@ -366,14 +415,13 @@ class AnalysisDriverExceptionFileBuilder extends Object with _AnalysisDriverExce
   }
 
   AnalysisDriverExceptionFileBuilder({String content, String path})
-    : _content = content,
-      _path = path;
+      : _content = content,
+        _path = path;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -403,14 +451,19 @@ class AnalysisDriverExceptionFileBuilder extends Object with _AnalysisDriverExce
   }
 }
 
-class _AnalysisDriverExceptionFileReader extends fb.TableReader<_AnalysisDriverExceptionFileImpl> {
+class _AnalysisDriverExceptionFileReader
+    extends fb.TableReader<_AnalysisDriverExceptionFileImpl> {
   const _AnalysisDriverExceptionFileReader();
 
   @override
-  _AnalysisDriverExceptionFileImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverExceptionFileImpl(bc, offset);
+  _AnalysisDriverExceptionFileImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _AnalysisDriverExceptionFileImpl(bc, offset);
 }
 
-class _AnalysisDriverExceptionFileImpl extends Object with _AnalysisDriverExceptionFileMixin implements idl.AnalysisDriverExceptionFile {
+class _AnalysisDriverExceptionFileImpl extends Object
+    with _AnalysisDriverExceptionFileMixin
+    implements idl.AnalysisDriverExceptionFile {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -432,7 +485,8 @@ class _AnalysisDriverExceptionFileImpl extends Object with _AnalysisDriverExcept
   }
 }
 
-abstract class _AnalysisDriverExceptionFileMixin implements idl.AnalysisDriverExceptionFile {
+abstract class _AnalysisDriverExceptionFileMixin
+    implements idl.AnalysisDriverExceptionFile {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
@@ -443,20 +497,23 @@ abstract class _AnalysisDriverExceptionFileMixin implements idl.AnalysisDriverEx
 
   @override
   Map<String, Object> toMap() => {
-    "content": content,
-    "path": path,
-  };
+        "content": content,
+        "path": path,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
+class AnalysisDriverResolvedUnitBuilder extends Object
+    with _AnalysisDriverResolvedUnitMixin
+    implements idl.AnalysisDriverResolvedUnit {
   List<AnalysisDriverUnitErrorBuilder> _errors;
   AnalysisDriverUnitIndexBuilder _index;
 
   @override
-  List<AnalysisDriverUnitErrorBuilder> get errors => _errors ??= <AnalysisDriverUnitErrorBuilder>[];
+  List<AnalysisDriverUnitErrorBuilder> get errors =>
+      _errors ??= <AnalysisDriverUnitErrorBuilder>[];
 
   /**
    * The full list of analysis errors, both syntactic and semantic.
@@ -475,9 +532,11 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
     this._index = value;
   }
 
-  AnalysisDriverResolvedUnitBuilder({List<AnalysisDriverUnitErrorBuilder> errors, AnalysisDriverUnitIndexBuilder index})
-    : _errors = errors,
-      _index = index;
+  AnalysisDriverResolvedUnitBuilder(
+      {List<AnalysisDriverUnitErrorBuilder> errors,
+      AnalysisDriverUnitIndexBuilder index})
+      : _errors = errors,
+        _index = index;
 
   /**
    * Flush [informative] data recursively.
@@ -512,7 +571,8 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
     fb.Offset offset_errors;
     fb.Offset offset_index;
     if (!(_errors == null || _errors.isEmpty)) {
-      offset_errors = fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
+      offset_errors =
+          fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_index != null) {
       offset_index = _index.finish(fbBuilder);
@@ -528,19 +588,25 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
   }
 }
 
-idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(List<int> buffer) {
+idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(
+    List<int> buffer) {
   fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverResolvedUnitReader().read(rootRef, 0);
 }
 
-class _AnalysisDriverResolvedUnitReader extends fb.TableReader<_AnalysisDriverResolvedUnitImpl> {
+class _AnalysisDriverResolvedUnitReader
+    extends fb.TableReader<_AnalysisDriverResolvedUnitImpl> {
   const _AnalysisDriverResolvedUnitReader();
 
   @override
-  _AnalysisDriverResolvedUnitImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverResolvedUnitImpl(bc, offset);
+  _AnalysisDriverResolvedUnitImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _AnalysisDriverResolvedUnitImpl(bc, offset);
 }
 
-class _AnalysisDriverResolvedUnitImpl extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
+class _AnalysisDriverResolvedUnitImpl extends Object
+    with _AnalysisDriverResolvedUnitMixin
+    implements idl.AnalysisDriverResolvedUnit {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -551,37 +617,44 @@ class _AnalysisDriverResolvedUnitImpl extends Object with _AnalysisDriverResolve
 
   @override
   List<idl.AnalysisDriverUnitError> get errors {
-    _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(const _AnalysisDriverUnitErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
+    _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(
+            const _AnalysisDriverUnitErrorReader())
+        .vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
     return _errors;
   }
 
   @override
   idl.AnalysisDriverUnitIndex get index {
-    _index ??= const _AnalysisDriverUnitIndexReader().vTableGet(_bc, _bcOffset, 1, null);
+    _index ??= const _AnalysisDriverUnitIndexReader()
+        .vTableGet(_bc, _bcOffset, 1, null);
     return _index;
   }
 }
 
-abstract class _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
+abstract class _AnalysisDriverResolvedUnitMixin
+    implements idl.AnalysisDriverResolvedUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (errors.isNotEmpty) _result["errors"] = errors.map((_value) => _value.toJson()).toList();
+    if (errors.isNotEmpty)
+      _result["errors"] = errors.map((_value) => _value.toJson()).toList();
     if (index != null) _result["index"] = index.toJson();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "errors": errors,
-    "index": index,
-  };
+        "errors": errors,
+        "index": index,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class AnalysisDriverUnitErrorBuilder extends Object with _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+class AnalysisDriverUnitErrorBuilder extends Object
+    with _AnalysisDriverUnitErrorMixin
+    implements idl.AnalysisDriverUnitError {
   String _correction;
   int _length;
   String _message;
@@ -640,18 +713,22 @@ class AnalysisDriverUnitErrorBuilder extends Object with _AnalysisDriverUnitErro
     this._uniqueName = value;
   }
 
-  AnalysisDriverUnitErrorBuilder({String correction, int length, String message, int offset, String uniqueName})
-    : _correction = correction,
-      _length = length,
-      _message = message,
-      _offset = offset,
-      _uniqueName = uniqueName;
+  AnalysisDriverUnitErrorBuilder(
+      {String correction,
+      int length,
+      String message,
+      int offset,
+      String uniqueName})
+      : _correction = correction,
+        _length = length,
+        _message = message,
+        _offset = offset,
+        _uniqueName = uniqueName;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -697,14 +774,18 @@ class AnalysisDriverUnitErrorBuilder extends Object with _AnalysisDriverUnitErro
   }
 }
 
-class _AnalysisDriverUnitErrorReader extends fb.TableReader<_AnalysisDriverUnitErrorImpl> {
+class _AnalysisDriverUnitErrorReader
+    extends fb.TableReader<_AnalysisDriverUnitErrorImpl> {
   const _AnalysisDriverUnitErrorReader();
 
   @override
-  _AnalysisDriverUnitErrorImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnitErrorImpl(bc, offset);
+  _AnalysisDriverUnitErrorImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AnalysisDriverUnitErrorImpl(bc, offset);
 }
 
-class _AnalysisDriverUnitErrorImpl extends Object with _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+class _AnalysisDriverUnitErrorImpl extends Object
+    with _AnalysisDriverUnitErrorMixin
+    implements idl.AnalysisDriverUnitError {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -747,7 +828,8 @@ class _AnalysisDriverUnitErrorImpl extends Object with _AnalysisDriverUnitErrorM
   }
 }
 
-abstract class _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+abstract class _AnalysisDriverUnitErrorMixin
+    implements idl.AnalysisDriverUnitError {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
@@ -761,18 +843,20 @@ abstract class _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitEr
 
   @override
   Map<String, Object> toMap() => {
-    "correction": correction,
-    "length": length,
-    "message": message,
-    "offset": offset,
-    "uniqueName": uniqueName,
-  };
+        "correction": correction,
+        "length": length,
+        "message": message,
+        "offset": offset,
+        "uniqueName": uniqueName,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
+class AnalysisDriverUnitIndexBuilder extends Object
+    with _AnalysisDriverUnitIndexMixin
+    implements idl.AnalysisDriverUnitIndex {
   List<idl.IndexSyntheticElementKind> _elementKinds;
   List<int> _elementNameClassMemberIds;
   List<int> _elementNameParameterIds;
@@ -793,7 +877,8 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
   List<int> _usedNames;
 
   @override
-  List<idl.IndexSyntheticElementKind> get elementKinds => _elementKinds ??= <idl.IndexSyntheticElementKind>[];
+  List<idl.IndexSyntheticElementKind> get elementKinds =>
+      _elementKinds ??= <idl.IndexSyntheticElementKind>[];
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -804,7 +889,8 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
   }
 
   @override
-  List<int> get elementNameClassMemberIds => _elementNameClassMemberIds ??= <int>[];
+  List<int> get elementNameClassMemberIds =>
+      _elementNameClassMemberIds ??= <int>[];
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -832,7 +918,8 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
   }
 
   @override
-  List<int> get elementNameUnitMemberIds => _elementNameUnitMemberIds ??= <int>[];
+  List<int> get elementNameUnitMemberIds =>
+      _elementNameUnitMemberIds ??= <int>[];
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -906,7 +993,8 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
   }
 
   @override
-  List<bool> get usedElementIsQualifiedFlags => _usedElementIsQualifiedFlags ??= <bool>[];
+  List<bool> get usedElementIsQualifiedFlags =>
+      _usedElementIsQualifiedFlags ??= <bool>[];
 
   /**
    * Each item of this list is the `true` if the corresponding element usage
@@ -917,7 +1005,8 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
   }
 
   @override
-  List<idl.IndexRelationKind> get usedElementKinds => _usedElementKinds ??= <idl.IndexRelationKind>[];
+  List<idl.IndexRelationKind> get usedElementKinds =>
+      _usedElementKinds ??= <idl.IndexRelationKind>[];
 
   /**
    * Each item of this list is the kind of the element usage.
@@ -964,7 +1053,8 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
   }
 
   @override
-  List<bool> get usedNameIsQualifiedFlags => _usedNameIsQualifiedFlags ??= <bool>[];
+  List<bool> get usedNameIsQualifiedFlags =>
+      _usedNameIsQualifiedFlags ??= <bool>[];
 
   /**
    * Each item of this list is the `true` if the corresponding name usage
@@ -975,7 +1065,8 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
   }
 
   @override
-  List<idl.IndexRelationKind> get usedNameKinds => _usedNameKinds ??= <idl.IndexRelationKind>[];
+  List<idl.IndexRelationKind> get usedNameKinds =>
+      _usedNameKinds ??= <idl.IndexRelationKind>[];
 
   /**
    * Each item of this list is the kind of the name usage.
@@ -1009,31 +1100,48 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
     this._usedNames = value;
   }
 
-  AnalysisDriverUnitIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementNameClassMemberIds, List<int> elementNameParameterIds, List<int> elementNameUnitMemberIds, List<int> elementUnits, int nullStringId, List<String> strings, List<int> unitLibraryUris, List<int> unitUnitUris, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<bool> usedNameIsQualifiedFlags, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
-    : _elementKinds = elementKinds,
-      _elementNameClassMemberIds = elementNameClassMemberIds,
-      _elementNameParameterIds = elementNameParameterIds,
-      _elementNameUnitMemberIds = elementNameUnitMemberIds,
-      _elementUnits = elementUnits,
-      _nullStringId = nullStringId,
-      _strings = strings,
-      _unitLibraryUris = unitLibraryUris,
-      _unitUnitUris = unitUnitUris,
-      _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
-      _usedElementKinds = usedElementKinds,
-      _usedElementLengths = usedElementLengths,
-      _usedElementOffsets = usedElementOffsets,
-      _usedElements = usedElements,
-      _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
-      _usedNameKinds = usedNameKinds,
-      _usedNameOffsets = usedNameOffsets,
-      _usedNames = usedNames;
+  AnalysisDriverUnitIndexBuilder(
+      {List<idl.IndexSyntheticElementKind> elementKinds,
+      List<int> elementNameClassMemberIds,
+      List<int> elementNameParameterIds,
+      List<int> elementNameUnitMemberIds,
+      List<int> elementUnits,
+      int nullStringId,
+      List<String> strings,
+      List<int> unitLibraryUris,
+      List<int> unitUnitUris,
+      List<bool> usedElementIsQualifiedFlags,
+      List<idl.IndexRelationKind> usedElementKinds,
+      List<int> usedElementLengths,
+      List<int> usedElementOffsets,
+      List<int> usedElements,
+      List<bool> usedNameIsQualifiedFlags,
+      List<idl.IndexRelationKind> usedNameKinds,
+      List<int> usedNameOffsets,
+      List<int> usedNames})
+      : _elementKinds = elementKinds,
+        _elementNameClassMemberIds = elementNameClassMemberIds,
+        _elementNameParameterIds = elementNameParameterIds,
+        _elementNameUnitMemberIds = elementNameUnitMemberIds,
+        _elementUnits = elementUnits,
+        _nullStringId = nullStringId,
+        _strings = strings,
+        _unitLibraryUris = unitLibraryUris,
+        _unitUnitUris = unitUnitUris,
+        _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
+        _usedElementKinds = usedElementKinds,
+        _usedElementLengths = usedElementLengths,
+        _usedElementOffsets = usedElementOffsets,
+        _usedElements = usedElements,
+        _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
+        _usedNameKinds = usedNameKinds,
+        _usedNameOffsets = usedNameOffsets,
+        _usedNames = usedNames;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -1202,22 +1310,30 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
     fb.Offset offset_usedNameOffsets;
     fb.Offset offset_usedNames;
     if (!(_elementKinds == null || _elementKinds.isEmpty)) {
-      offset_elementKinds = fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
+      offset_elementKinds =
+          fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
     }
-    if (!(_elementNameClassMemberIds == null || _elementNameClassMemberIds.isEmpty)) {
-      offset_elementNameClassMemberIds = fbBuilder.writeListUint32(_elementNameClassMemberIds);
+    if (!(_elementNameClassMemberIds == null ||
+        _elementNameClassMemberIds.isEmpty)) {
+      offset_elementNameClassMemberIds =
+          fbBuilder.writeListUint32(_elementNameClassMemberIds);
     }
-    if (!(_elementNameParameterIds == null || _elementNameParameterIds.isEmpty)) {
-      offset_elementNameParameterIds = fbBuilder.writeListUint32(_elementNameParameterIds);
+    if (!(_elementNameParameterIds == null ||
+        _elementNameParameterIds.isEmpty)) {
+      offset_elementNameParameterIds =
+          fbBuilder.writeListUint32(_elementNameParameterIds);
     }
-    if (!(_elementNameUnitMemberIds == null || _elementNameUnitMemberIds.isEmpty)) {
-      offset_elementNameUnitMemberIds = fbBuilder.writeListUint32(_elementNameUnitMemberIds);
+    if (!(_elementNameUnitMemberIds == null ||
+        _elementNameUnitMemberIds.isEmpty)) {
+      offset_elementNameUnitMemberIds =
+          fbBuilder.writeListUint32(_elementNameUnitMemberIds);
     }
     if (!(_elementUnits == null || _elementUnits.isEmpty)) {
       offset_elementUnits = fbBuilder.writeListUint32(_elementUnits);
     }
     if (!(_strings == null || _strings.isEmpty)) {
-      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+      offset_strings = fbBuilder
+          .writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_unitLibraryUris == null || _unitLibraryUris.isEmpty)) {
       offset_unitLibraryUris = fbBuilder.writeListUint32(_unitLibraryUris);
@@ -1225,26 +1341,34 @@ class AnalysisDriverUnitIndexBuilder extends Object with _AnalysisDriverUnitInde
     if (!(_unitUnitUris == null || _unitUnitUris.isEmpty)) {
       offset_unitUnitUris = fbBuilder.writeListUint32(_unitUnitUris);
     }
-    if (!(_usedElementIsQualifiedFlags == null || _usedElementIsQualifiedFlags.isEmpty)) {
-      offset_usedElementIsQualifiedFlags = fbBuilder.writeListBool(_usedElementIsQualifiedFlags);
+    if (!(_usedElementIsQualifiedFlags == null ||
+        _usedElementIsQualifiedFlags.isEmpty)) {
+      offset_usedElementIsQualifiedFlags =
+          fbBuilder.writeListBool(_usedElementIsQualifiedFlags);
     }
     if (!(_usedElementKinds == null || _usedElementKinds.isEmpty)) {
-      offset_usedElementKinds = fbBuilder.writeListUint8(_usedElementKinds.map((b) => b.index).toList());
+      offset_usedElementKinds = fbBuilder
+          .writeListUint8(_usedElementKinds.map((b) => b.index).toList());
     }
     if (!(_usedElementLengths == null || _usedElementLengths.isEmpty)) {
-      offset_usedElementLengths = fbBuilder.writeListUint32(_usedElementLengths);
+      offset_usedElementLengths =
+          fbBuilder.writeListUint32(_usedElementLengths);
     }
     if (!(_usedElementOffsets == null || _usedElementOffsets.isEmpty)) {
-      offset_usedElementOffsets = fbBuilder.writeListUint32(_usedElementOffsets);
+      offset_usedElementOffsets =
+          fbBuilder.writeListUint32(_usedElementOffsets);
     }
     if (!(_usedElements == null || _usedElements.isEmpty)) {
       offset_usedElements = fbBuilder.writeListUint32(_usedElements);
     }
-    if (!(_usedNameIsQualifiedFlags == null || _usedNameIsQualifiedFlags.isEmpty)) {
-      offset_usedNameIsQualifiedFlags = fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
+    if (!(_usedNameIsQualifiedFlags == null ||
+        _usedNameIsQualifiedFlags.isEmpty)) {
+      offset_usedNameIsQualifiedFlags =
+          fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
     }
     if (!(_usedNameKinds == null || _usedNameKinds.isEmpty)) {
-      offset_usedNameKinds = fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
+      offset_usedNameKinds =
+          fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
     }
     if (!(_usedNameOffsets == null || _usedNameOffsets.isEmpty)) {
       offset_usedNameOffsets = fbBuilder.writeListUint32(_usedNameOffsets);
@@ -1316,14 +1440,18 @@ idl.AnalysisDriverUnitIndex readAnalysisDriverUnitIndex(List<int> buffer) {
   return const _AnalysisDriverUnitIndexReader().read(rootRef, 0);
 }
 
-class _AnalysisDriverUnitIndexReader extends fb.TableReader<_AnalysisDriverUnitIndexImpl> {
+class _AnalysisDriverUnitIndexReader
+    extends fb.TableReader<_AnalysisDriverUnitIndexImpl> {
   const _AnalysisDriverUnitIndexReader();
 
   @override
-  _AnalysisDriverUnitIndexImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnitIndexImpl(bc, offset);
+  _AnalysisDriverUnitIndexImpl createObject(fb.BufferContext bc, int offset) =>
+      new _AnalysisDriverUnitIndexImpl(bc, offset);
 }
 
-class _AnalysisDriverUnitIndexImpl extends Object with _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
+class _AnalysisDriverUnitIndexImpl extends Object
+    with _AnalysisDriverUnitIndexMixin
+    implements idl.AnalysisDriverUnitIndex {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -1350,31 +1478,37 @@ class _AnalysisDriverUnitIndexImpl extends Object with _AnalysisDriverUnitIndexM
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
-    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bc, _bcOffset, 4, const <idl.IndexSyntheticElementKind>[]);
+    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(
+            const _IndexSyntheticElementKindReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.IndexSyntheticElementKind>[]);
     return _elementKinds;
   }
 
   @override
   List<int> get elementNameClassMemberIds {
-    _elementNameClassMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
+    _elementNameClassMemberIds ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
     return _elementNameClassMemberIds;
   }
 
   @override
   List<int> get elementNameParameterIds {
-    _elementNameParameterIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
+    _elementNameParameterIds ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
     return _elementNameParameterIds;
   }
 
   @override
   List<int> get elementNameUnitMemberIds {
-    _elementNameUnitMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 6, const <int>[]);
+    _elementNameUnitMemberIds ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 6, const <int>[]);
     return _elementNameUnitMemberIds;
   }
 
   @override
   List<int> get elementUnits {
-    _elementUnits ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+    _elementUnits ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
     return _elementUnits;
   }
 
@@ -1386,136 +1520,172 @@ class _AnalysisDriverUnitIndexImpl extends Object with _AnalysisDriverUnitIndexM
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    _strings ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _strings;
   }
 
   @override
   List<int> get unitLibraryUris {
-    _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
+    _unitLibraryUris ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _unitLibraryUris;
   }
 
   @override
   List<int> get unitUnitUris {
-    _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    _unitUnitUris ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
     return _unitUnitUris;
   }
 
   @override
   List<bool> get usedElementIsQualifiedFlags {
-    _usedElementIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 13, const <bool>[]);
+    _usedElementIsQualifiedFlags ??=
+        const fb.BoolListReader().vTableGet(_bc, _bcOffset, 13, const <bool>[]);
     return _usedElementIsQualifiedFlags;
   }
 
   @override
   List<idl.IndexRelationKind> get usedElementKinds {
-    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
+    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(
+            const _IndexRelationKindReader())
+        .vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
     return _usedElementKinds;
   }
 
   @override
   List<int> get usedElementLengths {
-    _usedElementLengths ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 12, const <int>[]);
+    _usedElementLengths ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 12, const <int>[]);
     return _usedElementLengths;
   }
 
   @override
   List<int> get usedElementOffsets {
-    _usedElementOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 11, const <int>[]);
+    _usedElementOffsets ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 11, const <int>[]);
     return _usedElementOffsets;
   }
 
   @override
   List<int> get usedElements {
-    _usedElements ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 9, const <int>[]);
+    _usedElements ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 9, const <int>[]);
     return _usedElements;
   }
 
   @override
   List<bool> get usedNameIsQualifiedFlags {
-    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 17, const <bool>[]);
+    _usedNameIsQualifiedFlags ??=
+        const fb.BoolListReader().vTableGet(_bc, _bcOffset, 17, const <bool>[]);
     return _usedNameIsQualifiedFlags;
   }
 
   @override
   List<idl.IndexRelationKind> get usedNameKinds {
-    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 15, const <idl.IndexRelationKind>[]);
+    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(
+            const _IndexRelationKindReader())
+        .vTableGet(_bc, _bcOffset, 15, const <idl.IndexRelationKind>[]);
     return _usedNameKinds;
   }
 
   @override
   List<int> get usedNameOffsets {
-    _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 16, const <int>[]);
+    _usedNameOffsets ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 16, const <int>[]);
     return _usedNameOffsets;
   }
 
   @override
   List<int> get usedNames {
-    _usedNames ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 14, const <int>[]);
+    _usedNames ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 14, const <int>[]);
     return _usedNames;
   }
 }
 
-abstract class _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
+abstract class _AnalysisDriverUnitIndexMixin
+    implements idl.AnalysisDriverUnitIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (elementKinds.isNotEmpty) _result["elementKinds"] = elementKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (elementNameClassMemberIds.isNotEmpty) _result["elementNameClassMemberIds"] = elementNameClassMemberIds;
-    if (elementNameParameterIds.isNotEmpty) _result["elementNameParameterIds"] = elementNameParameterIds;
-    if (elementNameUnitMemberIds.isNotEmpty) _result["elementNameUnitMemberIds"] = elementNameUnitMemberIds;
+    if (elementKinds.isNotEmpty)
+      _result["elementKinds"] = elementKinds
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (elementNameClassMemberIds.isNotEmpty)
+      _result["elementNameClassMemberIds"] = elementNameClassMemberIds;
+    if (elementNameParameterIds.isNotEmpty)
+      _result["elementNameParameterIds"] = elementNameParameterIds;
+    if (elementNameUnitMemberIds.isNotEmpty)
+      _result["elementNameUnitMemberIds"] = elementNameUnitMemberIds;
     if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
     if (nullStringId != 0) _result["nullStringId"] = nullStringId;
     if (strings.isNotEmpty) _result["strings"] = strings;
-    if (unitLibraryUris.isNotEmpty) _result["unitLibraryUris"] = unitLibraryUris;
+    if (unitLibraryUris.isNotEmpty)
+      _result["unitLibraryUris"] = unitLibraryUris;
     if (unitUnitUris.isNotEmpty) _result["unitUnitUris"] = unitUnitUris;
-    if (usedElementIsQualifiedFlags.isNotEmpty) _result["usedElementIsQualifiedFlags"] = usedElementIsQualifiedFlags;
-    if (usedElementKinds.isNotEmpty) _result["usedElementKinds"] = usedElementKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (usedElementLengths.isNotEmpty) _result["usedElementLengths"] = usedElementLengths;
-    if (usedElementOffsets.isNotEmpty) _result["usedElementOffsets"] = usedElementOffsets;
+    if (usedElementIsQualifiedFlags.isNotEmpty)
+      _result["usedElementIsQualifiedFlags"] = usedElementIsQualifiedFlags;
+    if (usedElementKinds.isNotEmpty)
+      _result["usedElementKinds"] = usedElementKinds
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (usedElementLengths.isNotEmpty)
+      _result["usedElementLengths"] = usedElementLengths;
+    if (usedElementOffsets.isNotEmpty)
+      _result["usedElementOffsets"] = usedElementOffsets;
     if (usedElements.isNotEmpty) _result["usedElements"] = usedElements;
-    if (usedNameIsQualifiedFlags.isNotEmpty) _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
-    if (usedNameKinds.isNotEmpty) _result["usedNameKinds"] = usedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (usedNameOffsets.isNotEmpty) _result["usedNameOffsets"] = usedNameOffsets;
+    if (usedNameIsQualifiedFlags.isNotEmpty)
+      _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
+    if (usedNameKinds.isNotEmpty)
+      _result["usedNameKinds"] = usedNameKinds
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (usedNameOffsets.isNotEmpty)
+      _result["usedNameOffsets"] = usedNameOffsets;
     if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "elementKinds": elementKinds,
-    "elementNameClassMemberIds": elementNameClassMemberIds,
-    "elementNameParameterIds": elementNameParameterIds,
-    "elementNameUnitMemberIds": elementNameUnitMemberIds,
-    "elementUnits": elementUnits,
-    "nullStringId": nullStringId,
-    "strings": strings,
-    "unitLibraryUris": unitLibraryUris,
-    "unitUnitUris": unitUnitUris,
-    "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
-    "usedElementKinds": usedElementKinds,
-    "usedElementLengths": usedElementLengths,
-    "usedElementOffsets": usedElementOffsets,
-    "usedElements": usedElements,
-    "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
-    "usedNameKinds": usedNameKinds,
-    "usedNameOffsets": usedNameOffsets,
-    "usedNames": usedNames,
-  };
+        "elementKinds": elementKinds,
+        "elementNameClassMemberIds": elementNameClassMemberIds,
+        "elementNameParameterIds": elementNameParameterIds,
+        "elementNameUnitMemberIds": elementNameUnitMemberIds,
+        "elementUnits": elementUnits,
+        "nullStringId": nullStringId,
+        "strings": strings,
+        "unitLibraryUris": unitLibraryUris,
+        "unitUnitUris": unitUnitUris,
+        "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
+        "usedElementKinds": usedElementKinds,
+        "usedElementLengths": usedElementLengths,
+        "usedElementOffsets": usedElementOffsets,
+        "usedElements": usedElements,
+        "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
+        "usedNameKinds": usedNameKinds,
+        "usedNameOffsets": usedNameOffsets,
+        "usedNames": usedNames,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+class AnalysisDriverUnlinkedUnitBuilder extends Object
+    with _AnalysisDriverUnlinkedUnitMixin
+    implements idl.AnalysisDriverUnlinkedUnit {
   List<String> _definedClassMemberNames;
   List<String> _definedTopLevelNames;
   List<String> _referencedNames;
   UnlinkedUnitBuilder _unit;
 
   @override
-  List<String> get definedClassMemberNames => _definedClassMemberNames ??= <String>[];
+  List<String> get definedClassMemberNames =>
+      _definedClassMemberNames ??= <String>[];
 
   /**
    * List of class member names defined by the unit.
@@ -1554,11 +1724,15 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
     this._unit = value;
   }
 
-  AnalysisDriverUnlinkedUnitBuilder({List<String> definedClassMemberNames, List<String> definedTopLevelNames, List<String> referencedNames, UnlinkedUnitBuilder unit})
-    : _definedClassMemberNames = definedClassMemberNames,
-      _definedTopLevelNames = definedTopLevelNames,
-      _referencedNames = referencedNames,
-      _unit = unit;
+  AnalysisDriverUnlinkedUnitBuilder(
+      {List<String> definedClassMemberNames,
+      List<String> definedTopLevelNames,
+      List<String> referencedNames,
+      UnlinkedUnitBuilder unit})
+      : _definedClassMemberNames = definedClassMemberNames,
+        _definedTopLevelNames = definedTopLevelNames,
+        _referencedNames = referencedNames,
+        _unit = unit;
 
   /**
    * Flush [informative] data recursively.
@@ -1609,14 +1783,20 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
     fb.Offset offset_definedTopLevelNames;
     fb.Offset offset_referencedNames;
     fb.Offset offset_unit;
-    if (!(_definedClassMemberNames == null || _definedClassMemberNames.isEmpty)) {
-      offset_definedClassMemberNames = fbBuilder.writeList(_definedClassMemberNames.map((b) => fbBuilder.writeString(b)).toList());
+    if (!(_definedClassMemberNames == null ||
+        _definedClassMemberNames.isEmpty)) {
+      offset_definedClassMemberNames = fbBuilder.writeList(
+          _definedClassMemberNames
+              .map((b) => fbBuilder.writeString(b))
+              .toList());
     }
     if (!(_definedTopLevelNames == null || _definedTopLevelNames.isEmpty)) {
-      offset_definedTopLevelNames = fbBuilder.writeList(_definedTopLevelNames.map((b) => fbBuilder.writeString(b)).toList());
+      offset_definedTopLevelNames = fbBuilder.writeList(
+          _definedTopLevelNames.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_referencedNames == null || _referencedNames.isEmpty)) {
-      offset_referencedNames = fbBuilder.writeList(_referencedNames.map((b) => fbBuilder.writeString(b)).toList());
+      offset_referencedNames = fbBuilder.writeList(
+          _referencedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (_unit != null) {
       offset_unit = _unit.finish(fbBuilder);
@@ -1638,19 +1818,25 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
   }
 }
 
-idl.AnalysisDriverUnlinkedUnit readAnalysisDriverUnlinkedUnit(List<int> buffer) {
+idl.AnalysisDriverUnlinkedUnit readAnalysisDriverUnlinkedUnit(
+    List<int> buffer) {
   fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverUnlinkedUnitReader().read(rootRef, 0);
 }
 
-class _AnalysisDriverUnlinkedUnitReader extends fb.TableReader<_AnalysisDriverUnlinkedUnitImpl> {
+class _AnalysisDriverUnlinkedUnitReader
+    extends fb.TableReader<_AnalysisDriverUnlinkedUnitImpl> {
   const _AnalysisDriverUnlinkedUnitReader();
 
   @override
-  _AnalysisDriverUnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnlinkedUnitImpl(bc, offset);
+  _AnalysisDriverUnlinkedUnitImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _AnalysisDriverUnlinkedUnitImpl(bc, offset);
 }
 
-class _AnalysisDriverUnlinkedUnitImpl extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+class _AnalysisDriverUnlinkedUnitImpl extends Object
+    with _AnalysisDriverUnlinkedUnitMixin
+    implements idl.AnalysisDriverUnlinkedUnit {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -1663,19 +1849,24 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object with _AnalysisDriverUnlinke
 
   @override
   List<String> get definedClassMemberNames {
-    _definedClassMemberNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
+    _definedClassMemberNames ??=
+        const fb.ListReader<String>(const fb.StringReader())
+            .vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _definedClassMemberNames;
   }
 
   @override
   List<String> get definedTopLevelNames {
-    _definedTopLevelNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    _definedTopLevelNames ??=
+        const fb.ListReader<String>(const fb.StringReader())
+            .vTableGet(_bc, _bcOffset, 2, const <String>[]);
     return _definedTopLevelNames;
   }
 
   @override
   List<String> get referencedNames {
-    _referencedNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    _referencedNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _referencedNames;
   }
 
@@ -1686,30 +1877,36 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object with _AnalysisDriverUnlinke
   }
 }
 
-abstract class _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+abstract class _AnalysisDriverUnlinkedUnitMixin
+    implements idl.AnalysisDriverUnlinkedUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (definedClassMemberNames.isNotEmpty) _result["definedClassMemberNames"] = definedClassMemberNames;
-    if (definedTopLevelNames.isNotEmpty) _result["definedTopLevelNames"] = definedTopLevelNames;
-    if (referencedNames.isNotEmpty) _result["referencedNames"] = referencedNames;
+    if (definedClassMemberNames.isNotEmpty)
+      _result["definedClassMemberNames"] = definedClassMemberNames;
+    if (definedTopLevelNames.isNotEmpty)
+      _result["definedTopLevelNames"] = definedTopLevelNames;
+    if (referencedNames.isNotEmpty)
+      _result["referencedNames"] = referencedNames;
     if (unit != null) _result["unit"] = unit.toJson();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "definedClassMemberNames": definedClassMemberNames,
-    "definedTopLevelNames": definedTopLevelNames,
-    "referencedNames": referencedNames,
-    "unit": unit,
-  };
+        "definedClassMemberNames": definedClassMemberNames,
+        "definedTopLevelNames": definedTopLevelNames,
+        "referencedNames": referencedNames,
+        "unit": unit,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
+class CodeRangeBuilder extends Object
+    with _CodeRangeMixin
+    implements idl.CodeRange {
   int _length;
   int _offset;
 
@@ -1736,14 +1933,13 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
   }
 
   CodeRangeBuilder({int length, int offset})
-    : _length = length,
-      _offset = offset;
+      : _length = length,
+        _offset = offset;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -1769,10 +1965,13 @@ class _CodeRangeReader extends fb.TableReader<_CodeRangeImpl> {
   const _CodeRangeReader();
 
   @override
-  _CodeRangeImpl createObject(fb.BufferContext bc, int offset) => new _CodeRangeImpl(bc, offset);
+  _CodeRangeImpl createObject(fb.BufferContext bc, int offset) =>
+      new _CodeRangeImpl(bc, offset);
 }
 
-class _CodeRangeImpl extends Object with _CodeRangeMixin implements idl.CodeRange {
+class _CodeRangeImpl extends Object
+    with _CodeRangeMixin
+    implements idl.CodeRange {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -1805,15 +2004,17 @@ abstract class _CodeRangeMixin implements idl.CodeRange {
 
   @override
   Map<String, Object> toMap() => {
-    "length": length,
-    "offset": offset,
-  };
+        "length": length,
+        "offset": offset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class EntityRefBuilder extends Object with _EntityRefMixin implements idl.EntityRef {
+class EntityRefBuilder extends Object
+    with _EntityRefMixin
+    implements idl.EntityRef {
   List<int> _implicitFunctionTypeIndices;
   int _paramReference;
   int _reference;
@@ -1824,7 +2025,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
   @override
-  List<int> get implicitFunctionTypeIndices => _implicitFunctionTypeIndices ??= <int>[];
+  List<int> get implicitFunctionTypeIndices =>
+      _implicitFunctionTypeIndices ??= <int>[];
 
   /**
    * If this is a reference to a function type implicitly defined by a
@@ -1908,7 +2110,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   }
 
   @override
-  List<UnlinkedParamBuilder> get syntheticParams => _syntheticParams ??= <UnlinkedParamBuilder>[];
+  List<UnlinkedParamBuilder> get syntheticParams =>
+      _syntheticParams ??= <UnlinkedParamBuilder>[];
 
   /**
    * If this [EntityRef] is a reference to a function type whose
@@ -1934,7 +2137,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   }
 
   @override
-  List<EntityRefBuilder> get typeArguments => _typeArguments ??= <EntityRefBuilder>[];
+  List<EntityRefBuilder> get typeArguments =>
+      _typeArguments ??= <EntityRefBuilder>[];
 
   /**
    * If this is an instantiation of a generic type or generic executable, the
@@ -1945,7 +2149,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   }
 
   @override
-  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters =>
+      _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * If this is a function type, the type parameters defined for the function
@@ -1955,15 +2160,23 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     this._typeParameters = value;
   }
 
-  EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<UnlinkedParamBuilder> syntheticParams, EntityRefBuilder syntheticReturnType, List<EntityRefBuilder> typeArguments, List<UnlinkedTypeParamBuilder> typeParameters})
-    : _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
-      _paramReference = paramReference,
-      _reference = reference,
-      _slot = slot,
-      _syntheticParams = syntheticParams,
-      _syntheticReturnType = syntheticReturnType,
-      _typeArguments = typeArguments,
-      _typeParameters = typeParameters;
+  EntityRefBuilder(
+      {List<int> implicitFunctionTypeIndices,
+      int paramReference,
+      int reference,
+      int slot,
+      List<UnlinkedParamBuilder> syntheticParams,
+      EntityRefBuilder syntheticReturnType,
+      List<EntityRefBuilder> typeArguments,
+      List<UnlinkedTypeParamBuilder> typeParameters})
+      : _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
+        _paramReference = paramReference,
+        _reference = reference,
+        _slot = slot,
+        _syntheticParams = syntheticParams,
+        _syntheticReturnType = syntheticReturnType,
+        _typeArguments = typeArguments,
+        _typeParameters = typeParameters;
 
   /**
    * Flush [informative] data recursively.
@@ -2024,20 +2237,25 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     fb.Offset offset_syntheticReturnType;
     fb.Offset offset_typeArguments;
     fb.Offset offset_typeParameters;
-    if (!(_implicitFunctionTypeIndices == null || _implicitFunctionTypeIndices.isEmpty)) {
-      offset_implicitFunctionTypeIndices = fbBuilder.writeListUint32(_implicitFunctionTypeIndices);
+    if (!(_implicitFunctionTypeIndices == null ||
+        _implicitFunctionTypeIndices.isEmpty)) {
+      offset_implicitFunctionTypeIndices =
+          fbBuilder.writeListUint32(_implicitFunctionTypeIndices);
     }
     if (!(_syntheticParams == null || _syntheticParams.isEmpty)) {
-      offset_syntheticParams = fbBuilder.writeList(_syntheticParams.map((b) => b.finish(fbBuilder)).toList());
+      offset_syntheticParams = fbBuilder
+          .writeList(_syntheticParams.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_syntheticReturnType != null) {
       offset_syntheticReturnType = _syntheticReturnType.finish(fbBuilder);
     }
     if (!(_typeArguments == null || _typeArguments.isEmpty)) {
-      offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
+      offset_typeArguments = fbBuilder
+          .writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_typeParameters == null || _typeParameters.isEmpty)) {
-      offset_typeParameters = fbBuilder.writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_typeParameters = fbBuilder
+          .writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_implicitFunctionTypeIndices != null) {
@@ -2072,10 +2290,13 @@ class _EntityRefReader extends fb.TableReader<_EntityRefImpl> {
   const _EntityRefReader();
 
   @override
-  _EntityRefImpl createObject(fb.BufferContext bc, int offset) => new _EntityRefImpl(bc, offset);
+  _EntityRefImpl createObject(fb.BufferContext bc, int offset) =>
+      new _EntityRefImpl(bc, offset);
 }
 
-class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRef {
+class _EntityRefImpl extends Object
+    with _EntityRefMixin
+    implements idl.EntityRef {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -2092,7 +2313,8 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
 
   @override
   List<int> get implicitFunctionTypeIndices {
-    _implicitFunctionTypeIndices ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 4, const <int>[]);
+    _implicitFunctionTypeIndices ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 4, const <int>[]);
     return _implicitFunctionTypeIndices;
   }
 
@@ -2116,25 +2338,32 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
 
   @override
   List<idl.UnlinkedParam> get syntheticParams {
-    _syntheticParams ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedParam>[]);
+    _syntheticParams ??=
+        const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader())
+            .vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedParam>[]);
     return _syntheticParams;
   }
 
   @override
   idl.EntityRef get syntheticReturnType {
-    _syntheticReturnType ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 5, null);
+    _syntheticReturnType ??=
+        const _EntityRefReader().vTableGet(_bc, _bcOffset, 5, null);
     return _syntheticReturnType;
   }
 
   @override
   List<idl.EntityRef> get typeArguments {
-    _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
+    _typeArguments ??=
+        const fb.ListReader<idl.EntityRef>(const _EntityRefReader())
+            .vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
     return _typeArguments;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 7, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(
+            const _UnlinkedTypeParamReader())
+        .vTableGet(_bc, _bcOffset, 7, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -2143,34 +2372,44 @@ abstract class _EntityRefMixin implements idl.EntityRef {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (implicitFunctionTypeIndices.isNotEmpty) _result["implicitFunctionTypeIndices"] = implicitFunctionTypeIndices;
+    if (implicitFunctionTypeIndices.isNotEmpty)
+      _result["implicitFunctionTypeIndices"] = implicitFunctionTypeIndices;
     if (paramReference != 0) _result["paramReference"] = paramReference;
     if (reference != 0) _result["reference"] = reference;
     if (slot != 0) _result["slot"] = slot;
-    if (syntheticParams.isNotEmpty) _result["syntheticParams"] = syntheticParams.map((_value) => _value.toJson()).toList();
-    if (syntheticReturnType != null) _result["syntheticReturnType"] = syntheticReturnType.toJson();
-    if (typeArguments.isNotEmpty) _result["typeArguments"] = typeArguments.map((_value) => _value.toJson()).toList();
-    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    if (syntheticParams.isNotEmpty)
+      _result["syntheticParams"] =
+          syntheticParams.map((_value) => _value.toJson()).toList();
+    if (syntheticReturnType != null)
+      _result["syntheticReturnType"] = syntheticReturnType.toJson();
+    if (typeArguments.isNotEmpty)
+      _result["typeArguments"] =
+          typeArguments.map((_value) => _value.toJson()).toList();
+    if (typeParameters.isNotEmpty)
+      _result["typeParameters"] =
+          typeParameters.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "implicitFunctionTypeIndices": implicitFunctionTypeIndices,
-    "paramReference": paramReference,
-    "reference": reference,
-    "slot": slot,
-    "syntheticParams": syntheticParams,
-    "syntheticReturnType": syntheticReturnType,
-    "typeArguments": typeArguments,
-    "typeParameters": typeParameters,
-  };
+        "implicitFunctionTypeIndices": implicitFunctionTypeIndices,
+        "paramReference": paramReference,
+        "reference": reference,
+        "slot": slot,
+        "syntheticParams": syntheticParams,
+        "syntheticReturnType": syntheticReturnType,
+        "typeArguments": typeArguments,
+        "typeParameters": typeParameters,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin implements idl.LinkedDependency {
+class LinkedDependencyBuilder extends Object
+    with _LinkedDependencyMixin
+    implements idl.LinkedDependency {
   List<String> _parts;
   String _uri;
 
@@ -2196,14 +2435,13 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
   }
 
   LinkedDependencyBuilder({List<String> parts, String uri})
-    : _parts = parts,
-      _uri = uri;
+      : _parts = parts,
+        _uri = uri;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -2224,7 +2462,8 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
     fb.Offset offset_parts;
     fb.Offset offset_uri;
     if (!(_parts == null || _parts.isEmpty)) {
-      offset_parts = fbBuilder.writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
+      offset_parts = fbBuilder
+          .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
@@ -2244,10 +2483,13 @@ class _LinkedDependencyReader extends fb.TableReader<_LinkedDependencyImpl> {
   const _LinkedDependencyReader();
 
   @override
-  _LinkedDependencyImpl createObject(fb.BufferContext bc, int offset) => new _LinkedDependencyImpl(bc, offset);
+  _LinkedDependencyImpl createObject(fb.BufferContext bc, int offset) =>
+      new _LinkedDependencyImpl(bc, offset);
 }
 
-class _LinkedDependencyImpl extends Object with _LinkedDependencyMixin implements idl.LinkedDependency {
+class _LinkedDependencyImpl extends Object
+    with _LinkedDependencyMixin
+    implements idl.LinkedDependency {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -2258,7 +2500,8 @@ class _LinkedDependencyImpl extends Object with _LinkedDependencyMixin implement
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _parts;
   }
 
@@ -2280,15 +2523,17 @@ abstract class _LinkedDependencyMixin implements idl.LinkedDependency {
 
   @override
   Map<String, Object> toMap() => {
-    "parts": parts,
-    "uri": uri,
-  };
+        "parts": parts,
+        "uri": uri,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin implements idl.LinkedExportName {
+class LinkedExportNameBuilder extends Object
+    with _LinkedExportNameMixin
+    implements idl.LinkedExportName {
   int _dependency;
   idl.ReferenceKind _kind;
   String _name;
@@ -2341,17 +2586,17 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
     this._unit = value;
   }
 
-  LinkedExportNameBuilder({int dependency, idl.ReferenceKind kind, String name, int unit})
-    : _dependency = dependency,
-      _kind = kind,
-      _name = name,
-      _unit = unit;
+  LinkedExportNameBuilder(
+      {int dependency, idl.ReferenceKind kind, String name, int unit})
+      : _dependency = dependency,
+        _kind = kind,
+        _name = name,
+        _unit = unit;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -2389,10 +2634,13 @@ class _LinkedExportNameReader extends fb.TableReader<_LinkedExportNameImpl> {
   const _LinkedExportNameReader();
 
   @override
-  _LinkedExportNameImpl createObject(fb.BufferContext bc, int offset) => new _LinkedExportNameImpl(bc, offset);
+  _LinkedExportNameImpl createObject(fb.BufferContext bc, int offset) =>
+      new _LinkedExportNameImpl(bc, offset);
 }
 
-class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implements idl.LinkedExportName {
+class _LinkedExportNameImpl extends Object
+    with _LinkedExportNameMixin
+    implements idl.LinkedExportName {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -2411,7 +2659,8 @@ class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implement
 
   @override
   idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bc, _bcOffset, 3, idl.ReferenceKind.classOrEnum);
+    _kind ??= const _ReferenceKindReader()
+        .vTableGet(_bc, _bcOffset, 3, idl.ReferenceKind.classOrEnum);
     return _kind;
   }
 
@@ -2433,7 +2682,8 @@ abstract class _LinkedExportNameMixin implements idl.LinkedExportName {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (dependency != 0) _result["dependency"] = dependency;
-    if (kind != idl.ReferenceKind.classOrEnum) _result["kind"] = kind.toString().split('.')[1];
+    if (kind != idl.ReferenceKind.classOrEnum)
+      _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
     if (unit != 0) _result["unit"] = unit;
     return _result;
@@ -2441,17 +2691,19 @@ abstract class _LinkedExportNameMixin implements idl.LinkedExportName {
 
   @override
   Map<String, Object> toMap() => {
-    "dependency": dependency,
-    "kind": kind,
-    "name": name,
-    "unit": unit,
-  };
+        "dependency": dependency,
+        "kind": kind,
+        "name": name,
+        "unit": unit,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements idl.LinkedLibrary {
+class LinkedLibraryBuilder extends Object
+    with _LinkedLibraryMixin
+    implements idl.LinkedLibrary {
   List<LinkedDependencyBuilder> _dependencies;
   List<int> _exportDependencies;
   List<LinkedExportNameBuilder> _exportNames;
@@ -2460,7 +2712,8 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   List<LinkedUnitBuilder> _units;
 
   @override
-  List<LinkedDependencyBuilder> get dependencies => _dependencies ??= <LinkedDependencyBuilder>[];
+  List<LinkedDependencyBuilder> get dependencies =>
+      _dependencies ??= <LinkedDependencyBuilder>[];
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -2495,7 +2748,8 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   }
 
   @override
-  List<LinkedExportNameBuilder> get exportNames => _exportNames ??= <LinkedExportNameBuilder>[];
+  List<LinkedExportNameBuilder> get exportNames =>
+      _exportNames ??= <LinkedExportNameBuilder>[];
 
   /**
    * Information about entities in the export namespace of the library that are
@@ -2509,7 +2763,8 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   }
 
   @override
-  bool get fallbackMode => throw new UnimplementedError('attempt to access deprecated field');
+  bool get fallbackMode =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<int> get importDependencies => _importDependencies ??= <int>[];
@@ -2549,13 +2804,19 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     this._units = value;
   }
 
-  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<int> exportDependencies, List<LinkedExportNameBuilder> exportNames, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
-    : _dependencies = dependencies,
-      _exportDependencies = exportDependencies,
-      _exportNames = exportNames,
-      _importDependencies = importDependencies,
-      _numPrelinkedDependencies = numPrelinkedDependencies,
-      _units = units;
+  LinkedLibraryBuilder(
+      {List<LinkedDependencyBuilder> dependencies,
+      List<int> exportDependencies,
+      List<LinkedExportNameBuilder> exportNames,
+      List<int> importDependencies,
+      int numPrelinkedDependencies,
+      List<LinkedUnitBuilder> units})
+      : _dependencies = dependencies,
+        _exportDependencies = exportDependencies,
+        _exportNames = exportNames,
+        _importDependencies = importDependencies,
+        _numPrelinkedDependencies = numPrelinkedDependencies,
+        _units = units;
 
   /**
    * Flush [informative] data recursively.
@@ -2625,19 +2886,24 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     fb.Offset offset_importDependencies;
     fb.Offset offset_units;
     if (!(_dependencies == null || _dependencies.isEmpty)) {
-      offset_dependencies = fbBuilder.writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
+      offset_dependencies = fbBuilder
+          .writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_exportDependencies == null || _exportDependencies.isEmpty)) {
-      offset_exportDependencies = fbBuilder.writeListUint32(_exportDependencies);
+      offset_exportDependencies =
+          fbBuilder.writeListUint32(_exportDependencies);
     }
     if (!(_exportNames == null || _exportNames.isEmpty)) {
-      offset_exportNames = fbBuilder.writeList(_exportNames.map((b) => b.finish(fbBuilder)).toList());
+      offset_exportNames = fbBuilder
+          .writeList(_exportNames.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_importDependencies == null || _importDependencies.isEmpty)) {
-      offset_importDependencies = fbBuilder.writeListUint32(_importDependencies);
+      offset_importDependencies =
+          fbBuilder.writeListUint32(_importDependencies);
     }
     if (!(_units == null || _units.isEmpty)) {
-      offset_units = fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
+      offset_units =
+          fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_dependencies != null) {
@@ -2671,10 +2937,13 @@ class _LinkedLibraryReader extends fb.TableReader<_LinkedLibraryImpl> {
   const _LinkedLibraryReader();
 
   @override
-  _LinkedLibraryImpl createObject(fb.BufferContext bc, int offset) => new _LinkedLibraryImpl(bc, offset);
+  _LinkedLibraryImpl createObject(fb.BufferContext bc, int offset) =>
+      new _LinkedLibraryImpl(bc, offset);
 }
 
-class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.LinkedLibrary {
+class _LinkedLibraryImpl extends Object
+    with _LinkedLibraryMixin
+    implements idl.LinkedLibrary {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -2689,40 +2958,49 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
 
   @override
   List<idl.LinkedDependency> get dependencies {
-    _dependencies ??= const fb.ListReader<idl.LinkedDependency>(const _LinkedDependencyReader()).vTableGet(_bc, _bcOffset, 0, const <idl.LinkedDependency>[]);
+    _dependencies ??= const fb.ListReader<idl.LinkedDependency>(
+            const _LinkedDependencyReader())
+        .vTableGet(_bc, _bcOffset, 0, const <idl.LinkedDependency>[]);
     return _dependencies;
   }
 
   @override
   List<int> get exportDependencies {
-    _exportDependencies ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 6, const <int>[]);
+    _exportDependencies ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 6, const <int>[]);
     return _exportDependencies;
   }
 
   @override
   List<idl.LinkedExportName> get exportNames {
-    _exportNames ??= const fb.ListReader<idl.LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bc, _bcOffset, 4, const <idl.LinkedExportName>[]);
+    _exportNames ??= const fb.ListReader<idl.LinkedExportName>(
+            const _LinkedExportNameReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedExportName>[]);
     return _exportNames;
   }
 
   @override
-  bool get fallbackMode => throw new UnimplementedError('attempt to access deprecated field');
+  bool get fallbackMode =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<int> get importDependencies {
-    _importDependencies ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    _importDependencies ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _importDependencies;
   }
 
   @override
   int get numPrelinkedDependencies {
-    _numPrelinkedDependencies ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    _numPrelinkedDependencies ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _numPrelinkedDependencies;
   }
 
   @override
   List<idl.LinkedUnit> get units {
-    _units ??= const fb.ListReader<idl.LinkedUnit>(const _LinkedUnitReader()).vTableGet(_bc, _bcOffset, 3, const <idl.LinkedUnit>[]);
+    _units ??= const fb.ListReader<idl.LinkedUnit>(const _LinkedUnitReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedUnit>[]);
     return _units;
   }
 }
@@ -2731,30 +3009,40 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
-    if (exportDependencies.isNotEmpty) _result["exportDependencies"] = exportDependencies;
-    if (exportNames.isNotEmpty) _result["exportNames"] = exportNames.map((_value) => _value.toJson()).toList();
-    if (importDependencies.isNotEmpty) _result["importDependencies"] = importDependencies;
-    if (numPrelinkedDependencies != 0) _result["numPrelinkedDependencies"] = numPrelinkedDependencies;
-    if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
+    if (dependencies.isNotEmpty)
+      _result["dependencies"] =
+          dependencies.map((_value) => _value.toJson()).toList();
+    if (exportDependencies.isNotEmpty)
+      _result["exportDependencies"] = exportDependencies;
+    if (exportNames.isNotEmpty)
+      _result["exportNames"] =
+          exportNames.map((_value) => _value.toJson()).toList();
+    if (importDependencies.isNotEmpty)
+      _result["importDependencies"] = importDependencies;
+    if (numPrelinkedDependencies != 0)
+      _result["numPrelinkedDependencies"] = numPrelinkedDependencies;
+    if (units.isNotEmpty)
+      _result["units"] = units.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "dependencies": dependencies,
-    "exportDependencies": exportDependencies,
-    "exportNames": exportNames,
-    "importDependencies": importDependencies,
-    "numPrelinkedDependencies": numPrelinkedDependencies,
-    "units": units,
-  };
+        "dependencies": dependencies,
+        "exportDependencies": exportDependencies,
+        "exportNames": exportNames,
+        "importDependencies": importDependencies,
+        "numPrelinkedDependencies": numPrelinkedDependencies,
+        "units": units,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implements idl.LinkedReference {
+class LinkedReferenceBuilder extends Object
+    with _LinkedReferenceMixin
+    implements idl.LinkedReference {
   int _containingReference;
   int _dependency;
   idl.ReferenceKind _kind;
@@ -2865,20 +3153,26 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
     this._unit = value;
   }
 
-  LinkedReferenceBuilder({int containingReference, int dependency, idl.ReferenceKind kind, int localIndex, String name, int numTypeParameters, int unit})
-    : _containingReference = containingReference,
-      _dependency = dependency,
-      _kind = kind,
-      _localIndex = localIndex,
-      _name = name,
-      _numTypeParameters = numTypeParameters,
-      _unit = unit;
+  LinkedReferenceBuilder(
+      {int containingReference,
+      int dependency,
+      idl.ReferenceKind kind,
+      int localIndex,
+      String name,
+      int numTypeParameters,
+      int unit})
+      : _containingReference = containingReference,
+        _dependency = dependency,
+        _kind = kind,
+        _localIndex = localIndex,
+        _name = name,
+        _numTypeParameters = numTypeParameters,
+        _unit = unit;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -2928,10 +3222,13 @@ class _LinkedReferenceReader extends fb.TableReader<_LinkedReferenceImpl> {
   const _LinkedReferenceReader();
 
   @override
-  _LinkedReferenceImpl createObject(fb.BufferContext bc, int offset) => new _LinkedReferenceImpl(bc, offset);
+  _LinkedReferenceImpl createObject(fb.BufferContext bc, int offset) =>
+      new _LinkedReferenceImpl(bc, offset);
 }
 
-class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements idl.LinkedReference {
+class _LinkedReferenceImpl extends Object
+    with _LinkedReferenceMixin
+    implements idl.LinkedReference {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -2947,7 +3244,8 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
   @override
   int get containingReference {
-    _containingReference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
+    _containingReference ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _containingReference;
   }
 
@@ -2959,7 +3257,8 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
   @override
   idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bc, _bcOffset, 2, idl.ReferenceKind.classOrEnum);
+    _kind ??= const _ReferenceKindReader()
+        .vTableGet(_bc, _bcOffset, 2, idl.ReferenceKind.classOrEnum);
     return _kind;
   }
 
@@ -2977,7 +3276,8 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
   @override
   int get numTypeParameters {
-    _numTypeParameters ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 4, 0);
+    _numTypeParameters ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 4, 0);
     return _numTypeParameters;
   }
 
@@ -2992,32 +3292,37 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (containingReference != 0) _result["containingReference"] = containingReference;
+    if (containingReference != 0)
+      _result["containingReference"] = containingReference;
     if (dependency != 0) _result["dependency"] = dependency;
-    if (kind != idl.ReferenceKind.classOrEnum) _result["kind"] = kind.toString().split('.')[1];
+    if (kind != idl.ReferenceKind.classOrEnum)
+      _result["kind"] = kind.toString().split('.')[1];
     if (localIndex != 0) _result["localIndex"] = localIndex;
     if (name != '') _result["name"] = name;
-    if (numTypeParameters != 0) _result["numTypeParameters"] = numTypeParameters;
+    if (numTypeParameters != 0)
+      _result["numTypeParameters"] = numTypeParameters;
     if (unit != 0) _result["unit"] = unit;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "containingReference": containingReference,
-    "dependency": dependency,
-    "kind": kind,
-    "localIndex": localIndex,
-    "name": name,
-    "numTypeParameters": numTypeParameters,
-    "unit": unit,
-  };
+        "containingReference": containingReference,
+        "dependency": dependency,
+        "kind": kind,
+        "localIndex": localIndex,
+        "name": name,
+        "numTypeParameters": numTypeParameters,
+        "unit": unit,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
+class LinkedUnitBuilder extends Object
+    with _LinkedUnitMixin
+    implements idl.LinkedUnit {
   List<int> _constCycles;
   List<int> _parametersInheritingCovariant;
   List<LinkedReferenceBuilder> _references;
@@ -3037,7 +3342,8 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   }
 
   @override
-  List<int> get parametersInheritingCovariant => _parametersInheritingCovariant ??= <int>[];
+  List<int> get parametersInheritingCovariant =>
+      _parametersInheritingCovariant ??= <int>[];
 
   /**
    * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
@@ -3050,7 +3356,8 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   }
 
   @override
-  List<LinkedReferenceBuilder> get references => _references ??= <LinkedReferenceBuilder>[];
+  List<LinkedReferenceBuilder> get references =>
+      _references ??= <LinkedReferenceBuilder>[];
 
   /**
    * Information about the resolution of references within the compilation
@@ -3065,7 +3372,8 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   }
 
   @override
-  List<TopLevelInferenceErrorBuilder> get topLevelInferenceErrors => _topLevelInferenceErrors ??= <TopLevelInferenceErrorBuilder>[];
+  List<TopLevelInferenceErrorBuilder> get topLevelInferenceErrors =>
+      _topLevelInferenceErrors ??= <TopLevelInferenceErrorBuilder>[];
 
   /**
    * The list of type inference errors.
@@ -3085,12 +3393,17 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     this._types = value;
   }
 
-  LinkedUnitBuilder({List<int> constCycles, List<int> parametersInheritingCovariant, List<LinkedReferenceBuilder> references, List<TopLevelInferenceErrorBuilder> topLevelInferenceErrors, List<EntityRefBuilder> types})
-    : _constCycles = constCycles,
-      _parametersInheritingCovariant = parametersInheritingCovariant,
-      _references = references,
-      _topLevelInferenceErrors = topLevelInferenceErrors,
-      _types = types;
+  LinkedUnitBuilder(
+      {List<int> constCycles,
+      List<int> parametersInheritingCovariant,
+      List<LinkedReferenceBuilder> references,
+      List<TopLevelInferenceErrorBuilder> topLevelInferenceErrors,
+      List<EntityRefBuilder> types})
+      : _constCycles = constCycles,
+        _parametersInheritingCovariant = parametersInheritingCovariant,
+        _references = references,
+        _topLevelInferenceErrors = topLevelInferenceErrors,
+        _types = types;
 
   /**
    * Flush [informative] data recursively.
@@ -3156,17 +3469,23 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     if (!(_constCycles == null || _constCycles.isEmpty)) {
       offset_constCycles = fbBuilder.writeListUint32(_constCycles);
     }
-    if (!(_parametersInheritingCovariant == null || _parametersInheritingCovariant.isEmpty)) {
-      offset_parametersInheritingCovariant = fbBuilder.writeListUint32(_parametersInheritingCovariant);
+    if (!(_parametersInheritingCovariant == null ||
+        _parametersInheritingCovariant.isEmpty)) {
+      offset_parametersInheritingCovariant =
+          fbBuilder.writeListUint32(_parametersInheritingCovariant);
     }
     if (!(_references == null || _references.isEmpty)) {
-      offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+      offset_references = fbBuilder
+          .writeList(_references.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_topLevelInferenceErrors == null || _topLevelInferenceErrors.isEmpty)) {
-      offset_topLevelInferenceErrors = fbBuilder.writeList(_topLevelInferenceErrors.map((b) => b.finish(fbBuilder)).toList());
+    if (!(_topLevelInferenceErrors == null ||
+        _topLevelInferenceErrors.isEmpty)) {
+      offset_topLevelInferenceErrors = fbBuilder.writeList(
+          _topLevelInferenceErrors.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_types == null || _types.isEmpty)) {
-      offset_types = fbBuilder.writeList(_types.map((b) => b.finish(fbBuilder)).toList());
+      offset_types =
+          fbBuilder.writeList(_types.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_constCycles != null) {
@@ -3192,10 +3511,13 @@ class _LinkedUnitReader extends fb.TableReader<_LinkedUnitImpl> {
   const _LinkedUnitReader();
 
   @override
-  _LinkedUnitImpl createObject(fb.BufferContext bc, int offset) => new _LinkedUnitImpl(bc, offset);
+  _LinkedUnitImpl createObject(fb.BufferContext bc, int offset) =>
+      new _LinkedUnitImpl(bc, offset);
 }
 
-class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
+class _LinkedUnitImpl extends Object
+    with _LinkedUnitMixin
+    implements idl.LinkedUnit {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -3209,31 +3531,39 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
 
   @override
   List<int> get constCycles {
-    _constCycles ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
+    _constCycles ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _constCycles;
   }
 
   @override
   List<int> get parametersInheritingCovariant {
-    _parametersInheritingCovariant ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    _parametersInheritingCovariant ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
     return _parametersInheritingCovariant;
   }
 
   @override
   List<idl.LinkedReference> get references {
-    _references ??= const fb.ListReader<idl.LinkedReference>(const _LinkedReferenceReader()).vTableGet(_bc, _bcOffset, 0, const <idl.LinkedReference>[]);
+    _references ??=
+        const fb.ListReader<idl.LinkedReference>(const _LinkedReferenceReader())
+            .vTableGet(_bc, _bcOffset, 0, const <idl.LinkedReference>[]);
     return _references;
   }
 
   @override
   List<idl.TopLevelInferenceError> get topLevelInferenceErrors {
-    _topLevelInferenceErrors ??= const fb.ListReader<idl.TopLevelInferenceError>(const _TopLevelInferenceErrorReader()).vTableGet(_bc, _bcOffset, 4, const <idl.TopLevelInferenceError>[]);
+    _topLevelInferenceErrors ??=
+        const fb.ListReader<idl.TopLevelInferenceError>(
+                const _TopLevelInferenceErrorReader())
+            .vTableGet(_bc, _bcOffset, 4, const <idl.TopLevelInferenceError>[]);
     return _topLevelInferenceErrors;
   }
 
   @override
   List<idl.EntityRef> get types {
-    _types ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
+    _types ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
     return _types;
   }
 }
@@ -3243,27 +3573,35 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
-    if (parametersInheritingCovariant.isNotEmpty) _result["parametersInheritingCovariant"] = parametersInheritingCovariant;
-    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
-    if (topLevelInferenceErrors.isNotEmpty) _result["topLevelInferenceErrors"] = topLevelInferenceErrors.map((_value) => _value.toJson()).toList();
-    if (types.isNotEmpty) _result["types"] = types.map((_value) => _value.toJson()).toList();
+    if (parametersInheritingCovariant.isNotEmpty)
+      _result["parametersInheritingCovariant"] = parametersInheritingCovariant;
+    if (references.isNotEmpty)
+      _result["references"] =
+          references.map((_value) => _value.toJson()).toList();
+    if (topLevelInferenceErrors.isNotEmpty)
+      _result["topLevelInferenceErrors"] =
+          topLevelInferenceErrors.map((_value) => _value.toJson()).toList();
+    if (types.isNotEmpty)
+      _result["types"] = types.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "constCycles": constCycles,
-    "parametersInheritingCovariant": parametersInheritingCovariant,
-    "references": references,
-    "topLevelInferenceErrors": topLevelInferenceErrors,
-    "types": types,
-  };
+        "constCycles": constCycles,
+        "parametersInheritingCovariant": parametersInheritingCovariant,
+        "references": references,
+        "topLevelInferenceErrors": topLevelInferenceErrors,
+        "types": types,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class PackageBundleBuilder extends Object with _PackageBundleMixin implements idl.PackageBundle {
+class PackageBundleBuilder extends Object
+    with _PackageBundleMixin
+    implements idl.PackageBundle {
   String _apiSignature;
   List<PackageDependencyInfoBuilder> _dependencies;
   List<LinkedLibraryBuilder> _linkedLibraries;
@@ -3287,7 +3625,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   }
 
   @override
-  List<PackageDependencyInfoBuilder> get dependencies => _dependencies ??= <PackageDependencyInfoBuilder>[];
+  List<PackageDependencyInfoBuilder> get dependencies =>
+      _dependencies ??= <PackageDependencyInfoBuilder>[];
 
   /**
    * Information about the packages this package depends on, if known.
@@ -3297,7 +3636,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   }
 
   @override
-  List<LinkedLibraryBuilder> get linkedLibraries => _linkedLibraries ??= <LinkedLibraryBuilder>[];
+  List<LinkedLibraryBuilder> get linkedLibraries =>
+      _linkedLibraries ??= <LinkedLibraryBuilder>[];
 
   /**
    * Linked libraries.
@@ -3353,7 +3693,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   }
 
   @override
-  List<UnlinkedUnitBuilder> get unlinkedUnits => _unlinkedUnits ??= <UnlinkedUnitBuilder>[];
+  List<UnlinkedUnitBuilder> get unlinkedUnits =>
+      _unlinkedUnits ??= <UnlinkedUnitBuilder>[];
 
   /**
    * Unlinked information for the compilation units constituting the package.
@@ -3372,16 +3713,25 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     this._unlinkedUnitUris = value;
   }
 
-  PackageBundleBuilder({String apiSignature, List<PackageDependencyInfoBuilder> dependencies, List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
-    : _apiSignature = apiSignature,
-      _dependencies = dependencies,
-      _linkedLibraries = linkedLibraries,
-      _linkedLibraryUris = linkedLibraryUris,
-      _majorVersion = majorVersion,
-      _minorVersion = minorVersion,
-      _unlinkedUnitHashes = unlinkedUnitHashes,
-      _unlinkedUnits = unlinkedUnits,
-      _unlinkedUnitUris = unlinkedUnitUris;
+  PackageBundleBuilder(
+      {String apiSignature,
+      List<PackageDependencyInfoBuilder> dependencies,
+      List<LinkedLibraryBuilder> linkedLibraries,
+      List<String> linkedLibraryUris,
+      int majorVersion,
+      int minorVersion,
+      List<String> unlinkedUnitHashes,
+      List<UnlinkedUnitBuilder> unlinkedUnits,
+      List<String> unlinkedUnitUris})
+      : _apiSignature = apiSignature,
+        _dependencies = dependencies,
+        _linkedLibraries = linkedLibraries,
+        _linkedLibraryUris = linkedLibraryUris,
+        _majorVersion = majorVersion,
+        _minorVersion = minorVersion,
+        _unlinkedUnitHashes = unlinkedUnitHashes,
+        _unlinkedUnits = unlinkedUnits,
+        _unlinkedUnitUris = unlinkedUnitUris;
 
   /**
    * Flush [informative] data recursively.
@@ -3451,22 +3801,28 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
       offset_apiSignature = fbBuilder.writeString(_apiSignature);
     }
     if (!(_dependencies == null || _dependencies.isEmpty)) {
-      offset_dependencies = fbBuilder.writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
+      offset_dependencies = fbBuilder
+          .writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
-      offset_linkedLibraries = fbBuilder.writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
+      offset_linkedLibraries = fbBuilder
+          .writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_linkedLibraryUris == null || _linkedLibraryUris.isEmpty)) {
-      offset_linkedLibraryUris = fbBuilder.writeList(_linkedLibraryUris.map((b) => fbBuilder.writeString(b)).toList());
+      offset_linkedLibraryUris = fbBuilder.writeList(
+          _linkedLibraryUris.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_unlinkedUnitHashes == null || _unlinkedUnitHashes.isEmpty)) {
-      offset_unlinkedUnitHashes = fbBuilder.writeList(_unlinkedUnitHashes.map((b) => fbBuilder.writeString(b)).toList());
+      offset_unlinkedUnitHashes = fbBuilder.writeList(
+          _unlinkedUnitHashes.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_unlinkedUnits == null || _unlinkedUnits.isEmpty)) {
-      offset_unlinkedUnits = fbBuilder.writeList(_unlinkedUnits.map((b) => b.finish(fbBuilder)).toList());
+      offset_unlinkedUnits = fbBuilder
+          .writeList(_unlinkedUnits.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_unlinkedUnitUris == null || _unlinkedUnitUris.isEmpty)) {
-      offset_unlinkedUnitUris = fbBuilder.writeList(_unlinkedUnitUris.map((b) => fbBuilder.writeString(b)).toList());
+      offset_unlinkedUnitUris = fbBuilder.writeList(
+          _unlinkedUnitUris.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_apiSignature != null) {
@@ -3509,10 +3865,13 @@ class _PackageBundleReader extends fb.TableReader<_PackageBundleImpl> {
   const _PackageBundleReader();
 
   @override
-  _PackageBundleImpl createObject(fb.BufferContext bc, int offset) => new _PackageBundleImpl(bc, offset);
+  _PackageBundleImpl createObject(fb.BufferContext bc, int offset) =>
+      new _PackageBundleImpl(bc, offset);
 }
 
-class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.PackageBundle {
+class _PackageBundleImpl extends Object
+    with _PackageBundleMixin
+    implements idl.PackageBundle {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -3536,19 +3895,24 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
 
   @override
   List<idl.PackageDependencyInfo> get dependencies {
-    _dependencies ??= const fb.ListReader<idl.PackageDependencyInfo>(const _PackageDependencyInfoReader()).vTableGet(_bc, _bcOffset, 8, const <idl.PackageDependencyInfo>[]);
+    _dependencies ??= const fb.ListReader<idl.PackageDependencyInfo>(
+            const _PackageDependencyInfoReader())
+        .vTableGet(_bc, _bcOffset, 8, const <idl.PackageDependencyInfo>[]);
     return _dependencies;
   }
 
   @override
   List<idl.LinkedLibrary> get linkedLibraries {
-    _linkedLibraries ??= const fb.ListReader<idl.LinkedLibrary>(const _LinkedLibraryReader()).vTableGet(_bc, _bcOffset, 0, const <idl.LinkedLibrary>[]);
+    _linkedLibraries ??=
+        const fb.ListReader<idl.LinkedLibrary>(const _LinkedLibraryReader())
+            .vTableGet(_bc, _bcOffset, 0, const <idl.LinkedLibrary>[]);
     return _linkedLibraries;
   }
 
   @override
   List<String> get linkedLibraryUris {
-    _linkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    _linkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _linkedLibraryUris;
   }
 
@@ -3566,19 +3930,23 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
 
   @override
   List<String> get unlinkedUnitHashes {
-    _unlinkedUnitHashes ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 4, const <String>[]);
+    _unlinkedUnitHashes ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _unlinkedUnitHashes;
   }
 
   @override
   List<idl.UnlinkedUnit> get unlinkedUnits {
-    _unlinkedUnits ??= const fb.ListReader<idl.UnlinkedUnit>(const _UnlinkedUnitReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedUnit>[]);
+    _unlinkedUnits ??=
+        const fb.ListReader<idl.UnlinkedUnit>(const _UnlinkedUnitReader())
+            .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedUnit>[]);
     return _unlinkedUnits;
   }
 
   @override
   List<String> get unlinkedUnitUris {
-    _unlinkedUnitUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
+    _unlinkedUnitUris ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _unlinkedUnitUris;
   }
 }
@@ -3588,35 +3956,46 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (apiSignature != '') _result["apiSignature"] = apiSignature;
-    if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
-    if (linkedLibraries.isNotEmpty) _result["linkedLibraries"] = linkedLibraries.map((_value) => _value.toJson()).toList();
-    if (linkedLibraryUris.isNotEmpty) _result["linkedLibraryUris"] = linkedLibraryUris;
+    if (dependencies.isNotEmpty)
+      _result["dependencies"] =
+          dependencies.map((_value) => _value.toJson()).toList();
+    if (linkedLibraries.isNotEmpty)
+      _result["linkedLibraries"] =
+          linkedLibraries.map((_value) => _value.toJson()).toList();
+    if (linkedLibraryUris.isNotEmpty)
+      _result["linkedLibraryUris"] = linkedLibraryUris;
     if (majorVersion != 0) _result["majorVersion"] = majorVersion;
     if (minorVersion != 0) _result["minorVersion"] = minorVersion;
-    if (unlinkedUnitHashes.isNotEmpty) _result["unlinkedUnitHashes"] = unlinkedUnitHashes;
-    if (unlinkedUnits.isNotEmpty) _result["unlinkedUnits"] = unlinkedUnits.map((_value) => _value.toJson()).toList();
-    if (unlinkedUnitUris.isNotEmpty) _result["unlinkedUnitUris"] = unlinkedUnitUris;
+    if (unlinkedUnitHashes.isNotEmpty)
+      _result["unlinkedUnitHashes"] = unlinkedUnitHashes;
+    if (unlinkedUnits.isNotEmpty)
+      _result["unlinkedUnits"] =
+          unlinkedUnits.map((_value) => _value.toJson()).toList();
+    if (unlinkedUnitUris.isNotEmpty)
+      _result["unlinkedUnitUris"] = unlinkedUnitUris;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "apiSignature": apiSignature,
-    "dependencies": dependencies,
-    "linkedLibraries": linkedLibraries,
-    "linkedLibraryUris": linkedLibraryUris,
-    "majorVersion": majorVersion,
-    "minorVersion": minorVersion,
-    "unlinkedUnitHashes": unlinkedUnitHashes,
-    "unlinkedUnits": unlinkedUnits,
-    "unlinkedUnitUris": unlinkedUnitUris,
-  };
+        "apiSignature": apiSignature,
+        "dependencies": dependencies,
+        "linkedLibraries": linkedLibraries,
+        "linkedLibraryUris": linkedLibraryUris,
+        "majorVersion": majorVersion,
+        "minorVersion": minorVersion,
+        "unlinkedUnitHashes": unlinkedUnitHashes,
+        "unlinkedUnits": unlinkedUnits,
+        "unlinkedUnitUris": unlinkedUnitUris,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMixin implements idl.PackageDependencyInfo {
+class PackageDependencyInfoBuilder extends Object
+    with _PackageDependencyInfoMixin
+    implements idl.PackageDependencyInfo {
   String _apiSignature;
   List<String> _includedPackageNames;
   bool _includesDartUris;
@@ -3683,18 +4062,22 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
     this._summaryPath = value;
   }
 
-  PackageDependencyInfoBuilder({String apiSignature, List<String> includedPackageNames, bool includesDartUris, bool includesFileUris, String summaryPath})
-    : _apiSignature = apiSignature,
-      _includedPackageNames = includedPackageNames,
-      _includesDartUris = includesDartUris,
-      _includesFileUris = includesFileUris,
-      _summaryPath = summaryPath;
+  PackageDependencyInfoBuilder(
+      {String apiSignature,
+      List<String> includedPackageNames,
+      bool includesDartUris,
+      bool includesFileUris,
+      String summaryPath})
+      : _apiSignature = apiSignature,
+        _includedPackageNames = includedPackageNames,
+        _includesDartUris = includesDartUris,
+        _includesFileUris = includesFileUris,
+        _summaryPath = summaryPath;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -3722,7 +4105,8 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
       offset_apiSignature = fbBuilder.writeString(_apiSignature);
     }
     if (!(_includedPackageNames == null || _includedPackageNames.isEmpty)) {
-      offset_includedPackageNames = fbBuilder.writeList(_includedPackageNames.map((b) => fbBuilder.writeString(b)).toList());
+      offset_includedPackageNames = fbBuilder.writeList(
+          _includedPackageNames.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (_summaryPath != null) {
       offset_summaryPath = fbBuilder.writeString(_summaryPath);
@@ -3747,14 +4131,18 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
   }
 }
 
-class _PackageDependencyInfoReader extends fb.TableReader<_PackageDependencyInfoImpl> {
+class _PackageDependencyInfoReader
+    extends fb.TableReader<_PackageDependencyInfoImpl> {
   const _PackageDependencyInfoReader();
 
   @override
-  _PackageDependencyInfoImpl createObject(fb.BufferContext bc, int offset) => new _PackageDependencyInfoImpl(bc, offset);
+  _PackageDependencyInfoImpl createObject(fb.BufferContext bc, int offset) =>
+      new _PackageDependencyInfoImpl(bc, offset);
 }
 
-class _PackageDependencyInfoImpl extends Object with _PackageDependencyInfoMixin implements idl.PackageDependencyInfo {
+class _PackageDependencyInfoImpl extends Object
+    with _PackageDependencyInfoMixin
+    implements idl.PackageDependencyInfo {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -3774,19 +4162,23 @@ class _PackageDependencyInfoImpl extends Object with _PackageDependencyInfoMixin
 
   @override
   List<String> get includedPackageNames {
-    _includedPackageNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    _includedPackageNames ??=
+        const fb.ListReader<String>(const fb.StringReader())
+            .vTableGet(_bc, _bcOffset, 2, const <String>[]);
     return _includedPackageNames;
   }
 
   @override
   bool get includesDartUris {
-    _includesDartUris ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    _includesDartUris ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
     return _includesDartUris;
   }
 
   @override
   bool get includesFileUris {
-    _includesFileUris ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    _includesFileUris ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _includesFileUris;
   }
 
@@ -3797,32 +4189,38 @@ class _PackageDependencyInfoImpl extends Object with _PackageDependencyInfoMixin
   }
 }
 
-abstract class _PackageDependencyInfoMixin implements idl.PackageDependencyInfo {
+abstract class _PackageDependencyInfoMixin
+    implements idl.PackageDependencyInfo {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (apiSignature != '') _result["apiSignature"] = apiSignature;
-    if (includedPackageNames.isNotEmpty) _result["includedPackageNames"] = includedPackageNames;
-    if (includesDartUris != false) _result["includesDartUris"] = includesDartUris;
-    if (includesFileUris != false) _result["includesFileUris"] = includesFileUris;
+    if (includedPackageNames.isNotEmpty)
+      _result["includedPackageNames"] = includedPackageNames;
+    if (includesDartUris != false)
+      _result["includesDartUris"] = includesDartUris;
+    if (includesFileUris != false)
+      _result["includesFileUris"] = includesFileUris;
     if (summaryPath != '') _result["summaryPath"] = summaryPath;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "apiSignature": apiSignature,
-    "includedPackageNames": includedPackageNames,
-    "includesDartUris": includesDartUris,
-    "includesFileUris": includesFileUris,
-    "summaryPath": summaryPath,
-  };
+        "apiSignature": apiSignature,
+        "includedPackageNames": includedPackageNames,
+        "includesDartUris": includesDartUris,
+        "includesFileUris": includesFileUris,
+        "summaryPath": summaryPath,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.PackageIndex {
+class PackageIndexBuilder extends Object
+    with _PackageIndexMixin
+    implements idl.PackageIndex {
   List<idl.IndexSyntheticElementKind> _elementKinds;
   List<int> _elementNameClassMemberIds;
   List<int> _elementNameParameterIds;
@@ -3834,7 +4232,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   List<int> _unitUnitUris;
 
   @override
-  List<idl.IndexSyntheticElementKind> get elementKinds => _elementKinds ??= <idl.IndexSyntheticElementKind>[];
+  List<idl.IndexSyntheticElementKind> get elementKinds =>
+      _elementKinds ??= <idl.IndexSyntheticElementKind>[];
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -3845,7 +4244,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   }
 
   @override
-  List<int> get elementNameClassMemberIds => _elementNameClassMemberIds ??= <int>[];
+  List<int> get elementNameClassMemberIds =>
+      _elementNameClassMemberIds ??= <int>[];
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -3875,7 +4275,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   }
 
   @override
-  List<int> get elementNameUnitMemberIds => _elementNameUnitMemberIds ??= <int>[];
+  List<int> get elementNameUnitMemberIds =>
+      _elementNameUnitMemberIds ??= <int>[];
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -3949,16 +4350,25 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     this._unitUnitUris = value;
   }
 
-  PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementNameClassMemberIds, List<int> elementNameParameterIds, List<int> elementNameUnitMemberIds, List<int> elementUnits, List<String> strings, List<int> unitLibraryUris, List<UnitIndexBuilder> units, List<int> unitUnitUris})
-    : _elementKinds = elementKinds,
-      _elementNameClassMemberIds = elementNameClassMemberIds,
-      _elementNameParameterIds = elementNameParameterIds,
-      _elementNameUnitMemberIds = elementNameUnitMemberIds,
-      _elementUnits = elementUnits,
-      _strings = strings,
-      _unitLibraryUris = unitLibraryUris,
-      _units = units,
-      _unitUnitUris = unitUnitUris;
+  PackageIndexBuilder(
+      {List<idl.IndexSyntheticElementKind> elementKinds,
+      List<int> elementNameClassMemberIds,
+      List<int> elementNameParameterIds,
+      List<int> elementNameUnitMemberIds,
+      List<int> elementUnits,
+      List<String> strings,
+      List<int> unitLibraryUris,
+      List<UnitIndexBuilder> units,
+      List<int> unitUnitUris})
+      : _elementKinds = elementKinds,
+        _elementNameClassMemberIds = elementNameClassMemberIds,
+        _elementNameParameterIds = elementNameParameterIds,
+        _elementNameUnitMemberIds = elementNameUnitMemberIds,
+        _elementUnits = elementUnits,
+        _strings = strings,
+        _unitLibraryUris = unitLibraryUris,
+        _units = units,
+        _unitUnitUris = unitUnitUris;
 
   /**
    * Flush [informative] data recursively.
@@ -4061,28 +4471,37 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     fb.Offset offset_units;
     fb.Offset offset_unitUnitUris;
     if (!(_elementKinds == null || _elementKinds.isEmpty)) {
-      offset_elementKinds = fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
+      offset_elementKinds =
+          fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
     }
-    if (!(_elementNameClassMemberIds == null || _elementNameClassMemberIds.isEmpty)) {
-      offset_elementNameClassMemberIds = fbBuilder.writeListUint32(_elementNameClassMemberIds);
+    if (!(_elementNameClassMemberIds == null ||
+        _elementNameClassMemberIds.isEmpty)) {
+      offset_elementNameClassMemberIds =
+          fbBuilder.writeListUint32(_elementNameClassMemberIds);
     }
-    if (!(_elementNameParameterIds == null || _elementNameParameterIds.isEmpty)) {
-      offset_elementNameParameterIds = fbBuilder.writeListUint32(_elementNameParameterIds);
+    if (!(_elementNameParameterIds == null ||
+        _elementNameParameterIds.isEmpty)) {
+      offset_elementNameParameterIds =
+          fbBuilder.writeListUint32(_elementNameParameterIds);
     }
-    if (!(_elementNameUnitMemberIds == null || _elementNameUnitMemberIds.isEmpty)) {
-      offset_elementNameUnitMemberIds = fbBuilder.writeListUint32(_elementNameUnitMemberIds);
+    if (!(_elementNameUnitMemberIds == null ||
+        _elementNameUnitMemberIds.isEmpty)) {
+      offset_elementNameUnitMemberIds =
+          fbBuilder.writeListUint32(_elementNameUnitMemberIds);
     }
     if (!(_elementUnits == null || _elementUnits.isEmpty)) {
       offset_elementUnits = fbBuilder.writeListUint32(_elementUnits);
     }
     if (!(_strings == null || _strings.isEmpty)) {
-      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+      offset_strings = fbBuilder
+          .writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_unitLibraryUris == null || _unitLibraryUris.isEmpty)) {
       offset_unitLibraryUris = fbBuilder.writeListUint32(_unitLibraryUris);
     }
     if (!(_units == null || _units.isEmpty)) {
-      offset_units = fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
+      offset_units =
+          fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_unitUnitUris == null || _unitUnitUris.isEmpty)) {
       offset_unitUnitUris = fbBuilder.writeListUint32(_unitUnitUris);
@@ -4128,10 +4547,13 @@ class _PackageIndexReader extends fb.TableReader<_PackageIndexImpl> {
   const _PackageIndexReader();
 
   @override
-  _PackageIndexImpl createObject(fb.BufferContext bc, int offset) => new _PackageIndexImpl(bc, offset);
+  _PackageIndexImpl createObject(fb.BufferContext bc, int offset) =>
+      new _PackageIndexImpl(bc, offset);
 }
 
-class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.PackageIndex {
+class _PackageIndexImpl extends Object
+    with _PackageIndexMixin
+    implements idl.PackageIndex {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -4149,55 +4571,65 @@ class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.Pa
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
-    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bc, _bcOffset, 5, const <idl.IndexSyntheticElementKind>[]);
+    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(
+            const _IndexSyntheticElementKindReader())
+        .vTableGet(_bc, _bcOffset, 5, const <idl.IndexSyntheticElementKind>[]);
     return _elementKinds;
   }
 
   @override
   List<int> get elementNameClassMemberIds {
-    _elementNameClassMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
+    _elementNameClassMemberIds ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
     return _elementNameClassMemberIds;
   }
 
   @override
   List<int> get elementNameParameterIds {
-    _elementNameParameterIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
+    _elementNameParameterIds ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
     return _elementNameParameterIds;
   }
 
   @override
   List<int> get elementNameUnitMemberIds {
-    _elementNameUnitMemberIds ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    _elementNameUnitMemberIds ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _elementNameUnitMemberIds;
   }
 
   @override
   List<int> get elementUnits {
-    _elementUnits ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+    _elementUnits ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
     return _elementUnits;
   }
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 6, const <String>[]);
+    _strings ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 6, const <String>[]);
     return _strings;
   }
 
   @override
   List<int> get unitLibraryUris {
-    _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
+    _unitLibraryUris ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _unitLibraryUris;
   }
 
   @override
   List<idl.UnitIndex> get units {
-    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnitIndex>[]);
+    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.UnitIndex>[]);
     return _units;
   }
 
   @override
   List<int> get unitUnitUris {
-    _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    _unitUnitUris ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
     return _unitUnitUris;
   }
 }
@@ -4206,41 +4638,52 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (elementKinds.isNotEmpty) _result["elementKinds"] = elementKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (elementNameClassMemberIds.isNotEmpty) _result["elementNameClassMemberIds"] = elementNameClassMemberIds;
-    if (elementNameParameterIds.isNotEmpty) _result["elementNameParameterIds"] = elementNameParameterIds;
-    if (elementNameUnitMemberIds.isNotEmpty) _result["elementNameUnitMemberIds"] = elementNameUnitMemberIds;
+    if (elementKinds.isNotEmpty)
+      _result["elementKinds"] = elementKinds
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (elementNameClassMemberIds.isNotEmpty)
+      _result["elementNameClassMemberIds"] = elementNameClassMemberIds;
+    if (elementNameParameterIds.isNotEmpty)
+      _result["elementNameParameterIds"] = elementNameParameterIds;
+    if (elementNameUnitMemberIds.isNotEmpty)
+      _result["elementNameUnitMemberIds"] = elementNameUnitMemberIds;
     if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
     if (strings.isNotEmpty) _result["strings"] = strings;
-    if (unitLibraryUris.isNotEmpty) _result["unitLibraryUris"] = unitLibraryUris;
-    if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
+    if (unitLibraryUris.isNotEmpty)
+      _result["unitLibraryUris"] = unitLibraryUris;
+    if (units.isNotEmpty)
+      _result["units"] = units.map((_value) => _value.toJson()).toList();
     if (unitUnitUris.isNotEmpty) _result["unitUnitUris"] = unitUnitUris;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "elementKinds": elementKinds,
-    "elementNameClassMemberIds": elementNameClassMemberIds,
-    "elementNameParameterIds": elementNameParameterIds,
-    "elementNameUnitMemberIds": elementNameUnitMemberIds,
-    "elementUnits": elementUnits,
-    "strings": strings,
-    "unitLibraryUris": unitLibraryUris,
-    "units": units,
-    "unitUnitUris": unitUnitUris,
-  };
+        "elementKinds": elementKinds,
+        "elementNameClassMemberIds": elementNameClassMemberIds,
+        "elementNameParameterIds": elementNameParameterIds,
+        "elementNameUnitMemberIds": elementNameUnitMemberIds,
+        "elementUnits": elementUnits,
+        "strings": strings,
+        "unitLibraryUris": unitLibraryUris,
+        "units": units,
+        "unitUnitUris": unitUnitUris,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class TopLevelInferenceErrorBuilder extends Object with _TopLevelInferenceErrorMixin implements idl.TopLevelInferenceError {
+class TopLevelInferenceErrorBuilder extends Object
+    with _TopLevelInferenceErrorMixin
+    implements idl.TopLevelInferenceError {
   idl.TopLevelInferenceErrorKind _kind;
   int _slot;
 
   @override
-  idl.TopLevelInferenceErrorKind get kind => _kind ??= idl.TopLevelInferenceErrorKind.assignment;
+  idl.TopLevelInferenceErrorKind get kind =>
+      _kind ??= idl.TopLevelInferenceErrorKind.assignment;
 
   /**
    * The kind of the error.
@@ -4263,14 +4706,13 @@ class TopLevelInferenceErrorBuilder extends Object with _TopLevelInferenceErrorM
   }
 
   TopLevelInferenceErrorBuilder({idl.TopLevelInferenceErrorKind kind, int slot})
-    : _kind = kind,
-      _slot = slot;
+      : _kind = kind,
+        _slot = slot;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -4292,14 +4734,18 @@ class TopLevelInferenceErrorBuilder extends Object with _TopLevelInferenceErrorM
   }
 }
 
-class _TopLevelInferenceErrorReader extends fb.TableReader<_TopLevelInferenceErrorImpl> {
+class _TopLevelInferenceErrorReader
+    extends fb.TableReader<_TopLevelInferenceErrorImpl> {
   const _TopLevelInferenceErrorReader();
 
   @override
-  _TopLevelInferenceErrorImpl createObject(fb.BufferContext bc, int offset) => new _TopLevelInferenceErrorImpl(bc, offset);
+  _TopLevelInferenceErrorImpl createObject(fb.BufferContext bc, int offset) =>
+      new _TopLevelInferenceErrorImpl(bc, offset);
 }
 
-class _TopLevelInferenceErrorImpl extends Object with _TopLevelInferenceErrorMixin implements idl.TopLevelInferenceError {
+class _TopLevelInferenceErrorImpl extends Object
+    with _TopLevelInferenceErrorMixin
+    implements idl.TopLevelInferenceError {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -4310,7 +4756,8 @@ class _TopLevelInferenceErrorImpl extends Object with _TopLevelInferenceErrorMix
 
   @override
   idl.TopLevelInferenceErrorKind get kind {
-    _kind ??= const _TopLevelInferenceErrorKindReader().vTableGet(_bc, _bcOffset, 1, idl.TopLevelInferenceErrorKind.assignment);
+    _kind ??= const _TopLevelInferenceErrorKindReader().vTableGet(
+        _bc, _bcOffset, 1, idl.TopLevelInferenceErrorKind.assignment);
     return _kind;
   }
 
@@ -4321,26 +4768,30 @@ class _TopLevelInferenceErrorImpl extends Object with _TopLevelInferenceErrorMix
   }
 }
 
-abstract class _TopLevelInferenceErrorMixin implements idl.TopLevelInferenceError {
+abstract class _TopLevelInferenceErrorMixin
+    implements idl.TopLevelInferenceError {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (kind != idl.TopLevelInferenceErrorKind.assignment) _result["kind"] = kind.toString().split('.')[1];
+    if (kind != idl.TopLevelInferenceErrorKind.assignment)
+      _result["kind"] = kind.toString().split('.')[1];
     if (slot != 0) _result["slot"] = slot;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "kind": kind,
-    "slot": slot,
-  };
+        "kind": kind,
+        "slot": slot,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIndex {
+class UnitIndexBuilder extends Object
+    with _UnitIndexMixin
+    implements idl.UnitIndex {
   List<idl.IndexNameKind> _definedNameKinds;
   List<int> _definedNameOffsets;
   List<int> _definedNames;
@@ -4356,7 +4807,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   List<int> _usedNames;
 
   @override
-  List<idl.IndexNameKind> get definedNameKinds => _definedNameKinds ??= <idl.IndexNameKind>[];
+  List<idl.IndexNameKind> get definedNameKinds =>
+      _definedNameKinds ??= <idl.IndexNameKind>[];
 
   /**
    * Each item of this list is the kind of an element defined in this unit.
@@ -4404,7 +4856,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   }
 
   @override
-  List<bool> get usedElementIsQualifiedFlags => _usedElementIsQualifiedFlags ??= <bool>[];
+  List<bool> get usedElementIsQualifiedFlags =>
+      _usedElementIsQualifiedFlags ??= <bool>[];
 
   /**
    * Each item of this list is the `true` if the corresponding element usage
@@ -4415,7 +4868,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   }
 
   @override
-  List<idl.IndexRelationKind> get usedElementKinds => _usedElementKinds ??= <idl.IndexRelationKind>[];
+  List<idl.IndexRelationKind> get usedElementKinds =>
+      _usedElementKinds ??= <idl.IndexRelationKind>[];
 
   /**
    * Each item of this list is the kind of the element usage.
@@ -4461,7 +4915,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   }
 
   @override
-  List<bool> get usedNameIsQualifiedFlags => _usedNameIsQualifiedFlags ??= <bool>[];
+  List<bool> get usedNameIsQualifiedFlags =>
+      _usedNameIsQualifiedFlags ??= <bool>[];
 
   /**
    * Each item of this list is the `true` if the corresponding name usage
@@ -4472,7 +4927,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   }
 
   @override
-  List<idl.IndexRelationKind> get usedNameKinds => _usedNameKinds ??= <idl.IndexRelationKind>[];
+  List<idl.IndexRelationKind> get usedNameKinds =>
+      _usedNameKinds ??= <idl.IndexRelationKind>[];
 
   /**
    * Each item of this list is the kind of the name usage.
@@ -4506,26 +4962,38 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     this._usedNames = value;
   }
 
-  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<bool> usedNameIsQualifiedFlags, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
-    : _definedNameKinds = definedNameKinds,
-      _definedNameOffsets = definedNameOffsets,
-      _definedNames = definedNames,
-      _unit = unit,
-      _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
-      _usedElementKinds = usedElementKinds,
-      _usedElementLengths = usedElementLengths,
-      _usedElementOffsets = usedElementOffsets,
-      _usedElements = usedElements,
-      _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
-      _usedNameKinds = usedNameKinds,
-      _usedNameOffsets = usedNameOffsets,
-      _usedNames = usedNames;
+  UnitIndexBuilder(
+      {List<idl.IndexNameKind> definedNameKinds,
+      List<int> definedNameOffsets,
+      List<int> definedNames,
+      int unit,
+      List<bool> usedElementIsQualifiedFlags,
+      List<idl.IndexRelationKind> usedElementKinds,
+      List<int> usedElementLengths,
+      List<int> usedElementOffsets,
+      List<int> usedElements,
+      List<bool> usedNameIsQualifiedFlags,
+      List<idl.IndexRelationKind> usedNameKinds,
+      List<int> usedNameOffsets,
+      List<int> usedNames})
+      : _definedNameKinds = definedNameKinds,
+        _definedNameOffsets = definedNameOffsets,
+        _definedNames = definedNames,
+        _unit = unit,
+        _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
+        _usedElementKinds = usedElementKinds,
+        _usedElementLengths = usedElementLengths,
+        _usedElementOffsets = usedElementOffsets,
+        _usedElements = usedElements,
+        _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
+        _usedNameKinds = usedNameKinds,
+        _usedNameOffsets = usedNameOffsets,
+        _usedNames = usedNames;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -4644,34 +5112,44 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     fb.Offset offset_usedNameOffsets;
     fb.Offset offset_usedNames;
     if (!(_definedNameKinds == null || _definedNameKinds.isEmpty)) {
-      offset_definedNameKinds = fbBuilder.writeListUint8(_definedNameKinds.map((b) => b.index).toList());
+      offset_definedNameKinds = fbBuilder
+          .writeListUint8(_definedNameKinds.map((b) => b.index).toList());
     }
     if (!(_definedNameOffsets == null || _definedNameOffsets.isEmpty)) {
-      offset_definedNameOffsets = fbBuilder.writeListUint32(_definedNameOffsets);
+      offset_definedNameOffsets =
+          fbBuilder.writeListUint32(_definedNameOffsets);
     }
     if (!(_definedNames == null || _definedNames.isEmpty)) {
       offset_definedNames = fbBuilder.writeListUint32(_definedNames);
     }
-    if (!(_usedElementIsQualifiedFlags == null || _usedElementIsQualifiedFlags.isEmpty)) {
-      offset_usedElementIsQualifiedFlags = fbBuilder.writeListBool(_usedElementIsQualifiedFlags);
+    if (!(_usedElementIsQualifiedFlags == null ||
+        _usedElementIsQualifiedFlags.isEmpty)) {
+      offset_usedElementIsQualifiedFlags =
+          fbBuilder.writeListBool(_usedElementIsQualifiedFlags);
     }
     if (!(_usedElementKinds == null || _usedElementKinds.isEmpty)) {
-      offset_usedElementKinds = fbBuilder.writeListUint8(_usedElementKinds.map((b) => b.index).toList());
+      offset_usedElementKinds = fbBuilder
+          .writeListUint8(_usedElementKinds.map((b) => b.index).toList());
     }
     if (!(_usedElementLengths == null || _usedElementLengths.isEmpty)) {
-      offset_usedElementLengths = fbBuilder.writeListUint32(_usedElementLengths);
+      offset_usedElementLengths =
+          fbBuilder.writeListUint32(_usedElementLengths);
     }
     if (!(_usedElementOffsets == null || _usedElementOffsets.isEmpty)) {
-      offset_usedElementOffsets = fbBuilder.writeListUint32(_usedElementOffsets);
+      offset_usedElementOffsets =
+          fbBuilder.writeListUint32(_usedElementOffsets);
     }
     if (!(_usedElements == null || _usedElements.isEmpty)) {
       offset_usedElements = fbBuilder.writeListUint32(_usedElements);
     }
-    if (!(_usedNameIsQualifiedFlags == null || _usedNameIsQualifiedFlags.isEmpty)) {
-      offset_usedNameIsQualifiedFlags = fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
+    if (!(_usedNameIsQualifiedFlags == null ||
+        _usedNameIsQualifiedFlags.isEmpty)) {
+      offset_usedNameIsQualifiedFlags =
+          fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
     }
     if (!(_usedNameKinds == null || _usedNameKinds.isEmpty)) {
-      offset_usedNameKinds = fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
+      offset_usedNameKinds =
+          fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
     }
     if (!(_usedNameOffsets == null || _usedNameOffsets.isEmpty)) {
       offset_usedNameOffsets = fbBuilder.writeListUint32(_usedNameOffsets);
@@ -4727,10 +5205,13 @@ class _UnitIndexReader extends fb.TableReader<_UnitIndexImpl> {
   const _UnitIndexReader();
 
   @override
-  _UnitIndexImpl createObject(fb.BufferContext bc, int offset) => new _UnitIndexImpl(bc, offset);
+  _UnitIndexImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnitIndexImpl(bc, offset);
 }
 
-class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitIndex {
+class _UnitIndexImpl extends Object
+    with _UnitIndexMixin
+    implements idl.UnitIndex {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -4752,19 +5233,23 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
 
   @override
   List<idl.IndexNameKind> get definedNameKinds {
-    _definedNameKinds ??= const fb.ListReader<idl.IndexNameKind>(const _IndexNameKindReader()).vTableGet(_bc, _bcOffset, 6, const <idl.IndexNameKind>[]);
+    _definedNameKinds ??=
+        const fb.ListReader<idl.IndexNameKind>(const _IndexNameKindReader())
+            .vTableGet(_bc, _bcOffset, 6, const <idl.IndexNameKind>[]);
     return _definedNameKinds;
   }
 
   @override
   List<int> get definedNameOffsets {
-    _definedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
+    _definedNameOffsets ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
     return _definedNameOffsets;
   }
 
   @override
   List<int> get definedNames {
-    _definedNames ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+    _definedNames ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
     return _definedNames;
   }
 
@@ -4776,55 +5261,66 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
 
   @override
   List<bool> get usedElementIsQualifiedFlags {
-    _usedElementIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 11, const <bool>[]);
+    _usedElementIsQualifiedFlags ??=
+        const fb.BoolListReader().vTableGet(_bc, _bcOffset, 11, const <bool>[]);
     return _usedElementIsQualifiedFlags;
   }
 
   @override
   List<idl.IndexRelationKind> get usedElementKinds {
-    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 4, const <idl.IndexRelationKind>[]);
+    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(
+            const _IndexRelationKindReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.IndexRelationKind>[]);
     return _usedElementKinds;
   }
 
   @override
   List<int> get usedElementLengths {
-    _usedElementLengths ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    _usedElementLengths ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _usedElementLengths;
   }
 
   @override
   List<int> get usedElementOffsets {
-    _usedElementOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
+    _usedElementOffsets ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _usedElementOffsets;
   }
 
   @override
   List<int> get usedElements {
-    _usedElements ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    _usedElements ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
     return _usedElements;
   }
 
   @override
   List<bool> get usedNameIsQualifiedFlags {
-    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 12, const <bool>[]);
+    _usedNameIsQualifiedFlags ??=
+        const fb.BoolListReader().vTableGet(_bc, _bcOffset, 12, const <bool>[]);
     return _usedNameIsQualifiedFlags;
   }
 
   @override
   List<idl.IndexRelationKind> get usedNameKinds {
-    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
+    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(
+            const _IndexRelationKindReader())
+        .vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
     return _usedNameKinds;
   }
 
   @override
   List<int> get usedNameOffsets {
-    _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 9, const <int>[]);
+    _usedNameOffsets ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 9, const <int>[]);
     return _usedNameOffsets;
   }
 
   @override
   List<int> get usedNames {
-    _usedNames ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
+    _usedNames ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
     return _usedNames;
   }
 }
@@ -4833,44 +5329,61 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (definedNameKinds.isNotEmpty) _result["definedNameKinds"] = definedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (definedNameOffsets.isNotEmpty) _result["definedNameOffsets"] = definedNameOffsets;
+    if (definedNameKinds.isNotEmpty)
+      _result["definedNameKinds"] = definedNameKinds
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (definedNameOffsets.isNotEmpty)
+      _result["definedNameOffsets"] = definedNameOffsets;
     if (definedNames.isNotEmpty) _result["definedNames"] = definedNames;
     if (unit != 0) _result["unit"] = unit;
-    if (usedElementIsQualifiedFlags.isNotEmpty) _result["usedElementIsQualifiedFlags"] = usedElementIsQualifiedFlags;
-    if (usedElementKinds.isNotEmpty) _result["usedElementKinds"] = usedElementKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (usedElementLengths.isNotEmpty) _result["usedElementLengths"] = usedElementLengths;
-    if (usedElementOffsets.isNotEmpty) _result["usedElementOffsets"] = usedElementOffsets;
+    if (usedElementIsQualifiedFlags.isNotEmpty)
+      _result["usedElementIsQualifiedFlags"] = usedElementIsQualifiedFlags;
+    if (usedElementKinds.isNotEmpty)
+      _result["usedElementKinds"] = usedElementKinds
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (usedElementLengths.isNotEmpty)
+      _result["usedElementLengths"] = usedElementLengths;
+    if (usedElementOffsets.isNotEmpty)
+      _result["usedElementOffsets"] = usedElementOffsets;
     if (usedElements.isNotEmpty) _result["usedElements"] = usedElements;
-    if (usedNameIsQualifiedFlags.isNotEmpty) _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
-    if (usedNameKinds.isNotEmpty) _result["usedNameKinds"] = usedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
-    if (usedNameOffsets.isNotEmpty) _result["usedNameOffsets"] = usedNameOffsets;
+    if (usedNameIsQualifiedFlags.isNotEmpty)
+      _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
+    if (usedNameKinds.isNotEmpty)
+      _result["usedNameKinds"] = usedNameKinds
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (usedNameOffsets.isNotEmpty)
+      _result["usedNameOffsets"] = usedNameOffsets;
     if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "definedNameKinds": definedNameKinds,
-    "definedNameOffsets": definedNameOffsets,
-    "definedNames": definedNames,
-    "unit": unit,
-    "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
-    "usedElementKinds": usedElementKinds,
-    "usedElementLengths": usedElementLengths,
-    "usedElementOffsets": usedElementOffsets,
-    "usedElements": usedElements,
-    "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
-    "usedNameKinds": usedNameKinds,
-    "usedNameOffsets": usedNameOffsets,
-    "usedNames": usedNames,
-  };
+        "definedNameKinds": definedNameKinds,
+        "definedNameOffsets": definedNameOffsets,
+        "definedNames": definedNames,
+        "unit": unit,
+        "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
+        "usedElementKinds": usedElementKinds,
+        "usedElementLengths": usedElementLengths,
+        "usedElementOffsets": usedElementOffsets,
+        "usedElements": usedElements,
+        "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
+        "usedNameKinds": usedNameKinds,
+        "usedNameOffsets": usedNameOffsets,
+        "usedNames": usedNames,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements idl.UnlinkedClass {
+class UnlinkedClassBuilder extends Object
+    with _UnlinkedClassMixin
+    implements idl.UnlinkedClass {
   List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -4887,7 +5400,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this class.
@@ -4907,7 +5421,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   }
 
   @override
-  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment =>
+      _documentationComment;
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -4918,7 +5433,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   }
 
   @override
-  List<UnlinkedExecutableBuilder> get executables => _executables ??= <UnlinkedExecutableBuilder>[];
+  List<UnlinkedExecutableBuilder> get executables =>
+      _executables ??= <UnlinkedExecutableBuilder>[];
 
   /**
    * Executable objects (methods, getters, and setters) contained in the class.
@@ -4928,7 +5444,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   }
 
   @override
-  List<UnlinkedVariableBuilder> get fields => _fields ??= <UnlinkedVariableBuilder>[];
+  List<UnlinkedVariableBuilder> get fields =>
+      _fields ??= <UnlinkedVariableBuilder>[];
 
   /**
    * Field declarations contained in the class.
@@ -5022,7 +5539,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   }
 
   @override
-  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters =>
+      _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * Type parameters of the class, if any.
@@ -5031,21 +5549,35 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     this._typeParameters = value;
   }
 
-  UnlinkedClassBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedExecutableBuilder> executables, List<UnlinkedVariableBuilder> fields, bool hasNoSupertype, List<EntityRefBuilder> interfaces, bool isAbstract, bool isMixinApplication, List<EntityRefBuilder> mixins, String name, int nameOffset, EntityRefBuilder supertype, List<UnlinkedTypeParamBuilder> typeParameters})
-    : _annotations = annotations,
-      _codeRange = codeRange,
-      _documentationComment = documentationComment,
-      _executables = executables,
-      _fields = fields,
-      _hasNoSupertype = hasNoSupertype,
-      _interfaces = interfaces,
-      _isAbstract = isAbstract,
-      _isMixinApplication = isMixinApplication,
-      _mixins = mixins,
-      _name = name,
-      _nameOffset = nameOffset,
-      _supertype = supertype,
-      _typeParameters = typeParameters;
+  UnlinkedClassBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      CodeRangeBuilder codeRange,
+      UnlinkedDocumentationCommentBuilder documentationComment,
+      List<UnlinkedExecutableBuilder> executables,
+      List<UnlinkedVariableBuilder> fields,
+      bool hasNoSupertype,
+      List<EntityRefBuilder> interfaces,
+      bool isAbstract,
+      bool isMixinApplication,
+      List<EntityRefBuilder> mixins,
+      String name,
+      int nameOffset,
+      EntityRefBuilder supertype,
+      List<UnlinkedTypeParamBuilder> typeParameters})
+      : _annotations = annotations,
+        _codeRange = codeRange,
+        _documentationComment = documentationComment,
+        _executables = executables,
+        _fields = fields,
+        _hasNoSupertype = hasNoSupertype,
+        _interfaces = interfaces,
+        _isAbstract = isAbstract,
+        _isMixinApplication = isMixinApplication,
+        _mixins = mixins,
+        _name = name,
+        _nameOffset = nameOffset,
+        _supertype = supertype,
+        _typeParameters = typeParameters;
 
   /**
    * Flush [informative] data recursively.
@@ -5135,7 +5667,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     fb.Offset offset_supertype;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_codeRange != null) {
       offset_codeRange = _codeRange.finish(fbBuilder);
@@ -5144,16 +5677,20 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
       offset_documentationComment = _documentationComment.finish(fbBuilder);
     }
     if (!(_executables == null || _executables.isEmpty)) {
-      offset_executables = fbBuilder.writeList(_executables.map((b) => b.finish(fbBuilder)).toList());
+      offset_executables = fbBuilder
+          .writeList(_executables.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_fields == null || _fields.isEmpty)) {
-      offset_fields = fbBuilder.writeList(_fields.map((b) => b.finish(fbBuilder)).toList());
+      offset_fields =
+          fbBuilder.writeList(_fields.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_interfaces == null || _interfaces.isEmpty)) {
-      offset_interfaces = fbBuilder.writeList(_interfaces.map((b) => b.finish(fbBuilder)).toList());
+      offset_interfaces = fbBuilder
+          .writeList(_interfaces.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_mixins == null || _mixins.isEmpty)) {
-      offset_mixins = fbBuilder.writeList(_mixins.map((b) => b.finish(fbBuilder)).toList());
+      offset_mixins =
+          fbBuilder.writeList(_mixins.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -5162,7 +5699,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
       offset_supertype = _supertype.finish(fbBuilder);
     }
     if (!(_typeParameters == null || _typeParameters.isEmpty)) {
-      offset_typeParameters = fbBuilder.writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_typeParameters = fbBuilder
+          .writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
@@ -5215,10 +5753,13 @@ class _UnlinkedClassReader extends fb.TableReader<_UnlinkedClassImpl> {
   const _UnlinkedClassReader();
 
   @override
-  _UnlinkedClassImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedClassImpl(bc, offset);
+  _UnlinkedClassImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedClassImpl(bc, offset);
 }
 
-class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.UnlinkedClass {
+class _UnlinkedClassImpl extends Object
+    with _UnlinkedClassMixin
+    implements idl.UnlinkedClass {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -5241,7 +5782,9 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -5253,31 +5796,38 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 6, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader()
+        .vTableGet(_bc, _bcOffset, 6, null);
     return _documentationComment;
   }
 
   @override
   List<idl.UnlinkedExecutable> get executables {
-    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExecutable>[]);
+    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(
+            const _UnlinkedExecutableReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExecutable>[]);
     return _executables;
   }
 
   @override
   List<idl.UnlinkedVariable> get fields {
-    _fields ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedVariable>[]);
+    _fields ??= const fb.ListReader<idl.UnlinkedVariable>(
+            const _UnlinkedVariableReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedVariable>[]);
     return _fields;
   }
 
   @override
   bool get hasNoSupertype {
-    _hasNoSupertype ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 12, false);
+    _hasNoSupertype ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 12, false);
     return _hasNoSupertype;
   }
 
   @override
   List<idl.EntityRef> get interfaces {
-    _interfaces ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 7, const <idl.EntityRef>[]);
+    _interfaces ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader())
+        .vTableGet(_bc, _bcOffset, 7, const <idl.EntityRef>[]);
     return _interfaces;
   }
 
@@ -5289,13 +5839,15 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   @override
   bool get isMixinApplication {
-    _isMixinApplication ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 11, false);
+    _isMixinApplication ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 11, false);
     return _isMixinApplication;
   }
 
   @override
   List<idl.EntityRef> get mixins {
-    _mixins ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 10, const <idl.EntityRef>[]);
+    _mixins ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader())
+        .vTableGet(_bc, _bcOffset, 10, const <idl.EntityRef>[]);
     return _mixins;
   }
 
@@ -5319,7 +5871,9 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(
+            const _UnlinkedTypeParamReader())
+        .vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -5328,46 +5882,60 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
-    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
-    if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
-    if (fields.isNotEmpty) _result["fields"] = fields.map((_value) => _value.toJson()).toList();
+    if (documentationComment != null)
+      _result["documentationComment"] = documentationComment.toJson();
+    if (executables.isNotEmpty)
+      _result["executables"] =
+          executables.map((_value) => _value.toJson()).toList();
+    if (fields.isNotEmpty)
+      _result["fields"] = fields.map((_value) => _value.toJson()).toList();
     if (hasNoSupertype != false) _result["hasNoSupertype"] = hasNoSupertype;
-    if (interfaces.isNotEmpty) _result["interfaces"] = interfaces.map((_value) => _value.toJson()).toList();
+    if (interfaces.isNotEmpty)
+      _result["interfaces"] =
+          interfaces.map((_value) => _value.toJson()).toList();
     if (isAbstract != false) _result["isAbstract"] = isAbstract;
-    if (isMixinApplication != false) _result["isMixinApplication"] = isMixinApplication;
-    if (mixins.isNotEmpty) _result["mixins"] = mixins.map((_value) => _value.toJson()).toList();
+    if (isMixinApplication != false)
+      _result["isMixinApplication"] = isMixinApplication;
+    if (mixins.isNotEmpty)
+      _result["mixins"] = mixins.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
     if (supertype != null) _result["supertype"] = supertype.toJson();
-    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    if (typeParameters.isNotEmpty)
+      _result["typeParameters"] =
+          typeParameters.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "codeRange": codeRange,
-    "documentationComment": documentationComment,
-    "executables": executables,
-    "fields": fields,
-    "hasNoSupertype": hasNoSupertype,
-    "interfaces": interfaces,
-    "isAbstract": isAbstract,
-    "isMixinApplication": isMixinApplication,
-    "mixins": mixins,
-    "name": name,
-    "nameOffset": nameOffset,
-    "supertype": supertype,
-    "typeParameters": typeParameters,
-  };
+        "annotations": annotations,
+        "codeRange": codeRange,
+        "documentationComment": documentationComment,
+        "executables": executables,
+        "fields": fields,
+        "hasNoSupertype": hasNoSupertype,
+        "interfaces": interfaces,
+        "isAbstract": isAbstract,
+        "isMixinApplication": isMixinApplication,
+        "mixins": mixins,
+        "name": name,
+        "nameOffset": nameOffset,
+        "supertype": supertype,
+        "typeParameters": typeParameters,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
+class UnlinkedCombinatorBuilder extends Object
+    with _UnlinkedCombinatorMixin
+    implements idl.UnlinkedCombinator {
   int _end;
   List<String> _hides;
   int _offset;
@@ -5417,11 +5985,12 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
     this._shows = value;
   }
 
-  UnlinkedCombinatorBuilder({int end, List<String> hides, int offset, List<String> shows})
-    : _end = end,
-      _hides = hides,
-      _offset = offset,
-      _shows = shows;
+  UnlinkedCombinatorBuilder(
+      {int end, List<String> hides, int offset, List<String> shows})
+      : _end = end,
+        _hides = hides,
+        _offset = offset,
+        _shows = shows;
 
   /**
    * Flush [informative] data recursively.
@@ -5457,10 +6026,12 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
     fb.Offset offset_hides;
     fb.Offset offset_shows;
     if (!(_hides == null || _hides.isEmpty)) {
-      offset_hides = fbBuilder.writeList(_hides.map((b) => fbBuilder.writeString(b)).toList());
+      offset_hides = fbBuilder
+          .writeList(_hides.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_shows == null || _shows.isEmpty)) {
-      offset_shows = fbBuilder.writeList(_shows.map((b) => fbBuilder.writeString(b)).toList());
+      offset_shows = fbBuilder
+          .writeList(_shows.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (_end != null && _end != 0) {
@@ -5479,14 +6050,18 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   }
 }
 
-class _UnlinkedCombinatorReader extends fb.TableReader<_UnlinkedCombinatorImpl> {
+class _UnlinkedCombinatorReader
+    extends fb.TableReader<_UnlinkedCombinatorImpl> {
   const _UnlinkedCombinatorReader();
 
   @override
-  _UnlinkedCombinatorImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedCombinatorImpl(bc, offset);
+  _UnlinkedCombinatorImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedCombinatorImpl(bc, offset);
 }
 
-class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
+class _UnlinkedCombinatorImpl extends Object
+    with _UnlinkedCombinatorMixin
+    implements idl.UnlinkedCombinator {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -5505,7 +6080,8 @@ class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin imple
 
   @override
   List<String> get hides {
-    _hides ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    _hides ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _hides;
   }
 
@@ -5517,7 +6093,8 @@ class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin imple
 
   @override
   List<String> get shows {
-    _shows ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    _shows ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _shows;
   }
 }
@@ -5535,17 +6112,19 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
 
   @override
   Map<String, Object> toMap() => {
-    "end": end,
-    "hides": hides,
-    "offset": offset,
-    "shows": shows,
-  };
+        "end": end,
+        "hides": hides,
+        "offset": offset,
+        "shows": shows,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedConfigurationBuilder extends Object with _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+class UnlinkedConfigurationBuilder extends Object
+    with _UnlinkedConfigurationMixin
+    implements idl.UnlinkedConfiguration {
   String _name;
   String _uri;
   String _value;
@@ -5583,15 +6162,14 @@ class UnlinkedConfigurationBuilder extends Object with _UnlinkedConfigurationMix
   }
 
   UnlinkedConfigurationBuilder({String name, String uri, String value})
-    : _name = name,
-      _uri = uri,
-      _value = value;
+      : _name = name,
+        _uri = uri,
+        _value = value;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -5629,14 +6207,18 @@ class UnlinkedConfigurationBuilder extends Object with _UnlinkedConfigurationMix
   }
 }
 
-class _UnlinkedConfigurationReader extends fb.TableReader<_UnlinkedConfigurationImpl> {
+class _UnlinkedConfigurationReader
+    extends fb.TableReader<_UnlinkedConfigurationImpl> {
   const _UnlinkedConfigurationReader();
 
   @override
-  _UnlinkedConfigurationImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedConfigurationImpl(bc, offset);
+  _UnlinkedConfigurationImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedConfigurationImpl(bc, offset);
 }
 
-class _UnlinkedConfigurationImpl extends Object with _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+class _UnlinkedConfigurationImpl extends Object
+    with _UnlinkedConfigurationMixin
+    implements idl.UnlinkedConfiguration {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -5665,7 +6247,8 @@ class _UnlinkedConfigurationImpl extends Object with _UnlinkedConfigurationMixin
   }
 }
 
-abstract class _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+abstract class _UnlinkedConfigurationMixin
+    implements idl.UnlinkedConfiguration {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
@@ -5677,16 +6260,18 @@ abstract class _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration 
 
   @override
   Map<String, Object> toMap() => {
-    "name": name,
-    "uri": uri,
-    "value": value,
-  };
+        "name": name,
+        "uri": uri,
+        "value": value,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
+class UnlinkedConstructorInitializerBuilder extends Object
+    with _UnlinkedConstructorInitializerMixin
+    implements idl.UnlinkedConstructorInitializer {
   List<String> _argumentNames;
   List<UnlinkedExprBuilder> _arguments;
   UnlinkedExprBuilder _expression;
@@ -5706,7 +6291,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   }
 
   @override
-  List<UnlinkedExprBuilder> get arguments => _arguments ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get arguments =>
+      _arguments ??= <UnlinkedExprBuilder>[];
 
   /**
    * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
@@ -5728,7 +6314,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   }
 
   @override
-  idl.UnlinkedConstructorInitializerKind get kind => _kind ??= idl.UnlinkedConstructorInitializerKind.field;
+  idl.UnlinkedConstructorInitializerKind get kind =>
+      _kind ??= idl.UnlinkedConstructorInitializerKind.field;
 
   /**
    * The kind of the constructor initializer (field, redirect, super).
@@ -5750,12 +6337,17 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     this._name = value;
   }
 
-  UnlinkedConstructorInitializerBuilder({List<String> argumentNames, List<UnlinkedExprBuilder> arguments, UnlinkedExprBuilder expression, idl.UnlinkedConstructorInitializerKind kind, String name})
-    : _argumentNames = argumentNames,
-      _arguments = arguments,
-      _expression = expression,
-      _kind = kind,
-      _name = name;
+  UnlinkedConstructorInitializerBuilder(
+      {List<String> argumentNames,
+      List<UnlinkedExprBuilder> arguments,
+      UnlinkedExprBuilder expression,
+      idl.UnlinkedConstructorInitializerKind kind,
+      String name})
+      : _argumentNames = argumentNames,
+        _arguments = arguments,
+        _expression = expression,
+        _kind = kind,
+        _name = name;
 
   /**
    * Flush [informative] data recursively.
@@ -5797,10 +6389,12 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     fb.Offset offset_expression;
     fb.Offset offset_name;
     if (!(_argumentNames == null || _argumentNames.isEmpty)) {
-      offset_argumentNames = fbBuilder.writeList(_argumentNames.map((b) => fbBuilder.writeString(b)).toList());
+      offset_argumentNames = fbBuilder.writeList(
+          _argumentNames.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_arguments == null || _arguments.isEmpty)) {
-      offset_arguments = fbBuilder.writeList(_arguments.map((b) => b.finish(fbBuilder)).toList());
+      offset_arguments = fbBuilder
+          .writeList(_arguments.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_expression != null) {
       offset_expression = _expression.finish(fbBuilder);
@@ -5818,7 +6412,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     if (offset_expression != null) {
       fbBuilder.addOffset(1, offset_expression);
     }
-    if (_kind != null && _kind != idl.UnlinkedConstructorInitializerKind.field) {
+    if (_kind != null &&
+        _kind != idl.UnlinkedConstructorInitializerKind.field) {
       fbBuilder.addUint8(2, _kind.index);
     }
     if (offset_name != null) {
@@ -5828,14 +6423,19 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   }
 }
 
-class _UnlinkedConstructorInitializerReader extends fb.TableReader<_UnlinkedConstructorInitializerImpl> {
+class _UnlinkedConstructorInitializerReader
+    extends fb.TableReader<_UnlinkedConstructorInitializerImpl> {
   const _UnlinkedConstructorInitializerReader();
 
   @override
-  _UnlinkedConstructorInitializerImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedConstructorInitializerImpl(bc, offset);
+  _UnlinkedConstructorInitializerImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _UnlinkedConstructorInitializerImpl(bc, offset);
 }
 
-class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
+class _UnlinkedConstructorInitializerImpl extends Object
+    with _UnlinkedConstructorInitializerMixin
+    implements idl.UnlinkedConstructorInitializer {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -5849,25 +6449,30 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
 
   @override
   List<String> get argumentNames {
-    _argumentNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 4, const <String>[]);
+    _argumentNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _argumentNames;
   }
 
   @override
   List<idl.UnlinkedExpr> get arguments {
-    _arguments ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
+    _arguments ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
     return _arguments;
   }
 
   @override
   idl.UnlinkedExpr get expression {
-    _expression ??= const _UnlinkedExprReader().vTableGet(_bc, _bcOffset, 1, null);
+    _expression ??=
+        const _UnlinkedExprReader().vTableGet(_bc, _bcOffset, 1, null);
     return _expression;
   }
 
   @override
   idl.UnlinkedConstructorInitializerKind get kind {
-    _kind ??= const _UnlinkedConstructorInitializerKindReader().vTableGet(_bc, _bcOffset, 2, idl.UnlinkedConstructorInitializerKind.field);
+    _kind ??= const _UnlinkedConstructorInitializerKindReader().vTableGet(
+        _bc, _bcOffset, 2, idl.UnlinkedConstructorInitializerKind.field);
     return _kind;
   }
 
@@ -5878,39 +6483,47 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
   }
 }
 
-abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
+abstract class _UnlinkedConstructorInitializerMixin
+    implements idl.UnlinkedConstructorInitializer {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (argumentNames.isNotEmpty) _result["argumentNames"] = argumentNames;
-    if (arguments.isNotEmpty) _result["arguments"] = arguments.map((_value) => _value.toJson()).toList();
+    if (arguments.isNotEmpty)
+      _result["arguments"] =
+          arguments.map((_value) => _value.toJson()).toList();
     if (expression != null) _result["expression"] = expression.toJson();
-    if (kind != idl.UnlinkedConstructorInitializerKind.field) _result["kind"] = kind.toString().split('.')[1];
+    if (kind != idl.UnlinkedConstructorInitializerKind.field)
+      _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "argumentNames": argumentNames,
-    "arguments": arguments,
-    "expression": expression,
-    "kind": kind,
-    "name": name,
-  };
+        "argumentNames": argumentNames,
+        "arguments": arguments,
+        "expression": expression,
+        "kind": kind,
+        "name": name,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
+class UnlinkedDocumentationCommentBuilder extends Object
+    with _UnlinkedDocumentationCommentMixin
+    implements idl.UnlinkedDocumentationComment {
   String _text;
 
   @override
-  int get length => throw new UnimplementedError('attempt to access deprecated field');
+  int get length =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset => throw new UnimplementedError('attempt to access deprecated field');
+  int get offset =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get text => _text ??= '';
@@ -5925,14 +6538,12 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
     this._text = value;
   }
 
-  UnlinkedDocumentationCommentBuilder({String text})
-    : _text = text;
+  UnlinkedDocumentationCommentBuilder({String text}) : _text = text;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -5954,14 +6565,19 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
   }
 }
 
-class _UnlinkedDocumentationCommentReader extends fb.TableReader<_UnlinkedDocumentationCommentImpl> {
+class _UnlinkedDocumentationCommentReader
+    extends fb.TableReader<_UnlinkedDocumentationCommentImpl> {
   const _UnlinkedDocumentationCommentReader();
 
   @override
-  _UnlinkedDocumentationCommentImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedDocumentationCommentImpl(bc, offset);
+  _UnlinkedDocumentationCommentImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _UnlinkedDocumentationCommentImpl(bc, offset);
 }
 
-class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
+class _UnlinkedDocumentationCommentImpl extends Object
+    with _UnlinkedDocumentationCommentMixin
+    implements idl.UnlinkedDocumentationComment {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -5970,10 +6586,12 @@ class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentati
   String _text;
 
   @override
-  int get length => throw new UnimplementedError('attempt to access deprecated field');
+  int get length =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset => throw new UnimplementedError('attempt to access deprecated field');
+  int get offset =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get text {
@@ -5982,7 +6600,8 @@ class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentati
   }
 }
 
-abstract class _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
+abstract class _UnlinkedDocumentationCommentMixin
+    implements idl.UnlinkedDocumentationComment {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
@@ -5992,14 +6611,16 @@ abstract class _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumen
 
   @override
   Map<String, Object> toMap() => {
-    "text": text,
-  };
+        "text": text,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.UnlinkedEnum {
+class UnlinkedEnumBuilder extends Object
+    with _UnlinkedEnumMixin
+    implements idl.UnlinkedEnum {
   List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -6008,7 +6629,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   List<UnlinkedEnumValueBuilder> _values;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this enum.
@@ -6028,7 +6650,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   }
 
   @override
-  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment =>
+      _documentationComment;
 
   /**
    * Documentation comment for the enum, or `null` if there is no documentation
@@ -6060,7 +6683,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   }
 
   @override
-  List<UnlinkedEnumValueBuilder> get values => _values ??= <UnlinkedEnumValueBuilder>[];
+  List<UnlinkedEnumValueBuilder> get values =>
+      _values ??= <UnlinkedEnumValueBuilder>[];
 
   /**
    * Values listed in the enum declaration, in declaration order.
@@ -6069,13 +6693,19 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     this._values = value;
   }
 
-  UnlinkedEnumBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedEnumValueBuilder> values})
-    : _annotations = annotations,
-      _codeRange = codeRange,
-      _documentationComment = documentationComment,
-      _name = name,
-      _nameOffset = nameOffset,
-      _values = values;
+  UnlinkedEnumBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      CodeRangeBuilder codeRange,
+      UnlinkedDocumentationCommentBuilder documentationComment,
+      String name,
+      int nameOffset,
+      List<UnlinkedEnumValueBuilder> values})
+      : _annotations = annotations,
+        _codeRange = codeRange,
+        _documentationComment = documentationComment,
+        _name = name,
+        _nameOffset = nameOffset,
+        _values = values;
 
   /**
    * Flush [informative] data recursively.
@@ -6118,7 +6748,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     fb.Offset offset_name;
     fb.Offset offset_values;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_codeRange != null) {
       offset_codeRange = _codeRange.finish(fbBuilder);
@@ -6130,7 +6761,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
       offset_name = fbBuilder.writeString(_name);
     }
     if (!(_values == null || _values.isEmpty)) {
-      offset_values = fbBuilder.writeList(_values.map((b) => b.finish(fbBuilder)).toList());
+      offset_values =
+          fbBuilder.writeList(_values.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
@@ -6159,10 +6791,13 @@ class _UnlinkedEnumReader extends fb.TableReader<_UnlinkedEnumImpl> {
   const _UnlinkedEnumReader();
 
   @override
-  _UnlinkedEnumImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedEnumImpl(bc, offset);
+  _UnlinkedEnumImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedEnumImpl(bc, offset);
 }
 
-class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.UnlinkedEnum {
+class _UnlinkedEnumImpl extends Object
+    with _UnlinkedEnumMixin
+    implements idl.UnlinkedEnum {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -6177,7 +6812,9 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -6189,7 +6826,8 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 3, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader()
+        .vTableGet(_bc, _bcOffset, 3, null);
     return _documentationComment;
   }
 
@@ -6207,7 +6845,9 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
 
   @override
   List<idl.UnlinkedEnumValue> get values {
-    _values ??= const fb.ListReader<idl.UnlinkedEnumValue>(const _UnlinkedEnumValueReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedEnumValue>[]);
+    _values ??= const fb.ListReader<idl.UnlinkedEnumValue>(
+            const _UnlinkedEnumValueReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedEnumValue>[]);
     return _values;
   }
 }
@@ -6216,36 +6856,43 @@ abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
-    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (documentationComment != null)
+      _result["documentationComment"] = documentationComment.toJson();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    if (values.isNotEmpty) _result["values"] = values.map((_value) => _value.toJson()).toList();
+    if (values.isNotEmpty)
+      _result["values"] = values.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "codeRange": codeRange,
-    "documentationComment": documentationComment,
-    "name": name,
-    "nameOffset": nameOffset,
-    "values": values,
-  };
+        "annotations": annotations,
+        "codeRange": codeRange,
+        "documentationComment": documentationComment,
+        "name": name,
+        "nameOffset": nameOffset,
+        "values": values,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
+class UnlinkedEnumValueBuilder extends Object
+    with _UnlinkedEnumValueMixin
+    implements idl.UnlinkedEnumValue {
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
   int _nameOffset;
 
   @override
-  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment =>
+      _documentationComment;
 
   /**
    * Documentation comment for the enum value, or `null` if there is no
@@ -6276,10 +6923,13 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
     this._nameOffset = value;
   }
 
-  UnlinkedEnumValueBuilder({UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset})
-    : _documentationComment = documentationComment,
-      _name = name,
-      _nameOffset = nameOffset;
+  UnlinkedEnumValueBuilder(
+      {UnlinkedDocumentationCommentBuilder documentationComment,
+      String name,
+      int nameOffset})
+      : _documentationComment = documentationComment,
+        _name = name,
+        _nameOffset = nameOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -6323,10 +6973,13 @@ class _UnlinkedEnumValueReader extends fb.TableReader<_UnlinkedEnumValueImpl> {
   const _UnlinkedEnumValueReader();
 
   @override
-  _UnlinkedEnumValueImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedEnumValueImpl(bc, offset);
+  _UnlinkedEnumValueImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedEnumValueImpl(bc, offset);
 }
 
-class _UnlinkedEnumValueImpl extends Object with _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
+class _UnlinkedEnumValueImpl extends Object
+    with _UnlinkedEnumValueMixin
+    implements idl.UnlinkedEnumValue {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -6338,7 +6991,8 @@ class _UnlinkedEnumValueImpl extends Object with _UnlinkedEnumValueMixin impleme
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 2, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader()
+        .vTableGet(_bc, _bcOffset, 2, null);
     return _documentationComment;
   }
 
@@ -6359,7 +7013,8 @@ abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (documentationComment != null)
+      _result["documentationComment"] = documentationComment.toJson();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
     return _result;
@@ -6367,16 +7022,18 @@ abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
 
   @override
   Map<String, Object> toMap() => {
-    "documentationComment": documentationComment,
-    "name": name,
-    "nameOffset": nameOffset,
-  };
+        "documentationComment": documentationComment,
+        "name": name,
+        "nameOffset": nameOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
+class UnlinkedExecutableBuilder extends Object
+    with _UnlinkedExecutableMixin
+    implements idl.UnlinkedExecutable {
   List<UnlinkedExprBuilder> _annotations;
   UnlinkedExprBuilder _bodyExpr;
   CodeRangeBuilder _codeRange;
@@ -6409,7 +7066,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   int _visibleOffset;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this executable.
@@ -6441,13 +7099,15 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedConstructorInitializerBuilder> get constantInitializers => _constantInitializers ??= <UnlinkedConstructorInitializerBuilder>[];
+  List<UnlinkedConstructorInitializerBuilder> get constantInitializers =>
+      _constantInitializers ??= <UnlinkedConstructorInitializerBuilder>[];
 
   /**
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
-  void set constantInitializers(List<UnlinkedConstructorInitializerBuilder> value) {
+  void set constantInitializers(
+      List<UnlinkedConstructorInitializerBuilder> value) {
     this._constantInitializers = value;
   }
 
@@ -6468,7 +7128,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment =>
+      _documentationComment;
 
   /**
    * Documentation comment for the executable, or `null` if there is no
@@ -6578,7 +7239,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  idl.UnlinkedExecutableKind get kind => _kind ??= idl.UnlinkedExecutableKind.functionOrMethod;
+  idl.UnlinkedExecutableKind get kind =>
+      _kind ??= idl.UnlinkedExecutableKind.functionOrMethod;
 
   /**
    * The kind of the executable (function/method, getter, setter, or
@@ -6589,7 +7251,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedExecutableBuilder> get localFunctions => _localFunctions ??= <UnlinkedExecutableBuilder>[];
+  List<UnlinkedExecutableBuilder> get localFunctions =>
+      _localFunctions ??= <UnlinkedExecutableBuilder>[];
 
   /**
    * The list of local functions.
@@ -6599,7 +7262,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedLabelBuilder> get localLabels => _localLabels ??= <UnlinkedLabelBuilder>[];
+  List<UnlinkedLabelBuilder> get localLabels =>
+      _localLabels ??= <UnlinkedLabelBuilder>[];
 
   /**
    * The list of local labels.
@@ -6609,7 +7273,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedVariableBuilder> get localVariables => _localVariables ??= <UnlinkedVariableBuilder>[];
+  List<UnlinkedVariableBuilder> get localVariables =>
+      _localVariables ??= <UnlinkedVariableBuilder>[];
 
   /**
    * The list of local variables.
@@ -6657,7 +7322,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
+  List<UnlinkedParamBuilder> get parameters =>
+      _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
    * Parameters of the executable, if any.  Note that getters have no
@@ -6718,7 +7384,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
-  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters =>
+      _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -6750,37 +7417,67 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     this._visibleOffset = value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedExprBuilder> annotations, UnlinkedExprBuilder bodyExpr, CodeRangeBuilder codeRange, List<UnlinkedConstructorInitializerBuilder> constantInitializers, int constCycleSlot, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isAsynchronous, bool isConst, bool isExternal, bool isFactory, bool isGenerator, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
-    : _annotations = annotations,
-      _bodyExpr = bodyExpr,
-      _codeRange = codeRange,
-      _constantInitializers = constantInitializers,
-      _constCycleSlot = constCycleSlot,
-      _documentationComment = documentationComment,
-      _inferredReturnTypeSlot = inferredReturnTypeSlot,
-      _isAbstract = isAbstract,
-      _isAsynchronous = isAsynchronous,
-      _isConst = isConst,
-      _isExternal = isExternal,
-      _isFactory = isFactory,
-      _isGenerator = isGenerator,
-      _isRedirectedConstructor = isRedirectedConstructor,
-      _isStatic = isStatic,
-      _kind = kind,
-      _localFunctions = localFunctions,
-      _localLabels = localLabels,
-      _localVariables = localVariables,
-      _name = name,
-      _nameEnd = nameEnd,
-      _nameOffset = nameOffset,
-      _parameters = parameters,
-      _periodOffset = periodOffset,
-      _redirectedConstructor = redirectedConstructor,
-      _redirectedConstructorName = redirectedConstructorName,
-      _returnType = returnType,
-      _typeParameters = typeParameters,
-      _visibleLength = visibleLength,
-      _visibleOffset = visibleOffset;
+  UnlinkedExecutableBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      UnlinkedExprBuilder bodyExpr,
+      CodeRangeBuilder codeRange,
+      List<UnlinkedConstructorInitializerBuilder> constantInitializers,
+      int constCycleSlot,
+      UnlinkedDocumentationCommentBuilder documentationComment,
+      int inferredReturnTypeSlot,
+      bool isAbstract,
+      bool isAsynchronous,
+      bool isConst,
+      bool isExternal,
+      bool isFactory,
+      bool isGenerator,
+      bool isRedirectedConstructor,
+      bool isStatic,
+      idl.UnlinkedExecutableKind kind,
+      List<UnlinkedExecutableBuilder> localFunctions,
+      List<UnlinkedLabelBuilder> localLabels,
+      List<UnlinkedVariableBuilder> localVariables,
+      String name,
+      int nameEnd,
+      int nameOffset,
+      List<UnlinkedParamBuilder> parameters,
+      int periodOffset,
+      EntityRefBuilder redirectedConstructor,
+      String redirectedConstructorName,
+      EntityRefBuilder returnType,
+      List<UnlinkedTypeParamBuilder> typeParameters,
+      int visibleLength,
+      int visibleOffset})
+      : _annotations = annotations,
+        _bodyExpr = bodyExpr,
+        _codeRange = codeRange,
+        _constantInitializers = constantInitializers,
+        _constCycleSlot = constCycleSlot,
+        _documentationComment = documentationComment,
+        _inferredReturnTypeSlot = inferredReturnTypeSlot,
+        _isAbstract = isAbstract,
+        _isAsynchronous = isAsynchronous,
+        _isConst = isConst,
+        _isExternal = isExternal,
+        _isFactory = isFactory,
+        _isGenerator = isGenerator,
+        _isRedirectedConstructor = isRedirectedConstructor,
+        _isStatic = isStatic,
+        _kind = kind,
+        _localFunctions = localFunctions,
+        _localLabels = localLabels,
+        _localVariables = localVariables,
+        _name = name,
+        _nameEnd = nameEnd,
+        _nameOffset = nameOffset,
+        _parameters = parameters,
+        _periodOffset = periodOffset,
+        _redirectedConstructor = redirectedConstructor,
+        _redirectedConstructorName = redirectedConstructorName,
+        _returnType = returnType,
+        _typeParameters = typeParameters,
+        _visibleLength = visibleLength,
+        _visibleOffset = visibleOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -6886,7 +7583,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_bodyExpr != null) {
       offset_bodyExpr = _bodyExpr.finish(fbBuilder);
@@ -6895,37 +7593,44 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (!(_constantInitializers == null || _constantInitializers.isEmpty)) {
-      offset_constantInitializers = fbBuilder.writeList(_constantInitializers.map((b) => b.finish(fbBuilder)).toList());
+      offset_constantInitializers = fbBuilder.writeList(
+          _constantInitializers.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
     }
     if (!(_localFunctions == null || _localFunctions.isEmpty)) {
-      offset_localFunctions = fbBuilder.writeList(_localFunctions.map((b) => b.finish(fbBuilder)).toList());
+      offset_localFunctions = fbBuilder
+          .writeList(_localFunctions.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_localLabels == null || _localLabels.isEmpty)) {
-      offset_localLabels = fbBuilder.writeList(_localLabels.map((b) => b.finish(fbBuilder)).toList());
+      offset_localLabels = fbBuilder
+          .writeList(_localLabels.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_localVariables == null || _localVariables.isEmpty)) {
-      offset_localVariables = fbBuilder.writeList(_localVariables.map((b) => b.finish(fbBuilder)).toList());
+      offset_localVariables = fbBuilder
+          .writeList(_localVariables.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
-      offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_parameters = fbBuilder
+          .writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_redirectedConstructor != null) {
       offset_redirectedConstructor = _redirectedConstructor.finish(fbBuilder);
     }
     if (_redirectedConstructorName != null) {
-      offset_redirectedConstructorName = fbBuilder.writeString(_redirectedConstructorName);
+      offset_redirectedConstructorName =
+          fbBuilder.writeString(_redirectedConstructorName);
     }
     if (_returnType != null) {
       offset_returnType = _returnType.finish(fbBuilder);
     }
     if (!(_typeParameters == null || _typeParameters.isEmpty)) {
-      offset_typeParameters = fbBuilder.writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_typeParameters = fbBuilder
+          .writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
@@ -7022,14 +7727,18 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 }
 
-class _UnlinkedExecutableReader extends fb.TableReader<_UnlinkedExecutableImpl> {
+class _UnlinkedExecutableReader
+    extends fb.TableReader<_UnlinkedExecutableImpl> {
   const _UnlinkedExecutableReader();
 
   @override
-  _UnlinkedExecutableImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExecutableImpl(bc, offset);
+  _UnlinkedExecutableImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedExecutableImpl(bc, offset);
 }
 
-class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
+class _UnlinkedExecutableImpl extends Object
+    with _UnlinkedExecutableMixin
+    implements idl.UnlinkedExecutable {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -7068,13 +7777,16 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
   @override
   idl.UnlinkedExpr get bodyExpr {
-    _bodyExpr ??= const _UnlinkedExprReader().vTableGet(_bc, _bcOffset, 29, null);
+    _bodyExpr ??=
+        const _UnlinkedExprReader().vTableGet(_bc, _bcOffset, 29, null);
     return _bodyExpr;
   }
 
@@ -7086,25 +7798,32 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   List<idl.UnlinkedConstructorInitializer> get constantInitializers {
-    _constantInitializers ??= const fb.ListReader<idl.UnlinkedConstructorInitializer>(const _UnlinkedConstructorInitializerReader()).vTableGet(_bc, _bcOffset, 14, const <idl.UnlinkedConstructorInitializer>[]);
+    _constantInitializers ??=
+        const fb.ListReader<idl.UnlinkedConstructorInitializer>(
+                const _UnlinkedConstructorInitializerReader())
+            .vTableGet(_bc, _bcOffset, 14,
+                const <idl.UnlinkedConstructorInitializer>[]);
     return _constantInitializers;
   }
 
   @override
   int get constCycleSlot {
-    _constCycleSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 25, 0);
+    _constCycleSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 25, 0);
     return _constCycleSlot;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 7, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader()
+        .vTableGet(_bc, _bcOffset, 7, null);
     return _documentationComment;
   }
 
   @override
   int get inferredReturnTypeSlot {
-    _inferredReturnTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
+    _inferredReturnTypeSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _inferredReturnTypeSlot;
   }
 
@@ -7116,7 +7835,8 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   bool get isAsynchronous {
-    _isAsynchronous ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
+    _isAsynchronous ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
     return _isAsynchronous;
   }
 
@@ -7146,7 +7866,8 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   bool get isRedirectedConstructor {
-    _isRedirectedConstructor ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 13, false);
+    _isRedirectedConstructor ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 13, false);
     return _isRedirectedConstructor;
   }
 
@@ -7158,25 +7879,32 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   idl.UnlinkedExecutableKind get kind {
-    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bc, _bcOffset, 4, idl.UnlinkedExecutableKind.functionOrMethod);
+    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(
+        _bc, _bcOffset, 4, idl.UnlinkedExecutableKind.functionOrMethod);
     return _kind;
   }
 
   @override
   List<idl.UnlinkedExecutable> get localFunctions {
-    _localFunctions ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bc, _bcOffset, 18, const <idl.UnlinkedExecutable>[]);
+    _localFunctions ??= const fb.ListReader<idl.UnlinkedExecutable>(
+            const _UnlinkedExecutableReader())
+        .vTableGet(_bc, _bcOffset, 18, const <idl.UnlinkedExecutable>[]);
     return _localFunctions;
   }
 
   @override
   List<idl.UnlinkedLabel> get localLabels {
-    _localLabels ??= const fb.ListReader<idl.UnlinkedLabel>(const _UnlinkedLabelReader()).vTableGet(_bc, _bcOffset, 22, const <idl.UnlinkedLabel>[]);
+    _localLabels ??=
+        const fb.ListReader<idl.UnlinkedLabel>(const _UnlinkedLabelReader())
+            .vTableGet(_bc, _bcOffset, 22, const <idl.UnlinkedLabel>[]);
     return _localLabels;
   }
 
   @override
   List<idl.UnlinkedVariable> get localVariables {
-    _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bc, _bcOffset, 19, const <idl.UnlinkedVariable>[]);
+    _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(
+            const _UnlinkedVariableReader())
+        .vTableGet(_bc, _bcOffset, 19, const <idl.UnlinkedVariable>[]);
     return _localVariables;
   }
 
@@ -7200,7 +7928,9 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedParam>[]);
+    _parameters ??=
+        const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader())
+            .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
@@ -7212,13 +7942,15 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   idl.EntityRef get redirectedConstructor {
-    _redirectedConstructor ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 15, null);
+    _redirectedConstructor ??=
+        const _EntityRefReader().vTableGet(_bc, _bcOffset, 15, null);
     return _redirectedConstructor;
   }
 
   @override
   String get redirectedConstructorName {
-    _redirectedConstructorName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 17, '');
+    _redirectedConstructorName ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 17, '');
     return _redirectedConstructorName;
   }
 
@@ -7230,7 +7962,9 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 16, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(
+            const _UnlinkedTypeParamReader())
+        .vTableGet(_bc, _bcOffset, 16, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 
@@ -7251,34 +7985,54 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (bodyExpr != null) _result["bodyExpr"] = bodyExpr.toJson();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
-    if (constantInitializers.isNotEmpty) _result["constantInitializers"] = constantInitializers.map((_value) => _value.toJson()).toList();
+    if (constantInitializers.isNotEmpty)
+      _result["constantInitializers"] =
+          constantInitializers.map((_value) => _value.toJson()).toList();
     if (constCycleSlot != 0) _result["constCycleSlot"] = constCycleSlot;
-    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
-    if (inferredReturnTypeSlot != 0) _result["inferredReturnTypeSlot"] = inferredReturnTypeSlot;
+    if (documentationComment != null)
+      _result["documentationComment"] = documentationComment.toJson();
+    if (inferredReturnTypeSlot != 0)
+      _result["inferredReturnTypeSlot"] = inferredReturnTypeSlot;
     if (isAbstract != false) _result["isAbstract"] = isAbstract;
     if (isAsynchronous != false) _result["isAsynchronous"] = isAsynchronous;
     if (isConst != false) _result["isConst"] = isConst;
     if (isExternal != false) _result["isExternal"] = isExternal;
     if (isFactory != false) _result["isFactory"] = isFactory;
     if (isGenerator != false) _result["isGenerator"] = isGenerator;
-    if (isRedirectedConstructor != false) _result["isRedirectedConstructor"] = isRedirectedConstructor;
+    if (isRedirectedConstructor != false)
+      _result["isRedirectedConstructor"] = isRedirectedConstructor;
     if (isStatic != false) _result["isStatic"] = isStatic;
-    if (kind != idl.UnlinkedExecutableKind.functionOrMethod) _result["kind"] = kind.toString().split('.')[1];
-    if (localFunctions.isNotEmpty) _result["localFunctions"] = localFunctions.map((_value) => _value.toJson()).toList();
-    if (localLabels.isNotEmpty) _result["localLabels"] = localLabels.map((_value) => _value.toJson()).toList();
-    if (localVariables.isNotEmpty) _result["localVariables"] = localVariables.map((_value) => _value.toJson()).toList();
+    if (kind != idl.UnlinkedExecutableKind.functionOrMethod)
+      _result["kind"] = kind.toString().split('.')[1];
+    if (localFunctions.isNotEmpty)
+      _result["localFunctions"] =
+          localFunctions.map((_value) => _value.toJson()).toList();
+    if (localLabels.isNotEmpty)
+      _result["localLabels"] =
+          localLabels.map((_value) => _value.toJson()).toList();
+    if (localVariables.isNotEmpty)
+      _result["localVariables"] =
+          localVariables.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
     if (nameEnd != 0) _result["nameEnd"] = nameEnd;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (parameters.isNotEmpty)
+      _result["parameters"] =
+          parameters.map((_value) => _value.toJson()).toList();
     if (periodOffset != 0) _result["periodOffset"] = periodOffset;
-    if (redirectedConstructor != null) _result["redirectedConstructor"] = redirectedConstructor.toJson();
-    if (redirectedConstructorName != '') _result["redirectedConstructorName"] = redirectedConstructorName;
+    if (redirectedConstructor != null)
+      _result["redirectedConstructor"] = redirectedConstructor.toJson();
+    if (redirectedConstructorName != '')
+      _result["redirectedConstructorName"] = redirectedConstructorName;
     if (returnType != null) _result["returnType"] = returnType.toJson();
-    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    if (typeParameters.isNotEmpty)
+      _result["typeParameters"] =
+          typeParameters.map((_value) => _value.toJson()).toList();
     if (visibleLength != 0) _result["visibleLength"] = visibleLength;
     if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
     return _result;
@@ -7286,50 +8040,53 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "bodyExpr": bodyExpr,
-    "codeRange": codeRange,
-    "constantInitializers": constantInitializers,
-    "constCycleSlot": constCycleSlot,
-    "documentationComment": documentationComment,
-    "inferredReturnTypeSlot": inferredReturnTypeSlot,
-    "isAbstract": isAbstract,
-    "isAsynchronous": isAsynchronous,
-    "isConst": isConst,
-    "isExternal": isExternal,
-    "isFactory": isFactory,
-    "isGenerator": isGenerator,
-    "isRedirectedConstructor": isRedirectedConstructor,
-    "isStatic": isStatic,
-    "kind": kind,
-    "localFunctions": localFunctions,
-    "localLabels": localLabels,
-    "localVariables": localVariables,
-    "name": name,
-    "nameEnd": nameEnd,
-    "nameOffset": nameOffset,
-    "parameters": parameters,
-    "periodOffset": periodOffset,
-    "redirectedConstructor": redirectedConstructor,
-    "redirectedConstructorName": redirectedConstructorName,
-    "returnType": returnType,
-    "typeParameters": typeParameters,
-    "visibleLength": visibleLength,
-    "visibleOffset": visibleOffset,
-  };
+        "annotations": annotations,
+        "bodyExpr": bodyExpr,
+        "codeRange": codeRange,
+        "constantInitializers": constantInitializers,
+        "constCycleSlot": constCycleSlot,
+        "documentationComment": documentationComment,
+        "inferredReturnTypeSlot": inferredReturnTypeSlot,
+        "isAbstract": isAbstract,
+        "isAsynchronous": isAsynchronous,
+        "isConst": isConst,
+        "isExternal": isExternal,
+        "isFactory": isFactory,
+        "isGenerator": isGenerator,
+        "isRedirectedConstructor": isRedirectedConstructor,
+        "isStatic": isStatic,
+        "kind": kind,
+        "localFunctions": localFunctions,
+        "localLabels": localLabels,
+        "localVariables": localVariables,
+        "name": name,
+        "nameEnd": nameEnd,
+        "nameOffset": nameOffset,
+        "parameters": parameters,
+        "periodOffset": periodOffset,
+        "redirectedConstructor": redirectedConstructor,
+        "redirectedConstructorName": redirectedConstructorName,
+        "returnType": returnType,
+        "typeParameters": typeParameters,
+        "visibleLength": visibleLength,
+        "visibleOffset": visibleOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
+class UnlinkedExportNonPublicBuilder extends Object
+    with _UnlinkedExportNonPublicMixin
+    implements idl.UnlinkedExportNonPublic {
   List<UnlinkedExprBuilder> _annotations;
   int _offset;
   int _uriEnd;
   int _uriOffset;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this export directive.
@@ -7373,11 +8130,15 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
     this._uriOffset = value;
   }
 
-  UnlinkedExportNonPublicBuilder({List<UnlinkedExprBuilder> annotations, int offset, int uriEnd, int uriOffset})
-    : _annotations = annotations,
-      _offset = offset,
-      _uriEnd = uriEnd,
-      _uriOffset = uriOffset;
+  UnlinkedExportNonPublicBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      int offset,
+      int uriEnd,
+      int uriOffset})
+      : _annotations = annotations,
+        _offset = offset,
+        _uriEnd = uriEnd,
+        _uriOffset = uriOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -7406,7 +8167,8 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
@@ -7425,14 +8187,18 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   }
 }
 
-class _UnlinkedExportNonPublicReader extends fb.TableReader<_UnlinkedExportNonPublicImpl> {
+class _UnlinkedExportNonPublicReader
+    extends fb.TableReader<_UnlinkedExportNonPublicImpl> {
   const _UnlinkedExportNonPublicReader();
 
   @override
-  _UnlinkedExportNonPublicImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExportNonPublicImpl(bc, offset);
+  _UnlinkedExportNonPublicImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedExportNonPublicImpl(bc, offset);
 }
 
-class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
+class _UnlinkedExportNonPublicImpl extends Object
+    with _UnlinkedExportNonPublicMixin
+    implements idl.UnlinkedExportNonPublic {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -7445,7 +8211,9 @@ class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicM
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -7468,11 +8236,14 @@ class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicM
   }
 }
 
-abstract class _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
+abstract class _UnlinkedExportNonPublicMixin
+    implements idl.UnlinkedExportNonPublic {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (offset != 0) _result["offset"] = offset;
     if (uriEnd != 0) _result["uriEnd"] = uriEnd;
     if (uriOffset != 0) _result["uriOffset"] = uriOffset;
@@ -7481,23 +8252,26 @@ abstract class _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPub
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "offset": offset,
-    "uriEnd": uriEnd,
-    "uriOffset": uriOffset,
-  };
+        "annotations": annotations,
+        "offset": offset,
+        "uriEnd": uriEnd,
+        "uriOffset": uriOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
+class UnlinkedExportPublicBuilder extends Object
+    with _UnlinkedExportPublicMixin
+    implements idl.UnlinkedExportPublic {
   List<UnlinkedCombinatorBuilder> _combinators;
   List<UnlinkedConfigurationBuilder> _configurations;
   String _uri;
 
   @override
-  List<UnlinkedCombinatorBuilder> get combinators => _combinators ??= <UnlinkedCombinatorBuilder>[];
+  List<UnlinkedCombinatorBuilder> get combinators =>
+      _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /**
    * Combinators contained in this export declaration.
@@ -7507,7 +8281,8 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   }
 
   @override
-  List<UnlinkedConfigurationBuilder> get configurations => _configurations ??= <UnlinkedConfigurationBuilder>[];
+  List<UnlinkedConfigurationBuilder> get configurations =>
+      _configurations ??= <UnlinkedConfigurationBuilder>[];
 
   /**
    * Configurations used to control which library will actually be loaded at
@@ -7527,10 +8302,13 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     this._uri = value;
   }
 
-  UnlinkedExportPublicBuilder({List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, String uri})
-    : _combinators = combinators,
-      _configurations = configurations,
-      _uri = uri;
+  UnlinkedExportPublicBuilder(
+      {List<UnlinkedCombinatorBuilder> combinators,
+      List<UnlinkedConfigurationBuilder> configurations,
+      String uri})
+      : _combinators = combinators,
+        _configurations = configurations,
+        _uri = uri;
 
   /**
    * Flush [informative] data recursively.
@@ -7568,10 +8346,12 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     fb.Offset offset_configurations;
     fb.Offset offset_uri;
     if (!(_combinators == null || _combinators.isEmpty)) {
-      offset_combinators = fbBuilder.writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+      offset_combinators = fbBuilder
+          .writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_configurations == null || _configurations.isEmpty)) {
-      offset_configurations = fbBuilder.writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
+      offset_configurations = fbBuilder
+          .writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
@@ -7590,14 +8370,18 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   }
 }
 
-class _UnlinkedExportPublicReader extends fb.TableReader<_UnlinkedExportPublicImpl> {
+class _UnlinkedExportPublicReader
+    extends fb.TableReader<_UnlinkedExportPublicImpl> {
   const _UnlinkedExportPublicReader();
 
   @override
-  _UnlinkedExportPublicImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExportPublicImpl(bc, offset);
+  _UnlinkedExportPublicImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedExportPublicImpl(bc, offset);
 }
 
-class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
+class _UnlinkedExportPublicImpl extends Object
+    with _UnlinkedExportPublicMixin
+    implements idl.UnlinkedExportPublic {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -7609,13 +8393,17 @@ class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin i
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
-    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedCombinator>[]);
+    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(
+            const _UnlinkedCombinatorReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedCombinator>[]);
     return _combinators;
   }
 
   @override
   List<idl.UnlinkedConfiguration> get configurations {
-    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(const _UnlinkedConfigurationReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedConfiguration>[]);
+    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(
+            const _UnlinkedConfigurationReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedConfiguration>[]);
     return _configurations;
   }
 
@@ -7630,24 +8418,30 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
-    if (configurations.isNotEmpty) _result["configurations"] = configurations.map((_value) => _value.toJson()).toList();
+    if (combinators.isNotEmpty)
+      _result["combinators"] =
+          combinators.map((_value) => _value.toJson()).toList();
+    if (configurations.isNotEmpty)
+      _result["configurations"] =
+          configurations.map((_value) => _value.toJson()).toList();
     if (uri != '') _result["uri"] = uri;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "combinators": combinators,
-    "configurations": configurations,
-    "uri": uri,
-  };
+        "combinators": combinators,
+        "configurations": configurations,
+        "uri": uri,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedExprBuilder extends Object with _UnlinkedExprMixin implements idl.UnlinkedExpr {
+class UnlinkedExprBuilder extends Object
+    with _UnlinkedExprMixin
+    implements idl.UnlinkedExpr {
   List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
   List<int> _ints;
@@ -7657,7 +8451,8 @@ class UnlinkedExprBuilder extends Object with _UnlinkedExprMixin implements idl.
   List<String> _strings;
 
   @override
-  List<idl.UnlinkedExprAssignOperator> get assignmentOperators => _assignmentOperators ??= <idl.UnlinkedExprAssignOperator>[];
+  List<idl.UnlinkedExprAssignOperator> get assignmentOperators =>
+      _assignmentOperators ??= <idl.UnlinkedExprAssignOperator>[];
 
   /**
    * Sequence of operators used by assignment operations.
@@ -7701,7 +8496,8 @@ class UnlinkedExprBuilder extends Object with _UnlinkedExprMixin implements idl.
   }
 
   @override
-  List<idl.UnlinkedExprOperation> get operations => _operations ??= <idl.UnlinkedExprOperation>[];
+  List<idl.UnlinkedExprOperation> get operations =>
+      _operations ??= <idl.UnlinkedExprOperation>[];
 
   /**
    * Sequence of operations to execute (starting with an empty stack) to form
@@ -7735,14 +8531,21 @@ class UnlinkedExprBuilder extends Object with _UnlinkedExprMixin implements idl.
     this._strings = value;
   }
 
-  UnlinkedExprBuilder({List<idl.UnlinkedExprAssignOperator> assignmentOperators, List<double> doubles, List<int> ints, bool isValidConst, List<idl.UnlinkedExprOperation> operations, List<EntityRefBuilder> references, List<String> strings})
-    : _assignmentOperators = assignmentOperators,
-      _doubles = doubles,
-      _ints = ints,
-      _isValidConst = isValidConst,
-      _operations = operations,
-      _references = references,
-      _strings = strings;
+  UnlinkedExprBuilder(
+      {List<idl.UnlinkedExprAssignOperator> assignmentOperators,
+      List<double> doubles,
+      List<int> ints,
+      bool isValidConst,
+      List<idl.UnlinkedExprOperation> operations,
+      List<EntityRefBuilder> references,
+      List<String> strings})
+      : _assignmentOperators = assignmentOperators,
+        _doubles = doubles,
+        _ints = ints,
+        _isValidConst = isValidConst,
+        _operations = operations,
+        _references = references,
+        _strings = strings;
 
   /**
    * Flush [informative] data recursively.
@@ -7814,7 +8617,8 @@ class UnlinkedExprBuilder extends Object with _UnlinkedExprMixin implements idl.
     fb.Offset offset_references;
     fb.Offset offset_strings;
     if (!(_assignmentOperators == null || _assignmentOperators.isEmpty)) {
-      offset_assignmentOperators = fbBuilder.writeListUint8(_assignmentOperators.map((b) => b.index).toList());
+      offset_assignmentOperators = fbBuilder
+          .writeListUint8(_assignmentOperators.map((b) => b.index).toList());
     }
     if (!(_doubles == null || _doubles.isEmpty)) {
       offset_doubles = fbBuilder.writeListFloat64(_doubles);
@@ -7823,13 +8627,16 @@ class UnlinkedExprBuilder extends Object with _UnlinkedExprMixin implements idl.
       offset_ints = fbBuilder.writeListUint32(_ints);
     }
     if (!(_operations == null || _operations.isEmpty)) {
-      offset_operations = fbBuilder.writeListUint8(_operations.map((b) => b.index).toList());
+      offset_operations =
+          fbBuilder.writeListUint8(_operations.map((b) => b.index).toList());
     }
     if (!(_references == null || _references.isEmpty)) {
-      offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+      offset_references = fbBuilder
+          .writeList(_references.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_strings == null || _strings.isEmpty)) {
-      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+      offset_strings = fbBuilder
+          .writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_assignmentOperators != null) {
@@ -7861,10 +8668,13 @@ class _UnlinkedExprReader extends fb.TableReader<_UnlinkedExprImpl> {
   const _UnlinkedExprReader();
 
   @override
-  _UnlinkedExprImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExprImpl(bc, offset);
+  _UnlinkedExprImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedExprImpl(bc, offset);
 }
 
-class _UnlinkedExprImpl extends Object with _UnlinkedExprMixin implements idl.UnlinkedExpr {
+class _UnlinkedExprImpl extends Object
+    with _UnlinkedExprMixin
+    implements idl.UnlinkedExpr {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -7880,19 +8690,25 @@ class _UnlinkedExprImpl extends Object with _UnlinkedExprMixin implements idl.Un
 
   @override
   List<idl.UnlinkedExprAssignOperator> get assignmentOperators {
-    _assignmentOperators ??= const fb.ListReader<idl.UnlinkedExprAssignOperator>(const _UnlinkedExprAssignOperatorReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedExprAssignOperator>[]);
+    _assignmentOperators ??=
+        const fb.ListReader<idl.UnlinkedExprAssignOperator>(
+                const _UnlinkedExprAssignOperatorReader())
+            .vTableGet(
+                _bc, _bcOffset, 6, const <idl.UnlinkedExprAssignOperator>[]);
     return _assignmentOperators;
   }
 
   @override
   List<double> get doubles {
-    _doubles ??= const fb.Float64ListReader().vTableGet(_bc, _bcOffset, 4, const <double>[]);
+    _doubles ??= const fb.Float64ListReader()
+        .vTableGet(_bc, _bcOffset, 4, const <double>[]);
     return _doubles;
   }
 
   @override
   List<int> get ints {
-    _ints ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    _ints ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _ints;
   }
 
@@ -7904,19 +8720,23 @@ class _UnlinkedExprImpl extends Object with _UnlinkedExprMixin implements idl.Un
 
   @override
   List<idl.UnlinkedExprOperation> get operations {
-    _operations ??= const fb.ListReader<idl.UnlinkedExprOperation>(const _UnlinkedExprOperationReader()).vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedExprOperation>[]);
+    _operations ??= const fb.ListReader<idl.UnlinkedExprOperation>(
+            const _UnlinkedExprOperationReader())
+        .vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedExprOperation>[]);
     return _operations;
   }
 
   @override
   List<idl.EntityRef> get references {
-    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 2, const <idl.EntityRef>[]);
+    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.EntityRef>[]);
     return _references;
   }
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
+    _strings ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _strings;
   }
 }
@@ -7925,32 +8745,44 @@ abstract class _UnlinkedExprMixin implements idl.UnlinkedExpr {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (assignmentOperators.isNotEmpty) _result["assignmentOperators"] = assignmentOperators.map((_value) => _value.toString().split('.')[1]).toList();
-    if (doubles.isNotEmpty) _result["doubles"] = doubles.map((_value) => _value.isFinite ? _value : _value.toString()).toList();
+    if (assignmentOperators.isNotEmpty)
+      _result["assignmentOperators"] = assignmentOperators
+          .map((_value) => _value.toString().split('.')[1])
+          .toList();
+    if (doubles.isNotEmpty)
+      _result["doubles"] = doubles
+          .map((_value) => _value.isFinite ? _value : _value.toString())
+          .toList();
     if (ints.isNotEmpty) _result["ints"] = ints;
     if (isValidConst != false) _result["isValidConst"] = isValidConst;
-    if (operations.isNotEmpty) _result["operations"] = operations.map((_value) => _value.toString().split('.')[1]).toList();
-    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
+    if (operations.isNotEmpty)
+      _result["operations"] =
+          operations.map((_value) => _value.toString().split('.')[1]).toList();
+    if (references.isNotEmpty)
+      _result["references"] =
+          references.map((_value) => _value.toJson()).toList();
     if (strings.isNotEmpty) _result["strings"] = strings;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "assignmentOperators": assignmentOperators,
-    "doubles": doubles,
-    "ints": ints,
-    "isValidConst": isValidConst,
-    "operations": operations,
-    "references": references,
-    "strings": strings,
-  };
+        "assignmentOperators": assignmentOperators,
+        "doubles": doubles,
+        "ints": ints,
+        "isValidConst": isValidConst,
+        "operations": operations,
+        "references": references,
+        "strings": strings,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedGenericFunctionTypeBuilder extends Object with _UnlinkedGenericFunctionTypeMixin implements idl.UnlinkedGenericFunctionType {
+class UnlinkedGenericFunctionTypeBuilder extends Object
+    with _UnlinkedGenericFunctionTypeMixin
+    implements idl.UnlinkedGenericFunctionType {
   int _offset;
   List<UnlinkedParamBuilder> _parameters;
   EntityRefBuilder _returnType;
@@ -7968,7 +8800,8 @@ class UnlinkedGenericFunctionTypeBuilder extends Object with _UnlinkedGenericFun
   }
 
   @override
-  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
+  List<UnlinkedParamBuilder> get parameters =>
+      _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
    * Parameters of the function type, if any.
@@ -7989,7 +8822,8 @@ class UnlinkedGenericFunctionTypeBuilder extends Object with _UnlinkedGenericFun
   }
 
   @override
-  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters =>
+      _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * Type parameters of the function type, if any.
@@ -7998,11 +8832,15 @@ class UnlinkedGenericFunctionTypeBuilder extends Object with _UnlinkedGenericFun
     this._typeParameters = value;
   }
 
-  UnlinkedGenericFunctionTypeBuilder({int offset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
-    : _offset = offset,
-      _parameters = parameters,
-      _returnType = returnType,
-      _typeParameters = typeParameters;
+  UnlinkedGenericFunctionTypeBuilder(
+      {int offset,
+      List<UnlinkedParamBuilder> parameters,
+      EntityRefBuilder returnType,
+      List<UnlinkedTypeParamBuilder> typeParameters})
+      : _offset = offset,
+        _parameters = parameters,
+        _returnType = returnType,
+        _typeParameters = typeParameters;
 
   /**
    * Flush [informative] data recursively.
@@ -8043,13 +8881,15 @@ class UnlinkedGenericFunctionTypeBuilder extends Object with _UnlinkedGenericFun
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
     if (!(_parameters == null || _parameters.isEmpty)) {
-      offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_parameters = fbBuilder
+          .writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_returnType != null) {
       offset_returnType = _returnType.finish(fbBuilder);
     }
     if (!(_typeParameters == null || _typeParameters.isEmpty)) {
-      offset_typeParameters = fbBuilder.writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_typeParameters = fbBuilder
+          .writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (_offset != null && _offset != 0) {
@@ -8068,14 +8908,19 @@ class UnlinkedGenericFunctionTypeBuilder extends Object with _UnlinkedGenericFun
   }
 }
 
-class _UnlinkedGenericFunctionTypeReader extends fb.TableReader<_UnlinkedGenericFunctionTypeImpl> {
+class _UnlinkedGenericFunctionTypeReader
+    extends fb.TableReader<_UnlinkedGenericFunctionTypeImpl> {
   const _UnlinkedGenericFunctionTypeReader();
 
   @override
-  _UnlinkedGenericFunctionTypeImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedGenericFunctionTypeImpl(bc, offset);
+  _UnlinkedGenericFunctionTypeImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _UnlinkedGenericFunctionTypeImpl(bc, offset);
 }
 
-class _UnlinkedGenericFunctionTypeImpl extends Object with _UnlinkedGenericFunctionTypeMixin implements idl.UnlinkedGenericFunctionType {
+class _UnlinkedGenericFunctionTypeImpl extends Object
+    with _UnlinkedGenericFunctionTypeMixin
+    implements idl.UnlinkedGenericFunctionType {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -8094,7 +8939,9 @@ class _UnlinkedGenericFunctionTypeImpl extends Object with _UnlinkedGenericFunct
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedParam>[]);
+    _parameters ??=
+        const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader())
+            .vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
@@ -8106,35 +8953,44 @@ class _UnlinkedGenericFunctionTypeImpl extends Object with _UnlinkedGenericFunct
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(
+            const _UnlinkedTypeParamReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
 
-abstract class _UnlinkedGenericFunctionTypeMixin implements idl.UnlinkedGenericFunctionType {
+abstract class _UnlinkedGenericFunctionTypeMixin
+    implements idl.UnlinkedGenericFunctionType {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (offset != 0) _result["offset"] = offset;
-    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (parameters.isNotEmpty)
+      _result["parameters"] =
+          parameters.map((_value) => _value.toJson()).toList();
     if (returnType != null) _result["returnType"] = returnType.toJson();
-    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    if (typeParameters.isNotEmpty)
+      _result["typeParameters"] =
+          typeParameters.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "offset": offset,
-    "parameters": parameters,
-    "returnType": returnType,
-    "typeParameters": typeParameters,
-  };
+        "offset": offset,
+        "parameters": parameters,
+        "returnType": returnType,
+        "typeParameters": typeParameters,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
+class UnlinkedImportBuilder extends Object
+    with _UnlinkedImportMixin
+    implements idl.UnlinkedImport {
   List<UnlinkedExprBuilder> _annotations;
   List<UnlinkedCombinatorBuilder> _combinators;
   List<UnlinkedConfigurationBuilder> _configurations;
@@ -8148,7 +9004,8 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   int _uriOffset;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this import declaration.
@@ -8158,7 +9015,8 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  List<UnlinkedCombinatorBuilder> get combinators => _combinators ??= <UnlinkedCombinatorBuilder>[];
+  List<UnlinkedCombinatorBuilder> get combinators =>
+      _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /**
    * Combinators contained in this import declaration.
@@ -8168,7 +9026,8 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   }
 
   @override
-  List<UnlinkedConfigurationBuilder> get configurations => _configurations ??= <UnlinkedConfigurationBuilder>[];
+  List<UnlinkedConfigurationBuilder> get configurations =>
+      _configurations ??= <UnlinkedConfigurationBuilder>[];
 
   /**
    * Configurations used to control which library will actually be loaded at
@@ -8270,18 +9129,29 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     this._uriOffset = value;
   }
 
-  UnlinkedImportBuilder({List<UnlinkedExprBuilder> annotations, List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, bool isDeferred, bool isImplicit, int offset, int prefixOffset, int prefixReference, String uri, int uriEnd, int uriOffset})
-    : _annotations = annotations,
-      _combinators = combinators,
-      _configurations = configurations,
-      _isDeferred = isDeferred,
-      _isImplicit = isImplicit,
-      _offset = offset,
-      _prefixOffset = prefixOffset,
-      _prefixReference = prefixReference,
-      _uri = uri,
-      _uriEnd = uriEnd,
-      _uriOffset = uriOffset;
+  UnlinkedImportBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      List<UnlinkedCombinatorBuilder> combinators,
+      List<UnlinkedConfigurationBuilder> configurations,
+      bool isDeferred,
+      bool isImplicit,
+      int offset,
+      int prefixOffset,
+      int prefixReference,
+      String uri,
+      int uriEnd,
+      int uriOffset})
+      : _annotations = annotations,
+        _combinators = combinators,
+        _configurations = configurations,
+        _isDeferred = isDeferred,
+        _isImplicit = isImplicit,
+        _offset = offset,
+        _prefixOffset = prefixOffset,
+        _prefixReference = prefixReference,
+        _uri = uri,
+        _uriEnd = uriEnd,
+        _uriOffset = uriOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -8336,13 +9206,16 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     fb.Offset offset_configurations;
     fb.Offset offset_uri;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_combinators == null || _combinators.isEmpty)) {
-      offset_combinators = fbBuilder.writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+      offset_combinators = fbBuilder
+          .writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_configurations == null || _configurations.isEmpty)) {
-      offset_configurations = fbBuilder.writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
+      offset_configurations = fbBuilder
+          .writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
@@ -8389,10 +9262,13 @@ class _UnlinkedImportReader extends fb.TableReader<_UnlinkedImportImpl> {
   const _UnlinkedImportReader();
 
   @override
-  _UnlinkedImportImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedImportImpl(bc, offset);
+  _UnlinkedImportImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedImportImpl(bc, offset);
 }
 
-class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
+class _UnlinkedImportImpl extends Object
+    with _UnlinkedImportMixin
+    implements idl.UnlinkedImport {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -8412,19 +9288,25 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
-    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedCombinator>[]);
+    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(
+            const _UnlinkedCombinatorReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedCombinator>[]);
     return _combinators;
   }
 
   @override
   List<idl.UnlinkedConfiguration> get configurations {
-    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(const _UnlinkedConfigurationReader()).vTableGet(_bc, _bcOffset, 10, const <idl.UnlinkedConfiguration>[]);
+    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(
+            const _UnlinkedConfigurationReader())
+        .vTableGet(_bc, _bcOffset, 10, const <idl.UnlinkedConfiguration>[]);
     return _configurations;
   }
 
@@ -8454,7 +9336,8 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
   @override
   int get prefixReference {
-    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
+    _prefixReference ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
     return _prefixReference;
   }
 
@@ -8481,9 +9364,15 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
-    if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
-    if (configurations.isNotEmpty) _result["configurations"] = configurations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
+    if (combinators.isNotEmpty)
+      _result["combinators"] =
+          combinators.map((_value) => _value.toJson()).toList();
+    if (configurations.isNotEmpty)
+      _result["configurations"] =
+          configurations.map((_value) => _value.toJson()).toList();
     if (isDeferred != false) _result["isDeferred"] = isDeferred;
     if (isImplicit != false) _result["isImplicit"] = isImplicit;
     if (offset != 0) _result["offset"] = offset;
@@ -8497,24 +9386,26 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "combinators": combinators,
-    "configurations": configurations,
-    "isDeferred": isDeferred,
-    "isImplicit": isImplicit,
-    "offset": offset,
-    "prefixOffset": prefixOffset,
-    "prefixReference": prefixReference,
-    "uri": uri,
-    "uriEnd": uriEnd,
-    "uriOffset": uriOffset,
-  };
+        "annotations": annotations,
+        "combinators": combinators,
+        "configurations": configurations,
+        "isDeferred": isDeferred,
+        "isImplicit": isImplicit,
+        "offset": offset,
+        "prefixOffset": prefixOffset,
+        "prefixReference": prefixReference,
+        "uri": uri,
+        "uriEnd": uriEnd,
+        "uriOffset": uriOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements idl.UnlinkedLabel {
+class UnlinkedLabelBuilder extends Object
+    with _UnlinkedLabelMixin
+    implements idl.UnlinkedLabel {
   bool _isOnSwitchMember;
   bool _isOnSwitchStatement;
   String _name;
@@ -8562,11 +9453,15 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
     this._nameOffset = value;
   }
 
-  UnlinkedLabelBuilder({bool isOnSwitchMember, bool isOnSwitchStatement, String name, int nameOffset})
-    : _isOnSwitchMember = isOnSwitchMember,
-      _isOnSwitchStatement = isOnSwitchStatement,
-      _name = name,
-      _nameOffset = nameOffset;
+  UnlinkedLabelBuilder(
+      {bool isOnSwitchMember,
+      bool isOnSwitchStatement,
+      String name,
+      int nameOffset})
+      : _isOnSwitchMember = isOnSwitchMember,
+        _isOnSwitchStatement = isOnSwitchStatement,
+        _name = name,
+        _nameOffset = nameOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -8610,10 +9505,13 @@ class _UnlinkedLabelReader extends fb.TableReader<_UnlinkedLabelImpl> {
   const _UnlinkedLabelReader();
 
   @override
-  _UnlinkedLabelImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedLabelImpl(bc, offset);
+  _UnlinkedLabelImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedLabelImpl(bc, offset);
 }
 
-class _UnlinkedLabelImpl extends Object with _UnlinkedLabelMixin implements idl.UnlinkedLabel {
+class _UnlinkedLabelImpl extends Object
+    with _UnlinkedLabelMixin
+    implements idl.UnlinkedLabel {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -8626,13 +9524,15 @@ class _UnlinkedLabelImpl extends Object with _UnlinkedLabelMixin implements idl.
 
   @override
   bool get isOnSwitchMember {
-    _isOnSwitchMember ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    _isOnSwitchMember ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
     return _isOnSwitchMember;
   }
 
   @override
   bool get isOnSwitchStatement {
-    _isOnSwitchStatement ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    _isOnSwitchStatement ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _isOnSwitchStatement;
   }
 
@@ -8653,8 +9553,10 @@ abstract class _UnlinkedLabelMixin implements idl.UnlinkedLabel {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (isOnSwitchMember != false) _result["isOnSwitchMember"] = isOnSwitchMember;
-    if (isOnSwitchStatement != false) _result["isOnSwitchStatement"] = isOnSwitchStatement;
+    if (isOnSwitchMember != false)
+      _result["isOnSwitchMember"] = isOnSwitchMember;
+    if (isOnSwitchStatement != false)
+      _result["isOnSwitchStatement"] = isOnSwitchStatement;
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
     return _result;
@@ -8662,17 +9564,19 @@ abstract class _UnlinkedLabelMixin implements idl.UnlinkedLabel {
 
   @override
   Map<String, Object> toMap() => {
-    "isOnSwitchMember": isOnSwitchMember,
-    "isOnSwitchStatement": isOnSwitchStatement,
-    "name": name,
-    "nameOffset": nameOffset,
-  };
+        "isOnSwitchMember": isOnSwitchMember,
+        "isOnSwitchStatement": isOnSwitchStatement,
+        "name": name,
+        "nameOffset": nameOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements idl.UnlinkedParam {
+class UnlinkedParamBuilder extends Object
+    with _UnlinkedParamMixin
+    implements idl.UnlinkedParam {
   List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   String _defaultValueCode;
@@ -8692,7 +9596,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   int _visibleOffset;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this parameter.
@@ -8848,7 +9753,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   }
 
   @override
-  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
+  List<UnlinkedParamBuilder> get parameters =>
+      _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
@@ -8891,24 +9797,41 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     this._visibleOffset = value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isExplicitlyCovariant, bool isFinal, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
-    : _annotations = annotations,
-      _codeRange = codeRange,
-      _defaultValueCode = defaultValueCode,
-      _inferredTypeSlot = inferredTypeSlot,
-      _inheritsCovariantSlot = inheritsCovariantSlot,
-      _initializer = initializer,
-      _isExplicitlyCovariant = isExplicitlyCovariant,
-      _isFinal = isFinal,
-      _isFunctionTyped = isFunctionTyped,
-      _isInitializingFormal = isInitializingFormal,
-      _kind = kind,
-      _name = name,
-      _nameOffset = nameOffset,
-      _parameters = parameters,
-      _type = type,
-      _visibleLength = visibleLength,
-      _visibleOffset = visibleOffset;
+  UnlinkedParamBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      CodeRangeBuilder codeRange,
+      String defaultValueCode,
+      int inferredTypeSlot,
+      int inheritsCovariantSlot,
+      UnlinkedExecutableBuilder initializer,
+      bool isExplicitlyCovariant,
+      bool isFinal,
+      bool isFunctionTyped,
+      bool isInitializingFormal,
+      idl.UnlinkedParamKind kind,
+      String name,
+      int nameOffset,
+      List<UnlinkedParamBuilder> parameters,
+      EntityRefBuilder type,
+      int visibleLength,
+      int visibleOffset})
+      : _annotations = annotations,
+        _codeRange = codeRange,
+        _defaultValueCode = defaultValueCode,
+        _inferredTypeSlot = inferredTypeSlot,
+        _inheritsCovariantSlot = inheritsCovariantSlot,
+        _initializer = initializer,
+        _isExplicitlyCovariant = isExplicitlyCovariant,
+        _isFinal = isFinal,
+        _isFunctionTyped = isFunctionTyped,
+        _isInitializingFormal = isInitializingFormal,
+        _kind = kind,
+        _name = name,
+        _nameOffset = nameOffset,
+        _parameters = parameters,
+        _type = type,
+        _visibleLength = visibleLength,
+        _visibleOffset = visibleOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -8968,7 +9891,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     fb.Offset offset_parameters;
     fb.Offset offset_type;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_codeRange != null) {
       offset_codeRange = _codeRange.finish(fbBuilder);
@@ -8983,7 +9907,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       offset_name = fbBuilder.writeString(_name);
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
-      offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_parameters = fbBuilder
+          .writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_type != null) {
       offset_type = _type.finish(fbBuilder);
@@ -9048,10 +9973,13 @@ class _UnlinkedParamReader extends fb.TableReader<_UnlinkedParamImpl> {
   const _UnlinkedParamReader();
 
   @override
-  _UnlinkedParamImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedParamImpl(bc, offset);
+  _UnlinkedParamImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedParamImpl(bc, offset);
 }
 
-class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.UnlinkedParam {
+class _UnlinkedParamImpl extends Object
+    with _UnlinkedParamMixin
+    implements idl.UnlinkedParam {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -9077,7 +10005,9 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -9089,31 +10019,36 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   String get defaultValueCode {
-    _defaultValueCode ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 13, '');
+    _defaultValueCode ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 13, '');
     return _defaultValueCode;
   }
 
   @override
   int get inferredTypeSlot {
-    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    _inferredTypeSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _inferredTypeSlot;
   }
 
   @override
   int get inheritsCovariantSlot {
-    _inheritsCovariantSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
+    _inheritsCovariantSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
     return _inheritsCovariantSlot;
   }
 
   @override
   idl.UnlinkedExecutable get initializer {
-    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bc, _bcOffset, 12, null);
+    _initializer ??=
+        const _UnlinkedExecutableReader().vTableGet(_bc, _bcOffset, 12, null);
     return _initializer;
   }
 
   @override
   bool get isExplicitlyCovariant {
-    _isExplicitlyCovariant ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 15, false);
+    _isExplicitlyCovariant ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 15, false);
     return _isExplicitlyCovariant;
   }
 
@@ -9125,19 +10060,22 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   bool get isFunctionTyped {
-    _isFunctionTyped ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    _isFunctionTyped ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
     return _isFunctionTyped;
   }
 
   @override
   bool get isInitializingFormal {
-    _isInitializingFormal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    _isInitializingFormal ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isInitializingFormal;
   }
 
   @override
   idl.UnlinkedParamKind get kind {
-    _kind ??= const _UnlinkedParamKindReader().vTableGet(_bc, _bcOffset, 4, idl.UnlinkedParamKind.required);
+    _kind ??= const _UnlinkedParamKindReader()
+        .vTableGet(_bc, _bcOffset, 4, idl.UnlinkedParamKind.required);
     return _kind;
   }
 
@@ -9155,7 +10093,9 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedParam>[]);
+    _parameters ??=
+        const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader())
+            .vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
@@ -9182,20 +10122,28 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (defaultValueCode != '') _result["defaultValueCode"] = defaultValueCode;
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
-    if (inheritsCovariantSlot != 0) _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
+    if (inheritsCovariantSlot != 0)
+      _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
-    if (isExplicitlyCovariant != false) _result["isExplicitlyCovariant"] = isExplicitlyCovariant;
+    if (isExplicitlyCovariant != false)
+      _result["isExplicitlyCovariant"] = isExplicitlyCovariant;
     if (isFinal != false) _result["isFinal"] = isFinal;
     if (isFunctionTyped != false) _result["isFunctionTyped"] = isFunctionTyped;
-    if (isInitializingFormal != false) _result["isInitializingFormal"] = isInitializingFormal;
-    if (kind != idl.UnlinkedParamKind.required) _result["kind"] = kind.toString().split('.')[1];
+    if (isInitializingFormal != false)
+      _result["isInitializingFormal"] = isInitializingFormal;
+    if (kind != idl.UnlinkedParamKind.required)
+      _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (parameters.isNotEmpty)
+      _result["parameters"] =
+          parameters.map((_value) => _value.toJson()).toList();
     if (type != null) _result["type"] = type.toJson();
     if (visibleLength != 0) _result["visibleLength"] = visibleLength;
     if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
@@ -9204,36 +10152,39 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "codeRange": codeRange,
-    "defaultValueCode": defaultValueCode,
-    "inferredTypeSlot": inferredTypeSlot,
-    "inheritsCovariantSlot": inheritsCovariantSlot,
-    "initializer": initializer,
-    "isExplicitlyCovariant": isExplicitlyCovariant,
-    "isFinal": isFinal,
-    "isFunctionTyped": isFunctionTyped,
-    "isInitializingFormal": isInitializingFormal,
-    "kind": kind,
-    "name": name,
-    "nameOffset": nameOffset,
-    "parameters": parameters,
-    "type": type,
-    "visibleLength": visibleLength,
-    "visibleOffset": visibleOffset,
-  };
+        "annotations": annotations,
+        "codeRange": codeRange,
+        "defaultValueCode": defaultValueCode,
+        "inferredTypeSlot": inferredTypeSlot,
+        "inheritsCovariantSlot": inheritsCovariantSlot,
+        "initializer": initializer,
+        "isExplicitlyCovariant": isExplicitlyCovariant,
+        "isFinal": isFinal,
+        "isFunctionTyped": isFunctionTyped,
+        "isInitializingFormal": isInitializingFormal,
+        "kind": kind,
+        "name": name,
+        "nameOffset": nameOffset,
+        "parameters": parameters,
+        "type": type,
+        "visibleLength": visibleLength,
+        "visibleOffset": visibleOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.UnlinkedPart {
+class UnlinkedPartBuilder extends Object
+    with _UnlinkedPartMixin
+    implements idl.UnlinkedPart {
   List<UnlinkedExprBuilder> _annotations;
   int _uriEnd;
   int _uriOffset;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this part declaration.
@@ -9266,10 +10217,11 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
     this._uriOffset = value;
   }
 
-  UnlinkedPartBuilder({List<UnlinkedExprBuilder> annotations, int uriEnd, int uriOffset})
-    : _annotations = annotations,
-      _uriEnd = uriEnd,
-      _uriOffset = uriOffset;
+  UnlinkedPartBuilder(
+      {List<UnlinkedExprBuilder> annotations, int uriEnd, int uriOffset})
+      : _annotations = annotations,
+        _uriEnd = uriEnd,
+        _uriOffset = uriOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -9297,7 +10249,8 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
@@ -9317,10 +10270,13 @@ class _UnlinkedPartReader extends fb.TableReader<_UnlinkedPartImpl> {
   const _UnlinkedPartReader();
 
   @override
-  _UnlinkedPartImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedPartImpl(bc, offset);
+  _UnlinkedPartImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedPartImpl(bc, offset);
 }
 
-class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements idl.UnlinkedPart {
+class _UnlinkedPartImpl extends Object
+    with _UnlinkedPartMixin
+    implements idl.UnlinkedPart {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -9332,7 +10288,9 @@ class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements idl.Un
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -9353,7 +10311,9 @@ abstract class _UnlinkedPartMixin implements idl.UnlinkedPart {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (uriEnd != 0) _result["uriEnd"] = uriEnd;
     if (uriOffset != 0) _result["uriOffset"] = uriOffset;
     return _result;
@@ -9361,16 +10321,18 @@ abstract class _UnlinkedPartMixin implements idl.UnlinkedPart {
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "uriEnd": uriEnd,
-    "uriOffset": uriOffset,
-  };
+        "annotations": annotations,
+        "uriEnd": uriEnd,
+        "uriOffset": uriOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
+class UnlinkedPublicNameBuilder extends Object
+    with _UnlinkedPublicNameMixin
+    implements idl.UnlinkedPublicName {
   idl.ReferenceKind _kind;
   List<UnlinkedPublicNameBuilder> _members;
   String _name;
@@ -9387,7 +10349,8 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   }
 
   @override
-  List<UnlinkedPublicNameBuilder> get members => _members ??= <UnlinkedPublicNameBuilder>[];
+  List<UnlinkedPublicNameBuilder> get members =>
+      _members ??= <UnlinkedPublicNameBuilder>[];
 
   /**
    * If this [UnlinkedPublicName] is a class, the list of members which can be
@@ -9423,11 +10386,15 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     this._numTypeParameters = value;
   }
 
-  UnlinkedPublicNameBuilder({idl.ReferenceKind kind, List<UnlinkedPublicNameBuilder> members, String name, int numTypeParameters})
-    : _kind = kind,
-      _members = members,
-      _name = name,
-      _numTypeParameters = numTypeParameters;
+  UnlinkedPublicNameBuilder(
+      {idl.ReferenceKind kind,
+      List<UnlinkedPublicNameBuilder> members,
+      String name,
+      int numTypeParameters})
+      : _kind = kind,
+        _members = members,
+        _name = name,
+        _numTypeParameters = numTypeParameters;
 
   /**
    * Flush [informative] data recursively.
@@ -9457,7 +10424,8 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
     fb.Offset offset_members;
     fb.Offset offset_name;
     if (!(_members == null || _members.isEmpty)) {
-      offset_members = fbBuilder.writeList(_members.map((b) => b.finish(fbBuilder)).toList());
+      offset_members = fbBuilder
+          .writeList(_members.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -9479,14 +10447,18 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   }
 }
 
-class _UnlinkedPublicNameReader extends fb.TableReader<_UnlinkedPublicNameImpl> {
+class _UnlinkedPublicNameReader
+    extends fb.TableReader<_UnlinkedPublicNameImpl> {
   const _UnlinkedPublicNameReader();
 
   @override
-  _UnlinkedPublicNameImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedPublicNameImpl(bc, offset);
+  _UnlinkedPublicNameImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedPublicNameImpl(bc, offset);
 }
 
-class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
+class _UnlinkedPublicNameImpl extends Object
+    with _UnlinkedPublicNameMixin
+    implements idl.UnlinkedPublicName {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -9499,13 +10471,16 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 
   @override
   idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bc, _bcOffset, 1, idl.ReferenceKind.classOrEnum);
+    _kind ??= const _ReferenceKindReader()
+        .vTableGet(_bc, _bcOffset, 1, idl.ReferenceKind.classOrEnum);
     return _kind;
   }
 
   @override
   List<idl.UnlinkedPublicName> get members {
-    _members ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedPublicName>[]);
+    _members ??= const fb.ListReader<idl.UnlinkedPublicName>(
+            const _UnlinkedPublicNameReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedPublicName>[]);
     return _members;
   }
 
@@ -9517,7 +10492,8 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 
   @override
   int get numTypeParameters {
-    _numTypeParameters ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
+    _numTypeParameters ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
     return _numTypeParameters;
   }
 }
@@ -9526,32 +10502,38 @@ abstract class _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (kind != idl.ReferenceKind.classOrEnum) _result["kind"] = kind.toString().split('.')[1];
-    if (members.isNotEmpty) _result["members"] = members.map((_value) => _value.toJson()).toList();
+    if (kind != idl.ReferenceKind.classOrEnum)
+      _result["kind"] = kind.toString().split('.')[1];
+    if (members.isNotEmpty)
+      _result["members"] = members.map((_value) => _value.toJson()).toList();
     if (name != '') _result["name"] = name;
-    if (numTypeParameters != 0) _result["numTypeParameters"] = numTypeParameters;
+    if (numTypeParameters != 0)
+      _result["numTypeParameters"] = numTypeParameters;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "kind": kind,
-    "members": members,
-    "name": name,
-    "numTypeParameters": numTypeParameters,
-  };
+        "kind": kind,
+        "members": members,
+        "name": name,
+        "numTypeParameters": numTypeParameters,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamespace {
+class UnlinkedPublicNamespaceBuilder extends Object
+    with _UnlinkedPublicNamespaceMixin
+    implements idl.UnlinkedPublicNamespace {
   List<UnlinkedExportPublicBuilder> _exports;
   List<UnlinkedPublicNameBuilder> _names;
   List<String> _parts;
 
   @override
-  List<UnlinkedExportPublicBuilder> get exports => _exports ??= <UnlinkedExportPublicBuilder>[];
+  List<UnlinkedExportPublicBuilder> get exports =>
+      _exports ??= <UnlinkedExportPublicBuilder>[];
 
   /**
    * Export declarations in the compilation unit.
@@ -9561,7 +10543,8 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   }
 
   @override
-  List<UnlinkedPublicNameBuilder> get names => _names ??= <UnlinkedPublicNameBuilder>[];
+  List<UnlinkedPublicNameBuilder> get names =>
+      _names ??= <UnlinkedPublicNameBuilder>[];
 
   /**
    * Public names defined in the compilation unit.
@@ -9583,10 +10566,13 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
     this._parts = value;
   }
 
-  UnlinkedPublicNamespaceBuilder({List<UnlinkedExportPublicBuilder> exports, List<UnlinkedPublicNameBuilder> names, List<String> parts})
-    : _exports = exports,
-      _names = names,
-      _parts = parts;
+  UnlinkedPublicNamespaceBuilder(
+      {List<UnlinkedExportPublicBuilder> exports,
+      List<UnlinkedPublicNameBuilder> names,
+      List<String> parts})
+      : _exports = exports,
+        _names = names,
+        _parts = parts;
 
   /**
    * Flush [informative] data recursively.
@@ -9636,13 +10622,16 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
     fb.Offset offset_names;
     fb.Offset offset_parts;
     if (!(_exports == null || _exports.isEmpty)) {
-      offset_exports = fbBuilder.writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
+      offset_exports = fbBuilder
+          .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_names == null || _names.isEmpty)) {
-      offset_names = fbBuilder.writeList(_names.map((b) => b.finish(fbBuilder)).toList());
+      offset_names =
+          fbBuilder.writeList(_names.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_parts == null || _parts.isEmpty)) {
-      offset_parts = fbBuilder.writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
+      offset_parts = fbBuilder
+          .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_exports != null) {
@@ -9663,14 +10652,18 @@ idl.UnlinkedPublicNamespace readUnlinkedPublicNamespace(List<int> buffer) {
   return const _UnlinkedPublicNamespaceReader().read(rootRef, 0);
 }
 
-class _UnlinkedPublicNamespaceReader extends fb.TableReader<_UnlinkedPublicNamespaceImpl> {
+class _UnlinkedPublicNamespaceReader
+    extends fb.TableReader<_UnlinkedPublicNamespaceImpl> {
   const _UnlinkedPublicNamespaceReader();
 
   @override
-  _UnlinkedPublicNamespaceImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedPublicNamespaceImpl(bc, offset);
+  _UnlinkedPublicNamespaceImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedPublicNamespaceImpl(bc, offset);
 }
 
-class _UnlinkedPublicNamespaceImpl extends Object with _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamespace {
+class _UnlinkedPublicNamespaceImpl extends Object
+    with _UnlinkedPublicNamespaceMixin
+    implements idl.UnlinkedPublicNamespace {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -9682,45 +10675,55 @@ class _UnlinkedPublicNamespaceImpl extends Object with _UnlinkedPublicNamespaceM
 
   @override
   List<idl.UnlinkedExportPublic> get exports {
-    _exports ??= const fb.ListReader<idl.UnlinkedExportPublic>(const _UnlinkedExportPublicReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExportPublic>[]);
+    _exports ??= const fb.ListReader<idl.UnlinkedExportPublic>(
+            const _UnlinkedExportPublicReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExportPublic>[]);
     return _exports;
   }
 
   @override
   List<idl.UnlinkedPublicName> get names {
-    _names ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedPublicName>[]);
+    _names ??= const fb.ListReader<idl.UnlinkedPublicName>(
+            const _UnlinkedPublicNameReader())
+        .vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedPublicName>[]);
     return _names;
   }
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _parts;
   }
 }
 
-abstract class _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamespace {
+abstract class _UnlinkedPublicNamespaceMixin
+    implements idl.UnlinkedPublicNamespace {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
-    if (names.isNotEmpty) _result["names"] = names.map((_value) => _value.toJson()).toList();
+    if (exports.isNotEmpty)
+      _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    if (names.isNotEmpty)
+      _result["names"] = names.map((_value) => _value.toJson()).toList();
     if (parts.isNotEmpty) _result["parts"] = parts;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "exports": exports,
-    "names": names,
-    "parts": parts,
-  };
+        "exports": exports,
+        "names": names,
+        "parts": parts,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin implements idl.UnlinkedReference {
+class UnlinkedReferenceBuilder extends Object
+    with _UnlinkedReferenceMixin
+    implements idl.UnlinkedReference {
   String _name;
   int _prefixReference;
 
@@ -9753,14 +10756,13 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
   }
 
   UnlinkedReferenceBuilder({String name, int prefixReference})
-    : _name = name,
-      _prefixReference = prefixReference;
+      : _name = name,
+        _prefixReference = prefixReference;
 
   /**
    * Flush [informative] data recursively.
    */
-  void flushInformative() {
-  }
+  void flushInformative() {}
 
   /**
    * Accumulate non-[informative] data into [signature].
@@ -9790,10 +10792,13 @@ class _UnlinkedReferenceReader extends fb.TableReader<_UnlinkedReferenceImpl> {
   const _UnlinkedReferenceReader();
 
   @override
-  _UnlinkedReferenceImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedReferenceImpl(bc, offset);
+  _UnlinkedReferenceImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedReferenceImpl(bc, offset);
 }
 
-class _UnlinkedReferenceImpl extends Object with _UnlinkedReferenceMixin implements idl.UnlinkedReference {
+class _UnlinkedReferenceImpl extends Object
+    with _UnlinkedReferenceMixin
+    implements idl.UnlinkedReference {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -9810,7 +10815,8 @@ class _UnlinkedReferenceImpl extends Object with _UnlinkedReferenceMixin impleme
 
   @override
   int get prefixReference {
-    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    _prefixReference ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _prefixReference;
   }
 }
@@ -9826,15 +10832,17 @@ abstract class _UnlinkedReferenceMixin implements idl.UnlinkedReference {
 
   @override
   Map<String, Object> toMap() => {
-    "name": name,
-    "prefixReference": prefixReference,
-  };
+        "name": name,
+        "prefixReference": prefixReference,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
+class UnlinkedTypedefBuilder extends Object
+    with _UnlinkedTypedefMixin
+    implements idl.UnlinkedTypedef {
   List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -9846,7 +10854,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this typedef.
@@ -9866,7 +10875,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment =>
+      _documentationComment;
 
   /**
    * Documentation comment for the typedef, or `null` if there is no
@@ -9898,7 +10908,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  List<UnlinkedParamBuilder> get parameters => _parameters ??= <UnlinkedParamBuilder>[];
+  List<UnlinkedParamBuilder> get parameters =>
+      _parameters ??= <UnlinkedParamBuilder>[];
 
   /**
    * Parameters of the executable, if any.
@@ -9930,7 +10941,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   }
 
   @override
-  List<UnlinkedTypeParamBuilder> get typeParameters => _typeParameters ??= <UnlinkedTypeParamBuilder>[];
+  List<UnlinkedTypeParamBuilder> get typeParameters =>
+      _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /**
    * Type parameters of the typedef, if any.
@@ -9939,16 +10951,25 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     this._typeParameters = value;
   }
 
-  UnlinkedTypedefBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, idl.TypedefStyle style, List<UnlinkedTypeParamBuilder> typeParameters})
-    : _annotations = annotations,
-      _codeRange = codeRange,
-      _documentationComment = documentationComment,
-      _name = name,
-      _nameOffset = nameOffset,
-      _parameters = parameters,
-      _returnType = returnType,
-      _style = style,
-      _typeParameters = typeParameters;
+  UnlinkedTypedefBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      CodeRangeBuilder codeRange,
+      UnlinkedDocumentationCommentBuilder documentationComment,
+      String name,
+      int nameOffset,
+      List<UnlinkedParamBuilder> parameters,
+      EntityRefBuilder returnType,
+      idl.TypedefStyle style,
+      List<UnlinkedTypeParamBuilder> typeParameters})
+      : _annotations = annotations,
+        _codeRange = codeRange,
+        _documentationComment = documentationComment,
+        _name = name,
+        _nameOffset = nameOffset,
+        _parameters = parameters,
+        _returnType = returnType,
+        _style = style,
+        _typeParameters = typeParameters;
 
   /**
    * Flush [informative] data recursively.
@@ -10006,7 +11027,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_codeRange != null) {
       offset_codeRange = _codeRange.finish(fbBuilder);
@@ -10018,13 +11040,15 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
       offset_name = fbBuilder.writeString(_name);
     }
     if (!(_parameters == null || _parameters.isEmpty)) {
-      offset_parameters = fbBuilder.writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_parameters = fbBuilder
+          .writeList(_parameters.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_returnType != null) {
       offset_returnType = _returnType.finish(fbBuilder);
     }
     if (!(_typeParameters == null || _typeParameters.isEmpty)) {
-      offset_typeParameters = fbBuilder.writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
+      offset_typeParameters = fbBuilder
+          .writeList(_typeParameters.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_annotations != null) {
@@ -10062,10 +11086,13 @@ class _UnlinkedTypedefReader extends fb.TableReader<_UnlinkedTypedefImpl> {
   const _UnlinkedTypedefReader();
 
   @override
-  _UnlinkedTypedefImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedTypedefImpl(bc, offset);
+  _UnlinkedTypedefImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedTypedefImpl(bc, offset);
 }
 
-class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
+class _UnlinkedTypedefImpl extends Object
+    with _UnlinkedTypedefMixin
+    implements idl.UnlinkedTypedef {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -10083,7 +11110,9 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -10095,7 +11124,8 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 6, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader()
+        .vTableGet(_bc, _bcOffset, 6, null);
     return _documentationComment;
   }
 
@@ -10113,7 +11143,9 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedParam>[]);
+    _parameters ??=
+        const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader())
+            .vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
@@ -10125,13 +11157,16 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
   @override
   idl.TypedefStyle get style {
-    _style ??= const _TypedefStyleReader().vTableGet(_bc, _bcOffset, 8, idl.TypedefStyle.functionType);
+    _style ??= const _TypedefStyleReader()
+        .vTableGet(_bc, _bcOffset, 8, idl.TypedefStyle.functionType);
     return _style;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(
+            const _UnlinkedTypeParamReader())
+        .vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -10140,36 +11175,46 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
-    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (documentationComment != null)
+      _result["documentationComment"] = documentationComment.toJson();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    if (parameters.isNotEmpty) _result["parameters"] = parameters.map((_value) => _value.toJson()).toList();
+    if (parameters.isNotEmpty)
+      _result["parameters"] =
+          parameters.map((_value) => _value.toJson()).toList();
     if (returnType != null) _result["returnType"] = returnType.toJson();
-    if (style != idl.TypedefStyle.functionType) _result["style"] = style.toString().split('.')[1];
-    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
+    if (style != idl.TypedefStyle.functionType)
+      _result["style"] = style.toString().split('.')[1];
+    if (typeParameters.isNotEmpty)
+      _result["typeParameters"] =
+          typeParameters.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "codeRange": codeRange,
-    "documentationComment": documentationComment,
-    "name": name,
-    "nameOffset": nameOffset,
-    "parameters": parameters,
-    "returnType": returnType,
-    "style": style,
-    "typeParameters": typeParameters,
-  };
+        "annotations": annotations,
+        "codeRange": codeRange,
+        "documentationComment": documentationComment,
+        "name": name,
+        "nameOffset": nameOffset,
+        "parameters": parameters,
+        "returnType": returnType,
+        "style": style,
+        "typeParameters": typeParameters,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
+class UnlinkedTypeParamBuilder extends Object
+    with _UnlinkedTypeParamMixin
+    implements idl.UnlinkedTypeParam {
   List<UnlinkedExprBuilder> _annotations;
   EntityRefBuilder _bound;
   CodeRangeBuilder _codeRange;
@@ -10177,7 +11222,8 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   int _nameOffset;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this type parameter.
@@ -10228,12 +11274,17 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     this._nameOffset = value;
   }
 
-  UnlinkedTypeParamBuilder({List<UnlinkedExprBuilder> annotations, EntityRefBuilder bound, CodeRangeBuilder codeRange, String name, int nameOffset})
-    : _annotations = annotations,
-      _bound = bound,
-      _codeRange = codeRange,
-      _name = name,
-      _nameOffset = nameOffset;
+  UnlinkedTypeParamBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      EntityRefBuilder bound,
+      CodeRangeBuilder codeRange,
+      String name,
+      int nameOffset})
+      : _annotations = annotations,
+        _bound = bound,
+        _codeRange = codeRange,
+        _name = name,
+        _nameOffset = nameOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -10268,7 +11319,8 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     fb.Offset offset_codeRange;
     fb.Offset offset_name;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_bound != null) {
       offset_bound = _bound.finish(fbBuilder);
@@ -10303,10 +11355,13 @@ class _UnlinkedTypeParamReader extends fb.TableReader<_UnlinkedTypeParamImpl> {
   const _UnlinkedTypeParamReader();
 
   @override
-  _UnlinkedTypeParamImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedTypeParamImpl(bc, offset);
+  _UnlinkedTypeParamImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedTypeParamImpl(bc, offset);
 }
 
-class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
+class _UnlinkedTypeParamImpl extends Object
+    with _UnlinkedTypeParamMixin
+    implements idl.UnlinkedTypeParam {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -10320,7 +11375,9 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -10353,7 +11410,9 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (bound != null) _result["bound"] = bound.toJson();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (name != '') _result["name"] = name;
@@ -10363,18 +11422,20 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "bound": bound,
-    "codeRange": codeRange,
-    "name": name,
-    "nameOffset": nameOffset,
-  };
+        "annotations": annotations,
+        "bound": bound,
+        "codeRange": codeRange,
+        "name": name,
+        "nameOffset": nameOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.UnlinkedUnit {
+class UnlinkedUnitBuilder extends Object
+    with _UnlinkedUnitMixin
+    implements idl.UnlinkedUnit {
   List<int> _apiSignature;
   List<UnlinkedClassBuilder> _classes;
   CodeRangeBuilder _codeRange;
@@ -10409,7 +11470,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedClassBuilder> get classes => _classes ??= <UnlinkedClassBuilder>[];
+  List<UnlinkedClassBuilder> get classes =>
+      _classes ??= <UnlinkedClassBuilder>[];
 
   /**
    * Classes declared in the compilation unit.
@@ -10439,7 +11501,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedExecutableBuilder> get executables => _executables ??= <UnlinkedExecutableBuilder>[];
+  List<UnlinkedExecutableBuilder> get executables =>
+      _executables ??= <UnlinkedExecutableBuilder>[];
 
   /**
    * Top level executable objects (functions, getters, and setters) declared in
@@ -10450,7 +11513,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedExportNonPublicBuilder> get exports => _exports ??= <UnlinkedExportNonPublicBuilder>[];
+  List<UnlinkedExportNonPublicBuilder> get exports =>
+      _exports ??= <UnlinkedExportNonPublicBuilder>[];
 
   /**
    * Export declarations in the compilation unit.
@@ -10460,10 +11524,12 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  String get fallbackModePath => throw new UnimplementedError('attempt to access deprecated field');
+  String get fallbackModePath =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<UnlinkedImportBuilder> get imports => _imports ??= <UnlinkedImportBuilder>[];
+  List<UnlinkedImportBuilder> get imports =>
+      _imports ??= <UnlinkedImportBuilder>[];
 
   /**
    * Import declarations in the compilation unit.
@@ -10483,7 +11549,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedExprBuilder> get libraryAnnotations => _libraryAnnotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get libraryAnnotations =>
+      _libraryAnnotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for the library declaration, or the empty list if there is no
@@ -10494,13 +11561,15 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  UnlinkedDocumentationCommentBuilder get libraryDocumentationComment => _libraryDocumentationComment;
+  UnlinkedDocumentationCommentBuilder get libraryDocumentationComment =>
+      _libraryDocumentationComment;
 
   /**
    * Documentation comment for the library, or `null` if there is no
    * documentation comment.
    */
-  void set libraryDocumentationComment(UnlinkedDocumentationCommentBuilder value) {
+  void set libraryDocumentationComment(
+      UnlinkedDocumentationCommentBuilder value) {
     this._libraryDocumentationComment = value;
   }
 
@@ -10570,7 +11639,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedReferenceBuilder> get references => _references ??= <UnlinkedReferenceBuilder>[];
+  List<UnlinkedReferenceBuilder> get references =>
+      _references ??= <UnlinkedReferenceBuilder>[];
 
   /**
    * Top level and prefixed names referred to by this compilation unit.  The
@@ -10584,7 +11654,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedTypedefBuilder> get typedefs => _typedefs ??= <UnlinkedTypedefBuilder>[];
+  List<UnlinkedTypedefBuilder> get typedefs =>
+      _typedefs ??= <UnlinkedTypedefBuilder>[];
 
   /**
    * Typedefs declared in the compilation unit.
@@ -10594,7 +11665,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedVariableBuilder> get variables => _variables ??= <UnlinkedVariableBuilder>[];
+  List<UnlinkedVariableBuilder> get variables =>
+      _variables ??= <UnlinkedVariableBuilder>[];
 
   /**
    * Top level variables declared in the compilation unit.
@@ -10603,26 +11675,45 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     this._variables = value;
   }
 
-  UnlinkedUnitBuilder({List<int> apiSignature, List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedExprBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
-    : _apiSignature = apiSignature,
-      _classes = classes,
-      _codeRange = codeRange,
-      _enums = enums,
-      _executables = executables,
-      _exports = exports,
-      _imports = imports,
-      _isPartOf = isPartOf,
-      _libraryAnnotations = libraryAnnotations,
-      _libraryDocumentationComment = libraryDocumentationComment,
-      _libraryName = libraryName,
-      _libraryNameLength = libraryNameLength,
-      _libraryNameOffset = libraryNameOffset,
-      _lineStarts = lineStarts,
-      _parts = parts,
-      _publicNamespace = publicNamespace,
-      _references = references,
-      _typedefs = typedefs,
-      _variables = variables;
+  UnlinkedUnitBuilder(
+      {List<int> apiSignature,
+      List<UnlinkedClassBuilder> classes,
+      CodeRangeBuilder codeRange,
+      List<UnlinkedEnumBuilder> enums,
+      List<UnlinkedExecutableBuilder> executables,
+      List<UnlinkedExportNonPublicBuilder> exports,
+      List<UnlinkedImportBuilder> imports,
+      bool isPartOf,
+      List<UnlinkedExprBuilder> libraryAnnotations,
+      UnlinkedDocumentationCommentBuilder libraryDocumentationComment,
+      String libraryName,
+      int libraryNameLength,
+      int libraryNameOffset,
+      List<int> lineStarts,
+      List<UnlinkedPartBuilder> parts,
+      UnlinkedPublicNamespaceBuilder publicNamespace,
+      List<UnlinkedReferenceBuilder> references,
+      List<UnlinkedTypedefBuilder> typedefs,
+      List<UnlinkedVariableBuilder> variables})
+      : _apiSignature = apiSignature,
+        _classes = classes,
+        _codeRange = codeRange,
+        _enums = enums,
+        _executables = executables,
+        _exports = exports,
+        _imports = imports,
+        _isPartOf = isPartOf,
+        _libraryAnnotations = libraryAnnotations,
+        _libraryDocumentationComment = libraryDocumentationComment,
+        _libraryName = libraryName,
+        _libraryNameLength = libraryNameLength,
+        _libraryNameOffset = libraryNameOffset,
+        _lineStarts = lineStarts,
+        _parts = parts,
+        _publicNamespace = publicNamespace,
+        _references = references,
+        _typedefs = typedefs,
+        _variables = variables;
 
   /**
    * Flush [informative] data recursively.
@@ -10770,28 +11861,35 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       offset_apiSignature = fbBuilder.writeListUint32(_apiSignature);
     }
     if (!(_classes == null || _classes.isEmpty)) {
-      offset_classes = fbBuilder.writeList(_classes.map((b) => b.finish(fbBuilder)).toList());
+      offset_classes = fbBuilder
+          .writeList(_classes.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_codeRange != null) {
       offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (!(_enums == null || _enums.isEmpty)) {
-      offset_enums = fbBuilder.writeList(_enums.map((b) => b.finish(fbBuilder)).toList());
+      offset_enums =
+          fbBuilder.writeList(_enums.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_executables == null || _executables.isEmpty)) {
-      offset_executables = fbBuilder.writeList(_executables.map((b) => b.finish(fbBuilder)).toList());
+      offset_executables = fbBuilder
+          .writeList(_executables.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_exports == null || _exports.isEmpty)) {
-      offset_exports = fbBuilder.writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
+      offset_exports = fbBuilder
+          .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_imports == null || _imports.isEmpty)) {
-      offset_imports = fbBuilder.writeList(_imports.map((b) => b.finish(fbBuilder)).toList());
+      offset_imports = fbBuilder
+          .writeList(_imports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_libraryAnnotations == null || _libraryAnnotations.isEmpty)) {
-      offset_libraryAnnotations = fbBuilder.writeList(_libraryAnnotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_libraryAnnotations = fbBuilder.writeList(
+          _libraryAnnotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_libraryDocumentationComment != null) {
-      offset_libraryDocumentationComment = _libraryDocumentationComment.finish(fbBuilder);
+      offset_libraryDocumentationComment =
+          _libraryDocumentationComment.finish(fbBuilder);
     }
     if (_libraryName != null) {
       offset_libraryName = fbBuilder.writeString(_libraryName);
@@ -10800,19 +11898,23 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
     }
     if (!(_parts == null || _parts.isEmpty)) {
-      offset_parts = fbBuilder.writeList(_parts.map((b) => b.finish(fbBuilder)).toList());
+      offset_parts =
+          fbBuilder.writeList(_parts.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_publicNamespace != null) {
       offset_publicNamespace = _publicNamespace.finish(fbBuilder);
     }
     if (!(_references == null || _references.isEmpty)) {
-      offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+      offset_references = fbBuilder
+          .writeList(_references.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_typedefs == null || _typedefs.isEmpty)) {
-      offset_typedefs = fbBuilder.writeList(_typedefs.map((b) => b.finish(fbBuilder)).toList());
+      offset_typedefs = fbBuilder
+          .writeList(_typedefs.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_variables == null || _variables.isEmpty)) {
-      offset_variables = fbBuilder.writeList(_variables.map((b) => b.finish(fbBuilder)).toList());
+      offset_variables = fbBuilder
+          .writeList(_variables.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
     if (offset_apiSignature != null) {
@@ -10885,10 +11987,13 @@ class _UnlinkedUnitReader extends fb.TableReader<_UnlinkedUnitImpl> {
   const _UnlinkedUnitReader();
 
   @override
-  _UnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedUnitImpl(bc, offset);
+  _UnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedUnitImpl(bc, offset);
 }
 
-class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.UnlinkedUnit {
+class _UnlinkedUnitImpl extends Object
+    with _UnlinkedUnitMixin
+    implements idl.UnlinkedUnit {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -10916,13 +12021,16 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   @override
   List<int> get apiSignature {
-    _apiSignature ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 19, const <int>[]);
+    _apiSignature ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 19, const <int>[]);
     return _apiSignature;
   }
 
   @override
   List<idl.UnlinkedClass> get classes {
-    _classes ??= const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedClass>[]);
+    _classes ??=
+        const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader())
+            .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedClass>[]);
     return _classes;
   }
 
@@ -10934,28 +12042,37 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   @override
   List<idl.UnlinkedEnum> get enums {
-    _enums ??= const fb.ListReader<idl.UnlinkedEnum>(const _UnlinkedEnumReader()).vTableGet(_bc, _bcOffset, 12, const <idl.UnlinkedEnum>[]);
+    _enums ??=
+        const fb.ListReader<idl.UnlinkedEnum>(const _UnlinkedEnumReader())
+            .vTableGet(_bc, _bcOffset, 12, const <idl.UnlinkedEnum>[]);
     return _enums;
   }
 
   @override
   List<idl.UnlinkedExecutable> get executables {
-    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExecutable>[]);
+    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(
+            const _UnlinkedExecutableReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExecutable>[]);
     return _executables;
   }
 
   @override
   List<idl.UnlinkedExportNonPublic> get exports {
-    _exports ??= const fb.ListReader<idl.UnlinkedExportNonPublic>(const _UnlinkedExportNonPublicReader()).vTableGet(_bc, _bcOffset, 13, const <idl.UnlinkedExportNonPublic>[]);
+    _exports ??= const fb.ListReader<idl.UnlinkedExportNonPublic>(
+            const _UnlinkedExportNonPublicReader())
+        .vTableGet(_bc, _bcOffset, 13, const <idl.UnlinkedExportNonPublic>[]);
     return _exports;
   }
 
   @override
-  String get fallbackModePath => throw new UnimplementedError('attempt to access deprecated field');
+  String get fallbackModePath =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<idl.UnlinkedImport> get imports {
-    _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedImport>[]);
+    _imports ??=
+        const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader())
+            .vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedImport>[]);
     return _imports;
   }
 
@@ -10967,13 +12084,16 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   @override
   List<idl.UnlinkedExpr> get libraryAnnotations {
-    _libraryAnnotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 14, const <idl.UnlinkedExpr>[]);
+    _libraryAnnotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 14, const <idl.UnlinkedExpr>[]);
     return _libraryAnnotations;
   }
 
   @override
   idl.UnlinkedDocumentationComment get libraryDocumentationComment {
-    _libraryDocumentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 9, null);
+    _libraryDocumentationComment ??= const _UnlinkedDocumentationCommentReader()
+        .vTableGet(_bc, _bcOffset, 9, null);
     return _libraryDocumentationComment;
   }
 
@@ -10985,49 +12105,61 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   @override
   int get libraryNameLength {
-    _libraryNameLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
+    _libraryNameLength ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
     return _libraryNameLength;
   }
 
   @override
   int get libraryNameOffset {
-    _libraryNameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
+    _libraryNameOffset ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
     return _libraryNameOffset;
   }
 
   @override
   List<int> get lineStarts {
-    _lineStarts ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 17, const <int>[]);
+    _lineStarts ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 17, const <int>[]);
     return _lineStarts;
   }
 
   @override
   List<idl.UnlinkedPart> get parts {
-    _parts ??= const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader()).vTableGet(_bc, _bcOffset, 11, const <idl.UnlinkedPart>[]);
+    _parts ??=
+        const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader())
+            .vTableGet(_bc, _bcOffset, 11, const <idl.UnlinkedPart>[]);
     return _parts;
   }
 
   @override
   idl.UnlinkedPublicNamespace get publicNamespace {
-    _publicNamespace ??= const _UnlinkedPublicNamespaceReader().vTableGet(_bc, _bcOffset, 0, null);
+    _publicNamespace ??= const _UnlinkedPublicNamespaceReader()
+        .vTableGet(_bc, _bcOffset, 0, null);
     return _publicNamespace;
   }
 
   @override
   List<idl.UnlinkedReference> get references {
-    _references ??= const fb.ListReader<idl.UnlinkedReference>(const _UnlinkedReferenceReader()).vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedReference>[]);
+    _references ??= const fb.ListReader<idl.UnlinkedReference>(
+            const _UnlinkedReferenceReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedReference>[]);
     return _references;
   }
 
   @override
   List<idl.UnlinkedTypedef> get typedefs {
-    _typedefs ??= const fb.ListReader<idl.UnlinkedTypedef>(const _UnlinkedTypedefReader()).vTableGet(_bc, _bcOffset, 10, const <idl.UnlinkedTypedef>[]);
+    _typedefs ??=
+        const fb.ListReader<idl.UnlinkedTypedef>(const _UnlinkedTypedefReader())
+            .vTableGet(_bc, _bcOffset, 10, const <idl.UnlinkedTypedef>[]);
     return _typedefs;
   }
 
   @override
   List<idl.UnlinkedVariable> get variables {
-    _variables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedVariable>[]);
+    _variables ??= const fb.ListReader<idl.UnlinkedVariable>(
+            const _UnlinkedVariableReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedVariable>[]);
     return _variables;
   }
 }
@@ -11037,55 +12169,76 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (apiSignature.isNotEmpty) _result["apiSignature"] = apiSignature;
-    if (classes.isNotEmpty) _result["classes"] = classes.map((_value) => _value.toJson()).toList();
+    if (classes.isNotEmpty)
+      _result["classes"] = classes.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
-    if (enums.isNotEmpty) _result["enums"] = enums.map((_value) => _value.toJson()).toList();
-    if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
-    if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
-    if (imports.isNotEmpty) _result["imports"] = imports.map((_value) => _value.toJson()).toList();
+    if (enums.isNotEmpty)
+      _result["enums"] = enums.map((_value) => _value.toJson()).toList();
+    if (executables.isNotEmpty)
+      _result["executables"] =
+          executables.map((_value) => _value.toJson()).toList();
+    if (exports.isNotEmpty)
+      _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    if (imports.isNotEmpty)
+      _result["imports"] = imports.map((_value) => _value.toJson()).toList();
     if (isPartOf != false) _result["isPartOf"] = isPartOf;
-    if (libraryAnnotations.isNotEmpty) _result["libraryAnnotations"] = libraryAnnotations.map((_value) => _value.toJson()).toList();
-    if (libraryDocumentationComment != null) _result["libraryDocumentationComment"] = libraryDocumentationComment.toJson();
+    if (libraryAnnotations.isNotEmpty)
+      _result["libraryAnnotations"] =
+          libraryAnnotations.map((_value) => _value.toJson()).toList();
+    if (libraryDocumentationComment != null)
+      _result["libraryDocumentationComment"] =
+          libraryDocumentationComment.toJson();
     if (libraryName != '') _result["libraryName"] = libraryName;
-    if (libraryNameLength != 0) _result["libraryNameLength"] = libraryNameLength;
-    if (libraryNameOffset != 0) _result["libraryNameOffset"] = libraryNameOffset;
+    if (libraryNameLength != 0)
+      _result["libraryNameLength"] = libraryNameLength;
+    if (libraryNameOffset != 0)
+      _result["libraryNameOffset"] = libraryNameOffset;
     if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
-    if (parts.isNotEmpty) _result["parts"] = parts.map((_value) => _value.toJson()).toList();
-    if (publicNamespace != null) _result["publicNamespace"] = publicNamespace.toJson();
-    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
-    if (typedefs.isNotEmpty) _result["typedefs"] = typedefs.map((_value) => _value.toJson()).toList();
-    if (variables.isNotEmpty) _result["variables"] = variables.map((_value) => _value.toJson()).toList();
+    if (parts.isNotEmpty)
+      _result["parts"] = parts.map((_value) => _value.toJson()).toList();
+    if (publicNamespace != null)
+      _result["publicNamespace"] = publicNamespace.toJson();
+    if (references.isNotEmpty)
+      _result["references"] =
+          references.map((_value) => _value.toJson()).toList();
+    if (typedefs.isNotEmpty)
+      _result["typedefs"] = typedefs.map((_value) => _value.toJson()).toList();
+    if (variables.isNotEmpty)
+      _result["variables"] =
+          variables.map((_value) => _value.toJson()).toList();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "apiSignature": apiSignature,
-    "classes": classes,
-    "codeRange": codeRange,
-    "enums": enums,
-    "executables": executables,
-    "exports": exports,
-    "imports": imports,
-    "isPartOf": isPartOf,
-    "libraryAnnotations": libraryAnnotations,
-    "libraryDocumentationComment": libraryDocumentationComment,
-    "libraryName": libraryName,
-    "libraryNameLength": libraryNameLength,
-    "libraryNameOffset": libraryNameOffset,
-    "lineStarts": lineStarts,
-    "parts": parts,
-    "publicNamespace": publicNamespace,
-    "references": references,
-    "typedefs": typedefs,
-    "variables": variables,
-  };
+        "apiSignature": apiSignature,
+        "classes": classes,
+        "codeRange": codeRange,
+        "enums": enums,
+        "executables": executables,
+        "exports": exports,
+        "imports": imports,
+        "isPartOf": isPartOf,
+        "libraryAnnotations": libraryAnnotations,
+        "libraryDocumentationComment": libraryDocumentationComment,
+        "libraryName": libraryName,
+        "libraryNameLength": libraryNameLength,
+        "libraryNameOffset": libraryNameOffset,
+        "lineStarts": lineStarts,
+        "parts": parts,
+        "publicNamespace": publicNamespace,
+        "references": references,
+        "typedefs": typedefs,
+        "variables": variables,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin implements idl.UnlinkedVariable {
+class UnlinkedVariableBuilder extends Object
+    with _UnlinkedVariableMixin
+    implements idl.UnlinkedVariable {
   List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
@@ -11104,7 +12257,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   int _visibleOffset;
 
   @override
-  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this variable.
@@ -11124,7 +12278,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   }
 
   @override
-  UnlinkedDocumentationCommentBuilder get documentationComment => _documentationComment;
+  UnlinkedDocumentationCommentBuilder get documentationComment =>
+      _documentationComment;
 
   /**
    * Documentation comment for the variable, or `null` if there is no
@@ -11289,23 +12444,39 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     this._visibleOffset = value;
   }
 
-  UnlinkedVariableBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isCovariant, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
-    : _annotations = annotations,
-      _codeRange = codeRange,
-      _documentationComment = documentationComment,
-      _inferredTypeSlot = inferredTypeSlot,
-      _inheritsCovariantSlot = inheritsCovariantSlot,
-      _initializer = initializer,
-      _isConst = isConst,
-      _isCovariant = isCovariant,
-      _isFinal = isFinal,
-      _isStatic = isStatic,
-      _name = name,
-      _nameOffset = nameOffset,
-      _propagatedTypeSlot = propagatedTypeSlot,
-      _type = type,
-      _visibleLength = visibleLength,
-      _visibleOffset = visibleOffset;
+  UnlinkedVariableBuilder(
+      {List<UnlinkedExprBuilder> annotations,
+      CodeRangeBuilder codeRange,
+      UnlinkedDocumentationCommentBuilder documentationComment,
+      int inferredTypeSlot,
+      int inheritsCovariantSlot,
+      UnlinkedExecutableBuilder initializer,
+      bool isConst,
+      bool isCovariant,
+      bool isFinal,
+      bool isStatic,
+      String name,
+      int nameOffset,
+      int propagatedTypeSlot,
+      EntityRefBuilder type,
+      int visibleLength,
+      int visibleOffset})
+      : _annotations = annotations,
+        _codeRange = codeRange,
+        _documentationComment = documentationComment,
+        _inferredTypeSlot = inferredTypeSlot,
+        _inheritsCovariantSlot = inheritsCovariantSlot,
+        _initializer = initializer,
+        _isConst = isConst,
+        _isCovariant = isCovariant,
+        _isFinal = isFinal,
+        _isStatic = isStatic,
+        _name = name,
+        _nameOffset = nameOffset,
+        _propagatedTypeSlot = propagatedTypeSlot,
+        _type = type,
+        _visibleLength = visibleLength,
+        _visibleOffset = visibleOffset;
 
   /**
    * Flush [informative] data recursively.
@@ -11355,7 +12526,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     fb.Offset offset_name;
     fb.Offset offset_type;
     if (!(_annotations == null || _annotations.isEmpty)) {
-      offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_codeRange != null) {
       offset_codeRange = _codeRange.finish(fbBuilder);
@@ -11429,10 +12601,13 @@ class _UnlinkedVariableReader extends fb.TableReader<_UnlinkedVariableImpl> {
   const _UnlinkedVariableReader();
 
   @override
-  _UnlinkedVariableImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedVariableImpl(bc, offset);
+  _UnlinkedVariableImpl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedVariableImpl(bc, offset);
 }
 
-class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implements idl.UnlinkedVariable {
+class _UnlinkedVariableImpl extends Object
+    with _UnlinkedVariableMixin
+    implements idl.UnlinkedVariable {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
@@ -11457,7 +12632,9 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
 
   @override
   List<idl.UnlinkedExpr> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedExpr>[]);
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -11469,25 +12646,29 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 10, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader()
+        .vTableGet(_bc, _bcOffset, 10, null);
     return _documentationComment;
   }
 
   @override
   int get inferredTypeSlot {
-    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
+    _inferredTypeSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
     return _inferredTypeSlot;
   }
 
   @override
   int get inheritsCovariantSlot {
-    _inheritsCovariantSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+    _inheritsCovariantSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
     return _inheritsCovariantSlot;
   }
 
   @override
   idl.UnlinkedExecutable get initializer {
-    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bc, _bcOffset, 13, null);
+    _initializer ??=
+        const _UnlinkedExecutableReader().vTableGet(_bc, _bcOffset, 13, null);
     return _initializer;
   }
 
@@ -11529,7 +12710,8 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
 
   @override
   int get propagatedTypeSlot {
-    _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    _propagatedTypeSlot ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _propagatedTypeSlot;
   }
 
@@ -11556,11 +12738,15 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
-    if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
+    if (documentationComment != null)
+      _result["documentationComment"] = documentationComment.toJson();
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
-    if (inheritsCovariantSlot != 0) _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
+    if (inheritsCovariantSlot != 0)
+      _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
     if (isConst != false) _result["isConst"] = isConst;
     if (isCovariant != false) _result["isCovariant"] = isCovariant;
@@ -11568,7 +12754,8 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     if (isStatic != false) _result["isStatic"] = isStatic;
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    if (propagatedTypeSlot != 0) _result["propagatedTypeSlot"] = propagatedTypeSlot;
+    if (propagatedTypeSlot != 0)
+      _result["propagatedTypeSlot"] = propagatedTypeSlot;
     if (type != null) _result["type"] = type.toJson();
     if (visibleLength != 0) _result["visibleLength"] = visibleLength;
     if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
@@ -11577,25 +12764,24 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
 
   @override
   Map<String, Object> toMap() => {
-    "annotations": annotations,
-    "codeRange": codeRange,
-    "documentationComment": documentationComment,
-    "inferredTypeSlot": inferredTypeSlot,
-    "inheritsCovariantSlot": inheritsCovariantSlot,
-    "initializer": initializer,
-    "isConst": isConst,
-    "isCovariant": isCovariant,
-    "isFinal": isFinal,
-    "isStatic": isStatic,
-    "name": name,
-    "nameOffset": nameOffset,
-    "propagatedTypeSlot": propagatedTypeSlot,
-    "type": type,
-    "visibleLength": visibleLength,
-    "visibleOffset": visibleOffset,
-  };
+        "annotations": annotations,
+        "codeRange": codeRange,
+        "documentationComment": documentationComment,
+        "inferredTypeSlot": inferredTypeSlot,
+        "inheritsCovariantSlot": inheritsCovariantSlot,
+        "initializer": initializer,
+        "isConst": isConst,
+        "isCovariant": isCovariant,
+        "isFinal": isFinal,
+        "isStatic": isStatic,
+        "name": name,
+        "nameOffset": nameOffset,
+        "propagatedTypeSlot": propagatedTypeSlot,
+        "type": type,
+        "visibleLength": visibleLength,
+        "visibleOffset": visibleOffset,
+      };
 
   @override
   String toString() => convert.JSON.encode(toJson());
 }
-
