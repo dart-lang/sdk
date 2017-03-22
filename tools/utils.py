@@ -995,7 +995,8 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
                              0,
                              winreg.KEY_READ | wowbit) as handle:
           raise Exception(
-              "Found werfault.exe was disabled. Probably by puppet. Too bad")
+              "Found werfault.exe was disabled. Probably by puppet. Too bad! "
+              "(For more information see https://crbug.com/691971)")
       except OSError:
         # If the open did not work the werfault.exe execution setting is as it
         # should be.
