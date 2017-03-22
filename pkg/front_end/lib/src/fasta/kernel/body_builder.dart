@@ -110,8 +110,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   Scope formalParameterScope;
 
-  bool isFirstIdentifier = false;
-
   bool inInitializer = false;
 
   bool inCatchClause = false;
@@ -153,7 +151,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void push(Object node) {
-    isFirstIdentifier = false;
     inInitializer = false;
     super.push(node);
   }
@@ -715,16 +712,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void beginExpression(Token token) {
-    debugEvent("beginExpression");
-    isFirstIdentifier = true;
-  }
-
-  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     String name = token.lexeme;
-    if (isFirstIdentifier) {
+    if (context.isScopeReference) {
       assert(!inInitializer ||
           this.scope == enclosingScope ||
           this.scope.parent == enclosingScope);
@@ -1153,11 +1144,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new MapEntry(key, value));
   }
 
-  @override
-  void beginLiteralSymbol(Token token) {
-    isFirstIdentifier = false;
-  }
-
   String symbolPartToString(name) {
     if (name is Identifier) {
       return name.name;
@@ -1184,15 +1170,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new SymbolLiteral(value));
   }
 
-  DartType toKernelType(String name, List<DartType> arguments, int charOffset) {
+  DartType kernelTypeFromString(
+      String name, List<DartType> arguments, int charOffset) {
     Builder builder = scope.lookup(name, charOffset, uri);
-    if (builder is TypeDeclarationBuilder) {
-      return builder.buildTypesWithBuiltArguments(library, arguments);
-    }
     if (builder == null) {
       warning("Type not found: '$name'.", charOffset);
+      return const DynamicType();
     } else {
-      warning("Not a type: '$name'.", charOffset);
+      return kernelTypeFromBuilder(builder, arguments, charOffset);
+    }
+  }
+
+  DartType kernelTypeFromBuilder(
+      Builder builder, List<DartType> arguments, int charOffset) {
+    if (builder is TypeDeclarationBuilder) {
+      return builder.buildTypesWithBuiltArguments(library, arguments);
+    } else if (builder.hasProblem) {
+      ProblemBuilder problem = builder;
+      addCompileTimeError(charOffset, problem.message);
+    } else {
+      warning("Not a type: '${builder.fullNameForErrors}'.", charOffset);
     }
     // TODO(ahe): Create an error somehow.
     return const DynamicType();
@@ -1223,7 +1220,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         builder = scope.lookup(prefix, beginToken.charOffset, uri);
       }
       if (builder is PrefixBuilder) {
-        name = builder.exports[suffix];
+        name = builderToFirstExpression(
+            builder.exports[suffix], suffix, beginToken.charOffset,
+            isPrefix: true);
       } else {
         push(const DynamicType());
         addCompileTimeError(beginToken.charOffset,
@@ -1246,8 +1245,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(name.buildTypesWithBuiltArguments(library, arguments));
     } else if (name is TypeBuilder) {
       push(name.build(library));
+    } else if (name is Builder) {
+      push(kernelTypeFromBuilder(name, arguments, beginToken.charOffset));
+    } else if (name is String) {
+      push(kernelTypeFromString(name, arguments, beginToken.charOffset));
     } else {
-      push(toKernelType(name, arguments, beginToken.charOffset));
+      internalError("Unhandled: '${name.runtimeType}'.");
     }
     if (peek() is TypeParameterType) {
       TypeParameterType type = peek();
@@ -1732,7 +1735,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
-    if (isFirstIdentifier && isInstanceContext) {
+    if (context.isScopeReference && isInstanceContext) {
       push(new ThisAccessor(this, token.charOffset, inInitializer));
     } else {
       push(new IncompleteError(
@@ -1743,7 +1746,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleSuperExpression(Token token, IdentifierContext context) {
     debugEvent("SuperExpression");
-    if (isFirstIdentifier && isInstanceContext) {
+    if (context.isScopeReference && isInstanceContext) {
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessor(this, token.charOffset, inInitializer,
