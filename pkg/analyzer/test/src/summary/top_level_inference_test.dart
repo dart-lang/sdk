@@ -31,6 +31,31 @@ class TopLevelInferenceTest extends BaseAnalysisDriverTest {
     provider.newFile(_p(path), code);
   }
 
+  test_initializer_additive() async {
+    var library = await _encodeDecodeLibrary(r'''
+var vPlusIntInt = 1 + 2;
+var vPlusIntDouble = 1 + 2.0;
+var vPlusDoubleInt = 1.0 + 2;
+var vPlusDoubleDouble = 1.0 + 2.0;
+var vMinusIntInt = 1 - 2;
+var vMinusIntDouble = 1 - 2.0;
+var vMinusDoubleInt = 1.0 - 2;
+var vMinusDoubleDouble = 1.0 - 2.0;
+''');
+    checkElementText(
+        library,
+        r'''
+int vPlusIntInt;
+double vPlusIntDouble;
+double vPlusDoubleInt;
+double vPlusDoubleDouble;
+int vMinusIntInt;
+double vMinusIntDouble;
+double vMinusDoubleInt;
+double vMinusDoubleDouble;
+''');
+  }
+
   test_initializer_as() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = 1 as num;
@@ -578,6 +603,65 @@ A instanceOfA;
 (int) → String r_instanceClassMethod;
 int get topLevelGetter {}
 String topLevelFunction(int p) {}
+''');
+  }
+
+  test_initializer_identifier_error_cycle_classField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  static var a = B.b;
+}
+class B {
+  static var b = A.a;
+}
+var c = A.a;
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  static dynamic a/*error: dependencyCycle*/;
+}
+class B {
+  static dynamic b/*error: dependencyCycle*/;
+}
+dynamic c;
+''');
+  }
+
+  test_initializer_identifier_error_cycle_mix() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  static var a = b;
+}
+var b = A.a;
+var c = b;
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  static dynamic a/*error: dependencyCycle*/;
+}
+dynamic b/*error: dependencyCycle*/;
+dynamic c;
+''');
+  }
+
+  test_initializer_identifier_error_cycle_topLevel() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = b;
+var b = c;
+var c = a;
+var d = a;
+''');
+    checkElementText(
+        library,
+        r'''
+dynamic a/*error: dependencyCycle*/;
+dynamic b/*error: dependencyCycle*/;
+dynamic c/*error: dependencyCycle*/;
+dynamic d;
 ''');
   }
 

@@ -4815,6 +4815,8 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
 
   void evaluate(bool inCycle) {
     if (inCycle) {
+      functionElement._setInferredError(new TopLevelInferenceErrorBuilder(
+          kind: TopLevelInferenceErrorKind.dependencyCycle));
       functionElement._setInferredType(DynamicTypeImpl.instance);
     } else {
       var computer = new ExprTypeComputer(functionElement);

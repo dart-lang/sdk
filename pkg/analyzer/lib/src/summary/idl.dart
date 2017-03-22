@@ -1130,7 +1130,7 @@ abstract class TopLevelInferenceError extends base.SummaryClass {
 /**
  * Enum used to indicate the kind of the error during top-level inference.
  */
-enum TopLevelInferenceErrorKind { assignment, instanceGetter }
+enum TopLevelInferenceErrorKind { assignment, instanceGetter, dependencyCycle }
 
 /**
  * Enum used to indicate the style of a typedef.

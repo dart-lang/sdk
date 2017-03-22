@@ -215,7 +215,9 @@ enum ReferenceKind : byte {
 enum TopLevelInferenceErrorKind : byte {
   assignment,
 
-  instanceGetter
+  instanceGetter,
+
+  dependencyCycle
 }
 
 /**
