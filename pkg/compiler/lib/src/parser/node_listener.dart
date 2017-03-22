@@ -8,6 +8,8 @@ import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType;
+import 'package:front_end/src/fasta/parser/identifier_context.dart'
+    show IdentifierContext;
 import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
     show INDEX_INFO;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
