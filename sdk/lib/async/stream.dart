@@ -1314,7 +1314,8 @@ abstract class Stream<T> {
         // should be inferred.
         var registeredOnTimeout =
             zone.registerUnaryCallback<dynamic, EventSink<T>>(onTimeout);
-        var wrapper = new _ControllerEventSinkWrapper<T>(null);
+        _ControllerEventSinkWrapper wrapper =
+            new _ControllerEventSinkWrapper(null);
         timeout = () {
           wrapper._sink = controller; // Only valid during call.
           zone.runUnaryGuarded(registeredOnTimeout, wrapper);

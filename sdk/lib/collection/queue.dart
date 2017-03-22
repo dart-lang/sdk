@@ -94,7 +94,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   void clear();
 }
 
-class _DoubleLink<Link extends _DoubleLink<Link>> {
+class _DoubleLink<Link extends _DoubleLink> {
   Link _previousLink;
   Link _nextLink;
 
