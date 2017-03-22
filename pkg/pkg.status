@@ -11,6 +11,8 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
+analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29134
+
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
 
