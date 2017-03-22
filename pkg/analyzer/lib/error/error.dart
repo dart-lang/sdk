@@ -193,6 +193,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.PART_OF_NON_PART,
   CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
   CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+  CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
   CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER,
   CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
   CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,

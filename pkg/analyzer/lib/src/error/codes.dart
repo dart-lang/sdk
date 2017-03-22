@@ -2060,6 +2060,17 @@ class CompileTimeErrorCode extends ErrorCode {
           "renaming the prefix.");
 
   /**
+   * It is an error for a mixin to add a private name that conflicts with a
+   * private name added by a superclass or another mixin.
+   */
+  static const CompileTimeErrorCode PRIVATE_COLLISION_IN_MIXIN_APPLICATION =
+      const CompileTimeErrorCode(
+          'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
+          "The private name {0}, defined by {1}, conflicts with the same name "
+          "defined by {2}.",
+          "Try removing {1} from the 'with' clause.");
+
+  /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named
    * optional parameter begins with an '_' character.
    */
