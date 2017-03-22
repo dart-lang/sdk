@@ -22,9 +22,6 @@
 @JS()
 library stack_trace_mapper;
 
-import 'dart:async';
-import 'dart:html';
-
 import 'package:js/js.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_map_stack_trace/source_map_stack_trace.dart';
@@ -40,7 +37,7 @@ external set dartStackTraceUtility(DartStackTraceUtility value);
 
 typedef String StackTraceMapper(String stackTrace);
 typedef dynamic SourceMapProvider(String modulePath);
-typedef String SetSourceMapProvider(SourceMapProvider provider);
+typedef void SetSourceMapProvider(SourceMapProvider provider);
 
 @JS()
 @anonymous
@@ -96,17 +93,6 @@ class LazyMapping extends Mapping {
   }
 }
 
-String _toSourceMapLocation(String url) {
-  // The url may have cache busting query parameters which we need to maintain
-  // in the source map url.
-  // For example:
-  //   http://localhost/foo.js?cachebusting=23419
-  // Should get source map
-  //   http://localhost/foo.js.map?cachebusting=23419
-  var uri = Uri.parse(url);
-  return uri.replace(path: '${uri.path}.map').toString();
-}
-
 LazyMapping _mapping;
 
 String mapper(String rawStackTrace) {
@@ -118,7 +104,7 @@ String mapper(String rawStackTrace) {
   return mapStackTrace(_mapping, new Trace.parse(rawStackTrace)).toString();
 }
 
-void setSourceMapProvider(SourceMapProvider provider) async {
+void setSourceMapProvider(SourceMapProvider provider) {
   _mapping = new LazyMapping(provider);
 }
 

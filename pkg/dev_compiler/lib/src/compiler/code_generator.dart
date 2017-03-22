@@ -512,7 +512,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // We'll need to be consistent about when we're generating functions, and
       // only run this on the outermost function, and not any closures.
       inferNullableTypes(node);
-      return _visit(node);
+      return _visit(node) as JS.Node;
     });
 
     if (item != null) _moduleItems.add(item);

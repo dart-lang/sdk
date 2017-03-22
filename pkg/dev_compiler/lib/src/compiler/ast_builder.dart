@@ -322,16 +322,6 @@ class AstBuilder {
     return application(parenthesize(l), <Expression>[e1]);
   }
 
-  static SimpleFormalParameter simpleFormal(SimpleIdentifier v, TypeName t) {
-    return RawAstBuilder.simpleFormalParameter(v, t);
-  }
-
-  static FunctionTypedFormalParameter functionTypedFormal(
-      TypeName ret, SimpleIdentifier v, List<FormalParameter> params) {
-    FormalParameterList ps = formalParameterList(params);
-    return RawAstBuilder.functionTypedFormalParameter(ret, v, ps);
-  }
-
   static FormalParameter requiredFormal(NormalFormalParameter fp) {
     return RawAstBuilder.requiredFormalParameter(fp);
   }
@@ -558,17 +548,6 @@ class RawAstBuilder {
     Token ret = new KeywordToken(Keyword.RETURN, 0);
     Token semi = new Token(TokenType.SEMICOLON, 0);
     return astFactory.returnStatement(ret, e, semi);
-  }
-
-  static SimpleFormalParameter simpleFormalParameter(
-      SimpleIdentifier v, TypeName t) {
-    return astFactory.simpleFormalParameter(null, <Annotation>[], null, t, v);
-  }
-
-  static FunctionTypedFormalParameter functionTypedFormalParameter(
-      TypeName ret, SimpleIdentifier v, FormalParameterList ps) {
-    return astFactory.functionTypedFormalParameter(
-        null, <Annotation>[], ret, v, null, ps);
   }
 
   static FormalParameter requiredFormalParameter(NormalFormalParameter fp) {

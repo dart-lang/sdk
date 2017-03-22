@@ -11,7 +11,6 @@ Consider passing explicit type argument(s) to the generic.
 
  (dart:async/stream.dart, line 1321, col 16)
 [error] The argument type 'ZoneUnaryCallback(EventSink<T>) → dynamic' can't be assigned to the parameter type '(_ControllerEventSinkWrapper<dynamic>) → dynamic'. (dart:async/stream.dart, line 1321, col 32)
-[error] Type parameter bound types must be instantiated. (dart:collection/queue.dart, line 97, col 32)
 [error] Invalid override. The type of '_UnicodeSubsetEncoder.startChunkedConversion' ('(Sink<List<int>>) → StringConversionSink') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 106, col 3)
 [error] Invalid override. The type of '_UnicodeSubsetEncoder.bind' ('(Stream<String>) → Stream<List<int>>') isn't a subtype of 'ChunkedConverter<String, List<int>, String, List<int>>.bind' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 114, col 3)
 [error] Invalid override. The type of '_UnicodeSubsetDecoder.startChunkedConversion' ('(Sink<String>) → ByteConversionSink') isn't a subtype of 'ChunkedConverter<List<int>, String, List<int>, String>.startChunkedConversion' ('(dynamic) → dynamic'). (dart:convert/ascii.dart, line 219, col 3)

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet, Queue;
-import 'dart:convert' show BASE64, JSON, UTF8;
+import 'dart:convert' show JSON;
 import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
@@ -603,7 +603,6 @@ Map placeSourceMap(
 /// Normalize sdk urls to use "dart:" for more understandable stack traces.
 Map cleanupSdkSourcemap(Map sourceMap) {
   var map = new Map.from(sourceMap);
-  var list = new List.from(map['sources']);
   map['sources'] = map['sources']
       .map((url) => url.contains('/_internal/') ? null : url)
       .toList();
