@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Class,
         Constructor,
         DartType,
+        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -220,6 +221,9 @@ class KernelTarget extends TargetImplementation {
     if (loader.first == null) return null;
     try {
       await loader.buildOutlines();
+      loader.coreLibrary
+          .becomeCoreLibrary(const DynamicType(), const VoidType());
+      dynamicType.bind(loader.coreLibrary.members["dynamic"]);
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();

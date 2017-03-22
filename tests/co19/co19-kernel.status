@@ -105,8 +105,6 @@ Language/Classes/Superclasses/superclass_of_itself_t01: MissingCompileTimeError
 Language/Classes/Superclasses/superclass_of_itself_t02: MissingCompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t07: Crash
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
-Language/Classes/Superinterfaces/dynamic_type_t01: MissingCompileTimeError
-Language/Classes/Superinterfaces/dynamic_type_t02: MissingCompileTimeError
 Language/Classes/Superinterfaces/itself_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t04: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError

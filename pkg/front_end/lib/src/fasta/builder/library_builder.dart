@@ -16,7 +16,13 @@ import '../messages.dart' show nit, warning;
 
 import '../util/relativize.dart' show relativizeUri;
 
-import 'builder.dart' show Builder, ClassBuilder, TypeBuilder;
+import 'builder.dart'
+    show
+        Builder,
+        DynamicTypeBuilder,
+        ClassBuilder,
+        TypeBuilder,
+        VoidTypeBuilder;
 
 import 'scope.dart' show Scope;
 
@@ -118,4 +124,10 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   }
 
   int finishTypeVariables(ClassBuilder object) => 0;
+
+  void becomeCoreLibrary(dynamicType, voidType) {
+    addBuilder("dynamic",
+        new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
+    addBuilder("void", new VoidTypeBuilder<T, dynamic>(voidType, this, -1), -1);
+  }
 }

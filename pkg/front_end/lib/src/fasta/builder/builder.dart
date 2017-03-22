@@ -52,7 +52,11 @@ export 'mixed_accessor.dart' show MixedAccessor;
 
 export 'scope.dart' show AccessErrorBuilder;
 
+export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
+
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
+
+export 'void_type_builder.dart' show VoidTypeBuilder;
 
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 

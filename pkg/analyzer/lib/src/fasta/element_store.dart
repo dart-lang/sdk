@@ -88,6 +88,8 @@ class ElementStoreImplementation implements ElementStore {
             }
           } else if (builder is KernelProcedureBuilder) {
             buildKernelFunctionElement(builder, unit, elements);
+          } else if (builder is BuiltinTypeBuilder) {
+            // TODO(ahe): Set up elements for dynamic and void.
           } else {
             internalError("Unhandled $name ${builder.runtimeType} in $uri");
           }

@@ -746,9 +746,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   builderToFirstExpression(Builder builder, String name, int charOffset,
       {bool isPrefix: false}) {
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
-      if (!isPrefix && identical(name, "dynamic") && builder == null) {
-        return new KernelNamedTypeBuilder(name, null, charOffset, uri);
-      }
       Name n = new Name(name, library.library);
       if (!isPrefix && isInstanceContext) {
         assert(builder == null);
@@ -1194,8 +1191,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   DartType toKernelType(String name, List<DartType> arguments, int charOffset) {
-    if (identical(name, "void")) return const VoidType();
-    if (identical(name, "dynamic")) return const DynamicType();
     Builder builder = scope.lookup(name, charOffset, uri);
     if (builder is TypeDeclarationBuilder) {
       return builder.buildTypesWithBuiltArguments(library, arguments);
