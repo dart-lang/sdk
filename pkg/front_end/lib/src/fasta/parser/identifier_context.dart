@@ -249,8 +249,8 @@ class IdentifierContext {
       inDeclaration: true);
 
   /// Identifier is a reference to a label (e.g. `foo` in `break foo;`).
-  static const labelReference =
-      const IdentifierContext._('labelReference', isScopeReference: true);
+  /// Labels have their own scope.
+  static const labelReference = const IdentifierContext._('labelReference');
 
   final String _name;
 

@@ -1741,7 +1741,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleThisExpression(Token token) {
+  void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
     if (isFirstIdentifier && isInstanceContext) {
       push(new ThisAccessor(this, token.charOffset, inInitializer));
@@ -1752,7 +1752,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleSuperExpression(Token token) {
+  void handleSuperExpression(Token token, IdentifierContext context) {
     debugEvent("SuperExpression");
     if (isFirstIdentifier && isInstanceContext) {
       Member member = this.member.target;
@@ -2416,8 +2416,7 @@ abstract class ContextAccessor extends BuilderAccessor {
   String get plainNameForRead => internalError("Unsupported operation.");
 
   Expression doInvocation(int charOffset, Arguments arguments) {
-    print("$uri:$charOffset: Internal error: Unhandled: ${runtimeType}");
-    return internalError("Unhandled: ${runtimeType}");
+    return internalError("Unhandled: ${runtimeType}", uri, charOffset);
   }
 
   Expression buildSimpleRead();

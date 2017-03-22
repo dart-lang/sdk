@@ -2604,7 +2604,8 @@ class Parser {
             // should just call [parseUnaryExpression] directly. However, a
             // unary expression isn't legal after a period, so we call
             // [parsePrimary] instead.
-            token = parsePrimary(token.next);
+            token = parsePrimary(
+                token.next, IdentifierContext.expressionContinuation);
             listener.handleBinaryExpression(operator);
           } else if ((identical(info, OPEN_PAREN_INFO)) ||
               (identical(info, OPEN_SQUARE_BRACKET_INFO))) {
@@ -2682,7 +2683,7 @@ class Parser {
     // Prefix:
     if (optional('await', token)) {
       if (inPlainSync) {
-        return parsePrimary(token);
+        return parsePrimary(token, IdentifierContext.expression);
       } else {
         return parseAwaitExpression(token, allowCascades);
       }
@@ -2710,7 +2711,7 @@ class Parser {
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
     } else {
-      return parsePrimary(token);
+      return parsePrimary(token, IdentifierContext.expression);
     }
   }
 
@@ -2736,10 +2737,10 @@ class Parser {
     return token;
   }
 
-  Token parsePrimary(Token token) {
+  Token parsePrimary(Token token, IdentifierContext context) {
     final kind = token.kind;
     if (kind == IDENTIFIER_TOKEN) {
-      return parseSendOrFunctionLiteral(token);
+      return parseSendOrFunctionLiteral(token, context);
     } else if (kind == INT_TOKEN || kind == HEXADECIMAL_TOKEN) {
       return parseLiteralInt(token);
     } else if (kind == DOUBLE_TOKEN) {
@@ -2755,9 +2756,9 @@ class Parser {
       } else if (identical(value, "null")) {
         return parseLiteralNull(token);
       } else if (identical(value, "this")) {
-        return parseThisExpression(token);
+        return parseThisExpression(token, context);
       } else if (identical(value, "super")) {
-        return parseSuperExpression(token);
+        return parseSuperExpression(token, context);
       } else if (identical(value, "new")) {
         return parseNewExpression(token);
       } else if (identical(value, "const")) {
@@ -2768,7 +2769,7 @@ class Parser {
           (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
       } else if (token.isIdentifier()) {
-        return parseSendOrFunctionLiteral(token);
+        return parseSendOrFunctionLiteral(token, context);
       } else {
         return expressionExpected(token);
       }
@@ -2830,9 +2831,9 @@ class Parser {
     return expect(')', token);
   }
 
-  Token parseThisExpression(Token token) {
+  Token parseThisExpression(Token token, IdentifierContext context) {
     Token beginToken = token;
-    listener.handleThisExpression(token);
+    listener.handleThisExpression(token, context);
     token = token.next;
     if (optional('(', token)) {
       // Constructor forwarding.
@@ -2843,9 +2844,9 @@ class Parser {
     return token;
   }
 
-  Token parseSuperExpression(Token token) {
+  Token parseSuperExpression(Token token, IdentifierContext context) {
     Token beginToken = token;
-    listener.handleSuperExpression(token);
+    listener.handleSuperExpression(token, context);
     token = token.next;
     if (optional('(', token)) {
       // Super constructor.
@@ -2971,9 +2972,9 @@ class Parser {
     return token;
   }
 
-  Token parseSendOrFunctionLiteral(Token token) {
+  Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
     if (!mayParseFunctionExpressions) {
-      return parseSend(token, IdentifierContext.expression);
+      return parseSend(token, context);
     }
     Token peek = peekAfterIfType(token);
     if (peek != null &&
@@ -2983,7 +2984,7 @@ class Parser {
     } else if (isFunctionDeclaration(token.next)) {
       return parseFunctionExpression(token);
     } else {
-      return parseSend(token, IdentifierContext.expression);
+      return parseSend(token, context);
     }
   }
 

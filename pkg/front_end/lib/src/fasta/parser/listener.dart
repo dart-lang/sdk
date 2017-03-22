@@ -940,7 +940,7 @@ class Listener {
     logEvent("StringPart");
   }
 
-  void handleSuperExpression(Token token) {
+  void handleSuperExpression(Token token, IdentifierContext context) {
     logEvent("SuperExpression");
   }
 
@@ -956,7 +956,7 @@ class Listener {
     logEvent("SwitchCase");
   }
 
-  void handleThisExpression(Token token) {
+  void handleThisExpression(Token token, IdentifierContext context) {
     logEvent("ThisExpression");
   }
 

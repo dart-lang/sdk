@@ -602,12 +602,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleSuperExpression(Token token) {
+  void handleSuperExpression(Token token, IdentifierContext context) {
     pushNode(new Identifier(token));
   }
 
   @override
-  void handleThisExpression(Token token) {
+  void handleThisExpression(Token token, IdentifierContext context) {
     pushNode(new Identifier(token));
   }
 
