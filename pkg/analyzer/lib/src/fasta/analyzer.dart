@@ -8,7 +8,8 @@ import 'package:analyzer/analyzer.dart' show AstNode;
 
 import 'package:analyzer/dart/element/element.dart' show LocalElement;
 
-import 'package:analyzer/src/kernel/ast_from_analyzer.dart' show ExpressionScope;
+import 'package:analyzer/src/kernel/ast_from_analyzer.dart'
+    show ExpressionScope;
 
 import 'package:kernel/ast.dart' show Library, TreeNode;
 

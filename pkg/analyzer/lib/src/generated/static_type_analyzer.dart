@@ -126,8 +126,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       void inferType(ParameterElementImpl p, DartType inferredType) {
         // Check that there is no declared type, and that we have not already
         // inferred a type in some fashion.
-        if (p.hasImplicitType &&
-            (p.type == null || p.type.isDynamic)) {
+        if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
           inferredType = ts.upperBoundForType(inferredType);
           if (!inferredType.isDynamic) {
             p.type = inferredType;

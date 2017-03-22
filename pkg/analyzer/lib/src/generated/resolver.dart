@@ -8762,12 +8762,8 @@ class TypeParameterBoundsResolver {
             } else {
               libraryScope ??= new LibraryScope(library);
               typeParametersScope ??= createTypeParametersScope();
-              typeNameResolver ??= new TypeNameResolver(
-                  typeSystem,
-                  typeSystem.typeProvider,
-                  library,
-                  source,
-                  errorListener);
+              typeNameResolver ??= new TypeNameResolver(typeSystem,
+                  typeSystem.typeProvider, library, source, errorListener);
               typeNameResolver.nameScope = typeParametersScope;
               _resolveTypeName(bound);
               typeParameterElement.bound = bound.type;

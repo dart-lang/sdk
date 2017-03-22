@@ -903,7 +903,8 @@ class ElementKind implements Comparable<ElementKind> {
   static const ElementKind FUNCTION =
       const ElementKind('FUNCTION', 7, "function");
 
-  static const ElementKind GENERIC_FUNCTION_TYPE = const ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
+  static const ElementKind GENERIC_FUNCTION_TYPE =
+      const ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
 
   static const ElementKind GETTER = const ElementKind('GETTER', 9, "getter");
 
@@ -1278,9 +1279,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 /**
  * The pseudo-declaration that defines a generic function type.
  */
-abstract class GenericFunctionTypeElement implements FunctionTypedElement {
-
-}
+abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 
 /**
  * A function type alias (`typedef`).

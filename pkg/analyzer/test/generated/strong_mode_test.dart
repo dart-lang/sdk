@@ -1211,7 +1211,6 @@ Consider passing explicit type argument(s) to the generic.
 ''');
   }
 
-
   test_inference_error_genericFunction() async {
     Source source = addSource(r'''
 T max<T extends num>(T x, T y) => x < y ? y : x;

@@ -2746,6 +2746,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     }
     return false;
   }
+
   /**
    * Append a textual representation of this type to the given [buffer]. The set
    * of [visitedTypes] is used to prevent infinite recursion.
