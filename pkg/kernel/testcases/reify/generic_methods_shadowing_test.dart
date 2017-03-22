@@ -13,7 +13,6 @@ class X {}
 class Y {}
 
 bool foo<T, S>(T t, S s) {
-
   // The type parameter T of bar shadows the type parameter T of foo.
   bool bar<T>(T t) {
     return t is T && t is S;
