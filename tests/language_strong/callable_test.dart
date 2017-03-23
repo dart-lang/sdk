@@ -21,7 +21,7 @@ class Y {
 class Z<T> {
   final T value;
   Z(this.value);
-  call() => value;
+  T call() => value;
 
   static int staticMethod(int x) => x + 1;
 }
@@ -29,6 +29,7 @@ class Z<T> {
 typedef F(int x);
 typedef G(String y);
 typedef H();
+typedef T I<T>();
 
 main() {
   X x = new X();
@@ -44,8 +45,7 @@ main() {
 
   var z = new Z<int>(123);
   Expect.equals(z(), 123);
-  // TODO(jmesserly): this test doesn't work yet.
-  // Expect.equals((z as dynamic)(), 123);
+  Expect.equals((z as dynamic)(), 123);
 
   Expect.equals(Y.staticMethod(6), 7);
   Expect.equals(Z.staticMethod(6), 7);

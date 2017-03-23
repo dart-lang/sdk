@@ -243,7 +243,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
     // Grab the `call` method if it's not a function.
     if ($f != null) {
       $ftype = $getMethodType($getType($f), 'call');
-      $f = $f.call;
+      $f = f.call ? $bind($f, 'call') : void 0;
     }
     if (!($f instanceof Function)) {
       return callNSM();
