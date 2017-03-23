@@ -751,14 +751,15 @@ class ElementListener extends Listener {
         break;
 
       case ErrorKind.AbstractNotSync:
-      case ErrorKind.SetterNotSync:
-      case ErrorKind.FactoryNotSync:
-      case ErrorKind.AwaitForNotAsync:
-      case ErrorKind.YieldNotGenerator:
-      case ErrorKind.YieldAsIdentifier:
-      case ErrorKind.GeneratorReturnsValue:
-      case ErrorKind.AwaitNotAsync:
       case ErrorKind.AwaitAsIdentifier:
+      case ErrorKind.AwaitForNotAsync:
+      case ErrorKind.AwaitNotAsync:
+      case ErrorKind.FactoryNotSync:
+      case ErrorKind.GeneratorReturnsValue:
+      case ErrorKind.OnlyTry:
+      case ErrorKind.SetterNotSync:
+      case ErrorKind.YieldAsIdentifier:
+      case ErrorKind.YieldNotGenerator:
         return null; // Ignored. This error is already implemented elsewhere.
     }
     SourceSpan span = reporter.spanFromToken(token);

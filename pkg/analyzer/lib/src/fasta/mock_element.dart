@@ -58,6 +58,8 @@ abstract class MockElement extends Builder implements Element, LocalElement {
 
   String get name => internalError("not supported.");
 
+  String get fullNameForErrors => name;
+
   int get nameLength => internalError("not supported.");
 
   int get nameOffset => -1;
