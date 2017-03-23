@@ -64,7 +64,7 @@ String compileTemplate(String name, String template, String tip) {
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
-  for (Match match in placeholderPattern.allMatches("$template$tip")) {
+  for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
     switch (match[0]) {
       case "#character":
         parameters.add("String character");
@@ -93,6 +93,9 @@ String compileTemplate(String name, String template, String tip) {
         parameters.add("String string");
         arguments.add("'string': string,");
         break;
+
+      default:
+        throw "Unhandled placeholder in template: ${match[0]}";
     }
   }
 

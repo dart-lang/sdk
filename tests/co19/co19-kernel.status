@@ -447,7 +447,6 @@ Language/Statements/Switch/syntax_t16: MissingCompileTimeError
 Language/Statements/Switch/syntax_t17: MissingCompileTimeError
 Language/Statements/Try/catch_scope_t01: RuntimeError # Dartk Issue 28410
 Language/Statements/Try/malformed_type_t04: RuntimeError
-Language/Statements/Try/syntax_t06: MissingCompileTimeError
 Language/Statements/Try/syntax_t13: MissingCompileTimeError
 Language/Statements/Try/syntax_t15: Crash
 Language/Statements/While/execution_t03: Crash

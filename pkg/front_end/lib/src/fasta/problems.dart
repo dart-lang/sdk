@@ -18,7 +18,6 @@ problemExpectedClassBodyToSkip(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Expected a class body, but got '$lexeme'.",
-  
     'code': ErrorKind.ExpectedClassBodyToSkip,
     'arguments': {
       'token': token,
@@ -28,14 +27,11 @@ problemExpectedClassBodyToSkip(Token token) {
 
 problemStackOverflow() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Stack overflow.",
-  
     'code': ErrorKind.StackOverflow,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -44,7 +40,6 @@ problemUnexpectedToken(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Unexpected token '$lexeme'.",
-  
     'code': ErrorKind.UnexpectedToken,
     'arguments': {
       'token': token,
@@ -54,53 +49,42 @@ problemUnexpectedToken(Token token) {
 
 problemAwaitAsIdentifier() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-  
+    'message':
+        "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
     'code': ErrorKind.AwaitAsIdentifier,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemFactoryNotSync() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Factories can't use 'async', 'async*', or 'sync*'.",
-  
     'code': ErrorKind.FactoryNotSync,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemYieldNotGenerator() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "'yield' can only be used in 'sync*' or 'async*' methods.",
-  
     'code': ErrorKind.YieldNotGenerator,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemSetterNotSync() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Setters can't use 'async', 'async*', or 'sync*'.",
-  
     'code': ErrorKind.SetterNotSync,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -108,8 +92,8 @@ problemNonAsciiWhitespace(int codePoint) {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
   String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
   return {
-    'message': "The non-ASCII space character $unicode can only be used in strings and comments.",
-  
+    'message':
+        "The non-ASCII space character $unicode can only be used in strings and comments.",
     'code': ErrorKind.NonAsciiWhitespace,
     'arguments': {
       'codePoint': codePoint,
@@ -132,79 +116,72 @@ problemExpectedIdentifier(Token token) {
 
 problemExpectedBlockToSkip() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Expected a function body or '=>'.",
     'tip': "Try adding {}.",
     'code': ErrorKind.ExpectedBlockToSkip,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemRequiredParameterWithDefault() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Non-optional parameters can't have a default value.",
     'tip': "Try removing the default value or making the parameter optional.",
     'code': ErrorKind.RequiredParameterWithDefault,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
-problemUnspecified() {
+problemUnspecified(String string) {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "$string",
-  
     'code': ErrorKind.Unspecified,
     'arguments': {
-      
+      'string': string,
     },
   };
 }
 
 problemMissingExponent() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).",
-    'tip': "Make sure there is an exponent, and remove any whitespace before it.",
+    'message':
+        "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).",
+    'tip':
+        "Make sure there is an exponent, and remove any whitespace before it.",
     'code': ErrorKind.MissingExponent,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemPositionalParameterWithEquals() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "Positional optional parameters can't use ':' to specify a default value.",
+    'message':
+        "Positional optional parameters can't use ':' to specify a default value.",
     'tip': "Try replacing ':' with '='.",
     'code': ErrorKind.PositionalParameterWithEquals,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemUnexpectedDollarInString() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "A '\$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).",
+    'message':
+        "A '\$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).",
     'tip': "Try adding a backslash (\) to escape the '\$'.",
     'code': ErrorKind.UnexpectedDollarInString,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -223,23 +200,20 @@ problemExtraneousModifier(Token token) {
 
 problemEmptyOptionalParameterList() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Optional parameter lists cannot be empty.",
     'tip': "Try adding an optional parameter to the list.",
     'code': ErrorKind.EmptyOptionalParameterList,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemUnterminatedString(String string) {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "String must end with $string.",
-  
     'code': ErrorKind.UnterminatedString,
     'arguments': {
       'string': string,
@@ -249,14 +223,11 @@ problemUnterminatedString(String string) {
 
 problemAwaitNotAsync() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "'await' can only be used in 'async' or 'async*' methods.",
-  
     'code': ErrorKind.AwaitNotAsync,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -265,7 +236,6 @@ problemExpectedFunctionBody(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Expected a function body, but got '$lexeme'.",
-  
     'code': ErrorKind.ExpectedFunctionBody,
     'arguments': {
       'token': token,
@@ -275,40 +245,33 @@ problemExpectedFunctionBody(Token token) {
 
 problemExpectedHexDigit() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "A hex digit (0-9 or A-F) must follow '0x'.",
-  
     'code': ErrorKind.ExpectedHexDigit,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemEmptyNamedParameterList() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Named parameter lists cannot be empty.",
     'tip': "Try adding a named parameter to the list.",
     'code': ErrorKind.EmptyNamedParameterList,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemUnsupportedPrefixPlus() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "'+' is not a prefix operator. ",
     'tip': "Try removing '+'.",
     'code': ErrorKind.UnsupportedPrefixPlus,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -317,7 +280,6 @@ problemExpectedString(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Expected a String, but got '$lexeme'.",
-  
     'code': ErrorKind.ExpectedString,
     'arguments': {
       'token': token,
@@ -327,14 +289,11 @@ problemExpectedString(Token token) {
 
 problemAbstractNotSync() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Abstract methods can't use 'async', 'async*', or 'sync*'.",
-  
     'code': ErrorKind.AbstractNotSync,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -343,7 +302,6 @@ problemExpectedDeclaration(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Expected a declaration, but got '$lexeme'.",
-  
     'code': ErrorKind.ExpectedDeclaration,
     'arguments': {
       'token': token,
@@ -355,8 +313,8 @@ problemAsciiControlCharacter(int codePoint) {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
   String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
   return {
-    'message': "The control character $unicode can only be used in strings and comments.",
-  
+    'message':
+        "The control character $unicode can only be used in strings and comments.",
     'code': ErrorKind.AsciiControlCharacter,
     'arguments': {
       'codePoint': codePoint,
@@ -369,7 +327,6 @@ problemUnmatchedToken(String string, Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Can't find '$string' to match '$lexeme'.",
-  
     'code': ErrorKind.UnmatchedToken,
     'arguments': {
       'string': string,
@@ -380,40 +337,32 @@ problemUnmatchedToken(String string, Token token) {
 
 problemInvalidSyncModifier() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Invalid modifier 'sync'.",
     'tip': "Try replacing 'sync' with 'sync*'.",
     'code': ErrorKind.InvalidSyncModifier,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemExpectedOpenParens() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Expected '('.",
-  
     'code': ErrorKind.ExpectedOpenParens,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemUnterminatedComment() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Comment starting with '/*' must end with '*/'.",
-  
     'code': ErrorKind.UnterminatedComment,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -422,7 +371,6 @@ problemExpectedClassBody(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Expected a class body, but got '$lexeme'.",
-  
     'code': ErrorKind.ExpectedClassBody,
     'arguments': {
       'token': token,
@@ -435,7 +383,6 @@ problemExpectedExpression(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Expected an expression, but got '$lexeme'.",
-  
     'code': ErrorKind.ExpectedExpression,
     'arguments': {
       'token': token,
@@ -445,14 +392,14 @@ problemExpectedExpression(Token token) {
 
 problemInvalidAwaitFor() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "'await' is only supported in methods with an 'async' or 'async*' body modifier.",
-    'tip': "Try adding 'async' or 'async*' to the method body or removing the 'await' keyword.",
+    'message':
+        "'await' is only supported in methods with an 'async' or 'async*' body modifier.",
+    'tip':
+        "Try adding 'async' or 'async*' to the method body or removing the 'await' keyword.",
     'code': ErrorKind.InvalidAwaitFor,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -461,7 +408,6 @@ problemExpectedType(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Expected a type, but got '$lexeme'.",
-  
     'code': ErrorKind.ExpectedType,
     'arguments': {
       'token': token,
@@ -471,14 +417,11 @@ problemExpectedType(Token token) {
 
 problemUnterminatedToken() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Incomplete token.",
-  
     'code': ErrorKind.UnterminatedToken,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -497,92 +440,91 @@ problemExpectedButGot(Token token) {
 
 problemAwaitForNotAsync() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "Asynchronous for-loop can only be used in 'async' or 'async*' methods.",
-  
+    'message':
+        "Asynchronous for-loop can only be used in 'async' or 'async*' methods.",
     'code': ErrorKind.AwaitForNotAsync,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemEncoding() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Unable to decode bytes as UTF-8.",
-  
     'code': ErrorKind.Encoding,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemAsyncAsIdentifier() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-  
+    'message':
+        "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
     'code': ErrorKind.AsyncAsIdentifier,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemYieldAsIdentifier() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
-    'message': "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
-  
+    'message':
+        "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
     'code': ErrorKind.YieldAsIdentifier,
-    'arguments': {
-      
-    },
+    'arguments': {},
+  };
+}
+
+problemOnlyTry() {
+  // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+
+  return {
+    'message':
+        "Try block should be followed by 'on', 'catch', or 'finally' block.",
+    'tip': "Did you forget to add a 'finally' block?",
+    'code': ErrorKind.OnlyTry,
+    'arguments': {},
   };
 }
 
 problemInvalidInlineFunctionType() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Invalid inline function type.",
-    'tip': "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').",
+    'tip':
+        "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').",
     'code': ErrorKind.InvalidInlineFunctionType,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemExpectedBody() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Expected a function body or '=>'.",
     'tip': "Try adding {}.",
     'code': ErrorKind.ExpectedBody,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
 problemInvalidVoid() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "Type 'void' can't be used here because it isn't a return type.",
-    'tip': "Try removing 'void' keyword or replace it with 'var', 'final', or a type.",
+    'tip':
+        "Try removing 'void' keyword or replace it with 'var', 'final', or a type.",
     'code': ErrorKind.InvalidVoid,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -591,7 +533,6 @@ problemBuiltInIdentifierAsType(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Can't use '$lexeme' as a type.",
-  
     'code': ErrorKind.BuiltInIdentifierAsType,
     'arguments': {
       'token': token,
@@ -601,14 +542,11 @@ problemBuiltInIdentifierAsType(Token token) {
 
 problemGeneratorReturnsValue() {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-  
+
   return {
     'message': "'sync*' and 'async*' can't return a value.",
-  
     'code': ErrorKind.GeneratorReturnsValue,
-    'arguments': {
-      
-    },
+    'arguments': {},
   };
 }
 
@@ -617,7 +555,6 @@ problemBuiltInIdentifierInDeclaration(Token token) {
   String lexeme = token.lexeme;
   return {
     'message': "Can't use '$lexeme' as a name here.",
-  
     'code': ErrorKind.BuiltInIdentifierInDeclaration,
     'arguments': {
       'token': token,
@@ -629,8 +566,10 @@ problemNonAsciiIdentifier(String character, int codePoint) {
   // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
   String unicode = "(U+${codePoint.toRadixString(16).padLeft(4, '0')})";
   return {
-    'message': "The non-ASCII character '$character' ($unicode) can't be used in identifiers, only in strings and comments.",
-    'tip': "Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).",
+    'message':
+        "The non-ASCII character '$character' ($unicode) can't be used in identifiers, only in strings and comments.",
+    'tip':
+        "Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).",
     'code': ErrorKind.NonAsciiIdentifier,
     'arguments': {
       'character': character,
@@ -651,4 +590,3 @@ problemExtraneousModifierReplace(Token token) {
     },
   };
 }
-

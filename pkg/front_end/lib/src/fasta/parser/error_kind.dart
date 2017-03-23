@@ -10,6 +10,7 @@ enum ErrorKind {
   AsciiControlCharacter,
   AsyncAsIdentifier,
   AwaitAsIdentifier,
+  AwaitForNotAsync,
   AwaitNotAsync,
   BuiltInIdentifierAsType,
   BuiltInIdentifierInDeclaration,
@@ -25,7 +26,6 @@ enum ErrorKind {
   /// Dart Language Specification) Dart VM native clauses. See
   /// [dart_vm_native.dart].
   ExpectedClassBodyToSkip,
-  AwaitForNotAsync,
   ExpectedDeclaration,
   ExpectedExpression,
   ExpectedFunctionBody,
@@ -45,6 +45,7 @@ enum ErrorKind {
   MissingExponent,
   NonAsciiIdentifier,
   NonAsciiWhitespace,
+  OnlyTry,
   PositionalParameterWithEquals,
   RequiredParameterWithDefault,
   SetterNotSync,

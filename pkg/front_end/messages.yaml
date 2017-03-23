@@ -327,3 +327,8 @@ YieldAsIdentifier:
 
 YieldNotGenerator:
   template: "'yield' can only be used in 'sync*' or 'async*' methods."
+
+OnlyTry:
+  template: "Try block should be followed by 'on', 'catch', or 'finally' block."
+  tip: "Did you forget to add a 'finally' block?"
+  statement: "try {}"

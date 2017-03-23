@@ -3487,6 +3487,10 @@ class Parser {
       finallyKeyword = token;
       token = parseBlock(token.next);
       listener.handleFinallyBlock(finallyKeyword);
+    } else {
+      if (catchCount == 0) {
+        reportRecoverableError(tryKeyword, ErrorKind.OnlyTry);
+      }
     }
     listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
     return token;
