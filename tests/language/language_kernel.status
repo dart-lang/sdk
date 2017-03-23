@@ -53,7 +53,6 @@ compile_time_constant_r_test/01: Crash
 compile_time_constant_r_test/02: Crash
 compile_time_constant_r_test/03: Crash
 compile_time_constant_test/01: MissingCompileTimeError
-compile_time_constant_test/02: Crash
 conditional_import_string_test: RuntimeError
 conditional_import_test: RuntimeError
 conditional_method_invocation_test/11: MissingCompileTimeError
@@ -63,16 +62,7 @@ conditional_property_assignment_test/21: MissingCompileTimeError
 conditional_property_assignment_test/22: MissingCompileTimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
-const_conditional_test/01: MissingCompileTimeError
-const_conditional_test/02: MissingCompileTimeError
-const_conditional_test/03: MissingCompileTimeError
-const_conditional_test/04: MissingCompileTimeError
-const_conditional_test/05: MissingCompileTimeError
-const_conditional_test/06: MissingCompileTimeError
-const_conditional_test/07: MissingCompileTimeError
 const_conditional_test/08: MissingCompileTimeError
-const_conditional_test/09: MissingCompileTimeError
-const_conditional_test/10: MissingCompileTimeError
 const_constructor_mixin2_test/01: MissingCompileTimeError
 const_constructor_mixin3_test/01: MissingCompileTimeError
 const_constructor_mixin_test/01: MissingCompileTimeError
@@ -89,6 +79,8 @@ const_error_multiply_initialized_test/01: MissingCompileTimeError
 const_error_multiply_initialized_test/02: RuntimeError
 const_error_multiply_initialized_test/03: MissingCompileTimeError
 const_error_multiply_initialized_test/04: RuntimeError
+const_evaluation_test/01: CompileTimeError
+const_evaluation_test/none: CompileTimeError
 const_factory_with_body_test/01: MissingCompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
@@ -96,6 +88,7 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_nested_test: RuntimeError
 const_optional_args_negative_test: Fail
+const_string_test: CompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/none: CompileTimeError
 const_types_test/06: CompileTimeError
@@ -114,10 +107,6 @@ const_types_test/41: MissingCompileTimeError
 constant_expression_test/01: MissingCompileTimeError
 constant_expression_test/03: MissingCompileTimeError
 constant_locals_test/01: MissingCompileTimeError
-constant_locals_test/02: MissingCompileTimeError
-constant_locals_test/03: MissingCompileTimeError
-constant_locals_test/04: MissingCompileTimeError
-constant_type_literal_test/01: MissingCompileTimeError
 constructor10_test/00: Crash
 constructor10_test/01: Crash
 constructor10_test/02: Crash
@@ -256,7 +245,6 @@ external_test/31: MissingCompileTimeError
 factory_redirection_test/07: MissingCompileTimeError
 field_decl_missing_var_type_test/01: MissingCompileTimeError
 final_initializer_instance_reference_test/01: MissingCompileTimeError
-final_is_not_const_test/01: MissingCompileTimeError
 final_super_field_set_test/01: RuntimeError
 final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
@@ -311,6 +299,15 @@ getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 getter_setter_in_lib_test: RuntimeError
+identical_const_test/01: CompileTimeError
+identical_const_test/02: CompileTimeError
+identical_const_test/03: CompileTimeError
+identical_const_test/04: CompileTimeError
+identical_const_test/05: CompileTimeError
+identical_const_test/06: CompileTimeError
+identical_const_test/07: CompileTimeError
+identical_const_test/08: CompileTimeError
+identical_const_test/none: CompileTimeError
 if_null_assignment_behavior_test/09: RuntimeError
 if_null_assignment_behavior_test/10: RuntimeError
 if_null_assignment_behavior_test/15: RuntimeError
@@ -408,6 +405,11 @@ part2_test: RuntimeError
 private_access_test/05: RuntimeError
 private_access_test/06: RuntimeError
 private_super_constructor_test/01: MissingCompileTimeError
+proxy3_test/01: CompileTimeError
+proxy3_test/02: CompileTimeError
+proxy3_test/03: CompileTimeError
+proxy3_test/04: CompileTimeError
+proxy3_test/none: CompileTimeError
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
@@ -480,6 +482,8 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
+symbol_literal_test/01: CompileTimeError
+symbol_literal_test/none: CompileTimeError
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
@@ -524,9 +528,7 @@ language/regress_22728_test: Fail # Dartk Issue 28498
 
 # dartk: JIT failures
 [ $compiler == dartk ]
-const_evaluation_test/01: RuntimeError
 const_locals_test: RuntimeError
-const_string_test: RuntimeError  # Dartk Issue 28306
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790

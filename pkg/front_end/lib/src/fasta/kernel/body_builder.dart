@@ -753,22 +753,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Scope scope = inInitializer ? enclosingScope : this.scope;
       Builder builder = scope.lookup(name, token.charOffset, uri);
       push(builderToFirstExpression(builder, name, token.charOffset));
-    } else {
-      if (constantExpressionRequired) {
-        if (context != IdentifierContext.namedArgumentReference &&
-            context != IdentifierContext.constructorReferenceContinuation &&
-            context != IdentifierContext.expressionContinuation &&
-            context != IdentifierContext.typeReferenceContinuation &&
-            context != IdentifierContext.localVariableDeclaration &&
-            context !=
-                IdentifierContext
-                    .constructorReferenceContinuationAfterTypeArguments) {
-          addCompileTimeError(
-              token.charOffset, "Not a constant expression: $context");
-        }
+      return;
+    } else if (context.inDeclaration) {
+      if (context == IdentifierContext.topLevelVariableDeclaration ||
+          context == IdentifierContext.fieldDeclaration) {
+        constantExpressionRequired = member.isConst;
       }
-      push(new Identifier(name)..fileOffset = token.charOffset);
+    } else if (constantExpressionRequired &&
+        !context.allowedInConstantExpression) {
+      addCompileTimeError(
+          token.charOffset, "Not a constant expression: $context");
     }
+    push(new Identifier(name)..fileOffset = token.charOffset);
   }
 
   @override
