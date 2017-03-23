@@ -291,7 +291,8 @@ class IdentifierContext {
             // Generally, declarations are legal in constant expressions.  A
             // continuation doesn't affect constant expressions: if what it's
             // continuing is a problem, it has already been reported.
-            allowedInConstantExpression ?? (inDeclaration || isContinuation);
+            allowedInConstantExpression ??
+                (inDeclaration || isContinuation || inSymbol);
 
   String toString() => _name;
 }

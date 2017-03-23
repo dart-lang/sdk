@@ -482,8 +482,6 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-symbol_literal_test/01: CompileTimeError
-symbol_literal_test/none: CompileTimeError
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError

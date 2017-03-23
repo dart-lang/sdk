@@ -158,7 +158,6 @@ Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompile
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
 Language/Expressions/Constants/literal_string_t04: Crash
 Language/Expressions/Constants/literal_string_t05: MissingCompileTimeError
-Language/Expressions/Constants/literal_symbol_t01: CompileTimeError
 Language/Expressions/Constants/logical_expression_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
