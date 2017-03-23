@@ -6,29 +6,29 @@ import "package:expect/expect.dart";
 
 class A {
   bar([var optional = 1]) => 498 + optional;
-  bar2({namedOptional: 2}) => 40 + namedOptional;
+  bar2({ namedOptional: 2 }) => 40 + namedOptional;
   bar3(x, [var optional = 3]) => x + 498 + optional;
-  bar4(x, {namedOptional: 4}) => 422 + x + namedOptional;
+  bar4(x, { namedOptional: 4 }) => 422 + x + namedOptional;
 
   // Gee is the same as bar, but we make sure that gee is used. Potentially
   // this yields different code if the redirecting stub exists.
   gee([var optional = 1]) => 498 + optional;
-  gee2({namedOptional: 2}) => 40 + namedOptional;
+  gee2({ namedOptional: 2 }) => 40 + namedOptional;
   gee3(x, [var optional = 3]) => x + 498 + optional;
-  gee4(x, {namedOptional: 4}) => 422 + x + namedOptional;
+  gee4(x, { namedOptional: 4 }) => 422 + x + namedOptional;
 
   // Use identifiers that could be intercepted.
   add([var optional = 33]) => 1234 + optional;
-  trim({namedOptional: 22}) => 1313 + namedOptional;
+  trim({ namedOptional: 22 }) => 1313 + namedOptional;
   sublist(x, [optional = 44]) => 4321 + optional + x;
-  splitMapJoin(x, {onMatch: 55, onNonMatch: 66}) =>
+  splitMapJoin(x, { onMatch: 55, onNonMatch: 66}) =>
       111 + x + onMatch + onNonMatch;
 
   // Other interceptable identifiers, but all of them are used.
   shuffle([var optional = 121]) => 12342 + optional;
-  toList({growable: 2233}) => 13131 + growable;
+  toList({ growable: 2233 }) => 13131 + growable;
   lastIndexOf(x, [optional = 424]) => 14321 + optional + x;
-  lastWhere(x, {orElse: 555}) => x + 1213 + 555;
+  lastWhere(x, { orElse: 555 }) => x + 1213 + 555;
 }
 
 class B extends A {
@@ -83,14 +83,14 @@ class B extends A {
   gee4(x, { namedOptional }) => -1; //# 01: continued
 
   add([var optional = 33]) => -1;
-  trim({namedOptional: 22}) => -1;
+  trim({ namedOptional: 22 }) => -1;
   sublist(x, [optional = 44]) => -1;
-  splitMapJoin(x, {onMatch: 55, onNonMatch: 66}) => -1;
+  splitMapJoin(x, { onMatch: 55, onNonMatch: 66}) => -1;
 
   shuffle([var optional = 121]) => -1;
-  toList({growable: 2233}) => -1;
+  toList({ growable: 2233 }) => -1;
   lastIndexOf(x, [optional = 424]) => -1;
-  lastWhere(x, {orElse: 555}) => -1;
+  lastWhere(x, { orElse: 555 }) => -1;
 }
 
 confuse(x) {
@@ -99,7 +99,7 @@ confuse(x) {
 }
 
 main() {
-  var list = [new A(), new B(), [], "foo"];
+  var list = [new A(), new B(), [], "foo" ];
   var a = list[confuse(0)];
   var b = list[confuse(1)];
   var ignored = list[confuse(2)];

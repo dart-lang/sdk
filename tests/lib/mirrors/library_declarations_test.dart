@@ -14,96 +14,88 @@ main() {
   LibraryMirror lm =
       currentMirrorSystem().findLibrary(#test.declarations_model);
 
-  Expect.setEquals([
-    'Variable(s(_libraryVariable)'
+  Expect.setEquals(
+   ['Variable(s(_libraryVariable)'
         ' in s(test.declarations_model), private, top-level, static)',
     'Variable(s(libraryVariable)'
-        ' in s(test.declarations_model), top-level, static)'
-  ], lm.declarations.values.where((dm) => dm is VariableMirror).map(stringify),
-      'variables');
+        ' in s(test.declarations_model), top-level, static)'],
+    lm.declarations.values.where((dm) => dm is VariableMirror).map(stringify),
+    'variables');
 
   // dart2js stops testing here.
   return; // //# 01: ok
 
   Expect.setEquals(
-      [
-        'Method(s(_libraryGetter)'
-            ' in s(test.declarations_model), private, top-level, static, getter)',
-        'Method(s(libraryGetter)'
-            ' in s(test.declarations_model), top-level, static, getter)'
-      ],
-      lm.declarations.values
-          .where((dm) => dm is MethodMirror && dm.isGetter)
-          .map(stringify),
-      'getters');
+   ['Method(s(_libraryGetter)'
+        ' in s(test.declarations_model), private, top-level, static, getter)',
+    'Method(s(libraryGetter)'
+        ' in s(test.declarations_model), top-level, static, getter)'],
+    lm.declarations.values
+        .where((dm) => dm is MethodMirror && dm.isGetter).map(stringify),
+    'getters');
 
   Expect.setEquals(
-      [
-        'Method(s(_librarySetter=)'
-            ' in s(test.declarations_model), private, top-level, static, setter)',
-        'Method(s(librarySetter=)'
-            ' in s(test.declarations_model), top-level, static, setter)'
-      ],
-      lm.declarations.values
-          .where((dm) => dm is MethodMirror && dm.isSetter)
-          .map(stringify),
-      'setters');
+   ['Method(s(_librarySetter=)'
+        ' in s(test.declarations_model), private, top-level, static, setter)',
+    'Method(s(librarySetter=)'
+        ' in s(test.declarations_model), top-level, static, setter)'],
+    lm.declarations.values
+        .where((dm) => dm is MethodMirror && dm.isSetter).map(stringify),
+    'setters');
 
   Expect.setEquals(
-      [
-        'Method(s(_libraryMethod)'
-            ' in s(test.declarations_model), private, top-level, static)',
-        'Method(s(libraryMethod)'
-            ' in s(test.declarations_model), top-level, static)'
-      ],
-      lm.declarations.values
-          .where((dm) => dm is MethodMirror && dm.isRegularMethod)
-          .map(stringify),
-      'regular methods');
+   ['Method(s(_libraryMethod)'
+        ' in s(test.declarations_model), private, top-level, static)',
+    'Method(s(libraryMethod)'
+        ' in s(test.declarations_model), top-level, static)'],
+    lm.declarations.values
+        .where((dm) => dm is MethodMirror && dm.isRegularMethod).map(stringify),
+    'regular methods');
 
-  Expect.setEquals([
-    'Class(s(Class) in s(test.declarations_model), top-level)',
+  Expect.setEquals(
+   ['Class(s(Class) in s(test.declarations_model), top-level)',
     'Class(s(ConcreteClass) in s(test.declarations_model), top-level)',
     'Class(s(Interface) in s(test.declarations_model), top-level)',
     'Class(s(Mixin) in s(test.declarations_model), top-level)',
     'Class(s(Superclass) in s(test.declarations_model), top-level)',
     'Class(s(_PrivateClass)'
-        ' in s(test.declarations_model), private, top-level)'
-  ], lm.declarations.values.where((dm) => dm is ClassMirror).map(stringify),
-      'classes');
+        ' in s(test.declarations_model), private, top-level)'],
+    lm.declarations.values
+        .where((dm) => dm is ClassMirror).map(stringify),
+    'classes');
 
-  Expect.setEquals([
-    'Class(s(Class) in s(test.declarations_model), top-level)',
+  Expect.setEquals(
+   ['Class(s(Class) in s(test.declarations_model), top-level)',
     'Class(s(ConcreteClass) in s(test.declarations_model), top-level)',
     'Class(s(Interface) in s(test.declarations_model), top-level)',
     'Class(s(Mixin) in s(test.declarations_model), top-level)',
     'Type(s(Predicate) in s(test.declarations_model), top-level)',
     'Class(s(Superclass) in s(test.declarations_model), top-level)',
     'Class(s(_PrivateClass)'
-        ' in s(test.declarations_model), private, top-level)'
-  ], lm.declarations.values.where((dm) => dm is TypeMirror).map(stringify),
-      'types');
+        ' in s(test.declarations_model), private, top-level)'],
+    lm.declarations.values.where((dm) => dm is TypeMirror).map(stringify),
+    'types');
 
-  Expect.setEquals([
-    'Class(s(Class) in s(test.declarations_model), top-level)',
+  Expect.setEquals(
+   ['Class(s(Class) in s(test.declarations_model), top-level)',
     'Class(s(ConcreteClass) in s(test.declarations_model), top-level)',
     'Class(s(Interface) in s(test.declarations_model), top-level)',
     'Class(s(Mixin) in s(test.declarations_model), top-level)',
     'Type(s(Predicate) in s(test.declarations_model), top-level)',
     'Class(s(Superclass) in s(test.declarations_model), top-level)',
     'Method(s(libraryGetter)'
-        ' in s(test.declarations_model), top-level, static, getter)',
+      ' in s(test.declarations_model), top-level, static, getter)',
     'Method(s(libraryMethod)'
-        ' in s(test.declarations_model), top-level, static)',
+      ' in s(test.declarations_model), top-level, static)',
     'Method(s(librarySetter=)'
-        ' in s(test.declarations_model), top-level, static, setter)',
+      ' in s(test.declarations_model), top-level, static, setter)',
     'Variable(s(libraryVariable)'
-        ' in s(test.declarations_model), top-level, static)'
-  ], lm.declarations.values.where((dm) => !dm.isPrivate).map(stringify),
-      'public');
+      ' in s(test.declarations_model), top-level, static)'],
+    lm.declarations.values.where((dm) => !dm.isPrivate).map(stringify),
+    'public');
 
-  Expect.setEquals([
-    'Class(s(Class) in s(test.declarations_model), top-level)',
+  Expect.setEquals(
+   ['Class(s(Class) in s(test.declarations_model), top-level)',
     'Class(s(ConcreteClass) in s(test.declarations_model), top-level)',
     'Class(s(Interface) in s(test.declarations_model), top-level)',
     'Class(s(Mixin) in s(test.declarations_model), top-level)',
@@ -124,6 +116,7 @@ main() {
     'Method(s(librarySetter=)'
         ' in s(test.declarations_model), top-level, static, setter)',
     'Variable(s(libraryVariable)'
-        ' in s(test.declarations_model), top-level, static)'
-  ], lm.declarations.values.map(stringify), 'all declarations');
+        ' in s(test.declarations_model), top-level, static)'],
+    lm.declarations.values.map(stringify),
+    'all declarations');
 }

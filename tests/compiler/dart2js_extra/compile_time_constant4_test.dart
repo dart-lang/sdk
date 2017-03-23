@@ -6,26 +6,30 @@ import "package:expect/expect.dart";
 
 const x = "foo";
 const y = "foo";
-const g1 = x + "bar";
+const g1 = x
+  + "bar"
+;
 const g2 = x
   + null //  //# 01: compile-time error
-    ;
+;
 const g3 = x
   + 499 //  //# 02: compile-time error
-    ;
+;
 const g4 = x
   + 3.3 //  //# 03: compile-time error
-    ;
+;
 const g5 = x
   + true //  //# 04: compile-time error
-    ;
+;
 const g6 = x
   + false //  //# 05: compile-time error
-    ;
+;
 const g7 = "foo"
   + x[0] //  //# 06: compile-time error
-    ;
-const g8 = 1 + x.length;
+;
+const g8 = 1
+  + x.length
+;
 const g9 = x == y;
 
 use(x) => x;

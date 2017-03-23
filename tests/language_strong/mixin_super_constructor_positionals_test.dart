@@ -6,12 +6,11 @@ import "package:expect/expect.dart";
 
 class Base {
   int i, j;
-  Base.ctor(
-      int this.i,
+  Base.ctor(int this.i,
             [ //                 //# 01: compile-time error
-      int this.j
+            int this.j
             ] //                 //# 01: continued
-      );
+           );
 }
 
 abstract class M {

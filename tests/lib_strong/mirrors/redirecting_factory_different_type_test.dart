@@ -12,15 +12,13 @@ import 'package:expect/expect.dart';
 class A {
   factory A(
     String //  //# 01: static type warning
-      x) = B;
+    x) = B;
   A._();
 }
 
 class B extends A {
   var x;
-  B(int x)
-      : super._(),
-        this.x = x;
+  B(int x) : super._(), this.x = x;
 }
 
 main() {
@@ -28,6 +26,6 @@ main() {
   // The type-annotation in A's constructor must be ignored.
   var b = cm.newInstance(const Symbol(''), [499]).reflectee;
   Expect.equals(499, b.x);
-  Expect.throws(
-      () => cm.newInstance(const Symbol(''), ["str"]), (e) => e is TypeError);
+  Expect.throws(() => cm.newInstance(const Symbol(''), ["str"]),
+                (e) => e is TypeError);
 }

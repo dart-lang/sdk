@@ -11,7 +11,8 @@ class Foo {
   get i; // //# 01: static type warning
 }
 
-class Bar {}
+class Bar {
+}
 
 noMethod(e) => e is NoSuchMethodError;
 

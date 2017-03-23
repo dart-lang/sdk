@@ -9,7 +9,6 @@ import "deferred_constraints_lib.dart" deferred as lib;
 import "deferred_constraints_lib.dart" as lib2; //# type_annotation_non_deferred: ok
 
 class F {}
-
 class G2<T> {}
 
 main() {

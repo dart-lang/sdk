@@ -4,9 +4,7 @@
 
 import "package:expect/expect.dart";
 
-method() {
-  return 0;
-}
+method() { return 0; }
 
 main() {
   // Illegal, can't change a top level method

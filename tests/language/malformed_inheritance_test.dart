@@ -22,7 +22,9 @@ class C
   <A> extends Object with A<Unresolved> //# 10: compile-time error
   <A> implements A<int> //# 11: compile-time error
   <A> implements A<Unresolved> //# 12: compile-time error
-{}
+{
+
+}
 
 void main() {
   new C();

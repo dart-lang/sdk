@@ -16,8 +16,7 @@ class A {
 int // //# 00: static type warning, checked mode compile-time error
 foo(
 String // //# 00: continued
-        x) =>
-    499;
+x) => 499;
 
 const a = const A(foo);
 

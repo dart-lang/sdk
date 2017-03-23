@@ -7,21 +7,22 @@ import "package:expect/expect.dart";
 switcher(val) {
   var x = 0;
   switch (val) {
-    case 1:
-      x = 100;
-      break;
-    case 2:
-      x = 200;
-      break;
-    case 3:
-      x = 300;
-      break;
-    default:
-      return 400;
-      break; // Intentional dead code (regression test for crash).
+  case 1:
+    x = 100;
+    break;
+  case 2:
+    x = 200;
+    break;
+  case 3:
+    x = 300;
+    break;
+  default:
+    return 400;
+    break; // Intentional dead code (regression test for crash).
   }
   return x;
 }
+
 
 // Check unambiguated grammar allowing multiple lables per case/default.
 switcher2(val) {
@@ -32,8 +33,7 @@ switcher2(val) {
     case 1:
     baz:
     case 2:
-      fez:
-      {
+      fez: {
         x = 100;
         break fez;
       }
@@ -44,8 +44,7 @@ switcher2(val) {
     case 4:
     svin:
     default:
-      barber:
-      {
+      barber: {
         if (val > 2) {
           x = 200;
           break;
@@ -57,6 +56,7 @@ switcher2(val) {
   }
   return x;
 }
+
 
 badswitches(val) {
   // Test some badly formed switch bodies.

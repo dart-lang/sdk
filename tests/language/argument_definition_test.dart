@@ -12,5 +12,5 @@ int test(a, {b, c}) {
 }
 
 main() {
-  Expect.equals(6, test(1, b: 2, c: 3));
+  Expect.equals(6, test(1, b: 2, c:3));
 }

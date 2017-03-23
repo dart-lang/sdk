@@ -71,32 +71,32 @@ main() {
   expectNsme(alwaysThrows);
   expectNsme(
     test01 // //# 01: continued
-      );
+  );
   expectNsme(
     test02 // //# 02: continued
-      );
+  );
   expectNsme(
     test03 // //# 03: continued
-      );
+  );
   expectNsme(
     test04 // //# 04: continued
-      );
+  );
   expectNsme(
     test05 // //# 05: continued
-      );
+  );
   expectNsme(
     test06 // //# 06: continued
-      );
+  );
   expectNsme(
     test07 // //# 07: continued
-      );
+  );
   expectNsme(
     test08 // //# 08: continued
-      );
+  );
   expectNsme(
     test09 // //# 09: continued
-      );
+  );
   expectNsme(
     test10 // //# 10: continued
-      );
+  );
 }

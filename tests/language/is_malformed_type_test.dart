@@ -6,10 +6,7 @@
 import "package:expect/expect.dart";
 
 var evalCount = 0;
-testEval(x) {
-  evalCount++;
-  return x;
-}
+testEval(x) { evalCount++; return x; }
 
 test99(e) {
   // Test that a runtime error is thrown when the 'is' operator checks for a
@@ -17,7 +14,7 @@ test99(e) {
   try {
     if (e is Undefined) Expect.fail("unreachable"); //  //# 99: continued
     Expect.fail("unreachable");
-  } catch (exc) {
+  } catch(exc) {
     Expect.isTrue(exc is TypeError);
   }
 }
@@ -28,7 +25,7 @@ test98(e) {
   try {
     if (e as Undefined) Expect.fail("unreachable"); //  //# 98: continued
     Expect.fail("unreachable");
-  } catch (exc) {
+  } catch(exc) {
     Expect.isTrue(exc is TypeError);
   }
 }
@@ -41,7 +38,7 @@ test97(e) {
     evalCount = 0;
     if (e is Undefined && testEval(e)) Expect.fail("unreachable"); //  //# 97: continued
     Expect.fail("unreachable");
-  } catch (exc) {
+  } catch(exc) {
     Expect.isTrue(exc is TypeError);
     Expect.equals(0, evalCount);
   }
@@ -55,7 +52,7 @@ test96(e) {
     evalCount = 0;
     if (e as Undefined && testEval(e)) Expect.fail("unreachable"); //  //# 96: continued
     Expect.fail("unreachable");
-  } catch (exc) {
+  } catch(exc) {
     Expect.isTrue(exc is TypeError);
     Expect.equals(0, evalCount);
   }
@@ -68,7 +65,7 @@ test95(e) {
     evalCount = 0;
     if (testEval(e) is Undefined) Expect.fail("unreachable"); //  //# 95: continued
     Expect.fail("unreachable");
-  } catch (exc) {
+  } catch(exc) {
     Expect.isTrue(exc is TypeError);
     Expect.equals(1, evalCount);
   }
@@ -81,7 +78,7 @@ test94(e) {
     evalCount = 0;
     if (testEval(e) as Undefined) Expect.fail("unreachable"); // //# 94: continued
     Expect.fail("unreachable");
-  } catch (exc) {
+  } catch(exc) {
     Expect.isTrue(exc is TypeError);
     Expect.equals(1, evalCount);
   }

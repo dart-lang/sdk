@@ -15,7 +15,7 @@ abstract class EmptyLink<T> extends Link<T> {
 }
 
 class LinkFactory<T> {
-  factory LinkFactory(head, [Link tail]) {}
+  factory LinkFactory(head, [Link tail]) { }
 }
 
 // Does not implement all of Iterable
@@ -27,7 +27,8 @@ class AbstractLink<T> implements Link<T> {
 }
 
 // Does not implement all of Iterable
-class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> {
+class LinkTail<T> extends AbstractLink<T>
+    implements EmptyLink<T> {
   const LinkTail();
 }
 
@@ -48,3 +49,4 @@ main() {
   // instantiation of abstract class
   const EmptyLink<String>().prepend('fisk'); //# static type warning
 }
+

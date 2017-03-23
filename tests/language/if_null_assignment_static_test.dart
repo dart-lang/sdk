@@ -67,15 +67,11 @@ class ClassWithInstanceGetters {
 class DerivedClass extends ClassWithInstanceGetters {
   dynamic get a => bad();
 
-  void set a(dynamic value) {
-    bad();
-  }
+  void set a(dynamic value) { bad(); }
 
   dynamic get b => bad();
 
-  void set b(dynamic value) {
-    bad();
-  }
+  void set b(dynamic value) { bad(); }
 
   void derivedTest() {
     // The static type of super.v ??= e is the LUB of the static types of
@@ -98,8 +94,7 @@ class DerivedClass extends ClassWithInstanceGetters {
 main() {
   // Make sure the "none" test fails if "??=" is not implemented.  This makes
   // status files easier to maintain.
-  var _;
-  _ ??= null;
+  var _; _ ??= null;
 
   new DerivedClass().derivedTest();
 

@@ -4,6 +4,7 @@
 // Dart test program to make sure we catch missing new or const
 // when allocating a new object.
 
+
 class Point {
   const Point(this.x, this.y);
   final int x;

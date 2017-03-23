@@ -11,24 +11,22 @@
 void testSwitch(int x) {
   // Catch all control flow leaving the switch.
   // Run switch in catch clause to check rethrow.
-  TRY:
-  try {
+  TRY: try {
     throw x;
   } catch (x) {
     // Add loop as break/continue target.
-    LOOP:
-    do {
+    LOOP: do {
       switch (x) {
         case 0:
         case 1:
           nop(x);
-          break; // Break switch.
+          break;  // Break switch.
         case 2:
           nop(x);
           break LOOP;
         case 3:
           nop(x);
-          continue; // Continue loop.
+          continue;  // Continue loop.
         case 4:
           nop(x);
           continue LOOP;
@@ -49,31 +47,26 @@ void testSwitch(int x) {
           nop(x);
           rethrow;
         case 10:
-        case 11:
-          {
-            nop(x);
-            break; // Break switch.
-          }
-        case 12:
-          {
-            nop(x);
-            break LOOP;
-          }
-        case 13:
-          {
-            nop(x);
-            continue; // Continue loop.
-          }
-        case 14:
-          {
-            nop(x);
-            continue LOOP;
-          }
-        case 15:
-          {
-            nop(x);
-            continue LAST;
-          }
+        case 11: {
+          nop(x);
+          break;  // Break switch.
+        }
+        case 12: {
+          nop(x);
+          break LOOP;
+        }
+        case 13: {
+          nop(x);
+          continue;  // Continue loop.
+        }
+        case 14: {
+          nop(x);
+          continue LOOP;
+        }
+        case 15: {
+          nop(x);
+          continue LAST;
+        }
         case 16: { //  //# retnon: continued
           nop(x); //   //# retnon: continued
           return; //   //# retnon: continued
@@ -82,22 +75,19 @@ void testSwitch(int x) {
           nop(x); //   //# retval: continued
           return x; // //# retval: continued
         } //           //# retval: continued
-        case 18:
-          {
-            nop(x);
-            throw x;
-          }
-        case 19:
-          {
-            nop(x);
-            rethrow;
-          }
+        case 18: {
+          nop(x);
+          throw x;
+        }
+        case 19: {
+          nop(x);
+          rethrow;
+        }
         LAST:
-        case 20:
-          {
-            nop(x);
-            // Fallthrough allowed on last statements.
-          }
+        case 20: {
+          nop(x);
+          // Fallthrough allowed on last statements.
+        }
       }
     } while (false);
   } finally {
@@ -111,13 +101,11 @@ void testSwitch(int x) {
 // All these switch cases should cause warnings.
 void testSwitchWarn(x) {
   // Catch all control flow from the switch and ignore it.
-  TRY:
-  try {
+  TRY: try {
     throw 0;
   } catch (e) {
     // Wrap in loop as target for continue/break.
-    LOOP:
-    do {
+    LOOP: do {
       switch (x) {
         case 0: //                         //# 01: static type warning
         case 1: { //                       //# 01: continued
@@ -192,7 +180,7 @@ void testSwitchWarn(x) {
           L: break; //                     //# 17: continued
         LAST:
         case 99:
-        // Last case can't cause static warning.
+          // Last case can't cause static warning.
       }
     } while (false);
   } finally {
@@ -206,7 +194,7 @@ void testSwitchWarn(x) {
 main() {
   // Ensure that all the cases compile and run (even if they might throw).
   for (int i = 0; i <= 20; i++) {
-    testSwitch(i); // Just make sure it runs.
+    testSwitch(i);  // Just make sure it runs.
   }
   for (int i = 0; i <= 18; i++) {
     testSwitchWarn(i);

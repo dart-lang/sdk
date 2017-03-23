@@ -20,4 +20,5 @@ class set { } //        //# 13: compile-time error
 class static { } //     //# 15: compile-time error
 class typedef { } //    //# 16: compile-time error
 
-main() {}
+
+main() { }

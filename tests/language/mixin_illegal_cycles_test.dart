@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class M {}
+class M { }
 class M0 extends Object with M0 { } // //# 01: compile-time error
 class M1 = Object with M1; //        //# 02: compile-time error
 

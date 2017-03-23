@@ -123,7 +123,7 @@ main() {
   mm = reflectClass(Class).declarations[#Class.withDynamic];
   pm = mm.parameters.single;
   Expect.equals(#intField, pm.simpleName);
-  Expect.equals(currentMirrorSystem().dynamicType, pm.type); // N.B.
+  Expect.equals(currentMirrorSystem().dynamicType, pm.type);  // N.B.
   Expect.isFalse(pm.isNamed); // //# 01: ok
   Expect.isFalse(pm.isFinal); // //# 01: ok
   Expect.isFalse(pm.isOptional); // //# 01: ok

@@ -47,7 +47,8 @@ class B {
   method13(); //# 13: continued
 }
 
-class Class2 extends B {}
+class Class2 extends B {
+}
 
 main() {
   new Class1();

@@ -12,4 +12,5 @@ static int typedField; //                //# 05: compile-time error
 static const int typedFinalField = 99; //# 06: compile-time error
 static const int typedConstant = 1; //   //# 07: compile-time error
 
-void main() {}
+void main() {
+}

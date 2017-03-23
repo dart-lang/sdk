@@ -7,9 +7,7 @@
 import 'package:expect/expect.dart';
 
 /* //  //# 01: static type warning, runtime error
-class A {
-  call(x) => x;
-}
+class A { call(x) => x; }
 */ //  //# 01: continued
 
 main() {

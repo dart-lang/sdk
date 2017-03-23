@@ -7,7 +7,7 @@ library test.metadata_allowed_values;
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-import 'metadata_allowed_values_import.dart'; // Unprefixed.
+import 'metadata_allowed_values_import.dart';  // Unprefixed.
 import 'metadata_allowed_values_import.dart' as prefix;
 
 @A // //# 01: compile-time error
@@ -137,7 +137,6 @@ class GG {}
 class HH {}
 
 const a = const [1, 2, 3];
-
 @a
 class II {}
 
@@ -148,7 +147,6 @@ class JJ {}
 class KK {
   const KK();
 }
-
 get kk => const KK();
 
 @LL(() => 42) // //# 28: compile-time error

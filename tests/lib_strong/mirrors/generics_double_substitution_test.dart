@@ -8,9 +8,7 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class A<R> {}
-
 class B<S> {}
-
 class C<T> extends B<A<T>> {
   A<T> field;
   A<T> returnType() {}

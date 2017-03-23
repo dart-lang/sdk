@@ -110,14 +110,14 @@ class C {
 
   var indexGetValue = null;
 
-  operator [](index) {
+  operator[](index) {
     h.operations.add('$s[$index]');
     var tmp = indexGetValue;
     indexGetValue = null;
     return tmp;
   }
 
-  void operator []=(index, value) {
+  void operator[]=(index, value) {
     h.operations.add('$s[$index]=$value');
   }
 
@@ -153,8 +153,7 @@ class D extends C {
 main() {
   // Make sure the "none" test fails if "??=" is not implemented.  This makes
   // status files easier to maintain.
-  var _;
-  _ ??= null;
+  var _; _ ??= null;
 
   new C('c').instanceTest();
   new D('d').derivedInstanceTest();

@@ -7,7 +7,6 @@
 import 'package:expect/expect.dart';
 
 class C {}
-
 class D {}
 
 class C1 extends Object
@@ -18,34 +17,28 @@ class D1 extends Object with C
 , Null //# 02: compile-time error
 {}
 
-class E1 extends Object
-    with
+class E1 extends Object with
 int, //# 03: compile-time error
-        C {}
+C {}
 
-class F1 extends Object
-    with
-        C
+class F1 extends Object with C
 , double //# 04: compile-time error
-        ,
-        D {}
+, D {}
 
 class C2 = Object with num; //# 05: compile-time error
 
 class D2 = Object with C
 , bool //# 06: compile-time error
-    ;
+;
 
-class E2 = Object
-    with
+class E2 = Object with
 String, //# 07: compile-time error
-        C;
+C;
 
-class F2 = Object
-    with
-        C,
+class F2 = Object with C,
 dynamic, //# 08: compile-time error
-        D;
+D;
+
 
 main() {
   Expect.isNotNull(new C1());

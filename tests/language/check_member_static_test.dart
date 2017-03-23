@@ -7,7 +7,9 @@ class A {
   var b;
 }
 
-class B extends A {}
+class B extends A {
+
+}
 
 class C extends B {
   var a; //# 01: static type warning

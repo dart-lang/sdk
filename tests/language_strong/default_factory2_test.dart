@@ -11,7 +11,7 @@ abstract class IA<T> {
 }
 
 class A<T extends Foo> implements IA<T> {
-  factory A() {}
+   factory A(){}
 }
 
 main() {

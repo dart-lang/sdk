@@ -5,7 +5,7 @@
 // Test that we emit warnings for unresolved indexing operations on super.
 
 class A {
-  operator []=(a, b) {}
+  operator[]=(a, b) {}
 }
 
 class B extends A {
@@ -17,7 +17,7 @@ class B extends A {
 }
 
 class C {
-  operator [](a) {}
+  operator[](a) {}
 }
 
 class D extends C {

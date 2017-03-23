@@ -23,3 +23,4 @@ main() {
   c.f3(null); // //# 3: continued
   new C.f4(null); // //# 4: continued
 }
+

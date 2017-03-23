@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class Class {
   const //# 01: compile-time error
-  int instanceWouldBeConst = 1;
+      int instanceWouldBeConst = 1;
   var instanceNonConst = 2;
 
   static const staticConst = 3;

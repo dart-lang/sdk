@@ -7,7 +7,8 @@ foo(x
     , final static y // //# 02: compile-time error
     , {static y} // //# 03: compile-time error
     , [static y] // //# 04: compile-time error
-    ) {}
+    ) {
+}
 
 class C {
   bar(x
@@ -15,14 +16,16 @@ class C {
       , final static y // //# 06: compile-time error
       , {static y} // //# 07: compile-time error
       , [static y] // //# 08: compile-time error
-      ) {}
+      ) {
+  }
 
   static baz(x
       , static int y // //# 09: compile-time error
       , final static y // //# 10: compile-time error
       , {static y} // //# 11: compile-time error
       , [static y] // //# 12: compile-time error
-      ) {}
+      ) {
+  }
 }
 
 main() {

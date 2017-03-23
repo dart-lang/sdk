@@ -25,13 +25,9 @@ class B implements A {
   B(this.x, this.y);
   // This factory will never be invoked.
   // TODO(ahe): Is this a compile time error?
-  factory B.A(int a, int b) {
-    return new B(0, 0);
-  }
+  factory B.A(int a, int b) {  return new B(0, 0); }
 
-  factory B.X(int a, int b) {
-    return new XImpl(a * 10, b * 10);
-  }
+  factory B.X(int a, int b) { return new XImpl(a * 10, b * 10); }
 }
 
 main() {

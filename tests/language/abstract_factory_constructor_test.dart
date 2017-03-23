@@ -13,10 +13,8 @@ class B extends A1 {
 
 abstract class A1 {
   A1() {}
-  method(); // Abstract.
-  factory A1.make() {
-    return new B();
-  }
+  method();  // Abstract.
+  factory A1.make() { return new B(); }
 }
 
 class A2 {

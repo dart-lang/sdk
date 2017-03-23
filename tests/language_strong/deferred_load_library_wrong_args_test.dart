@@ -4,5 +4,5 @@ void main() {
   // Loadlibrary should be called without arguments.
   lib.loadLibrary(
       10 //# 01: runtime error
-      );
+  );
 }

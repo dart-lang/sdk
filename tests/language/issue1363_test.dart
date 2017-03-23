@@ -4,7 +4,6 @@
 // VMOptions=--enable_type_checks
 
 library Issue1363Test.dart;
-
 import 'issue1363_lib.dart' as lib;
 
 main() {

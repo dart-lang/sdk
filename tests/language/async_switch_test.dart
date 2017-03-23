@@ -8,14 +8,14 @@ import "package:async_helper/async_helper.dart";
 
 foo1(a) async {
   int k = 0;
-  switch (a) {
+  switch(a) {
     case 1:
       await 3;
       k += 1;
       break;
     case 2:
       k += a;
-      return k + 2;
+      return k+2;
     default: k = 2; //# withDefault: ok
   }
   return k;
@@ -23,14 +23,14 @@ foo1(a) async {
 
 foo2(a) async {
   int k = 0;
-  switch (await a) {
+  switch(await a) {
     case 1:
       await 3;
       k += 1;
       break;
     case 2:
       k += await a;
-      return k + 2;
+      return k+2;
     default: k = 2; //# withDefault: ok
   }
   return k;
@@ -38,13 +38,13 @@ foo2(a) async {
 
 foo3(a) async {
   int k = 0;
-  switch (a) {
+  switch(a) {
     case 1:
       k += 1;
       break;
     case 2:
       k += a;
-      return k + 2;
+      return k+2;
     default: k = 2; //# withDefault: ok
   }
   return k;
@@ -52,7 +52,7 @@ foo3(a) async {
 
 foo4(value) async {
   int k = 0;
-  switch (await value) {
+  switch(await value) {
     case 1:
       k += 1;
       break;

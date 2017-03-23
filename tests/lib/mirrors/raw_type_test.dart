@@ -6,9 +6,11 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-class Foo<T> {}
+class Foo<T> {
+}
 
-class Bar<T> extends Foo<T> {}
+class Bar<T> extends Foo<T> {
+}
 
 main() {
   var fooType = reflectType(Foo);

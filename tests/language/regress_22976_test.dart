@@ -5,9 +5,7 @@
 // Regression test for issue 22976.
 
 class A<T> {}
-
 class B<T> implements A<T> {}
-
 class C<S, T> implements B<S>, A<T> {}
 
 main() {

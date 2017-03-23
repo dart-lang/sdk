@@ -4,11 +4,11 @@
 
 // Object has a non-trivial constructor and hence cannot be used as mixin.
 
-class S {}
+class S { }
 
 class C0 extends S
 with Object //                      //# 01: compile-time error
-{}
+{ }
 
 class C1 = S with Object; //        //# 02: compile-time error
 

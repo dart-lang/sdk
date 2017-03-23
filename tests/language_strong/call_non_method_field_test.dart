@@ -8,7 +8,8 @@ class Fisk {
   int i;
 }
 
-class Hest extends Fisk {}
+class Hest extends Fisk {
+}
 
 main() {
   Fisk x1 = new Fisk();

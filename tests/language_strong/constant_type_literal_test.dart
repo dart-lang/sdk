@@ -8,7 +8,7 @@ class C<T> {
   void m() {
     const List lst = const [
                             T //# 01: compile-time error
-    ];
+                             ];
   }
 }
 

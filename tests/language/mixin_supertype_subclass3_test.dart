@@ -14,22 +14,17 @@
 // In this test, M is declared as `class M = S_static with G;`.
 
 class B {}
-
 class C {}
-
 class D {}
-
 class E extends B with C implements D {}
-
 class F extends E {}
-
 class A
   = E with M; class M = B with G; class G //# 01: ok
   = E with M; class M = C with G; class G //# 02: static type warning
   = E with M; class M = D with G; class G //# 03: ok
   = E with M; class M = E with G; class G //# 04: ok
   = E with M; class M = F with G; class G //# 05: static type warning
-{}
+  {}
 
 main() {
   new A();

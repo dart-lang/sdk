@@ -6,13 +6,13 @@
 
 test(
      @deprecated //   //# 01: ok
-    f(
+     f(
        @deprecated // //# 02: ok
-        a,
+       a,
        @deprecated // //# 03: ok
-        g(
+       g(
          @deprecated //# 04: ok
-            b))) {}
+         b))) {}
 
 main() {
   test(null);

@@ -6,15 +6,13 @@ import "package:expect/expect.dart";
 
 class A {
   final a;
-  A(this.a); // Not const.
+  A(this.a);  // Not const.
   const A.five() : a = 5;
 }
 
 class B extends A {
   final b;
-  B(x)
-      : b = x + 1,
-        super(x);
+  B(x) : b = x + 1, super(x);
 
   // Const constructor cannot call non-const super constructor.
   const B.zerofive() : b = 0, super(5); // //# 01: compile-time error

@@ -9,9 +9,7 @@ import 'package:expect/expect.dart';
 class M<T> {
   T field = 0; //# 01: static type warning
 }
-
 class A<U> {}
-
 class C1<V> = Object with M<V>;
 class C2 = Object with M<int>;
 class C3 = Object with M<String>;
@@ -42,10 +40,11 @@ void checkDynamicTypeError(f(), [String message]) {
   message = message != null ? ': $message' : '';
   try {
     f();
-    Expect.isFalse(
-        inCheckedMode(), 'Missing type error in checked mode$message.');
+    Expect.isFalse(inCheckedMode(),
+      'Missing type error in checked mode$message.');
   } on TypeError catch (e) {
-    Expect.isTrue(inCheckedMode(), 'Unexpected type error in production mode.');
+    Expect.isTrue(inCheckedMode(),
+      'Unexpected type error in production mode.');
   }
 }
 

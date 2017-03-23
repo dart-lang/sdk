@@ -30,7 +30,7 @@ foo5() async {
   return 3;
 }
 
-Future<int> foo6() async {
+Future<int> foo6() async { 
   // This is fine, the future is flattened
   return new Future<int>.value(3);
 }

@@ -11,9 +11,7 @@ class Foo<T extends num> {
 
   factory Foo.good() = Foo;
 
-  factory Foo.IFoo() {
-    return null;
-  }
+  factory Foo.IFoo() { return null; }
 }
 
 abstract class IFoo<T extends num> {
@@ -32,9 +30,10 @@ Foo<int> fi;
 // String is not assignable to num.
 Foo
     <String> //# 02: static type warning, dynamic type error
-    fs;
+  fs;
 
 class Box<T> {
+
   // Box.T is not assignable to num.
   Foo<T> t; //# 03: static type warning
 

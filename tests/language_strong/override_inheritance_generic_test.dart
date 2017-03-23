@@ -43,16 +43,14 @@ abstract class Class<W> extends B
 <W> //# 05: continued
 <W> //# 06: continued
 <int> //# 07: continued
-    implements
-        I
+implements I
 <int> //# 03: continued
 <num> //# 06: continued
 <String> //# 07: continued
 <int> //# 08: continued
 <int> //# 09: continued
 <int> //# 10: continued
-        ,
-        J
+, J
 <String> //# 08: continued
 <num> //# 09: continued
 <num> //# 10: continued

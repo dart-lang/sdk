@@ -22,8 +22,8 @@ main() {
   testIterable(<String, int>{"x": 2, "y": 3}.values, <int>[2, 3]);
   testIterable(new Iterable.generate(3), [0, 1, 2]);
   testIterable(new Iterable<int>.generate(3), <int>[0, 1, 2]);
-  testIterable(
-      new Iterable<String>.generate(3, (x) => "$x"), <String>["0", "1", "2"]);
+  testIterable(new Iterable<String>.generate(3, (x)=>"$x"),
+               <String>["0", "1", "2"]);
   testIterable(new Set.from([1, 2, 3]), [1, 2, 3]);
   testIterable(new Set<int>.from([1, 2, 3]), <int>[1, 2, 3]);
   testIterable(new Queue.from([1, 2, 3]), [1, 2, 3]);
@@ -55,7 +55,7 @@ testIterable(Iterable iterable, List expected, [int depth = 0]) {
   }
 }
 
-test(Iterable iterable, List expected, {bool growable: true}) {
+test(Iterable iterable, List expected, { bool growable: true}) {
   var list = iterable.toList(growable: growable);
   Expect.listEquals(expected, list);
   Expect.equals(expected is List<int>, list is List<int>, "int");
@@ -66,8 +66,6 @@ test(Iterable iterable, List expected, {bool growable: true}) {
     list.add(null);
     Expect.equals(length + 1, list.length);
   } else {
-    Expect.throws(() {
-      list.add(null);
-    });
+    Expect.throws(() { list.add(null); });
   }
 }

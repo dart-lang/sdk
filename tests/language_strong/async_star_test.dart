@@ -17,10 +17,7 @@ main() {
     });
 
     test("single", () {
-      f() async* {
-        yield 42;
-      }
-
+      f() async* { yield 42; }
       return f().toList().then((v) {
         expect(v, equals([42]));
       });
@@ -28,11 +25,7 @@ main() {
 
     test("call delays", () {
       var list = [];
-      f() async* {
-        list.add(1);
-        yield 2;
-      }
-
+      f() async* { list.add(1); yield 2; }
       // TODO(jmesserly): use tear off. For now this is a workaround for:
       // https://github.com/dart-lang/dev_compiler/issues/269
       var res = f().forEach((x) => list.add(x));
@@ -43,17 +36,14 @@ main() {
     });
 
     test("throws", () {
-      f() async* {
-        yield 1;
-        throw 2;
-      }
-
+      f() async* { yield 1; throw 2; }
       var completer = new Completer();
       var list = [];
       // TODO(jmesserly): use tear off. For now this is a workaround for:
       // https://github.com/dart-lang/dev_compiler/issues/269
       f().listen((x) => list.add(x),
-          onError: (v) => list.add("$v"), onDone: completer.complete);
+                 onError: (v) => list.add("$v"),
+                 onDone: completer.complete);
       return completer.future.whenComplete(() {
         expect(list, equals([1, "2"]));
       });
@@ -65,7 +55,6 @@ main() {
           yield i;
         }
       }
-
       return expectList(f(), new List.generate(10, id));
     });
 
@@ -75,7 +64,6 @@ main() {
         yield x;
         x = await new Future.value(42);
       }
-
       return expectList(f(), [42]);
     });
 
@@ -85,7 +73,6 @@ main() {
           yield await i;
         }
       }
-
       return expectList(f(), new List.generate(10, id));
     });
 
@@ -93,7 +80,6 @@ main() {
       f() async* {
         yield* new Stream.fromIterable([1, 2, 3]);
       }
-
       return expectList(f(), [1, 2, 3]);
     });
 
@@ -104,7 +90,6 @@ main() {
         yield* f(n - 1);
         yield n;
       }
-
       return expectList(f(3), [3, 2, 1, 0, 1, 2, 3]);
     });
 
@@ -112,18 +97,16 @@ main() {
       f(s) async* {
         yield* s;
       }
-
       return f(42).transform(getErrors).single.then((v) {
         // Not implementing Stream.
         expect(v is Error, isTrue);
       });
     });
 
-    test("Cannot yield* non-stream", () {
+   test("Cannot yield* non-stream", () {
       f(s) async* {
         yield* s;
       }
-
       return f(new NotAStream()).transform(getErrors).single.then((v) {
         // Not implementing Stream.
         expect(v is Error, isTrue);
@@ -136,18 +119,13 @@ main() {
       f() async* {
         yield 0;
       }
-
       return expectList(f(), [0]);
     });
 
     test("if-then-else", () {
       f(b) async* {
-        if (b)
-          yield 0;
-        else
-          yield 1;
+        if (b) yield 0; else yield 1;
       }
-
       return expectList(f(true), [0]).whenComplete(() {
         expectList(f(false), [1]);
       });
@@ -156,21 +134,16 @@ main() {
     test("block", () {
       f() async* {
         yield 0;
-        {
-          yield 1;
-        }
+        { yield 1; }
         yield 2;
       }
-
       return expectList(f(), [0, 1, 2]);
     });
 
     test("labeled", () {
       f() async* {
-        label1:
-        yield 0;
+        label1: yield 0;
       }
-
       return expectList(f(), [0]);
     });
 
@@ -186,7 +159,6 @@ main() {
       f() async* {
         for (int i = 0; i < 3; i++) yield i;
       }
-
       return expectList(f(), [0, 1, 2]);
     });
 
@@ -194,7 +166,6 @@ main() {
       f() async* {
         for (var i in [0, 1, 2]) yield i;
       }
-
       return expectList(f(), [0, 1, 2]);
     });
 
@@ -202,7 +173,6 @@ main() {
       f() async* {
         await for (var i in new Stream.fromIterable([0, 1, 2])) yield i;
       }
-
       return expectList(f(), [0, 1, 2]);
     });
 
@@ -211,7 +181,6 @@ main() {
         int i = 0;
         while (i < 3) yield i++;
       }
-
       return expectList(f(), [0, 1, 2]);
     });
 
@@ -220,35 +189,20 @@ main() {
         int i = 0;
         do yield i++; while (i < 3);
       }
-
       return expectList(f(), [0, 1, 2]);
     });
 
     test("try-catch-finally", () {
       f() async* {
-        try {
-          yield 0;
-        } catch (e) {
-          yield 1;
-        } finally {
-          yield 2;
-        }
+        try { yield 0; } catch (e) { yield 1; } finally { yield 2; }
       }
-
       return expectList(f(), [0, 2]);
     });
 
     test("try-catch-finally 2", () {
       f() async* {
-        try {
-          yield throw 0;
-        } catch (e) {
-          yield 1;
-        } finally {
-          yield 2;
-        }
+        try { yield throw 0; } catch (e) { yield 1; } finally { yield 2; }
       }
-
       return expectList(f(), [1, 2]);
     });
 
@@ -280,7 +234,6 @@ main() {
         return;
         yield 1;
       }
-
       return expectList(f(), []);
     });
 
@@ -291,7 +244,6 @@ main() {
           yield 1;
         } catch (_) {}
       }
-
       return expectList(f(), []);
     });
 
@@ -302,19 +254,16 @@ main() {
           yield 1;
         }
       }
-
       return expectList(f(), []);
     });
 
     test("dead-code break 2", () {
       f() async* {
-        label:
-        {
+        label: {
           break label;
           yield 1;
         }
       }
-
       return expectList(f(), []);
     });
 
@@ -325,7 +274,6 @@ main() {
           yield 1;
         } while (false);
       }
-
       return expectList(f(), []);
     });
   });
@@ -336,7 +284,6 @@ main() {
         var x = 42;
         yield x;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -345,7 +292,6 @@ main() {
         const x = 42;
         yield x;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -354,7 +300,6 @@ main() {
       f() async* {
         yield g();
       }
-
       return expectList(f(), [42]);
     });
 
@@ -363,7 +308,6 @@ main() {
         var x = -42;
         yield -x;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -372,7 +316,6 @@ main() {
         var x = 21;
         yield x + x;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -381,7 +324,6 @@ main() {
         var x = 21;
         yield x == 21 ? x + x : x;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -390,7 +332,6 @@ main() {
         var x = 42;
         yield x++;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -399,7 +340,6 @@ main() {
         var x = 41;
         yield ++x;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -408,7 +348,6 @@ main() {
         var x = 37;
         yield x = 42;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -417,7 +356,6 @@ main() {
         var x = 41;
         yield x += 1;
       }
-
       return expectList(f(), [42]);
     });
 
@@ -425,7 +363,6 @@ main() {
       f() async* {
         yield await new Future.value(42);
       }
-
       return expectList(f(), [42]);
     });
 
@@ -434,18 +371,14 @@ main() {
         var x = [42];
         yield x[0];
       }
-
       return expectList(f(), [42]);
     });
 
     test("function expression block", () {
       var o = new Object();
       f() async* {
-        yield () {
-          return o;
-        };
+        yield () { return o; };
       }
-
       return f().first.then((v) {
         expect(v(), same(o));
       });
@@ -456,7 +389,6 @@ main() {
       f() async* {
         yield () => o;
       }
-
       return f().first.then((v) {
         expect(v(), same(o));
       });
@@ -465,11 +397,8 @@ main() {
     test("function expression block async", () {
       var o = new Object();
       f() async* {
-        yield () async {
-          return o;
-        };
+        yield () async { return o; };
       }
-
       return f().first.then((v) => v()).then((v) {
         expect(v, same(o));
       });
@@ -480,7 +409,6 @@ main() {
       f() async* {
         yield () async => o;
       }
-
       return f().first.then((v) => v()).then((v) {
         expect(v, same(o));
       });
@@ -489,11 +417,8 @@ main() {
     test("function expression block async*", () {
       var o = new Object();
       f() async* {
-        yield () async* {
-          yield o;
-        };
+        yield () async* { yield o; };
       }
-
       return f().first.then((v) => v().first).then((v) {
         expect(v, same(o));
       });
@@ -507,7 +432,6 @@ main() {
           yield i;
         }
       }
-
       return expectList(f(), [0, 1, 2]);
     });
 
@@ -519,7 +443,6 @@ main() {
           }
         }
       }
-
       return expectList(f(), [0, 1, 2, 3, 4, 5]);
     });
 
@@ -534,7 +457,6 @@ main() {
           }
         }
       }
-
       return expectList(f(), [0, 1, 2]).whenComplete(() {
         expect(list, equals(["0", "1", "2"]));
       });
@@ -553,7 +475,6 @@ main() {
           }
         }
       }
-
       return expectList(f(), [0, 1, 2]).whenComplete(() {
         expect(list, equals(["0", "1", "2"]));
       });
@@ -572,7 +493,6 @@ main() {
           }
         }
       }
-
       return expectList(f(), [0, 1, 2]).whenComplete(() {
         expect(list, equals(["0", "1", "2"]));
       });
@@ -588,7 +508,6 @@ main() {
           }
         }
       }
-
       return expectList(f().take(3), [0, 1, 2]);
     });
   });
@@ -608,13 +527,9 @@ main() {
           exits.complete(3);
         }
       }
-
       // No events must be fired synchronously in response to a listen.
-      var subscription = f().listen((v) {
-        fail("Received event $v");
-      }, onDone: () {
-        fail("Received done");
-      });
+      var subscription = f().listen((v) { fail("Received event $v"); },
+                                   onDone: () { fail("Received done"); });
       // No events must be delivered after a cancel.
       subscription.cancel();
       return exits.future.then((v) {
@@ -635,13 +550,12 @@ main() {
           exits.complete(i);
         }
       }
-
       return expectList(f().take(5), [0, 1, 2, 3, 4])
           .then((_) => exits.future)
           .then((v) {
-        expect(v, greaterThan(4));
-        expect(list, ["a"]);
-      });
+            expect(v, greaterThan(4));
+            expect(list, ["a"]);
+          });
     });
 
     group("at index", () {
@@ -656,7 +570,6 @@ main() {
           }
         }
       }
-
       test("- all, sanity check", () {
         return expectList(f(), [1, 2, 3]);
       });
@@ -708,6 +621,7 @@ main() {
     //                  "fisk 1", "+fisk", 0, "done", "-fisk", ]);
     //   });
     // });
+
   });
 
   group("pausing", () {
@@ -720,7 +634,6 @@ main() {
         yield 4;
         list.add(5);
       }
-
       var done = new Completer();
       var sub = f().listen((v) {
         if (v == 2) {
@@ -746,7 +659,6 @@ main() {
         yield 4;
         list.add(5);
       }
-
       var done = new Completer();
       var sub;
       sub = f().listen((v) {
@@ -779,7 +691,6 @@ main() {
           i++;
         }
       }
-
       int expected = 0;
       var done = new Completer();
       var sub;
@@ -812,8 +723,8 @@ main() {
         list.add("*3"); //                                          //# 02: continued
       }; //                                                         //# 02: continued
       var stream = f(); //                                          //# 02: continued
-    // TODO(jmesserly): added workaround for:
-    // https://github.com/dart-lang/dev_compiler/issues/269
+      // TODO(jmesserly): added workaround for:
+      // https://github.com/dart-lang/dev_compiler/issues/269
       var sub = stream.listen((x) => list.add(x)); //                         //# 02: continued
       return sync.wait().whenComplete(() { //                       //# 02: continued
         expect(list, equals(["*1", 1])); //                         //# 02: continued
@@ -838,10 +749,9 @@ main() {
     test("simple stream", () {
       f(s) async {
         var r = 0;
-        await for (var v in s) r += v;
+        await for(var v in s) r += v;
         return r;
       }
-
       return f(mkStream(5)).then((v) {
         expect(v, equals(10));
       });
@@ -850,10 +760,9 @@ main() {
     test("simple stream, await", () {
       f(s) async {
         var r = 0;
-        await for (var v in s) r += await new Future.microtask(() => v);
+        await for(var v in s) r += await new Future.microtask(() => v);
         return r;
       }
-
       return f(mkStream(5)).then((v) {
         expect(v, equals(10));
       });
@@ -873,18 +782,16 @@ main() {
     test("simple stream reyield", () {
       f(s) async* {
         var r = 0;
-        await for (var v in s) yield r += v;
+        await for(var v in s) yield r += v;
       }
-
       return expectList(f(mkStream(5)), [0, 1, 3, 6, 10]);
     });
 
     test("simple stream, await, reyield", () {
       f(s) async* {
         var r = 0;
-        await for (var v in s) yield r += await new Future.microtask(() => v);
+        await for(var v in s) yield r += await new Future.microtask(() => v);
       }
-
       return expectList(f(mkStream(5)), [0, 1, 3, 6, 10]);
     });
 
@@ -906,7 +813,6 @@ main() {
         }
         return r;
       }
-
       return f().then((v) {
         expect(v, equals((1 + 2 + 3 + 4) * (1 + 2)));
       });
@@ -922,7 +828,6 @@ main() {
         }
         return r;
       }
-
       return f().then((v) {
         expect(v, equals((1 + 2 + 3 + 4) * (1 + 2)));
       });
@@ -939,7 +844,6 @@ main() {
         }
         return r;
       }
-
       return f().then((v) {
         expect(v, equals((1 + 2 + 3 + 4) * (1 + 2)));
       });
@@ -988,13 +892,10 @@ expectList(stream, list) {
 
 const MS = const Duration(milliseconds: 1);
 
-var getErrors = new StreamTransformer.fromHandlers(handleData: (data, sink) {
-  fail("Unexpected value");
-}, handleError: (e, s, sink) {
-  sink.add(e);
-}, handleDone: (sink) {
-  sink.close();
-});
+var getErrors = new StreamTransformer.fromHandlers(
+  handleData:(data, sink) { fail("Unexpected value"); },
+  handleError: (e, s, sink) { sink.add(e); },
+  handleDone: (sink) { sink.close(); });
 
 class NotAStream {
   listen(oData, {onError, onDone, cancelOnError}) {

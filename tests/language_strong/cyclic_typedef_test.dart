@@ -11,7 +11,7 @@ typedef
 // Cyclic through return type.
 A //# 01: compile-time error
 
-    A // The name of the typedef
+A // The name of the typedef
 
 // Cyclic through type variable bound.
 <T extends A> //# 10: compile-time error
@@ -19,7 +19,7 @@ A //# 01: compile-time error
 // Cyclic through generic type variable bound.
 <T extends List<A>> //# 11: compile-time error
 
-    (// The left parenthesis of the typedef arguments.
+( // The left parenthesis of the typedef arguments.
 
 // Cyclic through parameter type.
 A a //# 02: compile-time error
@@ -51,7 +51,7 @@ Class c //# 12: ok
 // Reference through a class type bound is not a cyclic self-reference.
 Class c //# 13: ok
 
-    ); // The right parenthesis of the typedef arguments.
+); // The right parenthesis of the typedef arguments.
 
 typedef B(A a);
 typedef C(B b);

@@ -34,6 +34,7 @@ external int t06(int i) { } // //# 30: compile-time error
 external int t07(int i) => i + 1; // //# 31: compile-time error
 
 main() {
+
   // Ensure Foo class is compiled.
   var foo = new Foo();
 

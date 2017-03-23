@@ -11,25 +11,19 @@ import 'package:expect/expect.dart';
 import 'generics_helper.dart';
 
 class Interface<T> {}
-
 class Bounded<S extends num> {}
 
 class Fixed implements Interface<int> {}
-
 class Generic<R> implements Interface<R> {}
 
 class Bienbounded implements Bounded<int> {}
-
 class Malbounded implements Bounded<String> {} // //# 01: static type warning
 class FBounded implements Interface<FBounded> {}
 
 class Mixin {}
-
 class FixedMixinApplication = Object with Mixin implements Interface<int>;
 class GenericMixinApplication<X> = Object with Mixin implements Interface<X>;
-
 class FixedClass extends Object with Mixin implements Interface<int> {}
-
 class GenericClass<Y> extends Object with Mixin implements Interface<Y> {}
 
 main() {
@@ -40,26 +34,19 @@ main() {
 
   ClassMirror interfaceOfInt = reflectClass(Fixed).superinterfaces.single;
   ClassMirror interfaceOfR = reflectClass(Generic).superinterfaces.single;
-  ClassMirror interfaceOfBool =
-      reflect(new Generic<bool>()).type.superinterfaces.single;
+  ClassMirror interfaceOfBool = reflect(new Generic<bool>()).type.superinterfaces.single;
 
   ClassMirror boundedOfInt = reflectClass(Bienbounded).superinterfaces.single;
   ClassMirror boundedOfString = reflectClass(Malbounded).superinterfaces.single; // //# 01: continued
-  ClassMirror interfaceOfFBounded =
-      reflectClass(FBounded).superinterfaces.single;
-
-  ClassMirror interfaceOfInt2 =
-      reflectClass(FixedMixinApplication).superinterfaces.single;
-  ClassMirror interfaceOfX =
-      reflectClass(GenericMixinApplication).superinterfaces.single;
-  ClassMirror interfaceOfDouble = reflect(new GenericMixinApplication<double>())
-      .type
-      .superinterfaces
-      .single;
+  ClassMirror interfaceOfFBounded = reflectClass(FBounded).superinterfaces.single;
+  
+  ClassMirror interfaceOfInt2 = reflectClass(FixedMixinApplication).superinterfaces.single;
+  ClassMirror interfaceOfX = reflectClass(GenericMixinApplication).superinterfaces.single;
+  ClassMirror interfaceOfDouble = reflect(new GenericMixinApplication<double>()).type.superinterfaces.single;
   ClassMirror interfaceOfInt3 = reflectClass(FixedClass).superinterfaces.single;
   ClassMirror interfaceOfY = reflectClass(GenericClass).superinterfaces.single;
-  ClassMirror interfaceOfDouble2 =
-      reflect(new GenericClass<double>()).type.superinterfaces.single;
+  ClassMirror interfaceOfDouble2 = reflect(new GenericClass<double>()).type.superinterfaces.single;
+
 
   Expect.isTrue(interfaceDecl.isOriginalDeclaration);
   Expect.isTrue(boundedDecl.isOriginalDeclaration);
@@ -77,19 +64,19 @@ main() {
   Expect.isFalse(interfaceOfY.isOriginalDeclaration);
   Expect.isFalse(interfaceOfDouble2.isOriginalDeclaration);
 
+
   TypeVariableMirror tFromInterface = interfaceDecl.typeVariables.single;
   TypeVariableMirror sFromBounded = boundedDecl.typeVariables.single;
   TypeVariableMirror rFromGeneric = reflectClass(Generic).typeVariables.single;
-  TypeVariableMirror xFromGenericMixinApplication =
-      reflectClass(GenericMixinApplication).typeVariables.single;
-  TypeVariableMirror yFromGenericClass =
-      reflectClass(GenericClass).typeVariables.single;
+  TypeVariableMirror xFromGenericMixinApplication = reflectClass(GenericMixinApplication).typeVariables.single;
+  TypeVariableMirror yFromGenericClass = reflectClass(GenericClass).typeVariables.single;
 
   Expect.equals(reflectClass(Object), tFromInterface.upperBound);
   Expect.equals(reflectClass(num), sFromBounded.upperBound);
   Expect.equals(reflectClass(Object), rFromGeneric.upperBound);
   Expect.equals(reflectClass(Object), xFromGenericMixinApplication.upperBound);
   Expect.equals(reflectClass(Object), yFromGenericClass.upperBound);
+
 
   typeParameters(interfaceDecl, [#T]);
   typeParameters(boundedDecl, [#S]);

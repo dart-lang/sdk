@@ -4,6 +4,7 @@
 
 // Check that duplicate initialization of a final field is a runtime error.
 
+
 class Class {
   final f = 10;
 

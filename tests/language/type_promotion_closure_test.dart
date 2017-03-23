@@ -8,19 +8,15 @@ class A {
   var a = "a";
   A operator +(int i) => this;
 }
-
 class B extends A {
   var b = "b";
 }
-
 class C extends B {
   var c = "c";
 }
-
 class D extends A {
   var d = "d";
 }
-
 class E extends D implements C {
   var a = "";
   var b = "";
@@ -63,7 +59,6 @@ void test2() {
   void foo() {
     a = new D();
   }
-
   if (a is B) {
     print(a.a);
     print(a.b); //# 02: static type warning
@@ -75,14 +70,12 @@ void test3() {
   void foo() {
     a = new D();
   }
-
   if (a is B) {
     print(a.a);
     print(a.b); //# 03: static type warning
     void foo() {
       a = new D();
     }
-
     print(a.a);
     print(a.b); //# 04: static type warning
   }
@@ -93,14 +86,12 @@ void test3a() {
   void foo() {
     a = new D();
   }
-
   if ((((a)) is B)) {
     print(a.a);
     print(a.b); //# 15: static type warning
     void foo() {
       a = new D();
     }
-
     print(a.a);
     print(a.b); //# 16: static type warning
   }
@@ -157,7 +148,7 @@ void test8() {
   A a = new E();
   if (a is B
       && func(() => a.b) //# 09: static type warning
-      ) {
+                        ) {
     print(a.a);
   }
   a = null;

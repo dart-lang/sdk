@@ -17,7 +17,8 @@ main() {
   final x = null;
   try {
     x = //   //# 01: static type warning
-    foo();
-  } on NoSuchMethodError {}
+        foo();
+  } on NoSuchMethodError {
+  }
   Expect.isTrue(fooCalled);
 }

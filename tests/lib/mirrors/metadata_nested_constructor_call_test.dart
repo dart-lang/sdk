@@ -16,7 +16,7 @@ class Box {
 
 class MutableBox {
   var contents;
-  MutableBox([this.contents]); // Not const.
+  MutableBox([this.contents]);  // Not const.
 }
 
 @Box()
@@ -47,7 +47,6 @@ class H {}
 class I {}
 
 final closure = () => 42;
-
 @Box(closure()) // //# 07: compile-time error
 class J {}
 
@@ -55,7 +54,6 @@ class J {}
 class K {}
 
 function() => 42;
-
 @Box(function()) // //# 09: compile-time error
 class L {}
 

@@ -10,10 +10,10 @@ class C {
   m() {
     print(
           super === //# 01: compile-time error
-        null);
+          null);
     print(
           super !== //# 02: compile-time error
-        null);
+          null);
   }
 }
 
@@ -22,8 +22,8 @@ void main() {
   new C().m();
   print(
         "foo" === //# 03: compile-time error
-      null);
+        null);
   print(
         "foo" !== //# 04: compile-time error
-      null);
+        null);
 }

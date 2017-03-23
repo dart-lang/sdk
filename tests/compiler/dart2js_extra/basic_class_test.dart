@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {}
+class A {
+}
 
-class SubA extends A {}
+class SubA extends A {
+}
 
-class B {}
+class B {
+}
 
 void main() {
   A a;

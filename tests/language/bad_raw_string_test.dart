@@ -9,15 +9,15 @@ main() {
 ' //      //# 01: continued
     r" // //# 02: compile-time error
 " //      //# 02: continued
-      // Test that a raw string containing just one character, a \n char, fails.
-      // Enclose the test string in a bigger multiline string, except in case 03:
+    // Test that a raw string containing just one character, a \n char, fails.
+    // Enclose the test string in a bigger multiline string, except in case 03:
     ''' // //# 03: compile-time error
-      """
+    """
     ''' // //# 03: continued
     r'
 '
     ''' // //# 03: continued
     """
     ''' // //# 03: continued
-      ;
+  ;
 }

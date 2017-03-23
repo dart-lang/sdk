@@ -13,7 +13,8 @@ class A
     extends FutureOr<String> // //# extends: compile-time error
     extends Object with FutureOr<bool> // //# with: compile-time error
     implements FutureOr<int> // //# implements: compile-time error
-{}
+{
+}
 
 main() {
   // FutureOr<T> should be treated like `dynamic`. Dynamically the `T` is

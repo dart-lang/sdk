@@ -9,7 +9,6 @@
 // VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
 library big_integer_test;
-
 import "package:expect/expect.dart";
 
 foo() => 1234567890123456789;
@@ -20,7 +19,7 @@ testSmiOverflow() {
   var b = 1073741822;
   Expect.equals(2147483645, a + b);
   a = -1000000000;
-  b = 1000000001;
+  b =  1000000001;
   Expect.equals(-2000000001, a - b);
   Expect.equals(-1000000001000000000, a * b);
 }
@@ -233,7 +232,7 @@ testBigintModInverse() {
   Expect.equals(0, x.modInverse(m));
   x = 0;
   m = 1000000001;
-  Expect.throws(() => x.modInverse(m), (e) => e is Exception); // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 1234567890;
   m = 19;
   Expect.equals(11, x.modInverse(m));
@@ -242,7 +241,7 @@ testBigintModInverse() {
   Expect.equals(189108911, x.modInverse(m));
   x = 19;
   m = 1000000001;
-  Expect.throws(() => x.modInverse(m), (e) => e is Exception); // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 19;
   m = 1234567890;
   Expect.equals(519818059, x.modInverse(m));
@@ -251,7 +250,7 @@ testBigintModInverse() {
   Expect.equals(1001100101, x.modInverse(m));
   x = 1000000001;
   m = 19;
-  Expect.throws(() => x.modInverse(m), (e) => e is Exception); // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 12345678901234567890;
   m = 19;
   Expect.equals(3, x.modInverse(m));
@@ -278,7 +277,7 @@ testBigintModInverse() {
   Expect.equals(3, x.modInverse(m));
   x = 123456789012345678901234567890;
   m = 123456789012345678901234567899;
-  Expect.throws(() => x.modInverse(m), (e) => e is Exception); // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 123456789012345678901234567890;
   m = 123456789012345678901234567891;
   Expect.equals(123456789012345678901234567890, x.modInverse(m));
@@ -287,7 +286,7 @@ testBigintModInverse() {
   Expect.equals(77160493132716049313271604932, x.modInverse(m));
   x = 123456789012345678901234567899;
   m = 123456789012345678901234567890;
-  Expect.throws(() => x.modInverse(m), (e) => e is Exception); // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 123456789012345678901234567891;
   m = 123456789012345678901234567890;
   Expect.equals(1, x.modInverse(m));
@@ -307,11 +306,9 @@ testBigintGcd() {
   x = 693 << 40;
   m = 609 << 40;
   Expect.equals(21 << 40, x.gcd(m));
-  x = 609 << 40;
-  ;
-  m = 693 << 40;
-  ;
-  Expect.equals(21 << 40, x.gcd(m));
+  x = 609 << 40;;
+  m = 693 << 40;;
+  Expect.equals(21 <<40, x.gcd(m));
   x = 0;
   m = 1000000001;
   Expect.equals(m, x.gcd(m));
@@ -403,7 +400,7 @@ testBigintGcd() {
 
 testBigintNegate() {
   var a = 0xF000000000000000F;
-  var b = ~a; // negate.
+  var b = ~a;  // negate.
   Expect.equals(-0xF0000000000000010, b);
   Expect.equals(0, a & b);
   Expect.equals(-1, a | b);

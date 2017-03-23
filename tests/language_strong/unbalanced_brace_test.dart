@@ -14,7 +14,8 @@ class A {
 }
 // */
 
-class B {}
+class B {
+}
 
 main() {
   new A();

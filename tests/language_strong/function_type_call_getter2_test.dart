@@ -25,25 +25,25 @@ main() {
 
   final
   Function // //# 00: static type warning, dynamic type error
-      a2 = a;
+  a2 = a;
 
   final
   F // //# 01: static type warning, dynamic type error
-      a3 = a;
+  a3 = a;
 
   final
   Function // //# 02: static type warning, dynamic type error
-      b2 = b;
+  b2 = b;
 
   final
   F // //# 03: static type warning, dynamic type error
-      b3 = b;
+  b3 = b;
 
   final
   Function // //# 04: static type warning, dynamic type error
-      c2 = c;
+  c2 = c;
 
   final
   F // //# 05: static type warning, dynamic type error
-      c3 = c;
+  c3 = c;
 }

@@ -4,19 +4,17 @@
 
 const x =
           throw // //# 01: compile-time error
-    "x";
+          "x";
 
-const y = const {
-  0:
+const y = const {0:
                     throw // //# 02: compile-time error
-      "y"
-};
+                    "y"};
 
 main() {
   print(x);
   print(y);
   const z =
             throw // //# 03: compile-time error
-      1 + 1 + 1;
+            1+1+1;
   print(z);
 }

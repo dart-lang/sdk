@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 import "package:expect/expect.dart";
 
 main() {
@@ -11,13 +12,12 @@ main() {
     Expect.equals(expectedList.length, generatedIterable.length);
     Expect.listEquals(expectedList, generatedIterable.toList());
   }
-
   test([], new Iterable.generate(0));
   test([0], new Iterable.generate(1));
-  test([0, 1, 2, 3, 4], new Iterable.generate(5));
-  test(["0", "1", "2", "3", "4"], new Iterable.generate(5, (x) => "$x"));
-  test([2, 3, 4, 5, 6], new Iterable.generate(7).skip(2));
-  test([0, 1, 2, 3, 4], new Iterable.generate(7).take(5));
+  test([0,1,2,3,4], new Iterable.generate(5));
+  test(["0","1","2","3","4"], new Iterable.generate(5, (x) => "$x"));
+  test([2,3,4,5,6], new Iterable.generate(7).skip(2));
+  test([0,1,2,3,4], new Iterable.generate(7).take(5));
   test([], new Iterable.generate(5).skip(6));
   test([], new Iterable.generate(5).take(0));
   test([], new Iterable.generate(5).take(3).skip(3));
@@ -30,14 +30,14 @@ main() {
   Expect.isTrue(it.iterator is Iterator<int>);
   Expect.isTrue(it is! Iterable<String>);
   Expect.isTrue(it.iterator is! Iterator<String>);
-  test([0, 1, 2, 3, 4], it);
+  test([0,1,2,3,4], it);
 
   Iterable<String> st = new Iterable<String>.generate(5, (x) => "$x");
   Expect.isTrue(st is Iterable<String>);
   Expect.isTrue(st.iterator is Iterator<String>);
   Expect.isFalse(st is Iterable<int>);
   Expect.isFalse(st.iterator is Iterator<int>);
-  test(["0", "1", "2", "3", "4"], st);
+  test(["0","1","2","3","4"], st);
 
   if (checkedMode) {
     Expect.throws(() => new Iterable<String>.generate(5));
@@ -69,13 +69,10 @@ main() {
 
   // Regression: https://github.com/dart-lang/sdk/issues/26358
   var count = 0;
-  var iter = new Iterable.generate(5, (v) {
-    count++;
-    return v;
-  });
+  var iter = new Iterable.generate(5, (v) { count++; return v; });
   Expect.equals(0, count);
-  Expect.equals(2, iter.elementAt(2)); // Doesn't compute the earlier values.
+  Expect.equals(2, iter.elementAt(2));  // Doesn't compute the earlier values.
   Expect.equals(1, count);
-  Expect.equals(2, iter.skip(2).first); // Doesn't compute the skipped values.
+  Expect.equals(2, iter.skip(2).first);  // Doesn't compute the skipped values.
   Expect.equals(2, count);
 }

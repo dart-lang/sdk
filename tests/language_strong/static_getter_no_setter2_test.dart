@@ -10,7 +10,7 @@ class Class {
   method() {
     try {
       getter++; //# 01: static type warning
-    } on NoSuchMethodError catch (e) {
+    } on NoSuchMethodError catch(e) {
       return;
     }
     Expect.fail('Expected NoSuchMethodError'); //# 01: continued

@@ -9,28 +9,28 @@ const annotation = null;
 
 var
   @annotation //# 01: compile-time error
-    v1,
+  v1,
   @annotation //# 02: compile-time error
-    v2;
+  v2;
 
 int
   @annotation //# 03: compile-time error
-    v3,
+  v3,
   @annotation //# 04: compile-time error
-    v4;
+  v4;
 
 class C {
   var
     @annotation //# 05: compile-time error
-      f1,
+    f1,
     @annotation //# 06: compile-time error
-      f2;
+    f2;
 
   int
     @annotation //# 07: compile-time error
-      f3,
+    f3,
     @annotation //# 08: compile-time error
-      f4;
+    f4;
 }
 
 use(x) => x;
@@ -49,15 +49,15 @@ main() {
 
   var
     @annotation //# 09: compile-time error
-      l1,
+    l1,
     @annotation //# 10: compile-time error
-      l2;
+    l2;
 
   int
     @annotation //# 11: compile-time error
-      l3,
+    l3,
     @annotation //# 12: compile-time error
-      l4;
+    l4;
 
   use(l1);
   use(l2);
@@ -66,9 +66,9 @@ main() {
 
   for (var
          @annotation //# 13: compile-time error
-      i1 = 0,
+         i1 = 0,
          @annotation //# 14: compile-time error
-      i2 = 0;;) {
+         i2 = 0; ; ) {
     use(i1);
     use(i2);
     break;
@@ -76,9 +76,9 @@ main() {
 
   for (int
          @annotation //# 15: compile-time error
-      i3 = 0,
+         i3 = 0,
          @annotation //# 16: compile-time error
-      i4 = 0;;) {
+         i4 = 0; ; ) {
     use(i3);
     use(i4);
     break;

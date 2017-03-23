@@ -13,7 +13,7 @@ class Base {
       {x} //       //# 01: compile-time error
       {x} //       //# 02: compile-time error
       {x} //       //# 03: compile-time error
-      );
+    );
 }
 
 class C extends Base with Mixin {

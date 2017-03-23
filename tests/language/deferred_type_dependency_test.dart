@@ -19,7 +19,7 @@ runTest() async {
       lib1.fooAnnotation //# type_annotation: ok
       ("string")
       is! String //# none: ok
-      );
+  );
   await lib2.loadLibrary();
   Expect.isTrue(
       lib1.fooIs //# is: ok
@@ -27,7 +27,7 @@ runTest() async {
       lib1.fooAnnotation //# type_annotation: ok
       (lib2.getInstance())
       is! String //# none: ok
-      );
+  );
 }
 
 main() {

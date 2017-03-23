@@ -6,14 +6,11 @@
 
 import 'package:expect/expect.dart';
 
+
 enum Color { red, orange, yellow, green }
 
 // Additional comma at end of list is ok.
-enum Veggies {
-  carrot,
-  bean,
-  broccolo,
-}
+enum Veggies { carrot, bean, broccolo, }
 
 // Need at least one enumeration identifier.
 enum Nada {} // //# 01: compile-time error
@@ -71,3 +68,4 @@ main() {
   // It is a compile-time error to explicitly instantiate an enum instance.
   var x = new Color(); // //# 30: compile-time error
 }
+

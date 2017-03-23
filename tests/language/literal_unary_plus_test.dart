@@ -10,3 +10,4 @@ main() {
   var x = +"foo"; //   //# 02: compile-time error
   var x = + "foo"; //  //# 03: compile-time error
 }
+

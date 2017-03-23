@@ -10,7 +10,6 @@ class A {
   _this; //                     //# 01: compile-time error
   A(x) : this._this = x; //     //# 01: continued
 }
-
 main() {
   new A(0); //                  //# 01: continued
 }

@@ -8,33 +8,29 @@ class A {
 }
 
 class B extends A {
-  B.c1()
-      : super.foo
+  B.c1() : super.foo
   /* // //# 01: compile-time error
-        ()
+  ()
   */ // //# 01: continued
   ;
 
   B.foo();
-  B.c2()
-      : this.foo
+  B.c2() : this.foo
   /* // //# 02: compile-time error
-        ()
+  ()
   */ // //# 02: continued
   ;
 
-  B.c3()
-      : super
+  B.c3() : super
   /* // //# 03: compile-time error
-        ()
+  ()
   */ // //# 03: continued
   ;
 
   B();
-  B.c4()
-      : this
+  B.c4() : this
   /* // //# 04: compile-time error
-        ()
+  ()
   */ // //# 04: continued
   ;
 }

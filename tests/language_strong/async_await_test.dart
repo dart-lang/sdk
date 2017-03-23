@@ -13,10 +13,7 @@ main() {
 
   group("basic", () {
     test("async w/o await", () {
-      f() async {
-        return id(42);
-      }
-
+      f() async { return id(42); }
       return expect42(f());
     });
 
@@ -26,9 +23,7 @@ main() {
       f() async {
         result.add(1);
         return id(42);
-      }
-
-      ;
+      };
       var future = f();
       result.add(0);
       return future.whenComplete(() {
@@ -41,7 +36,6 @@ main() {
         throw "err";
         return id(42);
       }
-
       return throwsErr(f());
     });
 
@@ -49,9 +43,7 @@ main() {
       f() async {
         var v = await new Future.value(42);
         return v;
-      }
-
-      ;
+      };
       return expect42(f());
     });
 
@@ -59,9 +51,7 @@ main() {
       f() async {
         var v = await id(42);
         return v;
-      }
-
-      ;
+      };
       return expect42(f());
     });
 
@@ -69,9 +59,7 @@ main() {
       f() async {
         var v = await null;
         expect(v, equals(null));
-      }
-
-      ;
+      };
       return f();
     });
 
@@ -79,7 +67,6 @@ main() {
       f() async {
         return await await new Future.value(42);
       }
-
       return expect42(f());
     });
 
@@ -87,7 +74,6 @@ main() {
       f() async {
         return await new FakeValueFuture(42);
       }
-
       return expect42(f());
     });
 
@@ -95,39 +81,33 @@ main() {
       f() async {
         return await new FakeErrorFuture("err");
       }
-
       return throwsErr(f());
     });
 
     test("await value is delayed", () {
       f() async {
         bool x = false;
-        scheduleMicrotask(() {
-          x = true;
-        });
+        scheduleMicrotask(() { x = true; });
         var y = await true;
         expect(x, equals(y));
       }
-
       return f();
     });
 
     test("await throw", () {
       f() async {
-        await (throw "err"); // Check grammar: Are parentheses necessary?
+        await (throw "err");  // Check grammar: Are parentheses necessary?
         return id(42);
       }
-
       return throwsErr(f());
     });
 
     test("throw before await", () {
       f() async {
         var x = throw "err";
-        await x; // Check grammar: Are parentheses necessary?
+        await x;  // Check grammar: Are parentheses necessary?
         return id(42);
       }
-
       return throwsErr(f());
     });
 
@@ -137,7 +117,6 @@ main() {
           assert(v == 87);
           return await new Future.microtask(() => 42);
         }
-
         return f(42).then((_) {
           fail("assert didn't throw");
         }, onError: (e, s) {
@@ -151,7 +130,6 @@ main() {
           assert(v == 87);
           return x;
         }
-
         return f(42).then((_) {
           fail("assert didn't throw");
         }, onError: (e, s) {
@@ -165,27 +143,22 @@ main() {
         await new Future.error("err");
         return id(42);
       }
-
       return throwsErr(f());
     });
 
     test("async flattens futures", () {
       f() async {
-        return new Future.value(42); // Not awaited.
-      }
-
-      ;
+        return new Future.value(42);  // Not awaited.
+      };
       return f().then((v) {
-        expect(v, equals(42)); // And not a Future with value 42.
+        expect(v, equals(42));  // And not a Future with value 42.
       });
     });
 
     test("async flattens futures, error", () {
       f() async {
-        return new Future.error("err"); // Not awaited.
-      }
-
-      ;
+        return new Future.error("err");  // Not awaited.
+      };
       return throwsErr(f());
     });
 
@@ -197,9 +170,8 @@ main() {
         }
         return i;
       }
-
       return f(mkStream()).then((v) {
-        expect(v, equals(45)); // 0 + 1 + ... + 9
+        expect(v, equals(45));  // 0 + 1 + ... + 9
       });
     });
 
@@ -211,9 +183,8 @@ main() {
         }
         return i;
       }
-
       return f(mkStream()).then((v) {
-        expect(v, equals(45)); // 0 + 1 + ... + 9
+        expect(v, equals(45));  // 0 + 1 + ... + 9
       });
     });
 
@@ -225,7 +196,6 @@ main() {
         }
         return v;
       }
-
       var s = (new StreamController<int>()..close()).stream;
       return f(s).then((v) {
         expect(v, equals(0));
@@ -242,7 +212,6 @@ main() {
           }
           return i;
         }
-
         return f(mkStream()).then((v) {
           fail("assert didn't throw");
         }, onError: (e, s) {
@@ -261,7 +230,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * id(42)));
       });
@@ -275,7 +243,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * 5));
       });
@@ -289,7 +256,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * 5));
       });
@@ -303,7 +269,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * 3));
       });
@@ -317,7 +282,6 @@ main() {
         }
         return v;
       }
-
       return throwsErr(f());
     });
 
@@ -329,7 +293,6 @@ main() {
         }
         return v;
       }
-
       return throwsErr(f());
     });
 
@@ -341,7 +304,6 @@ main() {
         }
         return v;
       }
-
       return throwsErr(f());
     });
 
@@ -353,7 +315,6 @@ main() {
         }
         return v;
       }
-
       return throwsErr(f());
     });
 
@@ -365,7 +326,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(0));
       });
@@ -379,7 +339,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(0));
       });
@@ -394,7 +353,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 2));
       });
@@ -409,7 +367,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 2));
       });
@@ -424,7 +381,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 9));
       });
@@ -440,7 +396,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 9));
       });
@@ -458,7 +413,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * id(42)));
       });
@@ -474,7 +428,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * 5));
       });
@@ -490,7 +443,6 @@ main() {
         }
         return v;
       }
-
       return throwsErr(f());
     });
 
@@ -504,7 +456,6 @@ main() {
         }
         return v;
       }
-
       return throwsErr(f());
     });
 
@@ -519,7 +470,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 2));
       });
@@ -536,7 +486,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 3));
       });
@@ -553,7 +502,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 9));
       });
@@ -571,7 +519,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 9));
       });
@@ -589,7 +536,6 @@ main() {
         } while (i < 10);
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * id(42)));
       });
@@ -605,7 +551,6 @@ main() {
         } while (i < await new Future.value(42));
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(10 * 5));
       });
@@ -621,12 +566,8 @@ main() {
         } while (i < 10);
         return v;
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("await err in test", () {
@@ -639,12 +580,8 @@ main() {
         } while (i < await new Future.error("err"));
         return v;
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("break before await", () {
@@ -658,7 +595,6 @@ main() {
         } while (i < 10);
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 2));
       });
@@ -675,7 +611,6 @@ main() {
         } while (i < 10);
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 3));
       });
@@ -692,7 +627,6 @@ main() {
         } while (i < 10);
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 9));
       });
@@ -710,7 +644,6 @@ main() {
         } while (i < 10);
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(42 * 9));
       });
@@ -726,7 +659,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(6));
       });
@@ -740,7 +672,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(6));
       });
@@ -749,18 +680,15 @@ main() {
     test("await err in for-in", () {
       f() async {
         var v = 0;
-        for (var fut in [1, 2, 3].map(
-            (v) => (v != 1) ? new Future.value(v) : new Future.error("err"))) {
+        for (var fut in [1, 2, 3].map((v) => (v != 1)
+                                             ? new Future.value(v)
+                                             : new Future.error("err"))) {
           v += await fut;
         }
         return v;
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("await err in for-in iterable", () {
@@ -771,12 +699,8 @@ main() {
         }
         return v;
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("break before await in for-in", () {
@@ -788,7 +712,6 @@ main() {
         }
         return v;
       }
-
       return f().then((v) {
         expect(v, equals(3));
       });
@@ -800,11 +723,10 @@ main() {
       f() async {
         try {
           return await id(42);
-        } catch (e) {
+        } catch(e) {
           return 37;
         }
       }
-
       return expect42(f());
     });
 
@@ -812,11 +734,10 @@ main() {
       f() async {
         try {
           await new Future.error(42);
-        } catch (e) {
+        } catch(e) {
           return e;
         }
       }
-
       return expect42(f());
     });
 
@@ -826,11 +747,10 @@ main() {
         try {
           if (i >= 0) throw id(42);
           return await new Future.value(10);
-        } catch (e) {
+        } catch(e) {
           return e;
         }
       }
-
       return expect42(f());
     });
 
@@ -838,11 +758,10 @@ main() {
       f() async {
         try {
           throw id(42);
-        } catch (e) {
+        } catch(e) {
           return await new Future.value(e);
         }
       }
-
       return expect42(f());
     });
 
@@ -850,33 +769,25 @@ main() {
       f() async {
         try {
           throw id(42);
-        } catch (e) {
+        } catch(e) {
           await new Future.error("err");
         }
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("try-catch-rethrow", () {
       f() async {
         try {
           await new Future.error("err");
-        } catch (e) {
+        } catch(e) {
           if (e == id(42)) return;
           rethrow;
         }
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
   });
 
@@ -889,7 +800,6 @@ main() {
           // Don't do anything.
         }
       }
-
       return expect42(f());
     });
 
@@ -902,7 +812,6 @@ main() {
           x = await new Future.value(37);
         }
       }
-
       return f().then((v) {
         expect(v, equals(42));
         expect(x, equals(37));
@@ -917,12 +826,8 @@ main() {
           // Don't do anything.
         }
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("await err in finally", () {
@@ -933,12 +838,8 @@ main() {
           await new Future.error("err");
         }
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("await err in both", () {
@@ -949,12 +850,8 @@ main() {
           await new Future.error("err");
         }
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) { expect(e, equals("err")); });
     });
 
     test("await err in body, override in finally", () {
@@ -965,29 +862,25 @@ main() {
           return id(42);
         }
       }
-
       return expect42(f());
     });
 
     test("await in body, override in finally", () {
       f() async {
-        label:
-        try {
+        label: try {
           return await new Future.value(37);
         } finally {
           break label;
         }
         return id(42);
       }
-
       return expect42(f());
     });
 
     test("await, override in finally", () {
       var x = 0;
       f() async {
-        label:
-        try {
+        label: try {
           return 87;
         } finally {
           x = await new Future.value(37);
@@ -995,7 +888,6 @@ main() {
         }
         return id(42);
       }
-
       return f().then((v) {
         expect(v, equals(42));
         expect(x, equals(37));
@@ -1005,8 +897,7 @@ main() {
     test("throw in body, await, override in finally 3", () {
       var x = 0;
       f() async {
-        label:
-        try {
+        label: try {
           throw "err";
         } finally {
           x = await new Future.value(37);
@@ -1014,7 +905,6 @@ main() {
         }
         return id(42);
       }
-
       return f().then((v) {
         expect(v, equals(42));
         expect(x, equals(37));
@@ -1023,15 +913,13 @@ main() {
 
     test("await err in body, override in finally 2", () {
       f() async {
-        label:
-        try {
+        label: try {
           return await new Future.error("err");
         } finally {
           break label;
         }
         return id(42);
       }
-
       return expect42(f());
     });
 
@@ -1046,7 +934,6 @@ main() {
         }
         return id(42);
       }
-
       return expect42(f());
     });
 
@@ -1063,7 +950,6 @@ main() {
         }
         return id(i);
       }
-
       return f().then((v) {
         expect(v, equals(10));
       });
@@ -1082,7 +968,6 @@ main() {
         }
         return id(i);
       }
-
       return f().then((v) {
         expect(v, equals(0));
       });
@@ -1100,7 +985,6 @@ main() {
         }
         return id(42);
       }
-
       return expect42(f());
     });
 
@@ -1116,7 +1000,6 @@ main() {
         }
         return id(42);
       }
-
       return expect42(f());
     });
 
@@ -1133,7 +1016,6 @@ main() {
           x += await new Future.value(37);
         }
       }
-
       return f().then((v) {
         expect(v, equals(42));
         expect(x, equals(74));
@@ -1143,8 +1025,7 @@ main() {
     test("nested finallies 2", () {
       var x = 0;
       f() async {
-        label:
-        try {
+        label: try {
           try {
             break label;
           } finally {
@@ -1155,7 +1036,6 @@ main() {
         }
         return 42;
       }
-
       return f().then((v) {
         expect(v, equals(42));
         expect(x, equals(74));
@@ -1165,8 +1045,7 @@ main() {
     test("nested finallies 3", () {
       var x = 0;
       f() async {
-        label:
-        try {
+        label: try {
           try {
             break label;
           } finally {
@@ -1177,7 +1056,6 @@ main() {
         }
         return 42;
       }
-
       return expect42(f());
     });
 
@@ -1194,13 +1072,11 @@ main() {
           x += await new Future.value(37);
         }
       }
-
-      return f().then((v) {
-        fail("didn't throw");
-      }, onError: (e) {
-        expect(e, equals("err"));
-        expect(x, equals(2 * 37));
-      });
+      return f().then((v) { fail("didn't throw"); },
+                      onError: (e) {
+                        expect(e, equals("err"));
+                        expect(x, equals(2 * 37));
+                      });
     });
   });
 
@@ -1215,7 +1091,6 @@ main() {
           if (id(42) == id(10)) return 10;
         }
       }
-
       return expect42(f());
     });
 
@@ -1229,7 +1104,6 @@ main() {
           if (id(42) == id(10)) return 10;
         }
       }
-
       return expect42(f());
     });
 
@@ -1243,7 +1117,6 @@ main() {
           if (id(42) == id(10)) return 10;
         }
       }
-
       return expect42(f());
     });
 
@@ -1259,7 +1132,6 @@ main() {
           if (id(42) == id(10)) return 10;
         }
       }
-
       return f().then((v) {
         expect(v, equals(42));
         expect(x, equals(37));
@@ -1271,64 +1143,48 @@ main() {
     test("await in expression", () {
       f(v) async {
         switch (await new Future.value(v)) {
-          case 1:
-            return 1;
-          case 2:
-            return 42;
-          default:
-            return 3;
+          case 1: return 1;
+          case 2: return 42;
+          default: return 3;
         }
         return null;
       }
-
       return expect42(f(2));
     });
 
     test("await err in expression", () {
       f(v) async {
         switch (await new Future.error("err")) {
-          case 1:
-            return 1;
-          case 2:
-            return 42;
-          default:
-            return 3;
+          case 1: return 1;
+          case 2: return 42;
+          default: return 3;
         }
         return null;
       }
-
       return throwsErr(f(2));
     });
 
     test("await in case", () {
       f(v) async {
         switch (v) {
-          case 1:
-            return 1;
-          case 2:
-            return await new Future.value(42);
-          default:
-            return 3;
+          case 1: return 1;
+          case 2: return await new Future.value(42);
+          default: return 3;
         }
         return null;
       }
-
       return expect42(f(2));
     });
 
     test("await err in case", () {
       f(v) async {
         switch (v) {
-          case 1:
-            return 1;
-          case 2:
-            return await new Future.error("err");
-          default:
-            return 3;
+          case 1: return 1;
+          case 2: return await new Future.error("err");
+          default: return 3;
         }
         return null;
       }
-
       return throwsErr(f(2));
     });
     // TODO(jmesserly): restore this when we fix
@@ -1373,7 +1229,6 @@ main() {
           return 37;
         }
       }
-
       return expect42(f(true));
     });
 
@@ -1385,7 +1240,6 @@ main() {
           return 37;
         }
       }
-
       return throwsErr(f(true));
     });
 
@@ -1396,7 +1250,6 @@ main() {
         }
         return 37;
       }
-
       return expect42(f(true));
     });
 
@@ -1407,7 +1260,6 @@ main() {
         }
         return 37;
       }
-
       return throwsErr(f(true));
     });
 
@@ -1420,7 +1272,6 @@ main() {
         }
         return 37;
       }
-
       return expect42(f(true));
     });
 
@@ -1433,7 +1284,6 @@ main() {
         }
         return 37;
       }
-
       return throwsErr(f(true));
     });
 
@@ -1446,7 +1296,6 @@ main() {
         }
         return 87;
       }
-
       return expect42(f(false));
     });
 
@@ -1459,7 +1308,6 @@ main() {
         }
         return 87;
       }
-
       return throwsErr(f(false));
     });
 
@@ -1474,7 +1322,6 @@ main() {
         }
         return 87;
       }
-
       return expect42(f(false));
     });
 
@@ -1489,7 +1336,6 @@ main() {
         }
         return 87;
       }
-
       return expect42(f(false));
     });
   });
@@ -1499,7 +1345,6 @@ main() {
       f(v) async {
         return (await new Future.value(v)) ? 42 : 37;
       }
-
       return expect42(f(true));
     });
 
@@ -1507,7 +1352,6 @@ main() {
       f(v) async {
         return (await new Future.error("err")) ? 42 : 37;
       }
-
       return throwsErr(f(true));
     });
 
@@ -1515,7 +1359,6 @@ main() {
       f(v) async {
         return v ? (await new Future.value(42)) : 37;
       }
-
       return expect42(f(true));
     });
 
@@ -1523,7 +1366,6 @@ main() {
       f(v) async {
         return v ? (await new Future.error("err")) : 37;
       }
-
       return throwsErr(f(true));
     });
 
@@ -1531,7 +1373,6 @@ main() {
       f(v) async {
         return v ? 37 : (await new Future.value(42));
       }
-
       return expect42(f(false));
     });
 
@@ -1539,7 +1380,6 @@ main() {
       f(v) async {
         return v ? 37 : (await new Future.error("err"));
       }
-
       return throwsErr(f(false));
     });
   });
@@ -1713,7 +1553,6 @@ main() {
       f() async {
         return await l42;
       }
-
       return expect42(f());
     });
 
@@ -1721,7 +1560,6 @@ main() {
       f(p) async {
         return await p;
       }
-
       return expect42(f(42));
     });
 
@@ -1729,7 +1567,6 @@ main() {
       f() async {
         return await v42;
       }
-
       return expect42(f());
     });
 
@@ -1737,7 +1574,6 @@ main() {
       f() async {
         return await c42;
       }
-
       return expect42(f());
     });
 
@@ -1745,7 +1581,6 @@ main() {
       f() async {
         return -await -42;
       }
-
       return expect42(f());
     });
 
@@ -1754,7 +1589,6 @@ main() {
         var v = [42];
         return await v[0];
       }
-
       return expect42(f());
     });
 
@@ -1763,7 +1597,6 @@ main() {
         var x = 42;
         return await x++;
       }
-
       return expect42(f());
     });
 
@@ -1772,7 +1605,6 @@ main() {
         var v = [42];
         return await v[0]++;
       }
-
       return expect42(f());
     });
 
@@ -1781,7 +1613,6 @@ main() {
         var v = [42];
         return await v[await 0]++;
       }
-
       return expect42(f());
     });
 
@@ -1790,7 +1621,6 @@ main() {
         var x = 41;
         return await ++x;
       }
-
       return expect42(f());
     });
 
@@ -1800,7 +1630,6 @@ main() {
         var v = [41];
         return await ++v[0];
       }
-
       return expect42(f());
     });
 
@@ -1809,7 +1638,6 @@ main() {
         var x = 37;
         return await (x = 42);
       }
-
       return expect42(f());
     });
 
@@ -1818,7 +1646,6 @@ main() {
         var x = 37;
         return await (x += 5);
       }
-
       return expect42(f());
     });
 
@@ -1826,7 +1653,6 @@ main() {
       f() async {
         return await (10 + 11) + await (10 + 11);
       }
-
       return expect42(f());
     });
 
@@ -1834,7 +1660,6 @@ main() {
       f(v) async {
         return await ((v == 10) ? new Future.value(42) : 37);
       }
-
       return expect42(f(10));
     });
 
@@ -1842,7 +1667,6 @@ main() {
       f() async {
         return await topMethod(42);
       }
-
       return expect42(f());
     });
 
@@ -1850,7 +1674,6 @@ main() {
       f() async {
         return await Async.staticMethod(42);
       }
-
       return expect42(f());
     });
 
@@ -1859,7 +1682,6 @@ main() {
         var a = new Async();
         return await a.instanceMethod(42);
       }
-
       return expect42(f());
     });
 
@@ -1867,7 +1689,6 @@ main() {
       f() async {
         return await topMethod(await 42);
       }
-
       return expect42(f());
     });
 
@@ -1875,7 +1696,6 @@ main() {
       f() async {
         return await Async.staticMethod(await 42);
       }
-
       return expect42(f());
     });
 
@@ -1884,7 +1704,6 @@ main() {
         var a = new Async();
         return await a.instanceMethod(await 42);
       }
-
       return expect42(f());
     });
 
@@ -1892,7 +1711,6 @@ main() {
       f() async {
         return await topGetter;
       }
-
       return expect42(f());
     });
 
@@ -1900,7 +1718,6 @@ main() {
       f() async {
         return await Async.staticGetter;
       }
-
       return expect42(f());
     });
 
@@ -1909,7 +1726,6 @@ main() {
         var a = new Async();
         return await a.instanceGetter;
       }
-
       return expect42(f());
     });
 
@@ -1946,6 +1762,7 @@ main() {
         expect(e is AssertionError, isTrue); //              //# 03: continued
       }); //                                                 //# 03: continued
     }); //                                                   //# 03: continued
+
   });
 
   group("syntax", () {
@@ -1969,6 +1786,7 @@ main() {
   });
 }
 
+
 // Attempt to obfuscates value to avoid too much constant folding.
 id(v) {
   try {
@@ -1991,7 +1809,6 @@ Stream<int> mkStream() {
       scheduleMicrotask(next);
     }
   }
-
   c = new StreamController(onListen: () {
     scheduleMicrotask(next);
   });
@@ -2000,11 +1817,8 @@ Stream<int> mkStream() {
 
 // Check that future contains the error "err".
 Future throwsErr(Future future) {
-  return future.then((v) {
-    fail("didn't throw");
-  }, onError: (e) {
-    expect(e, equals("err"));
-  });
+  return future.then((v) { fail("didn't throw"); },
+                onError: (e) { expect(e, equals("err")); });
 }
 
 // Check that future contains the value 42.
@@ -2014,11 +1828,10 @@ Future expect42(Future future) {
   });
 }
 
+
 // Various async declarations.
 
-Future topMethod(f) async {
-  return await f;
-}
+Future topMethod(f) async { return await f; }
 
 Future topArrowMethod(f) async => await f;
 
@@ -2029,10 +1842,7 @@ Future get topGetter async {
 Future get topArrowGetter async => await new Future.value(42);
 
 Future topLocal(f) {
-  local() async {
-    return await f;
-  }
-
+  local() async { return await f; }
   return local();
 }
 
@@ -2042,18 +1852,14 @@ Future topArrowLocal(f) {
 }
 
 Future topExpression(f) {
-  return () async {
-    return await f;
-  }();
+  return () async { return await f; } ();
 }
 
 Future topArrowExpression(f) {
-  return (() async => await f)();
+  return (() async => await f) ();
 }
 
-var topVarExpression = (f) async {
-  return await f;
-};
+var topVarExpression = (f) async { return await f; };
 
 var topVarArrowExpression = (f) async => await f;
 
@@ -2061,17 +1867,12 @@ class Async {
   var initValue;
   Async();
 
-  Async.initializer(f)
-      : initValue = (() async {
-          return await f;
-        }());
+  Async.initializer(f) : initValue = (() async { return await f; } ());
 
-  Async.initializerArrow(f) : initValue = ((() async => await f)());
+  Async.initializerArrow(f) : initValue = ((() async => await f) ());
 
   /* static */
-  static Future staticMethod(f) async {
-    return await f;
-  }
+  static Future staticMethod(f) async { return await f; }
 
   static Future staticArrowMethod(f) async => await f;
 
@@ -2082,10 +1883,7 @@ class Async {
   static Future get staticArrowGetter async => await new Future.value(42);
 
   static Future staticLocal(f) {
-    local() async {
-      return await f;
-    }
-
+    local() async { return await f; }
     return local();
   }
 
@@ -2095,25 +1893,19 @@ class Async {
   }
 
   static Future staticExpression(f) {
-    return () async {
-      return await f;
-    }();
+    return () async { return await f; } ();
   }
 
   static Future staticArrowExpression(f) {
-    return (() async => await f)();
+    return (() async => await f) ();
   }
 
-  static var staticVarExpression = (f) async {
-    return await f;
-  };
+  static var staticVarExpression = (f) async { return await f; };
 
   static var staticVarArrowExpression = (f) async => await f;
 
   /* instance */
-  Future instanceMethod(f) async {
-    return await f;
-  }
+  Future instanceMethod(f) async { return await f; }
 
   Future instanceArrowMethod(f) async => await f;
 
@@ -2124,10 +1916,7 @@ class Async {
   Future get instanceArrowGetter async => await new Future.value(42);
 
   Future instanceLocal(f) {
-    local() async {
-      return await f;
-    }
-
+    local() async { return await f; }
     return local();
   }
 
@@ -2137,18 +1926,14 @@ class Async {
   }
 
   Future instanceExpression(f) {
-    return () async {
-      return await f;
-    }();
+    return () async { return await f; } ();
   }
 
   Future instanceArrowExpression(f) {
-    return (() async => await f)();
+    return (() async => await f) ();
   }
 
-  var instanceVarExpression = (f) async {
-    return await f;
-  };
+  var instanceVarExpression = (f) async { return await f; };
 
   var instanceVarArrowExpression = (f) async => await f;
 }
@@ -2157,7 +1942,6 @@ Future asyncInAsync(f) async {
   inner(f) async {
     return await f;
   }
-
   return await inner(f);
 }
 
@@ -2165,7 +1949,6 @@ Future asyncInSync(f) {
   inner(f) async {
     return await f;
   }
-
   return inner(f);
 }
 
@@ -2173,7 +1956,6 @@ Future syncInAsync(f) async {
   inner(f) {
     return f;
   }
-
   return await inner(f);
 }
 
@@ -2184,20 +1966,13 @@ class FakeValueFuture implements Future {
   final _value;
   FakeValueFuture(this._value);
   Future/*<S>*/ then/*<S>*/(callback(value), {Function onError}) {
-    return new Future/*<S>*/ .microtask(() => callback(_value));
+    return new Future/*<S>*/.microtask(() => callback(_value));
   }
-
   Future whenComplete(callback()) {
-    return new Future.microtask(() {
-      callback();
-    });
+    return new Future.microtask(() { callback(); });
   }
-
   Future catchError(Function onError, {bool test(error)}) => this;
-  Stream asStream() => (new StreamController()
-        ..add(_value)
-        ..close())
-      .stream;
+  Stream asStream() => (new StreamController()..add(_value)..close()).stream;
   Future timeout(Duration duration, {onTimeout()}) => this;
 }
 
@@ -2212,19 +1987,15 @@ class FakeErrorFuture implements Future {
   Future/*<S>*/ then/*<S>*/(callback(value), {Function onError}) {
     if (onError != null) {
       if (onError is BinaryFunction) {
-        return new Future/*<S>*/ .microtask(() => onError(_error, null));
+        return new Future/*<S>*/.microtask(() => onError(_error, null));
       }
-      return new Future/*<S>*/ .microtask(() => onError(_error));
+      return new Future/*<S>*/.microtask(() => onError(_error));
     }
-    return new Future/*<S>*/ .error(_error);
+    return new Future/*<S>*/.error(_error);
   }
-
   Future whenComplete(callback()) {
-    return new Future.microtask(() {
-      callback();
-    }).then((_) => this);
+    return new Future.microtask(() { callback(); }).then((_) => this);
   }
-
   Future catchError(Function onError, {bool test(error)}) {
     return new Future.microtask(() {
       if (test != null && !test(_error)) return this;
@@ -2234,10 +2005,7 @@ class FakeErrorFuture implements Future {
       return onError(_error);
     });
   }
-
-  Stream asStream() => (new StreamController()
-        ..addError(_error)
-        ..close())
-      .stream;
+  Stream asStream() =>
+      (new StreamController()..addError(_error)..close()).stream;
   Future timeout(Duration duration, {onTimeout()}) => this;
 }

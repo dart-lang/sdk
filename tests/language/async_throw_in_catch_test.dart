@@ -85,16 +85,17 @@ foo4(Tracer tracer) async {
       await new Future.value(3); //# forceAwait: continued
       tracer.trace("a");
       throw "Error";
-    } catch (error) {
+    } catch(error) {
       tracer.trace("b");
       Expect.equals("Error", error);
       throw "Error2";
     }
-  } catch (error) {
+  } catch(error) {
     Expect.equals("Error2", error);
     tracer.trace("c");
   }
   tracer.trace("d");
+
 }
 
 foo5(Tracer tracer) async {
@@ -104,7 +105,7 @@ foo5(Tracer tracer) async {
       await new Future.value(3); //# forceAwait: continued
       tracer.trace("b");
       throw "Error";
-    } catch (error) {
+    } catch(error) {
       tracer.trace("c");
       Expect.equals("Error", error);
       throw "Error2";
@@ -113,6 +114,7 @@ foo5(Tracer tracer) async {
     tracer.trace("d");
   }
   tracer.trace("e");
+
 }
 
 foo6(Tracer tracer) async {
@@ -121,7 +123,7 @@ foo6(Tracer tracer) async {
       await new Future.value(3); //# forceAwait: continued
       tracer.trace("a");
       throw "Error";
-    } catch (error) {
+    } catch(error) {
       tracer.trace("b");
       Expect.equals("Error", error);
       throw "Error2";
@@ -129,7 +131,7 @@ foo6(Tracer tracer) async {
       tracer.trace("c");
       throw "Error3";
     }
-  } catch (error) {
+  } catch(error) {
     tracer.trace("d");
     Expect.equals("Error3", error);
   }
@@ -142,7 +144,7 @@ foo7(Tracer tracer) async {
       await new Future.value(3); //# forceAwait: continued
       tracer.trace("a");
       throw "Error";
-    } catch (error) {
+    } catch(error) {
       Expect.equals("Error", error);
       tracer.trace("b");
       throw "Error2";
@@ -162,7 +164,7 @@ foo8(Tracer tracer) async {
       await new Future.value(3); //# forceAwait: continued
       tracer.trace("a");
       throw "Error";
-    } catch (error) {
+    } catch(error) {
       Expect.equals("Error", error);
       tracer.trace("b");
       return;
@@ -178,12 +180,12 @@ foo8(Tracer tracer) async {
 
 foo9(Tracer tracer) async {
   try {
-    while (true) {
+    while(true) {
       try {
         await new Future.value(3); //# forceAwait: continued
         tracer.trace("a");
         throw "Error";
-      } catch (error) {
+      } catch(error) {
         Expect.equals("Error", error);
         tracer.trace("b");
         return;
@@ -212,7 +214,7 @@ foo10(Tracer tracer) async {
           try {
             await new Future.value(3); // //# forceAwait: continued
             throw "Error2";
-          } catch (error) {
+          } catch(error) {
             tracer.trace("c");
           } finally {
             tracer.trace("d");
@@ -239,14 +241,14 @@ foo10(Tracer tracer) async {
 foo11(Tracer tracer) async {
   try {
     bool firstTime = true;
-    while (true) {
+    while(true) {
       tracer.trace("a");
       if (firstTime) {
         try {
           await new Future.value(3); //# forceAwait: continued
           tracer.trace("b");
           throw "Error";
-        } catch (error) {
+        } catch(error) {
           Expect.equals("Error", error);
           tracer.trace("c");
           firstTime = false;
@@ -268,14 +270,14 @@ foo11(Tracer tracer) async {
 foo12(Tracer tracer) async {
   try {
     bool firstTime = true;
-    while (true) {
+    while(true) {
       tracer.trace("a");
       if (firstTime) {
         try {
           await new Future.value(3); //# forceAwait: continued
           tracer.trace("b");
           throw "Error";
-        } catch (error) {
+        } catch(error) {
           Expect.equals("Error", error);
           tracer.trace("c");
           firstTime = false;
@@ -332,7 +334,7 @@ foo14(Tracer tracer) async {
       try {
         await new Future.value(3); // //# forceAwait: continued
         throw "Error2";
-      } catch (error) {
+      } catch(error) {
         tracer.trace("c");
       } finally {
         tracer.trace("d");
@@ -358,7 +360,7 @@ foo15(Tracer tracer) async {
       try {
         await new Future.value(3); // //# forceAwait: continued
         throw "Error2";
-      } catch (error) {
+      } catch(error) {
         tracer.trace("c");
       } finally {
         tracer.trace("d");
@@ -385,7 +387,7 @@ foo16(Tracer tracer) async {
       try {
         await new Future.value(3); // //# forceAwait: continued
         throw "Error2";
-      } catch (error) {
+      } catch(error) {
         tracer.trace("c");
       } finally {
         tracer.trace("d");
@@ -423,7 +425,7 @@ foo17(Tracer tracer) async {
 
 foo18(Tracer tracer) async {
   try {
-    tracer.trace("a");
+      tracer.trace("a");
   } finally {
     try {
       tracer.trace("b");

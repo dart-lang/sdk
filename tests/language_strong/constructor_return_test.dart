@@ -8,9 +8,7 @@ import "package:expect/expect.dart";
 // statements in the form 'return;'.
 class A {
   int x;
-  A(this.x) {
-    return;
-  }
+  A(this.x) { return; }
   A.test1(this.x) {
     return this; // //# 01: compile-time error
   }

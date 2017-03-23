@@ -5,7 +5,6 @@
 // Regression test for issue 21912.
 
 class A {}
-
 class B extends A {}
 
 typedef T Function2<S, T>(S z);

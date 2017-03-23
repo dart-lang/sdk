@@ -7,19 +7,15 @@
 class A {
   var a = "a";
 }
-
 class B extends A {
   var b = "b";
 }
-
 class C extends B {
   var c = "c";
 }
-
 class D extends A {
   var d = "d";
 }
-
 class E implements C, D {
   var a = "";
   var b = "";
@@ -30,7 +26,6 @@ class E implements C, D {
 void main() {
   test(new E());
 }
-
 void test(A a1) {
   A a2 = new E();
   print(a1.a);
@@ -67,20 +62,21 @@ void test(A a1) {
     }
   }
 
-  var o1 = a1 is B && a2 is C
-          ? '${a1.a}'
-              '${a1.b}'
+  var o1 = a1 is B  && a2 is C ?
+      '${a1.a}'
+      '${a1.b}'
       '${a1.c}' //# 12: static type warning
       '${a1.d}' //# 13: static type warning
-              '${a2.a}'
-              '${a2.b}'
-              '${a2.c}'
+      '${a2.a}'
+      '${a2.b}'
+      '${a2.c}'
       '${a2.d}' //# 14: static type warning
-          : '${a1.a}'
+      :
+      '${a1.a}'
       '${a1.b}' //# 15: static type warning
       '${a1.c}' //# 16: static type warning
       '${a1.d}' //# 17: static type warning
-          '${a2.a}'
+      '${a2.a}'
       '${a2.b}' //# 18: static type warning
       '${a2.c}' //# 19: static type warning
       '${a2.d}' //# 20: static type warning

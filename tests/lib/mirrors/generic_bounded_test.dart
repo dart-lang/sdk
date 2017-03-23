@@ -20,7 +20,7 @@ bool inCheckedMode() {
   try {
     var s = 'string';
     int i = s;
-  } catch (e) {
+  } catch(e) {
     return true;
   }
   return false;
@@ -44,7 +44,7 @@ main() {
     typeArguments(genericOfBool, [reflectClass(bool)]); // //# 02: continued
     typeArguments(superOfBool, [reflectClass(bool)]); // //# 02: continued
     Expect.isFalse(inCheckedMode()); //# 02: continued
-  } on TypeError catch (e) {
+  } on TypeError catch(e) {
     Expect.isTrue(inCheckedMode());
   }
 

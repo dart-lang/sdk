@@ -72,3 +72,5 @@ main() {
   (oi as int) + 2;
   (oi as List).length; // //# 15: runtime error
 }
+
+

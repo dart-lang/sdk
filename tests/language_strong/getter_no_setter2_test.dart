@@ -35,13 +35,13 @@ class Example {
 }
 
 class Example1 {
-  Example1(int i) {}
+  Example1(int i) { }
 }
 
 class Example2 extends Example1 {
   static int _var = 1;
   static int get nextVar => _var++;
-  Example2() : super(nextVar) {} // No 'this' in scope.
+  Example2() : super(nextVar) { }  // No 'this' in scope.
 }
 
 void main() {

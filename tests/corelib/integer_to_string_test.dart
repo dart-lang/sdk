@@ -36,7 +36,7 @@ main() {
   test(0x80000000, "2147483648");
   test(0x80000001, "2147483649");
   // ~2^32.
-  test(0xffffffff, "4294967295");
+  test(0xffffffff,  "4294967295");
   test(0x100000000, "4294967296");
   test(0x100000001, "4294967297");
 
@@ -72,8 +72,7 @@ main() {
 
   int number = 10;
   // Numbers 99..99, 100...00, and 100..01 up to 23 digits.
-  for (int i = 1; i < 15; i++) {
-    // Works in dart2js up to 10^15.
+  for (int i = 1; i < 15; i++) {  // Works in dart2js up to 10^15.
     test(number - 1, "9" * i);
     test(number, "1" + "0" * i);
     test(number + 1, "1" + "0" * (i - 1) + "1");

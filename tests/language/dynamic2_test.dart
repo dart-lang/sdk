@@ -7,7 +7,8 @@
 class A
   extends dynamic // //# 00: compile-time error
   implements dynamic // //# 01: compile-time error
-{}
+{
+}
 
 main() {
   new A();

@@ -25,7 +25,6 @@ void interceptedPrint(self, parent, zone, message) {
 }
 
 main() {
-  runZoned(() {
-    print(new A());
-  }, zoneSpecification: new ZoneSpecification(print: interceptedPrint));
+  runZoned(() { print(new A()); },
+           zoneSpecification: new ZoneSpecification(print: interceptedPrint));
 }

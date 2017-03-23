@@ -11,7 +11,8 @@ class A<T> {
   B<T> createB() => new B<T>();
 }
 
-class NumA extends A<num> {}
+class NumA extends A<num> {
+}
 
 class B<T> {
   T value;
@@ -21,11 +22,14 @@ class B<T> {
   }
 }
 
-class StringB extends B<String> {}
+class StringB extends B<String> {
+}
 
-class C<T> extends A<T> {}
+class C<T> extends A<T> {
+}
 
-class IntC extends C<int> {}
+class IntC extends C<int> {
+}
 
 void main() {
   testA(); //# 01: ok

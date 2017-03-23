@@ -6,9 +6,7 @@ import "package:expect/expect.dart";
 
 class A {
   var _x, _y;
-  A(x, [y = 10])
-      : _x = x++,
-        _y = y++ {
+  A(x, [y = 10]): _x = x++, _y = y++ {
     // Check that value of modified constructor parameters
     // is remembered in the constructor body.
     Expect.equals(x, _x + 1);
@@ -22,13 +20,10 @@ class B extends A {
   // The super call in the middle of the initializer list conceptually
   // forces two super call chains, one for initializer list and a second
   // one for the constructor bodies.
-  B(a, b)
-      : _a = a++,
-        super(a + b++),
-        _b = b++ {
+  B(a, b): _a = a++, super(a + b++), _b = b++ {
     Expect.equals(a, _a + 1);
     Expect.equals(b, _b + 1);
-    Expect.equals(a + (b - 2), _x);
+    Expect.equals(a + (b-2), _x);
   }
 }
 

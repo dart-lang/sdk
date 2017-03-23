@@ -41,6 +41,7 @@ testC(C o) {
   return o.foo;
 }
 
+
 @NoInline()
 testD(D o) {
   return o.foo;
@@ -50,6 +51,7 @@ testD(D o) {
 testF(F o) {
   return o.foo;
 }
+
 
 _injectJs() {
   document.body.append(new ScriptElement()
@@ -82,3 +84,5 @@ main() {
   Expect.equals(testA(d), 4);
   Expect.equals(testD(d), 4); //# 02: continued
 }
+
+

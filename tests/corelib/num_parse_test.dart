@@ -130,14 +130,14 @@ void main() {
   testInt(99);
   testInt(100);
   testIntAround(256);
-  testIntAround(0x80000000); // 2^31
-  testIntAround(0x100000000); // 2^32
-  testIntAround(0x10000000000000); // 2^52
-  testIntAround(0x20000000000000); // 2^53
-  testIntAround(0x40000000000000); // 2^54
-  testIntAround(0x8000000000000000); // 2^63
-  testIntAround(0x10000000000000000); // 2^64
-  testIntAround(0x100000000000000000000); // 2^80
+  testIntAround(0x80000000);  // 2^31
+  testIntAround(0x100000000);  // 2^32
+  testIntAround(0x10000000000000);  // 2^52
+  testIntAround(0x20000000000000);  // 2^53
+  testIntAround(0x40000000000000);  // 2^54
+  testIntAround(0x8000000000000000);  // 2^63
+  testIntAround(0x10000000000000000);  // 2^64
+  testIntAround(0x100000000000000000000);  // 2^80
 
   testDouble(0.0);
   testDouble(5e-324);

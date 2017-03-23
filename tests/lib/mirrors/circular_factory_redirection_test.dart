@@ -10,23 +10,21 @@ class A {
   factory A.circular() = B.circular;
   const factory A.circular2() = B.circular2;
 }
-
 class B implements A {
   B();
   factory B.circular() = C.circular;
   const factory B.circular2() = C.circular2;
 }
-
 class C implements B {
   const C();
   factory C.circular()
   /* //# 01: compile-time error
-       = C;
+     = C;
   */ = A.circular; //# 01: continued
 
   const factory C.circular2()
   /* //# 02: compile-time error
-       = C;
+     = C;
   */ = A.circular2; //# 02: continued
 }
 

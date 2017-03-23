@@ -4,7 +4,8 @@
 
 // Test of parameterized types with invalid bounds.
 
-class A<K extends int> {}
+class A<K extends int> {
+}
 
 class B<X, Y> {
   foo(x) {

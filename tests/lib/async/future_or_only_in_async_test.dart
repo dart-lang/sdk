@@ -7,9 +7,9 @@
 dynamic foo(dynamic x) {
   return x as
       FutureOr< // //# 00: runtime error, static type warning
-          int
+        int
       > //         //# 00: continued
-      ;
+  ;
 }
 
 main() {

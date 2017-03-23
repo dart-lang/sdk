@@ -220,7 +220,7 @@ main() {
     optionalArg([x]) {}
     optionalArg(
       void (var i) {} //# 55: compile-time error
-        );
+    );
 
     function __PROTO__$(...args) { return 12; } //# 56: compile-time error
     G<> t; //# 57: compile-time error

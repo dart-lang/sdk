@@ -4,7 +4,8 @@
 
 import "package:expect/expect.dart";
 
-class M {}
+class M {
+}
 
 class P0 {
   foo() {

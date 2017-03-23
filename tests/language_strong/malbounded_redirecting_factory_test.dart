@@ -4,22 +4,19 @@
 
 import 'package:expect/expect.dart';
 
-class A<
-    Ta
+class A<Ta
            extends num // //# 02: continued
-    > implements B<Ta>, C<Ta> {}
+                      > implements B<Ta>, C<Ta> { }
 
-class B<
-    Tb
+class B<Tb
            extends num // //# 03: continued
-    > {
+                      > {
   factory B() = A<Tb>;
 }
 
-class C<
-    Tc
+class C<Tc
            extends num // //# 04: continued
-    > {
+                      > {
   factory C() = B<Tc>;
 }
 

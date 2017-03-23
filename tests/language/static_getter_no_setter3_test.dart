@@ -7,14 +7,14 @@ import 'package:expect/expect.dart';
 bool getter_visited = false;
 
 class Class {
-  static final int getter = () {
+  static final int getter = (){
     getter_visited = true;
   }();
 
   method() {
     try {
       getter++; //# 01: static type warning
-    } on NoSuchMethodError catch (e) {
+    } on NoSuchMethodError catch(e) {
       Expect.isTrue(getter_visited); //# 01: continued
       return;
     }

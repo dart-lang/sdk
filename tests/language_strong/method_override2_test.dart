@@ -8,7 +8,7 @@ abstract class I {
   m({a, b});
 }
 
-abstract class J extends I {}
+abstract class J extends I { }
 
 abstract class K extends J {
   m({c, d}); // //# 00: static type warning
@@ -30,6 +30,7 @@ class D
   }
 }
 
+
 int main() {
   var c = new C();
   c.m(a: "hello", b: "world");
@@ -37,3 +38,4 @@ int main() {
   d.m(c: "hello", d: "world");
   print("${c is I} ${d is I} ${d is I} ${d is J}");
 }
+

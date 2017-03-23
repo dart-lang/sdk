@@ -9,11 +9,9 @@ class A {
   final int j = 1;
   const A();
 }
-
 int f() {
   return 3;
 }
-
 main() {
   Expect.equals(const A().j, 1);
 }

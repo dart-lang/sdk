@@ -9,7 +9,7 @@ var topLevelClosure;
 /* //   //# 01: runtime error
 get topLevel => topLevelClosure;
 */ //  //# 01: continued
-set topLevel(var value) {}
+set topLevel(var value) { }
 
 initialize() {
   print("initializing");

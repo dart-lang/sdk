@@ -20,6 +20,7 @@ class Divergent<T> implements Future<Divergent<Divergent<T>>> {
 }
 */
 
+
 test() async {
   // flatten(Derived<int>) = int
   int x = await new Derived<int>(); //# 01: runtime error

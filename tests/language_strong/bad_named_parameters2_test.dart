@@ -5,7 +5,9 @@
 
 import "package:expect/expect.dart";
 
+
 class BadNamedParameters2Test {
+
   int foo(int a) {
     // Although no optional named parameters are declared, we must check that
     // no named arguments are passed in, either here or in the resolving stub.

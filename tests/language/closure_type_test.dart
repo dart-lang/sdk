@@ -6,14 +6,13 @@
 // time.
 
 library closure_type_test;
-
 import "package:expect/expect.dart";
 import 'dart:math' as math;
 
 class Math {
   static
   int // //# 01: static type warning
-      sqrt(x) => math.sqrt(x);
+  sqrt(x) => math.sqrt(x);
 }
 
 isCheckedMode() {
@@ -25,6 +24,7 @@ isCheckedMode() {
     return true;
   }
 }
+
 
 void test(int func(int value), int value) {
   bool got_type_error = false;

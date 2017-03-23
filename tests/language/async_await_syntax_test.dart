@@ -190,6 +190,7 @@ method2() {
   var d10a = () async* { yield* []; }; d10a(); //                //# d10a: static type warning
 }
 
+
 void main() {
   var a;
   var c = new C();

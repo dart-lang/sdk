@@ -6,6 +6,7 @@ import "package:expect/expect.dart";
 
 // Tests for string interpolation
 class StringInterpolationTest {
+
   StringInterpolationTest() {}
 
   static void m() {}

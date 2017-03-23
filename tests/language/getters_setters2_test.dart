@@ -7,53 +7,38 @@ import "package:expect/expect.dart";
 // Tests classes with getters and setters that do not have the same type.
 
 class A {
-  int a() {
-    return 37;
-  }
+  int a() { return 37;}
 }
 
-class B extends A {
-  int b() {
-    return 38;
-  }
+class B extends A{
+  int b() { return 38; }
 }
 
 class C {}
 
 class T1 {
-  A getterField;
-  A get field {
-    return getterField;
-  }
-
+  A getterField; 
+  A get field { return getterField; }
   // OK, B is assignable to A
-  void set field(B arg) {
-    getterField = arg;
-  }
+  void set field(B arg) { getterField = arg; }
 }
 
 class T2 {
-  A getterField;
-  C setterField;
-  A get field {
-    return getterField;
-  }
+  A getterField; 
+  C setterField; 
+  A get field { return getterField; }
 
   // Type C is not assignable to A
   void set field(C arg) { setterField = arg; } //# 01: static type warning
 }
 
 class T3 {
-  B getterField;
-  B get field {
-    return getterField;
-  }
-
+  B getterField; 
+  B get field { return getterField; }
   // OK, A is assignable to B
-  void set field(A arg) {
-    getterField = arg;
-  }
+  void set field(A arg) { getterField = arg; }
 }
+
 
 main() {
   T1 instance1 = new T1();
@@ -66,7 +51,7 @@ main() {
   B resultB = instance1.field;
 
   int result;
-  result = instance1.field.a();
+  result = instance1.field.a(); 
   Expect.equals(37, result);
 
   // Type 'A' has no method named 'b'

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const m0 = const {499: 400 + 99};
+const m0 = const {
+  499: 400 + 99
+};
 const m1 = const {
   "foo" + "bar": 42 //           //# 01: ok
 };

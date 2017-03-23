@@ -6,8 +6,9 @@
 import "package:expect/expect.dart";
 
 class MapLiteralTest {
+
   static testMain() {
-    var map = {"a": 1, "b": 2, "c": 3};
+    var map = { "a": 1, "b": 2, "c": 3 };
 
     Expect.equals(map.length, 3);
     Expect.equals(map["a"], 1);
@@ -33,12 +34,7 @@ class MapLiteralTest {
     Expect.equals(map.length, 0);
 
     var b = 22;
-    Expect.equals(
-        22,
-        {
-          "a": 11,
-          "b": b,
-        }["b"]);
+    Expect.equals(22, {"a": 11, "b": b, }["b"]);
 
     // Make map grow. We currently don't have a way to construct
     // strings from an integer value, so we can't use a loop here.
@@ -62,7 +58,7 @@ class MapLiteralTest {
     m["16"] = 16;
     Expect.equals(16, m.length);
     m.remove("1");
-    m.remove("1"); // Remove element twice.
+    m.remove("1");  // Remove element twice.
     m.remove("16");
     Expect.equals(14, m.length);
 
@@ -86,32 +82,24 @@ class MapLiteralTest {
     // Check that even if a key gets eliminated (the first "a"), all values
     // are still evaluated, including side effects.
     int counter = 0;
-    int ctr() {
-      counter += 10;
-      return counter;
-    }
-
+    int ctr() { counter += 10; return counter; }
     mmap = <String, num>{"a": ctr(), "b": ctr(), "a": ctr()}; //# static type warning
     Expect.equals(2, mmap.length);
     Expect.equals(40, ctr());
     Expect.equals(30, mmap["a"]);
     Expect.equals(20, mmap["b"]);
 
-    Expect.equals(10, {"beta": 100, "alpha": 9 + 1}["alpha"]);
-    Expect.equals(
-        10,
-        <String, Map>{
-          "beta": {"delta": 10},
-          "alpha": {"gamma": 10}
-        }["alpha"]["gamma"]);
+    Expect.equals(10, { "beta": 100, "alpha": 9 + 1 }["alpha"]);
+    Expect.equals(10, <String, Map>{
+       "beta": {"delta": 10},
+       "alpha": {"gamma": 10} }["alpha"]["gamma"]);
 
     // Map literals at beginning of statement.
-    <
-        String,
-        num>{"pink": 100};
+    <String, num>{"pink": 100};
     const <String, num>{"floyd": 100};
   }
 }
+
 
 main() {
   MapLiteralTest.testMain();

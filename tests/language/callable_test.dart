@@ -15,10 +15,11 @@ typedef G(String y);
 
 main() {
   X x = new X();
-  Function f = x; // Should pass checked mode test
+  Function f = x;  // Should pass checked mode test
   Y y = new Y();
-  Function g = y; // Should pass checked mode test
-  F f0 = y; // Should pass checked mode test
+  Function g = y;  // Should pass checked mode test
+  F f0 = y;  // Should pass checked mode test
   F f1 = x; // //# 00: dynamic type error, static type warning
   G g0 = y; // //# 01: dynamic type error, static type warning
 }
+

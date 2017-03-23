@@ -24,32 +24,25 @@ void testSync() {
     // Compare the results of the following two futures.
     Future f1 = new Future.sync(func);
     Future f2 = new Future.value().then((_) => func());
-    f2.catchError((_) {}); // I'll get the error later.
-    f1.then((v1) {
-      f2.then((v2) {
-        Expect.equals(v1, v2);
-      });
-    }, onError: (e1) {
-      f2.then((_) {
-        Expect.fail("Expected error");
-      }, onError: (e2) {
-        Expect.equals(e1, e2);
-      });
-    });
+    f2.catchError((_){});  // I'll get the error later.
+    f1.then((v1) { f2.then((v2) { Expect.equals(v1, v2); }); },
+            onError: (e1) {
+              f2.then((_) { Expect.fail("Expected error"); },
+                      onError: (e2) {
+                         Expect.equals(e1, e2);
+                      });
+            });
   }
-
   Future val = new Future.value(42);
-  Future err1 = new Future.error("Error")..catchError((_) {});
+  Future err1 = new Future.error("Error")..catchError((_){});
   try {
     throw new List(0);
   } catch (e, st) {
-    Future err2 = new Future.error(e, st)..catchError((_) {});
+    Future err2 = new Future.error(e, st)..catchError((_){});
   }
   compare(() => 42);
   compare(() => val);
-  compare(() {
-    throw "Flif";
-  });
+  compare(() { throw "Flif"; });
   compare(() => err1);
   bool hasExecuted = false;
   compare(() {
@@ -86,12 +79,11 @@ void testCompleteWithSuccessHandlerBeforeComplete() {
   int after;
 
   asyncStart();
-  future.then((int v) {
-    after = v;
-  }).then((_) {
-    Expect.equals(3, after);
-    asyncEnd();
-  });
+  future.then((int v) { after = v; })
+    .then((_) {
+      Expect.equals(3, after);
+      asyncEnd();
+    });
 
   completer.complete(3);
   Expect.isNull(after);
@@ -106,12 +98,11 @@ void testCompleteWithSuccessHandlerAfterComplete() {
   Expect.isNull(after);
 
   asyncStart();
-  future.then((int v) {
-    after = v;
-  }).then((_) {
-    Expect.equals(3, after);
-    asyncEnd();
-  });
+  future.then((int v) { after = v; })
+    .then((_) {
+      Expect.equals(3, after);
+      asyncEnd();
+    });
 }
 
 void testCompleteManySuccessHandlers() {
@@ -122,16 +113,10 @@ void testCompleteManySuccessHandlers() {
   int after2;
 
   var futures = [];
-  futures.add(future.then((int v) {
-    before = v;
-  }));
+  futures.add(future.then((int v) { before = v; }));
   completer.complete(3);
-  futures.add(future.then((int v) {
-    after1 = v;
-  }));
-  futures.add(future.then((int v) {
-    after2 = v;
-  }));
+  futures.add(future.then((int v) { after1 = v; }));
+  futures.add(future.then((int v) { after2 = v; }));
 
   asyncStart();
   Future.wait(futures).then((_) {
@@ -150,12 +135,12 @@ void testException() {
   final ex = new Exception();
 
   asyncStart();
-  future.then((v) {
-    throw "Value not expected";
-  }).catchError((error) {
-    Expect.equals(error, ex);
-    asyncEnd();
-  }, test: (e) => e == ex);
+  future
+      .then((v) { throw "Value not expected"; })
+      .catchError((error) {
+        Expect.equals(error, ex);
+        asyncEnd();
+      }, test: (e) => e == ex);
   completer.completeError(ex);
 }
 
@@ -165,9 +150,7 @@ void testExceptionHandler() {
   final ex = new Exception();
 
   var ex2;
-  var done = future.catchError((error) {
-    ex2 = error;
-  });
+  var done = future.catchError((error) { ex2 = error; });
 
   Expect.isFalse(completer.isCompleted);
   completer.completeError(ex);
@@ -186,10 +169,9 @@ void testExceptionHandlerReturnsTrue() {
   final ex = new Exception();
 
   bool reached = false;
-  future.catchError((e) {});
-  future.catchError((e) {
-    reached = true;
-  }, test: (e) => false).catchError((e) {});
+  future.catchError((e) { });
+  future.catchError((e) { reached = true; }, test: (e) => false)
+        .catchError((e) {});
   Expect.isFalse(completer.isCompleted);
   completer.completeError(ex);
   Expect.isTrue(completer.isCompleted);
@@ -202,9 +184,9 @@ void testExceptionHandlerReturnsTrue2() {
   final ex = new Exception();
 
   bool reached = false;
-  var done = future.catchError((e) {}, test: (e) => false).catchError((e) {
-    reached = true;
-  });
+  var done = future
+      .catchError((e) { }, test: (e) => false)
+      .catchError((e) { reached = true; });
   completer.completeError(ex);
 
   asyncStart();
@@ -221,11 +203,10 @@ void testExceptionHandlerReturnsFalse() {
 
   bool reached = false;
 
-  future.catchError((e) {});
+  future.catchError((e) { });
 
-  future.catchError((e) {
-    reached = true;
-  }, test: (e) => false).catchError((e) {});
+  future.catchError((e) { reached = true; }, test: (e) => false)
+        .catchError((e) { });
 
   completer.completeError(ex);
 
@@ -236,14 +217,16 @@ void testFutureAsStreamCompleteAfter() {
   var completer = new Completer();
   bool gotValue = false;
   asyncStart();
-  completer.future.asStream().listen((data) {
-    Expect.isFalse(gotValue);
-    gotValue = true;
-    Expect.equals("value", data);
-  }, onDone: () {
-    Expect.isTrue(gotValue);
-    asyncEnd();
-  });
+  completer.future.asStream().listen(
+      (data) {
+        Expect.isFalse(gotValue);
+        gotValue = true;
+        Expect.equals("value", data);
+      },
+      onDone: () {
+        Expect.isTrue(gotValue);
+        asyncEnd();
+      });
   completer.complete("value");
 }
 
@@ -252,43 +235,50 @@ void testFutureAsStreamCompleteBefore() {
   bool gotValue = false;
   asyncStart();
   completer.complete("value");
-  completer.future.asStream().listen((data) {
-    Expect.isFalse(gotValue);
-    gotValue = true;
-    Expect.equals("value", data);
-  }, onDone: () {
-    Expect.isTrue(gotValue);
-    asyncEnd();
-  });
+  completer.future.asStream().listen(
+      (data) {
+        Expect.isFalse(gotValue);
+        gotValue = true;
+        Expect.equals("value", data);
+      },
+      onDone: () {
+        Expect.isTrue(gotValue);
+        asyncEnd();
+      });
 }
 
 void testFutureAsStreamCompleteImmediate() {
   bool gotValue = false;
   asyncStart();
-  new Future.value("value").asStream().listen((data) {
-    Expect.isFalse(gotValue);
-    gotValue = true;
-    Expect.equals("value", data);
-  }, onDone: () {
-    Expect.isTrue(gotValue);
-    asyncEnd();
-  });
+  new Future.value("value").asStream().listen(
+      (data) {
+        Expect.isFalse(gotValue);
+        gotValue = true;
+        Expect.equals("value", data);
+      },
+      onDone: () {
+        Expect.isTrue(gotValue);
+        asyncEnd();
+      });
 }
 
 void testFutureAsStreamCompleteErrorAfter() {
   var completer = new Completer();
   bool gotError = false;
   asyncStart();
-  completer.future.asStream().listen((data) {
-    Expect.fail("Unexpected data");
-  }, onError: (error) {
-    Expect.isFalse(gotError);
-    gotError = true;
-    Expect.equals("error", error);
-  }, onDone: () {
-    Expect.isTrue(gotError);
-    asyncEnd();
-  });
+  completer.future.asStream().listen(
+      (data) {
+        Expect.fail("Unexpected data");
+      },
+      onError: (error) {
+        Expect.isFalse(gotError);
+        gotError = true;
+        Expect.equals("error", error);
+      },
+      onDone: () {
+        Expect.isTrue(gotError);
+        asyncEnd();
+      });
   completer.completeError("error");
 }
 
@@ -298,18 +288,17 @@ void testFutureAsStreamWrapper() {
   asyncStart();
   completer.complete("value");
   completer.future
-      .catchError((_) {
-        throw "not possible";
-      }) // Returns a future wrapper.
-      .asStream()
-      .listen((data) {
-        Expect.isFalse(gotValue);
-        gotValue = true;
-        Expect.equals("value", data);
-      }, onDone: () {
-        Expect.isTrue(gotValue);
-        asyncEnd();
-      });
+      .catchError((_) { throw "not possible"; })  // Returns a future wrapper.
+      .asStream().listen(
+        (data) {
+          Expect.isFalse(gotValue);
+          gotValue = true;
+          Expect.equals("value", data);
+        },
+        onDone: () {
+          Expect.isTrue(gotValue);
+          asyncEnd();
+        });
 }
 
 void testFutureWhenCompleteValue() {
@@ -318,7 +307,6 @@ void testFutureWhenCompleteValue() {
   countDown() {
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   Future future = completer.future;
   Future later = future.whenComplete(countDown);
@@ -335,7 +323,6 @@ void testFutureWhenCompleteError() {
   countDown() {
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   Future future = completer.future;
   Future later = future.whenComplete(countDown);
@@ -352,7 +339,6 @@ void testFutureWhenCompleteValueNewError() {
   countDown() {
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   Future future = completer.future;
   Future later = future.whenComplete(() {
@@ -372,7 +358,6 @@ void testFutureWhenCompleteErrorNewError() {
   countDown() {
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   Future future = completer.future;
   Future later = future.whenComplete(() {
@@ -392,7 +377,6 @@ void testFutureWhenCompletePreValue() {
   countDown() {
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   Future future = completer.future;
   completer.complete(42);
@@ -406,13 +390,13 @@ void testFutureWhenCompletePreValue() {
 }
 
 void testFutureWhenValueFutureValue() {
+
   asyncStart();
   int counter = 3;
   countDown(int expect) {
     Expect.equals(expect, counter);
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   completer.future.whenComplete(() {
     countDown(3);
@@ -437,7 +421,6 @@ void testFutureWhenValueFutureError() {
     Expect.equals(expect, counter);
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   completer.future.whenComplete(() {
     countDown(3);
@@ -464,7 +447,6 @@ void testFutureWhenErrorFutureValue() {
     Expect.equals(expect, counter);
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   completer.future.whenComplete(() {
     countDown(3);
@@ -491,7 +473,6 @@ void testFutureWhenErrorFutureError() {
     Expect.equals(expect, counter);
     if (--counter == 0) asyncEnd();
   }
-
   var completer = new Completer();
   completer.future.whenComplete(() {
     countDown(3);
@@ -710,10 +691,11 @@ void testChainedFutureValue() {
   final future = completer.future;
   asyncStart();
 
-  future.then((v) => new Future.value(v * 2)).then((v) {
-    Expect.equals(42, v);
-    asyncEnd();
-  });
+  future.then((v) => new Future.value(v * 2))
+        .then((v) {
+          Expect.equals(42, v);
+          asyncEnd();
+        });
   completer.complete(21);
 }
 
@@ -722,23 +704,23 @@ void testChainedFutureValueDelay() {
   final future = completer.future;
   asyncStart();
 
-  future
-      .then((v) =>
-          new Future.delayed(const Duration(milliseconds: 10), () => v * 2))
-      .then((v) {
-    Expect.equals(42, v);
-    asyncEnd();
-  });
+  future.then((v) => new Future.delayed(const Duration(milliseconds: 10),
+                                        () => v * 2))
+        .then((v) {
+          Expect.equals(42, v);
+          asyncEnd();
+        });
   completer.complete(21);
 }
 
 void testChainedFutureValue2Delay() {
   asyncStart();
 
-  new Future.delayed(const Duration(milliseconds: 10)).then((v) {
-    Expect.isNull(v);
-    asyncEnd();
-  });
+  new Future.delayed(const Duration(milliseconds: 10))
+    .then((v) {
+      Expect.isNull(v);
+      asyncEnd();
+    });
 }
 
 void testChainedFutureError() {
@@ -746,12 +728,11 @@ void testChainedFutureError() {
   final future = completer.future;
   asyncStart();
 
-  future.then((v) => new Future.error("Fehler")).then((v) {
-    Expect.fail("unreachable!");
-  }, onError: (error) {
-    Expect.equals("Fehler", error);
-    asyncEnd();
-  });
+  future.then((v) => new Future.error("Fehler"))
+        .then((v) { Expect.fail("unreachable!"); }, onError: (error) {
+          Expect.equals("Fehler", error);
+          asyncEnd();
+        });
   completer.complete(21);
 }
 
@@ -759,13 +740,13 @@ void testSyncFuture_i13368() {
   asyncStart();
 
   final future = new Future<int>.sync(() {
-    return new Future<int>.value(42);
-  });
+      return new Future<int>.value(42);
+    });
 
   future.then((int val) {
-    Expect.equals(val, 42);
-    asyncEnd();
-  });
+      Expect.equals(val, 42);
+      asyncEnd();
+    });
 }
 
 void testWaitCleanUp() {
@@ -781,7 +762,8 @@ void testWaitCleanUp() {
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
       bool throws = (mask & (1 << i)) != 0;
-      var future = new Future.delayed(new Duration(milliseconds: 100 * (i + 1)),
+      var future = new Future.delayed(
+          new Duration(milliseconds: 100 * (i + 1)),
           () => (throws ? throw "Error $i($mask-$permute)" : i));
       int mod = 3 - i;
       int position = permuteTmp % mod;
@@ -794,13 +776,12 @@ void testWaitCleanUp() {
       Expect.isFalse(cleanup[index]);
       cleanup[index] = true;
     }
-
-    Future.wait(futures, cleanUp: cleanUp).then((_) {
-      Expect.fail("No error: $stringId");
-    }, onError: (e, s) {
-      Expect.listEquals([true, true, true], cleanup);
-      asyncEnd();
-    });
+    Future.wait(futures, cleanUp: cleanUp)
+          .then((_) { Expect.fail("No error: $stringId"); },
+                onError: (e, s) {
+                  Expect.listEquals([true, true, true], cleanup);
+                  asyncEnd();
+                });
   }
 
   for (int i = 1; i < 8; i++) {
@@ -826,7 +807,8 @@ void testWaitCleanUpEager() {
     int permuteTmp = permute;
     for (int i = 0; i < 3; i++) {
       bool throws = (mask & (1 << i)) != 0;
-      var future = new Future.delayed(new Duration(milliseconds: 100 * (i + 1)),
+      var future = new Future.delayed(
+          new Duration(milliseconds: 100 * (i + 1)),
           () => (throws ? throw "Error $i($mask-$permute)" : i));
       int mod = 3 - i;
       int position = permuteTmp % mod;
@@ -842,20 +824,18 @@ void testWaitCleanUpEager() {
         asyncEnd();
       }
     }
-
     void cleanUp(index) {
       Expect.isFalse(cleanup[index]);
       cleanup[index] = true;
       // Cleanup might happen before and after the wait().then() callback.
       checkDone();
     }
-
-    Future.wait(futures, eagerError: true, cleanUp: cleanUp).then((_) {
-      Expect.fail("No error: $stringId");
-    }, onError: (e, s) {
-      asyncEnd();
-      checkDone();
-    });
+    Future.wait(futures, eagerError: true, cleanUp: cleanUp)
+          .then((_) { Expect.fail("No error: $stringId"); },
+                onError: (e, s) {
+                  asyncEnd();
+                  checkDone();
+                });
   }
 
   for (int i = 1; i < 8; i++) {
@@ -874,19 +854,20 @@ void testWaitCleanUpError() {
   asyncStart();
   asyncStart();
   runZoned(() {
-    Future.wait([
-      new Future.delayed(cms, () => 0),
-      new Future.delayed(cms * 2, () => throw 1),
-      new Future.delayed(cms * 3, () => 2)
-    ], cleanUp: (index) {
-      Expect.isTrue(index == 0 || index == 2, "$index");
-      Expect.isFalse(cleanups[index]);
-      cleanups[index] = true;
-      throw index;
-    }).catchError((e) {
-      Expect.equals(e, 1);
-      asyncEnd();
-    });
+    Future.wait([new Future.delayed(cms, () => 0),
+                 new Future.delayed(cms * 2, ()=> throw 1),
+                 new Future.delayed(cms * 3, () => 2)],
+                 cleanUp: (index) {
+                   Expect.isTrue(index == 0 || index == 2, "$index");
+                   Expect.isFalse(cleanups[index]);
+                   cleanups[index] = true;
+                   throw index;
+                 })
+          .catchError((e) {
+            Expect.equals(e, 1);
+            asyncEnd();
+          });
+
   }, onError: (int index, s) {
     Expect.isTrue(index == 0 || index == 2, "$index");
     Expect.isFalse(uncaughts[index]);
@@ -901,11 +882,10 @@ void testWaitSyncError() {
   asyncStart();
   asyncStart();
   runZoned(() {
-    Future.wait(
-        new Iterable.generate(5, (i) {
-          if (i != 3) return new Future.delayed(cms * (i + 1), () => i);
-          throw "throwing synchronously in iterable";
-        }), cleanUp: (index) {
+    Future.wait(new Iterable.generate(5, (i) {
+      if (i != 3) return new Future.delayed(cms * (i + 1), () => i);
+      throw "throwing synchronously in iterable";
+    }), cleanUp: (index) {
       Expect.isFalse(cleanups[index]);
       cleanups[index] = true;
       if (cleanups.every((x) => x)) asyncEnd();
@@ -933,8 +913,9 @@ void testWaitSyncError3() {
   var caughtError;
   var count = 0;
 
-  AsyncError errorCallback(Zone self, ZoneDelegate parent, Zone zone,
-      Object error, StackTrace stackTrace) {
+  AsyncError errorCallback(
+      Zone self, ZoneDelegate parent, Zone zone, Object error,
+      StackTrace stackTrace) {
     Expect.equals(0, count);
     count++;
     caughtError = error;
@@ -957,20 +938,18 @@ void testBadFuture() {
   asyncStart();
   Completer completer = new Completer();
   completer.complete(bad);
-  completer.future.then((_) {
-    Expect.fail("unreachable");
-  }, onError: (e, s) {
-    Expect.isTrue(completer.isCompleted);
-    asyncEnd();
-  });
+  completer.future.then((_) { Expect.fail("unreachable"); },
+                        onError: (e, s) {
+                          Expect.isTrue(completer.isCompleted);
+                          asyncEnd();
+                        });
 
   asyncStart();
   var f = new Future.value().then((_) => bad);
-  f.then((_) {
-    Expect.fail("unreachable");
-  }, onError: (e, s) {
-    asyncEnd();
-  });
+  f.then((_) { Expect.fail("unreachable"); },
+         onError: (e, s) {
+           asyncEnd();
+         });
 }
 
 void testTypes() {
@@ -981,26 +960,26 @@ void testTypes() {
     Expect.isFalse(future is Future<String>, "$desc is! Future<String>");
     var stream = future.asStream();
     Expect.isTrue(stream is Stream<int>, "$desc.asStream() is Stream<int>");
-    Expect.isFalse(
-        stream is Stream<String>, "$desc.asStream() is! Stream<String>");
+    Expect.isFalse(stream is Stream<String>,
+                   "$desc.asStream() is! Stream<String>");
     if (depth > 0) {
-      testType(name, future.whenComplete(() {}), depth - 1);
+      testType(name, future.whenComplete((){}), depth - 1);
     }
   }
-
   for (var value in [42, null]) {
-    testType("Future($value)", new Future<int>(() => value));
+    testType("Future($value)",
+             new Future<int>(() => value));
     testType("Future.delayed($value)",
-        new Future<int>.delayed(Duration.ZERO, () => value));
-    testType(
-        "Future.microtask($value)", new Future<int>.microtask(() => value));
+             new Future<int>.delayed(Duration.ZERO, () => value));
+    testType("Future.microtask($value)",
+             new Future<int>.microtask(() => value));
     testType("Future.sync($value)", new Future<int>.sync(() => value)); // //# 01: ok
     testType("Future.sync(future($value))", //                             //# 01: continued
              new Future<int>.sync(() async => new Future.value(value))); //# 01: continued
     testType("Future.value($value)", new Future<int>.value(value));
   }
   testType("Completer.future", new Completer<int>().future);
-  testType("Future.error", new Future<int>.error("ERR")..catchError((_) {}));
+  testType("Future.error", new Future<int>.error("ERR")..catchError((_){}));
 }
 
 void testAnyValue() {
@@ -1076,9 +1055,7 @@ void testFutureResult() {
   () async {
     var f = new UglyFuture(5);
     // Sanity check that our future is as mis-behaved as we think.
-    f.then((v) {
-      Expect.isTrue(v is Future);
-    });
+    f.then((v) { Expect.isTrue(v is Future); });
 
     var v = await f;
     // The static type of await is Flatten(static-type-of-expression), so it
@@ -1193,19 +1170,15 @@ class BadFuture<T> implements Future<T> {
   Future then(action(T result), {Function onError}) {
     throw "then GOTCHA!";
   }
-
   Future catchError(Function onError, {bool test(e)}) {
     throw "catch GOTCHA!";
   }
-
   Future whenComplete(action()) {
     throw "finally GOTCHA!";
   }
-
   Stream<T> asStream() {
     throw "asStream GOTCHA!";
   }
-
   Future timeout(Duration duration, {onTimeout()}) {
     throw "timeout GOTCHA!";
   }
@@ -1214,26 +1187,20 @@ class BadFuture<T> implements Future<T> {
 // An evil future that completes with another future.
 class UglyFuture implements Future<dynamic> {
   final _result;
-  UglyFuture(int badness)
-      : _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
+  UglyFuture(int badness) :
+      _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
   Future then(action(value), {onError(error, StackTrace stack)}) {
     var c = new Completer();
     c.complete(new Future.microtask(() => action(_result)));
     return c.future;
   }
-
-  Future catchError(onError, {test}) => this; // Never an error.
+  Future catchError(onError, {test}) => this;  // Never an error.
   Future whenComplete(action()) {
     return new Future.microtask(action).then((_) => this);
   }
-
   Stream asStream() {
-    return (new StreamController()
-          ..add(_result)
-          ..close())
-        .stream;
+    return (new StreamController()..add(_result)..close()).stream;
   }
-
   Future timeout(Duration duration, {onTimeout()}) {
     return this;
   }

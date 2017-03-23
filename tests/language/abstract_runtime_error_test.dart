@@ -10,6 +10,7 @@ import "package:expect/expect.dart";
 //   If q is a constructor of an abstract class then an
 //   AbstractClassInstantiation- Error is thrown.
 
+
 abstract class Interface {
   void foo(); //# 03: static type warning
 }

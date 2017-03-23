@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 import 'package:expect/expect.dart';
 
 import 'dart:async';
 
-topLevelFunction() async {}
+topLevelFunction() async { }
 
 Future<int> topLevelWithParameter(int a) async {
   return 7 + a;
@@ -36,7 +37,7 @@ class A {
 
   int someMethod(int param1, int param2, int param3) async => _x + param2; //# type-mismatch3: static type warning, dynamic type error
   int get getter async { return 5 + _x; } //# type-mismatch4: static type warning, dynamic type error
-  operator +(A other) async {
+  operator+(A other) async {
     return new A(_x + other._x);
   }
 
@@ -52,6 +53,7 @@ class B {
 
   set dontDoThat(value) async {} // //# setter1: compile-time error
 }
+
 
 main() {
   var asyncReturn;
@@ -98,8 +100,7 @@ main() {
     var z = 8;
     return p2 + z + foo;
   }
-
-  asyncReturn = bar(1, 2);
+  asyncReturn = bar(1,2);
   Expect.isTrue(asyncReturn is Future);
   asyncReturn.then((int result) => Expect.equals(result, 27));
 
@@ -108,7 +109,6 @@ main() {
     aa(int shadowP1) async {
       return foo + z + p3 + shadowP1;
     }
-
     return aa(6);
   };
   asyncReturn = moreNesting(1, "ignore", 2);

@@ -29,7 +29,7 @@ class D {
 }
 
 class E {
-  G operator +(int i) => new I();
+  G operator+(int i) => new I();
 }
 
 class F {}

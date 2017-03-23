@@ -6,12 +6,11 @@ import "package:expect/expect.dart";
 
 // Test of parameterized types with invalid bounds.
 
-abstract class J<T> {}
+abstract class J<T> { }
 
-abstract class K<T> {}
+abstract class K<T> { }
 
-abstract class I<
-    T
+abstract class I<T
   extends num //# 00: continued
   extends num //# 01: continued
   extends num //# 02: continued
@@ -19,9 +18,10 @@ abstract class I<
   extends num //# 04: continued
   extends num //# 05: continued
   extends num //# 06: continued
-    > {}
+> { }
 
-class A<T> implements I<T>, J<T> {}
+class A<T> implements I<T>, J<T> {
+}
 
 main() {
   var a = new A<String>();
@@ -58,6 +58,6 @@ main() {
     Expect.isTrue(a is J);
 
     // In both production and checked modes, A<int> is not a subtype of K.
-    Expect.isTrue(a is! K);
+    Expect.isTrue(a is !K);
   }
 }

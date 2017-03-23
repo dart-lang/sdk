@@ -2,24 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class S0<T> {}
+class S0<T> { }
 
-class S<U extends num, V extends U> extends S0<String> {}
+class S<U extends num, V extends U> extends S0<String> { }
 
-class M<U extends num, V extends U> {}
+class M<U extends num, V extends U> { }
 
-class A<U extends num, V extends U> extends S with M {}
+class A<U extends num, V extends U> extends S with M { }
 
 // A StaticWarning is reported here and in C, D, and E below, because U and V
 // are not bounded. The purpose of this test is to verify bound checking in S,
 // M, and A, the reason no bounds are declared for U and V here.
-class B<U, V> extends S<U, V> with M<int, int> {}
+class B<U, V> extends S<U, V> with M<int, int> { }
 
-class C<U, V> extends S<int, int> with M<U, V> {}
+class C<U, V> extends S<int, int> with M<U, V> { }
 
-class D<U, V> extends S<U, V> with M<double, int> {}
+class D<U, V> extends S<U, V> with M<double, int> { }
 
-class E<U, V> extends S<double, int> with M<U, V> {}
+class E<U, V> extends S<double, int> with M<U, V> { }
 
 main() {
   new A<int, int>(); // //# 01: static type warning

@@ -10,8 +10,10 @@ foo() async {
     try {
       await for (var c in new Stream.fromIterable([])) {} // //# 01: ok
       await 0; // //# 02: ok
-    } catch (error) {}
-  } catch (error) {}
+    } catch (error) {
+    }
+  } catch (error) {
+  }
   throw "error";
 }
 
@@ -24,3 +26,4 @@ main() async {
   }
   Expect.equals("error", error);
 }
+
