@@ -7,14 +7,14 @@ import "package:expect/expect.dart";
 import "dart:math" show pow;
 
 var smallNumber = 1234567890; //   is 31-bit integer.
-var mediumNumber = 1234567890123456;  // is 53-bit integer
-var bigNumber = 590295810358705600000;  // is > 64-bit integer, exact as double.
+var mediumNumber = 1234567890123456; // is 53-bit integer
+var bigNumber = 590295810358705600000; // is > 64-bit integer, exact as double.
 
 testModPow() {
   test(x, e, m, expectedResult) {
     // Check that expected result is correct, using an unoptimized version.
     assert(() {
-      if (1 is double) return true;  // Don't have bignums.
+      if (1 is double) return true; // Don't have bignums.
       slowModPow(x, e, m) {
         var r = 1;
         while (e > 0) {
@@ -24,6 +24,7 @@ testModPow() {
         }
         return r;
       }
+
       return slowModPow(x, e, m) == expectedResult;
     });
     var result = x.modPow(e, m);
@@ -45,31 +46,18 @@ testModPow() {
   test(10000000000000000001, 12345678901234567890, 19, 1);
   test(12345678901234567890, 19, 10000000000000000001, 3239137215315834625);
   test(12345678901234567890, 10000000000000000001, 19, 2);
-  test(123456789012345678901234567890,
-       123456789012345678901234567891,
-       123456789012345678901234567899,
-       116401406051033429924651549616);
-  test(123456789012345678901234567890,
-       123456789012345678901234567899,
-       123456789012345678901234567891,
-       123456789012345678901234567890);
-  test(123456789012345678901234567899,
-       123456789012345678901234567890,
-       123456789012345678901234567891,
-       35088523091000351053091545070);
-  test(123456789012345678901234567899,
-       123456789012345678901234567891,
-       123456789012345678901234567890,
-       18310047270234132455316941949);
-  test(123456789012345678901234567891,
-       123456789012345678901234567899,
-       123456789012345678901234567890,
-       1);
-  test(123456789012345678901234567891,
-       123456789012345678901234567890,
-       123456789012345678901234567899,
-       40128068573873018143207285483);
-
+  test(123456789012345678901234567890, 123456789012345678901234567891,
+      123456789012345678901234567899, 116401406051033429924651549616);
+  test(123456789012345678901234567890, 123456789012345678901234567899,
+      123456789012345678901234567891, 123456789012345678901234567890);
+  test(123456789012345678901234567899, 123456789012345678901234567890,
+      123456789012345678901234567891, 35088523091000351053091545070);
+  test(123456789012345678901234567899, 123456789012345678901234567891,
+      123456789012345678901234567890, 18310047270234132455316941949);
+  test(123456789012345678901234567891, 123456789012345678901234567899,
+      123456789012345678901234567890, 1);
+  test(123456789012345678901234567891, 123456789012345678901234567890,
+      123456789012345678901234567899, 40128068573873018143207285483);
 }
 
 testModInverse() {
@@ -147,6 +135,7 @@ testGcd() {
     assert(expectedResult == 0 || other % expectedResult == 0);
     callCombos(value, other, (a, b) {
       var result = a.gcd(b);
+
       /// Check that the result is a divisor.
       Expect.equals(0, result == 0 ? a : a % result, "$result | $a");
       Expect.equals(0, result == 0 ? b : b % result, "$result | $b");
@@ -164,19 +153,19 @@ testGcd() {
     });
   }
 
-  testThrows(2.5, 5);  // Not a method on double.
-  testThrows(5, 2.5);  // Not accepting non-int arguments.
+  testThrows(2.5, 5); // Not a method on double.
+  testThrows(5, 2.5); // Not accepting non-int arguments.
 
   // Format:
   //  test(value1, value2, expectedResult);
   test(1, 1, 1); //     both are 1
   test(1, 2, 1); //     one is 1
   test(3, 5, 1); //     coprime.
-  test(37, 37, 37);  // Same larger prime.
+  test(37, 37, 37); // Same larger prime.
 
-  test(9999, 7272, 909);  // Larger numbers
+  test(9999, 7272, 909); // Larger numbers
 
-  test(0, 1000, 1000);  // One operand is zero.
+  test(0, 1000, 1000); // One operand is zero.
   test(0, 0, 0); //        Both operands are zero.
 
   // Multiplying both operands by a number multiplies result by same number.
@@ -185,7 +174,7 @@ testGcd() {
   test(693 * 937, 609 * 937, 21 * 937);
   test(693 * pow(2, 32), 609 * pow(2, 32), 21 * pow(2, 32));
   test(693 * pow(2, 52), 609 * pow(2, 52), 21 * pow(2, 52));
-  test(693 * pow(2, 53), 609 * pow(2, 53), 21 * pow(2, 53));  // Regression.
+  test(693 * pow(2, 53), 609 * pow(2, 53), 21 * pow(2, 53)); // Regression.
   test(693 * pow(2, 99), 609 * pow(2, 99), 21 * pow(2, 99));
 
   test(1234567890, 19, 1);
@@ -197,9 +186,8 @@ testGcd() {
 
   test(pow(2, 54), pow(2, 53), pow(2, 53));
 
-  test((pow(2, 52) - 1) * pow(2, 14),
-       (pow(2, 26) - 1) * pow(2, 22),
-       (pow(2, 26) - 1) * pow(2, 14));
+  test((pow(2, 52) - 1) * pow(2, 14), (pow(2, 26) - 1) * pow(2, 22),
+      (pow(2, 26) - 1) * pow(2, 14));
 }
 
 main() {
@@ -207,4 +195,3 @@ main() {
   testModInverse();
   testGcd();
 }
-

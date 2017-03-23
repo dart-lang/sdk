@@ -12,8 +12,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-class main_closure {
-}
+class main_closure {}
 
 confuse(x) {
   if (new DateTime.now().millisecondsSinceEpoch == 42) return confuse(() => 42);
@@ -32,6 +31,6 @@ main() {
     if (c is ClassMirror && c.superclass != null) {
       collectedParents.add(MirrorSystem.getName(c.superclass.simpleName));
     }
-  };
+  }
   Expect.listEquals(["Object"], collectedParents); //  //# 00: ok
 }

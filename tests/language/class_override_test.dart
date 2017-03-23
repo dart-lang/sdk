@@ -18,7 +18,6 @@ main() {
   try {
     instance.foo();
   } on NoSuchMethodError catch (error) { // //# 00: continued
-  } finally {
-  }
+  } finally {}
   print("Success");
 }

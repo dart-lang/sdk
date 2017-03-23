@@ -9,6 +9,3 @@ main() {
       <String, String> // //# 01: static type warning, checked mode compile-time error
       {"a": 0};
 }
-
-
-

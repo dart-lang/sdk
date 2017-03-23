@@ -20,8 +20,8 @@ class Class {
       : this.constGenerativeConstructor();
   // Not legal.
   // const factory Class.constFactoryConstructor() => ...
-  const factory Class.constRedirectingFactoryConstructor()
-      = Class.constGenerativeConstructor;
+  const factory Class.constRedirectingFactoryConstructor() =
+      Class.constGenerativeConstructor;
 }
 
 main() {
@@ -43,7 +43,8 @@ main() {
 
   cm = reflectClass(ClassWithDefaultConstructor);
   mm = cm.declarations.values
-      .where((d) => d is MethodMirror && d.isConstructor).single;
+      .where((d) => d is MethodMirror && d.isConstructor)
+      .single;
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);

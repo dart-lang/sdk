@@ -30,7 +30,7 @@ foo5() async {
   return 3;
 }
 
-Future<int> foo6() async { 
+Future<int> foo6() async {
   // This is fine, the future is flattened
   return new Future<int>.value(3);
 }
@@ -40,13 +40,12 @@ foo7() async {
   return new Future<int>.value(3);
 }
 
-
 Iterable<int> foo8() sync* {
   yield 1;
   // Can only have valueless return in sync* functions.
   return
       8 //# return_value_sync_star: compile-time error
-       ;
+      ;
 }
 
 Stream<int> foo9() async* {
@@ -54,7 +53,7 @@ Stream<int> foo9() async* {
   // Can only have valueless return in async* functions.
   return
       8 //# return_value_sync_star: compile-time error
-       ;
+      ;
 }
 
 test() async {

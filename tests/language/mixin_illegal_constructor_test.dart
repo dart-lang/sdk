@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class M0 {
-  factory M0(a,b,c) => null;
+  factory M0(a, b, c) => null;
   factory M0.named() => null;
 }
 
@@ -23,7 +23,7 @@ class C4 = Object with M1, M0; // //# 04: compile-time error
 class C5 = Object with M0, M2; // //# 05: compile-time error
 class C6 = Object with M2, M0; // //# 06: compile-time error
 
-class D0 extends Object with M0 { }
+class D0 extends Object with M0 {}
 class D1 extends Object with M1 { } //     //# 07: compile-time error
 class D2 extends Object with M2 { } //     //# 08: compile-time error
 class D3 extends Object with M0, M1 { } // //# 09: compile-time error

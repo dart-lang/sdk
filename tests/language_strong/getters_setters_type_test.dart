@@ -13,7 +13,9 @@ get foo => bar;
 
 void set foo(
              String //  //# 01: continued
-             str) { bar = str.length; }
+    str) {
+  bar = str.length;
+}
 
 main() {
   int x = foo;

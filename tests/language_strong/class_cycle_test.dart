@@ -5,17 +5,14 @@
 
 import "package:expect/expect.dart";
 
-class Foo implements Bar {
-}
+class Foo implements Bar {}
 
-class C {
-}
+class C {}
 
 class Bar
     extends Foo // //# 00: compile-time error
     implements Foo // //# 01: compile-time error
-{
-}
+{}
 
 class ImplementsC implements C
 , C // //# 02: compile-time error
@@ -32,4 +29,3 @@ main() {
   Expect.isTrue(new ImplementsC() is C);
   Expect.isTrue(new ExtendsC() is C);
 }
-

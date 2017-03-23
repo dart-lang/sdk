@@ -20,7 +20,7 @@ returnFoo() {
 }
 
 class Bar {
-  operator==(other) => false;
+  operator ==(other) => false;
 }
 
 var a = [false, true, new Object(), new Bar()];

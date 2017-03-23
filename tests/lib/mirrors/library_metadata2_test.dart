@@ -10,7 +10,7 @@ import 'library_metadata2_lib2.dart'; //# 01: compile-time error
 
 void main() {
   for (var library in currentMirrorSystem().libraries.values) {
-    print(library.metadata);  // Processing @MyConst() in lib2 results in a
-                              // delayed compilation error here.
+    print(library.metadata); // Processing @MyConst() in lib2 results in a
+    // delayed compilation error here.
   }
 }

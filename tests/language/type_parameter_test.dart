@@ -18,32 +18,31 @@ class A<T> {
 
   static
   T //# 01: static type warning, dynamic type error
-  staticMethod(
+      staticMethod(
   T //# 02: static type warning, dynamic type error
-  a) {
+          a) {
     final
     T //# 03: static type warning, dynamic type error
-    a = "not_null";
+        a = "not_null";
     print(a);
     return a;
   }
 
   static final
   T //# 04: static type warning, dynamic type error
-  staticFinalField = "not_null";
+      staticFinalField = "not_null";
 
   static const
   T //# 05: static type warning, checked mode compile-time error
-  staticConstField = "not_null";
+      staticConstField = "not_null";
 
   static not_null() => "not_null";
   static final
   T //# 06: static type warning, dynamic type error
-  staticFinalField2 = not_null();
+      staticFinalField2 = not_null();
 
   // Assigning null to a malformed type is not a dynamic error.
-  static
-  T staticMethod2(T a) {
+  static T staticMethod2(T a) {
     final T a = null;
     print(a);
     return a;

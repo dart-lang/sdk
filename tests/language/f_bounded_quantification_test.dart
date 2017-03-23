@@ -16,7 +16,6 @@ class Baz<T> extends FBound<Baz<T>> {}
 
 class SubBaz<T> extends Baz<T> {}
 
-
 isCheckedMode() {
   try {
     var i = 1;

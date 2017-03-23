@@ -13,7 +13,9 @@ class A {
   var m;
   A.m() { m = 0; } // //# 04: compile-time error
 
-  set q(var value) { m = 0; }  // No name conflict with q=.
+  set q(var value) {
+    m = 0;
+  } // No name conflict with q=.
   A.q(); //  //# 05: ok
   A(); //    //# 05: ok
 

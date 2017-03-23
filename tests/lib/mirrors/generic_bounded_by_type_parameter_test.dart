@@ -11,6 +11,7 @@ import 'package:expect/expect.dart';
 import 'generics_helper.dart';
 
 class Super<T, R extends T> {}
+
 class Fixed extends Super<num, int> {}
 class Generic<X, Y> extends Super<X, Y> {} //# 02: static type warning
 class Malbounded extends Super<num, String> {} //# 01: static type warning
@@ -19,7 +20,7 @@ bool inCheckedMode() {
   try {
     var s = 'string';
     int i = s;
-  } catch(e) {
+  } catch (e) {
     return true;
   }
   return false;
@@ -44,7 +45,7 @@ main() {
     typeArguments(genericOfNumAndBool, [reflectClass(num), reflectClass(bool)]); // //# 02: continued
     typeArguments(superOfNumAndBool, [reflectClass(num), reflectClass(bool)]); // //# 02: continued
     Expect.isFalse(inCheckedMode()); //# 02: continued
-  } on TypeError catch(e) {
+  } on TypeError catch (e) {
     Expect.isTrue(inCheckedMode());
   }
 

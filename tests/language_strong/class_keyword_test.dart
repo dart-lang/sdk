@@ -5,6 +5,7 @@
 // Test that "class" cannot be used as identifier.
 
 class foo {}
+
 void main() {
   int class = 10; //# 01: compile-time error
   print("$class"); //# 02: compile-time error

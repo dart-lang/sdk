@@ -4,7 +4,7 @@
 
 class A {
   final x; //      //# 01: ok
-                 /// 02: compile-time error
+  /// 02: compile-time error
   var x; //        //# 03: compile-time error
   get x => null; //# 04: compile-time error
   set x(v) {} //   //# 05: compile-time error

@@ -15,7 +15,7 @@ main() {
   Expect.throws(() => list[0] = 3);
   Expect.equals(1, list[0]);
 
-  var m = const { 'foo': 499 };
+  var m = const {'foo': 499};
   Expect.throws(() => m['foo'] = 42);
   Expect.equals(499, m['foo']);
 

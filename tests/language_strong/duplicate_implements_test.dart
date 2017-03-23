@@ -4,9 +4,11 @@
 // Check that duplicate types in implements/extends list are
 // compile-time errors.
 
-abstract class I { }
-abstract class J { }
-abstract class K<T> { }
+abstract class I {}
+
+abstract class J {}
+
+abstract class K<T> {}
 
 class X implements I, J, I { } //              //# 01: compile-time error
 class X implements J, I, K<int>, K<int> { } // //# 02: compile-time error

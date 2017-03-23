@@ -16,12 +16,14 @@ const identical_gg = identical(g, g);
 const a = const {
   identical_ff: 0, //# 01: static type warning
   identical_gg: 0, //# 02: static type warning
-  true: 0 };
+  true: 0
+};
 
 const b = const {
   identical_fg: 0, //# 03: static type warning
   identical_gf: 0, //# 04: static type warning
-  false: 0 };
+  false: 0
+};
 
 use(x) => x;
 

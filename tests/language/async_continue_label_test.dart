@@ -9,16 +9,22 @@ import "package:async_helper/async_helper.dart";
 test1() async {
   var r = 0;
   label:
-  for(var i = 1, j =
+  for (var i = 1,
+          j =
       await //# await_in_init: ok
-                     10; i < 10 && j > 
+              10;
+      i < 10 &&
+          j >
       await //# await_in_condition: ok
-                                       -5; j--, i +=
+              -5;
+      j--,
+      i +=
       await //# await_in_update: ok
-                                                     1) {
-    if (i < 
+          1) {
+    if (i <
         await //# await_in_body: ok
-            5 || j < -5) {
+            5 ||
+        j < -5) {
       continue label;
     }
     r++;
@@ -30,16 +36,18 @@ test1() async {
 test2() async {
   var r = 0;
   label:
-  for(var i = 
+  for (var i =
      await //# await_in_init: ok
-              0; i < 
+          0;
+      i <
      await //# await_in_condition: ok
-                     10; i +=
+          10;
+      i +=
      await //# await_in_update: ok
-                              1) {
+          1) {
     if (i <
         await //# await_in_body: ok
-            5) {
+        5) {
       continue label;
     }
     r++;
@@ -51,16 +59,18 @@ test2() async {
 test3() async {
   var r = 0, i, j;
   label:
-  for(i =
+  for (i =
       await //# await_in_init: ok
-           0; i < 
+          0;
+      i <
       await //# await_in_condition: ok
-                   10; i +=
+          10;
+      i +=
       await //# await_in_update: ok
-                            1) {
-    if (i < 
+          1) {
+    if (i <
         await //# await_in_body: ok
-            5) {
+        5) {
       continue label;
     }
     r++;
@@ -72,19 +82,21 @@ test3() async {
 test4() async {
   var r = 0;
   label:
-  for(var i = 
+  for (var i =
       await //# await_in_init: ok
-              0; i <
+          0;
+      i <
       await //# await_in_condition: ok
-                      10; i+=
+          10;
+      i +=
       await //# await_in_update: ok
-                              1) {
+          1) {
     if (i <
         await //# await_in_body: ok
-            5) {
+        5) {
       for (int i = 0; i < 10; i++) {
         continue label;
-      } 
+      }
     }
     r++;
   }

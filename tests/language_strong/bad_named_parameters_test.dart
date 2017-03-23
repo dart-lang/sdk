@@ -5,15 +5,13 @@
 
 import "package:expect/expect.dart";
 
-
 class BadNamedParametersTest {
-
   int f42(int a, {int b: 20, int c: 30}) {
-    return 100*(100*a + b) + c;
+    return 100 * (100 * a + b) + c;
   }
 
   int f52(int a, {int b: 20, int c, int d: 40}) {
-    return 100*(100*(100*a + b) + (c == null ? 0 : c)) + d;
+    return 100 * (100 * (100 * a + b) + (c == null ? 0 : c)) + d;
   }
 
   static testMain() {

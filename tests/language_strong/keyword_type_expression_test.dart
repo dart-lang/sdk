@@ -9,7 +9,7 @@ in greeting = "fisk"; // //# 01: compile-time error
 
 main(
 in greeting // //# 02: compile-time error
-) {
+    ) {
   in greeting = "fisk"; // //# 03: compile-time error
   print(greeting); // //# 01: continued
 }

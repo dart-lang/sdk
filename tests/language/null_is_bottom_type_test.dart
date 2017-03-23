@@ -7,6 +7,7 @@
 import 'package:expect/expect.dart';
 
 class A {}
+
 typedef A ReturnA();
 typedef TakeA(A a);
 typedef Null ReturnNull();

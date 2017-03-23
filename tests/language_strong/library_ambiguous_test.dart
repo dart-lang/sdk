@@ -5,8 +5,8 @@
 // This test should fail to load because we are importing two libraries
 // which define the same top level name foo, and we are referring to the name.
 
-import "library1.dart";  // Defines top level variable 'foo'
-import "library2.dart";  // Defines top level variable 'foo'
+import "library1.dart"; // Defines top level variable 'foo'
+import "library2.dart"; // Defines top level variable 'foo'
 
 class X
 extends baw //  //# 05: compile-time error

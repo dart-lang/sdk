@@ -9,7 +9,6 @@ set x(var i) { print(i); } //     //# 01: compile-time error
 
 int x(a, b) { print(a + b); } //  //# 02: compile-time error
 
-
 void main() {
   // No need to reference x.
 }

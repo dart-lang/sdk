@@ -8,19 +8,20 @@
 // modification errors.
 
 library hash_map2_test;
+
 import "package:expect/expect.dart";
 import 'dart:collection';
 import 'dart:math' as math;
 
 testSet(Set newSet(), Set newSetFrom(Iterable from)) {
-
   Set gen(int from, int to) =>
       new Set.from(new Iterable.generate(to - from, (n) => n + from));
 
   bool odd(int n) => (n & 1) == 1;
   bool even(int n) => (n & 1) == 0;
 
-  {  // Test growing to largish capacity.
+  {
+    // Test growing to largish capacity.
     Set set = newSet();
 
     for (int i = 0; i < 256; i++) {
@@ -42,7 +43,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.equals(1000, set.length);
   }
 
-  {  // Test having many deleted elements.
+  {
+    // Test having many deleted elements.
     Set set = newSet();
     set.add(0);
     for (int i = 0; i < 1000; i++) {
@@ -52,7 +54,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     }
   }
 
-  {  // Test having many elements with same hashCode
+  {
+    // Test having many elements with same hashCode
     Set set = newSet();
     for (int i = 0; i < 1000; i++) {
       set.add(new BadHashCode());
@@ -60,19 +63,22 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.equals(1000, set.length);
   }
 
-  {  // Check concurrent modification
+  {
+    // Check concurrent modification
     Set set = newSet()..add(0)..add(1);
 
-    {  // Test adding before a moveNext.
+    {
+      // Test adding before a moveNext.
       Iterator iter = set.iterator;
       iter.moveNext();
-      set.add(1);  // Updating existing key isn't a modification.
+      set.add(1); // Updating existing key isn't a modification.
       iter.moveNext();
       set.add(2);
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test adding after last element.
+    {
+      // Test adding after last element.
       Iterator iter = set.iterator;
       Expect.equals(3, set.length);
       iter.moveNext();
@@ -82,10 +88,11 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test removing during iteration.
+    {
+      // Test removing during iteration.
       Iterator iter = set.iterator;
       iter.moveNext();
-      set.remove(1000);  // Not a modification if it's not there.
+      set.remove(1000); // Not a modification if it's not there.
       iter.moveNext();
       int n = iter.current;
       set.remove(n);
@@ -94,7 +101,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test removing after last element.
+    {
+      // Test removing after last element.
       Iterator iter = set.iterator;
       Expect.equals(3, set.length);
       iter.moveNext();
@@ -107,7 +115,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
       Expect.throws(iter.moveNext, (e) => e is Error);
     }
 
-    {  // Test that updating value doesn't cause error.
+    {
+      // Test that updating value doesn't cause error.
       Iterator iter = set.iterator;
       Expect.equals(2, set.length);
       iter.moveNext();
@@ -117,7 +126,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
       Expect.isTrue(set.contains(iter.current));
     }
 
-    {  // Check adding many existing values isn't considered modification.
+    {
+      // Check adding many existing values isn't considered modification.
       Set set2 = newSet();
       for (var value in set) {
         set2.add(value);
@@ -129,29 +139,31 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     }
   }
 
-  {  // Check that updating existing elements is not a modification.
-     // This must be the case even if the underlying data structure is
-     // nearly full.
-     for (int i = 1; i < 128; i++) {
-        // Create maps of different sizes, some of which should be
-        // at a limit of the underlying data structure.
-        Set set = newSetFrom(gen(0, i));
-        Iterator iter = set.iterator;
-        for (int j = 0; j < i; j++) {
-          set.add(j);
-        }
-        iter.moveNext();  // Should not throw.
+  {
+    // Check that updating existing elements is not a modification.
+    // This must be the case even if the underlying data structure is
+    // nearly full.
+    for (int i = 1; i < 128; i++) {
+      // Create maps of different sizes, some of which should be
+      // at a limit of the underlying data structure.
+      Set set = newSetFrom(gen(0, i));
+      Iterator iter = set.iterator;
+      for (int j = 0; j < i; j++) {
+        set.add(j);
+      }
+      iter.moveNext(); // Should not throw.
 
-        for (int j = 1; j < i; j++) {
-          set.remove(j);
-        }
-        iter = set.iterator;
-        set.add(0);
-        iter.moveNext();  // Should not throw.
-     }
+      for (int j = 1; j < i; j++) {
+        set.remove(j);
+      }
+      iter = set.iterator;
+      set.add(0);
+      iter.moveNext(); // Should not throw.
+    }
   }
 
-  {  // Check that null can be in the set.
+  {
+    // Check that null can be in the set.
     Set set = newSet();
     set.add(null);
     Expect.equals(1, set.length);
@@ -194,7 +206,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.isFalse(set.contains(null));
   }
 
-  {  // Check that addAll and clear works.
+  {
+    // Check that addAll and clear works.
     Set set = newSet();
     set.addAll([]);
     Expect.isTrue(set.isEmpty);
@@ -208,7 +221,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.isTrue(set.isEmpty);
   }
 
-  {  // Check that removeWhere and retainWhere work.
+  {
+    // Check that removeWhere and retainWhere work.
     Set set = newSetFrom([1, 2, 3]);
     set.removeWhere((each) => each == 2);
     Expect.equals(2, set.length);
@@ -222,7 +236,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.isTrue(set.contains(3));
   }
 
-  {  // Test lookup
+  {
+    // Test lookup
     Set set = newSet();
     var m1a = new Mutable(1);
     var m1b = new Mutable(1);
@@ -240,7 +255,7 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.identical(m2a, set.lookup(m2a));
     Expect.identical(m2a, set.lookup(m2b));
 
-    set.add(m2b);  // Adding doesn't change element.
+    set.add(m2b); // Adding doesn't change element.
     Expect.identical(m2a, set.lookup(m2a));
     Expect.identical(m2a, set.lookup(m2b));
 
@@ -255,7 +270,8 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.identical(-0.0, set.lookup(0.0));
   }
 
-  {  // Test special hash codes
+  {
+    // Test special hash codes
     Set set = newSet();
     List keys = [];
     // Powers of two
@@ -271,22 +287,23 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
   }
 }
 
-
 void testIdentitySet(Set create()) {
   Set set = create();
   set.add(1);
   set.add(2);
-  set.add(1);  // Integers are identical if equal.
+  set.add(1); // Integers are identical if equal.
   Expect.equals(2, set.length);
   var complex = 4;
-  complex = set.length == 2 ? complex ~/ 4 : 87;  // Avoid compile-time constant.
-  Expect.isTrue(set.contains(complex));  // 1 is in set, even if computed.
+  complex = set.length == 2 ? complex ~/ 4 : 87; // Avoid compile-time constant.
+  Expect.isTrue(set.contains(complex)); // 1 is in set, even if computed.
   set.clear();
 
   // All compile time constants are identical to themselves.
-  var constants = [double.INFINITY,
+  var constants = [
+    double.INFINITY,
                    double.NAN, -0.0, //# 01: ok
-                   0.0, 42, "", null, false, true, #bif, testIdentitySet];
+    0.0, 42, "", null, false, true, #bif, testIdentitySet
+  ];
   set.addAll(constants);
   Expect.equals(constants.length, set.length);
   for (var c in constants) {
@@ -298,7 +315,7 @@ void testIdentitySet(Set create()) {
   var m1 = new Mutable(1);
   var m2 = new Mutable(2);
   var m3 = new Mutable(3);
-  var m4 = new Mutable(2);  // Equal to m2, but not identical.
+  var m4 = new Mutable(2); // Equal to m2, but not identical.
   set.addAll([m1, m2, m3, m4]);
   Expect.equals(4, set.length);
   Expect.equals(3, m3.hashCode);
@@ -315,7 +332,6 @@ void testIdentitySet(Set create()) {
   Expect.identical(null, set.lookup(m3));
 }
 
-
 void main() {
   testSet(() => new Set(), (m) => new Set.from(m));
   testSet(() => new HashSet(), (m) => new HashSet.from(m));
@@ -323,13 +339,11 @@ void main() {
   testIdentitySet(() => new Set.identity());
   testIdentitySet(() => new HashSet.identity());
   testIdentitySet(() => new LinkedHashSet.identity());
-  testIdentitySet(() => new HashSet(equals: (x, y) => identical(x, y),
-                                    hashCode: (x) => identityHashCode(x)));
-  testIdentitySet(
-      () => new LinkedHashSet(equals: (x, y) => identical(x, y),
-                              hashCode: (x) => identityHashCode(x)));
+  testIdentitySet(() => new HashSet(
+      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
+  testIdentitySet(() => new LinkedHashSet(
+      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
 }
-
 
 class BadHashCode {
   static int idCounter = 0;
@@ -345,5 +359,5 @@ class Mutable {
   int id;
   Mutable(this.id);
   int get hashCode => id;
-  bool operator==(other) => other is Mutable && id == other.id;
+  bool operator ==(other) => other is Mutable && id == other.id;
 }

@@ -7,16 +7,16 @@
 get f1 => null;
 get f2
 () //# 01: compile-time error
-=> null;
+    => null;
 get f3
 (arg) //# 02: compile-time error
-=> null;
+    => null;
 get f4
 ([arg]) //# 03: compile-time error
-=> null;
+    => null;
 get f5
 ({arg}) //# 04: compile-time error
-=> null;
+    => null;
 
 main() {
   f1;
@@ -25,4 +25,3 @@ main() {
   f4;
   f5;
 }
-

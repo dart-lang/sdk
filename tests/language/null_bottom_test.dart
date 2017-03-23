@@ -7,7 +7,11 @@ import "package:expect/expect.dart";
 
 // Test that `Null` acts like the bottom type - less than any other type.
 
-bool isCheckedMode = () { bool c = false; assert(c = true); return c; } ();
+bool isCheckedMode = () {
+  bool c = false;
+  assert(c = true);
+  return c;
+}();
 
 typedef R Fun<A, R>(A argument);
 
@@ -60,8 +64,8 @@ void testClassTypes() {
   C<Null> x1 = cn;
   C<Object> x2 = cn;
 
-  Expect.identical(x1 , cn);
-  Expect.identical(x2 , cn);
+  Expect.identical(x1, cn);
+  Expect.identical(x2, cn);
 
   const C<Null> cocn = const C<Null>();
   const C<Object> coco = cocn;
@@ -72,18 +76,18 @@ void testClassTypes() {
 
   Expect.throws(() {
     Null x = "string" as dynamic;
-    use(x);  // Avoid "x unused" warning.
+    use(x); // Avoid "x unused" warning.
   });
 
   Expect.throws(() {
     Null x = new Object();
-    use(x);  // Avoid "x unused" warning.
+    use(x); // Avoid "x unused" warning.
   });
 
-  NullBound<int> nb = new NullBound<Null>();  // Should not fail.
-  use(nb);  // Avoid "nb unused" warning.
-  ListBound<List<Null>> lb = new ListBound<Null>();  // Should not fails
-  use(lb);  // Avoid "nb unused" warning.
+  NullBound<int> nb = new NullBound<Null>(); // Should not fail.
+  use(nb); // Avoid "nb unused" warning.
+  ListBound<List<Null>> lb = new ListBound<Null>(); // Should not fails
+  use(lb); // Avoid "nb unused" warning.
 }
 
 void testFunctionTypes() {
@@ -106,13 +110,13 @@ void testFunctionTypes() {
   Expect.isTrue(((int _) => null) is Fun<int, Null>);
 
   Null fun(int x) => null;
-  Fun<Null, int> fun2 = fun;  // Safe assignment.
+  Fun<Null, int> fun2 = fun; // Safe assignment.
   if (fun2 is Fun<int, Null>) {
     // If int->Null is *subtype* of Null->int (which it should be),
     // then type promotion succeeds.
     // If type promotion succeeds, the static type is int->Null, otherwise
     // it's Null->int.
-    fun2(42);  // Should not give a warning after type promotion.
+    fun2(42); // Should not give a warning after type promotion.
     fun2(null).abs(); // //# 03: runtime error
   }
 }

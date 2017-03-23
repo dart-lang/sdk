@@ -16,7 +16,7 @@ class Annotation {
 // Note there is no compile-time constant 'foo' in scope. In particular, A.foo
 // is not in scope here.
 @Annotation(foo) // //# 01: compile-time error
-class A <@Annotation(foo) T> {
+class A<@Annotation(foo) T> {
   @Annotation(foo)
   static foo() {}
 
@@ -25,7 +25,7 @@ class A <@Annotation(foo) T> {
 }
 
 @Annotation(B.foo)
-class B <@Annotation(B.foo) T> {
+class B<@Annotation(B.foo) T> {
   @Annotation(B.foo)
   static foo() {}
 
@@ -37,7 +37,7 @@ baz() {}
 
 // Note the top-level function baz is in scope here, not C.baz.
 @Annotation(baz)
-class C <@Annotation(baz) T> {
+class C<@Annotation(baz) T> {
   @Annotation(baz)
   static baz() {}
 }

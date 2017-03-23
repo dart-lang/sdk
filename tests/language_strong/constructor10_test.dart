@@ -4,7 +4,6 @@
 
 // Check that the implicit super call for synthetic constructors are checked.
 
-
 class A {
   final x;
   A(this.x);
@@ -36,8 +35,7 @@ class G extends A {
   */ // //# 02: continued
 }
 
-class H extends G {
-}
+class H extends G {}
 
 main() {
   new B().x;

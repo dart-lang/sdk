@@ -8,7 +8,6 @@ class Foo {
   factory Bar.Baz(); //# 03: compile-time error
 }
 
-
 void main() {
   new Foo();
   new Foo.Foo(); //# 01: continued

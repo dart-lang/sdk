@@ -6,6 +6,7 @@
 // VMOptions=--enable_type_checks --enable_asserts
 
 library MessageTest;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:isolate';
@@ -62,6 +63,7 @@ class E {
   static fooFun() => 499;
   instanceFun() => 1234;
 }
+
 barFun() => 42;
 
 class F {
@@ -78,7 +80,7 @@ class Value {
   final val;
   Value(this.val);
 
-  operator==(other) {
+  operator ==(other) {
     if (other is! Value) return false;
     return other.val == val;
   }
@@ -113,7 +115,9 @@ void runTests(SendPort ping, Queue checks) {
     x[0] = 3;
     Expect.equals(3, x[0]);
     // List must be fixed length.
-    Expect.throws(() { x.add(5); });
+    Expect.throws(() {
+      x.add(5);
+    });
   });
 
   List cyclic = [];
@@ -182,7 +186,7 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(1, uint16View[1]);
   }
   ) //                      //# byteBuffer: ok
-  ;
+      ;
 
   Int32x4List list32x4 = new Int32x4List(2);
   list32x4[0] = new Int32x4(1, 2, 3, 4);
@@ -204,7 +208,7 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals(8, entry2.w);
   }
   ) //                    //# int32x4: ok
-  ;
+      ;
 
   ping.send({"foo": 499, "bar": 32});
   checks.add((x) {
@@ -387,21 +391,24 @@ void runTests(SendPort ping, Queue checks) {
   ping.send(g2);
   ping.send(g3);
 
-  checks.add((x) {  // g1.
+  checks.add((x) {
+    // g1.
     Expect.isTrue(x is G);
     Expect.isFalse(identical(g1, x));
     F f = x.field;
     Expect.equals("field", f.field);
     Expect.isFalse(identical(nonConstF, f));
   });
-  checks.add((x) {  // g2.
+  checks.add((x) {
+    // g2.
     Expect.isTrue(x is G);
     Expect.isFalse(identical(g1, x));
     F f = x.field;
     Expect.equals("field", f.field);
     Expect.identical(constF, f); // //# constInstance: continued
   });
-  checks.add((x) {  // g3.
+  checks.add((x) {
+    // g3.
     Expect.isTrue(x is G);
     Expect.identical(g3, x); // //# constInstance: continued
     F f = x.field;
@@ -450,13 +457,11 @@ void main() {
 
   ReceivePort initialReplyPort = new ReceivePort();
   Isolate
-    .spawn(echoMain, [initialReplyPort.sendPort, testPort.sendPort])
-    .then((_) => initialReplyPort.first)
-    .then((SendPort ping) {
-      runTests(ping, checks);
-      Expect.isTrue(checks.length > 0);
-      completer.future
-        .then((_) => ping.send("halt"))
-        .then((_) => asyncEnd());
-    });
+      .spawn(echoMain, [initialReplyPort.sendPort, testPort.sendPort])
+      .then((_) => initialReplyPort.first)
+      .then((SendPort ping) {
+        runTests(ping, checks);
+        Expect.isTrue(checks.length > 0);
+        completer.future.then((_) => ping.send("halt")).then((_) => asyncEnd());
+      });
 }

@@ -12,4 +12,3 @@ class B {
 }
 
 main() => new B();
-

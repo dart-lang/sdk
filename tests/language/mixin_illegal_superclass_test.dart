@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class S0 { }
-class S1 extends Object { }
-class S2 extends S0 { }
+class S0 {}
 
-class M0 { }
-class M1 extends Object { }
-class M2 extends M0 { }
+class S1 extends Object {}
+
+class S2 extends S0 {}
+
+class M0 {}
+
+class M1 extends Object {}
+
+class M2 extends M0 {}
 
 class C00 = S0 with M0;
 class C01 = S0 with M1;
@@ -37,28 +41,34 @@ class C25 = S2 with M2, M0; // //# 13: compile-time error
 class C26 = S2 with M1, M2; // //# 14: compile-time error
 class C27 = S2 with M2, M1; // //# 15: compile-time error
 
-class D00 extends S0 with M0 { }
-class D01 extends S0 with M1 { }
+class D00 extends S0 with M0 {}
+
+class D01 extends S0 with M1 {}
+
 class D02 extends S0 with M2 { } //     //# 16: compile-time error
-class D03 extends S0 with M0, M1 { }
+class D03 extends S0 with M0, M1 {}
 class D04 extends S0 with M0, M2 { } // //# 17: compile-time error
 class D05 extends S0 with M2, M0 { } // //# 18: compile-time error
 class D06 extends S0 with M1, M2 { } // //# 19: compile-time error
 class D07 extends S0 with M2, M1 { } // //# 20: compile-time error
 
-class D10 extends S1 with M0 { }
-class D11 extends S1 with M1 { }
+class D10 extends S1 with M0 {}
+
+class D11 extends S1 with M1 {}
+
 class D12 extends S1 with M2 { } //     //# 21: compile-time error
-class D13 extends S1 with M0, M1 { }
+class D13 extends S1 with M0, M1 {}
 class D14 extends S1 with M0, M2 { } // //# 22: compile-time error
 class D15 extends S1 with M2, M0 { } // //# 23: compile-time error
 class D16 extends S1 with M1, M2 { } // //# 24: compile-time error
 class D17 extends S1 with M2, M1 { } // //# 25: compile-time error
 
-class D20 extends S2 with M0 { }
-class D21 extends S2 with M1 { }
+class D20 extends S2 with M0 {}
+
+class D21 extends S2 with M1 {}
+
 class D22 extends S2 with M2 { } //     //# 26: compile-time error
-class D23 extends S2 with M0, M1 { }
+class D23 extends S2 with M0, M1 {}
 class D24 extends S2 with M0, M2 { } // //# 27: compile-time error
 class D25 extends S2 with M2, M0 { } // //# 28: compile-time error
 class D26 extends S2 with M1, M2 { } // //# 29: compile-time error

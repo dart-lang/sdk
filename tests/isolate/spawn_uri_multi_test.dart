@@ -7,6 +7,7 @@
 // other isolate's code.
 // OtherScripts=spawn_uri_child_isolate.dart
 library spawn_tests;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 
@@ -24,7 +25,7 @@ main() {
       expect(msg, equals(expectedMessage));
     }));
 
-    Isolate.spawnUri(Uri.parse('spawn_uri_child_isolate.dart'),
-                     ['hi'], port.sendPort);
+    Isolate.spawnUri(
+        Uri.parse('spawn_uri_child_isolate.dart'), ['hi'], port.sendPort);
   });
 }

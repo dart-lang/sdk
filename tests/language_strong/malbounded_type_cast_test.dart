@@ -18,9 +18,9 @@ main() {
 
   var expectedError;
   if (inCheckedMode) {
-  	expectedError = (e) => e is TypeError;
+    expectedError = (e) => e is TypeError;
   } else {
-  	expectedError = (e) => e is CastError;
+    expectedError = (e) => e is CastError;
   }
 
   var m = new Malbounded1();

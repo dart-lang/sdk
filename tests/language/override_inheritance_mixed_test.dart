@@ -25,8 +25,7 @@ abstract class J {
   member9() {} //# 09: continued
 }
 
-abstract class B extends A implements I, J {
-}
+abstract class B extends A implements I, J {}
 
 class Class extends B {
   member1() {} //# 01: continued

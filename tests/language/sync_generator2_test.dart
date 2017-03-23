@@ -42,11 +42,11 @@ set test04(a) sync* { print(a); } // //# 41: compile-time error
 
 class K {
   K() sync* {}; // //# 50: compile-time error
-  get nix sync* { }
+  get nix sync* {}
   get garnix sync* => null; // //# 51: compile-time error
   set etwas(var z) sync* { } // //# 52: compile-time error
   sync() sync* {
-    yield sync;  // Yields a tear-off of the sync() method.
+    yield sync; // Yields a tear-off of the sync() method.
   }
 }
 

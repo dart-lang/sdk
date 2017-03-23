@@ -7,15 +7,17 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 main() {
-  for (var list in [[],
-                    [0x00],
-                    [0xff, 0x00],
-                    [0xff, 0xaa, 0x55],
-                    [0x00, 0x01, 0x02, 0x03],
-                    new Iterable.generate(13).toList(),
-                    new Iterable.generate(254).toList(),
-                    new Iterable.generate(255).toList(),
-                    new Iterable.generate(256).toList()]) {
+  for (var list in [
+    [],
+    [0x00],
+    [0xff, 0x00],
+    [0xff, 0xaa, 0x55],
+    [0x00, 0x01, 0x02, 0x03],
+    new Iterable.generate(13).toList(),
+    new Iterable.generate(254).toList(),
+    new Iterable.generate(255).toList(),
+    new Iterable.generate(256).toList()
+  ]) {
     testRoundtrip(list, "List#${list.length}");
     testRoundtrip(new Uint8List.fromList(list), "Uint8List#${list.length}");
   }
@@ -51,7 +53,9 @@ void testRoundtrip(list, name) {
       {
         // Using add/close
         var results;
-        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
+        var sink = new ChunkedConversionSink.withCallback((v) {
+          results = v;
+        });
         var encoder = BASE64.encoder.startChunkedConversion(sink);
         encoder.add(list.sublist(0, i));
         encoder.add(list.sublist(i, j));
@@ -63,7 +67,9 @@ void testRoundtrip(list, name) {
       {
         // Using addSlice
         var results;
-        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
+        var sink = new ChunkedConversionSink.withCallback((v) {
+          results = v;
+        });
         var encoder = BASE64.encoder.startChunkedConversion(sink);
         encoder.addSlice(list, 0, i, false);
         encoder.addSlice(list, i, j, false);
@@ -75,7 +81,9 @@ void testRoundtrip(list, name) {
       {
         // Using add/close
         var results;
-        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
+        var sink = new ChunkedConversionSink.withCallback((v) {
+          results = v;
+        });
         var encoder = BASE64URL.encoder.startChunkedConversion(sink);
         encoder.add(list.sublist(0, i));
         encoder.add(list.sublist(i, j));
@@ -87,7 +95,9 @@ void testRoundtrip(list, name) {
       {
         // Using addSlice
         var results;
-        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
+        var sink = new ChunkedConversionSink.withCallback((v) {
+          results = v;
+        });
         var encoder = BASE64URL.encoder.startChunkedConversion(sink);
         encoder.addSlice(list, 0, i, false);
         encoder.addSlice(list, i, j, false);
@@ -105,27 +115,29 @@ void testRoundtrip(list, name) {
         {
           // Using add/close
           var results;
-          var sink =
-              new ChunkedConversionSink.withCallback((v) { results = v; });
+          var sink = new ChunkedConversionSink.withCallback((v) {
+            results = v;
+          });
           var decoder = BASE64.decoder.startChunkedConversion(sink);
           decoder.add(encoded.substring(0, i));
           decoder.add(encoded.substring(i, j));
           decoder.add(encoded.substring(j, encoded.length));
           decoder.close();
           var name = "0-$i-$j-${encoded.length}: $encoded";
-          Expect.listEquals(list, results.expand((x)=>x).toList(), name);
+          Expect.listEquals(list, results.expand((x) => x).toList(), name);
         }
         {
           // Using addSlice
           var results;
-          var sink =
-              new ChunkedConversionSink.withCallback((v) { results = v; });
+          var sink = new ChunkedConversionSink.withCallback((v) {
+            results = v;
+          });
           var decoder = BASE64.decoder.startChunkedConversion(sink);
           decoder.addSlice(encoded, 0, i, false);
           decoder.addSlice(encoded, i, j, false);
           decoder.addSlice(encoded, j, encoded.length, true);
           var name = "0-$i-$j-${encoded.length}: $encoded";
-          Expect.listEquals(list, results.expand((x)=>x).toList(), name);
+          Expect.listEquals(list, results.expand((x) => x).toList(), name);
         }
       }
     }
@@ -148,6 +160,7 @@ void testErrors() {
       c.close();
     }, isFormatException, "chunk $list");
   }
+
   void badDecode(String string) {
     Expect.throws(() => BASE64.decode(string), isFormatException, string);
     Expect.throws(() => BASE64URL.decode(string), isFormatException, string);
@@ -198,7 +211,7 @@ void testErrors() {
   badDecode("AA\u{10041}=");
 
   var alphabet =
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/-_";
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/-_";
   var units = alphabet.codeUnits;
   for (int i = 0; i < 128; i++) {
     if (!units.contains(i)) {
@@ -216,7 +229,6 @@ void testErrors() {
   badChunkDecode(["AAA", ""]);
   badChunkDecode(["AA=", ""]);
   badChunkDecode(["AB==", ""]);
-
 
   badChunkEncode(list) {
     for (int i = 0; i < list.length; i++) {

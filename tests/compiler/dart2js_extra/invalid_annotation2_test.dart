@@ -15,9 +15,8 @@ import 'dart:mirrors';
 
 @Deprecated("m"
 ,, //                               //# 01: compile-time error
-)
-class A {
-}
+    )
+class A {}
 
 main() {
   reflectClass(A).metadata;

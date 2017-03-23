@@ -31,25 +31,20 @@ void helperFunction() {
   asyncStart();
 
   // Spawn an isolate using spawnFunction.
-  Isolate.spawn(funcChild, [receivePort.sendPort]).then(
-    (isolate) {
-      receivePort.listen(
-        (msg) {
-          // We don't expect to receive any valid messages.
-          Expect.fail("We don't expect to receive any valid messages");
-          receivePort.close();
-          asyncEnd();
-        },
-        onError: (e) {
-          // We don't expect to receive any error messages, per spec listen
-          // does not receive an error object.
-          Expect.fail("We don't expect to receive any error messages");
-          receivePort.close();
-          asyncEnd();
-        }
-      );
-    }
-  );
+  Isolate.spawn(funcChild, [receivePort.sendPort]).then((isolate) {
+    receivePort.listen((msg) {
+      // We don't expect to receive any valid messages.
+      Expect.fail("We don't expect to receive any valid messages");
+      receivePort.close();
+      asyncEnd();
+    }, onError: (e) {
+      // We don't expect to receive any error messages, per spec listen
+      // does not receive an error object.
+      Expect.fail("We don't expect to receive any error messages");
+      receivePort.close();
+      asyncEnd();
+    });
+  });
 }
 
 main() {

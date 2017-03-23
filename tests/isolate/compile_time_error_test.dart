@@ -6,14 +6,15 @@
 // processed correctly and don't result in crashes.
 
 library Isolate3NegativeTest;
+
 import 'dart:isolate';
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
 
 class TestClass {
   TestClass.named(num this.fld1)
-    // Should cause a compilation error (for the spawned isolate). It is a
-    // runtime error for the test.
+  // Should cause a compilation error (for the spawned isolate). It is a
+  // runtime error for the test.
     : fld2 = this.fld1 // //# 01: compile-time error
   ;
   num fld1;

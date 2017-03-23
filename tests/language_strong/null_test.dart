@@ -12,11 +12,11 @@ class BadInherit
   extends Null //    //# 01: compile-time error
   implements Null // //# 02: compile-time error
   extends Object with Null // //# 03: compile-time error
-    {}
+{}
 
 class EqualsNotCalled {
   int get hashCode => throw "And don't warn!";
-  bool operator==(Object other) {
+  bool operator ==(Object other) {
     throw "SHOULD NOT GET HERE";
   }
 }
@@ -40,7 +40,9 @@ confuse(x) {
   try {
     if (new DateTime.now().millisecondsSinceEpoch == 42) x = 42;
     throw [x];
-  } on dynamic catch (e) { return e[0]; }
+  } on dynamic catch (e) {
+    return e[0];
+  }
   return 42;
 }
 
@@ -51,7 +53,7 @@ void main() {
 }
 
 void test() {
-  new BadInherit();  // Make sure class is referenced.
+  new BadInherit(); // Make sure class is referenced.
 
   int foo(var obj) {
     Expect.equals(null, obj);
@@ -66,7 +68,7 @@ void test() {
   }
 
   var val = 1;
-  var obj = confuse(null);  // Null value that isn't known at compile-time.
+  var obj = confuse(null); // Null value that isn't known at compile-time.
   Expect.isTrue(identical(obj, null), "identical");
 
   Expect.isTrue(null == null);
@@ -121,7 +123,7 @@ void test() {
   Expect.isTrue(obj is dynamic);
   Expect.isFalse(null is String);
   Expect.isFalse(obj is String);
-  Expect.isFalse(0 is Null);  // It's only assignable.
+  Expect.isFalse(0 is Null); // It's only assignable.
   Expect.isFalse(null is! Null);
   Expect.isFalse(obj is! Null);
   Expect.isFalse(null is! Object);
@@ -130,7 +132,7 @@ void test() {
   Expect.isFalse(obj is! dynamic);
   Expect.isTrue(null is! String);
   Expect.isTrue(obj is! String);
-  Expect.isTrue(0 is! Null);  // It's only assignable.
+  Expect.isTrue(0 is! Null); // It's only assignable.
 
   // Test "is" operator with generic type variable.
   Expect.isTrue(new Generic<Null>().test(null));
@@ -200,7 +202,6 @@ void test() {
   Expect.throws(() => noSuchMethod(mirror));
   Expect.throws(() => Function.apply(noSuchMethod, [mirror]));
 }
-
 
 class CaptureInvocationMirror {
   noSuchMethod(mirror) => mirror;

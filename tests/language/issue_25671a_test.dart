@@ -10,11 +10,13 @@ class A {
         "Wrong noSuchMethod() should not be called"); //# 01: continued
   } //                                                  //# 01: continued
 }
+
 class C extends A {
   test() {
     super.v = 1; //# 01: continued
   }
 }
+
 main() {
   C c = new C();
   Expect.throws(() => c.test(), (e) => e is NoSuchMethodError); //# 01: continued

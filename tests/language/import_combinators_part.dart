@@ -8,5 +8,5 @@
 part of Foo; // //# static warning
 
 lookBehindCurtain() {
-  return show;  // show is an imported identifier.
+  return show; // show is an imported identifier.
 }

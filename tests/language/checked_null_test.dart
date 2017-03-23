@@ -9,7 +9,9 @@ class A {
   Comparator b;
   // This code exhibited a bug in dart2js checked mode, where the type
   // of [a] was inferred to be [Comparator] or null;
-  A() : b = null, a = null;
+  A()
+      : b = null,
+        a = null;
 }
 
 main() {

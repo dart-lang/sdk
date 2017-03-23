@@ -5,10 +5,8 @@
 
 import "package:expect/expect.dart";
 
-
 class PseudoKWTest {
   static testMain() {
-
     // This is a list of built-in identifiers from the Dart spec.
     // It sanity checks that these pseudo-keywords are legal identifiers.
 
@@ -33,7 +31,6 @@ class PseudoKWTest {
     // is useful to ensure that it remains a legal identifier.
     var native = 0;
 
-
     // The code below adds a few additional variants of usage without any
     // attempt at complete coverage.
     {
@@ -42,7 +39,8 @@ class PseudoKWTest {
       }
     }
 
-    get: while (import > 0) {
+    get:
+    while (import > 0) {
       break get;
     }
 
@@ -62,7 +60,10 @@ class A {
   var typedef = 0;
   final operator = "smooth";
 
-  set(x) { typedef = x; }
+  set(x) {
+    typedef = x;
+  }
+
   get() => typedef - 5;
 
   static static() { // //# 01: ok
@@ -95,9 +96,8 @@ class C {
   static int operator = (5);
   static var get;
   static get set => 111;
-  static set set(set) { }
+  static set set(set) {}
 }
-
 
 main() {
   PseudoKWTest.testMain();

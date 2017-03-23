@@ -7,6 +7,7 @@
 class A<T> {}
 
 class S {}
+
 class M<T> {}
 
 class C1 = S with M;

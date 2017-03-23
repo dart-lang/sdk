@@ -35,4 +35,3 @@ main() {
   Expect.throws(() => new D.name()); //# 02: continued
   Expect.throws(() => (p).x); //     //# 03: compile-time error
 }
-

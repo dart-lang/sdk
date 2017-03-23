@@ -4,11 +4,11 @@
 
 import "package:expect/expect.dart";
 
-class MyException { }
+class MyException {}
 
-class MyException1 extends MyException { }
+class MyException1 extends MyException {}
 
-class MyException2 extends MyException { }
+class MyException2 extends MyException {}
 
 void test1() {
   var foo = 0;
@@ -28,18 +28,20 @@ void test1() {
     foo = 3;
   }
   on UndefinedClass //# 07: static type warning
-  catch(e) { foo = 4; }
+  catch (e) {
+    foo = 4;
+  }
   Expect.equals(2, foo);
 }
 
 testFinal() {
   try {
     throw "catch this!";
-    } catch (e, s) {
-      // Test that the error and stack trace variables are final.
+  } catch (e, s) {
+    // Test that the error and stack trace variables are final.
       e = null; // //# 10: runtime error
       s = null; // //# 11: runtime error
-    }
+  }
 }
 
 main() {

@@ -7,12 +7,15 @@
 class A {
   var a;
 }
+
 class B {
   var b;
 }
+
 class C extends B {
   var c;
 }
+
 class D extends B {
   var d;
 }
@@ -22,10 +25,13 @@ class E<T> {
 
   E(this.e);
 }
+
 class F<T> extends E<T> {
   T f;
 
-  F(T f) : this.f = f, super(f);
+  F(T f)
+      : this.f = f,
+        super(f);
 }
 
 void main() {

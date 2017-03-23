@@ -6,46 +6,53 @@
 
 class Base<T> {}
 
-class Derived extends Base<Derived> {}  // legal
+class Derived extends Base<Derived> {} // legal
 
-typedef void funcType<T
+typedef void funcType<
+    T
 extends T //# 01: static type warning
->(T arg);
+    >(T arg);
 
-class DerivedFunc extends Base<funcType<DerivedFunc>> { }
+class DerivedFunc extends Base<funcType<DerivedFunc>> {}
 
-
-abstract class A<S
+abstract class A<
+    S
 extends S //# 02: static type warning
-> {
+    > {
   S field;
 }
 
-abstract class B<U extends Base<U>> { // legal
+abstract class B<U extends Base<U>> {
+  // legal
   U field;
 }
 
-class C1<V
+class C1<
+    V
 extends V // //# 03: static type warning
-> {
+    > {
   V field;
 }
 
-class C2<V
+class C2<
+    V
 extends V // //# 04: static type warning
-> implements A<V> {
+    > implements A<V> {
   V field;
 }
 
-class D1<W extends Base<W>> {  // legal
+class D1<W extends Base<W>> {
+  // legal
   W field;
 }
 
-class D2<W extends Base<W>> implements B<W>{ //   legal
+class D2<W extends Base<W>> implements B<W> {
+  //   legal
   W field;
 }
 
-class E<X extends Base<funcType<X>>> { // legal
+class E<X extends Base<funcType<X>>> {
+  // legal
 
   X field;
 }

@@ -14,7 +14,7 @@ class Class {
   method() {
     try {
       getter++; //# 01: static type warning
-    } on NoSuchMethodError catch(e) {
+    } on NoSuchMethodError catch (e) {
       Expect.isTrue(getter_visited); //# 01: continued
       return;
     }

@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 /* //   //# 01: runtime error
 get topLevel => 42;
 */ //  //# 01: continued
-set topLevel(var value) { }
+set topLevel(var value) {}
 
 main() {
   Expect.equals(42, topLevel++); //# 01: continued

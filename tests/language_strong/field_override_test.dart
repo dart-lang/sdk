@@ -5,9 +5,10 @@
 
 import "package:expect/expect.dart";
 
-
 class A {}
+
 class B1 extends A {}
+
 class B2 extends A {}
 
 class Super {

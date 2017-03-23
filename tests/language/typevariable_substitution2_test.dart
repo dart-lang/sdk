@@ -13,11 +13,10 @@ class B<T> {
 class M {}
 
 class A<T> extends B<T> with M {
-  A(T x) : super(x);  // This line must be warning free.
+  A(T x) : super(x); // This line must be warning free.
 }
 
 class C<T> = B<T> with M;
-
 
 main() {
   new A(null);

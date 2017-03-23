@@ -14,14 +14,15 @@ class B implements A {
   operator ==(o) => true; // //# 00: compile-time error
 }
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
 
 main() {
   // It is a compile-time error if the key type overrides operator ==.
-  var m = const { const A(): 42 };
+  var m = const {const A(): 42};
   Expect.equals(42, m[confuse(const B())]);
 
-  m = const { "foo": 99, const A(): 499 };
+  m = const {"foo": 99, const A(): 499};
   Expect.equals(499, m[confuse(const B())]);
 }

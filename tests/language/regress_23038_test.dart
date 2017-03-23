@@ -5,9 +5,9 @@
 class C<T> {
   const
     factory //# 01: compile-time error
-    C()
+  C()
     = C<C<T>> //# 01: continued
-    ;
+  ;
 }
 
 main() {

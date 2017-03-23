@@ -8,7 +8,7 @@
 @deprecated
 typedef Foo
 <deprecated> // //# 01: ok
-();
+    ();
 
 main() {
   Foo f = null;

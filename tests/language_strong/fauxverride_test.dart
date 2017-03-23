@@ -22,7 +22,6 @@ import "package:expect/expect.dart";
 // instance methods declared by C and the instance methods inherited
 // by C from its superclass."
 
-
 // 7.6 Static Methods
 
 // "Static methods are functions whose declarations are immediately
