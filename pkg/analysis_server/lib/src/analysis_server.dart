@@ -467,7 +467,7 @@ class AnalysisServer {
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
-    ideOptions = new IdeOptionsImpl();
+    ideOptions = new IdeOptions.from(options);
   }
 
   /**
@@ -1857,6 +1857,8 @@ class AnalysisServerOptions {
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
+  // IDE options
+  bool enableVerboseFlutterCompletions = false;
 }
 
 /**
