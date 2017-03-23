@@ -261,17 +261,6 @@ abstract class AbstractAnalysisServerIntegrationTest
 }
 
 /**
- * An error result from a server request.
- */
-class ServerErrorMessage {
-  final Map message;
-
-  ServerErrorMessage(this.message);
-
-  dynamic get error => message['error'];
-}
-
-/**
  * Wrapper class for Matcher which doesn't create the underlying Matcher object
  * until it is needed.  This is necessary in order to create matchers that can
  * refer to themselves (so that recursive data structures can be represented).
@@ -528,7 +517,7 @@ class Server {
   /**
    * Stop the server.
    */
-  Future kill(String reason) {
+  Future<int> kill(String reason) {
     debugStdio();
     _recordStdio('FORCIBLY TERMINATING PROCESS: $reason');
     _process.kill();
@@ -736,6 +725,17 @@ class Server {
     }
     _recordedStdio.add(line);
   }
+}
+
+/**
+ * An error result from a server request.
+ */
+class ServerErrorMessage {
+  final Map message;
+
+  ServerErrorMessage(this.message);
+
+  dynamic get error => message['error'];
 }
 
 /**
