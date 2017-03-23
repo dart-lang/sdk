@@ -17,7 +17,9 @@ class A {
 
 class B extends A {
   var foo_;
-  set foo(value) { foo_ = value; }
+  set foo(value) {
+    foo_ = value;
+  }
 }
 
 main() {

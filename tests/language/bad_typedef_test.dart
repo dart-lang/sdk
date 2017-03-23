@@ -5,7 +5,8 @@
 
 import "package:expect/expect.dart";
 
-typedef int H(Function
+typedef int H(
+    Function
     Function //  //# 00: compile-time error
     x);
 

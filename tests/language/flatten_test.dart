@@ -16,7 +16,6 @@ class Divergent<T> implements Future<Divergent<Divergent<T>>> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-
 test() async {
   // flatten(Derived<int>) = int
   int x = await new Derived<int>(); //# 01: runtime error

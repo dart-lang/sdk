@@ -5,7 +5,6 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   try {
     print("abcdef".substring(1.5, 3.5)); //   //# 01: static type warning

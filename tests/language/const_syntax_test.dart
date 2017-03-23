@@ -86,4 +86,4 @@ const B3 = B0 + B1; //# 10: continued
 // Check identical.
 
 const B4 = identical(1, new Point(1,2)); // //# 12: compile-time error
-const B5 = identical(1, const Point(1,2));
+const B5 = identical(1, const Point(1, 2));

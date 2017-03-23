@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class S { }
-class G<T> { }
-class M { }
+class S {}
+
+class G<T> {}
+
+class M {}
 
 class T = S with M;
 typedef T0 = S with M; //        //# 00: compile-time error
@@ -15,7 +17,7 @@ class T3 = const S with M; //    //# 03: compile-time error
 class T4 = static S with M; //   //# 04: compile-time error
 class T5 = external S with M; // //# 05: compile-time error
 class T6 = G<int> with M;
-class T7 = G<Map<String,int>> with M;
+class T7 = G<Map<String, int>> with M;
 
 class C0 extends abstract S with M { } // //# 06: compile-time error
 class C1 extends final S with M { } //    //# 07: compile-time error
@@ -23,14 +25,18 @@ class C2 extends var S with M { } //      //# 08: compile-time error
 class C3 extends const S with M { } //    //# 09: compile-time error
 class C4 extends static S with M { } //   //# 10: compile-time error
 class C5 extends external S with M { } // //# 11: compile-time error
-class C6 extends G<int> with M { }
-class C7 extends G<Map<String,int>> with M { }
+class C6 extends G<int> with M {}
 
-class D0 extends S with M
+class C7 extends G<Map<String, int>> with M {}
+
+class D0 extends S
+    with
+        M
     implements M // //# 12: compile-time error
-    implements M { }
+    implements
+        M {}
 
-class D1 extends T { }
+class D1 extends T {}
 
 class X = S; //  //# 14: compile-time error
 

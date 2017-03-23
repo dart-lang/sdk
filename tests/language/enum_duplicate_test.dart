@@ -27,6 +27,3 @@ main() {
   Expect.equals('Enum2.A,Enum2.B', Enum2.values.join(','));
   Expect.equals('Enum2.A,Enum2.B', lib.Enum2.values.join(',')); //# 02: continued
 }
-
-
-

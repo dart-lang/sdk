@@ -15,12 +15,16 @@ class A {
 }
 
 class B extends A {
-  B(String v) : b = v, super(v);
+  B(String v)
+      : b = v,
+        super(v);
   final String b;
 }
 
 class C extends A {
-  C(String v) : c = v, super(v);
+  C(String v)
+      : c = v,
+        super(v);
   final String c;
 }
 

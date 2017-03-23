@@ -11,15 +11,15 @@ typedef int F1({x = 3, y}); //# 01: compile-time error
 
 typedef int functype({x, y, z});
 
-int topF({x = 3, y : 5, z}) => x * y * (z ?? 2);
+int topF({x = 3, y: 5, z}) => x * y * (z ?? 2);
 
 class A {
   int x;
   int y;
   int z;
-  A({this.x = 3, this.y : 5, z }) : z = z ?? 2;
-  A.redirect({x = 3, y : 5, z}) : this(x: x, y: y, z: z);
-  factory A.factory({x = 3, y : 5, z}) => new A(x: x, y: y, z: z ?? 2);
+  A({this.x = 3, this.y: 5, z}) : z = z ?? 2;
+  A.redirect({x = 3, y: 5, z}) : this(x: x, y: y, z: z);
+  factory A.factory({x = 3, y: 5, z}) => new A(x: x, y: y, z: z ?? 2);
   factory A.redirectFactory({x, y, z}) = A;
 
   // Default values are not allowed on redirecting factory constructors.
@@ -27,8 +27,8 @@ class A {
 
   int get value => x * y * z;
 
-  static int staticF({x = 3, y : 5, z}) => x * y * (z ?? 2);
-  int instanceF({x = 3, y : 5, z}) => x * y * (z ?? 2);
+  static int staticF({x = 3, y: 5, z}) => x * y * (z ?? 2);
+  int instanceF({x = 3, y: 5, z}) => x * y * (z ?? 2);
 }
 
 main() {
@@ -37,8 +37,8 @@ main() {
 
   var a = new A();
 
-  int local({x = 3, y : 5, z}) => x * y * (z ?? 2);
-  var expr = ({x = 3, y : 5, z}) => x * y * (z ?? 2);
+  int local({x = 3, y: 5, z}) => x * y * (z ?? 2);
+  var expr = ({x = 3, y: 5, z}) => x * y * (z ?? 2);
   var tearOff = a.instanceF;
 
   test(function) {

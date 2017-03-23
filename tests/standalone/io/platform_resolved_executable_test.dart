@@ -13,7 +13,7 @@ const _SCRIPT_KEY = '_test_script';
 void expectEquals(a, b) {
   if (a != b) {
     throw 'Expected: $a\n'
-          '  Actual: $b';
+        '  Actual: $b';
   }
 }
 
@@ -28,10 +28,10 @@ void verify(String exePath, {String altPath}) {
 
   if (processResult.exitCode != 0) {
     throw 'Error with process\n'
-          '$scriptPath'
-          'Exit code: ${processResult.exitCode}\n'
-          '   STDOUT: ${processResult.stdout}\n'
-          '   STDERR: ${processResult.stderr}\n';
+        '$scriptPath'
+        'Exit code: ${processResult.exitCode}\n'
+        '   STDOUT: ${processResult.stdout}\n'
+        '   STDERR: ${processResult.stderr}\n';
   }
 
   var result = processResult.stdout.trim();
@@ -47,15 +47,15 @@ void testShouldFailOutsidePath() {
   var threw = false;
   try {
     Process.runSync(platformExeName, ['--version'],
-                    includeParentEnvironment: false,
-                    environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
+        includeParentEnvironment: false,
+        environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
   } catch (_) {
     threw = true;
   }
 
   if (!threw) {
     throw 'Expected running the dart executable – "$platformExeName" without'
-          ' the parent environment or path to fail.';
+        ' the parent environment or path to fail.';
   }
 }
 

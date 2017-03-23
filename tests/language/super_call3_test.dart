@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 class A {
   A(
     this.x // //# 01: compile-time error
-  );
+      );
   final foo = 499;
 }
 
@@ -29,6 +29,7 @@ class C {
 }
 
 class D extends C {}
+
 class D2 extends C {
   D2();
   D2.named() : this.x = 499;

@@ -7,15 +7,15 @@ import "package:expect/expect.dart";
 // Map takes 2 type arguments.
 Map
 <String> //# 00: static type warning
-foo;
+    foo;
 Map
 <String> //# 02: static type warning
-baz;
+    baz;
 
 main() {
   foo = null;
   var bar = new Map
   <String> //# 01: static type warning
-  ();
+      ();
   baz = new Map(); //# 02: continued
 }

@@ -35,17 +35,16 @@ void set x2(
 
 int
 covariant // //# 03: compile-time error
-x3;
+    x3;
 
 int
 covariant // //# 04: compile-time error
-get x4 => 499;
+    get x4 => 499;
 
 void set x5(
     int
     covariant //# 05: compile-time error
     val) {}
-
 
 // Same without types.
 
@@ -79,41 +78,43 @@ f11() => 499;
 // It's a minor (acceptable) bug to not error out here.
 int f12(
     covariant //# 12: compile-time error
-    int x) => 499;
+        int x) =>
+    499;
 
 // `Covariant` must be in front of the types.
 int f13(
-    int
+        int
     covariant //# 13: compile-time error
-    x) => 499;
+        x) =>
+    499;
 
 // Covariant should not work on top-level methods.
 // It's a minor (acceptable) bug to not error out here.
 int f14(
     covariant //# 14: compile-time error
-    final
-    x) => 499;
+        final x) =>
+    499;
 
 // `Covariant` must be in front of modifiers.
 int f15(
-    final
+        final
     covariant //# 15: compile-time error
-    x) => 499;
+        x) =>
+    499;
 
 // Covariant should not work on top-level methods.
 // It's a minor (acceptable) bug to not error out here.
 int f16(
     covariant //# 16: compile-time error
-    final
-    int
-    x) => 499;
+        final int x) =>
+    499;
 
 // `Covariant` must be in front of modifiers.
 int f17(
-    final
+        final
     covariant //# 17: compile-time error
-    int
-    x) => 499;
+        int x) =>
+    499;
 
 // On its own, `covariant` is just a parameter name.
 int f18(covariant) => covariant;
@@ -126,7 +127,7 @@ class A {
   // Would be considered a minor (acceptable) bug, if it was accepted here too.
   static
   covariant // //# 20: compile-time error
-  int x20;
+      int x20;
 
   static covariant int covariant // //# 20b: compile-time error
 
@@ -135,12 +136,11 @@ class A {
   // Getters may never have `covariant`.
   static
   covariant // //# 21: compile-time error
-  int get x21 => 499;
+      int get x21 => 499;
 
   // Getters may never have `covariant`.
   covariant // //# 21b: compile-time error
-  static
-  int get x21b => 499;
+  static int get x21b => 499;
 
   // Static setters may not have a covariant.
   // Would be considered a minor (acceptable) bug, if it was accepted here too.
@@ -153,16 +153,16 @@ class A {
 
   static int
   covariant // //# 23: compile-time error
-  x23;
+      x23;
 
   static int
   covariant // //# 24: compile-time error
-  get x24 => 499;
+      get x24 => 499;
 
   static void set x25(
-    int
+      int
     covariant //# 25: compile-time error
-    val) {}
+      val) {}
 
   // Since `covariant` is a built-in identifier, it is not allowed here.
   static covariant x26; //# 26: compile-time error
@@ -171,11 +171,10 @@ class A {
   // Getters may never have `covariant`.
   static
   covariant // //# 27: compile-time error
-  get x27 => 499;
+      get x27 => 499;
 
   covariant // //# 27b: compile-time error
-  static
-  get x27b => 499;
+  static get x27b => 499;
 
   // Static setters may not have a covariant.
   // Would be considered a minor (acceptable) bug, if it was accepted here too.
@@ -189,60 +188,60 @@ class A {
   // Covariant won't work on return types.
   static
   covariant // //# 30: compile-time error
-  int f30() => 499;
+      int f30() => 499;
 
   covariant // //# 30b: compile-time error
-  static
-  int f30b() => 499;
+  static int f30b() => 499;
 
   // Covariant won't work as a return type.
   static
   covariant // //# 31: compile-time error
-  f31() => 499;
+      f31() => 499;
 
   covariant // //# 31b: compile-time error
-  static
-  f31b() => 499;
+  static f31b() => 499;
 
   // Covariant should not work on static methods.
   // It's a minor (acceptable) bug to not error out here.
   static int f32(
       covariant //# 32: compile-time error
-      int x) => 499;
+          int x) =>
+      499;
 
   // `Covariant` must be in front of the types.
   static int f33(
-      int
+          int
       covariant //# 33: compile-time error
-      x) => 499;
+          x) =>
+      499;
 
   // Covariant should not work on top-level methods.
   // It's a minor (acceptable) bug to not error out here.
   static int f34(
       covariant //# 34: compile-time error
-      final
-      x) => 499;
+          final x) =>
+      499;
 
   // `Covariant` must be in front of modifiers.
   static int f35(
-      final
+          final
       covariant //# 35: compile-time error
-      x) => 499;
+          x) =>
+      499;
 
   // Covariant should not work on top-level methods.
   // It's a minor (acceptable) bug to not error out here.
   static int f36(
       covariant //# 36: compile-time error
-      final
-      int
-      x) => 499;
+          final int x) =>
+      499;
 
   // `Covariant` must be in front of modifiers.
   static int f37(
-      final
+          final
       covariant //# 37: compile-time error
-      int
-      x) => 499;
+          int x) =>
+      499;
 
   // `Covariant` on its own is just a parameter name.
   static int f38(covariant) => covariant;
@@ -271,17 +270,17 @@ class B {
   // `covariant` in the wrong position.
   int
   covariant // //# 43: compile-time error
-  x43;
+      x43;
 
   // `covariant` in the wrong position.
   int
   covariant // //# 44: compile-time error
-  get x44 => 499;
+      get x44 => 499;
 
   void set x45(
-    int
+      int
     covariant //# 45: compile-time error
-    val) {}
+      val) {}
 
   // Since `covariant` is a built-in identifier, it is not allowed here.
   covariant x46; //# 46: compile-time error
@@ -308,34 +307,39 @@ class B {
 
   int f52(
       covariant // //# 52: ok
-      int x) => 499;
+          int x) =>
+      499;
 
   // `Covariant` must be in front of the types.
   int f53(
-      int
+          int
       covariant //# 53: compile-time error
-      x) => 499;
+          x) =>
+      499;
 
   int f54(
       covariant // //# 54: ok
-      final x) => 499;
+          final x) =>
+      499;
 
   // `Covariant` must be in front of modifiers.
   int f55(
-      final
+          final
       covariant //# 55: compile-time error
-      x) => 499;
+          x) =>
+      499;
 
   int f56(
       covariant // //# 56: ok
-      final int x) => 499;
+          final int x) =>
+      499;
 
   // `Covariant` must be in front of modifiers.
   int f57(
-      final
+          final
       covariant //# 57: compile-time error
-      int
-      x) => 499;
+          int x) =>
+      499;
 
   // `Covariant` on its own is just a parameter name.
   int f58(covariant) => covariant;

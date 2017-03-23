@@ -18,7 +18,9 @@ class A {
 
 class B extends A {
   static var foo_;
-  static set foo(value) { foo_ = value; }
+  static set foo(value) {
+    foo_ = value;
+  }
 }
 
 main() {

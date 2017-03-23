@@ -7,7 +7,9 @@ abstract class Link<T> {
 }
 
 class LinkFactory<T> {
-  factory LinkFactory.create() { return null; }
+  factory LinkFactory.create() {
+    return null;
+  }
   factory LinkFactory.Foo() = Foo<T>; // //# 00: static type warning
 }
 

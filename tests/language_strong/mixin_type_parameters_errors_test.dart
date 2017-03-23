@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class S<T> { }
-class M<U> { }
+class S<T> {}
 
-class A<X> extends S<int> with M<double> { }
+class M<U> {}
+
+class A<X> extends S<int> with M<double> {}
 class B<U, V> extends S with M<U, V> { } // //# 01: static type warning
 class C<A, B> extends S<A, int> with M { } // //# 02: static type warning
 

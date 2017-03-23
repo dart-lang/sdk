@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for legally self referencing function type alias.
 
-typedef void F(List
+typedef void F(
+    List
                    <G> // //# 00: compile-time error
-                       l);
+    l);
 typedef void G(List<F> l);
 
 main() {

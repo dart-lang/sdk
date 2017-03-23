@@ -7,15 +7,19 @@
 class A {
   var a = "a";
 }
+
 class B extends A {
   var b = "b";
 }
+
 class C extends B {
   var c = "c";
 }
+
 class D extends A {
   var d = "d";
 }
+
 class E implements C, D {
   var a = "";
   var b = "";
@@ -26,6 +30,7 @@ class E implements C, D {
 void main() {
   test(new E());
 }
+
 void test(A a) {
   print(a.a);
   print(a.b); //# 01: static type warning
@@ -92,37 +97,34 @@ void test(A a) {
   print(a.c); //# 19: static type warning
   print(a.d); //# 20: static type warning
 
-  var o1 = a is B  ?
-      '${a.a}'
-      '${a.b}'
+  var o1 = a is B
+          ? '${a.a}'
+              '${a.b}'
       '${a.c}' //# 21: static type warning
       '${a.d}' //# 22: static type warning
-      :
-      '${a.a}'
+          : '${a.a}'
       '${a.b}' //# 23: static type warning
       '${a.c}' //# 24: static type warning
       '${a.d}' //# 25: static type warning
       ;
 
-  var o2 = a is C  ?
-      '${a.a}'
-      '${a.b}'
-      '${a.c}'
+  var o2 = a is C
+          ? '${a.a}'
+              '${a.b}'
+              '${a.c}'
       '${a.d}' //# 26: static type warning
-      :
-      '${a.a}'
+          : '${a.a}'
       '${a.b}' //# 27: static type warning
       '${a.c}' //# 28: static type warning
       '${a.d}' //# 29: static type warning
       ;
 
-  var o3 = a is D  ?
-      '${a.a}'
+  var o3 = a is D
+          ? '${a.a}'
       '${a.b}' //# 30: static type warning
       '${a.c}' //# 31: static type warning
-      '${a.d}'
-      :
-      '${a.a}'
+              '${a.d}'
+          : '${a.a}'
       '${a.b}' //# 32: static type warning
       '${a.c}' //# 33: static type warning
       '${a.d}' //# 34: static type warning
@@ -158,11 +160,12 @@ void test(A a) {
     print(a.c); //# 41: static type warning
     print(a.d);
   }
-  if (a is D
-      && a.a == ""
+  if (a is D &&
+      a.a == ""
       && a.b == "" // //# 42: static type warning
       && a.c == "" // //# 43: static type warning
-      && a.d == "") {
+      &&
+      a.d == "") {
     print(a.a);
     print(a.b); //# 44: static type warning
     print(a.c); //# 45: static type warning
@@ -172,15 +175,17 @@ void test(A a) {
       && a.b == "" //# 46: static type warning
       && a.c == "" //# 47: static type warning
       && a.d == "" //# 48: static type warning
-      && a is B
-      && a.a == ""
-      && a.b == ""
+          &&
+          a is B &&
+          a.a == "" &&
+          a.b == ""
       && a.c == "" //# 49: static type warning
       && a.d == "" //# 50: static type warning
-      && a is C
-      && a.a == ""
-      && a.b == ""
-      && a.c == ""
+          &&
+          a is C &&
+          a.a == "" &&
+          a.b == "" &&
+          a.c == ""
       && a.d == "" //# 51: static type warning
       ) {
     print(a.a);

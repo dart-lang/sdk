@@ -57,10 +57,11 @@ main() {
   Expect.throws(() => f7<int>(), (e) => e is TypeError);
   Expect.equals(f8<int>(), List); // Returns `List<dynamic>`.
 
-  Expect.isTrue(f9<int>(<int,String>{}));
-  Expect.isTrue(f9<int>(<bool,String>{})); // `is Map<dynamic, String>` is true.
-  Expect.isFalse(f9<int>(<int,int>{}));
+  Expect.isTrue(f9<int>(<int, String>{}));
+  Expect
+      .isTrue(f9<int>(<bool, String>{})); // `is Map<dynamic, String>` is true.
+  Expect.isFalse(f9<int>(<int, int>{}));
 
-  Expect.isTrue(new IsMap<int>().check<String>(<int,String>{}));
-  Expect.isTrue(new IsMap<int>().check<int>(<int,String>{}));
+  Expect.isTrue(new IsMap<int>().check<String>(<int, String>{}));
+  Expect.isTrue(new IsMap<int>().check<int>(<int, String>{}));
 }

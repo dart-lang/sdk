@@ -11,12 +11,13 @@ class A {
   static const int c = "String"; //# 02: static type warning, checked mode compile-time error
   final int d = "String"; //# 03: static type warning, dynamic type error
   int e = "String"; //# 04: static type warning, dynamic type error
-   A() {
+  A() {
      int f = "String"; //# 05: static type warning, dynamic type error
-   }
-  method([
+  }
+  method(
+      [
      int // //# 06: static type warning
-     g = "String"]) {
+      g = "String"]) {
     return g;
   }
 }

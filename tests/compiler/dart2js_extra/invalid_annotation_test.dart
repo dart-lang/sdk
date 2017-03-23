@@ -9,7 +9,7 @@
 
 @Deprecated("m"
 ,, //                               //# 01: compile-time error
-)
+    )
 class A {}
 
 main() => new A();

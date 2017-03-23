@@ -11,32 +11,36 @@ import "deferred_constraints_constants_lib.dart" deferred as lib;
 const myConst1 =
   lib.constantInstance; //# reference1: compile-time error
   /* //                   //# reference1: continued
-  499;
+    499;
   */ //                   //# reference1: continued
 const myConst2 =
   lib.Const.instance; //# reference2: compile-time error
   /* //                 //# reference2: continued
-  499;
+    499;
   */ //                 //# reference2: continued
 
-void f1({a:
+void f1(
+    {a:
   const lib.Const() //# default_argument1: compile-time error
   /* //                  //# default_argument1: continued
-  499
+        499
   */ //                  //# default_argument1: continued
-}) {}
+    }) {}
 
-void f2({a:
+void f2(
+    {a:
   lib.constantInstance //# default_argument2: compile-time error
   /* //                        //# default_argument2: continued
-  499
+        499
   */ //                        //# default_argument2: continued
-}) {}
+    }) {}
 
 @lib.Const() //# metadata1: compile-time error
 class H1 {}
+
 @lib.Const.instance //# metadata2: compile-time error
 class H2 {}
+
 @lib.Const.namedConstructor() //# metadata3: compile-time error
 class H3 {}
 
@@ -57,11 +61,10 @@ void main() {
     var h3 = new H3();
 
     // Need to access the metadata to trigger the expected compilation error.
-    reflectClass(H1).metadata;  // metadata1: continued
-    reflectClass(H2).metadata;  // metadata2: continued
-    reflectClass(H3).metadata;  // metadata3: continued
+    reflectClass(H1).metadata; // metadata1: continued
+    reflectClass(H2).metadata; // metadata2: continued
+    reflectClass(H3).metadata; // metadata3: continued
 
     asyncEnd();
   });
 }
-

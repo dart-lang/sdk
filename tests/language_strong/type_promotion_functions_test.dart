@@ -5,7 +5,9 @@
 // Test type promotion of functions.
 
 class A {}
+
 class B extends A {}
+
 class C {}
 
 // We have the following more specific (<<) relations between these typedefs:
@@ -51,7 +53,8 @@ testFuncDynToDyn() {
   b = funcDynToDyn(new B());
   c = funcDynToDyn(new C());
 
-  if (funcDynToDyn is FuncAtoDyn) { // Promotion: FuncAtoDyn << FuncDynToDyn.
+  if (funcDynToDyn is FuncAtoDyn) {
+    // Promotion: FuncAtoDyn << FuncDynToDyn.
     a = funcDynToDyn(new A());
     b = funcDynToDyn(new B());
     c = funcDynToDyn(new C()); //# 09: static type warning
@@ -64,7 +67,8 @@ testFuncDynToDyn() {
     c = funcDynToDyn(new C()); //# 14: static type warning
   }
 
-  if (funcDynToDyn is FuncDynToA) { // Promotion: FuncDynToA << FuncDynToDyn.
+  if (funcDynToDyn is FuncDynToA) {
+    // Promotion: FuncDynToA << FuncDynToDyn.
     a = funcDynToDyn(new A());
     b = funcDynToDyn(new B());
     c = funcDynToDyn(new C()); //# 10: static type warning
@@ -84,7 +88,8 @@ testFuncDynToVoid() {
     c = funcDynToVoid(new C());
   }
 
-  if (funcDynToVoid is FuncDynToA) { // Promotion: FuncDynToA << FuncDynToVoid.
+  if (funcDynToVoid is FuncDynToA) {
+    // Promotion: FuncDynToA << FuncDynToVoid.
     a = funcDynToVoid(new A());
     b = funcDynToVoid(new B());
     c = funcDynToVoid(new C()); //# 05: static type warning

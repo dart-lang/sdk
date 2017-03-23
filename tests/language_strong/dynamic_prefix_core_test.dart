@@ -4,6 +4,7 @@
 // Test explicit import of dart:core in the source code..
 
 library DynamicPrefixCoreTest.dart;
+
 import "package:expect/expect.dart";
 import "dart:core" as mycore;
 

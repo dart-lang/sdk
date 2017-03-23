@@ -24,13 +24,15 @@ class Range {
     while (e <= end) yield e++;
   }
 
-  get yield sync* {  // yield is a legal member name here.
+  get yield sync* {
+    // yield is a legal member name here.
     var e = start;
     while (e <= end) yield e++;
   }
 }
 
-get sync sync* {  // sync is a legal identifier.
+get sync sync* {
+  // sync is a legal identifier.
   yield "sync";
 }
 

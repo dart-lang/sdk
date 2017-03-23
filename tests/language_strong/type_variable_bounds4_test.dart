@@ -4,13 +4,17 @@
 
 // Test instantiation of object with malbounded types.
 
-class A<T
+class A<
+    T
           extends num //# 01: static type warning
-                     > {}
+    > {}
+
 class B<T> implements A<T> {}
-class C<T
+
+class C<
+    T
           extends num //# 01: continued
-                     > implements B<T> {}
+    > implements B<T> {}
 
 class Class<T> {
   newA() {
@@ -46,7 +50,6 @@ void test(bool expectTypeError, f()) {
     }
   }
 }
-
 
 void main() {
   test(false, () => new A<int>());

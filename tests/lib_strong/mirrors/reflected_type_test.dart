@@ -9,23 +9,29 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class A<T> {}
+
 class B extends A {}
+
 class C extends A<num, int> {} // //# 01: static type warning
 class D extends A<int> {}
+
 class E<S> extends A<S> {}
+
 class F<R> extends A<int> {}
+
 class G {}
-class H<A,B,C> {}
+
+class H<A, B, C> {}
 
 expectReflectedType(classMirror, expectedType) {
   if (expectedType == null) {
     Expect.isFalse(classMirror.hasReflectedType,
-                   "$classMirror should not have a reflected type");
-    Expect.throws(() => classMirror.reflectedType,
-                  (e) => e is UnsupportedError);
+        "$classMirror should not have a reflected type");
+    Expect.throws(
+        () => classMirror.reflectedType, (e) => e is UnsupportedError);
   } else {
     Expect.isTrue(classMirror.hasReflectedType,
-                  "$classMirror should have a reflected type");
+        "$classMirror should have a reflected type");
     Expect.equals(expectedType, classMirror.reflectedType);
   }
 }
@@ -50,7 +56,7 @@ main() {
   expectReflectedType(reflectClass(G), G);
   expectReflectedType(reflectClass(H), null);
 
-   // Instantiations.
+  // Instantiations.
   expectReflectedType(reflect(new A()).type, new A().runtimeType);
   expectReflectedType(reflect(new B()).type, new B().runtimeType);
   expectReflectedType(reflect(new C()).type, new C().runtimeType); // //# 01: continued
@@ -68,11 +74,11 @@ main() {
   expectReflectedType(reflect(new D<num>()).type.superclass, // //# 03: static type warning
                       new A<int>().runtimeType); //             //# 03: continued
   expectReflectedType(reflect(new E<num>()).type, new E<num>().runtimeType);
-  expectReflectedType(reflect(new E<num>()).type.superclass,
-                      new A<num>().runtimeType);
-  expectReflectedType(reflect(new F<num>()).type.superclass,
-                      new A<int>().runtimeType);
+  expectReflectedType(
+      reflect(new E<num>()).type.superclass, new A<num>().runtimeType);
+  expectReflectedType(
+      reflect(new F<num>()).type.superclass, new A<int>().runtimeType);
   expectReflectedType(reflect(new F<num>()).type, new F<num>().runtimeType);
-  expectReflectedType(reflect(new H<num, num, num>()).type,
-                      new H<num, num, num>().runtimeType);
+  expectReflectedType(
+      reflect(new H<num, num, num>()).type, new H<num, num, num>().runtimeType);
 }

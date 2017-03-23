@@ -12,8 +12,8 @@ class A {
   factory A.g(a, [b = 0]) = A; // //# 01: compile-time error
   factory A.h(a, {b: 0}) = A; // //# 02: compile-time error
 
- int a;
- int b;
+  int a;
+  int b;
 }
 
 main() {

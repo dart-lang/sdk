@@ -39,9 +39,9 @@ void testList(List<int> list, [int depth = 3]) {
 }
 
 void testMap(Map<int, int> map, [int depth = 3]) {
-  Expect.isTrue(map is Map<int,int>);
-  Expect.isFalse(map is Map<int,String>);
-  Expect.isFalse(map is Map<String,int>);
+  Expect.isTrue(map is Map<int, int>);
+  Expect.isFalse(map is Map<int, String>);
+  Expect.isFalse(map is Map<String, int>);
   if (depth > 0) {
     testIterable(map.keys, depth - 1);
     testIterable(map.values, depth - 1);
@@ -81,10 +81,10 @@ main() {
   testIterable(new DoubleLinkedQueue<int>()..add(1));
   testIterable(new ListQueue<int>()..add(1));
 
-  testMap(new Map<int,int>()..[1] = 1);
-  testMap(new HashMap<int,int>()..[1] = 1);
-  testMap(new LinkedHashMap<int,int>()..[1] = 1);
-  testMap(new SplayTreeMap<int,int>()..[1] = 1);
-  testMap(<int,int>{1:1});
-  testMap(const <int,int>{1:1});
+  testMap(new Map<int, int>()..[1] = 1);
+  testMap(new HashMap<int, int>()..[1] = 1);
+  testMap(new LinkedHashMap<int, int>()..[1] = 1);
+  testMap(new SplayTreeMap<int, int>()..[1] = 1);
+  testMap(<int, int>{1: 1});
+  testMap(const <int, int>{1: 1});
 }

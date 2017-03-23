@@ -14,7 +14,7 @@ isCheckedMode() {
   }
 }
 
-class A<T extends num> { }
+class A<T extends num> {}
 
 class B<T> {
   test() {
@@ -22,7 +22,7 @@ class B<T> {
   }
 }
 
-main () {
+main() {
   var b = new B<String>();
   if (isCheckedMode()) {
     Expect.throws(() => b.test(), (e) => e is TypeError);

@@ -5,13 +5,13 @@
 // Test that type variables referenced from within static members are malformed.
 
 class Foo<T> {
-  Foo() { }
+  Foo() {}
 
   static
   Foo<T> //# 00: static type warning
-  m(
+      m(
     Foo<T> //# 01: static type warning
-    f) {
+          f) {
     Foo<T> x = new Foo<String>(); //# 02: static type warning
     return new Foo<String>();
   }
@@ -26,11 +26,13 @@ class Foo<T> {
 
   static
   Foo<T> //# 04: static type warning
-  get f { return new Foo<String>(); }
+      get f {
+    return new Foo<String>();
+  }
 
   static void set f(
                     Foo<T> //# 05: static type warning
-                    value) {}
+      value) {}
 }
 
 abstract class I<T> {

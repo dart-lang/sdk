@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library IsolateImportNegativeTest;
+
 // Omitting the following import is an error:
 /* // //# 01: runtime error, static type warning
 import 'dart:isolate';

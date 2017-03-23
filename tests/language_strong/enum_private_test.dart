@@ -22,6 +22,3 @@ main() {
   Expect.equals('Enum2._A,Enum2._B', Enum2.values.join(',')); //# 01: ok
   Expect.throws(() => Enum2._A, (e) => e is NoSuchMethodError); //# 02: static type warning
 }
-
-
-

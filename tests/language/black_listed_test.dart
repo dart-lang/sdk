@@ -38,6 +38,7 @@ abstract class MyStringInterface implements String default F { // //# 10: compil
 
 // Function.
 class MyFunction implements Function {}
+
 class MyOtherFunction extends Function {}
 abstract class MyFunctionInterface implements Function default F { // //# 12: compile-time error
   MyFunctionInterface(); //                                   //# 12: continued
@@ -49,7 +50,6 @@ abstract class MyDynamicInterface implements dynamic default F { //  //# 14: com
   MyDynamicInterface(); //                                   //# 14: continued
 } //                                                         //# 14: continued
 
-
 class F {
   factory MyBoolInterface() { return null; } //     //# 02: continued
   factory MyNumInterface() { return null; } //      //# 04: continued
@@ -59,7 +59,6 @@ class F {
   factory MyFunctionInterface() { return null; } // //# 12: continued
   factory MyDynamicInterface() { return null; } //  //# 14: continued
 }
-
 
 main() {
   new MyBool(); //             //# 01: continued

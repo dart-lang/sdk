@@ -34,14 +34,22 @@ main() {
   }
 
   switch (new C()) {
-    case const C(): Expect.fail("bad switch"); break;
-    case const A.C(): Expect.fail("bad switch"); break;
-    case const A.C2(): Expect.fail("bad switch"); break;
+    case const C():
+      Expect.fail("bad switch");
+      break;
+    case const A.C():
+      Expect.fail("bad switch");
+      break;
+    case const A.C2():
+      Expect.fail("bad switch");
+      break;
     case const A(): Expect.fail("bad switch"); break; // //# 01: compile-time error
   }
 
   switch (new A()) {
-    case const A(): Expect.fail("bad switch"); break;
+    case const A():
+      Expect.fail("bad switch");
+      break;
     case const A.B(): Expect.fail("bad switch"); break; // //# 02: compile-time error
   }
 }

@@ -5,9 +5,7 @@
 
 import "package:expect/expect.dart";
 
-
 class NamedParametersTest {
-
   static int F00() {
     return 0;
   }
@@ -33,27 +31,27 @@ class NamedParametersTest {
   }
 
   static int F21(int a, [int b = 20]) {
-    return 100*a + b;
+    return 100 * a + b;
   }
 
   int f32(int a, [int b = 20]) {
-    return 100*a + b;
+    return 100 * a + b;
   }
 
   static int F31(int a, [int b = 20, int c = 30]) {
-    return 100*(100*a + b) + c;
+    return 100 * (100 * a + b) + c;
   }
 
   int f42(int a, [int b = 20, int c = 30]) {
-    return 100*(100*a + b) + c;
+    return 100 * (100 * a + b) + c;
   }
 
   static int F41(int a, [int b = 20, int c, int d = 40]) {
-    return 100*(100*(100*a + b) + (c == null ? 0 : c)) + d;
+    return 100 * (100 * (100 * a + b) + (c == null ? 0 : c)) + d;
   }
 
   int f52(int a, [int b = 20, int c, int d = 40]) {
-    return 100*(100*(100*a + b) + (c == null ? 0 : c)) + d;
+    return 100 * (100 * (100 * a + b) + (c == null ? 0 : c)) + d;
   }
 
   static testMain() {

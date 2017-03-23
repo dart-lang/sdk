@@ -12,13 +12,17 @@ import "package:async_helper/async_helper.dart";
 /// Path contains trailing slash.
 /// Each configuration gets its own sub-directory.
 Directory fileRoot;
+
 /// Shared HTTP server serving the files in [httpFiles].
 /// Each configuration gets its own "sub-dir" entry in `httpFiles`.
 HttpServer httpServer;
+
 /// Directory structure served by HTTP server.
 Map<String, dynamic> httpFiles = {};
+
 /// List of configurations.
 List<Configuration> configurations = [];
+
 /// Collection of failing tests and their failure messages.
 ///
 /// Each test may fail in more than one way.
@@ -46,7 +50,7 @@ main() async {
   // as its own multitest.
   {
     var groupCount = 8;
-    var groups = new List.generate(8, (_)=>[]);
+    var groups = new List.generate(8, (_) => []);
     for (int i = 0; i < configurations.length; i++) {
       groups[i % groupCount].add(configurations[i]);
     }
@@ -65,7 +69,6 @@ main() async {
       }
     }
   }
-
 
   await tearDown();
 
@@ -86,11 +89,10 @@ main() async {
 /// directly.
 Configuration spawn(Configuration conf) {
   return conf.update(
-    description: conf.description + "/spawn",
-    main: "spawnMain",
-    newArgs: [conf.mainType],
-    expect: null
-  );
+      description: conf.description + "/spawn",
+      main: "spawnMain",
+      newArgs: [conf.mainType],
+      expect: null);
 }
 
 /// Tests running a spawnUri on top of the configuration before testing.
@@ -110,15 +112,19 @@ Configuration spawnUriInherit(Configuration conf) {
     return null;
   }
   return conf.update(
-    description: conf.description + "/spawnUri-inherit",
-    main: "spawnUriMain",
-    // encode null parameters as "-". Windows fails if using empty string.
-    newArgs: [conf.mainFile, "-", "-", "false"],
-    expect: {
-      "proot": conf.expect["iroot"],
-      "pconf": conf.expect["iconf"],
-    }
-  );
+      description: conf.description + "/spawnUri-inherit",
+      main: "spawnUriMain",
+      // encode null parameters as "-". Windows fails if using empty string.
+      newArgs: [
+        conf.mainFile,
+        "-",
+        "-",
+        "false"
+      ],
+      expect: {
+        "proot": conf.expect["iroot"],
+        "pconf": conf.expect["iconf"],
+      });
 }
 
 /// Tests running a spawnUri with an explicit configuration different
@@ -129,15 +135,17 @@ ConfigurationTransformer spawnUriOther(Configuration other) {
   return (Configuration conf) {
     bool search = (other.config == null) && (other.root == null);
     return conf.update(
-      description: "${conf.description} -spawnUri-> ${other.description}",
-      main: "spawnUriMain",
-      newArgs: [other.mainFile,
-                other.config ?? "-", other.root ?? "-", "$search"],
-      expect: other.expect
-    );
+        description: "${conf.description} -spawnUri-> ${other.description}",
+        main: "spawnUriMain",
+        newArgs: [
+          other.mainFile,
+          other.config ?? "-",
+          other.root ?? "-",
+          "$search"
+        ],
+        expect: other.expect);
   };
 }
-
 
 /// Convert command line parameters to file paths.
 ///
@@ -158,12 +166,14 @@ Configuration asPath(Configuration conf) {
   var root = toPath(conf.root);
   var config = toPath(conf.config);
   if (!change) return null;
-  return conf.update(description: conf.description + "/as path",
-                     mainFile: mainFile, root: root, config: config);
+  return conf.update(
+      description: conf.description + "/as path",
+      mainFile: mainFile,
+      root: root,
+      config: config);
 }
 
 /// --------------------------------------------------------------
-
 
 Future setUp() async {
   fileRoot = createTempDir();
@@ -181,12 +191,13 @@ Future tearDown() async {
 typedef Configuration ConfigurationTransformer(Configuration conf);
 
 Future runTests([List<ConfigurationTransformer> transformations]) async {
-  outer: for (var config in configurations) {
+  outer:
+  for (var config in configurations) {
     if (transformations != null) {
       for (int i = transformations.length - 1; i >= 0; i--) {
         config = transformations[i](config);
         if (config == null) {
-          continue outer;  // Can be used to skip some tests.
+          continue outer; // Can be used to skip some tests.
         }
       }
     }
@@ -211,8 +222,8 @@ Future runTests([List<ConfigurationTransformer> transformations]) async {
 // The configurations all have URIs as `root`, `config` and `mainFile` strings,
 // have empty argument lists and `mainFile` points to the `main.dart` file.
 void createConfigurations() {
-  add(String description, String mainDir, {String root, String config,
-      Map file, Map http, Map expect}) {
+  add(String description, String mainDir,
+      {String root, String config, Map file, Map http, Map expect}) {
     var id = freshName("conf");
 
     file ??= {};
@@ -251,7 +262,6 @@ void createConfigurations() {
         mainDirMap = file;
       } else {
         mainDirMap = http;
-
       }
       var parts = mainDir.split('/');
       for (int i = 1; i < parts.length - 1; i++) {
@@ -277,17 +287,17 @@ void createConfigurations() {
     fixPaths(expect);
 
     expect = {
-      "pconf":    null,
-      "proot":    null,
-      "iconf":    null,
-      "iroot":    null,
-      "foo":      null,
-      "foo/":     null,
-      "foo/bar":  null,
-      "foo.x":    "qux",
-      "bar/bar":  null,
+      "pconf": null,
+      "proot": null,
+      "iconf": null,
+      "iroot": null,
+      "foo": null,
+      "foo/": null,
+      "foo/bar": null,
+      "foo.x": "qux",
+      "bar/bar": null,
       "relative": "relative/path",
-      "nonpkg":   "http://example.org/file"
+      "nonpkg": "http://example.org/file"
     }..addAll(expect ?? const {});
 
     // Add http files to the http server.
@@ -315,50 +325,48 @@ void createConfigurations() {
 
   // Tests that only use one scheme to access files.
   for (var scheme in ["file", "http"]) {
-
     /// Run a test in the current scheme.
     ///
     /// The files are served either through HTTP or in a local directory.
     /// Use "%$scheme/" to refer to the root of the served files.
     addScheme(description, main, {expect, files, args, root, config}) {
-      add("$scheme/$description", main, expect: expect,
-        root: root, config: config,
-        file: (scheme == "file") ? files : null,
-        http: (scheme == "http") ? files : null);
+      add("$scheme/$description", main,
+          expect: expect,
+          root: root,
+          config: config,
+          file: (scheme == "file") ? files : null,
+          http: (scheme == "http") ? files : null);
     }
 
     {
       // No parameters, no .packages files or packages/ dir.
       // A "file:" source realizes there is no configuration and can't resolve
       // any packages, but a "http:" source assumes a "packages/" directory.
-      addScheme("no resolution",
-        "%$scheme/",
-        files: {},
-        expect: (scheme == "file") ? {
-          "foo.x": null
-        } : {
-          "iroot": "%http/packages/",
-          "foo": "%http/packages/foo",
-          "foo/": "%http/packages/foo/",
-          "foo/bar": "%http/packages/foo/bar",
-          "foo.x": null,
-          "bar/bar": "%http/packages/bar/bar",
-        });
+      addScheme("no resolution", "%$scheme/",
+          files: {},
+          expect: (scheme == "file")
+              ? {"foo.x": null}
+              : {
+                  "iroot": "%http/packages/",
+                  "foo": "%http/packages/foo",
+                  "foo/": "%http/packages/foo/",
+                  "foo/bar": "%http/packages/foo/bar",
+                  "foo.x": null,
+                  "bar/bar": "%http/packages/bar/bar",
+                });
     }
 
     {
       // No parameters, no .packages files,
       // packages/ dir exists and is detected.
       var files = {"packages": fooPackage};
-      addScheme("implicit packages dir","%$scheme/",
-        files: files,
-        expect: {
-          "iroot": "%$scheme/packages/",
-          "foo": "%$scheme/packages/foo",
-          "foo/": "%$scheme/packages/foo/",
-          "foo/bar": "%$scheme/packages/foo/bar",
-          "bar/bar": "%$scheme/packages/bar/bar",
-        });
+      addScheme("implicit packages dir", "%$scheme/", files: files, expect: {
+        "iroot": "%$scheme/packages/",
+        "foo": "%$scheme/packages/foo",
+        "foo/": "%$scheme/packages/foo/",
+        "foo/bar": "%$scheme/packages/foo/bar",
+        "bar/bar": "%$scheme/packages/bar/bar",
+      });
     }
 
     {
@@ -367,166 +375,175 @@ void createConfigurations() {
       //
       // Should not detect the .packages file in parent directory.
       // That file is empty, so if it is used, the system cannot resolve "foo".
-      var files = {"sub": {"packages": fooPackage},
-                   ".packages": ""};
-      addScheme("implicit packages dir overrides parent .packages",
-        "%$scheme/sub/",
-        files: files,
-        expect: {
-          "iroot": "%$scheme/sub/packages/",
-          "foo": "%$scheme/sub/packages/foo",
-          "foo/": "%$scheme/sub/packages/foo/",
-          "foo/bar": "%$scheme/sub/packages/foo/bar",
-          // "foo.x": "qux",  // Blocked by issue http://dartbug.com/26482
-          "bar/bar": "%$scheme/sub/packages/bar/bar",
-        });
+      var files = {
+        "sub": {"packages": fooPackage},
+        ".packages": ""
+      };
+      addScheme(
+          "implicit packages dir overrides parent .packages", "%$scheme/sub/",
+          files: files,
+          expect: {
+            "iroot": "%$scheme/sub/packages/",
+            "foo": "%$scheme/sub/packages/foo",
+            "foo/": "%$scheme/sub/packages/foo/",
+            "foo/bar": "%$scheme/sub/packages/foo/bar",
+            // "foo.x": "qux",  // Blocked by issue http://dartbug.com/26482
+            "bar/bar": "%$scheme/sub/packages/bar/bar",
+          });
     }
 
     {
       // No parameters, a .packages file next to entry is found and used.
       // A packages/ directory is ignored.
-      var files = {".packages": "foo:pkgs/foo/",
-                   "packages": {},
-                   "pkgs": fooPackage};
-      addScheme("implicit .packages file", "%$scheme/",
-        files: files,
-        expect: {
-          "iconf": "%$scheme/.packages",
-          "foo/": "%$scheme/pkgs/foo/",
-          "foo/bar": "%$scheme/pkgs/foo/bar",
-        });
+      var files = {
+        ".packages": "foo:pkgs/foo/",
+        "packages": {},
+        "pkgs": fooPackage
+      };
+      addScheme("implicit .packages file", "%$scheme/", files: files, expect: {
+        "iconf": "%$scheme/.packages",
+        "foo/": "%$scheme/pkgs/foo/",
+        "foo/bar": "%$scheme/pkgs/foo/bar",
+      });
     }
 
     {
       // No parameters, a .packages file in parent dir, no packages/ dir.
       // With a file: URI, find the .packages file.
       // WIth a http: URI, assume a packages/ dir.
-      var files = {"sub": {},
-                   ".packages": "foo:pkgs/foo/",
-                   "pkgs": fooPackage};
+      var files = {"sub": {}, ".packages": "foo:pkgs/foo/", "pkgs": fooPackage};
       addScheme(".packages file in parent", "%$scheme/sub/",
-        files: files,
-        expect: (scheme == "file") ? {
-          "iconf": "%file/.packages",
-          "foo/": "%file/pkgs/foo/",
-          "foo/bar": "%file/pkgs/foo/bar",
-        } : {
-          "iroot": "%http/sub/packages/",
-          "foo": "%http/sub/packages/foo",
-          "foo/": "%http/sub/packages/foo/",
-          "foo/bar": "%http/sub/packages/foo/bar",
-          "foo.x": null,
-          "bar/bar": "%http/sub/packages/bar/bar",
-        });
+          files: files,
+          expect: (scheme == "file")
+              ? {
+                  "iconf": "%file/.packages",
+                  "foo/": "%file/pkgs/foo/",
+                  "foo/bar": "%file/pkgs/foo/bar",
+                }
+              : {
+                  "iroot": "%http/sub/packages/",
+                  "foo": "%http/sub/packages/foo",
+                  "foo/": "%http/sub/packages/foo/",
+                  "foo/bar": "%http/sub/packages/foo/bar",
+                  "foo.x": null,
+                  "bar/bar": "%http/sub/packages/bar/bar",
+                });
     }
 
     {
       // Specified package root that doesn't exist.
       // Ignores existing .packages file and packages/ dir.
-      addScheme("explicit root not there",
-        "%$scheme/",
-        files: {"packages": fooPackage,
-                ".packages": "foo:%$scheme/packages/"},
-        root: "%$scheme/notthere/",
-        expect: {
-          "proot": "%$scheme/notthere/",
-          "iroot": "%$scheme/notthere/",
-          "foo": "%$scheme/notthere/foo",
-          "foo/": "%$scheme/notthere/foo/",
-          "foo/bar": "%$scheme/notthere/foo/bar",
-          "foo.x": null,
-          "bar/bar": "%$scheme/notthere/bar/bar",
-        });
+      addScheme("explicit root not there", "%$scheme/",
+          files: {
+            "packages": fooPackage,
+            ".packages": "foo:%$scheme/packages/"
+          },
+          root: "%$scheme/notthere/",
+          expect: {
+            "proot": "%$scheme/notthere/",
+            "iroot": "%$scheme/notthere/",
+            "foo": "%$scheme/notthere/foo",
+            "foo/": "%$scheme/notthere/foo/",
+            "foo/bar": "%$scheme/notthere/foo/bar",
+            "foo.x": null,
+            "bar/bar": "%$scheme/notthere/bar/bar",
+          });
     }
 
     {
       // Specified package config that doesn't exist.
       // Ignores existing .packages file and packages/ dir.
-      addScheme("explicit config not there",
-        "%$scheme/",
-        files: {".packages": "foo:packages/foo/",
-                "packages": fooPackage},
-        config: "%$scheme/.notthere",
-        expect: {
-          "pconf": "%$scheme/.notthere",
-          "iconf": null, //   <- Only there if actually loaded (unspecified).
-          "foo/": null,
-          "foo/bar": null,
-          "foo.x": null,
-        });
+      addScheme("explicit config not there", "%$scheme/",
+          files: {".packages": "foo:packages/foo/", "packages": fooPackage},
+          config: "%$scheme/.notthere",
+          expect: {
+            "pconf": "%$scheme/.notthere",
+            "iconf": null, //   <- Only there if actually loaded (unspecified).
+            "foo/": null,
+            "foo/bar": null,
+            "foo.x": null,
+          });
     }
 
     {
       // Specified package root with no trailing slash.
       // The Platform.packageRoot and Isolate.packageRoot has a trailing slash.
-      var files = {".packages": "foo:packages/foo/",
-                   "packages": {},
-                   "pkgs": fooPackage};
+      var files = {
+        ".packages": "foo:packages/foo/",
+        "packages": {},
+        "pkgs": fooPackage
+      };
       addScheme("explicit package root, no slash", "%$scheme/",
-        files: files,
-        root: "%$scheme/pkgs",
-        expect: {
-          "proot": "%$scheme/pkgs/",
-          "iroot": "%$scheme/pkgs/",
-          "foo": "%$scheme/pkgs/foo",
-          "foo/": "%$scheme/pkgs/foo/",
-          "foo/bar": "%$scheme/pkgs/foo/bar",
-          "bar/bar": "%$scheme/pkgs/bar/bar",
-        });
+          files: files,
+          root: "%$scheme/pkgs",
+          expect: {
+            "proot": "%$scheme/pkgs/",
+            "iroot": "%$scheme/pkgs/",
+            "foo": "%$scheme/pkgs/foo",
+            "foo/": "%$scheme/pkgs/foo/",
+            "foo/bar": "%$scheme/pkgs/foo/bar",
+            "bar/bar": "%$scheme/pkgs/bar/bar",
+          });
     }
 
     {
       // Specified package root with trailing slash.
-      var files = {".packages": "foo:packages/foo/",
-                   "packages": {},
-                   "pkgs": fooPackage};
+      var files = {
+        ".packages": "foo:packages/foo/",
+        "packages": {},
+        "pkgs": fooPackage
+      };
       addScheme("explicit package root, slash", "%$scheme/",
-        files: files,
-        root: "%$scheme/pkgs",
-        expect: {
-          "proot": "%$scheme/pkgs/",
-          "iroot": "%$scheme/pkgs/",
-          "foo": "%$scheme/pkgs/foo",
-          "foo/": "%$scheme/pkgs/foo/",
-          "foo/bar": "%$scheme/pkgs/foo/bar",
-          "bar/bar": "%$scheme/pkgs/bar/bar",
-        });
+          files: files,
+          root: "%$scheme/pkgs",
+          expect: {
+            "proot": "%$scheme/pkgs/",
+            "iroot": "%$scheme/pkgs/",
+            "foo": "%$scheme/pkgs/foo",
+            "foo/": "%$scheme/pkgs/foo/",
+            "foo/bar": "%$scheme/pkgs/foo/bar",
+            "bar/bar": "%$scheme/pkgs/bar/bar",
+          });
     }
 
     {
       // Specified package config.
-      var files = {".packages": "foo:packages/foo/",
-                   "packages": {},
-                   ".pkgs": "foo:pkgs/foo/",
-                   "pkgs": fooPackage};
+      var files = {
+        ".packages": "foo:packages/foo/",
+        "packages": {},
+        ".pkgs": "foo:pkgs/foo/",
+        "pkgs": fooPackage
+      };
       addScheme("explicit package config file", "%$scheme/",
-        files: files,
-        config: "%$scheme/.pkgs",
-        expect: {
-          "pconf": "%$scheme/.pkgs",
-          "iconf": "%$scheme/.pkgs",
-          "foo/": "%$scheme/pkgs/foo/",
-          "foo/bar": "%$scheme/pkgs/foo/bar",
-        });
+          files: files,
+          config: "%$scheme/.pkgs",
+          expect: {
+            "pconf": "%$scheme/.pkgs",
+            "iconf": "%$scheme/.pkgs",
+            "foo/": "%$scheme/pkgs/foo/",
+            "foo/bar": "%$scheme/pkgs/foo/bar",
+          });
     }
 
     {
       // Specified package config as data: URI.
       // The package config can be specified as a data: URI.
       // (In that case, relative URI references in the config file won't work).
-      var files = {".packages": "foo:packages/foo/",
-                   "packages": {},
-                   "pkgs": fooPackage};
+      var files = {
+        ".packages": "foo:packages/foo/",
+        "packages": {},
+        "pkgs": fooPackage
+      };
       var dataUri = "data:,foo:%$scheme/pkgs/foo/\n";
       addScheme("explicit data: config file", "%$scheme/",
-        files: files,
-        config: dataUri,
-        expect: {
-          "pconf": dataUri,
-          "iconf": dataUri,
-          "foo/": "%$scheme/pkgs/foo/",
-          "foo/bar": "%$scheme/pkgs/foo/bar",
-        });
+          files: files,
+          config: dataUri,
+          expect: {
+            "pconf": dataUri,
+            "iconf": dataUri,
+            "foo/": "%$scheme/pkgs/foo/",
+            "foo/bar": "%$scheme/pkgs/foo/bar",
+          });
     }
   }
 
@@ -542,17 +559,18 @@ void createConfigurations() {
         (entryScheme == "file" ? files : https)["main"] = testMain;
         (pkgScheme == "file" ? files : https)["pkgs"] = fooPackage;
         add("$pkgScheme pkg/$entryScheme main", "%$entryScheme/",
-          file: files, http: https,
-          root: "%$pkgScheme/pkgs/",
-          expect: {
-            "proot": "%$pkgScheme/pkgs/",
-            "iroot": "%$pkgScheme/pkgs/",
-            "foo": "%$pkgScheme/pkgs/foo",
-            "foo/": "%$pkgScheme/pkgs/foo/",
-            "foo/bar": "%$pkgScheme/pkgs/foo/bar",
-            "bar/bar": "%$pkgScheme/pkgs/bar/bar",
-            "foo.x": "qux",
-          });
+            file: files,
+            http: https,
+            root: "%$pkgScheme/pkgs/",
+            expect: {
+              "proot": "%$pkgScheme/pkgs/",
+              "iroot": "%$pkgScheme/pkgs/",
+              "foo": "%$pkgScheme/pkgs/foo",
+              "foo/": "%$pkgScheme/pkgs/foo/",
+              "foo/bar": "%$pkgScheme/pkgs/foo/bar",
+              "bar/bar": "%$pkgScheme/pkgs/bar/bar",
+              "foo.x": "qux",
+            });
       }
       // Package config. The configuration file may also be on either source.
       for (var configScheme in const ["file", "http"]) {
@@ -566,21 +584,21 @@ void createConfigurations() {
             "foo:%$pkgScheme/pkgs/foo/\n";
         (pkgScheme == "file" ? files : https)["pkgs"] = fooPackage;
         add("$pkgScheme pkg/$configScheme config/$entryScheme main",
-          "%$entryScheme/",
-          file: files, http: https,
-          config: "%$configScheme/.pkgs",
-          expect: {
-            "pconf": "%$configScheme/.pkgs",
-            "iconf": "%$configScheme/.pkgs",
-            "foo/": "%$pkgScheme/pkgs/foo/",
-            "foo/bar": "%$pkgScheme/pkgs/foo/bar",
-            "foo.x": "qux",
-          });
+            "%$entryScheme/",
+            file: files,
+            http: https,
+            config: "%$configScheme/.pkgs",
+            expect: {
+              "pconf": "%$configScheme/.pkgs",
+              "iconf": "%$configScheme/.pkgs",
+              "foo/": "%$pkgScheme/pkgs/foo/",
+              "foo/bar": "%$pkgScheme/pkgs/foo/bar",
+              "foo.x": "qux",
+            });
       }
     }
   }
 }
-
 
 // ---------------------------------------------------------
 // Helper functionality.
@@ -601,9 +619,7 @@ Future testConfiguration(Configuration conf) async {
   var description = conf.description;
   try {
     var output = await execDart(conf.mainFile,
-                                root: conf.root,
-                                config: conf.config,
-                                scriptArgs: conf.args);
+        root: conf.root, config: conf.config, scriptArgs: conf.args);
     match(JSON.decode(output), conf.expect, description, output);
   } catch (e, s) {
     // Unexpected error calling execDart or parsing the result.
@@ -612,7 +628,6 @@ Future testConfiguration(Configuration conf) async {
     failingTests.putIfAbsent(description, () => []).add("$e");
   }
 }
-
 
 /// Test that the output of running testMain matches the expectations.
 ///
@@ -627,13 +642,14 @@ void match(Map actuals, Map expectations, String desc, String actualJson) {
     var actual = actuals[key];
     if (expectation != actual) {
       print("ERROR: $desc: $key: Expected: <$expectation> Found: <$actual>");
-      failingTests.putIfAbsent(desc, ()=>[]).add(
-          "$key: $expectation != $actual");
+      failingTests
+          .putIfAbsent(desc, () => [])
+          .add("$key: $expectation != $actual");
     }
   }
 }
 
-const String improt = "import";  // Avoid multitest import rewriting.
+const String improt = "import"; // Avoid multitest import rewriting.
 
 /// Script that prints the current state and the result of resolving
 /// a few package URIs. This script will be invoked in different settings,
@@ -743,15 +759,15 @@ main(List<String> args) async {
 """;
 
 /// A package directory containing only one package, "foo", with one file.
-const Map fooPackage = const { "foo": const { "foo": "var x = 'qux';" }};
-
+const Map fooPackage = const {
+  "foo": const {"foo": "var x = 'qux';"}
+};
 
 /// Runs the Dart executable with the provided parameters.
 ///
 /// Captures and returns the output.
 Future<String> execDart(String script,
-                        {String root, String config,
-                         Iterable<String> scriptArgs}) async {
+    {String root, String config, Iterable<String> scriptArgs}) async {
   var checked = false;
   assert((checked = true));
   // TODO: Find a way to change CWD before running script.
@@ -795,9 +811,8 @@ void createFiles(Directory tempDir, String subDir, Map content) {
       if (content is String) {
         // If the name starts with "." it's a .packages file, otherwise it's
         // a dart file. Those are the only files we care about in this test.
-        createTextFile(dir,
-                       name.startsWith(".") ? name : name + ".dart",
-                       content);
+        createTextFile(
+            dir, name.startsWith(".") ? name : name + ".dart", content);
       } else {
         assert(content is Map);
         var subdir = createDir(dir, name);
@@ -819,28 +834,31 @@ void createFiles(Directory tempDir, String subDir, Map content) {
 /// referential.
 Future<HttpServer> startServer(Map files) async {
   return (await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0))
-      ..forEach((request) {
-        var result = files;
-        onFailure: {
-          for (var part in request.uri.pathSegments) {
-            if (part.endsWith(".dart")) {
-              part = part.substring(0, part.length - 5);
-            }
-            if (result is Map) {
-              result = result[part];
-            } else {
-              break onFailure;
-            }
+    ..forEach((request) {
+      var result = files;
+      onFailure:
+      {
+        for (var part in request.uri.pathSegments) {
+          if (part.endsWith(".dart")) {
+            part = part.substring(0, part.length - 5);
           }
-          if (result is String) {
-            request.response..write(result)
-                            ..close();
-            return;
+          if (result is Map) {
+            result = result[part];
+          } else {
+            break onFailure;
           }
         }
-        request.response..statusCode = HttpStatus.NOT_FOUND
-                        ..close();
-      });
+        if (result is String) {
+          request.response
+            ..write(result)
+            ..close();
+          return;
+        }
+      }
+      request.response
+        ..statusCode = HttpStatus.NOT_FOUND
+        ..close();
+    });
 }
 
 // Counter used to avoid reusing temporary file or directory names.
@@ -865,17 +883,22 @@ typedef void ConfigUpdate(Configuration configuration);
 class Configuration {
   /// The "description" of the test - a description of the set-up.
   final String description;
+
   /// The package root parameter passed to the Dart isolate.
   ///
   /// At most one of [root] and [config] should be supplied. If both are
   /// omitted, a VM will search for a packages file or dir.
   final String root;
+
   /// The package configuration file location passed to the Dart isolate.
   final String config;
+
   /// Path to the main file to run.
   final String mainFile;
+
   /// List of arguments to pass to the main function.
   final List<String> args;
+
   /// The expected values for `Platform.package{Root,Config}`,
   /// `Isolate.package{Root,Config}` and resolution of package URIs
   /// in a `foo` package.
@@ -884,12 +907,13 @@ class Configuration {
   /// The tests can run this file after doing other `spawn` or `spawnUri` calls.
   final Map expect;
 
-  Configuration({this.description,
-                 this.root,
-                 this.config,
-                 this.mainFile,
-                 this.args,
-                 this.expect});
+  Configuration(
+      {this.description,
+      this.root,
+      this.config,
+      this.mainFile,
+      this.args,
+      this.expect});
 
   // Gets the type of main file, one of `main`, `spawnMain` or `spawnUriMain`.
   String get mainType {
@@ -929,43 +953,41 @@ class Configuration {
   /// [expect] overrides individual expectations.
   ///
   /// [root] and [config] overrides the existing values.
-  Configuration update({
-      String description,
+  Configuration update(
+      {String description,
       String main,
       String mainFile,
       String root,
       String config,
       List<String> args,
       List<String> newArgs,
-      Map expect
-    }) {
+      Map expect}) {
     return new Configuration(
-      description: description ?? this.description,
-      root: root ?? this.root,
-      config: config ?? this.config,
-      mainFile: mainFile ??
-          ((main == null) ? this.mainFile : "${this.mainPath}$main.dart"),
-      args:
-          args ?? (<String>[]..addAll(newArgs ?? const <String>[])
-                             ..addAll(this.args)),
-      expect: expect == null
-          ? this.expect
-          : new Map.from(this.expect)..addAll(expect ?? const {}));
+        description: description ?? this.description,
+        root: root ?? this.root,
+        config: config ?? this.config,
+        mainFile: mainFile ??
+            ((main == null) ? this.mainFile : "${this.mainPath}$main.dart"),
+        args: args ??
+            (<String>[]
+              ..addAll(newArgs ?? const <String>[])
+              ..addAll(this.args)),
+        expect: expect == null ? this.expect : new Map.from(this.expect)
+          ..addAll(expect ?? const {}));
   }
 
   // For debugging.
   String toString() {
     return "Configuration($description\n"
-      "  root  : $root\n"
-      "  config: $config\n"
-      "  main  : $mainFile\n"
-      "  args  : ${args.map((x) => '"$x"').join(" ")}\n"
-      ") : expect {\n${expect.keys.map((k) =>
+        "  root  : $root\n"
+        "  config: $config\n"
+        "  main  : $mainFile\n"
+        "  args  : ${args.map((x) => '"$x"').join(" ")}\n"
+        ") : expect {\n${expect.keys.map((k) =>
            '  "$k"'.padRight(6) + ":${JSON.encode(expect[k])}\n").join()}"
-      "}";
+        "}";
   }
 }
-
 
 // Inserts the file with generalized [name] at [path] with [content].
 //
@@ -974,8 +996,8 @@ class Configuration {
 //
 // The [name] should not have a trailing ".dart" for Dart files. Any file
 // not starting with "." is assumed to be a ".dart" file.
-void insertFileAt(Map file, Map http,
-                  String path, String name, String content) {
+void insertFileAt(
+    Map file, Map http, String path, String name, String content) {
   var parts = path.split('/').toList();
   var dir = (parts[0] == "%file") ? file : http;
   for (var i = 1; i < parts.length - 1; i++) {

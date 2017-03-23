@@ -7,15 +7,19 @@
 class A {
   var a = "a";
 }
+
 class B extends A {
   var b = "b";
 }
+
 class C extends B {
   var c = "c";
 }
+
 class D extends A {
   var d = "d";
 }
+
 class E implements C, D {
   var a = "";
   var b = "";

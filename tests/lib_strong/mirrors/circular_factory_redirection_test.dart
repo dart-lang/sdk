@@ -10,11 +10,13 @@ class A {
   A.circular() = B.circular; // //# 01: compile-time error
   const A.circular2() = B.circular2; // //# 02: compile-time error
 }
+
 class B {
   B();
   B.circular() = C.circular; // //# 01: continued
   const B.circular2() = C.circular2; // //# 02: continued
 }
+
 class C {
   C();
   C.circular() = A.circular; // //# 01: continued
@@ -27,11 +29,13 @@ main() {
   new A.circular(); // //# 01: continued
   new A.circular2(); // //# 02: continued
 
-  Expect.throws(() => cm.newInstance(#circular, []),
-                (e) => e is NoSuchMethodError,
-                'Should disallow circular redirection (non-const)');
+  Expect.throws(
+      () => cm.newInstance(#circular, []),
+      (e) => e is NoSuchMethodError,
+      'Should disallow circular redirection (non-const)');
 
-  Expect.throws(() => cm.newInstance(#circular2, []),
-                (e) => e is NoSuchMethodError,
-                'Should disallow circular redirection (const)');
+  Expect.throws(
+      () => cm.newInstance(#circular2, []),
+      (e) => e is NoSuchMethodError,
+      'Should disallow circular redirection (const)');
 }
