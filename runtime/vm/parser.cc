@@ -4459,32 +4459,23 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   }
 
   // Optionally parse a type.
-  if (CurrentToken() == Token::kVOID) {
-    if (member.has_var || member.has_factory) {
-      ReportError("void not expected");
-    }
-    ConsumeToken();
-    ASSERT(member.type == NULL);
-    member.type = &Object::void_type();
-  } else {
-    bool found_type = false;
-    {
-      // Lookahead to determine whether the next tokens are a return type.
-      TokenPosScope saved_pos(this);
-      if (TryParseType(true)) {
-        if (IsIdentifier() || (CurrentToken() == Token::kGET) ||
-            (CurrentToken() == Token::kSET) ||
-            (CurrentToken() == Token::kOPERATOR)) {
-          found_type = true;
-        }
+  bool found_type = false;
+  {
+    // Lookahead to determine whether the next tokens are a return type.
+    TokenPosScope saved_pos(this);
+    if (TryParseType(true)) {
+      if (IsIdentifier() || (CurrentToken() == Token::kGET) ||
+          (CurrentToken() == Token::kSET) ||
+          (CurrentToken() == Token::kOPERATOR)) {
+        found_type = true;
       }
     }
-    if (found_type) {
-      // It is too early to resolve the type here, since it can be a result type
-      // referring to a not yet declared function type parameter.
-      member.type = &AbstractType::ZoneHandle(
-          Z, ParseTypeOrFunctionType(false, ClassFinalizer::kDoNotResolve));
-    }
+  }
+  if (found_type) {
+    // It is too early to resolve the type here, since it can be a result type
+    // referring to a not yet declared function type parameter.
+    member.type = &AbstractType::ZoneHandle(
+        Z, ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve));
   }
 
   // Optionally parse a (possibly named) constructor name or factory.
