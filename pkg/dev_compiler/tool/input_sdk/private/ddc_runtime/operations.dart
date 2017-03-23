@@ -496,7 +496,7 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
   let actual = $getReifiedType($obj);
   let result = $isSubtype(actual, $type);
   if (result || actual == $jsobject ||
-      actual == $int && type == $double) return true;
+      (actual == $int && $isSubtype($double, $type))) return true;
   if (result === false) return false;
   if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
   if ($_ignoreTypeFailure(actual, $type)) return true;
