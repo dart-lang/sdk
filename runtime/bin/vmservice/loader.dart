@@ -62,6 +62,8 @@ class FileRequest {
   FileRequest(this.sp, this.tag, this.uri, this.resolvedUri, this.libraryUrl);
 }
 
+bool _traceLoading = false;
+
 // State associated with the isolate that is used for loading.
 class IsolateLoaderState extends IsolateEmbedderData {
   IsolateLoaderState(this.isolateId);
@@ -100,8 +102,6 @@ class IsolateLoaderState extends IsolateEmbedderData {
 
   // The root script's uri.
   Uri _rootScript;
-
-  bool _traceLoading = false;
 
   // Packages are either resolved looking up in a map or resolved from within a
   // package root.

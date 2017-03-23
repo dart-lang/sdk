@@ -1428,7 +1428,8 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   ASSERT(Dart_IsServiceIsolate(isolate));
   // Load embedder specific bits and return. Will not start http server.
   if (!VmService::Setup("127.0.0.1", -1, false /* running_precompiled */,
-                        false /* server dev mode */)) {
+                        false /* server dev mode */,
+                        false /* trace_loading */)) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }

@@ -917,7 +917,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     // If this is the service isolate, load embedder specific bits and return.
     bool skip_library_load = isolate_run_app_snapshot;
     if (!VmService::Setup(vm_service_server_ip, vm_service_server_port,
-                          skip_library_load, vm_service_dev_mode)) {
+                          skip_library_load, vm_service_dev_mode,
+                          trace_loading)) {
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
