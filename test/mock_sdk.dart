@@ -89,6 +89,14 @@ class Deprecated extends Object {
 }
 const Object deprecated = const Deprecated("next release");
 
+class Error {
+  Error();
+  static String safeToString(Object object);
+  external static String _stringToSafeString(String string);
+  external static String _objectToString(Object object);
+  external StackTrace get stackTrace;
+}
+
 class Iterator<E> {
   bool moveNext();
   E get current;
