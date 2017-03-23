@@ -801,7 +801,7 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  SuperConstructorInvocation parseSuperConstructorInvocation(String code) {
+  ConstructorInitializer parseConstructorInitializer(String code) {
     String source = 'class __Test { __Test() : $code; }';
     var unit =
         _runParser(source, (parser) => parser.parseUnit) as CompilationUnit;

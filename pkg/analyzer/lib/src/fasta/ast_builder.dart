@@ -1499,19 +1499,32 @@ class AstBuilder extends ScopeListener {
     var initializers = <ConstructorInitializer>[];
     for (Object initializerObject in initializerObjects) {
       if (initializerObject is FunctionExpressionInvocation) {
-        var superExpression = initializerObject.function as SuperExpression;
-        initializers.add(ast.superConstructorInvocation(
-            superExpression.superKeyword,
-            null,
-            null,
-            initializerObject.argumentList));
+        Expression function = initializerObject.function;
+        if (function is SuperExpression) {
+          initializers.add(ast.superConstructorInvocation(function.superKeyword,
+              null, null, initializerObject.argumentList));
+        } else {
+          initializers.add(ast.redirectingConstructorInvocation(
+              (function as ThisExpression).thisKeyword,
+              null,
+              null,
+              initializerObject.argumentList));
+        }
       } else if (initializerObject is MethodInvocation) {
-        var superExpression = initializerObject.target as SuperExpression;
-        initializers.add(ast.superConstructorInvocation(
-            superExpression.superKeyword,
-            initializerObject.operator,
-            initializerObject.methodName,
-            initializerObject.argumentList));
+        Expression target = initializerObject.target;
+        if (target is SuperExpression) {
+          initializers.add(ast.superConstructorInvocation(
+              target.superKeyword,
+              initializerObject.operator,
+              initializerObject.methodName,
+              initializerObject.argumentList));
+        } else {
+          initializers.add(ast.redirectingConstructorInvocation(
+              (target as ThisExpression).thisKeyword,
+              initializerObject.operator,
+              initializerObject.methodName,
+              initializerObject.argumentList));
+        }
       } else if (initializerObject is AssignmentExpression) {
         analyzer.Token thisKeyword;
         analyzer.Token period;

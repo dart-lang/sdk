@@ -107,6 +107,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   Expression parseConstExpression(String code);
 
+  ConstructorInitializer parseConstructorInitializer(String code);
+
   /**
    * Parse the given source as a compilation unit.
    *
@@ -190,8 +192,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Statement parseStatement(String source, [bool enableLazyAssignmentOperators]);
 
   Expression parseStringLiteral(String code);
-
-  SuperConstructorInvocation parseSuperConstructorInvocation(String code);
 
   SymbolLiteral parseSymbolLiteral(String code);
 
@@ -5954,6 +5954,26 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.value, isTrue);
   }
 
+  void test_parseRedirectingConstructorInvocation_named() {
+    var invocation = parseConstructorInitializer('this.a()')
+        as RedirectingConstructorInvocation;
+    assertNoErrors();
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNotNull);
+    expect(invocation.thisKeyword, isNotNull);
+    expect(invocation.period, isNotNull);
+  }
+
+  void test_parseRedirectingConstructorInvocation_unnamed() {
+    var invocation = parseConstructorInitializer('this()')
+        as RedirectingConstructorInvocation;
+    assertNoErrors();
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNull);
+    expect(invocation.thisKeyword, isNotNull);
+    expect(invocation.period, isNull);
+  }
+
   void test_parseRelationalExpression_as_functionType_noReturnType() {
     Expression expression = parseRelationalExpression('x as Function(int)');
     expect(expression, isNotNull);
@@ -6375,8 +6395,8 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseSuperConstructorInvocation_named() {
-    SuperConstructorInvocation invocation =
-        parseSuperConstructorInvocation('super.a()');
+    var invocation =
+        parseConstructorInitializer('super.a()') as SuperConstructorInvocation;
     expect(invocation, isNotNull);
     assertNoErrors();
     expect(invocation.argumentList, isNotNull);
@@ -6386,9 +6406,8 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseSuperConstructorInvocation_unnamed() {
-    SuperConstructorInvocation invocation =
-        parseSuperConstructorInvocation('super()');
-    expect(invocation, isNotNull);
+    var invocation =
+        parseConstructorInitializer('super()') as SuperConstructorInvocation;
     assertNoErrors();
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNull);
@@ -8031,6 +8050,15 @@ class ParserTestCase extends EngineTestCase
   }
 
   @override
+  ConstructorInitializer parseConstructorInitializer(String code) {
+    createParser('class __Test { __Test() : $code; }');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var constructor = clazz.members[0] as ConstructorDeclaration;
+    return constructor.initializers.single;
+  }
+
+  @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     createParser(source);
@@ -8291,12 +8319,6 @@ class ParserTestCase extends EngineTestCase
   Expression parseStringLiteral(String code) {
     createParser(code);
     return parser.parseStringLiteral();
-  }
-
-  @override
-  SuperConstructorInvocation parseSuperConstructorInvocation(String code) {
-    createParser(code);
-    return parser.parseSuperConstructorInvocation();
   }
 
   @override
@@ -11230,30 +11252,6 @@ void''');
 
   void test_Parser() {
     expect(new Parser(null, null), isNotNull);
-  }
-
-  void test_parseRedirectingConstructorInvocation_named() {
-    createParser('this.a()');
-    RedirectingConstructorInvocation invocation =
-        parser.parseRedirectingConstructorInvocation(true);
-    expectNotNullIfNoErrors(invocation);
-    listener.assertNoErrors();
-    expect(invocation.argumentList, isNotNull);
-    expect(invocation.constructorName, isNotNull);
-    expect(invocation.thisKeyword, isNotNull);
-    expect(invocation.period, isNotNull);
-  }
-
-  void test_parseRedirectingConstructorInvocation_unnamed() {
-    createParser('this()');
-    RedirectingConstructorInvocation invocation =
-        parser.parseRedirectingConstructorInvocation(false);
-    expectNotNullIfNoErrors(invocation);
-    listener.assertNoErrors();
-    expect(invocation.argumentList, isNotNull);
-    expect(invocation.constructorName, isNull);
-    expect(invocation.thisKeyword, isNotNull);
-    expect(invocation.period, isNull);
   }
 
   void test_parseReturnStatement_noValue() {
