@@ -14,8 +14,6 @@ import 'errors.dart' show InputError;
 
 import 'colors.dart' show cyan, magenta;
 
-const bool hideNits = false;
-
 const bool hideWarnings = false;
 
 bool get errorsAreFatal => CompilerContext.current.options.errorsAreFatal;
@@ -25,6 +23,8 @@ bool get nitsAreFatal => CompilerContext.current.options.nitsAreFatal;
 bool get warningsAreFatal => CompilerContext.current.options.warningsAreFatal;
 
 bool get isVerbose => CompilerContext.current.options.verbose;
+
+bool get hideNits => !isVerbose;
 
 void warning(Uri uri, int charOffset, String message) {
   if (hideWarnings) return;
