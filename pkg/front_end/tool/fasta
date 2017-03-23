@@ -47,6 +47,11 @@ case "${1//_/-}" in
       stop "Usage: $1 dillfile [output]"
     fi
     ;;
+  kernel-service)
+    shift
+    exec "${DART_VM}" -c -DDFE_VERBOSE=true \
+         --dfe="${REPO_DIR}/utils/kernel-service/kernel-service.dart" "$@"
+    ;;
   testing)
     SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"
     set -- "$@" "--config=${REPO_DIR}/pkg/front_end/test/fasta/testing.json"
