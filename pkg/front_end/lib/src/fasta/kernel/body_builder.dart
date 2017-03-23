@@ -188,6 +188,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return buildCompileTimeError(
             "Type variables can only be used in instance methods.");
       } else {
+        if (constantExpressionRequired) {
+          addCompileTimeError(-1,
+              "Type variable can't be used as a constant expression $type.");
+        }
         return new TypeLiteral(type);
       }
     } else if (node is TypeDeclarationBuilder) {
@@ -540,6 +544,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   finishSend(Object receiver, Arguments arguments, int charOffset) {
     if (receiver is BuilderAccessor) {
+      if (constantExpressionRequired) {
+        addCompileTimeError(charOffset, "Not a constant expression.");
+      }
       return receiver.doInvocation(charOffset, arguments);
     } else if (receiver is UnresolvedIdentifier) {
       return throwNoSuchMethodError(
@@ -747,6 +754,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Builder builder = scope.lookup(name, token.charOffset, uri);
       push(builderToFirstExpression(builder, name, token.charOffset));
     } else {
+      if (constantExpressionRequired) {
+        if (context != IdentifierContext.namedArgumentReference &&
+            context != IdentifierContext.constructorReferenceContinuation &&
+            context != IdentifierContext.expressionContinuation &&
+            context != IdentifierContext.typeReferenceContinuation &&
+            context != IdentifierContext.localVariableDeclaration &&
+            context !=
+                IdentifierContext
+                    .constructorReferenceContinuationAfterTypeArguments) {
+          addCompileTimeError(
+              token.charOffset, "Not a constant expression: $context");
+        }
+      }
       push(new Identifier(name)..fileOffset = token.charOffset);
     }
   }
@@ -758,15 +778,30 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Name n = new Name(name, library.library);
       if (!isPrefix && isInstanceContext) {
         assert(builder == null);
+        if (constantExpressionRequired) {
+          addCompileTimeError(charOffset, "Not a constant expression.");
+        }
         return new ThisPropertyAccessor(this, charOffset, n, null, null);
       } else {
+        if (constantExpressionRequired) {
+          addCompileTimeError(charOffset, "Not a constant expression.");
+        }
         return new UnresolvedIdentifier(n)..fileOffset = charOffset;
       }
     } else if (builder.isTypeDeclaration) {
+      if (constantExpressionRequired && builder.isTypeVariable) {
+        addCompileTimeError(charOffset, "Not a constant expression.");
+      }
       return builder;
     } else if (builder.isLocal) {
+      if (constantExpressionRequired && !builder.isConst) {
+        addCompileTimeError(charOffset, "Not a constant expression.");
+      }
       return new VariableAccessor(this, charOffset, builder.target);
     } else if (builder.isInstanceMember) {
+      if (constantExpressionRequired) {
+        addCompileTimeError(charOffset, "Not a constant expression.");
+      }
       return new ThisPropertyAccessor(
           this, charOffset, new Name(name, library.library), null, null);
     } else if (builder.isRegularMethod) {
@@ -775,6 +810,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (builder is PrefixBuilder) {
       return builder;
     } else if (builder is MixedAccessor) {
+      if (constantExpressionRequired && !builder.getter.target.isConst) {
+        addCompileTimeError(charOffset, "Not a constant expression.");
+      }
       return new StaticAccessor(
           this, charOffset, builder.getter.target, builder.setter.target);
     } else {
@@ -787,7 +825,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      return new StaticAccessor.fromBuilder(this, builder, charOffset, setter);
+      StaticAccessor accessor =
+          new StaticAccessor.fromBuilder(this, builder, charOffset, setter);
+      if (constantExpressionRequired) {
+        Member readTarget = accessor.readTarget;
+        if (!(readTarget is Field && readTarget.isConst)) {
+          addCompileTimeError(charOffset, "Not a constant expression.");
+        }
+      }
+      return accessor;
     }
   }
 
@@ -1215,6 +1261,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   DartType kernelTypeFromBuilder(
       Builder builder, List<DartType> arguments, int charOffset) {
+    if (constantExpressionRequired && builder is TypeVariableBuilder) {
+      addCompileTimeError(charOffset, "Not a constant expression.");
+    }
     if (builder is TypeDeclarationBuilder) {
       return builder.buildTypesWithBuiltArguments(library, arguments);
     } else if (builder.hasProblem) {
@@ -1272,6 +1321,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       warning("'${name.name}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
     } else if (name is TypeVariableBuilder) {
+      if (constantExpressionRequired) {
+        addCompileTimeError(
+            beginToken.charOffset, "Not a constant expression.");
+      }
       push(name.buildTypesWithBuiltArguments(library, arguments));
     } else if (name is TypeDeclarationBuilder) {
       push(name.buildTypesWithBuiltArguments(library, arguments));
@@ -2348,6 +2401,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   dynamic addCompileTimeError(int charOffset, String message,
       {bool silent: false}) {
+    // TODO(ahe): If constantExpressionRequired is set, set it to false to
+    // avoid a long list of errors.
     return library.addCompileTimeError(charOffset, message, fileUri: uri);
   }
 
@@ -2357,6 +2412,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(NullValue.FunctionBody);
     } else {
       push(new Block(<Statement>[new InvalidStatement()]));
+    }
+  }
+
+  @override
+  void warning(String message, [int charOffset = -1]) {
+    if (constantExpressionRequired) {
+      addCompileTimeError(charOffset, message);
+    } else {
+      super.warning(message, charOffset);
     }
   }
 

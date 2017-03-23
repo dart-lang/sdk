@@ -32,8 +32,6 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   bool get isTypeDeclaration => true;
 
-  bool get isTypeVariable => false;
-
   R buildType(LibraryBuilder library, List<T> arguments);
 
   /// [arguments] have already been built.

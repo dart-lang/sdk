@@ -5,7 +5,6 @@
 # Disable tests globally for kernel.
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
-Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t01: Crash
 Language/Classes/Constructors/Constant_Constructors/non_final_instance_variable_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/non_final_instance_variable_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t02: MissingCompileTimeError
@@ -204,13 +203,9 @@ Language/Expressions/Identifier_Reference/built_in_not_dynamic_t01: MissingCompi
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t12: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/syntax_built_in_t01: CompileTimeError
-Language/Expressions/Instance_Creation/Const/accessibility_t01: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/accessibility_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t03: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t04: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/accessibility_t05: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/accessibility_t06: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/accessibility_t07: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/constant_constructor_name_t01: MissingCompileTimeError
@@ -222,16 +217,12 @@ Language/Expressions/Instance_Creation/Const/constant_constructor_same_name_as_c
 Language/Expressions/Instance_Creation/Const/deferred_type_t01: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/deferred_type_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/exception_t01: Crash
-Language/Expressions/Instance_Creation/Const/parameterized_type_t01: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/parameterized_type_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t01: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t02: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t06: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t12: RuntimeError # Dartk Issue 28564
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Expressions/Instance_Creation/malformed_or_malbounded_t02: MissingCompileTimeError
-Language/Expressions/Instance_Creation/malformed_or_malbounded_t04: MissingCompileTimeError
 Language/Expressions/Lists/constant_list_t01: MissingCompileTimeError
 Language/Expressions/Lists/constant_list_t02: Crash
 Language/Expressions/Maps/constant_map_key_value_t01: Crash
@@ -548,7 +539,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 Language/Classes/Getters/syntax_t06: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-Language/Expressions/Constants/static_method_t03: MissingCompileTimeError
 
 
 # dartk: JIT failures (debug)
@@ -563,7 +553,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 Language/Classes/Getters/syntax_t06: Crash
 Language/Expressions/Constants/depending_on_itself_t01: Crash
 Language/Expressions/Constants/depending_on_itself_t02: Crash
-Language/Expressions/Constants/static_method_t03: Crash
 Language/Overview/Scoping/conflicting_names_t43: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Crash

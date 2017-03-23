@@ -33,8 +33,7 @@ call_nonexistent_static_test/06: CompileTimeError
 cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
-compile_time_constant10_test/01: Crash
-compile_time_constant10_test/02: Crash
+compile_time_constant10_test/none: CompileTimeError
 compile_time_constant13_test/03: MissingCompileTimeError
 compile_time_constant_arguments_test/01: MissingCompileTimeError
 compile_time_constant_arguments_test/02: MissingCompileTimeError
@@ -98,32 +97,11 @@ const_map3_test/00: MissingCompileTimeError
 const_nested_test: RuntimeError
 const_optional_args_negative_test: Fail
 const_switch2_test/01: MissingCompileTimeError
-const_syntax_test/01: MissingCompileTimeError
-const_syntax_test/02: MissingCompileTimeError
-const_syntax_test/03: MissingCompileTimeError
-const_syntax_test/04: MissingCompileTimeError
-const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/06: MissingCompileTimeError
-const_syntax_test/07: MissingCompileTimeError
-const_syntax_test/08: MissingCompileTimeError
-const_syntax_test/09: MissingCompileTimeError
-const_syntax_test/10: Crash
-const_syntax_test/12: MissingCompileTimeError
-const_types_test/07: MissingCompileTimeError
-const_types_test/08: MissingCompileTimeError
-const_types_test/09: MissingCompileTimeError
-const_types_test/10: MissingCompileTimeError
-const_types_test/11: MissingCompileTimeError
-const_types_test/12: MissingCompileTimeError
-const_types_test/14: MissingCompileTimeError
-const_types_test/15: MissingCompileTimeError
+const_syntax_test/none: CompileTimeError
+const_types_test/06: CompileTimeError
+const_types_test/13: CompileTimeError
 const_types_test/16: MissingCompileTimeError
 const_types_test/17: MissingCompileTimeError
-const_types_test/18: MissingCompileTimeError
-const_types_test/19: MissingCompileTimeError
-const_types_test/20: MissingCompileTimeError
-const_types_test/21: MissingCompileTimeError
-const_types_test/22: MissingCompileTimeError
 const_types_test/23: MissingCompileTimeError
 const_types_test/24: MissingCompileTimeError
 const_types_test/25: MissingCompileTimeError
@@ -133,6 +111,8 @@ const_types_test/28: MissingCompileTimeError
 const_types_test/29: MissingCompileTimeError
 const_types_test/30: MissingCompileTimeError
 const_types_test/41: MissingCompileTimeError
+constant_expression_test/01: MissingCompileTimeError
+constant_expression_test/03: MissingCompileTimeError
 constant_locals_test/01: MissingCompileTimeError
 constant_locals_test/02: MissingCompileTimeError
 constant_locals_test/03: MissingCompileTimeError
@@ -371,9 +351,6 @@ method_name_test: CompileTimeError
 method_override_test: RuntimeError
 missing_const_constructor_test/02: MissingCompileTimeError
 missing_const_constructor_test/03: MissingCompileTimeError
-missing_const_constructor_test/04: Crash
-missing_const_constructor_test/05: MissingCompileTimeError
-missing_const_constructor_test/06: MissingCompileTimeError
 missing_part_of_tag_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -526,12 +503,12 @@ type_variable_conflict_test/05: MissingCompileTimeError
 type_variable_conflict_test/06: MissingCompileTimeError
 type_variable_function_type_test: RuntimeError
 type_variable_scope3_test/00: MissingCompileTimeError
+vm/closure_memory_retention_test: Skip  # Hits OOM
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_27671_test: RuntimeError
 vm/type_vm_test: RuntimeError
-vm/closure_memory_retention_test: Skip  # Hits OOM
 
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
@@ -588,8 +565,6 @@ vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
-const_syntax_test/08: Crash
-const_syntax_test/09: Crash
 final_syntax_test/09: MissingCompileTimeError
 getter_declaration_negative_test: Crash
 getter_parameters_test/02: Crash

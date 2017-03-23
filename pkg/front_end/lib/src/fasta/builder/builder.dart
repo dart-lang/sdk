@@ -162,11 +162,15 @@ abstract class Builder {
 
   bool get isTypeDeclaration => false;
 
+  bool get isTypeVariable => false;
+
   bool get isConstructor => false;
 
   bool get isFactory => false;
 
   bool get isLocal => false;
+
+  bool get isConst => false;
 
   get target => internalError("Unsupported operation $runtimeType.");
 
