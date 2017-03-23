@@ -1417,6 +1417,33 @@ class AstBuilder extends ScopeListener {
         name, toAnalyzerToken(assignment), initializer));
   }
 
+  @override
+  void endFunction(Token getOrSet, Token endToken) {
+    debugEvent("Function");
+    FunctionBody body = pop();
+    pop(); // constructor initializers
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    // TODO(scheglov) It is an error if "getOrSet" is not null.
+    push(ast.functionExpression(typeParameters, parameters, body));
+  }
+
+  @override
+  void endFunctionDeclaration(Token token) {
+    debugEvent("FunctionDeclaration");
+    FunctionExpression functionExpression = pop();
+    SimpleIdentifier name = pop();
+    TypeAnnotation returnType = pop();
+    pop(); // modifiers
+    push(ast.functionDeclarationStatement(ast.functionDeclaration(
+        null, null, null, returnType, null, name, functionExpression)));
+  }
+
+  @override
+  void endFunctionName(Token beginToken, Token token) {
+    debugEvent("FunctionName");
+  }
+
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     List<VariableDeclaration> variables = popList(count);

@@ -1107,6 +1107,13 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_parseFunctionDeclarationStatement_typeParameterComments() {
+    // TODO(scheglov): Fasta doesn't support generic comment syntax.
+    super.test_parseFunctionDeclarationStatement_typeParameterComments();
+  }
+
+  @override
+  @failingTest
   void test_parseNonLabeledStatement_functionDeclaration() {
     super.test_parseNonLabeledStatement_functionDeclaration();
   }
