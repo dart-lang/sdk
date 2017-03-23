@@ -20,6 +20,7 @@
   * Added `{Stdin,Stdout}.supportsAnsiEscapes`.
 
 ### Dart VM
+
 * Calls to `print()` and `Stdout.write*()` now correctly print unicode
   characters to the console on Windows. Calls to `Stdout.add*()` behave as
   before.
@@ -30,15 +31,15 @@
   * `dartanalyzer` now follows the same rules as the analysis server to find
     an analysis options file, stopping when an analysis options file is found:
     * Search up the directory hierarchy looking for an analysis options file.
-    * If analyzing a project referencing the [Flutter](https://flutter.io/) 
+    * If analyzing a project referencing the [Flutter](https://flutter.io/)
       package, then use the
       [default Flutter analysis options](https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml)
       found in `package:flutter`.
-    * If in a Bazel workspace, then use the analysis options in 
+    * If in a Bazel workspace, then use the analysis options in
       `package:dart.analysis_options/default.yaml` if it exists.
     * Use the default analysis options rules.
   * In addition, specific to `dartanalyzer`:
-    * an analysis options file can be specified on the command line via 
+    * an analysis options file can be specified on the command line via
       `--options` and that file will be used instead of searching for an
       analysis options file.
     * any analysis option specified on the command line
@@ -70,11 +71,17 @@
     * Properly unlock SDK and path dependencies if they have a new version
       that's also valid according to the user's pubspec.
 
+* dartfmt
+  * Make the precedence of cascades more visible.
+  * Fix a couple of places where spurious newlines were inserted.
+  * Correctly report unchanged formatting when reading from stdin.
+  * Other small formatting tweaks.
+
 ## 1.22.0
 
 ### Language
 
-  * Breaking change: 
+  * Breaking change:
     ['Generalized tear-offs'](https://github.com/gbracha/generalizedTearOffs/blob/master/proposal.md)
     are no longer supported, and will cause errors. We updated the language spec
     and added warnings in 1.21, and are now taking the last step to fully
@@ -82,7 +89,7 @@
     are almost no known uses of them in the wild.
 
   * The `assert()` statement has been expanded to support an optional second
-    `message` argument 
+    `message` argument
     (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
 
     The message is displayed if the assert fails. It can be any object, and it
