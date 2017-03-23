@@ -562,6 +562,12 @@ Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
 void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                                           const dart::Field& field,
                                           Field* kernel_field) {
+  if (kernel_field->IsStatic() && kernel_field->initializer() == NULL) {
+    // Static fields without an initializer are implicitly initialized to null.
+    // We do not need a getter.
+    field.SetStaticValue(Instance::Handle(Z), true);
+    return;
+  }
   if (kernel_field->initializer() != NULL) {
     SimpleExpressionConverter converter(H.thread());
     const bool has_simple_initializer =
