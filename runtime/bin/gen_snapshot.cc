@@ -1471,11 +1471,6 @@ int main(int argc, char** argv) {
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
-    vm_options.AddArgument("--print_snapshot_sizes");
-#if TARGET_ARCH_ARM
-    // This is for the iPod Touch 5th Generation (and maybe other older devices)
-    vm_options.AddArgument("--no-use_integer_division");
-#endif
   }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
