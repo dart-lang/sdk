@@ -361,6 +361,12 @@ abstract class CodeRange extends base.SummaryClass {
  */
 abstract class EntityRef extends base.SummaryClass {
   /**
+   * The kind of entity being represented.
+   */
+  @Id(8)
+  EntityRefKind get entityKind;
+
+  /**
    * If this is a reference to a function type implicitly defined by a
    * function-typed parameter, a list of zero-based indices indicating the path
    * from the entity referred to by [reference] to the appropriate type
@@ -455,6 +461,27 @@ abstract class EntityRef extends base.SummaryClass {
    */
   @Id(7)
   List<UnlinkedTypeParam> get typeParameters;
+}
+
+/**
+ * Enum used to indicate the kind of an entity reference.
+ */
+enum EntityRefKind {
+  /**
+   * The entity represents a named type.
+   */
+  named,
+
+  /**
+   * The entity represents a generic function type.
+   */
+  genericFunctionType,
+
+  /**
+   * The entity represents a function type that was synthesized by a LUB
+   * computation.
+   */
+  syntheticFunction
 }
 
 /**
@@ -2523,37 +2550,6 @@ enum UnlinkedExprOperation {
    * Push `super` expression onto the stack.
    */
   pushSuper,
-}
-
-/**
- * Unlinked summary information about a generic function type.
- */
-abstract class UnlinkedGenericFunctionType extends base.SummaryClass {
-  /**
-   * The offset of the return type.
-   */
-  @informative
-  @Id(0)
-  int get offset;
-
-  /**
-   * Parameters of the function type, if any.
-   */
-  @Id(3)
-  List<UnlinkedParam> get parameters;
-
-  /**
-   * Declared return type of the function type. Absent if the return type is
-   * implicit.
-   */
-  @Id(1)
-  EntityRef get returnType;
-
-  /**
-   * Type parameters of the function type, if any.
-   */
-  @Id(2)
-  List<UnlinkedTypeParam> get typeParameters;
 }
 
 /**

@@ -226,6 +226,10 @@ EntityRefBuilder _createLinkedType(
       // to represent a type that has no associated source code location.
       result.syntheticReturnType = _createLinkedType(
           element.returnType, compilationUnit, typeParameterContext);
+      result.entityKind =
+          element.returnType?.element is GenericFunctionTypeElement
+              ? EntityRefKind.genericFunctionType
+              : EntityRefKind.syntheticFunction;
       result.syntheticParams = element.parameters
           .map((ParameterElement param) => _serializeSyntheticParam(
               param, compilationUnit, typeParameterContext))
@@ -899,10 +903,13 @@ abstract class CompilationUnitElementForLink
 
   @override
   List<FunctionTypeAliasElementForLink> get functionTypeAliases =>
-      _functionTypeAliases ??= _unlinkedUnit.typedefs
-          .map((UnlinkedTypedef t) =>
-              new FunctionTypeAliasElementForLink(this, t))
-          .toList();
+      _functionTypeAliases ??= _unlinkedUnit.typedefs.map((UnlinkedTypedef t) {
+        if (t.style == TypedefStyle.functionType) {
+          return new FunctionTypeAliasElementForLink(this, t);
+        } else if (t.style == TypedefStyle.genericFunctionType) {
+          return new GenericTypeAliasElementForLink(this, t);
+        }
+      }).toList();
 
   @override
   String get identifier => _absoluteUri;
@@ -3221,6 +3228,88 @@ class FunctionTypeAliasElementForLink extends Object
       }
     } else {
       return _type ??= new FunctionTypeImpl.forTypedef(this);
+    }
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
+}
+
+/**
+ * Element representing a generic typedef resynthesized from a summary during
+ * linking.
+ */
+class GenericTypeAliasElementForLink extends Object
+    with
+        TypeParameterizedElementMixin,
+        ParameterParentElementForLink,
+        ReferenceableElementForLink
+    implements FunctionTypeAliasElement, ElementImpl {
+  @override
+  final CompilationUnitElementForLink enclosingElement;
+
+  /**
+   * The unlinked representation of the typedef in the summary.
+   */
+  final UnlinkedTypedef _unlinkedTypedef;
+
+  GenericTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef);
+
+  @override
+  DartType get asStaticType {
+    return enclosingElement.enclosingElement._linker.typeProvider.typeType;
+  }
+
+  @override
+  ContextForLink get context => enclosingElement.context;
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
+
+  @override
+  CompilationUnitElementImpl get enclosingUnit => enclosingElement;
+
+  @override
+  String get identifier => _unlinkedTypedef.name;
+
+  @override
+  List<int> get implicitFunctionTypeIndices => const <int>[];
+
+  @override
+  bool get isSynthetic => false;
+
+  @override
+  LibraryElementForLink get library => enclosingElement.library;
+
+  @override
+  String get name => _unlinkedTypedef.name;
+
+  @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedTypedef.typeParameters;
+
+  @override
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
+    int numTypeParameters = _unlinkedTypedef.typeParameters.length;
+    if (numTypeParameters != 0) {
+      List<DartType> typeArguments =
+          new List<DartType>.generate(numTypeParameters, getTypeArgument);
+      if (typeArguments.contains(null)) {
+        return context.typeSystem
+            .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
+      } else {
+        return new FunctionTypeImpl.elementWithNameAndArgs(
+            this, name, typeArguments, true);
+      }
+    } else {
+      return new FunctionTypeImpl.forTypedef(this);
     }
   }
 

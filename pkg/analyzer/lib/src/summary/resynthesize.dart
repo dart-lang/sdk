@@ -1405,6 +1405,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  TopLevelInferenceError getTypeInferenceError(int slot) {
+    return _unitResynthesizer.getTypeInferenceError(slot);
+  }
+
+  @override
   bool inheritsCovariant(int slot) {
     return _unitResynthesizer.parametersInheritingCovariant.contains(slot);
   }
@@ -1425,11 +1430,6 @@ class _ResynthesizerContext implements ResynthesizerContext {
   DartType resolveLinkedType(
       int slot, TypeParameterizedElementMixin typeParameterContext) {
     return _unitResynthesizer.buildLinkedType(slot, typeParameterContext);
-  }
-
-  @override
-  TopLevelInferenceError getTypeInferenceError(int slot) {
-    return _unitResynthesizer.getTypeInferenceError(slot);
   }
 
   @override
@@ -1623,22 +1623,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Return the error reported during type inference for the given [slot],
-   * or `null` if there were no error.
-   */
-  TopLevelInferenceError getTypeInferenceError(int slot) {
-    if (slot == 0) {
-      return null;
-    }
-    for (TopLevelInferenceError error in linkedUnit.topLevelInferenceErrors) {
-      if (error.slot == slot) {
-        return error;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Build a [DartType] object based on a [EntityRef].  This [DartType]
    * may refer to elements in other libraries than the library being
    * deserialized, so handles are used to avoid having to deserialize other
@@ -1658,6 +1642,11 @@ class _UnitResynthesizer {
     }
     if (type.paramReference != 0) {
       return typeParameterContext.getTypeParameterType(type.paramReference);
+    } else if (type.entityKind == EntityRefKind.genericFunctionType) {
+      GenericFunctionTypeElement element =
+          new GenericFunctionTypeElementImpl.forSerialized(
+              type, typeParameterContext);
+      return element.type;
     } else if (type.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementImpl_forLUB(unit, typeParameterContext, type);
@@ -1882,6 +1871,22 @@ class _UnitResynthesizer {
       referenceInfos[index] = result;
     }
     return result;
+  }
+
+  /**
+   * Return the error reported during type inference for the given [slot],
+   * or `null` if there were no error.
+   */
+  TopLevelInferenceError getTypeInferenceError(int slot) {
+    if (slot == 0) {
+      return null;
+    }
+    for (TopLevelInferenceError error in linkedUnit.topLevelInferenceErrors) {
+      if (error.slot == slot) {
+        return error;
+      }
+    }
+    return null;
   }
 
   Expression _buildConstExpression(ElementImpl context, UnlinkedExpr uc) {

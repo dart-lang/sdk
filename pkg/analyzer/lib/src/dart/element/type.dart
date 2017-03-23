@@ -400,19 +400,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
             isInstantiated);
 
   /**
-   * Initialize a newly created function type to represent a type described by
-   * a generic function type.
-   */
-  FunctionTypeImpl.forGenericFunctionType(
-      List<TypeParameterElement> typeParameters,
-      List<DartType> typeArguments,
-      DartType returnType,
-      List<ParameterElement> parameters,
-      bool isInstantiated)
-      : this._(null, null, null, typeArguments, typeParameters, returnType,
-            parameters, isInstantiated);
-
-  /**
    * Initialize a newly created function type to be declared by the given
    * [element].
    */

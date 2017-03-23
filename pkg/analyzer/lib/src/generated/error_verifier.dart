@@ -875,20 +875,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
-    throw new StateError(
-        'Support for generic function types is not yet implemented');
-//    return super.visitGenericFunctionType(node);
-  }
-
-  @override
-  Object visitGenericTypeAlias(GenericTypeAlias node) {
-    throw new StateError(
-        'Support for generic type aliases is not yet implemented');
-//    return super.visitGenericTypeAlias(node);
-  }
-
-  @override
   Object visitIfStatement(IfStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitIfStatement(node);

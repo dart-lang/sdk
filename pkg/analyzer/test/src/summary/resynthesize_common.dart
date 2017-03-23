@@ -270,31 +270,31 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.librarySource, original.librarySource);
     compareLineInfo(resynthesized.lineInfo, original.lineInfo);
     expect(resynthesized.types.length, original.types.length,
-        reason: '$desc types');
+        reason: '$desc.types.length');
     for (int i = 0; i < resynthesized.types.length; i++) {
       compareClassElements(
           resynthesized.types[i], original.types[i], original.types[i].name);
     }
     expect(resynthesized.topLevelVariables.length,
         original.topLevelVariables.length,
-        reason: '$desc topLevelVariables');
+        reason: '$desc.topLevelVariables.length');
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
       String name = resynthesized.topLevelVariables[i].name;
       compareTopLevelVariableElements(
           resynthesized.topLevelVariables[i],
           original.topLevelVariables
               .singleWhere((TopLevelVariableElement e) => e.name == name),
-          'variable $name');
+          '$desc.topLevelVariables[$name]');
     }
     expect(resynthesized.functions.length, original.functions.length,
-        reason: '$desc functions');
+        reason: '$desc.functions.length');
     for (int i = 0; i < resynthesized.functions.length; i++) {
       compareFunctionElements(resynthesized.functions[i], original.functions[i],
-          'function ${original.functions[i].name}');
+          '$desc.functions[$i] /* ${original.functions[i].name} */');
     }
     expect(resynthesized.functionTypeAliases.length,
         original.functionTypeAliases.length,
-        reason: '$desc functionTypeAliases');
+        reason: '$desc.functionTypeAliases.length');
     for (int i = 0; i < resynthesized.functionTypeAliases.length; i++) {
       compareFunctionTypeAliasElements(
           resynthesized.functionTypeAliases[i],
@@ -302,13 +302,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           original.functionTypeAliases[i].name);
     }
     expect(resynthesized.enums.length, original.enums.length,
-        reason: '$desc enums');
+        reason: '$desc.enums.length');
     for (int i = 0; i < resynthesized.enums.length; i++) {
       compareClassElements(
           resynthesized.enums[i], original.enums[i], original.enums[i].name);
     }
     expect(resynthesized.accessors.length, original.accessors.length,
-        reason: '$desc accessors');
+        reason: '$desc.accessors.length');
     for (int i = 0; i < resynthesized.accessors.length; i++) {
       String name = resynthesized.accessors[i].name;
       if (original.accessors[i].isGetter) {
@@ -316,13 +316,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             resynthesized.accessors[i],
             original.accessors
                 .singleWhere((PropertyAccessorElement e) => e.name == name),
-            'getter $name');
+            '$desc.accessors[$i] /* getter $name */');
       } else {
         comparePropertyAccessorElements(
             resynthesized.accessors[i],
             original.accessors
                 .singleWhere((PropertyAccessorElement e) => e.name == name),
-            'setter $name');
+            '$desc.accessors[$i] /* setter $name */');
       }
     }
     // Note: no need to test CompilationUnitElementImpl._offsetToElementMap
@@ -706,7 +706,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
-    expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
+    expect(resynthesized.nameOffset, original.nameOffset,
+        reason: '$desc.nameOffset');
     expect(rImpl.codeOffset, oImpl.codeOffset, reason: desc);
     expect(rImpl.codeLength, oImpl.codeLength, reason: desc);
     expect(resynthesized.documentationComment, original.documentationComment,
@@ -780,23 +781,58 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     checkPossibleLocalElements(resynthesized, original);
   }
 
-  void compareFunctionTypeAliasElements(
-      FunctionTypeAliasElementImpl resynthesized,
-      FunctionTypeAliasElementImpl original,
-      String desc) {
+  void compareFunctionTypeAliasElements(FunctionTypeAliasElement resynthesized,
+      FunctionTypeAliasElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareParameterElementLists(
-        resynthesized.parameters, original.parameters, desc);
-    compareTypes(
-        resynthesized.returnType, original.returnType, '$desc return type');
+    ElementImpl rImpl = getActualElement(resynthesized, desc);
+    ElementImpl oImpl = getActualElement(original, desc);
+    if (rImpl is FunctionTypeAliasElementImpl) {
+      if (oImpl is FunctionTypeAliasElementImpl) {
+        compareParameterElementLists(
+            rImpl.parameters, oImpl.parameters, '$desc.parameters');
+        compareTypes(rImpl.returnType, oImpl.returnType, '$desc.returnType');
+      } else {
+        fail(
+            'Resynthesized a FunctionTypeAliasElementImpl, but expected a ${oImpl.runtimeType}');
+      }
+    } else if (rImpl is GenericTypeAliasElementImpl) {
+      if (oImpl is GenericTypeAliasElementImpl) {
+        compareGenericFunctionTypeElements(
+            rImpl.function, oImpl.function, '$desc.function');
+      } else {
+        fail(
+            'Resynthesized a GenericTypeAliasElementImpl, but expected a ${oImpl.runtimeType}');
+      }
+    } else {
+      fail('Resynthesized a ${rImpl.runtimeType}');
+    }
     compareTypes(resynthesized.type, original.type, desc);
     expect(resynthesized.typeParameters.length, original.typeParameters.length);
     for (int i = 0; i < resynthesized.typeParameters.length; i++) {
       compareTypeParameterElements(
           resynthesized.typeParameters[i],
           original.typeParameters[i],
-          '$desc type parameter ${original.typeParameters[i].name}');
+          '$desc.typeParameters[$i] /* ${original.typeParameters[i].name} */');
     }
+  }
+
+  void compareGenericFunctionTypeElements(
+      GenericFunctionTypeElement resynthesized,
+      GenericFunctionTypeElement original,
+      String desc) {
+    if (resynthesized == null) {
+      if (original != null) {
+        fail('Failed to resynthesize generic function type');
+      }
+    } else if (original == null) {
+      fail('Resynthesizes a generic function type when none expected');
+    }
+    compareTypeParameterElementLists(resynthesized.typeParameters,
+        original.typeParameters, '$desc.typeParameters');
+    compareParameterElementLists(
+        resynthesized.parameters, original.parameters, '$desc.parameters');
+    compareTypes(
+        resynthesized.returnType, original.returnType, '$desc.returnType');
   }
 
   void compareImportElements(ImportElementImpl resynthesized,
@@ -924,7 +960,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       compareParameterElements(
           resynthesizedParameters[i],
           originalParameters[i],
-          '$desc parameter ${originalParameters[i].name}');
+          '$desc.parameters[$i] /* ${originalParameters[i].name} */');
     }
   }
 
@@ -1007,15 +1043,26 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareTypeImpls(
       TypeImpl resynthesized, TypeImpl original, String desc) {
     expect(resynthesized.element.location, original.element.location,
-        reason: desc);
-    expect(resynthesized.name, original.name, reason: desc);
+        reason: '$desc.element.location');
+    expect(resynthesized.name, original.name, reason: '$desc.name');
+  }
+
+  void compareTypeParameterElementLists(
+      List<TypeParameterElement> resynthesized,
+      List<TypeParameterElement> original,
+      String desc) {
+    int length = original.length;
+    expect(resynthesized.length, length, reason: '$desc.length');
+    for (int i = 0; i < length; i++) {
+      compareTypeParameterElements(resynthesized[i], original[i], '$desc[$i]');
+    }
   }
 
   void compareTypeParameterElements(TypeParameterElement resynthesized,
       TypeParameterElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareTypes(resynthesized.type, original.type, desc);
-    compareTypes(resynthesized.bound, original.bound, '$desc bound');
+    compareTypes(resynthesized.type, original.type, '$desc.type');
+    compareTypes(resynthesized.bound, original.bound, '$desc.bound');
   }
 
   void compareTypes(DartType resynthesized, DartType original, String desc) {
@@ -1024,10 +1071,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else if (resynthesized is InterfaceTypeImpl &&
         original is InterfaceTypeImpl) {
       compareTypeImpls(resynthesized, original, desc);
-      expect(resynthesized.typeArguments.length, original.typeArguments.length);
+      expect(resynthesized.typeArguments.length, original.typeArguments.length,
+          reason: '$desc.typeArguments.length');
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
-            '$desc type argument ${original.typeArguments[i].name}');
+            '$desc.typeArguments[$i] /* ${original.typeArguments[i].name} */');
       }
     } else if (resynthesized is TypeParameterTypeImpl &&
         original is TypeParameterTypeImpl) {
@@ -1054,12 +1102,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(resynthesized.element, new isInstanceOf<FunctionElement>());
         expect(resynthesized.element.enclosingElement, isNull, reason: desc);
         compareFunctionElements(
-            resynthesized.element, original.element, '$desc element',
+            resynthesized.element, original.element, '$desc.element',
             shallow: true);
         expect(resynthesized.element.type, same(resynthesized));
       }
       expect(resynthesized.typeArguments.length, original.typeArguments.length,
-          reason: '$desc typeArguments.length');
+          reason: '$desc.typeArguments.length');
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         if (resynthesized.typeArguments[i].isDynamic &&
             original.typeArguments[i] is TypeParameterType) {
@@ -1073,7 +1121,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           compareTypes(
               resynthesized.typeArguments[i],
               original.typeArguments[i],
-              '$desc type argument ${original.typeArguments[i].name}');
+              '$desc.typeArguments[$i] /* ${original.typeArguments[i].name} */');
         }
       }
       if (original.typeParameters == null) {
@@ -1085,14 +1133,14 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             reason: desc);
         for (int i = 0; i < resynthesized.typeParameters.length; i++) {
           compareTypeParameterElements(resynthesized.typeParameters[i],
-              original.typeParameters[i], '$desc type parameter $i');
+              original.typeParameters[i], '$desc.typeParameters[$i]');
         }
       }
       expect(resynthesized.typeFormals.length, original.typeFormals.length,
           reason: desc);
       for (int i = 0; i < resynthesized.typeFormals.length; i++) {
         compareTypeParameterElements(resynthesized.typeFormals[i],
-            original.typeFormals[i], '$desc bound type parameter $i');
+            original.typeFormals[i], '$desc.typeFormals[$i]');
       }
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));
@@ -1114,33 +1162,33 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareUriReferencedElements(UriReferencedElementImpl resynthesized,
       UriReferencedElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.uri, original.uri, reason: '$desc uri');
+    expect(resynthesized.uri, original.uri, reason: '$desc.uri');
     expect(resynthesized.uriOffset, original.uriOffset,
-        reason: '$desc uri uriOffset');
-    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc uriEnd');
+        reason: '$desc.uriOffset');
+    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc.uriEnd');
   }
 
   void compareVariableElements(
       VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareTypes(resynthesized.type, original.type, desc);
+    compareTypes(resynthesized.type, original.type, '$desc.type');
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
     compareFunctionElements(resynthesizedActual.initializer,
-        originalActual.initializer, '$desc initializer');
+        originalActual.initializer, '$desc.initializer');
     if (originalActual is ConstVariableElement) {
       Element oEnclosing = original.enclosingElement;
       if (oEnclosing is ClassElement && oEnclosing.isEnum) {
-        compareConstValues(
-            resynthesized.constantValue, original.constantValue, desc);
+        compareConstValues(resynthesized.constantValue, original.constantValue,
+            '$desc.constantValue');
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
         if (variablesWithNotConstInitializers.contains(resynthesized.name)) {
           _assertUnresolvedIdentifier(initializer, desc);
         } else {
           compareConstAsts(initializer, originalActual.constantInitializer,
-              '$desc initializer');
+              '$desc.constantInitializer');
         }
       }
     }
@@ -13809,6 +13857,11 @@ typedef dynamic F();
 typedef dynamic F();
 ''');
     }
+  }
+
+  test_typedef_generic() {
+    checkLibrary(
+        'typedef F<T> = Function<S>(List<S> list, Function<A>(A), T);');
   }
 
   test_typedef_parameter_parameters() {

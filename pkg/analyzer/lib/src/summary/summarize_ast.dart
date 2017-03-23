@@ -603,6 +603,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   /**
+   * Return an entity reference builder representing the type 'dynamic'.
+   */
+  EntityRefBuilder serializeDynamic() {
+    EntityRefBuilder builder = new EntityRefBuilder();
+    builder.reference = serializeReference(null, 'dynamic');
+    return builder;
+  }
+
+  /**
    * Serialize a [FunctionDeclaration] or [MethodDeclaration] into an
    * [UnlinkedExecutable].
    *
@@ -780,6 +789,26 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   /**
+   * Serialize a generic function type.
+   */
+  EntityRefBuilder serializeGenericFunctionType(GenericFunctionType node) {
+    _TypeParameterScope typeParameterScope = new _TypeParameterScope();
+    scopes.add(typeParameterScope);
+    EntityRefBuilder b = new EntityRefBuilder();
+    b.entityKind = EntityRefKind.genericFunctionType;
+    b.syntheticReturnType = node.returnType == null
+        ? serializeDynamic()
+        : serializeTypeName(node.returnType);
+    b.typeParameters =
+        serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.syntheticParams = node.parameters.parameters
+        .map((FormalParameter p) => p.accept(this) as UnlinkedParamBuilder)
+        .toList();
+    scopes.removeLast();
+    return b;
+  }
+
+  /**
    * If the given [expression] is not `null`, serialize it as an
    * [UnlinkedExecutableBuilder], otherwise return `null`.
    *
@@ -805,8 +834,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    */
   UnlinkedParamBuilder serializeParameter(NormalFormalParameter node) {
     UnlinkedParamBuilder b = new UnlinkedParamBuilder();
-    b.name = node.identifier.name;
-    b.nameOffset = node.identifier.offset;
+    b.name = node.identifier?.name;
+    b.nameOffset = node.identifier?.offset;
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
     b.isExplicitlyCovariant = node.covariantKeyword != null;
@@ -939,6 +968,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   EntityRefBuilder serializeTypeName(TypeAnnotation node) {
     if (node is TypeName) {
       return serializeType(node?.name, node?.typeArguments);
+    } else if (node is GenericFunctionType) {
+      return serializeGenericFunctionType(node);
     } else if (node != null) {
       throw new ArgumentError('Cannot serialize a ${node.runtimeType}');
     }
@@ -1298,6 +1329,30 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.isFunctionTyped = true;
     serializeFunctionTypedParameterDetails(b, node.returnType, node.parameters);
     return b;
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    int oldScopesLength = scopes.length;
+    _TypeParameterScope typeParameterScope = new _TypeParameterScope();
+    scopes.add(typeParameterScope);
+    UnlinkedTypedefBuilder b = new UnlinkedTypedefBuilder();
+    b.style = TypedefStyle.genericFunctionType;
+    b.name = node.name.name;
+    b.nameOffset = node.name.offset;
+    b.typeParameters =
+        serializeTypeParameters(node.typeParameters, typeParameterScope);
+    EntityRefBuilder serializedType =
+        serializeGenericFunctionType(node.functionType);
+    if (serializedType != null) {
+      b.returnType = serializedType;
+    }
+    b.documentationComment = serializeDocumentation(node.documentationComment);
+    b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
+    typedefs.add(b);
+    scopes.removeLast();
+    assert(scopes.length == oldScopesLength);
   }
 
   @override

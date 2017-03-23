@@ -7578,6 +7578,46 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   }
 
   @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    GenericFunctionTypeElement element = node.type.element;
+    Scope outerScope = nameScope;
+    try {
+      if (element == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for generic function type in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+        super.visitGenericFunctionType(node);
+      } else {
+        nameScope = new TypeParameterScope(nameScope, element);
+        super.visitGenericFunctionType(node);
+      }
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @override
+  Object visitGenericTypeAlias(GenericTypeAlias node) {
+    TypeParameterizedElement element = node.element;
+    Scope outerScope = nameScope;
+    try {
+      if (element == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for generic function type in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+        super.visitGenericTypeAlias(node);
+      } else {
+        nameScope = new TypeParameterScope(nameScope, element);
+        super.visitGenericTypeAlias(node);
+      }
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @override
   Object visitIfStatement(IfStatement node) {
     node.condition?.accept(this);
     visitStatementInScope(node.thenStatement);
@@ -8267,11 +8307,7 @@ class TypeNameResolver {
       List<DartType> typeArguments = new List<DartType>(parameterCount);
       if (argumentCount == parameterCount) {
         for (int i = 0; i < parameterCount; i++) {
-          DartType argumentType = _getType(arguments[i]);
-          if (argumentType == null) {
-            argumentType = dynamicType;
-          }
-          typeArguments[i] = argumentType;
+          typeArguments[i] = _getType(arguments[i]) ?? dynamicType;
         }
       } else {
         reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
@@ -9771,18 +9807,11 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
-    DartType returnType = node.returnType?.type ?? DynamicTypeImpl.instance;
-    List<TypeParameterElement> typeParameters = node
-        .typeParameters.typeParameters
-        .map((TypeParameter parameter) =>
-            parameter.element as TypeParameterElement)
-        .toList();
-    List<ParameterElement> parameters = node.parameters.parameters
-        .map((FormalParameter parameter) => parameter.element)
-        .toList();
-    (node as GenericFunctionTypeImpl).type =
-        new FunctionTypeImpl.forGenericFunctionType(
-            typeParameters, DartType.EMPTY_LIST, returnType, parameters, false);
+    GenericFunctionTypeElementImpl element =
+        node.type.element as GenericFunctionTypeElementImpl;
+    super.visitGenericFunctionType(node);
+    element.returnType =
+        _computeReturnType(node.returnType) ?? DynamicTypeImpl.instance;
     return null;
   }
 

@@ -456,7 +456,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
     element.type = new FunctionTypeImpl.forTypedef(element);
-    element.function = holder.functions[0];
+    element.function = node.functionType.type.element;
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();

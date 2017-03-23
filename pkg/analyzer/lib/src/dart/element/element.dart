@@ -1484,9 +1484,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
     if (_unlinkedUnit != null) {
-      _typeAliases ??= _unlinkedUnit.typedefs
-          .map((t) => new FunctionTypeAliasElementImpl.forSerialized(t, this))
-          .toList(growable: false);
+      _typeAliases ??= _unlinkedUnit.typedefs.map((t) {
+        if (t.style == TypedefStyle.functionType) {
+          return new FunctionTypeAliasElementImpl.forSerialized(t, this);
+        } else if (t.style == TypedefStyle.genericFunctionType) {
+          return new GenericTypeAliasElementImpl.forSerialized(t, this);
+        }
+      }).toList(growable: false);
     }
     return _typeAliases ?? const <FunctionTypeAliasElement>[];
   }
@@ -1568,7 +1572,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   void set typeAliases(List<FunctionTypeAliasElement> typeAliases) {
     _assertNotResynthesized(_unlinkedUnit);
     for (FunctionTypeAliasElement typeAlias in typeAliases) {
-      (typeAlias as FunctionTypeAliasElementImpl).enclosingElement = this;
+      (typeAlias as ElementImpl).enclosingElement = this;
     }
     this._typeAliases = typeAliases;
   }
@@ -4864,7 +4868,12 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   /**
    * The unlinked representation of the generic function type in the summary.
    */
-  UnlinkedGenericFunctionType _unlinkedGenericFunctionType;
+  EntityRef _entityRef;
+
+  /**
+   * The enclosing type parameter context.
+   */
+  TypeParameterizedElementMixin _typeParameterContext;
 
   /**
    * The declared return type of the function.
@@ -4891,21 +4900,26 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   /**
    * Initialize from serialized information.
    */
-  GenericFunctionTypeElementImpl.forSerialized(ElementImpl enclosingElement)
-      : super.forSerialized(enclosingElement);
+  GenericFunctionTypeElementImpl.forSerialized(
+      this._entityRef, this._typeParameterContext)
+      : super.forSerialized(null);
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
+      _typeParameterContext ??
       (enclosingElement as ElementImpl).typeParameterContext;
+
+  @override
+  String get identifier => '-';
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
   @override
   List<ParameterElement> get parameters {
-    if (_unlinkedGenericFunctionType != null) {
+    if (_entityRef != null) {
       _parameters ??= ParameterElementImpl.resynthesizeList(
-          _unlinkedGenericFunctionType.parameters, this);
+          _entityRef.syntheticParams, this);
     }
     return _parameters ?? const <ParameterElement>[];
   }
@@ -4915,7 +4929,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
    * [parameters].
    */
   void set parameters(List<ParameterElement> parameters) {
-    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    _assertNotResynthesized(_entityRef);
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
@@ -4924,9 +4938,9 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
-    if (_unlinkedGenericFunctionType != null && _returnType == null) {
+    if (_entityRef != null && _returnType == null) {
       _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          _unlinkedGenericFunctionType.returnType, typeParameterContext,
+          _entityRef.syntheticReturnType, typeParameterContext,
           defaultVoid: false, declaredType: true);
     }
     return _returnType;
@@ -4937,13 +4951,13 @@ class GenericFunctionTypeElementImpl extends ElementImpl
    * [returnType].
    */
   void set returnType(DartType returnType) {
-    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    _assertNotResynthesized(_entityRef);
     _returnType = _checkElementOfType(returnType);
   }
 
   @override
   FunctionType get type {
-    if (_unlinkedGenericFunctionType != null) {
+    if (_entityRef != null) {
       _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
           this, null, allEnclosingTypeParameterTypes, false);
     }
@@ -4955,7 +4969,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
    * [type].
    */
   void set type(FunctionType type) {
-    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    _assertNotResynthesized(_entityRef);
     _type = type;
   }
 
@@ -4964,7 +4978,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
-    _assertNotResynthesized(_unlinkedGenericFunctionType);
+    _assertNotResynthesized(_entityRef);
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -4972,8 +4986,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   }
 
   @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams =>
-      _unlinkedGenericFunctionType?.typeParameters;
+  List<UnlinkedTypeParam> get unlinkedTypeParams => _entityRef?.typeParameters;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) {
@@ -5036,10 +5049,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
   final UnlinkedTypedef _unlinkedTypedef;
 
   /**
-   * The element representing the generic function type if this is a generic
-   * function type alias, or `null` if it isn't.
+   * The element representing the generic function type.
    */
-  FunctionElement _function;
+  GenericFunctionTypeElement _function;
 
   /**
    * The type of function defined by this type alias.
@@ -5099,16 +5111,20 @@ class GenericTypeAliasElementImpl extends ElementImpl
       _enclosingElement as CompilationUnitElementImpl;
 
   /**
-   * Return the function element representing the generic function type on the
-   * right side of the equals.
+   * Return the generic function type element representing the generic function
+   * type on the right side of the equals.
    */
-  FunctionElement get function {
+  GenericFunctionTypeElement get function {
     if (_function == null && _unlinkedTypedef != null) {
       DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
           _unlinkedTypedef.returnType, this,
           declaredType: true);
       if (type is FunctionType) {
-        _function = type.element;
+        Element element = type.element;
+        if (element is GenericFunctionTypeElement) {
+          (element as GenericFunctionTypeElementImpl).enclosingElement = this;
+          _function = element;
+        }
       }
     }
     return _function;
@@ -5118,10 +5134,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
    * Set the function element representing the generic function type on the
    * right side of the equals to the given [function].
    */
-  void set function(FunctionElement function) {
+  void set function(GenericFunctionTypeElement function) {
     _assertNotResynthesized(_unlinkedTypedef);
     if (function != null) {
-      (function as FunctionElementImpl).enclosingElement = this;
+      (function as GenericFunctionTypeElementImpl).enclosingElement = this;
     }
     _function = function;
   }
@@ -7266,7 +7282,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     if (_unlinkedVariable != null && _declaredType == null && _type == null) {
       _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
           _unlinkedVariable.inferredTypeSlot, typeParameterContext);
-      _declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+      declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
           _unlinkedVariable.type, typeParameterContext,
           declaredType: true);
     }
@@ -7591,7 +7607,9 @@ class ParameterElementImpl extends VariableElementImpl
   int get nameOffset {
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedParam != null) {
-      if (isSynthetic) {
+      if (isSynthetic ||
+          (_unlinkedParam.name.isEmpty &&
+              enclosingElement is GenericFunctionTypeElement)) {
         return -1;
       }
       return _unlinkedParam.nameOffset;
@@ -7776,7 +7794,7 @@ class ParameterElementImpl extends VariableElementImpl
       } else {
         _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
             _unlinkedParam.inferredTypeSlot, typeParameterContext);
-        _declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+        declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
             _unlinkedParam.type, typeParameterContext,
             declaredType: true);
       }
