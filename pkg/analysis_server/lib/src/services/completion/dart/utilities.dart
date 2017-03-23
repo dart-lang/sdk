@@ -80,7 +80,7 @@ void addDefaultArgDetails(
         for (ParameterElement param in constructorElement.parameters) {
           if (param.name == 'children') {
             DartType type = param.type;
-            if (type is InterfaceType && _isDartList(type)) {
+            if (type is InterfaceType && isDartList(type)) {
               InterfaceType interfaceType = type;
               List<DartType> typeArguments = interfaceType.typeArguments;
               if (typeArguments.length == 1) {
@@ -184,6 +184,14 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
   return suggestion;
 }
 
+bool isDartList(DartType type) {
+  ClassElement element = type.element;
+  if (element != null) {
+    return element.name == "List" && element.library.isDartCore;
+  }
+  return false;
+}
+
 /**
  * Return `true` if the @deprecated annotation is present on the given [node].
  */
@@ -230,11 +238,3 @@ String nameForType(TypeAnnotation type) {
 }
 
 String _getDefaultValue(ParameterElement param) => 'null';
-
-bool _isDartList(DartType type) {
-  ClassElement element = type.element;
-  if (element != null) {
-    return element.name == "List" && element.library.isDartCore;
-  }
-  return false;
-}

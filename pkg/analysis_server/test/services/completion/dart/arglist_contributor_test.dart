@@ -5,11 +5,13 @@
 library test.services.completion.dart.arglist;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../correction/flutter_util.dart';
 import 'completion_contributor_util.dart';
 
 main() {
@@ -717,6 +719,99 @@ main() { f("16", radix: ^);}''');
 
 @reflectiveTest
 class ArgListContributorTest_Driver extends ArgListContributorTest {
+  final IdeOptions generateChildrenBoilerPlate = new IdeOptionsImpl()
+    ..generateFlutterWidgetChildrenBoilerPlate = true;
+
   @override
   bool get enableNewAnalysisDriver => true;
+
+  test_ArgumentList_Flutter_InstanceCreationExpression_children() async {
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code,
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new Container(
+    child: new Row(^);
+  );
+''');
+
+    await computeSuggestions(options: generateChildrenBoilerPlate);
+
+    assertSuggest('children: ',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: '<Widget>[]');
+  }
+
+  test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
+    // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
+    // type it's children.
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code +
+          '\nclass DynamicRow extends Widget { DynamicRow({List children: null}){}}'
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new Container(
+    child: new DynamicRow(^);
+  );
+''');
+
+    await computeSuggestions(options: generateChildrenBoilerPlate);
+
+    assertSuggest('children: ',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: '[]');
+  }
+
+  test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
+    // Ensure we don't generate Map params for a future API
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code +
+          '\nclass MapRow extends Widget { MapRow({Map<Object,Object> children: null}){}}'
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new Container(
+    child: new MapRow(^);
+  );
+''');
+
+    await computeSuggestions(options: generateChildrenBoilerPlate);
+
+    assertSuggest('children: ',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null);
+  }
+
+  test_ArgumentList_Flutter_MethodExpression_children() async {
+    // Ensure we don't generate params for a method call
+    configureFlutterPkg({
+      'src/widgets/framework.dart':
+          flutter_framework_code + '\nfoo({String children})'
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+main() {
+foo(^);
+''');
+
+    await computeSuggestions(options: generateChildrenBoilerPlate);
+
+    assertSuggest('children: ',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null);
+  }
 }
