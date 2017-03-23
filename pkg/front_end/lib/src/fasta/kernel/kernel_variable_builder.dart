@@ -18,6 +18,10 @@ class KernelVariableBuilder extends Builder {
 
   bool get isLocal => true;
 
+  bool get isConst => variable.isConst;
+
+  bool get isFinal => variable.isFinal;
+
   VariableDeclaration get target => variable;
 
   @override

@@ -3250,9 +3250,9 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     int count = 1;
-    listener.beginVariablesDeclaration(token);
     token = parseModifiers(token);
     token = parseTypeOpt(token);
+    listener.beginVariablesDeclaration(token);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token)) {
       token = parseOptionallyInitializedIdentifier(token.next);

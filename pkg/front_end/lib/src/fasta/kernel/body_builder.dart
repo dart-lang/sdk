@@ -126,6 +126,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   bool constantExpressionRequired = false;
 
+  DartType currentLocalVariableType;
+
+  // Using non-null value to initialize this field based on performance advice
+  // from VM engineers. TODO(ahe): Does this still apply?
+  int currentLocalVariableModifiers = -1;
+
   BodyBuilder(
       KernelLibraryBuilder library,
       this.member,
@@ -899,15 +905,28 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endVariableInitializer(Token assignmentOperator) {
     debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
-    Expression initializer = popForValue();
-    Identifier identifier = pop();
-    push(new VariableDeclaration(identifier.name, initializer: initializer)
-      ..fileEqualsOffset = assignmentOperator.charOffset);
+    pushNewLocalVariable(popForValue(),
+        equalsCharOffset: assignmentOperator.charOffset);
   }
 
   @override
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer");
+    pushNewLocalVariable(null);
+  }
+
+  void pushNewLocalVariable(Expression initializer,
+      {int equalsCharOffset: TreeNode.noOffset}) {
+    Identifier identifier = pop();
+    assert(currentLocalVariableModifiers != -1);
+    bool isConst = (currentLocalVariableModifiers & constMask) != 0;
+    bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
+    assert(isConst == constantExpressionRequired);
+    push(new VariableDeclaration(identifier.name,
+        initializer: initializer,
+        type: currentLocalVariableType ?? const DynamicType(),
+        isFinal: isFinal,
+        isConst: isConst)..fileEqualsOffset = equalsCharOffset);
   }
 
   @override
@@ -927,15 +946,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endInitializedIdentifier(Token nameToken) {
     // TODO(ahe): Use [InitializedIdentifier] here?
     debugEvent("InitializedIdentifier");
-    TreeNode node = pop();
-    VariableDeclaration variable;
-    if (node is VariableDeclaration) {
-      variable = node;
-    } else if (node is Identifier) {
-      variable = new VariableDeclaration(node.name);
-    } else {
-      internalError("unhandled identifier: ${node.runtimeType}");
-    }
+    VariableDeclaration variable = pop();
     variable.fileOffset = nameToken.charOffset;
     push(variable);
     scope[variable.name] = new KernelVariableBuilder(
@@ -943,22 +954,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginVariablesDeclaration(Token token) {
+    debugEvent("beginVariablesDeclaration");
+    DartType type = pop();
+    int modifiers = Modifier.validate(pop());
+    super.push(currentLocalVariableModifiers);
+    super.push(currentLocalVariableType ?? NullValue.Type);
+    currentLocalVariableType = type;
+    currentLocalVariableModifiers = modifiers;
+    super.push(constantExpressionRequired);
+    constantExpressionRequired = (modifiers & constMask) != 0;
+  }
+
+  @override
   void endVariablesDeclaration(int count, Token endToken) {
     debugEvent("VariablesDeclaration");
     List<VariableDeclaration> variables = popList(count);
-    DartType type = pop();
-    int modifiers = Modifier.validate(pop());
-    bool isConst = (modifiers & constMask) != 0;
-    bool isFinal = (modifiers & finalMask) != 0;
-    if (type != null || isConst || isFinal) {
-      type ??= const DynamicType();
-      for (VariableDeclaration variable in variables) {
-        variable
-          ..type = type
-          ..isConst = isConst
-          ..isFinal = isFinal;
-      }
-    }
+    constantExpressionRequired = pop();
+    currentLocalVariableType = pop();
+    currentLocalVariableModifiers = pop();
     if (variables.length != 1) {
       push(variables);
     } else {
@@ -1105,7 +1119,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(new DoubleLiteral(double.parse(token.lexeme))..fileOffset = token.charOffset);
+    push(new DoubleLiteral(double.parse(token.lexeme))
+      ..fileOffset = token.charOffset);
   }
 
   @override
