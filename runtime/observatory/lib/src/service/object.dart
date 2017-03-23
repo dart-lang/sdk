@@ -1519,8 +1519,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
 
-  int get memoryHighWatermark => _memoryHighWatermark;
-  int _memoryHighWatermark = 0;
+  int get zoneHighWatermark => _zoneHighWatermark;
+  int _zoneHighWatermark = 0;
 
   int get numZoneHandles => _numZoneHandles;
   int _numZoneHandles;
@@ -1658,13 +1658,13 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       threads.addAll(map['_threads']);
     }
 
-    int currentMemoryHighWatermark = 0;
+    int currentZoneHighWatermark = 0;
     for (var i = 0; i < threads.length; i++) {
-      currentMemoryHighWatermark += threads[i].memoryHighWatermark;
+      currentZoneHighWatermark += threads[i].zoneHighWatermark;
     }
 
-    if (currentMemoryHighWatermark > _memoryHighWatermark) {
-      _memoryHighWatermark = currentMemoryHighWatermark;
+    if (currentZoneHighWatermark > _zoneHighWatermark) {
+      _zoneHighWatermark = currentZoneHighWatermark;
     }
 
     _numZoneHandles = map['_numZoneHandles'];
@@ -3106,12 +3106,10 @@ class Thread extends ServiceObject implements M.Thread {
   M.ThreadKind _kind;
   String get kindString => _kindString;
   String _kindString;
-  int get memoryHighWatermark => _memoryHighWatermark;
-  int _memoryHighWatermark;
-
-  // TODO(bkonyi): zones will always be empty. See issue #28885.
-  List<Zone> get zones => _zones;
-  final List<Zone> _zones = new List<Zone>();
+  int get zoneHighWatermark => _zoneHighWatermark;
+  int _zoneHighWatermark;
+  int get zoneCapacity => _zoneCapacity;
+  int _zoneCapacity;
 
   Thread._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -3147,7 +3145,8 @@ class Thread extends ServiceObject implements M.Thread {
         assert(false);
     }
 
-    _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
+    _zoneHighWatermark = int.parse(map['_zoneHighWatermark']);
+    _zoneCapacity = int.parse(map['_zoneCapacity']);
   }
 }
 

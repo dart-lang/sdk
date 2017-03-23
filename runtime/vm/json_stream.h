@@ -184,7 +184,6 @@ class JSONStream : ValueObject {
   void PrintValue(Isolate* isolate, bool ref = true);
   void PrintValue(ThreadRegistry* reg);
   void PrintValue(Thread* thread);
-  void PrintValue(Zone* zone);
   bool PrintValueStr(const String& s, intptr_t offset, intptr_t count);
   void PrintValue(const TimelineEvent* timeline_event);
   void PrintValue(const TimelineEventBlock* timeline_event_block);
@@ -404,7 +403,6 @@ class JSONArray : public ValueObject {
   }
   void AddValue(ThreadRegistry* reg) const { stream_->PrintValue(reg); }
   void AddValue(Thread* thread) const { stream_->PrintValue(thread); }
-  void AddValue(Zone* zone) const { stream_->PrintValue(zone); }
   void AddValue(Breakpoint* bpt) const { stream_->PrintValue(bpt); }
   void AddValue(TokenPosition tp) const { stream_->PrintValue(tp); }
   void AddValue(const ServiceEvent* event) const { stream_->PrintValue(event); }

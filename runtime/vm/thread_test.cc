@@ -291,11 +291,10 @@ TEST_CASE(ManySimpleTasksWithZones) {
   const int kTaskCount = 10;
   Monitor monitor;
   Monitor sync;
-  Thread* threads[kTaskCount + 1];
+  Thread* threads[kTaskCount];
   Isolate* isolate = Thread::Current()->isolate();
   intptr_t done_count = 0;
   bool wait = true;
-  threads[kTaskCount] = Thread::Current();
 
   EXPECT(isolate->heap()->GrowthControlState());
   isolate->heap()->DisableGrowthControl();
@@ -323,23 +322,24 @@ TEST_CASE(ManySimpleTasksWithZones) {
   Thread* current_thread = Thread::Current();
 
   // Confirm all expected entries are in the JSON output.
-  for (intptr_t i = 0; i < kTaskCount + 1; i++) {
+  for (intptr_t i = 0; i < kTaskCount; i++) {
     Thread* thread = threads[i];
     StackZone stack_zone(current_thread);
     Zone* current_zone = current_thread->zone();
 
     // Check the thread exists and is the correct size.
-    char* thread_info_buf =
-        OS::SCreate(current_zone,
-                    "\"type\":\"_Thread\","
-                    "\"id\":\"threads\\/%" Pd
-                    "\","
-                    "\"kind\":\"%s\","
-                    "\"_memoryHighWatermark\":\"%" Pu "\"",
-                    OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
-                    Thread::TaskKindToCString(thread->task_kind()),
-                    thread->memory_high_watermark());
-
+    char* thread_info_buf = OS::SCreate(
+        current_zone,
+        "\"type\":\"_Thread\","
+        "\"id\":\"threads\\/%" Pd
+        "\","
+        "\"kind\":\"%s\","
+        "\"_zoneHighWatermark\":\"%" Pu
+        "\","
+        "\"_zoneCapacity\":\"%" Pu "\"",
+        OSThread::ThreadIdToIntPtr(thread->os_thread()->trace_id()),
+        Thread::TaskKindToCString(thread->task_kind()),
+        thread->zone_high_watermark(), thread->current_zone_capacity());
     EXPECT_SUBSTRING(thread_info_buf, json);
   }
 

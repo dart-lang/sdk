@@ -676,7 +676,7 @@ class ApiNativeScope {
                              reinterpret_cast<uword>(this));
     // We manually increment the memory usage counter since there is memory
     // initially allocated within the zone on creation.
-    IncrementNativeScopeMemoryUsage(zone_.GetZone()->CapacityInBytes());
+    IncrementNativeScopeMemoryCapacity(zone_.GetZone()->CapacityInBytes());
   }
 
   ~ApiNativeScope() {
@@ -685,7 +685,7 @@ class ApiNativeScope {
     // We must also manually decrement the memory usage counter since the native
     // is still holding it's initial memory and ~Zone() won't be able to
     // determine which memory usage counter to decrement.
-    DecrementNativeScopeMemoryUsage(zone_.GetZone()->CapacityInBytes());
+    DecrementNativeScopeMemoryCapacity(zone_.GetZone()->CapacityInBytes());
   }
 
   static inline ApiNativeScope* Current() {
@@ -693,13 +693,13 @@ class ApiNativeScope {
         OSThread::GetThreadLocal(Api::api_native_key_));
   }
 
-  static intptr_t current_memory_usage() { return current_memory_usage_; }
+  static uintptr_t current_memory_usage() { return current_memory_usage_; }
 
-  static void IncrementNativeScopeMemoryUsage(intptr_t size) {
+  static void IncrementNativeScopeMemoryCapacity(intptr_t size) {
     AtomicOperations::IncrementBy(&current_memory_usage_, size);
   }
 
-  static void DecrementNativeScopeMemoryUsage(intptr_t size) {
+  static void DecrementNativeScopeMemoryCapacity(intptr_t size) {
     AtomicOperations::DecrementBy(&current_memory_usage_, size);
   }
 
