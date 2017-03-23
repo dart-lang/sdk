@@ -31,6 +31,8 @@ import 'frontend_accessors.dart' show buildIsNull, makeLet;
 import 'kernel_builder.dart'
     show Builder, KernelClassBuilder, PrefixBuilder, TypeDeclarationBuilder;
 
+import '../names.dart' show callName;
+
 abstract class BuilderHelper {
   Uri get uri;
 
@@ -236,7 +238,7 @@ class ThisAccessor extends BuilderAccessor {
       return buildConstructorInitializer(charOffset, new Name(""), arguments);
     } else {
       return buildMethodInvocation(
-          new ThisExpression(), new Name("call"), arguments, charOffset);
+          new ThisExpression(), callName, arguments, charOffset);
     }
   }
 
@@ -358,11 +360,8 @@ class SendAccessor extends IncompleteSend {
         Member target = builder.target;
         if (target != null) {
           if (target is Field) {
-            result = buildMethodInvocation(
-                new StaticGet(target),
-                new Name("call"),
-                arguments,
-                charOffset + (target.name?.name?.length ?? 0),
+            result = buildMethodInvocation(new StaticGet(target), callName,
+                arguments, charOffset + (target.name?.name?.length ?? 0),
                 isNullAware: isNullAware);
           } else {
             result = helper.buildStaticInvocation(target, arguments)
@@ -500,7 +499,7 @@ class IndexAccessor extends kernel.IndexAccessor with BuilderAccessor {
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     return buildMethodInvocation(
-        buildSimpleRead(), new Name("call"), arguments, charOffset);
+        buildSimpleRead(), callName, arguments, charOffset);
   }
 
   toString() => "IndexAccessor()";
@@ -592,8 +591,8 @@ class StaticAccessor extends kernel.StaticAccessor with BuilderAccessor {
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     if (readTarget == null || isFieldOrGetter(readTarget)) {
-      return buildMethodInvocation(buildSimpleRead(), new Name("call"),
-          arguments, charOffset + (readTarget?.name?.name?.length ?? 0));
+      return buildMethodInvocation(buildSimpleRead(), callName, arguments,
+          charOffset + (readTarget?.name?.name?.length ?? 0));
     } else {
       return helper.buildStaticInvocation(readTarget, arguments)
         ..fileOffset = charOffset;
@@ -616,7 +615,7 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
   Expression doInvocation(int charOffset, Arguments arguments) {
     if (getter == null || isFieldOrGetter(getter)) {
       return buildMethodInvocation(
-          buildSimpleRead(), new Name("call"), arguments, charOffset);
+          buildSimpleRead(), callName, arguments, charOffset);
     } else {
       return new DirectMethodInvocation(new ThisExpression(), getter, arguments)
         ..fileOffset = charOffset;
@@ -641,7 +640,7 @@ class ThisIndexAccessor extends kernel.ThisIndexAccessor with BuilderAccessor {
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     return buildMethodInvocation(
-        buildSimpleRead(), new Name("call"), arguments, charOffset);
+        buildSimpleRead(), callName, arguments, charOffset);
   }
 
   toString() => "ThisIndexAccessor()";
@@ -663,7 +662,7 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     return buildMethodInvocation(
-        buildSimpleRead(), new Name("call"), arguments, charOffset);
+        buildSimpleRead(), callName, arguments, charOffset);
   }
 
   toString() => "SuperIndexAccessor()";
@@ -726,7 +725,7 @@ class VariableAccessor extends kernel.VariableAccessor with BuilderAccessor {
   Expression doInvocation(int charOffset, Arguments arguments) {
     // Normally the offset is at the start of the token, but in this case,
     // because we insert a '.call', we want it at the end instead.
-    return buildMethodInvocation(buildSimpleRead(), new Name("call"), arguments,
+    return buildMethodInvocation(buildSimpleRead(), callName, arguments,
         charOffset + (variable.name?.length ?? 0));
   }
 

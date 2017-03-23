@@ -10,6 +10,8 @@ library kernel.frontend.accessors;
 
 import 'package:kernel/ast.dart';
 
+import '../names.dart' show indexGetName, indexSetName;
+
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
 /// used.
@@ -248,9 +250,6 @@ class SuperPropertyAccessor extends Accessor {
   }
 }
 
-final Name _indexGet = new Name('[]');
-final Name _indexSet = new Name('[]=');
-
 class IndexAccessor extends Accessor {
   Expression receiver;
   Expression index;
@@ -273,14 +272,16 @@ class IndexAccessor extends Accessor {
       this.receiver, this.index, this.getter, this.setter, this.charOffset);
 
   _makeSimpleRead() => new MethodInvocation(
-      receiver, _indexGet, new Arguments(<Expression>[index]), getter)
+      receiver, indexGetName, new Arguments(<Expression>[index]), getter)
     ..fileOffset = charOffset;
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(
-        receiver, _indexSet, new Arguments(<Expression>[index, value]), setter)
-      ..fileOffset = charOffset;
+        receiver,
+        indexSetName,
+        new Arguments(<Expression>[index, value]),
+        setter)..fileOffset = charOffset;
   }
 
   receiverAccess() {
@@ -298,7 +299,7 @@ class IndexAccessor extends Accessor {
   _makeRead() {
     return new MethodInvocation(
         receiverAccess(),
-        _indexGet,
+        indexGetName,
         new Arguments(<Expression>[indexAccess()]),
         getter)..fileOffset = charOffset;
   }
@@ -307,7 +308,7 @@ class IndexAccessor extends Accessor {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(
         receiverAccess(),
-        _indexSet,
+        indexSetName,
         new Arguments(<Expression>[indexAccess(), value]),
         setter)..fileOffset = charOffset;
   }
@@ -318,7 +319,7 @@ class IndexAccessor extends Accessor {
     var valueVariable = new VariableDeclaration.forValue(value);
     var dummy = new VariableDeclaration.forValue(new MethodInvocation(
         receiverAccess(),
-        _indexSet,
+        indexSetName,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter)..fileOffset = charOffset);
@@ -341,13 +342,13 @@ class ThisIndexAccessor extends Accessor {
   ThisIndexAccessor(this.index, this.getter, this.setter);
 
   _makeSimpleRead() {
-    return new MethodInvocation(new ThisExpression(), _indexGet,
+    return new MethodInvocation(new ThisExpression(), indexGetName,
         new Arguments(<Expression>[index]), getter);
   }
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new MethodInvocation(new ThisExpression(), _indexSet,
+    return new MethodInvocation(new ThisExpression(), indexSetName,
         new Arguments(<Expression>[index, value]), setter);
   }
 
@@ -356,12 +357,12 @@ class ThisIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  _makeRead() => new MethodInvocation(new ThisExpression(), _indexGet,
+  _makeRead() => new MethodInvocation(new ThisExpression(), indexGetName,
       new Arguments(<Expression>[indexAccess()]), getter);
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new MethodInvocation(new ThisExpression(), _indexSet,
+    return new MethodInvocation(new ThisExpression(), indexSetName,
         new Arguments(<Expression>[indexAccess(), value]), setter);
   }
 
@@ -369,7 +370,7 @@ class ThisIndexAccessor extends Accessor {
     var valueVariable = new VariableDeclaration.forValue(value);
     var dummy = new VariableDeclaration.forValue(new MethodInvocation(
         new ThisExpression(),
-        _indexSet,
+        indexSetName,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter));
@@ -393,29 +394,29 @@ class SuperIndexAccessor extends Accessor {
   }
 
   _makeSimpleRead() => new SuperMethodInvocation(
-      _indexGet, new Arguments(<Expression>[index]), getter);
+      indexGetName, new Arguments(<Expression>[index]), getter);
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new SuperMethodInvocation(
-        _indexSet, new Arguments(<Expression>[index, value]), setter);
+        indexSetName, new Arguments(<Expression>[index, value]), setter);
   }
 
   _makeRead() {
     return new SuperMethodInvocation(
-        _indexGet, new Arguments(<Expression>[indexAccess()]), getter);
+        indexGetName, new Arguments(<Expression>[indexAccess()]), getter);
   }
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new SuperMethodInvocation(
-        _indexSet, new Arguments(<Expression>[indexAccess(), value]), setter);
+    return new SuperMethodInvocation(indexSetName,
+        new Arguments(<Expression>[indexAccess(), value]), setter);
   }
 
   _makeWriteAndReturn(Expression value) {
     var valueVariable = new VariableDeclaration.forValue(value);
     var dummy = new VariableDeclaration.forValue(new SuperMethodInvocation(
-        _indexSet,
+        indexSetName,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter));
