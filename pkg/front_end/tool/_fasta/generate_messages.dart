@@ -10,6 +10,8 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
 
+import 'package:dart_style/dart_style.dart' show DartFormatter;
+
 main(List<String> arguments) async {
   var port = new ReceivePort();
   Uri messagesFile = Platform.script.resolve("../../messages.yaml");
@@ -52,9 +54,12 @@ import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
     sb.writeln(compileTemplate(name, map['template'], map['tip']));
   });
 
+  String dartfmtedText = new DartFormatter().format("$sb");
+
   Uri problemsFile = await Isolate.resolvePackageUri(
       Uri.parse('package:front_end/src/fasta/problems.dart'));
-  await new File.fromUri(problemsFile).writeAsString("$sb", flush: true);
+  await new File.fromUri(problemsFile)
+      .writeAsString(dartfmtedText, flush: true);
   port.close();
 }
 
