@@ -7,6 +7,7 @@
 # pkg/fasta/lib/src/kernel/.
 
 await: Fail
+cycles: Fail # Compile-time error handling destroys program.
 function_type_recovery: Fail
 invocations: Fail
 statements: Fail # Make async tranformer optional for golden file testing.

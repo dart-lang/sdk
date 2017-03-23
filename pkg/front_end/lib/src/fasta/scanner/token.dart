@@ -16,8 +16,6 @@ import 'precedence.dart'
         IDENTIFIER_INFO,
         IS_INFO,
         KEYWORD_INFO,
-        MULTI_LINE_COMMENT_INFO,
-        SINGLE_LINE_COMMENT_INFO,
         PrecedenceInfo;
 
 import 'token_constants.dart' show IDENTIFIER_TOKEN;

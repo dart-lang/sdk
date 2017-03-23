@@ -26,8 +26,6 @@ import '../export.dart' show Export;
 
 import '../loader.dart' show Loader;
 
-import '../messages.dart' show warning;
-
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
@@ -336,8 +334,7 @@ class SourceLoader<L> extends Loader<L> {
             reported.add(cls);
           }
         }
-        warning(
-            cls.fileUri,
+        cls.addCompileTimeError(
             cls.charOffset,
             "'${cls.name}' is a supertype of "
             "itself via '${involved.map((c) => c.name).join(' ')}'.");

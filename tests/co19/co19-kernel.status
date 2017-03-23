@@ -97,11 +97,8 @@ Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t03: RuntimeError
-Language/Classes/Superclasses/superclass_of_itself_t01: MissingCompileTimeError
-Language/Classes/Superclasses/superclass_of_itself_t02: MissingCompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t07: Crash
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
-Language/Classes/Superinterfaces/itself_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t04: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/declarations_t02: MissingCompileTimeError
@@ -303,11 +300,6 @@ Language/Functions/Function_Declarations/external_function_t02: MissingCompileTi
 Language/Functions/syntax_t05: MissingCompileTimeError
 Language/Functions/syntax_t31: MissingCompileTimeError
 Language/Generics/malformed_t01: RuntimeError
-Language/Interfaces/Superinterfaces/definition_t03: MissingCompileTimeError
-Language/Interfaces/Superinterfaces/definition_t04: MissingCompileTimeError
-Language/Interfaces/Superinterfaces/superinterface_of_itself_t01: MissingCompileTimeError
-Language/Interfaces/Superinterfaces/superinterface_of_itself_t02: MissingCompileTimeError
-Language/Interfaces/Superinterfaces/superinterface_of_itself_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass # OK
 Language/Libraries_and_Scripts/Exports/reexport_t01: Pass
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
@@ -374,7 +366,6 @@ Language/Metadata/compilation_t09: MissingCompileTimeError
 Language/Metadata/compilation_t10: MissingCompileTimeError
 Language/Metadata/compilation_t11: MissingCompileTimeError
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/syntax_t15: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
 Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t02: MissingCompileTimeError

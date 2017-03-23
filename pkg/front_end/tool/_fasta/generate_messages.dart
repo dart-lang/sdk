@@ -6,8 +6,6 @@ import 'dart:io';
 
 import 'dart:isolate';
 
-import 'dart:convert';
-
 import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;

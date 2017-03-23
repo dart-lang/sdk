@@ -268,16 +268,4 @@ abstract class KernelClassBuilder
       }
     }
   }
-
-  void addCompileTimeError(int charOffset, String message) {
-    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
-  }
-
-  void addWarning(int charOffset, String message) {
-    library.addWarning(charOffset, message, fileUri: fileUri);
-  }
-
-  void addNit(int charOffset, String message) {
-    library.addNit(charOffset, message, fileUri: fileUri);
-  }
 }

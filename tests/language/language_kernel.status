@@ -33,10 +33,6 @@ call_nonexistent_static_test/06: CompileTimeError
 cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
-class_cycle2_test/01: MissingCompileTimeError
-class_cycle2_test/02: MissingCompileTimeError
-class_cycle_test/00: MissingCompileTimeError
-class_cycle_test/01: MissingCompileTimeError
 compile_time_constant10_test/01: Crash
 compile_time_constant10_test/02: Crash
 compile_time_constant13_test/03: MissingCompileTimeError
@@ -166,7 +162,6 @@ covariant_test/46: MissingCompileTimeError
 covariant_test/46b: MissingCompileTimeError
 covariant_test/59: MissingCompileTimeError
 crash_6725_test/01: CompileTimeError
-cyclic_class_member_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError
@@ -346,8 +341,6 @@ initializing_formal_capture_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
 instanceof3_test: RuntimeError
-interface_cycle_test/01: MissingCompileTimeError
-interface_cycle_test/02: MissingCompileTimeError
 invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: RuntimeError
 is_malformed_type_test/95: RuntimeError
@@ -382,8 +375,6 @@ missing_const_constructor_test/04: Crash
 missing_const_constructor_test/05: MissingCompileTimeError
 missing_const_constructor_test/06: MissingCompileTimeError
 missing_part_of_tag_test/01: MissingCompileTimeError
-mixin_cyclic_test/01: MissingCompileTimeError
-mixin_cyclic_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -399,12 +390,6 @@ mixin_illegal_constructor_test/09: MissingCompileTimeError
 mixin_illegal_constructor_test/10: MissingCompileTimeError
 mixin_illegal_constructor_test/11: MissingCompileTimeError
 mixin_illegal_constructor_test/12: MissingCompileTimeError
-mixin_illegal_cycles_test/01: MissingCompileTimeError
-mixin_illegal_cycles_test/02: MissingCompileTimeError
-mixin_illegal_cycles_test/03: MissingCompileTimeError
-mixin_illegal_cycles_test/04: MissingCompileTimeError
-mixin_illegal_cycles_test/05: MissingCompileTimeError
-mixin_illegal_cycles_test/06: MissingCompileTimeError
 mixin_illegal_object_test/01: MissingCompileTimeError
 mixin_illegal_object_test/02: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
