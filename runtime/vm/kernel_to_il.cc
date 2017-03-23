@@ -1068,7 +1068,8 @@ dart::String& TranslationHelper::DartSymbol(String* content) const {
 
 
 const dart::String& TranslationHelper::DartClassName(
-    CanonicalName* kernel_klass) {
+    kernel::Class* kernel_klass) {
+  ASSERT(kernel_klass->IsNormalClass());
   dart::String& name = DartString(kernel_klass->name());
   return ManglePrivateName(kernel_klass->parent(), &name);
 }
@@ -1111,7 +1112,7 @@ const dart::String& TranslationHelper::DartSetterName(Name* kernel_name) {
   dart::String& name = dart::String::ZoneHandle(
       Z, dart::String::FromUTF8(content->buffer(), content->size() - skip,
                                 allocation_space_));
-  ManglePrivateName(kernel_name->library_reference(), &name, false);
+  ManglePrivateName(kernel_name->library(), &name, false);
   name = dart::Field::SetterSymbol(name);
   return name;
 }
@@ -1119,7 +1120,7 @@ const dart::String& TranslationHelper::DartSetterName(Name* kernel_name) {
 
 const dart::String& TranslationHelper::DartGetterName(Name* kernel_name) {
   dart::String& name = DartString(kernel_name->string());
-  ManglePrivateName(kernel_name->library_reference(), &name, false);
+  ManglePrivateName(kernel_name->library(), &name, false);
   name = dart::Field::GetterSymbol(name);
   return name;
 }
@@ -1127,7 +1128,7 @@ const dart::String& TranslationHelper::DartGetterName(Name* kernel_name) {
 
 const dart::String& TranslationHelper::DartFieldName(Name* kernel_name) {
   dart::String& name = DartString(kernel_name->string());
-  return ManglePrivateName(kernel_name->library_reference(), &name);
+  return ManglePrivateName(kernel_name->library(), &name);
 }
 
 
@@ -1142,7 +1143,7 @@ const dart::String& TranslationHelper::DartInitializerName(Name* kernel_name) {
 
 const dart::String& TranslationHelper::DartMethodName(Name* kernel_name) {
   dart::String& name = DartString(kernel_name->string());
-  return ManglePrivateName(kernel_name->library_reference(), &name);
+  return ManglePrivateName(kernel_name->library(), &name);
 }
 
 
@@ -1150,7 +1151,7 @@ const dart::String& TranslationHelper::DartFactoryName(Class* klass,
                                                        Name* method_name) {
   // [DartMethodName] will mangle the name.
   GrowableHandlePtrArray<const dart::String> pieces(Z, 3);
-  pieces.Add(DartClassName(klass->canonical_name()));
+  pieces.Add(DartClassName(klass));
   pieces.Add(Symbols::Dot());
   pieces.Add(DartMethodName(method_name));
   return dart::String::ZoneHandle(
@@ -1159,8 +1160,8 @@ const dart::String& TranslationHelper::DartFactoryName(Class* klass,
 
 
 dart::RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
-    CanonicalName* kernel_library) {
-  const dart::String& library_name = DartSymbol(kernel_library->name());
+    Library* kernel_library) {
+  const dart::String& library_name = DartSymbol(kernel_library->import_uri());
   ASSERT(!library_name.IsNull());
   dart::RawLibrary* library =
       dart::Library::LookupLibrary(thread_, library_name);
@@ -1170,11 +1171,11 @@ dart::RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
 
 
 dart::RawClass* TranslationHelper::LookupClassByKernelClass(
-    CanonicalName* kernel_klass) {
+    Class* kernel_klass) {
   dart::RawClass* klass = NULL;
 
   const dart::String& class_name = DartClassName(kernel_klass);
-  CanonicalName* kernel_library = kernel_klass->parent();
+  Library* kernel_library = Library::Cast(kernel_klass->parent());
   dart::Library& library =
       dart::Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
   klass = library.LookupClassAllowPrivate(class_name);
@@ -1190,11 +1191,11 @@ dart::RawField* TranslationHelper::LookupFieldByKernelField(
 
   dart::Class& klass = dart::Class::Handle(Z);
   if (node->IsClass()) {
-    klass = LookupClassByKernelClass(Class::Cast(node)->canonical_name());
+    klass = LookupClassByKernelClass(Class::Cast(node));
   } else {
     ASSERT(node->IsLibrary());
     dart::Library& library = dart::Library::Handle(
-        Z, LookupLibraryByKernelLibrary(Library::Cast(node)->canonical_name()));
+        Z, LookupLibraryByKernelLibrary(Library::Cast(node)));
     klass = library.toplevel_class();
   }
   dart::RawField* field =
@@ -1213,8 +1214,8 @@ dart::RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
   // static method).
   TreeNode* parent = procedure->parent();
   if (parent->IsClass()) {
-    dart::Class& klass = dart::Class::Handle(
-        Z, LookupClassByKernelClass(Class::Cast(parent)->canonical_name()));
+    dart::Class& klass =
+        dart::Class::Handle(Z, LookupClassByKernelClass(Class::Cast(parent)));
     dart::RawFunction* raw_function =
         klass.LookupFunctionAllowPrivate(procedure_name);
     ASSERT(raw_function != Object::null());
@@ -1230,8 +1231,7 @@ dart::RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
   } else {
     ASSERT(parent->IsLibrary());
     dart::Library& library = dart::Library::Handle(
-        Z,
-        LookupLibraryByKernelLibrary(Library::Cast(parent)->canonical_name()));
+        Z, LookupLibraryByKernelLibrary(Library::Cast(parent)));
     dart::RawFunction* function =
         library.LookupFunctionAllowPrivate(procedure_name);
     ASSERT(function != Object::null());
@@ -1243,8 +1243,8 @@ dart::RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
 dart::RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
     Constructor* constructor) {
   Class* kernel_klass = Class::Cast(constructor->parent());
-  dart::Class& klass = dart::Class::Handle(
-      Z, LookupClassByKernelClass(kernel_klass->canonical_name()));
+  dart::Class& klass =
+      dart::Class::Handle(Z, LookupClassByKernelClass(kernel_klass));
   return LookupConstructorByKernelConstructor(klass, constructor);
 }
 
@@ -1304,10 +1304,9 @@ void TranslationHelper::ReportError(const Error& prev_error,
 }
 
 
-dart::String& TranslationHelper::ManglePrivateName(
-    CanonicalName* kernel_library,
-    dart::String* name_to_modify,
-    bool symbolize) {
+dart::String& TranslationHelper::ManglePrivateName(Library* kernel_library,
+                                                   dart::String* name_to_modify,
+                                                   bool symbolize) {
   if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
     const dart::Library& library =
         dart::Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
@@ -2840,8 +2839,8 @@ dart::RawFunction* FlowGraphBuilder::LookupMethodByMember(
     Member* target,
     const dart::String& method_name) {
   Class* kernel_klass = Class::Cast(target->parent());
-  dart::Class& klass = dart::Class::Handle(
-      Z, H.LookupClassByKernelClass(kernel_klass->canonical_name()));
+  dart::Class& klass =
+      dart::Class::Handle(Z, H.LookupClassByKernelClass(kernel_klass));
 
   dart::RawFunction* function = klass.LookupFunctionAllowPrivate(method_name);
   ASSERT(function != Object::null());
@@ -4473,8 +4472,8 @@ void DartTypeTranslator::VisitInterfaceType(InterfaceType* node) {
       node->type_arguments().raw_array(), node->type_arguments().length());
 
 
-  dart::Object& klass = dart::Object::Handle(
-      Z, H.LookupClassByKernelClass(node->class_reference()));
+  dart::Object& klass =
+      dart::Object::Handle(Z, H.LookupClassByKernelClass(node->klass()));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
@@ -4912,8 +4911,8 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
 
   Class* kernel_class = Class::Cast(node->target()->parent());
 
-  dart::Class& klass = dart::Class::ZoneHandle(
-      Z, H.LookupClassByKernelClass(kernel_class->canonical_name()));
+  dart::Class& klass =
+      dart::Class::ZoneHandle(Z, H.LookupClassByKernelClass(kernel_class));
 
   Fragment instructions;
 

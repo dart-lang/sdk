@@ -2535,7 +2535,6 @@ class Name : public Node {
     if (library_reference_ == NULL) return NULL;
     return library_reference_->AsLibrary();
   }
-  CanonicalName* library_reference() { return library_reference_; }
 
  private:
   Name(String* string, CanonicalName* library_reference)
@@ -2679,8 +2678,8 @@ class InterfaceType : public DartType {
   static InterfaceType* ReadFrom(Reader* reader);
   static InterfaceType* ReadFrom(Reader* reader, bool _without_type_arguments_);
 
-  explicit InterfaceType(CanonicalName* class_reference)
-      : class_reference_(class_reference) {}
+  explicit InterfaceType(CanonicalName* klass_reference)
+      : klass_reference_(klass_reference) {}
   virtual ~InterfaceType();
 
   DEFINE_CASTING_OPERATIONS(InterfaceType);
@@ -2688,14 +2687,13 @@ class InterfaceType : public DartType {
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Class* klass() { return class_reference_->AsClass(); }
-  CanonicalName* class_reference() { return class_reference_; }
+  Class* klass() { return klass_reference_->AsClass(); }
   List<DartType>& type_arguments() { return type_arguments_; }
 
  private:
   InterfaceType() {}
 
-  Ref<CanonicalName> class_reference_;
+  Ref<CanonicalName> klass_reference_;
   List<DartType> type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceType);
