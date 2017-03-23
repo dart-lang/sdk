@@ -715,7 +715,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
               normalParameterTypes, object.normalParameterTypes) &&
           TypeImpl.equalArrays(
               optionalParameterTypes, object.optionalParameterTypes) &&
-          _equals(namedParameterTypes, object.namedParameterTypes);
+          _equals(namedParameterTypes, object.namedParameterTypes) &&
+          TypeImpl.equalArrays(typeArguments, object.typeArguments);
     }
     return false;
   }
@@ -2004,6 +2005,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (argumentTypes.length == 0 || typeArguments.length == 0) {
       return this.pruned(prune);
     }
+
     List<DartType> newTypeArguments = TypeImpl.substitute(
         typeArguments, argumentTypes, parameterTypes, prune);
     if (listsEqual(newTypeArguments, typeArguments)) {
