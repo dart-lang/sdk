@@ -10,11 +10,9 @@ import 'frontend_accessors.dart' show Accessor;
 
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/core_types.dart' show CoreTypes;
+import '../errors.dart' show internalError;
 
 import '../builder/scope.dart' show AccessErrorBuilder, ProblemBuilder;
-
-import '../errors.dart' show internalError, printUnexpected;
 
 import 'frontend_accessors.dart' as kernel
     show
@@ -36,8 +34,6 @@ import 'kernel_builder.dart'
 abstract class BuilderHelper {
   Uri get uri;
 
-  CoreTypes get coreTypes;
-
   Constructor lookupConstructor(Name name, {bool isSuper});
 
   Expression toSuperMethodInvocation(MethodInvocation node);
@@ -57,6 +53,10 @@ abstract class BuilderHelper {
   Expression buildStaticInvocation(Procedure target, Arguments arguments);
 
   Expression buildProblemExpression(ProblemBuilder builder, int charOffset);
+
+  Expression throwNoSuchMethodError(
+      String name, Arguments arguments, int charOffset,
+      {bool isSuper: false, isGetter: false, isSetter: false});
 }
 
 abstract class BuilderAccessor implements Accessor {
@@ -67,8 +67,6 @@ abstract class BuilderAccessor implements Accessor {
   String get plainNameForRead;
 
   Uri get uri => helper.uri;
-
-  CoreTypes get coreTypes => helper.coreTypes;
 
   String get plainNameForWrite => plainNameForRead;
 
@@ -82,20 +80,19 @@ abstract class BuilderAccessor implements Accessor {
   }
 
   Expression makeInvalidRead() {
-    return throwNoSuchMethodError(
-        plainNameForRead, new Arguments.empty(), uri, charOffset, coreTypes,
-        isGetter: true);
+    return buildThrowNoSuchMethodError(new Arguments.empty(), isGetter: true);
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return throwNoSuchMethodError(plainNameForWrite,
-        new Arguments(<Expression>[value]), uri, charOffset, coreTypes,
+    return buildThrowNoSuchMethodError(new Arguments(<Expression>[value]),
         isSetter: true);
   }
 
-  TreeNode doInvocation(int charOffset, Arguments arguments);
+  /* Expression | BuilderAccessor */ doInvocation(
+      int charOffset, Arguments arguments);
 
-  buildPropertyAccess(IncompleteSend send, bool isNullAware) {
+  /* Expression | BuilderAccessor */ buildPropertyAccess(
+      IncompleteSend send, bool isNullAware) {
     if (send is SendAccessor) {
       return buildMethodInvocation(
           buildSimpleRead(), send.name, send.arguments, send.charOffset,
@@ -106,21 +103,22 @@ abstract class BuilderAccessor implements Accessor {
     }
   }
 
-  Expression buildThrowNoSuchMethodError(Arguments arguments) {
-    bool isGetter = false;
-    if (arguments == null) {
-      arguments = new Arguments.empty();
-      isGetter = true;
-    }
-    return throwNoSuchMethodError(
-        plainNameForWrite, arguments, uri, charOffset, coreTypes,
-        isGetter: isGetter);
+  /* Expression | BuilderAccessor */ buildThrowNoSuchMethodError(
+      Arguments arguments,
+      {bool isSuper: false,
+      isGetter: false,
+      isSetter: false,
+      String name,
+      int charOffset}) {
+    return helper.throwNoSuchMethodError(
+        name ?? plainNameForWrite, arguments, charOffset ?? this.charOffset,
+        isGetter: isGetter, isSetter: isSetter, isSuper: isSuper);
   }
 
   bool get isThisPropertyAccessor => false;
 }
 
-abstract class CompileTimeErrorAccessor implements Accessor {
+abstract class CompileTimeErrorAccessor implements BuilderAccessor {
   Expression buildError();
 
   Name get name => internalError("Unsupported operation.");
@@ -138,7 +136,14 @@ abstract class CompileTimeErrorAccessor implements Accessor {
 
   buildPropertyAccess(IncompleteSend send, bool isNullAware) => this;
 
-  buildThrowNoSuchMethodError(Arguments arguments) => this;
+  buildThrowNoSuchMethodError(Arguments arguments,
+      {bool isSuper: false,
+      isGetter: false,
+      isSetter: false,
+      String name,
+      int charOffset}) {
+    return this;
+  }
 
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
     return buildError();
@@ -241,9 +246,8 @@ class ThisAccessor extends BuilderAccessor {
     Initializer result;
     if (constructor == null) {
       result = new LocalInitializer(new VariableDeclaration.forValue(
-          throwNoSuchMethodError(
-              name.name, arguments, uri, charOffset, coreTypes,
-              isSuper: isSuper)));
+          buildThrowNoSuchMethodError(arguments,
+              isSuper: isSuper, name: name.name, charOffset: charOffset)));
     } else if (isSuper) {
       result = new SuperInitializer(constructor, arguments);
     } else {
@@ -436,7 +440,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
       Builder builder = receiver.findStaticBuilder(name.name, charOffset, uri);
       if (builder == null) {
         // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
-        return buildThrowNoSuchMethodError(null);
+        return buildThrowNoSuchMethodError(new Arguments.empty(),
+            isGetter: true);
       }
       Builder setter;
       if (builder.isSetter) {
@@ -726,35 +731,6 @@ class VariableAccessor extends kernel.VariableAccessor with BuilderAccessor {
   }
 
   toString() => "VariableAccessor()";
-}
-
-Expression throwNoSuchMethodError(String name, Arguments arguments, Uri uri,
-    int charOffset, CoreTypes coreTypes,
-    {bool isSuper: false, isGetter: false, isSetter: false}) {
-  String errorName = name;
-  if (isSuper) {
-    errorName = "super.$name";
-  }
-  if (isGetter) {
-    printUnexpected(uri, charOffset, "Getter not found: '$errorName'.");
-  } else if (isSetter) {
-    printUnexpected(uri, charOffset, "Setter not found: '$errorName'.");
-  } else {
-    printUnexpected(uri, charOffset, "Method not found: '$name'.");
-  }
-  Constructor constructor =
-      coreTypes.getClass("dart:core", "NoSuchMethodError").constructors.first;
-  return new Throw(new ConstructorInvocation(
-      constructor,
-      new Arguments(<Expression>[
-        new NullLiteral(),
-        new SymbolLiteral(name),
-        new ListLiteral(arguments.positional),
-        new MapLiteral(arguments.named.map((arg) {
-          return new MapEntry(new SymbolLiteral(arg.name), arg.value);
-        }).toList()),
-        new NullLiteral()
-      ])));
 }
 
 bool isFieldOrGetter(Member member) {

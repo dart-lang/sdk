@@ -38,9 +38,6 @@ import 'builder_accessors.dart';
 
 import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
 
-import 'builder_accessors.dart' as builder_accessors
-    show throwNoSuchMethodError;
-
 import '../quote.dart'
     show
         Quote,
@@ -93,7 +90,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final ClassHierarchy hierarchy;
 
-  @override
   final CoreTypes coreTypes;
 
   final bool isInstanceMember;
@@ -686,12 +682,31 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return true;
   }
 
+  @override
   Expression throwNoSuchMethodError(
       String name, Arguments arguments, int charOffset,
       {bool isSuper: false, isGetter: false, isSetter: false}) {
-    return builder_accessors.throwNoSuchMethodError(
-        name, arguments, uri, charOffset, coreTypes,
-        isSuper: isSuper, isGetter: isGetter, isSetter: isSetter);
+    String errorName = isSuper ? "super.$name" : name;
+    if (isGetter) {
+      warning("Getter not found: '$errorName'.", charOffset);
+    } else if (isSetter) {
+      warning("Setter not found: '$errorName'.", charOffset);
+    } else {
+      warning("Method not found: '$errorName'.", charOffset);
+    }
+    Constructor constructor =
+        coreTypes.getClass("dart:core", "NoSuchMethodError").constructors.first;
+    return new Throw(new ConstructorInvocation(
+        constructor,
+        new Arguments(<Expression>[
+          new NullLiteral(),
+          new SymbolLiteral(name),
+          new ListLiteral(arguments.positional),
+          new MapLiteral(arguments.named.map((arg) {
+            return new MapEntry(new SymbolLiteral(arg.name), arg.value);
+          }).toList()),
+          new NullLiteral()
+        ])));
   }
 
   @override
