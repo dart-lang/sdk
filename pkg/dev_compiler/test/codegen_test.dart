@@ -386,21 +386,6 @@ final _crashingTests = new Set<String>.from([
   'language/generic_methods_optional_parameters_test',
   'language/generic_methods_tearoff_specialization_test',
   'language/generic_methods_unused_parameter_test',
-  'language/mixin_illegal_syntax_test_none_multi',
-  'language/mixin_illegal_syntax_test_01_multi',
-  'language/mixin_illegal_syntax_test_02_multi',
-  'language/mixin_illegal_syntax_test_03_multi',
-  'language/mixin_illegal_syntax_test_04_multi',
-  'language/mixin_illegal_syntax_test_05_multi',
-  'language/mixin_illegal_syntax_test_06_multi',
-  'language/mixin_illegal_syntax_test_07_multi',
-  'language/mixin_illegal_syntax_test_08_multi',
-  'language/mixin_illegal_syntax_test_09_multi',
-  'language/mixin_illegal_syntax_test_10_multi',
-  'language/mixin_illegal_syntax_test_11_multi',
-  'language/mixin_illegal_syntax_test_12_multi',
-  'language/mixin_illegal_syntax_test_13_multi',
-  'language/mixin_illegal_syntax_test_14_multi',
 
   // TODO(vsm): Fix these - they import files from a different directory
   // - this triggers an invalid library root build error.
