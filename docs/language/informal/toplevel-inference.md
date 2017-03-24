@@ -188,18 +188,18 @@ A getter, setter or field which overrides/implements only a setter is inferred
 to have the type taken from the overridden setter parameter.
 
 
-A getter which overrides/implements both a setter and a getter is inferred to
-have the type taken from the overridden getter result type.
+A getter or final field which overrides/implements both a setter and a getter is
+inferred to have the type taken from the overridden getter result type.
 
 
 A setter which overrides/implements both a setter and a getter is inferred to
 have the type taken from the overridden setter parameter type.
 
 
-A field which overrides/implements both a setter and a getter is inferred to
-have the type taken from the overridden setter parameter type if this type is
-the same as the return type of the overridden getter (if the types are not the
-same then inference fails with an error).
+A non-final field which overrides/implements both a setter and a getter is
+inferred to have the type taken from the overridden setter parameter type if
+this type is the same as the return type of the overridden getter (if the types
+are not the same then inference fails with an error).
 
 
 Note that overriding a field is addressed via the implicit induced getter/setter
