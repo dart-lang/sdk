@@ -384,7 +384,6 @@ abstract class Compiler {
   /// libraries.
   LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
     loadedLibraries.forEachLibrary((LibraryElement library) {
-      _commonElements.registerCommonLibraries(library);
       backend.setAnnotations(library);
     });
 
@@ -1094,28 +1093,26 @@ class _CompilerCommonElements extends CommonElementsMixin {
 
   final ElementEnvironment environment;
 
-  LibraryElement coreLibrary;
-  LibraryElement asyncLibrary;
-  LibraryElement mirrorsLibrary;
-  LibraryElement typedDataLibrary;
-
   _CompilerCommonElements(this.environment, this.resolution, this.reporter);
 
   @override
   ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
 
-  void registerCommonLibraries(LibraryElement library) {
-    Uri uri = library.canonicalUri;
-    if (uri == Uris.dart_core) {
-      coreLibrary = library;
-    } else if (uri == Uris.dart_async) {
-      asyncLibrary = library;
-    } else if (uri == Uris.dart__native_typed_data) {
-      typedDataLibrary = library;
-    } else if (uri == Uris.dart_mirrors) {
-      mirrorsLibrary = library;
-    }
-  }
+  LibraryEntity _coreLibrary;
+  LibraryEntity get coreLibrary =>
+      _coreLibrary ??= environment.lookupLibrary(Uris.dart_core);
+
+  LibraryEntity _typedDataLibrary;
+  LibraryEntity get typedDataLibrary => _typedDataLibrary ??=
+      environment.lookupLibrary(Uris.dart__native_typed_data);
+
+  LibraryEntity _mirrorsLibrary;
+  LibraryEntity get mirrorsLibrary =>
+      _mirrorsLibrary ??= environment.lookupLibrary(Uris.dart_mirrors);
+
+  LibraryEntity _asyncLibrary;
+  LibraryEntity get asyncLibrary =>
+      _asyncLibrary ??= environment.lookupLibrary(Uris.dart_async);
 
   @override
   MemberElement findLibraryMember(LibraryElement library, String name,
