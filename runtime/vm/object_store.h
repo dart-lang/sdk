@@ -452,6 +452,13 @@ class ObjectStore {
     async_set_thread_stack_trace_ = func.raw();
     ASSERT(async_set_thread_stack_trace_ != Object::null());
   }
+  RawFunction* async_star_move_next_helper() const {
+    return async_star_move_next_helper_;
+  }
+  void set_async_star_move_next_helper(const Function& func) {
+    async_star_move_next_helper_ = func.raw();
+    ASSERT(async_star_move_next_helper_ != Object::null());
+  }
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -556,6 +563,7 @@ class ObjectStore {
   V(RawFunction*, simple_instance_of_false_function_)                          \
   V(RawFunction*, async_clear_thread_stack_trace_)                             \
   V(RawFunction*, async_set_thread_stack_trace_)                               \
+  V(RawFunction*, async_star_move_next_helper_)                                \
   V(RawArray*, library_load_error_table_)                                      \
   V(RawArray*, unique_dynamic_targets_)                                        \
   V(RawGrowableObjectArray*, token_objects_)                                   \

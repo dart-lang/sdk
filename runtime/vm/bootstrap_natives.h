@@ -13,6 +13,7 @@ namespace dart {
 
 // List of bootstrap native entry points used in the core dart library.
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
+  V(AsyncStarMoveNext_debuggerStepCheck, 1)                                    \
   V(DartAsync_fatal, 1)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
@@ -156,7 +157,7 @@ namespace dart {
   V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 3)                                                \
   V(Async_rethrow, 2)                                                          \
-  V(StackTrace_asyncStackTraceHelper, 0)                                       \
+  V(StackTrace_asyncStackTraceHelper, 1)                                       \
   V(StackTrace_clearAsyncThreadStackTrace, 0)                                  \
   V(StackTrace_setAsyncThreadStackTrace, 1)                                    \
   V(StackTrace_current, 0)                                                     \

@@ -96,6 +96,7 @@ ObjectStore::ObjectStore()
       simple_instance_of_false_function_(Function::null()),
       async_clear_thread_stack_trace_(Function::null()),
       async_set_thread_stack_trace_(Function::null()),
+      async_star_move_next_helper_(Function::null()),
       library_load_error_table_(Array::null()),
       unique_dynamic_targets_(Array::null()),
       token_objects_(GrowableObjectArray::null()),
@@ -254,6 +255,13 @@ void ObjectStore::InitKnownObjects() {
                                       function_name, 0, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_clear_thread_stack_trace(function);
+
+  function_name ^= async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
+  ASSERT(!function_name.IsNull());
+  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                      function_name, 1, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_async_star_move_next_helper(function);
 
   const Library& internal_lib = Library::Handle(_internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());

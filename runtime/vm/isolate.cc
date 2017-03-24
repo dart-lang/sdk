@@ -1138,9 +1138,12 @@ bool Isolate::MakeRunnable() {
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
-  if (FLAG_support_debugger && !ServiceIsolate::IsServiceIsolate(this)) {
-    if (FLAG_pause_isolates_on_unhandled_exceptions) {
-      debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
+  if (FLAG_support_debugger) {
+    if (!ServiceIsolate::IsServiceIsolate(this)) {
+      debugger()->OnIsolateRunnable();
+      if (FLAG_pause_isolates_on_unhandled_exceptions) {
+        debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
+      }
     }
   }
 #endif  // !PRODUCT

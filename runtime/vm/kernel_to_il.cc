@@ -3191,7 +3191,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
         async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
     ASSERT(!target.IsNull());
 
-    body += StaticCall(TokenPosition::kNoSource, target, 0);
+    LocalVariable* async_op =
+        scope->LookupVariable(Symbols::AsyncOperation(), true);
+    ASSERT(async_op != NULL);
+    body += LoadLocal(async_op);
+    body += PushArgument();
+    body += StaticCall(TokenPosition::kNoSource, target, 1);
     LocalVariable* async_stack_trace_var =
         scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
     ASSERT(async_stack_trace_var != NULL);

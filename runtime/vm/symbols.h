@@ -126,6 +126,7 @@ class ObjectPointerVisitor;
   V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
   V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
   V(AsyncErrorWrapperHelper, "_asyncErrorWrapperHelper")                       \
+  V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AsyncStackTraceHelper, "_asyncStackTraceHelper")                           \
   V(AsyncAwaitHelper, "_awaitHelper")                                          \
   V(Await, "await")                                                            \

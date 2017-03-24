@@ -454,6 +454,8 @@ class Debugger {
   void NotifyIsolateCreated();
   void Shutdown();
 
+  void OnIsolateRunnable();
+
   void NotifyCompilation(const Function& func);
   void NotifyDoneLoading();
 
@@ -484,11 +486,17 @@ class Debugger {
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
+  void MaybeAsyncStepInto(const Closure& async_op);
+
+  void Continue();
+
   bool SetResumeAction(ResumeAction action,
                        intptr_t frame_index = 1,
                        const char** error = NULL);
 
   bool IsStepping() const { return resume_action_ != kContinue; }
+
+  bool IsSingleStepping() const { return resume_action_ == kStepInto; }
 
   bool IsPaused() const { return pause_event_ != NULL; }
 

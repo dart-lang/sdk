@@ -7252,25 +7252,6 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
 
   TokenPosition token_pos = TokenPosition::kNoSource;
 
-  if (FLAG_causal_async_stacks) {
-    // Add to AST:
-    //   :async_stack_trace = _asyncStackTraceHelper();
-    const Function& async_stack_trace_helper = Function::ZoneHandle(
-        Z,
-        async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
-    ASSERT(!async_stack_trace_helper.IsNull());
-    ArgumentListNode* async_stack_trace_helper_args =
-        new (Z) ArgumentListNode(TokenPosition::kNoSource);
-    StaticCallNode* async_stack_trace_helper_call = new (Z) StaticCallNode(
-        token_pos, async_stack_trace_helper, async_stack_trace_helper_args);
-    LocalVariable* async_stack_trace_var =
-        current_block_->scope->LookupVariable(Symbols::AsyncStackTraceVar(),
-                                              false);
-    StoreLocalNode* store_async_stack_trace = new (Z) StoreLocalNode(
-        token_pos, async_stack_trace_var, async_stack_trace_helper_call);
-    current_block_->statements->Add(store_async_stack_trace);
-  }
-
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
@@ -7282,6 +7263,27 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
       StoreLocalNode(TokenPosition::kNoSource, async_op_var, closure_obj);
 
   current_block_->statements->Add(store_async_op);
+
+  if (FLAG_causal_async_stacks) {
+    // Add to AST:
+    //   :async_stack_trace = _asyncStackTraceHelper();
+    const Function& async_stack_trace_helper = Function::ZoneHandle(
+        Z,
+        async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
+    ASSERT(!async_stack_trace_helper.IsNull());
+    ArgumentListNode* async_stack_trace_helper_args =
+        new (Z) ArgumentListNode(TokenPosition::kNoSource);
+    async_stack_trace_helper_args->Add(
+        new (Z) LoadLocalNode(TokenPosition::kNoSource, async_op_var));
+    StaticCallNode* async_stack_trace_helper_call = new (Z) StaticCallNode(
+        token_pos, async_stack_trace_helper, async_stack_trace_helper_args);
+    LocalVariable* async_stack_trace_var =
+        current_block_->scope->LookupVariable(Symbols::AsyncStackTraceVar(),
+                                              false);
+    StoreLocalNode* store_async_stack_trace = new (Z) StoreLocalNode(
+        token_pos, async_stack_trace_var, async_stack_trace_helper_call);
+    current_block_->statements->Add(store_async_stack_trace);
+  }
 
   // :async_then_callback = _asyncThenWrapperHelper(:async_op)
   const Function& async_then_wrapper_helper = Function::ZoneHandle(
@@ -7495,6 +7497,8 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
     ASSERT(!async_stack_trace_helper.IsNull());
     ArgumentListNode* async_stack_trace_helper_args =
         new (Z) ArgumentListNode(token_pos);
+    async_stack_trace_helper_args->Add(
+        new (Z) LoadLocalNode(token_pos, async_op_var));
     StaticCallNode* async_stack_trace_helper_call = new (Z) StaticCallNode(
         token_pos, async_stack_trace_helper, async_stack_trace_helper_args);
     LocalVariable* async_stack_trace_var =
@@ -9225,6 +9229,21 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       stream_expr_pos, new (Z) LoadLocalNode(stream_expr_pos, iterator_var),
       Symbols::MoveNext(), no_args);
   OpenBlock();
+  if (FLAG_support_debugger) {
+    // Call '_asyncStarMoveNextHelper' so that the debugger can intercept and
+    // handle single stepping into a async* generator.
+    const Function& async_star_move_next_helper = Function::ZoneHandle(
+        Z, isolate()->object_store()->async_star_move_next_helper());
+    ASSERT(!async_star_move_next_helper.IsNull());
+    ArgumentListNode* async_star_move_next_helper_args =
+        new (Z) ArgumentListNode(stream_expr_pos);
+    async_star_move_next_helper_args->Add(
+        new (Z) LoadLocalNode(stream_expr_pos, stream_var));
+    StaticCallNode* async_star_move_next_helper_call =
+        new (Z) StaticCallNode(stream_expr_pos, async_star_move_next_helper,
+                               async_star_move_next_helper_args);
+    current_block_->statements->Add(async_star_move_next_helper_call);
+  }
   AstNode* await_moveNext = new (Z) AwaitNode(
       stream_expr_pos, iterator_moveNext, saved_try_ctx, async_saved_try_ctx,
       outer_saved_try_ctx, outer_async_saved_try_ctx, current_block_->scope);

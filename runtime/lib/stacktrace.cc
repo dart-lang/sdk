@@ -110,7 +110,14 @@ DEFINE_NATIVE_ENTRY(StackTrace_current, 0) {
 }
 
 
-DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 0) {
+DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));
+  if (FLAG_support_debugger) {
+    Debugger* debugger = isolate->debugger();
+    if (debugger != NULL) {
+      debugger->MaybeAsyncStepInto(async_op);
+    }
+  }
   return CurrentStackTrace(thread, true);
 }
 
