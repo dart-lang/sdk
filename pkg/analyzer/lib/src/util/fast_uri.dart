@@ -87,7 +87,9 @@ class FastUri implements Uri {
 
   @override
   bool isScheme(String scheme) {
-    if (scheme == null || scheme.isEmpty) return !hasScheme;
+    if (scheme == null || scheme.isEmpty) {
+      return !hasScheme;
+    }
     return scheme.toLowerCase() == this.scheme.toLowerCase();
   }
 
