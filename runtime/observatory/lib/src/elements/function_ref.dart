@@ -36,7 +36,6 @@ class FunctionRefElement extends HtmlElement implements Renderable {
 
   factory FunctionRefElement(M.IsolateRef isolate, M.FunctionRef function,
       {bool qualified: true, RenderingQueue queue}) {
-    assert(isolate != null);
     assert(function != null);
     assert(qualified != null);
     FunctionRefElement e = document.createElement(tag.name);
@@ -66,7 +65,7 @@ class FunctionRefElement extends HtmlElement implements Renderable {
   void render() {
     var content = <Element>[
       new AnchorElement(
-          href: M.isSyntheticFunction(_function.kind)
+          href: (M.isSyntheticFunction(_function.kind) || (_isolate == null))
               ? null
               : Uris.inspect(_isolate, object: _function))
         ..text = _function.name
@@ -78,7 +77,7 @@ class FunctionRefElement extends HtmlElement implements Renderable {
         content.addAll([
           new SpanElement()..text = '.',
           new AnchorElement(
-              href: M.isSyntheticFunction(function.kind)
+              href: (M.isSyntheticFunction(function.kind) || (_isolate == null))
                   ? null
                   : Uris.inspect(_isolate, object: function))
             ..text = function.name

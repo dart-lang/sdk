@@ -8,6 +8,8 @@ abstract class CallTreeNode<NodeT extends M.CallTreeNode>
     implements M.CallTreeNode {
   final List<NodeT> children;
   final int count;
+  final int inclusiveNativeAllocations;
+  final int exclusiveNativeAllocations;
   double get percentage => _percentage;
   double _percentage = 0.0;
   final Set<String> attributes = new Set<String>();
@@ -16,7 +18,8 @@ abstract class CallTreeNode<NodeT extends M.CallTreeNode>
   Object get profileData;
   String get name;
 
-  CallTreeNode(this.children, this.count);
+  CallTreeNode(this.children, this.count, this.inclusiveNativeAllocations,
+      this.exclusiveNativeAllocations);
 }
 
 class CodeCallTreeNode extends CallTreeNode<CodeCallTreeNode>
@@ -28,8 +31,10 @@ class CodeCallTreeNode extends CallTreeNode<CodeCallTreeNode>
   String get name => profileCode.code.name;
 
   final Set<String> attributes = new Set<String>();
-  CodeCallTreeNode(this.profileCode, int count)
-      : super(new List<CodeCallTreeNode>(), count) {
+  CodeCallTreeNode(this.profileCode, int count, int inclusiveNativeAllocations,
+      int exclusiveNativeAllocations)
+      : super(new List<CodeCallTreeNode>(), count, inclusiveNativeAllocations,
+            exclusiveNativeAllocations) {
     attributes.addAll(profileCode.attributes);
   }
 }
@@ -44,13 +49,23 @@ class CallTree<NodeT extends CallTreeNode> {
 class CodeCallTree extends CallTree<CodeCallTreeNode>
     implements M.CodeCallTree {
   CodeCallTree(bool inclusive, CodeCallTreeNode root) : super(inclusive, root) {
-    _setCodePercentage(null, root);
+    if ((root.inclusiveNativeAllocations != null) &&
+        (root.inclusiveNativeAllocations != 0)) {
+      _setCodeMemoryPercentage(null, root);
+    } else {
+      _setCodePercentage(null, root);
+    }
   }
 
   CodeCallTree filtered(CallTreeNodeFilter filter) {
     var treeFilter = new _FilteredCodeCallTreeBuilder(filter, this);
     treeFilter.build();
-    _setCodePercentage(null, treeFilter.filtered.root);
+    if ((treeFilter.filtered.root.inclusiveNativeAllocations != null) &&
+        (treeFilter.filtered.root.inclusiveNativeAllocations != 0)) {
+      _setCodeMemoryPercentage(null, treeFilter.filtered.root);
+    } else {
+      _setCodePercentage(null, treeFilter.filtered.root);
+    }
     return treeFilter.filtered;
   }
 
@@ -69,6 +84,25 @@ class CodeCallTree extends CallTree<CodeCallTreeNode>
     }
     for (var child in node.children) {
       _setCodePercentage(node, child);
+    }
+  }
+
+  _setCodeMemoryPercentage(CodeCallTreeNode parent, CodeCallTreeNode node) {
+    assert(node != null);
+    var parentPercentage = 1.0;
+    var parentMemory = node.inclusiveNativeAllocations;
+    if (parent != null) {
+      parentPercentage = parent._percentage;
+      parentMemory = parent.inclusiveNativeAllocations;
+    }
+    if (inclusive) {
+      node._percentage =
+          parentPercentage * (node.inclusiveNativeAllocations / parentMemory);
+    } else {
+      node._percentage = (node.inclusiveNativeAllocations / parentMemory);
+    }
+    for (var child in node.children) {
+      _setCodeMemoryPercentage(node, child);
     }
   }
 
@@ -106,8 +140,10 @@ class FunctionCallTreeNode extends CallTreeNode {
   String get name => M.getFunctionFullName(profileFunction.function);
   Object get profileData => profileFunction;
 
-  FunctionCallTreeNode(this.profileFunction, int count)
-      : super(new List<FunctionCallTreeNode>(), count) {
+  FunctionCallTreeNode(this.profileFunction, int count,
+      inclusiveNativeAllocations, exclusiveNativeAllocations)
+      : super(new List<FunctionCallTreeNode>(), count,
+            inclusiveNativeAllocations, exclusiveNativeAllocations) {
     profileFunction._addKindBasedAttributes(attributes);
   }
 
@@ -290,10 +326,14 @@ class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
             new FunctionCallTree(
                 tree.inclusive,
                 new FunctionCallTreeNode(
-                    tree.root.profileData, tree.root.count)));
+                    tree.root.profileData,
+                    tree.root.count,
+                    tree.root.inclusiveNativeAllocations,
+                    tree.root.exclusiveNativeAllocations)));
 
   _copyNode(FunctionCallTreeNode node) {
-    return new FunctionCallTreeNode(node.profileData, node.count);
+    return new FunctionCallTreeNode(node.profileData, node.count,
+        node.inclusiveNativeAllocations, node.exclusiveNativeAllocations);
   }
 }
 
@@ -302,24 +342,40 @@ class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
       : super(
             filter,
             tree,
-            new CodeCallTree(tree.inclusive,
-                new CodeCallTreeNode(tree.root.profileData, tree.root.count)));
+            new CodeCallTree(
+                tree.inclusive,
+                new CodeCallTreeNode(
+                    tree.root.profileData,
+                    tree.root.count,
+                    tree.root.inclusiveNativeAllocations,
+                    tree.root.exclusiveNativeAllocations)));
 
   _copyNode(CodeCallTreeNode node) {
-    return new CodeCallTreeNode(node.profileData, node.count);
+    return new CodeCallTreeNode(node.profileData, node.count,
+        node.inclusiveNativeAllocations, node.exclusiveNativeAllocations);
   }
 }
 
 class FunctionCallTree extends CallTree implements M.FunctionCallTree {
   FunctionCallTree(bool inclusive, FunctionCallTreeNode root)
       : super(inclusive, root) {
-    _setFunctionPercentage(null, root);
+    if ((root.inclusiveNativeAllocations != null) &&
+        (root.inclusiveNativeAllocations != 0)) {
+      _setFunctionMemoryPercentage(null, root);
+    } else {
+      _setFunctionPercentage(null, root);
+    }
   }
 
   FunctionCallTree filtered(CallTreeNodeFilter filter) {
     var treeFilter = new _FilteredFunctionCallTreeBuilder(filter, this);
     treeFilter.build();
-    _setFunctionPercentage(null, treeFilter.filtered.root);
+    if ((treeFilter.filtered.root.inclusiveNativeAllocations != null) &&
+        (treeFilter.filtered.root.inclusiveNativeAllocations != 0)) {
+      _setFunctionMemoryPercentage(null, treeFilter.filtered.root);
+    } else {
+      _setFunctionPercentage(null, treeFilter.filtered.root);
+    }
     return treeFilter.filtered;
   }
 
@@ -339,6 +395,26 @@ class FunctionCallTree extends CallTree implements M.FunctionCallTree {
     }
     for (var child in node.children) {
       _setFunctionPercentage(node, child);
+    }
+  }
+
+  void _setFunctionMemoryPercentage(
+      FunctionCallTreeNode parent, FunctionCallTreeNode node) {
+    assert(node != null);
+    var parentPercentage = 1.0;
+    var parentMemory = node.inclusiveNativeAllocations;
+    if (parent != null) {
+      parentPercentage = parent._percentage;
+      parentMemory = parent.inclusiveNativeAllocations;
+    }
+    if (inclusive) {
+      node._percentage =
+          parentPercentage * (node.inclusiveNativeAllocations / parentMemory);
+    } else {
+      node._percentage = (node.inclusiveNativeAllocations / parentMemory);
+    }
+    for (var child in node.children) {
+      _setFunctionMemoryPercentage(node, child);
     }
   }
 
@@ -382,6 +458,8 @@ class ProfileCode implements M.ProfileCode {
   final Code code;
   int exclusiveTicks;
   int inclusiveTicks;
+  int exclusiveNativeAllocations;
+  int inclusiveNativeAllocations;
   double normalizedExclusiveTicks = 0.0;
   double normalizedInclusiveTicks = 0.0;
   final addressTicks = new Map<int, CodeTick>();
@@ -458,6 +536,14 @@ class ProfileCode implements M.ProfileCode {
       _processTicks(ticks);
     }
 
+    if (data.containsKey('exclusiveNativeAllocations') &&
+        data.containsKey('inclusiveNativeAllocations')) {
+      exclusiveNativeAllocations =
+          int.parse(data['exclusiveNativeAllocations']);
+      inclusiveNativeAllocations =
+          int.parse(data['inclusiveNativeAllocations']);
+    }
+
     formattedExclusivePercent =
         Utils.formatPercent(exclusiveTicks, profile.sampleCount);
 
@@ -508,6 +594,10 @@ class ProfileFunction implements M.ProfileFunction {
   // Global percentages:
   double normalizedExclusiveTicks = 0.0;
   double normalizedInclusiveTicks = 0.0;
+
+  // Native allocations:
+  int exclusiveNativeAllocations = 0;
+  int inclusiveNativeAllocations = 0;
 
   String formattedInclusiveTicks = '';
   String formattedExclusiveTicks = '';
@@ -605,6 +695,14 @@ class ProfileFunction implements M.ProfileFunction {
 
     normalizedExclusiveTicks = exclusiveTicks / profile.sampleCount;
     normalizedInclusiveTicks = inclusiveTicks / profile.sampleCount;
+
+    if (data.containsKey('exclusiveNativeAllocations') &&
+        data.containsKey('inclusiveNativeAllocations')) {
+      exclusiveNativeAllocations =
+          int.parse(data['exclusiveNativeAllocations']);
+      inclusiveNativeAllocations =
+          int.parse(data['inclusiveNativeAllocations']);
+    }
 
     formattedExclusivePercent =
         Utils.formatPercent(exclusiveTicks, profile.sampleCount);
@@ -710,8 +808,8 @@ class CpuProfile extends M.SampleProfile {
     _builtFunctionCalls = false;
   }
 
-  Future load(Isolate isolate, ServiceMap profile) async {
-    await loadProgress(isolate, profile).last;
+  Future load(ServiceObjectOwner owner, ServiceMap profile) async {
+    await loadProgress(owner, profile).last;
   }
 
   static Future sleep([Duration duration = const Duration(microseconds: 0)]) {
@@ -720,7 +818,7 @@ class CpuProfile extends M.SampleProfile {
     return completer.future;
   }
 
-  Stream<double> loadProgress(Isolate isolate, ServiceMap profile) {
+  Stream<double> loadProgress(ServiceObjectOwner owner, ServiceMap profile) {
     var progress = new StreamController<double>.broadcast();
 
     (() async {
@@ -742,12 +840,14 @@ class CpuProfile extends M.SampleProfile {
       try {
         clear();
         progress.add(0.0);
-        if ((isolate == null) || (profile == null)) {
+        if (profile == null) {
           return;
         }
 
-        this.isolate = isolate;
-        isolate.resetCachedProfileData();
+        if ((owner != null) && (owner is Isolate)) {
+          isolate = owner as Isolate;
+          isolate.resetCachedProfileData();
+        }
 
         sampleCount = profile['sampleCount'];
         samplePeriod = profile['samplePeriod'];
@@ -824,8 +924,13 @@ class CpuProfile extends M.SampleProfile {
     var count = data[_dataCursor++];
     // Child node count.
     var children = data[_dataCursor++];
+    // Inclusive native allocations.
+    var inclusiveNativeAllocations = data[_dataCursor++];
+    // Exclusive native allocations.
+    var exclusiveNativeAllocations = data[_dataCursor++];
     // Create node.
-    var node = new CodeCallTreeNode(code, count);
+    var node = new CodeCallTreeNode(
+        code, count, inclusiveNativeAllocations, exclusiveNativeAllocations);
     node.children.length = children;
     return node;
   }
@@ -894,8 +999,13 @@ class CpuProfile extends M.SampleProfile {
     var function = functions[index];
     // Counter.
     var count = data[_dataCursor++];
+    // Inclusive native allocations.
+    var inclusiveNativeAllocations = data[_dataCursor++];
+    // Exclusive native allocations.
+    var exclusiveNativeAllocations = data[_dataCursor++];
     // Create node.
-    var node = new FunctionCallTreeNode(function, count);
+    var node = new FunctionCallTreeNode(function, count,
+        inclusiveNativeAllocations, exclusiveNativeAllocations);
     // Number of code index / count pairs.
     var codeCount = data[_dataCursor++];
     node.codes.length = codeCount;

@@ -10,6 +10,7 @@
 #include "vm/code_observers.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/malloc_hooks.h"
 #include "vm/object.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
@@ -60,7 +61,9 @@ class Profiler : public AllStatic {
   static void DumpStackTrace();
 
   static void SampleAllocation(Thread* thread, intptr_t cid);
-  static Sample* SampleNativeAllocation(intptr_t skip_count);
+  static Sample* SampleNativeAllocation(intptr_t skip_count,
+                                        uword address,
+                                        uintptr_t allocation_size);
 
   // SampleThread is called from inside the signal handler and hence it is very
   // critical that the implementation of SampleThread does not do any of the
@@ -141,6 +144,8 @@ class SampleFilter : public ValueObject {
   // Returns |true| if |sample| passes the thread task filter.
   bool TaskFilterSample(Sample* sample);
 
+  static const intptr_t kNoTaskFilter = -1;
+
  private:
   Dart_Port port_;
   intptr_t thread_task_mask_;
@@ -183,6 +188,8 @@ class Sample {
     lr_ = 0;
     metadata_ = 0;
     state_ = 0;
+    native_allocation_address_ = 0;
+    native_allocation_size_bytes_ = 0;
     continuation_index_ = -1;
     uword* pcs = GetPCArray();
     for (intptr_t i = 0; i < pcs_length_; i++) {
@@ -279,6 +286,20 @@ class Sample {
         NativeAllocationSampleBit::update(native_allocation_sample, state_);
   }
 
+  void set_native_allocation_address(uword address) {
+    native_allocation_address_ = address;
+  }
+
+  uword native_allocation_address() const { return native_allocation_address_; }
+
+  uintptr_t native_allocation_size_bytes() const {
+    return native_allocation_size_bytes_;
+  }
+
+  void set_native_allocation_size_bytes(uintptr_t size) {
+    native_allocation_size_bytes_ = size;
+  }
+
   Thread::TaskKind thread_task() const { return ThreadTaskBit::decode(state_); }
 
   void set_thread_task(Thread::TaskKind task) {
@@ -373,12 +394,38 @@ class Sample {
   uword metadata_;
   uword lr_;
   uword state_;
+  uword native_allocation_address_;
+  uintptr_t native_allocation_size_bytes_;
   intptr_t continuation_index_;
 
   /* There are a variable number of words that follow, the words hold the
    * sampled pc values. Access via GetPCArray() */
 
   DISALLOW_COPY_AND_ASSIGN(Sample);
+};
+
+
+class NativeAllocationSampleFilter : public SampleFilter {
+ public:
+  NativeAllocationSampleFilter(int64_t time_origin_micros,
+                               int64_t time_extent_micros)
+      : SampleFilter(ILLEGAL_PORT,
+                     SampleFilter::kNoTaskFilter,
+                     time_origin_micros,
+                     time_extent_micros) {}
+
+  bool FilterSample(Sample* sample) {
+    if (!sample->is_native_allocation_sample()) {
+      return false;
+    }
+    // If the sample is an allocation sample, we need to check that the
+    // memory at the address hasn't been freed, and if the address associated
+    // with the allocation has been freed and then reissued.
+    void* alloc_address =
+        reinterpret_cast<void*>(sample->native_allocation_address());
+    Sample* recorded_sample = MallocHooks::GetSample(alloc_address);
+    return (sample == recorded_sample);
+  }
 };
 
 
@@ -564,6 +611,17 @@ class ProcessedSample : public ZoneAllocated {
 
   bool IsAllocationSample() const { return allocation_cid_ > 0; }
 
+  bool is_native_allocation_sample() const {
+    return native_allocation_size_bytes_ != 0;
+  }
+
+  uintptr_t native_allocation_size_bytes() const {
+    return native_allocation_size_bytes_;
+  }
+  void set_native_allocation_size_bytes(uintptr_t allocation_size) {
+    native_allocation_size_bytes_ = allocation_size;
+  }
+
   // Was the stack trace truncated?
   bool truncated() const { return truncated_; }
   void set_truncated(bool truncated) { truncated_ = truncated; }
@@ -598,6 +656,8 @@ class ProcessedSample : public ZoneAllocated {
   intptr_t allocation_cid_;
   bool truncated_;
   bool first_frame_executing_;
+  uword native_allocation_address_;
+  uintptr_t native_allocation_size_bytes_;
   ProfileTrieNode* timeline_trie_;
 
   friend class SampleBuffer;

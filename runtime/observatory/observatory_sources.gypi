@@ -95,6 +95,7 @@
     'lib/src/elements/metric/details.dart',
     'lib/src/elements/metric/graph.dart',
     'lib/src/elements/metrics.dart',
+    'lib/src/elements/native_memory_profiler.dart',
     'lib/src/elements/nav/class_menu.dart',
     'lib/src/elements/nav/isolate_menu.dart',
     'lib/src/elements/nav/library_menu.dart',
