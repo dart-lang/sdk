@@ -6703,6 +6703,9 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
+#elif defined(TARGET_OS_FUCHSIA)
+  return Api::NewError(
+      "AOT as blobs is not supported on Fuchsia; use dylibs instead.");
 #else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());

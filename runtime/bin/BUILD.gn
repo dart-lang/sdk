@@ -4,6 +4,7 @@
 
 import("gypi_contents.gni")
 import("../runtime_args.gni")
+import("../../build/compiled_action.gni")
 
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
@@ -691,13 +692,46 @@ dart_executable("dart_bootstrap") {
 }
 
 if (defined(is_fuchsia) && is_fuchsia) {
+  hello_fuchsia_source = rebase_path("../tests/vm/dart/hello_fuchsia_test.dart")
+
   copy("hello_fuchsia") {
     sources = [
-      "../tests/vm/dart/hello_fuchsia_test.dart",
+      hello_fuchsia_source,
     ]
     outputs = [
       "$root_out_dir/hello_fuchsia.dart",
     ]
+  }
+
+  hello_fuchsia_assembly = "$target_gen_dir/hello_fuchsia.S"
+
+  compiled_action("hello_fuchsia_assembly") {
+    inputs = [
+      hello_fuchsia_source,
+    ]
+    outputs = [
+      hello_fuchsia_assembly,
+    ]
+    tool = ":dart_bootstrap"
+    args = [
+      "--snapshot-kind=app-aot",
+      "--snapshot=" + rebase_path(hello_fuchsia_assembly),
+      hello_fuchsia_source,
+    ]
+  }
+
+  shared_library("hello_fuchsia_dylib") {
+    deps = [
+      ":hello_fuchsia_assembly",
+    ]
+    sources = [
+      hello_fuchsia_assembly,
+    ]
+    cflags = [
+      "-nostdlib",
+      "-nostartfiles",
+    ]
+    output_name = "hello_fuchsia"
   }
 }
 

@@ -6,7 +6,10 @@
 #if defined(HOST_OS_FUCHSIA)
 
 #include "bin/extensions.h"
-#include <dlfcn.h>  // NOLINT
+
+#include <dlfcn.h>
+#include <launchpad/vmo.h>
+#include <magenta/dlfcn.h>
 
 #include "platform/assert.h"
 
@@ -20,7 +23,11 @@ const char* kIsolateSnapshotInstructionsSymbolName =
     "_kDartIsolateSnapshotInstructions";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
-  return dlopen(library_file, RTLD_LAZY);
+  mx_handle_t vmo = launchpad_vmo_from_file(library_file);
+  if (vmo <= 0) {
+    return NULL;
+  }
+  return dlopen_vmo(vmo, RTLD_LAZY);
 }
 
 
