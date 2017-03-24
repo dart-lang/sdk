@@ -114,6 +114,13 @@ class KernelTarget extends TargetImplementation {
     loader = createLoader();
   }
 
+  void addError(file, int charOffset, String message) {
+    Uri uri = file is String ? Uri.parse(file) : file;
+    InputError error = new InputError(uri, charOffset, message);
+    print(error.format());
+    errors.add(error);
+  }
+
   SourceLoader<Library> createLoader() => new SourceLoader<Library>(this);
 
   void addSourceInformation(
@@ -551,7 +558,11 @@ class KernelTarget extends TargetImplementation {
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     Constructor superTarget;
     List<Field> uninitializedFields = <Field>[];
+    List<Field> nonFinalFields = <Field>[];
     for (Field field in cls.fields) {
+      if (field.isInstanceMember && !field.isFinal) {
+        nonFinalFields.add(field);
+      }
       if (field.initializer == null) {
         uninitializedFields.add(field);
       }
@@ -567,16 +578,11 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
-            Uri uri = constructor.enclosingClass.fileUri == null
-                ? null
-                : Uri.parse(constructor.enclosingClass.fileUri);
-            InputError error = new InputError(
-                uri,
+            addError(
+                constructor.enclosingClass.fileUri,
                 constructor.fileOffset,
                 "${cls.superclass.name} has no constructor that takes no"
                 " arguments.");
-            print(error.format());
-            errors.add(error);
             initializer = new InvalidInitializer();
           } else {
             initializer =
@@ -599,6 +605,15 @@ class KernelTarget extends TargetImplementation {
           }
         }
         fieldInitializers[constructor] = myFieldInitializers;
+        if (constructor.isConst && nonFinalFields.isNotEmpty) {
+          addError(constructor.enclosingClass.fileUri, constructor.fileOffset,
+              "Constructor is marked 'const' so all fields must be final.");
+          for (Field field in nonFinalFields) {
+            addError(constructor.enclosingClass.fileUri, field.fileOffset,
+                "Field isn't final, but constructor is 'const'.");
+          }
+          nonFinalFields.clear();
+        }
       }
     }
     Set<Field> initializedFields;
