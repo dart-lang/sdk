@@ -27,7 +27,7 @@ class Annotations {
 
   Annotations(this.compiler);
 
-  void onLibraryScanned(LibraryElement library) {
+  void onLibraryLoaded(LibraryElement library) {
     if (library.canonicalUri == PACKAGE_EXPECT) {
       expectNoInlineClass = library.find('NoInline');
       expectTrustTypeAnnotationsClass = library.find('TrustTypeAnnotations');

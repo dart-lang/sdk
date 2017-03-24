@@ -41,8 +41,10 @@ main(List<String> arguments) async {
       test(name, () async {
         var compiler = await newCompiler();
         await compiler.run(file.absolute.uri);
-        LibraryElement library =
+        var loadedLibraries =
             await compiler.libraryLoader.loadLibrary(file.absolute.uri);
+        compiler.processLoadedLibraries(loadedLibraries);
+        var library = loadedLibraries.rootLibrary;
         JavaScriptBackend backend = compiler.backend;
         StringBuffer buffer = new StringBuffer();
         Program program = backend.kernelTask.buildProgram(library);
@@ -79,7 +81,10 @@ Future<Compiler> newCompiler() async {
   // The visitor no longer enqueues elements that are not reachable from the
   // program. The mixin-full resolution transform run by the test expects to
   // find dart.core::Iterator.
-  var core = await compiler.libraryLoader.loadLibrary(Uri.parse('dart:core'));
+  var loadedLibraries =
+      await compiler.libraryLoader.loadLibrary(Uri.parse('dart:core'));
+  compiler.processLoadedLibraries(loadedLibraries);
+  var core = loadedLibraries.rootLibrary;
   compiler.startResolution();
   var cls = core.implementation.localLookup('Iterator');
   cls.ensureResolved(compiler.resolution);

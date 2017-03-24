@@ -17,6 +17,7 @@ import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
+import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
 import 'package:compiler/src/js_backend/backend_helpers.dart'
     show BackendHelpers;
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
@@ -143,8 +144,11 @@ class MockCompiler extends Compiler {
   Future<Uri> init([String mainSource = ""]) {
     Uri uri = new Uri(scheme: "mock");
     registerSource(uri, mainSource);
-    return libraryLoader.loadLibrary(uri).then((LibraryElement library) {
-      mainApp = library;
+    return libraryLoader
+        .loadLibrary(uri)
+        .then((LoadedLibraries loadedLibraries) {
+      processLoadedLibraries(loadedLibraries);
+      mainApp = loadedLibraries.rootLibrary;
       startResolution();
       // We need to make sure the Object class is resolved. When registering a
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over

@@ -22,6 +22,9 @@ abstract class LibraryDeserializer {
   /// Loads the [LibraryElement] associated with a library under [uri], or null
   /// if no serialized information is available for the given library.
   Future<LibraryElement> readLibrary(Uri uri);
+
+  /// Returns `true` if [element] has been deserialized.
+  bool isDeserialized(Element element);
 }
 
 /// Task that supports deserialization of elements.

@@ -46,7 +46,7 @@ import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/task.dart';
-import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
+import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
@@ -1097,8 +1097,8 @@ class JavaScriptBackend {
   }
 
   /// This method is called immediately after the [library] and its parts have
-  /// been scanned.
-  Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
+  /// been loaded.
+  void setAnnotations(LibraryElement library) {
     if (!compiler.serialization.isDeserialized(library)) {
       if (canLibraryUseNative(library)) {
         library.forEachLocalMember((Element element) {
@@ -1109,48 +1109,31 @@ class JavaScriptBackend {
       }
       checkJsInteropClassAnnotations(compiler, library, nativeBaseDataBuilder);
     }
-    if (library.isPlatformLibrary &&
-        // Don't patch library currently disallowed.
-        !library.isSynthesized &&
-        !library.isPatched &&
-        // Don't patch deserialized libraries.
-        !compiler.serialization.isDeserialized(library)) {
-      // Apply patch, if any.
-      Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
-      if (patchUri != null) {
-        return compiler.patchParser.patchLibrary(loader, patchUri, library);
-      }
-    }
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
       htmlLibraryIsLoaded = true;
     } else if (uri == LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP) {
       lookupMapResolutionAnalysis.init(library);
     }
-    annotations.onLibraryScanned(library);
-    return new Future.value();
+    annotations.onLibraryLoaded(library);
   }
 
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
-  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
-    if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
-      return new Future.value();
+  void onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
+      helpers.onLibrariesLoaded(loadedLibraries);
+
+      // These methods are overwritten with generated versions.
+      inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
+          insideLoop: true);
+
+      specialOperatorEqClasses
+        ..add(commonElements.objectClass)
+        ..add(helpers.jsInterceptorClass)
+        ..add(helpers.jsNullClass);
     }
-
-    helpers.onLibrariesLoaded(loadedLibraries);
-
-    // These methods are overwritten with generated versions.
-    inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
-        insideLoop: true);
-
-    specialOperatorEqClasses
-      ..add(commonElements.objectClass)
-      ..add(helpers.jsInterceptorClass)
-      ..add(helpers.jsNullClass);
-
-    return new Future.value();
   }
 
   jsAst.Call generateIsJsIndexableCall(
@@ -1395,31 +1378,6 @@ class JavaScriptBackend {
         return code;
     }
     return rewriter.rewrite(code);
-  }
-
-  /// The locations of js patch-files relative to the sdk-descriptors.
-  static const _patchLocations = const <String, String>{
-    "async": "_internal/js_runtime/lib/async_patch.dart",
-    "collection": "_internal/js_runtime/lib/collection_patch.dart",
-    "convert": "_internal/js_runtime/lib/convert_patch.dart",
-    "core": "_internal/js_runtime/lib/core_patch.dart",
-    "developer": "_internal/js_runtime/lib/developer_patch.dart",
-    "io": "_internal/js_runtime/lib/io_patch.dart",
-    "isolate": "_internal/js_runtime/lib/isolate_patch.dart",
-    "math": "_internal/js_runtime/lib/math_patch.dart",
-    "mirrors": "_internal/js_runtime/lib/mirrors_patch.dart",
-    "typed_data": "_internal/js_runtime/lib/typed_data_patch.dart",
-    "_internal": "_internal/js_runtime/lib/internal_patch.dart"
-  };
-
-  /// Returns the location of the patch-file associated with [libraryName]
-  /// resolved from [plaformConfigUri].
-  ///
-  /// Returns null if there is none.
-  Uri resolvePatchUri(String libraryName, Uri platformConfigUri) {
-    String patchLocation = _patchLocations[libraryName];
-    if (patchLocation == null) return null;
-    return platformConfigUri.resolve(patchLocation);
   }
 
   /// Creates an impact strategy to use for compilation.

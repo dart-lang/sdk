@@ -363,7 +363,7 @@ abstract class EagerAnnotationHandler<T> {
       T result = handler.apply(compiler, element, annotation);
       if (result != handler.defaultResult) {
         // TODO(johnniwinther): Perform this check in
-        // [Compiler.onLibrariesLoaded].
+        // [Compiler.processLoadedLibraries].
         compiler.libraryLoader
             .registerDeferredAction(new DeferredAction(element, () {
           annotation.ensureResolved(compiler.resolution);

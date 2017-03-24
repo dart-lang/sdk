@@ -25,17 +25,19 @@ void main() {
   compiler.registerSource(libraryUri, LIBRARY_SOURCE);
   compiler.registerSource(partUri, PART_SOURCE);
 
-  asyncTest(() => compiler.libraryLoader.loadLibrary(libraryUri).then((_) {
-        DiagnosticCollector collector = compiler.diagnosticCollector;
-        print('errors: ${collector.errors}');
-        print('warnings: ${collector.warnings}');
-        Expect.isTrue(collector.errors.isEmpty);
-        Expect.equals(1, collector.warnings.length);
-        Expect.equals(MessageKind.LIBRARY_NAME_MISMATCH,
-            collector.warnings.first.messageKind);
-        Expect.equals(
-            'foo',
-            collector.warnings.first.message.arguments['libraryName']
-                .toString());
-      }));
+  asyncTest(
+      () => compiler.libraryLoader.loadLibrary(libraryUri).then((libraries) {
+            compiler.processLoadedLibraries(libraries);
+            DiagnosticCollector collector = compiler.diagnosticCollector;
+            print('errors: ${collector.errors}');
+            print('warnings: ${collector.warnings}');
+            Expect.isTrue(collector.errors.isEmpty);
+            Expect.equals(1, collector.warnings.length);
+            Expect.equals(MessageKind.LIBRARY_NAME_MISMATCH,
+                collector.warnings.first.messageKind);
+            Expect.equals(
+                'foo',
+                collector.warnings.first.message.arguments['libraryName']
+                    .toString());
+          }));
 }

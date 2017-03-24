@@ -142,10 +142,6 @@ class Kernel {
     return new ir.Name(name, irLibrary);
   }
 
-  Future<ir.Library> loadLibrary(Uri uri) async {
-    return libraryToIr(await compiler.libraryLoader.loadLibrary(uri));
-  }
-
   ir.Library libraryToIr(LibraryElement library) {
     library = library.declaration;
     return libraries.putIfAbsent(library, () {
