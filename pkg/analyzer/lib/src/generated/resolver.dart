@@ -108,13 +108,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAnnotation(Annotation node) {
-    if (resolutionMap.elementAnnotationForAnnotation(node)?.isFactory == true) {
+    ElementAnnotation element =
+        resolutionMap.elementAnnotationForAnnotation(node);
+    if (element?.isFactory == true) {
       AstNode parent = node.parent;
       if (parent is MethodDeclaration) {
         _checkForInvalidFactory(parent);
       } else {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
+      }
+    } else if (element?.isImmutable == true) {
+      AstNode parent = node.parent;
+      if (parent is! ClassDeclaration) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
     }
     return super.visitAnnotation(node);
@@ -181,6 +189,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       _enclosingClass = element;
       // Commented out until we decide that we want this hint in the analyzer
       //    checkForOverrideEqualsButNotHashCode(node);
+      _checkForImmutable(node);
       return super.visitClassDeclaration(node);
     } finally {
       _enclosingClass = outerClass;
@@ -727,6 +736,88 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  void _checkForImmutable(ClassDeclaration node) {
+    /**
+     * Return `true` if the given class [element] is annotated with the
+     * `@immutable` annotation.
+     */
+    bool isImmutable(ClassElement element) {
+      for (ElementAnnotation annotation in element.metadata) {
+        if (annotation.isImmutable) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Return `true` if the given class [element] or any superclass of it is
+     * annotated with the `@immutable` annotation.
+     */
+    bool isOrInheritsImmutable(
+        ClassElement element, HashSet<ClassElement> visited) {
+      if (visited.add(element)) {
+        if (isImmutable(element)) {
+          return true;
+        }
+        for (InterfaceType interface in element.mixins) {
+          if (isOrInheritsImmutable(interface.element, visited)) {
+            return true;
+          }
+        }
+        for (InterfaceType mixin in element.interfaces) {
+          if (isOrInheritsImmutable(mixin.element, visited)) {
+            return true;
+          }
+        }
+        if (element.supertype != null) {
+          return isOrInheritsImmutable(element.supertype.element, visited);
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Return `true` if the given class [element] defines a non-final field.
+     */
+    bool hasNonFinalField(ClassElement element) {
+      for (FieldElement field in element.fields) {
+        if (!field.isSynthetic && !field.isFinal) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Return `true` if the given class [element] defines or inherits a
+     * non-final field.
+     */
+    bool hasOrInheritsNonFinalField(
+        ClassElement element, HashSet<ClassElement> visited) {
+      if (visited.add(element)) {
+        if (hasNonFinalField(element)) {
+          return true;
+        }
+        for (InterfaceType mixin in element.mixins) {
+          if (hasNonFinalField(mixin.element)) {
+            return true;
+          }
+        }
+        if (element.supertype != null) {
+          return hasOrInheritsNonFinalField(element.supertype.element, visited);
+        }
+      }
+      return false;
+    }
+
+    ClassElement element = node.element;
+    if (isOrInheritsImmutable(element, new HashSet<ClassElement>()) &&
+        hasOrInheritsNonFinalField(element, new HashSet<ClassElement>())) {
+      _errorReporter.reportErrorForNode(HintCode.MUST_BE_IMMUTABLE, node.name);
+    }
   }
 
   /**

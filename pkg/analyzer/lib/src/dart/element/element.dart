@@ -2465,6 +2465,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _FACTORY_VARIABLE_NAME = "factory";
 
   /**
+   * The name of the top-level variable used to mark a class and its subclasses
+   * as being immutable.
+   */
+  static String _IMMUTABLE_VARIABLE_NAME = "immutable";
+
+  /**
    * The name of the class used to JS annotate an element.
    */
   static String _JS_CLASS_NAME = "JS";
@@ -2581,6 +2587,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isFactory =>
       element is PropertyAccessorElement &&
       element.name == _FACTORY_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isImmutable =>
+      element is PropertyAccessorElement &&
+      element.name == _IMMUTABLE_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override

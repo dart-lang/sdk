@@ -31,6 +31,7 @@ class HintCodeTest extends ResolverTestCase {
 library meta;
 
 const _Factory factory = const _Factory();
+const Immutable immutable = const Immutable();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 const _Protected protected = const _Protected();
@@ -40,6 +41,10 @@ class Required {
   const Required([this.reason]);
 }
 
+class Immutable {
+  final String reason;
+  const Immutable([this.reason]);
+}
 class _Factory {
   const _Factory();
 }
@@ -1362,6 +1367,19 @@ main() {
     verify([source]);
   }
 
+  test_invalidImmutableAnnotation_method() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @immutable
+  void m() {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_IMMUTABLE_ANNOTATION]);
+    verify([source]);
+  }
+
   test_invalidUseOfProtectedMember_closure() async {
     Source source = addNamedSource(
         '/lib1.dart',
@@ -1972,6 +1990,48 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_direct() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_extends() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B extends A {
+  int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_fromMixin() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B {
+  int x;
+}
+class C extends A with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
     verify([source]);
   }
 
