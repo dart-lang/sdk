@@ -316,6 +316,8 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   }
 }
 
+#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&                         \
+    !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
 
 DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
   ASSERT(result != NULL);
@@ -522,6 +524,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   MallocHooks::TearDown();
   FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
 }
+#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
+        // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
 
 
 TEST_CASE(Profiler_ToggleRecordAllocation) {
