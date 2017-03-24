@@ -1745,52 +1745,55 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
-    constantExpressionRequired = pop();
-
-    if (arguments == null) {
-      push(buildCompileTimeError("No arguments.", nameToken.charOffset));
-      return;
-    }
-
-    if (typeArguments != null) {
-      assert(arguments.types.isEmpty);
-      arguments.types.addAll(typeArguments);
-    }
-
-    String errorName;
-    if (type is ClassBuilder) {
-      Builder b = type.findConstructorOrFactory(name);
-      Member target;
-      if (b == null) {
-        // Not found. Reported below.
-      } else if (b.isConstructor) {
-        if (type.isAbstract) {
-          // TODO(ahe): Generate abstract instantiation error.
-        } else {
-          target = b.target;
-        }
-      } else if (b.isFactory) {
-        target = getRedirectionTarget(b.target);
-        if (target == null) {
-          push(buildCompileTimeError(
-              "Cyclic definition of factory '${name}'.", nameToken.charOffset));
-          return;
-        }
-      }
-      if (target is Constructor ||
-          (target is Procedure && target.kind == ProcedureKind.Factory)) {
-        push(buildStaticInvocation(target, arguments,
-            isConst: optional("const", token),
-            charOffset: nameToken.charOffset));
+    bool savedConstantExpressionRequired = pop();
+    () {
+      if (arguments == null) {
+        push(buildCompileTimeError("No arguments.", nameToken.charOffset));
         return;
-      } else {
-        errorName = debugName(type.name, name);
       }
-    } else {
-      errorName = debugName(getNodeName(type), name);
-    }
-    errorName ??= name;
-    push(throwNoSuchMethodError(errorName, arguments, nameToken.charOffset));
+
+      if (typeArguments != null) {
+        assert(arguments.types.isEmpty);
+        arguments.types.addAll(typeArguments);
+      }
+
+      String errorName;
+      if (type is ClassBuilder) {
+        Builder b = type.findConstructorOrFactory(name);
+        Member target;
+        if (b == null) {
+          // Not found. Reported below.
+        } else if (b.isConstructor) {
+          if (type.isAbstract) {
+            // TODO(ahe): Generate abstract instantiation error.
+          } else {
+            target = b.target;
+          }
+        } else if (b.isFactory) {
+          target = getRedirectionTarget(b.target);
+          if (target == null) {
+            push(buildCompileTimeError(
+                "Cyclic definition of factory '${name}'.",
+                nameToken.charOffset));
+            return;
+          }
+        }
+        if (target is Constructor ||
+            (target is Procedure && target.kind == ProcedureKind.Factory)) {
+          push(buildStaticInvocation(target, arguments,
+              isConst: optional("const", token),
+              charOffset: nameToken.charOffset));
+          return;
+        } else {
+          errorName = debugName(type.name, name);
+        }
+      } else {
+        errorName = debugName(getNodeName(type), name);
+      }
+      errorName ??= name;
+      push(throwNoSuchMethodError(errorName, arguments, nameToken.charOffset));
+    }();
+    constantExpressionRequired = savedConstantExpressionRequired;
   }
 
   @override

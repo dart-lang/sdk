@@ -567,6 +567,16 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
+            Uri uri = constructor.enclosingClass.fileUri == null
+                ? null
+                : Uri.parse(constructor.enclosingClass.fileUri);
+            InputError error = new InputError(
+                uri,
+                constructor.fileOffset,
+                "${cls.superclass.name} has no constructor that takes no"
+                " arguments.");
+            print(error.format());
+            errors.add(error);
             initializer = new InvalidInitializer();
           } else {
             initializer =

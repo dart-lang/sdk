@@ -16,7 +16,7 @@ type_variable_as_super: Fail
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
-rasta/bad_default_constructor: VerificationError
+rasta/bad_default_constructor: Fail # Compile-time error destroys program.
 rasta/bad_explicit_super_constructor: Fail
 rasta/bad_implicit_super_constructor: Fail
 rasta/bad_interpolation: Fail
