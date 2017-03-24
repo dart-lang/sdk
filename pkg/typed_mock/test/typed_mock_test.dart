@@ -4,7 +4,6 @@ import 'package:unittest/unittest.dart';
 
 import 'package:typed_mock/typed_mock.dart';
 
-
 abstract class TestInterface {
   int get testProperty;
   set testProperty(x);
@@ -16,11 +15,9 @@ abstract class TestInterface {
   int operator [](index);
 }
 
-
 class TestInterfaceMock extends TypedMock implements TestInterface {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 main() {
   // lets make it redable
@@ -231,11 +228,11 @@ main() {
         verify(obj.testProperty).times(2);
       });
 
-    test('OK, void method', () {
-      obj.testMethodVoid(10);
-      obj.testMethodVoid(20);
-      verify(obj.testMethodVoid(anyInt)).times(2);
-    });
+      test('OK, void method', () {
+        obj.testMethodVoid(10);
+        obj.testMethodVoid(20);
+        verify(obj.testMethodVoid(anyInt)).times(2);
+      });
 
       test('mismatch, getter', () {
         obj.testProperty;

@@ -17,16 +17,16 @@ class C {
   C() : f = 'How do you spell PTSD?';
 
   void test1() {
-  	use(f);  // Refers to instance field f.
-    var f = 'A shut mouth gathers no foot.';  /// 00: compile-time error
+    use(f); // Refers to instance field f.
+    var f = 'A shut mouth gathers no foot.'; // //# 00: compile-time error
   }
 
   void test2() {
-  	void localFunc() {
-      use(f);  // Refers to instance field f.
-  	}
+    void localFunc() {
+      use(f); // Refers to instance field f.
+    }
 
-    var f = 'When chemists die, they barium.';  /// 01: compile-time error
+    var f = 'When chemists die, they barium.'; // //# 01: compile-time error
     if (true) {
       var f = 1; // ok, shadows outer f and instance field f.
     }
@@ -34,22 +34,22 @@ class C {
 
   void test3() {
     if (true) {
-      use(x);  // Refers to top-level x.
-      use(y);  // Refers to top-level y.
+      use(x); // Refers to top-level x.
+      use(y); // Refers to top-level y.
     }
-    final x = "I have not yet begun to procrastinate.";  /// 02: compile-time error
-    const y = "Honk if you like peace and quiet!";  /// 03: compile-time error
+    final x = "I have not yet begun to procrastinate."; // //# 02: compile-time error
+    const y = "Honk if you like peace and quiet!"; // //# 03: compile-time error
   }
 
   void test4() {
     void Q() {
-      P();  // Refers to non-existing top-level function P
+      P(); // Refers to non-existing top-level function P
     }
-    void P() {  /// 06: compile-time error
-      Q();      /// 06: continued
-    }           /// 06: continued
+    void P() { // //# 06: compile-time error
+      Q(); //     //# 06: continued
+    } //          //# 06: continued
 
-    Function f = () {x = f;};  /// 07: compile-time error
+    Function f = () {x = f;}; // //# 07: compile-time error
   }
 
   test() {
@@ -62,14 +62,13 @@ class C {
 
 void testTypeRef() {
   String s = 'Can vegetarians eat animal crackers?';
-  var String = "I distinctly remember forgetting that.";  /// 04: compile-time error
+  var String = "I distinctly remember forgetting that."; // //# 04: compile-time error
 }
 
 void testLibPrefix() {
   var pie = math.PI;
-  final math = 0;  /// 05: compile-time error
+  final math = 0; // //# 05: compile-time error
 }
-
 
 void noErrorsExpected() {
   use(x);
@@ -77,9 +76,14 @@ void noErrorsExpected() {
   for (var i = 0; i < 10; i++) var x = 0;
   if (true) var x = 0;
   while (false) var x = 0;
-  try { throw "ball"; } catch (x) { use(x); }
+  try {
+    throw "ball";
+  } catch (x) {
+    use(x);
+  }
   switch (x) {
-     case 0: var x = 'Does fuzzy logic tickle?';
+    case 0:
+      var x = 'Does fuzzy logic tickle?';
   }
   var int = 007;
 }
@@ -90,4 +94,4 @@ void main() {
   testTypeRef();
   testLibPrefix();
   noErrorsExpected();
-} 
+}

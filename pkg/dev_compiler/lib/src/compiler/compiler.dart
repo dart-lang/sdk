@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet, Queue;
-import 'dart:convert' show BASE64, JSON, UTF8;
+import 'dart:convert' show JSON;
 import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
@@ -32,6 +32,7 @@ import 'package:source_maps/source_maps.dart';
 
 import '../analyzer/context.dart' show AnalyzerOptions, createSourceFactory;
 import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' show js;
 import 'code_generator.dart' show CodeGenerator;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
 import 'extension_types.dart' show ExtensionTypeSet;
@@ -265,6 +266,8 @@ class CompilerOptions {
   /// Hoist types in type tests
   final bool hoistTypeTests;
 
+  // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
+  //               is fixed.
   final bool useAngular2Whitelist;
 
   /// Enable ES6 destructuring of named parameters. Off by default.
@@ -374,6 +377,8 @@ class CompilerOptions {
           help: 'Name types used in type tests', defaultsTo: true, hide: hide)
       ..addFlag('hoist-type-tests',
           help: 'Hoist types used in type tests', defaultsTo: true, hide: hide)
+      // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
+      //               is fixed.
       ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: hide)
       ..addOption('bazel-mapping',
           help:
@@ -509,8 +514,10 @@ class JSModuleFile {
     }
 
     var text = printer.getText();
-    var rawSourceMap = options.inlineSourceMap ? builtMap : null;
-    text = text.replaceFirst(sourceMapHoleID, JSON.encode(rawSourceMap));
+    var rawSourceMap = options.inlineSourceMap
+        ? js.escapedString(JSON.encode(builtMap), "'").value
+        : 'null';
+    text = text.replaceFirst(sourceMapHoleID, rawSourceMap);
 
     return new JSModuleCode(text, builtMap);
   }
@@ -600,7 +607,6 @@ Map placeSourceMap(
 /// Normalize sdk urls to use "dart:" for more understandable stack traces.
 Map cleanupSdkSourcemap(Map sourceMap) {
   var map = new Map.from(sourceMap);
-  var list = new List.from(map['sources']);
   map['sources'] = map['sources']
       .map((url) => url.contains('/_internal/') ? null : url)
       .toList();

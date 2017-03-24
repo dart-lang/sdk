@@ -8,10 +8,9 @@ import 'dart:developer';
 import 'service_test_common.dart';
 
 testMain() {
-  debugger();  // Stop here.
+  debugger(); // Stop here.
   print('1');
-  while (true) {
-  }
+  while (true) {}
 }
 
 var tests = [

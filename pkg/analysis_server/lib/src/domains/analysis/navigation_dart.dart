@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -194,6 +195,21 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    if (node.type == null) {
+      Token token = node.keyword;
+      if (token?.keyword == Keyword.VAR) {
+        DartType inferredType = node.identifier?.bestType;
+        Element element = inferredType?.element;
+        if (element != null) {
+          computer._addRegionForToken(token, element);
+        }
+      }
+    }
+    super.visitDeclaredIdentifier(node);
+  }
+
+  @override
   visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
@@ -283,6 +299,39 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
     node.argumentList?.accept(this);
+  }
+
+  @override
+  visitVariableDeclarationList(VariableDeclarationList node) {
+    /**
+     * Return the element for the type inferred for each of the variables in the
+     * given list of [variables], or `null` if not all variable have the same
+     * inferred type.
+     */
+    Element getCommonElement(List<VariableDeclaration> variables) {
+      Element firstElement = variables[0].name?.bestType?.element;
+      if (firstElement == null) {
+        return null;
+      }
+      for (int i = 1; i < variables.length; i++) {
+        Element element = variables[1].name?.bestType?.element;
+        if (element != firstElement) {
+          return null;
+        }
+      }
+      return firstElement;
+    }
+
+    if (node.type == null) {
+      Token token = node.keyword;
+      if (token?.keyword == Keyword.VAR) {
+        Element element = getCommonElement(node.variables);
+        if (element != null) {
+          computer._addRegionForToken(token, element);
+        }
+      }
+    }
+    super.visitVariableDeclarationList(node);
   }
 
   void _addConstructorName(AstNode parent, ConstructorName node) {

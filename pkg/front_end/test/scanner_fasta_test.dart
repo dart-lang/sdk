@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/analyzer/token_utils.dart';
+import 'package:analyzer/src/fasta/token_utils.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
@@ -102,7 +102,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
     while (!token.isEof) {
       ++tokenCount;
       // Assert valid comments
-      fasta.Token comment = token.precedingComments;
+      fasta.CommentToken comment = token.precedingComments;
       while (comment != null) {
         ++commentTokenCount;
         expect(comment.info.kind, fasta.COMMENT_TOKEN);
@@ -177,7 +177,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
         new fasta.StringScanner(source, includeComments: true).tokenize();
     while (!token.isEof) {
       expect(token.next.previousToken, token);
-      fasta.Token commentToken = token.precedingComments;
+      fasta.CommentToken commentToken = token.precedingComments;
       while (commentToken != null) {
         if (commentToken.next != null) {
           expect(commentToken.next.previousToken, commentToken);

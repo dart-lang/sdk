@@ -63,11 +63,12 @@ void testErrors() {
       Expect.equals(0, err.start, "$name[$index] start");
     }
   }
+
   testIndex(list, name) {
-    testIndexError(list, list.length, name);   // Just too big.
-    testIndexError(list, -1, name);            // Negative.
-    testIndexError(list, 0x123456789, name);   // > 2^32.
-    testIndexError(list, -0x123456789, name);  // < -2^32.
+    testIndexError(list, list.length, name); //   Just too big.
+    testIndexError(list, -1, name); //            Negative.
+    testIndexError(list, 0x123456789, name); //   > 2^32.
+    testIndexError(list, -0x123456789, name); //  < -2^32.
   }
 
   // Slices.
@@ -87,7 +88,7 @@ void testErrors() {
       Expect.isTrue(actualError is RangeError, "$name is-error: $actualError");
       Expect.equals(realError.name, actualError.name, "$name name");
       Expect.equals(realError.invalidValue, actualError.invalidValue,
-                    "$name[0:l+1] value");
+          "$name[0:l+1] value");
       Expect.equals(realError.start, actualError.start, "$name[0:l+1] start");
       Expect.equals(realError.end, actualError.end, "$name[0:l+1] end");
       return;
@@ -98,7 +99,7 @@ void testErrors() {
   }
 
   testSlice(list, name) {
-    testSliceError(list, 0, list.length, name);  // Should not fail.
+    testSliceError(list, 0, list.length, name); // Should not fail.
     testSliceError(list, 0, list.length + 1, name);
     testSliceError(list, 0, 0x123456789, name);
     testSliceError(list, -1, list.length, name);
@@ -114,6 +115,7 @@ void testErrors() {
     testIndex(list, "$name#${list.length} index");
     testSlice(list, "$name#${list.length} slice");
   }
+
   // Empty lists.
   testRangeErrors([], "list");
   testRangeErrors(new List(0), "fixed-list");
@@ -200,7 +202,7 @@ void testTypedLengthInvariantOperations(List list) {
   list.sort();
   Expect.listEquals([0, 1, 2, 3], list);
   list.setRange(0, 4, [1, 3, 0, 2]);
-  list.sort((a, b) => b - a);  // reverse compare.
+  list.sort((a, b) => b - a); // reverse compare.
   Expect.listEquals([3, 2, 1, 0], list);
   list.setRange(0, 4, [1, 2, 3, 0]);
   list.sort((a, b) => b - a);
@@ -210,7 +212,10 @@ void testTypedLengthInvariantOperations(List list) {
 
   list.setRange(0, 4, [0, 1, 2, 3]);
   // map.
-  testMap(val) {return val * 2 + 10; }
+  testMap(val) {
+    return val * 2 + 10;
+  }
+
   List mapped = list.map(testMap).toList();
   Expect.equals(mapped.length, list.length);
   for (var i = 0; i < list.length; i++) {
@@ -218,9 +223,18 @@ void testTypedLengthInvariantOperations(List list) {
   }
 
   matchAll(val) => true;
-  matchSome(val) { return (val == 1 || val == 2); }
-  matchSomeFirst(val) { return val == 0; }
-  matchSomeLast(val) { return val == 3; }
+  matchSome(val) {
+    return (val == 1 || val == 2);
+  }
+
+  matchSomeFirst(val) {
+    return val == 0;
+  }
+
+  matchSomeLast(val) {
+    return val == 3;
+  }
+
   matchNone(val) => false;
 
   // where.
@@ -311,6 +325,7 @@ void testCannotChangeLength(List list) {
   isUnsupported(action()) {
     Expect.throws(action, (e) => e is UnsupportedError);
   }
+
   isUnsupported(() => list.add(0));
   isUnsupported(() => list.addAll([0]));
   isUnsupported(() => list.removeLast());
@@ -471,6 +486,7 @@ void testGrowableListOperations(List list) {
         }
       }, (e) => e is ConcurrentModificationError);
     }
+
     testForEach(int when) {
       list.length = 4;
       list.setAll(0, [0, 1, 2, 3]);
@@ -480,6 +496,7 @@ void testGrowableListOperations(List list) {
         });
       }, (e) => e is ConcurrentModificationError);
     }
+
     // Test the change at different points of the iteration.
     testIterator(0);
     testIterator(1);
@@ -566,26 +583,51 @@ class MyList<E> extends ListBase<E> {
   List<E> _source;
   MyList(this._source);
   int get length => _source.length;
-  void set length(int length) { _source.length = length; }
-  E operator[](int index) => _source[index];
-  void operator[]=(int index, E value) { _source[index] = value; }
+  void set length(int length) {
+    _source.length = length;
+  }
+
+  E operator [](int index) => _source[index];
+  void operator []=(int index, E value) {
+    _source[index] = value;
+  }
 }
 
 class MyFixedList<E> extends ListBase<E> {
   List<E> _source;
   MyFixedList(this._source);
   int get length => _source.length;
-  void set length(int length) { throw new UnsupportedError("Fixed length!"); }
-  E operator[](int index) => _source[index];
-  void operator[]=(int index, E value) { _source[index] = value; }
+  void set length(int length) {
+    throw new UnsupportedError("Fixed length!");
+  }
+
+  E operator [](int index) => _source[index];
+  void operator []=(int index, E value) {
+    _source[index] = value;
+  }
 }
 
 void testListConstructor() {
-  Expect.throws(() { new List(0).add(4); });  // Is fixed-length.
-  Expect.throws(() { new List(-2); });  // Not negative. /// 01: ok
-  Expect.throws(() { new List(null); });  // Not null.
+  // Is fixed-length.
+  Expect.throws(() {
+    new List(0).add(4);
+  });
+  Expect.throws(() { new List(-2); });  // Not negative. //# 01: ok
+  // Not null.
+  Expect.throws(() {
+    new List(null);
+  });
   Expect.listEquals([4], new List()..add(4));
-  Expect.throws(() { new List.filled(0, 42).add(4); });  // Is fixed-length.
-  Expect.throws(() { new List.filled(-2, 42); });  // Not negative.
-  Expect.throws(() { new List.filled(null, 42); });  // Not null.
+  // Is fixed-length.
+  Expect.throws(() {
+    new List.filled(0, 42).add(4);
+  });
+  // Not negative.
+  Expect.throws(() {
+    new List.filled(-2, 42);
+  });
+  // Not null.
+  Expect.throws(() {
+    new List.filled(null, 42);
+  });
 }

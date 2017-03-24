@@ -19,8 +19,8 @@ class C {
 
 main() {
   C c = new C();
-  c.fun<B>(new B()); /// 01: compile-time error
+  c.fun<B>(new B()); //# 01: compile-time error
 
   dynamic obj = new C();
-  obj.fun<B>(new B()); /// 02: runtime error
+  obj.fun<B>(new B()); //# 02: runtime error
 }

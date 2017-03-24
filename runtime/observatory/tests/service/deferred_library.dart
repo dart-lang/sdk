@@ -12,7 +12,7 @@ int decValue(int amount) {
 }
 
 void deferredTest() {
-  decValue(decValue(1));  // line 15
+  decValue(decValue(1)); // line 15
 
-  decValue(decValue(1));  // line 17
+  decValue(decValue(1)); // line 17
 }

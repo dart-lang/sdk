@@ -6,8 +6,8 @@ part of app;
 
 final _allocationProfileRepository = new AllocationProfileRepository();
 final _breakpointRepository = new BreakpointRepository();
-final _classSampleProfileRepository = new ClassSampleProfileRepository();
 final _classRepository = new ClassRepository();
+final _classSampleProfileRepository = new ClassSampleProfileRepository();
 final _contextRepository = new ContextRepository();
 final _evalRepository = new EvalRepository();
 final _fieldRepository = new FieldRepository();
@@ -21,16 +21,19 @@ final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
 final _libraryRepository = new LibraryRepository();
 final _megamorphicCacheRepository = new MegamorphicCacheRepository();
 final _metricRepository = new MetricRepository();
-final _objectRepository = new ObjectRepository();
 final _objectPoolRepository = new ObjectPoolRepository();
+final _objectRepository = new ObjectRepository();
 final _objectstoreRepository = new ObjectStoreRepository();
 final _persistentHandlesRepository = new PersistentHandlesRepository();
 final _portsRepository = new PortsRepository();
 final _scriptRepository = new ScriptRepository();
+final _singleTargetCacheRepository = new SingleTargetCacheRepository();
 final _stronglyReachangleInstancesRepository =
     new StronglyReachableInstancesRepository();
+final _subtypeTestCacheRepository = new SubtypeTestCacheRepository();
 final _topRetainingInstancesRepository = new TopRetainingInstancesRepository();
 final _typeArgumentsRepository = new TypeArgumentsRepository();
+final _unlinkedCallRepository = new UnlinkedCallRepository();
 
 class IsolateNotFound implements Exception {
   String isolateId;
@@ -353,6 +356,54 @@ class InspectPage extends MatchingPage {
             app.events,
             app.notifications,
             _icdataRepository,
+            _retainedSizeRepository,
+            _reachableSizeRepository,
+            _inboundReferencesRepository,
+            _retainingPathRepository,
+            _instanceRepository,
+            queue: app.queue)
+      ];
+    } else if (obj is SingleTargetCache) {
+      container.children = [
+        new SingleTargetCacheViewElement(
+            app.vm,
+            obj.isolate,
+            obj,
+            app.events,
+            app.notifications,
+            _singleTargetCacheRepository,
+            _retainedSizeRepository,
+            _reachableSizeRepository,
+            _inboundReferencesRepository,
+            _retainingPathRepository,
+            _instanceRepository,
+            queue: app.queue)
+      ];
+    } else if (obj is SubtypeTestCache) {
+      container.children = [
+        new SubtypeTestCacheViewElement(
+            app.vm,
+            obj.isolate,
+            obj,
+            app.events,
+            app.notifications,
+            _subtypeTestCacheRepository,
+            _retainedSizeRepository,
+            _reachableSizeRepository,
+            _inboundReferencesRepository,
+            _retainingPathRepository,
+            _instanceRepository,
+            queue: app.queue)
+      ];
+    } else if (obj is UnlinkedCall) {
+      container.children = [
+        new UnlinkedCallViewElement(
+            app.vm,
+            obj.isolate,
+            obj,
+            app.events,
+            app.notifications,
+            _unlinkedCallRepository,
             _retainedSizeRepository,
             _reachableSizeRepository,
             _inboundReferencesRepository,

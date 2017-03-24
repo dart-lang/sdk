@@ -6,9 +6,6 @@
 
 main() {
   var m = const
-      <String, String>  /// 01: static type warning, checked mode compile-time error
+      <String, String> // //# 01: static type warning, checked mode compile-time error
       {"a": 0};
 }
-
-
-

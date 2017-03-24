@@ -64,17 +64,17 @@ void main() {
     firstMatch("This is an ASCII string that could take forever", re);
   }
 
-  NoHang(new RegExp(r"(((.*)*)*x)Ā"));  // Continuation after loop is filtered, so is loop.
-  NoHang(new RegExp(r"(((.*)*)*Ā)foo"));  // Body of loop filtered.
-  NoHang(new RegExp(r"Ā(((.*)*)*x)"));   // Everything after a filtered character is filtered.
-  NoHang(new RegExp(r"(((.*)*)*x)Ā"));   // Everything before a filtered character is filtered.
-  NoHang(new RegExp(r"[ćăĀ](((.*)*)*x)"));   // Everything after a filtered class is filtered.
-  NoHang(new RegExp(r"(((.*)*)*x)[ćăĀ]"));   // Everything before a filtered class is filtered.
-  NoHang(new RegExp(r"[^\x00-\xff](((.*)*)*x)"));   // After negated class.
-  NoHang(new RegExp(r"(((.*)*)*x)[^\x00-\xff]"));   // Before negated class.
+  NoHang(new RegExp(r"(((.*)*)*x)Ā")); // Continuation after loop is filtered, so is loop.
+  NoHang(new RegExp(r"(((.*)*)*Ā)foo")); // Body of loop filtered.
+  NoHang(new RegExp(r"Ā(((.*)*)*x)")); // Everything after a filtered character is filtered.
+  NoHang(new RegExp(r"(((.*)*)*x)Ā")); // Everything before a filtered character is filtered.
+  NoHang(new RegExp(r"[ćăĀ](((.*)*)*x)")); // Everything after a filtered class is filtered.
+  NoHang(new RegExp(r"(((.*)*)*x)[ćăĀ]")); // Everything before a filtered class is filtered.
+  NoHang(new RegExp(r"[^\x00-\xff](((.*)*)*x)")); // After negated class.
+  NoHang(new RegExp(r"(((.*)*)*x)[^\x00-\xff]")); // Before negated class.
   NoHang(new RegExp(r"(?!(((.*)*)*x)Ā)foo"));  // Negative lookahead is filtered.
   NoHang(new RegExp(r"(?!(((.*)*)*x))Ā"));  // Continuation branch of negative lookahead.
-  NoHang(new RegExp(r"(?=(((.*)*)*x)Ā)foo"));  // Positive lookahead is filtered.
+  NoHang(new RegExp(r"(?=(((.*)*)*x)Ā)foo")); // Positive lookahead is filtered.
   NoHang(new RegExp(r"(?=(((.*)*)*x))Ā"));  // Continuation branch of positive lookahead.
   NoHang(new RegExp(r"(?=Ā)(((.*)*)*x)"));  // Positive lookahead also prunes continuation.
   NoHang(new RegExp(r"(æ|ø|Ā)(((.*)*)*x)"));  // All branches of alternation are filtered.

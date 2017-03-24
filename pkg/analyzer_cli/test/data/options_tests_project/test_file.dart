@@ -5,7 +5,6 @@
 library analyzer_cli.test.data.options_test_project.test_file;
 
 int foo() {
-
   baz(); // Undefined function.
 
   // Missing return

@@ -7,15 +7,19 @@
 class A {
   var a = true;
 }
+
 class B extends A {
   var b = true;
 }
+
 class C extends B {
   var c = true;
 }
+
 class D extends A {
   var d = true;
 }
+
 class E implements C, D {
   var a = true;
   var b = true;
@@ -27,14 +31,14 @@ void main() {
   A a = new E();
   var b;
   if (a is D && ((a = new D()) != null)) {
-    b = a.d; /// 01: static type warning
+    b = a.d; //# 01: static type warning
   }
   if (a is D && (b = a.d)) {
-    b = a.d; /// 02: static type warning
+    b = a.d; //# 02: static type warning
     a = null;
   }
   if ((((a) is D) && (b = (a).d))) {
-    b = a.d; /// 03: static type warning
+    b = a.d; //# 03: static type warning
     a = null;
   }
   if (f(a = null) && a is D) {

@@ -16,6 +16,9 @@ field_script_test: Pass, RuntimeError
 
 # Kernel version of tests
 [ $compiler != dartk ]
+###
+### Skip kernel specific versions.
+###
 add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_breakpoint_rpc_test
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
@@ -26,9 +29,6 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 [ $mode == debug ]
 debugger_location_second_test: Pass, Slow
 debugger_location_test: Pass, Slow
-
-# Can be slow in debug mode, as well.
-vm_restart_test: Pass, Slow
 
 # These tests are slow on simulators.
 [ $arch == simarm || $arch == simmips || $arch == simarm64 ]
@@ -58,21 +58,23 @@ process_service_test: Pass, Fail # Issue 24344
 address_mapper_test: CompileTimeError # Issue 27806
 capture_stdio_test: CompileTimeError # Issue 27806
 complex_reload_test: RuntimeError # Issue 27806
+bad_reload_test: RuntimeError # Issue 27806
 evaluate_activation_test/instance: RuntimeError # Issue 27806
 evaluate_activation_test/scope: RuntimeError # Issue 27806
 get_object_rpc_test: RuntimeError # Issue 27806
 get_source_report_test: RuntimeError # Issue 27806
 set_name_rpc_test: RuntimeError # Issue 27806
-vm_restart_test: CompileTimeError # Issue 27806
 
 debugger_location_second_test: Skip # Issue 28180
 
 # Snapshots don't include source and generated source is not 1-to-1.
 # The column offsets are thus off.
 next_through_for_each_loop_test: RuntimeError
-next_through_for_loop_with_break_and_continue_test: RuntimeError
 next_through_create_list_and_map_test: RuntimeError
 next_through_closure_test: RuntimeError
+step_through_switch_test: RuntimeError
+step_through_constructor_calls_test: RuntimeError
+step_through_function_test: RuntimeError
 
 [ $compiler == dart2analyzer ]
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
@@ -82,10 +84,12 @@ get_allocation_samples_test: RuntimeError # Profiling unimplemented.
 get_cpu_profile_timeline_rpc_test: RuntimeError # Profiling unimplemented.
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
 
-# Debugging StringConcatenation doesn't work the same on simdbc as on other platforms.
+# Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
 next_through_catch_test: RuntimeError
 next_through_simple_async_test: RuntimeError
 next_through_simple_linear_2_test: RuntimeError
+step_through_function_test: RuntimeError
+step_through_getter_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 # Skip all service tests because random reloads interfere.

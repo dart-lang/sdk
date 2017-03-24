@@ -8,8 +8,7 @@ library colors;
 
 import 'dart:convert' show JSON;
 
-import 'dart:io'
-    show Platform, Process, ProcessResult, StdioType, stderr, stdioType, stdout;
+import 'dart:io' show Platform, Process, ProcessResult, stderr, stdout;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -90,43 +89,56 @@ String magenta(String string) => wrap(string, MAGENTA_COLOR);
 String cyan(String string) => wrap(string, CYAN_COLOR);
 String white(String string) => wrap(string, WHITE_COLOR);
 
-/// True if we should enable colors in output. We enable colors when:
-///  1. stdout and stderr are terminals,
-///  2. the terminal supports more than 8 colors, and
-///  3. the terminal's ANSI color codes matches what we expect.
+/// Returns whether [sink] supports ANSI escapes or `null` if it could not be
+/// determined.
+bool _supportsAnsiEscapes(sink) {
+  try {
+    // ignore: undefined_getter
+    return sink.supportsAnsiEscapes;
+  } on NoSuchMethodError {
+    // Ignored: We're running on an older version of the Dart VM which doesn't
+    // implement `supportsAnsiEscapes`.
+    return null;
+  }
+}
+
+/// True if we should enable colors in output.
+///
+/// We enable colors when both `stdout` and `stderr` support ANSI escapes.
+///
+/// On non-Windows platforms, this functions checks the terminal capabilities,
+/// on Windows we only enable colors if the VM getters are present and returned
+/// `true`.
 ///
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
 bool computeEnableColors(CompilerContext context) {
-  bool ansiSupported;
-  try {
-    ansiSupported = Platform.ansiSupported;
-  } on NoSuchMethodError catch (e) {
-    // Ignored: We're running on an older version of the Dart VM which doesn't
-    // implement `ansiSupported`.
-  }
-  if (ansiSupported == false) {
+  bool stderrSupportsColors = _supportsAnsiEscapes(stdout);
+  bool stdoutSupportsColors = _supportsAnsiEscapes(stderr);
+
+  if (stdoutSupportsColors == false) {
     if (context.options.verbose) {
-      print("Not enabling colors, 'Platform.ansiSupported' is false.");
+      print("Not enabling colors, stdout does not support ANSI colors.");
+    }
+    return false;
+  }
+  if (stderrSupportsColors == false) {
+    if (context.options.verbose) {
+      print("Not enabling colors, stderr does not support ANSI colors.");
     }
     return false;
   }
 
-  if (stdioType(stderr) != StdioType.TERMINAL) {
-    if (context.options.verbose) {
-      print("Not enabling colors, stderr isn't a terminal.");
+  if (Platform.isWindows) {
+    if (stderrSupportsColors != true || stdoutSupportsColors != true) {
+      // In this case, either [stdout] or [stderr] did not support the
+      // property `supportsAnsiEscapes`. Since we do not have another way
+      // to determine support for colors, we disable them.
+      if (context.options.verbose) {
+        print("Not enabling colors as ANSI is not supported.");
+      }
+      return false;
     }
-    return false;
-  }
-
-  if (stdioType(stdout) != StdioType.TERMINAL) {
-    if (context.options.verbose) {
-      print("Not enabling colors, stdout isn't a terminal.");
-    }
-    return false;
-  }
-
-  if (ansiSupported == true && Platform.isWindows) {
     if (context.options.verbose) {
       print("Enabling colors as OS is Windows.");
     }
@@ -134,7 +146,8 @@ bool computeEnableColors(CompilerContext context) {
   }
 
   // We have to check if the terminal actually supports colors. Currently,
-  // `Platform.ansiSupported` is hard-coded to true on non-Windows platforms.
+  // to avoid linking the Dart VM with ncurses, ANSI escape support is reduced
+  // to `Platform.environment['TERM'].contains("xterm")`.
 
   // The `-S` option of `tput` allows us to query multiple capabilities at
   // once.

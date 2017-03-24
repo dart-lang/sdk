@@ -71,7 +71,6 @@ class Platform {
   static final _operatingSystem = _Platform.operatingSystem;
   static final _localHostname = _Platform.localHostname;
   static final _version = _Platform.version;
-  static final _ansiSupported = _Platform.ansiSupported;
 
   /**
    * Get the number of processors of the machine.
@@ -123,15 +122,7 @@ class Platform {
   /**
    * Returns true if the operating system is Fuchsia
    */
-   static final bool isFuchsia = (_operatingSystem == "fuchsia");
-
-   /**
-    * When stdio is connected to a terminal, whether ANSI codes are supported.
-    *
-    * This value is hard-coded to `true`, except on Windows where only more
-    * recent versions of Windows 10 support the codes.
-    */
-   static final bool ansiSupported = _ansiSupported;
+  static final bool isFuchsia = (_operatingSystem == "fuchsia");
 
   /**
    * Get the environment for this process.

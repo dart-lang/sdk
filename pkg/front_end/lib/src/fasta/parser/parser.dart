@@ -66,6 +66,8 @@ import '../scanner/characters.dart' show $CLOSE_CURLY_BRACKET;
 
 import '../util/link.dart' show Link;
 
+import 'async_modifier.dart' show AsyncModifier;
+
 import 'listener.dart' show Listener;
 
 import 'error_kind.dart' show ErrorKind;
@@ -88,37 +90,68 @@ class FormalParameterType {
   static final NAMED = const FormalParameterType('named');
 }
 
-/**
- * An event generating parser of Dart programs. This parser expects
- * all tokens in a linked list (aka a token stream).
- *
- * The class [Scanner] is used to generate a token stream. See the
- * file scanner.dart.
- *
- * Subclasses of the class [Listener] are used to listen to events.
- *
- * Most methods of this class belong in one of two major categories:
- * parse methods and peek methods. Parse methods all have the prefix
- * parse, and peek methods all have the prefix peek.
- *
- * Parse methods generate events (by calling methods on [listener])
- * and return the next token to parse. Peek methods do not generate
- * events (except for errors) and may return null.
- *
- * Parse methods are generally named parseGrammarProductionSuffix. The
- * suffix can be one of "opt", or "star". "opt" means zero or one
- * matches, "star" means zero or more matches. For example,
- * [parseMetadataStar] corresponds to this grammar snippet: [:
- * metadata* :], and [parseTypeOpt] corresponds to: [: type? :].
- */
+/// An event generating parser of Dart programs. This parser expects all tokens
+/// in a linked list (aka a token stream).
+///
+/// The class [Scanner] is used to generate a token stream. See the file
+/// [scanner.dart](../scanner.dart).
+///
+/// Subclasses of the class [Listener] are used to listen to events.
+///
+/// Most methods of this class belong in one of three major categories: parse
+/// methods, peek methods, and skip methods. Parse methods all have the prefix
+/// `parse`, peek methods all have the prefix `peek`, and skip methods all have
+/// the prefix `skip`.
+///
+/// Parse methods generate events (by calling methods on [listener]) and return
+/// the next token to parse. Peek methods do not generate events (except for
+/// errors) and may return null. Skip methods are like parse methods, but skip
+/// over some parts of the file being parsed.
+///
+/// Parse methods are generally named `parseGrammarProductionSuffix`. The
+/// suffix can be one of `opt`, or `star`. `opt` means zero or one matches,
+/// `star` means zero or more matches. For example, [parseMetadataStar]
+/// corresponds to this grammar snippet: `metadata*`, and [parseTypeOpt]
+/// corresponds to: `type?`.
+///
+/// ## Implementation Notes
+///
+/// The parser assumes that keywords, built-in identifiers, and other special
+/// words (pseudo-keywords) are all canonicalized. To extend the parser to
+/// recognize a new identifier, one should modify
+/// [keyword.dart](../scanner/keyword.dart) and ensure the identifier is added
+/// to the keyword table.
+///
+/// As a consequence of this, one should not use `==` to compare strings in the
+/// parser. One should favor the methods [optional] and [expected] to recognize
+/// keywords or identifiers. In some cases, it's possible to compare a token's
+/// `stringValue` using [identical], but normally [optional] will suffice.
+///
+/// Historically, we over-used identical, and when identical is used on other
+/// objects than strings, it can often be replaced by `==`.
 class Parser {
   final Listener listener;
 
   bool mayParseFunctionExpressions = true;
 
-  bool asyncAwaitKeywordsEnabled;
+  /// Represents parser state: what asynchronous syntax is allowed in the
+  /// function being currently parsed. In rare situations, this can be set by
+  /// external clients, for example, to parse an expression outside a function.
+  AsyncModifier asyncState = AsyncModifier.Sync;
 
-  Parser(this.listener, {this.asyncAwaitKeywordsEnabled: false});
+  Parser(this.listener);
+
+  bool get inGenerator {
+    return asyncState == AsyncModifier.AsyncStar ||
+        asyncState == AsyncModifier.SyncStar;
+  }
+
+  bool get inAsync {
+    return asyncState == AsyncModifier.Async ||
+        asyncState == AsyncModifier.AsyncStar;
+  }
+
+  bool get inPlainSync => asyncState == AsyncModifier.Sync;
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -372,10 +405,7 @@ class Parser {
     return token;
   }
 
-  /**
-   * Parse
-   * [: '@' qualified (‘.’ identifier)? (arguments)? :]
-   */
+  /// Parse `'@' qualified (‘.’ identifier)? (arguments)?`
   Token parseMetadata(Token token) {
     listener.beginMetadata(token);
     Token atToken = token;
@@ -525,6 +555,7 @@ class Parser {
     bool isNamedParameter = kind == FormalParameterType.NAMED;
 
     Token thisKeyword = null;
+    Token nameToken;
     if (inFunctionType && isNamedParameter) {
       token = parseType(token);
       token =
@@ -542,8 +573,10 @@ class Parser {
       if (optional('this', token)) {
         thisKeyword = token;
         token = expect('.', token.next);
+        nameToken = token;
         token = parseIdentifier(token, IdentifierContext.fieldInitializer);
       } else {
+        nameToken = token;
         token = parseIdentifier(
             token, IdentifierContext.formalParameterDeclaration);
       }
@@ -592,7 +625,7 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(token);
     }
-    listener.endFormalParameter(covariantKeyword, thisKeyword, kind);
+    listener.endFormalParameter(covariantKeyword, thisKeyword, nameToken, kind);
     return token;
   }
 
@@ -894,6 +927,14 @@ class Parser {
       } else if (!optional("dynamic", token)) {
         reportRecoverableError(token, ErrorKind.BuiltInIdentifierAsType);
       }
+    } else if (!inPlainSync && token.isPseudo) {
+      if (optional('await', token)) {
+        reportRecoverableError(token, ErrorKind.AwaitAsIdentifier);
+      } else if (optional('yield', token)) {
+        reportRecoverableError(token, ErrorKind.YieldAsIdentifier);
+      } else if (optional('async', token)) {
+        reportRecoverableError(token, ErrorKind.AsyncAsIdentifier);
+      }
     }
     listener.handleIdentifier(token, context);
     return token.next;
@@ -922,10 +963,8 @@ class Parser {
     return token;
   }
 
-  /**
-   * Returns true if the stringValue of the [token] is either [value1],
-   * [value2], or [value3].
-   */
+  /// Returns true if the stringValue of the [token] is either [value1],
+  /// [value2], or [value3].
   bool isOneOf3(Token token, String value1, String value2, String value3) {
     String stringValue = token.stringValue;
     return value1 == stringValue ||
@@ -933,10 +972,8 @@ class Parser {
         value3 == stringValue;
   }
 
-  /**
-   * Returns true if the stringValue of the [token] is either [value1],
-   * [value2], [value3], or [value4].
-   */
+  /// Returns true if the stringValue of the [token] is either [value1],
+  /// [value2], [value3], or [value4].
   bool isOneOf4(
       Token token, String value1, String value2, String value3, String value4) {
     String stringValue = token.stringValue;
@@ -1299,10 +1336,14 @@ class Parser {
       listener.handleNoTypeVariables(token);
     }
     token = parseFormalParametersOpt(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
+    Token asyncToken = token;
     token = parseAsyncModifier(token);
+    if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
+      reportRecoverableError(asyncToken, ErrorKind.SetterNotSync);
+    }
     token = parseFunctionBody(token, false, externalModifier != null);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     Token endToken = token;
     token = token.next;
     listener.endTopLevelMethod(start, getOrSet, endToken);
@@ -1546,12 +1587,10 @@ class Parser {
     return token;
   }
 
-  /**
-   * Returns the first token after the type starting at [token].
-   *
-   * This method assumes that [token] is an identifier (or void).
-   * Use [peekAfterIfType] if [token] isn't known to be an identifier.
-   */
+  /// Returns the first token after the type starting at [token].
+  ///
+  /// This method assumes that [token] is an identifier (or void).  Use
+  /// [peekAfterIfType] if [token] isn't known to be an identifier.
   Token peekAfterType(Token token) {
     // We are looking at "identifier ...".
     Token peek = token;
@@ -1567,11 +1606,9 @@ class Parser {
     return peek;
   }
 
-  /**
-   * Returns the first token after the nominal type starting at [token].
-   *
-   * This method assumes that [token] is an identifier (or void).
-   */
+  /// Returns the first token after the nominal type starting at [token].
+  ///
+  /// This method assumes that [token] is an identifier (or void).
   Token peekAfterNominalType(Token token) {
     Token peek = token.next;
     if (identical(peek.kind, PERIOD_TOKEN)) {
@@ -1594,24 +1631,23 @@ class Parser {
     return peek;
   }
 
-  /**
-   * Returns the first token after the function type starting at [token].
-   *
-   * The token must be at the token *after* the `Function` token position. That
-   * is, the return type and the `Function` token must have already been
-   * skipped.
-   *
-   * This function only skips over one function type syntax.
-   * If necessary, this function must be called multiple times.
-   *
-   * Example:
-   * ```
-   * int Function() Function<T>(int)
-   *             ^          ^
-   * A call to this function must be either at `(` or at `<`.
-   * If `token` pointed to the first `(`, then the returned
-   * token points to the second `Function` token.
-   */
+  /// Returns the first token after the function type starting at [token].
+  ///
+  /// The token must be at the token *after* the `Function` token
+  /// position. That is, the return type and the `Function` token must have
+  /// already been skipped.
+  ///
+  /// This function only skips over one function type syntax.  If necessary,
+  /// this function must be called multiple times.
+  ///
+  /// Example:
+  ///
+  ///     int Function() Function<T>(int)
+  ///                 ^          ^
+  ///
+  /// A call to this function must be either at `(` or at `<`.  If `token`
+  /// pointed to the first `(`, then the returned token points to the second
+  /// `Function` token.
   Token peekAfterFunctionType(Token token) {
     // Possible inputs are:
     //    ( ... )
@@ -1639,10 +1675,8 @@ class Parser {
     return peek;
   }
 
-  /**
-   * If [token] is the start of a type, returns the token after that type.
-   * If [token] is not the start of a type, null is returned.
-   */
+  /// If [token] is the start of a type, returns the token after that type.
+  /// If [token] is not the start of a type, null is returned.
   Token peekAfterIfType(Token token) {
     if (!optional('void', token) && !token.isIdentifier()) {
       return null;
@@ -1857,15 +1891,19 @@ class Parser {
     }
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
+    Token asyncToken = token;
     token = parseAsyncModifier(token);
+    if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
+      reportRecoverableError(asyncToken, ErrorKind.SetterNotSync);
+    }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(
           token, false, staticModifier == null || externalModifier != null);
     }
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     listener.endMethod(getOrSet, start, token);
     return token.next;
   }
@@ -1888,7 +1926,11 @@ class Parser {
     token = expect('factory', token);
     token = parseConstructorReference(token);
     token = parseFormalParameters(token);
+    Token asyncToken = token;
     token = parseAsyncModifier(token);
+    if (!inPlainSync) {
+      reportRecoverableError(asyncToken, ErrorKind.FactoryNotSync);
+    }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
@@ -1911,6 +1953,7 @@ class Parser {
   }
 
   Token parseFunction(Token token, Token getOrSet) {
+    Token beginToken = token;
     listener.beginFunction(token);
     token = parseModifiers(token);
     if (identical(getOrSet, token)) {
@@ -1945,7 +1988,7 @@ class Parser {
     }
     token = parseQualifiedRestOpt(
         token, IdentifierContext.localFunctionDeclarationContinuation);
-    listener.endFunctionName(token);
+    listener.endFunctionName(beginToken, token);
     if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
     } else {
@@ -1953,23 +1996,24 @@ class Parser {
     }
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     token = parseFunctionBody(token, false, true);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     listener.endFunction(getOrSet, token);
     return token.next;
   }
 
   Token parseUnnamedFunction(Token token) {
+    Token beginToken = token;
     listener.beginUnnamedFunction(token);
     token = parseFormalParameters(token);
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
-    listener.endUnnamedFunction(token);
+    asyncState = savedAsyncModifier;
+    listener.endUnnamedFunction(beginToken, token);
     return isBlock ? token.next : token;
   }
 
@@ -1981,20 +2025,21 @@ class Parser {
   }
 
   Token parseFunctionExpression(Token token) {
+    Token beginToken = token;
     listener.beginFunction(token);
     listener.handleModifiers(0);
     token = parseReturnTypeOpt(token);
     listener.beginFunctionName(token);
     token = parseIdentifier(token, IdentifierContext.functionExpressionName);
-    listener.endFunctionName(token);
+    listener.endFunctionName(beginToken, token);
     token = parseTypeVariablesOpt(token);
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
-    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
+    AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
+    asyncState = savedAsyncModifier;
     listener.endFunction(null, token);
     return isBlock ? token.next : token;
   }
@@ -2130,20 +2175,22 @@ class Parser {
   Token parseAsyncModifier(Token token) {
     Token async;
     Token star;
-    asyncAwaitKeywordsEnabled = false;
+    asyncState = AsyncModifier.Sync;
     if (optional('async', token)) {
-      asyncAwaitKeywordsEnabled = true;
       async = token;
       token = token.next;
       if (optional('*', token)) {
+        asyncState = AsyncModifier.AsyncStar;
         star = token;
         token = token.next;
+      } else {
+        asyncState = AsyncModifier.Async;
       }
     } else if (optional('sync', token)) {
       async = token;
       token = token.next;
       if (optional('*', token)) {
-        asyncAwaitKeywordsEnabled = true;
+        asyncState = AsyncModifier.SyncStar;
         star = token;
         token = token.next;
       } else {
@@ -2151,6 +2198,11 @@ class Parser {
       }
     }
     listener.handleAsyncModifier(async, star);
+    if (inGenerator && optional('=>', token)) {
+      reportRecoverableError(token, ErrorKind.GeneratorReturnsValue);
+    } else if (!inPlainSync && optional(';', token)) {
+      reportRecoverableError(token, ErrorKind.AbstractNotSync);
+    }
     return token;
   }
 
@@ -2179,12 +2231,11 @@ class Parser {
       return parseVariablesDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
-    } else if (asyncAwaitKeywordsEnabled && identical(value, 'await')) {
-      if (identical(token.next.stringValue, 'for')) {
-        return parseForStatement(token, token.next);
-      } else {
-        return parseExpressionStatement(token);
+    } else if (identical(value, 'await') && optional('for', token.next)) {
+      if (!inAsync) {
+        reportRecoverableError(token, ErrorKind.AwaitForNotAsync);
       }
+      return parseForStatement(token, token.next);
     } else if (identical(value, 'for')) {
       return parseForStatement(null, token);
     } else if (identical(value, 'rethrow')) {
@@ -2210,8 +2261,20 @@ class Parser {
       return parseAssertStatement(token);
     } else if (identical(value, ';')) {
       return parseEmptyStatement(token);
-    } else if (asyncAwaitKeywordsEnabled && identical(value, 'yield')) {
-      return parseYieldStatement(token);
+    } else if (identical(value, 'yield')) {
+      switch (asyncState) {
+        case AsyncModifier.Sync:
+          return parseExpressionStatementOrDeclaration(token);
+
+        case AsyncModifier.SyncStar:
+        case AsyncModifier.AsyncStar:
+          return parseYieldStatement(token);
+
+        case AsyncModifier.Async:
+          reportRecoverableError(token, ErrorKind.YieldNotGenerator);
+          return parseYieldStatement(token);
+      }
+      throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (token.isIdentifier()) {
@@ -2245,6 +2308,9 @@ class Parser {
       listener.endReturnStatement(false, begin, token);
     } else {
       token = parseExpression(token);
+      if (inGenerator) {
+        reportRecoverableError(begin.next, ErrorKind.GeneratorReturnsValue);
+      }
       listener.endReturnStatement(true, begin, token);
     }
     return expectSemicolon(token);
@@ -2274,6 +2340,9 @@ class Parser {
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
+    if (!inPlainSync && optional("await", token)) {
+      return parseExpressionStatement(token);
+    }
     assert(token.isIdentifier() || identical(token.stringValue, 'void'));
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
@@ -2537,7 +2606,8 @@ class Parser {
             // should just call [parseUnaryExpression] directly. However, a
             // unary expression isn't legal after a period, so we call
             // [parsePrimary] instead.
-            token = parsePrimary(token.next);
+            token = parsePrimary(
+                token.next, IdentifierContext.expressionContinuation);
             listener.handleBinaryExpression(operator);
           } else if ((identical(info, OPEN_PAREN_INFO)) ||
               (identical(info, OPEN_SQUARE_BRACKET_INFO))) {
@@ -2613,8 +2683,12 @@ class Parser {
   Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
-    if (asyncAwaitKeywordsEnabled && optional('await', token)) {
-      return parseAwaitExpression(token, allowCascades);
+    if (optional('await', token)) {
+      if (inPlainSync) {
+        return parsePrimary(token, IdentifierContext.expression);
+      } else {
+        return parseAwaitExpression(token, allowCascades);
+      }
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
       reportRecoverableError(token, ErrorKind.UnsupportedPrefixPlus);
@@ -2628,6 +2702,7 @@ class Parser {
       token = parsePrecedenceExpression(
           token.next, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixExpression(operator);
+      return token;
     } else if ((identical(value, '++')) || identical(value, '--')) {
       // TODO(ahe): Validate this is used correctly.
       Token operator = token;
@@ -2636,10 +2711,10 @@ class Parser {
       token = parsePrecedenceExpression(
           token.next, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
+      return token;
     } else {
-      token = parsePrimary(token);
+      return parsePrimary(token, IdentifierContext.expression);
     }
-    return token;
   }
 
   Token parseArgumentOrIndexStar(Token token) {
@@ -2664,10 +2739,10 @@ class Parser {
     return token;
   }
 
-  Token parsePrimary(Token token) {
+  Token parsePrimary(Token token, IdentifierContext context) {
     final kind = token.kind;
     if (kind == IDENTIFIER_TOKEN) {
-      return parseSendOrFunctionLiteral(token);
+      return parseSendOrFunctionLiteral(token, context);
     } else if (kind == INT_TOKEN || kind == HEXADECIMAL_TOKEN) {
       return parseLiteralInt(token);
     } else if (kind == DOUBLE_TOKEN) {
@@ -2677,32 +2752,32 @@ class Parser {
     } else if (kind == HASH_TOKEN) {
       return parseLiteralSymbol(token);
     } else if (kind == KEYWORD_TOKEN) {
-      final value = token.stringValue;
-      if (value == 'true' || value == 'false') {
+      final String value = token.stringValue;
+      if (identical(value, "true") || identical(value, "false")) {
         return parseLiteralBool(token);
-      } else if (value == 'null') {
+      } else if (identical(value, "null")) {
         return parseLiteralNull(token);
-      } else if (value == 'this') {
-        return parseThisExpression(token);
-      } else if (value == 'super') {
-        return parseSuperExpression(token);
-      } else if (value == 'new') {
+      } else if (identical(value, "this")) {
+        return parseThisExpression(token, context);
+      } else if (identical(value, "super")) {
+        return parseSuperExpression(token, context);
+      } else if (identical(value, "new")) {
         return parseNewExpression(token);
-      } else if (value == 'const') {
+      } else if (identical(value, "const")) {
         return parseConstExpression(token);
-      } else if (value == 'void') {
+      } else if (identical(value, "void")) {
         return parseFunctionExpression(token);
-      } else if (asyncAwaitKeywordsEnabled &&
-          (value == 'yield' || value == 'async')) {
+      } else if (!inPlainSync &&
+          (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
       } else if (token.isIdentifier()) {
-        return parseSendOrFunctionLiteral(token);
+        return parseSendOrFunctionLiteral(token, context);
       } else {
         return expressionExpected(token);
       }
     } else if (kind == OPEN_PAREN_TOKEN) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
-    } else if (kind == OPEN_SQUARE_BRACKET_TOKEN || token.stringValue == '[]') {
+    } else if (kind == OPEN_SQUARE_BRACKET_TOKEN || optional('[]', token)) {
       listener.handleNoTypeArguments(token);
       return parseLiteralListSuffix(token, null);
     } else if (kind == OPEN_CURLY_BRACKET_TOKEN) {
@@ -2730,7 +2805,8 @@ class Parser {
         (identical(kind, FUNCTION_TOKEN) ||
             identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
             (identical(kind, KEYWORD_TOKEN) &&
-                (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync')))) {
+                (optional('async', nextToken) ||
+                    optional('sync', nextToken))))) {
       listener.handleNoTypeVariables(token);
       return parseUnnamedFunction(token);
     } else {
@@ -2757,9 +2833,9 @@ class Parser {
     return expect(')', token);
   }
 
-  Token parseThisExpression(Token token) {
+  Token parseThisExpression(Token token, IdentifierContext context) {
     Token beginToken = token;
-    listener.handleThisExpression(token);
+    listener.handleThisExpression(token, context);
     token = token.next;
     if (optional('(', token)) {
       // Constructor forwarding.
@@ -2770,9 +2846,9 @@ class Parser {
     return token;
   }
 
-  Token parseSuperExpression(Token token) {
+  Token parseSuperExpression(Token token, IdentifierContext context) {
     Token beginToken = token;
-    listener.handleSuperExpression(token);
+    listener.handleSuperExpression(token, context);
     token = token.next;
     if (optional('(', token)) {
       // Super constructor.
@@ -2849,7 +2925,7 @@ class Parser {
       if (identical(kind, FUNCTION_TOKEN) ||
           identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
           (identical(kind, KEYWORD_TOKEN) &&
-              (nextToken.lexeme == 'async' || nextToken.lexeme == 'sync'))) {
+              (optional('async', nextToken) || optional('sync', nextToken)))) {
         return parseUnnamedFunction(token);
       }
       // Fall through.
@@ -2898,9 +2974,9 @@ class Parser {
     return token;
   }
 
-  Token parseSendOrFunctionLiteral(Token token) {
+  Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
     if (!mayParseFunctionExpressions) {
-      return parseSend(token, IdentifierContext.expression);
+      return parseSend(token, context);
     }
     Token peek = peekAfterIfType(token);
     if (peek != null &&
@@ -2910,7 +2986,7 @@ class Parser {
     } else if (isFunctionDeclaration(token.next)) {
       return parseFunctionExpression(token);
     } else {
-      return parseSend(token, IdentifierContext.expression);
+      return parseSend(token, context);
     }
   }
 
@@ -2947,9 +3023,10 @@ class Parser {
   Token parseNewExpression(Token token) {
     Token newKeyword = token;
     token = expect('new', token);
+    listener.beginNewExpression(newKeyword);
     token = parseConstructorReference(token);
     token = parseRequiredArguments(token);
-    listener.handleNewExpression(newKeyword);
+    listener.endNewExpression(newKeyword);
     return token;
   }
 
@@ -2968,9 +3045,10 @@ class Parser {
     if (identical(value, '<')) {
       return parseLiteralListOrMapOrFunction(token, constKeyword);
     }
+    listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token);
     token = parseRequiredArguments(token);
-    listener.handleConstExpression(constKeyword);
+    listener.endConstExpression(constKeyword);
     return token;
   }
 
@@ -3025,9 +3103,7 @@ class Parser {
     }
   }
 
-  /**
-   * Only called when [:token.kind === STRING_TOKEN:].
-   */
+  /// Only called when `identical(token.kind, STRING_TOKEN)`.
   Token parseSingleLiteralString(Token token) {
     listener.beginLiteralString(token);
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
@@ -3174,9 +3250,9 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     int count = 1;
-    listener.beginVariablesDeclaration(token);
     token = parseModifiers(token);
     token = parseTypeOpt(token);
+    listener.beginVariablesDeclaration(token);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token)) {
       token = parseOptionallyInitializedIdentifier(token.next);
@@ -3344,6 +3420,9 @@ class Parser {
     Token awaitToken = token;
     listener.beginAwaitExpression(awaitToken);
     token = expect('await', token);
+    if (!inAsync) {
+      reportRecoverableError(awaitToken, ErrorKind.AwaitNotAsync);
+    }
     token = parsePrecedenceExpression(token, POSTFIX_PRECEDENCE, allowCascades);
     listener.endAwaitExpression(awaitToken, token);
     return token;
@@ -3408,6 +3487,10 @@ class Parser {
       finallyKeyword = token;
       token = parseBlock(token.next);
       listener.handleFinallyBlock(finallyKeyword);
+    } else {
+      if (catchCount == 0) {
+        reportRecoverableError(tryKeyword, ErrorKind.OnlyTry);
+      }
     }
     listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
     return token;
@@ -3440,11 +3523,9 @@ class Parser {
     return token;
   }
 
-  /**
-   * Peek after the following labels (if any). The following token
-   * is used to determine if the labels belong to a statement or a
-   * switch case.
-   */
+  /// Peek after the following labels (if any). The following token
+  /// is used to determine if the labels belong to a statement or a
+  /// switch case.
   Token peekPastLabels(Token token) {
     while (token.isIdentifier() && optional(':', token.next)) {
       token = token.next.next;
@@ -3452,10 +3533,8 @@ class Parser {
     return token;
   }
 
-  /**
-   * Parse a group of labels, cases and possibly a default keyword and
-   * the statements that they select.
-   */
+  /// Parse a group of labels, cases and possibly a default keyword and the
+  /// statements that they select.
   Token parseSwitchCase(Token token) {
     Token begin = token;
     Token defaultKeyword = null;

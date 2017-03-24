@@ -41,7 +41,7 @@ Exception _buildException(String msg) {
 void asyncStart() {
   if (_initialized && _asyncLevel == 0) {
     throw _buildException('asyncStart() was called even though we are done '
-                          'with testing.');
+        'with testing.');
   }
   if (!_initialized) {
     print('unittest-suite-wait-for-done');
@@ -58,7 +58,7 @@ void asyncEnd() {
       throw _buildException('asyncEnd() was called before asyncStart().');
     } else {
       throw _buildException('asyncEnd() was called more often than '
-                            'asyncStart().');
+          'asyncStart().');
     }
   }
   _asyncLevel--;

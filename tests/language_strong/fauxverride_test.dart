@@ -22,7 +22,6 @@ import "package:expect/expect.dart";
 // instance methods declared by C and the instance methods inherited
 // by C from its superclass."
 
-
 // 7.6 Static Methods
 
 // "Static methods are functions whose declarations are immediately
@@ -68,7 +67,7 @@ class Sub extends Super {
   // According to 7.1, instance methods include those of the
   // superclass, and according to 7, it is a compile-time to have an
   // instance method and static method with the same name.
-  static /// 03: compile-time error
+  static //# 03: compile-time error
   instanceMethod() => m();
 
   // According to 7.7, static variables are not inherited.
@@ -79,7 +78,7 @@ class Sub extends Super {
   // instance method and static method with the same
   // name. Furthermore, according to 7.7 a static variable induces an
   // implicit getter function (a static method).
-  static var instanceMethod2; /// 05: compile-time error
+  static var instanceMethod2; //# 05: compile-time error
 
   foo() => 'foo';
 }

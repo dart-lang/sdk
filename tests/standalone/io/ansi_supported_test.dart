@@ -6,18 +6,30 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
-main() {
+testStdout(Stdout s) {
   try {
-    Platform.ansiSupported;
-  } catch (e, s) {
-    Expect.fail("Platform.ansiSupported threw: $e\n$s\n");
+    s.supportsAnsiEscapes;
+  } catch (e, st) {
+    Expect.fail("$s.supportsAnsiEscapes threw: $e\n$st\n");
   }
-  Expect.isNotNull(Platform.ansiSupported);
-  Expect.isTrue(Platform.ansiSupported is bool);
-  if (stdout.hasTerminal && Platform.ansiSupported) {
-    stdout.writeln('\x1b[31mThis text has a red foreground using SGR.31.');
-    stdout.writeln('\x1b[39mThis text has restored the foreground color.');
+  Expect.isNotNull(s.supportsAnsiEscapes);
+  Expect.isTrue(s.supportsAnsiEscapes is bool);
+  if (s.supportsAnsiEscapes) {
+    s.writeln('\x1b[31mThis text has a red foreground using SGR.31.');
+    s.writeln('\x1b[39mThis text has restored the foreground color.');
   } else {
-    stdout.writeln('ANSI codes not supported on this platform');
+    s.writeln('ANSI escape codes are not supported on this platform');
   }
+}
+
+main() {
+  testStdout(stdout);
+  testStdout(stderr);
+  try {
+    stdin.supportsAnsiEscapes;
+  } catch (e, st) {
+    Expect.fail("stdin.supportsAnsiEscapes threw: $e\n$st\n");
+  }
+  Expect.isNotNull(stdin.supportsAnsiEscapes);
+  Expect.isTrue(stdin.supportsAnsiEscapes is bool);
 }

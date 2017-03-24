@@ -32,7 +32,7 @@ Class initializeClass(
     Class cls, String name, LibraryBuilder parent, int charOffset) {
   cls ??= new Class(name: name);
   cls.fileUri ??= relativizeUri(parent.fileUri);
-  if (cls.fileOffset != TreeNode.noOffset) {
+  if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
   }
   return cls;

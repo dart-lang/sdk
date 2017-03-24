@@ -36,10 +36,12 @@ Future<Isolate> stepThroughProgram(Isolate isolate) async {
   return completer.future;
 }
 
-var tests = [hasPausedAtStart,
-             markDartColonLibrariesDebuggable,
-             setBreakpointAtLine(LINE_A),
-             stepThroughProgram];
+var tests = [
+  hasPausedAtStart,
+  markDartColonLibrariesDebuggable,
+  setBreakpointAtLine(LINE_A),
+  stepThroughProgram
+];
 
 main(args) => runIsolateTestsSynchronous(args, tests,
     testeeConcurrent: code, pause_on_start: true, pause_on_exit: true);

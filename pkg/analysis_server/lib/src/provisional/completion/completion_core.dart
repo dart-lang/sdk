@@ -7,6 +7,7 @@ library analysis_server.src.provisional.completion.completion_core;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -59,6 +60,11 @@ abstract class CompletionRequest {
    * Return the analysis context in which the completion is being requested.
    */
   AnalysisContext get context;
+
+  /**
+   * IDE options for this server instance.
+   */
+  IdeOptions get ideOptions;
 
   /**
    * Return the offset within the source at which the completion is being

@@ -22,11 +22,9 @@ class Box {
   var field;
 }
 
-stringArgument(x) {
-}
+stringArgument(x) {}
 
-intArgument(x) {
-}
+intArgument(x) {}
 
 class FinalBox {
   final finalField;
@@ -40,6 +38,7 @@ class SubFinalBox extends FinalBox {
 class DynamicReceiver1 {
   dynamicallyCalled(x) {}
 }
+
 class DynamicReceiver2 {
   dynamicallyCalled(x) {}
 }

@@ -7,6 +7,27 @@
 
 
 /**
+ * Enum used to indicate the kind of an entity reference.
+ */
+enum EntityRefKind : byte {
+  /**
+   * The entity represents a named type.
+   */
+  named,
+
+  /**
+   * The entity represents a generic function type.
+   */
+  genericFunctionType,
+
+  /**
+   * The entity represents a function type that was synthesized by a LUB
+   * computation.
+   */
+  syntheticFunction
+}
+
+/**
  * Enum used to indicate the kind of a name in index.
  */
 enum IndexNameKind : byte {
@@ -207,6 +228,23 @@ enum ReferenceKind : byte {
    * The entity being referred to does not exist.
    */
   unresolved
+}
+
+/**
+ * Enum used to indicate the kind of the error during top-level inference.
+ */
+enum TopLevelInferenceErrorKind : byte {
+  assignment,
+
+  instanceGetter,
+
+  dependencyCycle,
+
+  overrideConflictFieldType,
+
+  overrideConflictReturnType,
+
+  overrideConflictParameterType
 }
 
 /**
@@ -1119,6 +1157,11 @@ table CodeRange {
  */
 table EntityRef {
   /**
+   * The kind of entity being represented.
+   */
+  entityKind:EntityRefKind (id: 8);
+
+  /**
    * If this is a reference to a function type implicitly defined by a
    * function-typed parameter, a list of zero-based indices indicating the path
    * from the entity referred to by [reference] to the appropriate type
@@ -1193,15 +1236,6 @@ table EntityRef {
    * Otherwise `null`.
    */
   syntheticReturnType:EntityRef (id: 5);
-
-  /**
-   * If this [EntityRef] is a result of type inference, and so contained within
-   * [LinkedUnit.types], and was computed as a result of top-level type
-   * inference, which failed for this target, contains the list of one or more
-   * errors describing the failure.  The [reference] must point at `dynamic` in
-   * this case.
-   */
-  topLevelInferenceErrors:[TopLevelInferenceError] (id: 8);
 
   /**
    * If this is an instantiation of a generic type or generic executable, the
@@ -1407,9 +1441,9 @@ table LinkedUnit {
   constCycles:[uint] (id: 2);
 
   /**
-   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
-   * corresponding to parameters that inherit `@covariant` behavior from a base
-   * class.
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
+   * [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
+   * that inherit `@covariant` behavior from a base class.
    */
   parametersInheritingCovariant:[uint] (id: 3);
 
@@ -1422,6 +1456,11 @@ table LinkedUnit {
    * (e.g. elements involved in inferred or propagated types).
    */
   references:[LinkedReference] (id: 0);
+
+  /**
+   * The list of type inference errors.
+   */
+  topLevelInferenceErrors:[TopLevelInferenceError] (id: 4);
 
   /**
    * List associating slot ids found inside the unlinked summary for the
@@ -1601,9 +1640,16 @@ table PackageIndex {
  */
 table TopLevelInferenceError {
   /**
-   * The message describing the error.
+   * The kind of the error.
    */
-  message:string (id: 0);
+  kind:TopLevelInferenceErrorKind (id: 1);
+
+  /**
+   * The slot id (which is unique within the compilation unit) identifying the
+   * target of type inference with which this [TopLevelInferenceError] is
+   * associated.
+   */
+  slot:uint (id: 0);
 }
 
 /**
@@ -2779,6 +2825,16 @@ table UnlinkedVariable {
    * inferred for this variable, so its static type is `dynamic`.
    */
   inferredTypeSlot:uint (id: 9);
+
+  /**
+   * If this is an instance non-final field, a nonzero slot id which is unique
+   * within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then the parameter of the
+   * synthetic setter inherits `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  inheritsCovariantSlot:uint (id: 15);
 
   /**
    * The synthetic initializer function of the variable.  Absent if the variable

@@ -102,9 +102,6 @@
 // the value defined in TargetConditionals.h
 #define HOST_OS_MACOS 1
 #if TARGET_OS_IPHONE
-// Test for this #define by saying '#if TARGET_OS_IOS' rather than the usual
-// '#if defined(TARGET_OS_IOS)'. TARGET_OS_IOS is defined to be 0 in
-// XCode >= 7.0. See Issue #24453.
 #define HOST_OS_IOS 1
 #endif
 
@@ -310,12 +307,9 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
-#if !defined(TARGET_ARCH_MIPS)
-#if !defined(TARGET_ARCH_ARM)
-#if !defined(TARGET_ARCH_X64)
-#if !defined(TARGET_ARCH_IA32)
-#if !defined(TARGET_ARCH_ARM64)
-#if !defined(TARGET_ARCH_DBC)
+#if !defined(TARGET_ARCH_MIPS) && !defined(TARGET_ARCH_ARM) &&                 \
+    !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32) &&                 \
+    !defined(TARGET_ARCH_ARM64) && !defined(TARGET_ARCH_DBC)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_MIPS)
 #define TARGET_ARCH_MIPS 1
@@ -329,11 +323,6 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_ARM64 1
 #else
 #error Automatic target architecture detection failed.
-#endif
-#endif
-#endif
-#endif
-#endif
 #endif
 #endif
 
@@ -384,17 +373,27 @@ typedef simd128_value_t fpu_register_t;
 #endif
 
 
-#if defined(TARGET_ARCH_ARM)
-#if defined(TARGET_ABI_IOS) && defined(TARGET_ABI_EABI)
-#error Both TARGET_ABI_IOS and TARGET_ABI_EABI defined.
-#elif !defined(TARGET_ABI_IOS) && !defined(TARGET_ABI_EABI)
-#if defined(HOST_OS_MAC)
-#define TARGET_ABI_IOS 1
+#if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
+    !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
+    !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_WINDOWS)
+// No target OS specified; pick the one matching the host OS.
+#if defined(HOST_OS_ANDROID)
+#define TARGET_OS_ANDROID 1
+#elif defined(HOST_OS_FUCHSIA)
+#define TARGET_OS_FUCHSIA 1
+#elif defined(HOST_OS_IOS)
+#define TARGET_OS_MACOS 1
+#define TARGET_OS_MACOS_IOS 1
+#elif defined(HOST_OS_LINUX)
+#define TARGET_OS_LINUX 1
+#elif defined(HOST_OS_MACOS)
+#define TARGET_OS_MACOS 1
+#elif defined(HOST_OS_WINDOWS)
+#define TARGET_OS_WINDOWS 1
 #else
-#define TARGET_ABI_EABI 1
+#error Automatic target OS detection failed.
 #endif
 #endif
-#endif  // TARGET_ARCH_ARM
 
 
 // Short form printf format specifiers

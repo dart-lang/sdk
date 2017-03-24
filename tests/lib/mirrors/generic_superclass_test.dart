@@ -5,17 +5,26 @@
 import 'package:expect/expect.dart';
 import 'dart:mirrors';
 
-
 class A<T> {}
-class B extends A<U>{}
+
+class B extends A<U> {}
+
 class C extends A<C> {}
+
 class D<T> extends A<T> {}
-class E<X,Y> extends G<H<Y>> {}
+
+class E<X, Y> extends G<H<Y>> {}
+
 class F<X> implements A<X> {}
-class FF<X,Y> implements G<H<Y>> {}
+
+class FF<X, Y> implements G<H<Y>> {}
+
 class G<T> {}
+
 class H<T> {}
+
 class U {}
+
 class R {}
 
 void testOriginals() {
@@ -52,9 +61,9 @@ void testOriginals() {
 
   Expect.equals(reflectClass(Object), superA);
   Expect.equals(reflect(new A<U>()).type, superB);
-  Expect.equals(reflect(new A<C>()).type, superC); /// 01: ok
+  Expect.equals(reflect(new A<C>()).type, superC); //# 01: ok
   Expect.equals(reflect(new U()).type, superB.typeArguments[0]);
-  Expect.equals(reflect(new C()).type, superC.typeArguments[0]); /// 01: ok
+  Expect.equals(reflect(new C()).type, superC.typeArguments[0]); //# 01: ok
   Expect.equals(dT, superD.typeArguments[0]);
   Expect.equals(eY, superE.typeArguments[0].typeArguments[0]);
   Expect.equals(feY, superInterfaceFF.typeArguments[0].typeArguments[0]);
@@ -66,9 +75,9 @@ void testInstances() {
   ClassMirror b = reflect(new B()).type;
   ClassMirror c = reflect(new C()).type;
   ClassMirror d = reflect(new D<U>()).type;
-  ClassMirror e = reflect(new E<U,R>()).type;
-  ClassMirror e0 = reflect(new E<U,H<R>>()).type;
-  ClassMirror ff = reflect(new FF<U,R>()).type;
+  ClassMirror e = reflect(new E<U, R>()).type;
+  ClassMirror e0 = reflect(new E<U, H<R>>()).type;
+  ClassMirror ff = reflect(new FF<U, R>()).type;
   ClassMirror f = reflect(new F<U>()).type;
   ClassMirror u = reflect(new U()).type;
   ClassMirror r = reflect(new R()).type;
@@ -94,13 +103,13 @@ void testInstances() {
 
   Expect.equals(reflectClass(Object), superA);
   Expect.equals(reflect(new A<U>()).type, superB);
-  Expect.equals(reflect(new A<C>()).type, superC); /// 01: ok
+  Expect.equals(reflect(new A<C>()).type, superC); //# 01: ok
   Expect.equals(reflect(new A<U>()).type, superD);
   Expect.equals(reflect(new G<H<R>>()).type, superE);
   Expect.equals(reflect(new G<H<H<R>>>()).type, superE0);
   Expect.equals(reflect(new G<H<R>>()).type, superInterfaceFF);
   Expect.equals(u, superB.typeArguments[0]);
-  Expect.equals(reflect(new C()).type, superC.typeArguments[0]); /// 01: ok
+  Expect.equals(reflect(new C()).type, superC.typeArguments[0]); //# 01: ok
   Expect.equals(u, superD.typeArguments[0]);
   Expect.equals(r, superE.typeArguments[0].typeArguments[0]);
   Expect.equals(hr, superE0.typeArguments[0].typeArguments[0]);

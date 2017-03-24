@@ -9,5 +9,5 @@ class A {
 }
 
 main() {
-  new A(42); /// 01: static type warning, runtime error
+  new A(42); //# 01: static type warning, runtime error
 }

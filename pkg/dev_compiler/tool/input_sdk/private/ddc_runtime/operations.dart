@@ -243,7 +243,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
     // Grab the `call` method if it's not a function.
     if ($f != null) {
       $ftype = $getMethodType($getType($f), 'call');
-      $f = $f.call;
+      $f = f.call ? $bind($f, 'call') : void 0;
     }
     if (!($f instanceof Function)) {
       return callNSM();
@@ -471,7 +471,7 @@ final _ignoreTypeFailure = JS(
       // This is primarily due to the lack of generic methods,
       // but we need to triage all the types.
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
-        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
+        !!$isSubtype(type, $FutureOr) && !!$isSubtype(actual, $Future) ||
         !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
         $isFunctionType(type) && $isFunctionType(actual) ||
         !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream) ||
@@ -496,7 +496,7 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
   let actual = $getReifiedType($obj);
   let result = $isSubtype(actual, $type);
   if (result || actual == $jsobject ||
-      actual == $int && type == $double) return true;
+      (actual == $int && $isSubtype($double, $type))) return true;
   if (result === false) return false;
   if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
   if ($_ignoreTypeFailure(actual, $type)) return true;

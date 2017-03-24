@@ -18,7 +18,6 @@ part of dart.collection;
  * `Iterable` returned by a method like [map] or [where].
  */
 abstract class Queue<E> implements EfficientLengthIterable<E> {
-
   /**
    * Creates a queue.
    */
@@ -95,7 +94,6 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   void clear();
 }
 
-
 class _DoubleLink<Link extends _DoubleLink> {
   Link _previousLink;
   Link _nextLink;
@@ -155,8 +153,7 @@ class DoubleLinkedQueueEntry<E> extends _DoubleLink<DoubleLinkedQueueEntry<E>> {
  * The entry contains a link back to the queue, so calling `append`
  * or `prepend` can correctly update the element count.
  */
-abstract class _DoubleLinkedQueueEntry<E>
-    extends DoubleLinkedQueueEntry<E> {
+abstract class _DoubleLinkedQueueEntry<E> extends DoubleLinkedQueueEntry<E> {
   DoubleLinkedQueue<E> _queue;
   _DoubleLinkedQueueEntry(E element, this._queue) : super(element);
 
@@ -232,8 +229,7 @@ class _DoubleLinkedQueueElement<E> extends _DoubleLinkedQueueEntry<E> {
  * A sentinel does not box any user element.
  */
 class _DoubleLinkedQueueSentinel<E> extends _DoubleLinkedQueueEntry<E> {
-  _DoubleLinkedQueueSentinel(DoubleLinkedQueue<E> queue)
-      : super(null, queue) {
+  _DoubleLinkedQueueSentinel(DoubleLinkedQueue<E> queue) : super(null, queue) {
     _previousLink = this;
     _nextLink = this;
   }
@@ -345,7 +341,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
         // Entry must still be in the queue.
         throw new ConcurrentModificationError(this);
       }
-      _DoubleLinkedQueueEntry<E> next = entry._nextLink;  // Cannot be null.
+      _DoubleLinkedQueueEntry<E> next = entry._nextLink; // Cannot be null.
       if (identical(removeMatching, matches)) {
         entry._remove();
         _elementCount--;
@@ -514,7 +510,9 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
    * If [initialCapacity] is given, prepare the queue for at least that many
    * elements.
    */
-  ListQueue([int initialCapacity]) : _head = 0, _tail = 0 {
+  ListQueue([int initialCapacity])
+      : _head = 0,
+        _tail = 0 {
     if (initialCapacity == null || initialCapacity < _INITIAL_CAPACITY) {
       initialCapacity = _INITIAL_CAPACITY;
     } else if (!_isPowerOf2(initialCapacity)) {
@@ -559,7 +557,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
 
   Iterator<E> get iterator => new _ListQueueIterator<E>(this);
 
-  void forEach(void action (E element)) {
+  void forEach(void action(E element)) {
     int modificationCount = _modificationCount;
     for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
       action(_table[i]);
@@ -592,7 +590,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     return _table[(_head + index) & (_table.length - 1)];
   }
 
-  List<E> toList({ bool growable: true }) {
+  List<E> toList({bool growable: true}) {
     List<E> list;
     if (growable) {
       list = new List<E>()..length = length;
@@ -700,7 +698,9 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
 
   // Queue interface.
 
-  void addLast(E value) { _add(value); }
+  void addLast(E value) {
+    _add(value);
+  }
 
   void addFirst(E value) {
     _head = (_head - 1) & (_table.length - 1);
@@ -746,7 +746,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   static int _nextPowerOf2(int number) {
     assert(number > 0);
     number = (number << 1) - 1;
-    for(;;) {
+    for (;;) {
       int nextNumber = number & (number - 1);
       if (nextNumber == 0) return number;
       number = nextNumber;

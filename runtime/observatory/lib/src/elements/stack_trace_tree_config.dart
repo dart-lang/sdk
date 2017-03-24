@@ -8,7 +8,10 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-enum ProfileTreeMode { code, function, }
+enum ProfileTreeMode {
+  code,
+  function,
+}
 
 class StackTraceTreeConfigChangedEvent {
   final StackTraceTreeConfigElement element;
@@ -185,8 +188,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
           _r.dirty();
         })
         ..onChange.map(_toEvent).listen(_triggerModeChange),
-      new SpanElement()
-        ..text = ' $modeDescription'
+      new SpanElement()..text = ' $modeDescription'
     ];
   }
 
@@ -215,8 +217,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
           _r.dirty();
         })
         ..onChange.map(_toEvent).listen(_triggerDirectionChange),
-      new SpanElement()
-        ..text = ' $directionDescription'
+      new SpanElement()..text = ' $directionDescription'
     ];
   }
 

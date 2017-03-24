@@ -25,7 +25,8 @@ class Annotation {
 /// A source code text with annotated positions.
 ///
 /// An [AnnotatedCode] can be created from a [String] of source code where
-/// annotated positions are embedded using the syntax `@{text}`. For instance
+/// annotated positions are embedded, by default using the syntax `@{text}`.
+/// For instance
 ///
 ///     main() {
 ///       @{foo-call}foo();
@@ -50,10 +51,11 @@ class AnnotatedCode {
 
   AnnotatedCode.internal(this.sourceCode, this.annotations, this._lineStarts);
 
-  /// Creates an [AnnotatedCode] by processing [annotatedCode]. Annotation of
-  /// the form `@{...}` are converted into [Annotation]s and removed from the
-  /// [annotatedCode] to process the source code.
-  factory AnnotatedCode.fromText(String annotatedCode) {
+  /// Creates an [AnnotatedCode] by processing [annotatedCode]. Annotation
+  /// delimited by [start] and [end] are converted into [Annotation]s and
+  /// removed from the [annotatedCode] to produce the source code.
+  factory AnnotatedCode.fromText(String annotatedCode,
+      [String start = '@{', String end = '}']) {
     StringBuffer codeBuffer = new StringBuffer();
     List<Annotation> annotations = <Annotation>[];
     int index = 0;
@@ -63,45 +65,39 @@ class AnnotatedCode {
     List<int> lineStarts = <int>[];
     lineStarts.add(offset);
     while (index < annotatedCode.length) {
-      int charCode = annotatedCode.codeUnitAt(index);
-      switch (charCode) {
-        case _LF:
-          codeBuffer.write('\n');
-          offset++;
-          lineStarts.add(offset);
-          lineNo++;
-          columnNo = 1;
-          break;
-        case _CR:
-          if (index + 1 < annotatedCode.length &&
-              annotatedCode.codeUnitAt(index + 1) == _LF) {
-            index++;
-          }
-          codeBuffer.write('\n');
-          offset++;
-          lineStarts.add(offset);
-          lineNo++;
-          columnNo = 1;
-          break;
-        case 0x40:
-          if (index + 1 < annotatedCode.length &&
-              annotatedCode.codeUnitAt(index + 1) == _LBRACE) {
-            int endIndex = annotatedCode.indexOf('}', index);
-            String text = annotatedCode.substring(index + 2, endIndex);
-            annotations.add(new Annotation(lineNo, columnNo, offset, text));
-            index = endIndex;
-          } else {
+      if (annotatedCode.startsWith(start, index)) {
+        int endIndex = annotatedCode.indexOf(end, index + start.length);
+        String text = annotatedCode.substring(index + start.length, endIndex);
+        annotations.add(new Annotation(lineNo, columnNo, offset, text));
+        index = endIndex + end.length;
+      } else {
+        int charCode = annotatedCode.codeUnitAt(index);
+        switch (charCode) {
+          case _LF:
+            codeBuffer.write('\n');
+            offset++;
+            lineStarts.add(offset);
+            lineNo++;
+            columnNo = 1;
+            break;
+          case _CR:
+            if (index + 1 < annotatedCode.length &&
+                annotatedCode.codeUnitAt(index + 1) == _LF) {
+              index++;
+            }
+            codeBuffer.write('\n');
+            offset++;
+            lineStarts.add(offset);
+            lineNo++;
+            columnNo = 1;
+            break;
+          default:
             codeBuffer.writeCharCode(charCode);
             offset++;
             columnNo++;
-          }
-          break;
-        default:
-          codeBuffer.writeCharCode(charCode);
-          offset++;
-          columnNo++;
+        }
+        index++;
       }
-      index++;
     }
     lineStarts.add(offset);
     return new AnnotatedCode.internal(

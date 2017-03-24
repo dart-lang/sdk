@@ -9,8 +9,8 @@ import "package:expect/expect.dart";
 class C {
   final x;
   const C(this.x);
-  static f3(){}
-  static f4(){}
+  static f3() {}
+  static f4() {}
 }
 
 const i1 = 1;
@@ -21,14 +21,14 @@ const b1 = true;
 const b2 = false;
 const s1 = "1";
 const s2 = "2";
-const l1 = const [1,2];
-const l2 = const [2,3];
+const l1 = const [1, 2];
+const l2 = const [2, 3];
 const m1 = const {"x": 1};
 const m2 = const {"x": 2};
 const c1 = const C(1);
 const c2 = const C(2);
-f1(){}
-f2(){}
+f1() {}
+f2() {}
 const id = identical;
 
 class CT {
@@ -36,8 +36,10 @@ class CT {
   final x2;
   final bool id;
   const CT(var x1, var x2)
-      : this.x1 = x1, this.x2 = x2, this.id = identical(x1, x2);
-  void test(void expect(a,b), name) {
+      : this.x1 = x1,
+        this.x2 = x2,
+        this.id = identical(x1, x2);
+  void test(void expect(a, b), name) {
     expect(id, "$name: identical($x1,$x2)");
   }
 }
@@ -86,14 +88,14 @@ const falseTests = const [
 ];
 
 // Not a constant if it's not written 'identical'.
-const idtest = id(i1, i2);  /// 01: compile-time error
+const idtest = id(i1, i2); // //# 01: compile-time error
 
 // Not a constant if aliased? (Current interpretation, waiting for
 // confirmation).
-class T {                                     /// 02: compile-time error
-  static const identical = id;                /// 02: continued
-  static const idtest2 = identical(i1, i2);   /// 02: continued
-}                                             /// 02: continued
+class T { //                                    //# 02: compile-time error
+  static const identical = id; //               //# 02: continued
+  static const idtest2 = identical(i1, i2); //  //# 02: continued
+} //                                            //# 02: continued
 
 main() {
   for (int i = 0; i < trueTests.length; i++) {
@@ -103,7 +105,6 @@ main() {
     falseTests[i].test(Expect.isFalse, "false[$i]");
   }
 
-  var x = idtest;  /// 01: continued
-  var x = T.idtest2;  /// 02: continued
+  var x = idtest; // //# 01: continued
+  var x = T.idtest2; // //# 02: continued
 }
-

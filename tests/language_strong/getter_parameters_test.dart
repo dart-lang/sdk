@@ -6,17 +6,17 @@
 
 get f1 => null;
 get f2
-() /// 01: compile-time error
-=> null;
+() //# 01: compile-time error
+    => null;
 get f3
-(arg) /// 02: compile-time error
-=> null;
+(arg) //# 02: compile-time error
+    => null;
 get f4
-([arg]) /// 03: compile-time error
-=> null;
+([arg]) //# 03: compile-time error
+    => null;
 get f5
-({arg}) /// 04: compile-time error
-=> null;
+({arg}) //# 04: compile-time error
+    => null;
 
 main() {
   f1;
@@ -25,4 +25,3 @@ main() {
   f4;
   f5;
 }
-

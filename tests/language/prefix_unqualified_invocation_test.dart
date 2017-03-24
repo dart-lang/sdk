@@ -19,11 +19,11 @@ class Base {
 
 class Derived extends Base {
   void f() {
-    p(); /// 01: compile-time error
+    p(); //# 01: compile-time error
   }
 }
 
 main() {
   new Derived().f();
-  p(); /// 02: compile-time error
+  p(); //# 02: compile-time error
 }

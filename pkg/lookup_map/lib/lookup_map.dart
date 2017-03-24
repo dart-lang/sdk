@@ -60,14 +60,20 @@ class LookupMap<K, V> {
   /// instead of a list of key-value pairs.
   // TODO(sigmund): make entries a map once we fix TypeImpl.== (issue #17207).
   const LookupMap(List entries, [List<LookupMap<K, V>> nestedMaps = const []])
-    : _key = null, _value = null, _entries = entries, _nestedMaps = nestedMaps;
+      : _key = null,
+        _value = null,
+        _entries = entries,
+        _nestedMaps = nestedMaps;
 
   /// Creates a lookup map with a single key-value pair.
   const LookupMap.pair(K key, V value)
-    : _key = key, _value = value, _entries = const [], _nestedMaps = const [];
+      : _key = key,
+        _value = value,
+        _entries = const [],
+        _nestedMaps = const [];
 
   /// Return the data corresponding to [key].
-  V operator[](K key) {
+  V operator [](K key) {
     var map = _flatMap[this];
     if (map == null) {
       map = {};

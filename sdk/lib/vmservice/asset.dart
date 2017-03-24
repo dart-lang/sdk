@@ -12,7 +12,7 @@ class Asset {
 
   String get mimeType {
     var extensionStart = name.lastIndexOf('.');
-    var extension = name.substring(extensionStart+1);
+    var extension = name.substring(extensionStart + 1);
     switch (extension) {
       case 'html':
         return 'text/html; charset=UTF-8';
@@ -101,8 +101,8 @@ class _ByteStream {
 }
 
 class _TarArchive {
-  static const List<int> tarMagic = const [ 0x75, 0x73, 0x74, 0x61, 0x72, 0 ];
-  static const List<int> tarVersion = const [ 0x30, 0x30 ];
+  static const List<int> tarMagic = const [0x75, 0x73, 0x74, 0x61, 0x72, 0];
+  static const List<int> tarVersion = const [0x30, 0x30];
   static const int tarHeaderSize = 512;
   static const int tarHeaderFilenameSize = 100;
   static const int tarHeaderFilenameOffset = 0;
@@ -152,9 +152,7 @@ class _TarArchive {
 
   static int _readSize(_ByteStream bs) {
     String octalSize = _readCString(bs, tarHeaderSizeSize);
-    return int.parse(octalSize,
-                     radix: 8,
-                     onError: (_) => 0);
+    return int.parse(octalSize, radix: 8, onError: (_) => 0);
   }
 
   static int _readType(_ByteStream bs) {
@@ -175,8 +173,7 @@ class _TarArchive {
 
   final _ByteStream _bs;
 
-  _TarArchive(Uint8List bytes)
-      : _bs = new _ByteStream(bytes);
+  _TarArchive(Uint8List bytes) : _bs = new _ByteStream(bytes);
 
   bool hasNext() {
     return !_endOfArchive(_bs);

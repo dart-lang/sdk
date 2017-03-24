@@ -11,14 +11,14 @@ class A {
 class B implements A {
   const B();
 
-  operator ==(o) => true;  /// 00: compile-time error
+  operator ==(o) => true; // //# 00: compile-time error
 }
 
 main() {
   // It is a compile-time error if the key type overrides operator ==.
-  var m = const { A.b: 42 };
+  var m = const {A.b: 42};
   Expect.equals(42, m[const B()]);
 
-  m = const { "foo": 99, A.b: 499 };
+  m = const {"foo": 99, A.b: 499};
   Expect.equals(499, m[const B()]);
 }

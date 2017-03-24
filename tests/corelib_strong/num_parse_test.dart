@@ -130,14 +130,14 @@ void main() {
   testInt(99);
   testInt(100);
   testIntAround(256);
-  testIntAround(0x80000000);  // 2^31
-  testIntAround(0x100000000);  // 2^32
-  testIntAround(0x10000000000000);  // 2^52
-  testIntAround(0x20000000000000);  // 2^53
-  testIntAround(0x40000000000000);  // 2^54
-  testIntAround(0x8000000000000000);  // 2^63
-  testIntAround(0x10000000000000000);  // 2^64
-  testIntAround(0x100000000000000000000);  // 2^80
+  testIntAround(0x80000000); // 2^31
+  testIntAround(0x100000000); // 2^32
+  testIntAround(0x10000000000000); // 2^52
+  testIntAround(0x20000000000000); // 2^53
+  testIntAround(0x40000000000000); // 2^54
+  testIntAround(0x8000000000000000); // 2^63
+  testIntAround(0x10000000000000000); // 2^64
+  testIntAround(0x100000000000000000000); // 2^80
 
   testDouble(0.0);
   testDouble(5e-324);
@@ -157,7 +157,7 @@ void main() {
   testDouble(9007199254740992.0);
   testDouble(1.7976931348623157e+308);
   testDouble(double.INFINITY);
-  testDouble(double.NAN);          /// 01: ok
+  testDouble(double.NAN); //         //# 01: ok
 
   // Strings that cannot occur from toString of a number.
   testParse("000000000000", 0);

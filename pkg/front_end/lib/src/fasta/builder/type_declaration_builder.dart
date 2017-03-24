@@ -32,10 +32,11 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   bool get isTypeDeclaration => true;
 
-  bool get isTypeVariable => false;
-
   R buildType(LibraryBuilder library, List<T> arguments);
 
   /// [arguments] have already been built.
   R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments);
+
+  @override
+  String get fullNameForErrors => name;
 }

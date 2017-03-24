@@ -7,17 +7,22 @@
 
 main() {
   Function anyFunction;
-  void acceptFunNumOptBool(void funNumOptBool(num n, {bool b})) { };
-  void funNum(num n) { };
-  void funNumBool(num n, bool b) { };
-  void funNumOptBool(num n, {bool b: true}) { };
-  void funNumOptBoolX(num n, {bool x: true}) { };
+  void acceptFunNumOptBool(void funNumOptBool(num n, {bool b})) {}
+  ;
+  void funNum(num n) {}
+  ;
+  void funNumBool(num n, bool b) {}
+  ;
+  void funNumOptBool(num n, {bool b: true}) {}
+  ;
+  void funNumOptBoolX(num n, {bool x: true}) {}
+  ;
   anyFunction = funNum;
   anyFunction = funNumBool;
   anyFunction = funNumOptBool;
   anyFunction = funNumOptBoolX;
   acceptFunNumOptBool(funNumOptBool);
-  acceptFunNumOptBool(funNum);  /// 01: runtime error
-  acceptFunNumOptBool(funNumBool);  /// 02: static type warning, runtime error
-  acceptFunNumOptBool(funNumOptBoolX);  /// 03: static type warning, runtime error
+  acceptFunNumOptBool(funNum); // //# 01: runtime error
+  acceptFunNumOptBool(funNumBool); // //# 02: static type warning, runtime error
+  acceptFunNumOptBool(funNumOptBoolX); // //# 03: static type warning, runtime error
 }

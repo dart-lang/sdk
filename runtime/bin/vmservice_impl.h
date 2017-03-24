@@ -19,7 +19,8 @@ class VmService {
   static bool Setup(const char* server_ip,
                     intptr_t server_port,
                     bool running_precompiled,
-                    bool dev_mode_server);
+                    bool dev_mode_server,
+                    bool trace_loading);
 
   // Error message if startup failed.
   static const char* GetErrorMessage();

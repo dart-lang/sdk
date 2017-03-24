@@ -11,6 +11,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -18,6 +19,8 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl, ReplacementRange;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -25,6 +28,7 @@ import 'package:analyzer/task/dart.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
+import '../../correction/flutter_util.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -476,7 +480,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         Duration.ZERO, () => computeLibrariesContaining(times - 1));
   }
 
-  Future computeSuggestions([int times = 200]) async {
+  Future computeSuggestions({int times = 200, IdeOptions options}) async {
     AnalysisResult analysisResult = null;
     if (enableNewAnalysisDriver) {
       analysisResult = await driver.getResult(testFile);
@@ -491,7 +495,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         searchEngine,
         testSource,
         completionOffset,
-        new CompletionPerformance());
+        new CompletionPerformance(),
+        options);
 
     // Build the request
     Completer<DartCompletionRequest> requestCompleter =
@@ -520,6 +525,34 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     // or the max analysis cycles ([times]) has been reached
     suggestions = await performAnalysis(times, suggestionCompleter);
     expect(suggestions, isNotNull, reason: 'expected suggestions');
+  }
+
+  /**
+   * Configures the [SourceFactory] to have the `flutter` package in
+   * `/packages/flutter/lib` folder.
+   */
+  void configureFlutterPkg(Map<String, String> pathToCode) {
+    pathToCode.forEach((path, code) {
+      provider.newFile('$flutterPkgLibPath/$path', code);
+    });
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'flutter': [myPkgFolder]
+    });
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
+    if (enableNewAnalysisDriver) {
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      context.sourceFactory = sourceFactory;
+    }
+    // force 'flutter' resolution
+    addSource(
+        '/tmp/other.dart',
+        pathToCode.keys
+            .map((path) => "import 'package:flutter/$path';")
+            .join('\n'));
   }
 
   DartCompletionContributor createContributor();

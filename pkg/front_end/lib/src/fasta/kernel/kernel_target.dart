@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Class,
         Constructor,
         DartType,
+        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -220,6 +221,9 @@ class KernelTarget extends TargetImplementation {
     if (loader.first == null) return null;
     try {
       await loader.buildOutlines();
+      loader.coreLibrary
+          .becomeCoreLibrary(const DynamicType(), const VoidType());
+      dynamicType.bind(loader.coreLibrary.members["dynamic"]);
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
@@ -231,6 +235,8 @@ class KernelTarget extends TargetImplementation {
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
       program = link(new List<Library>.from(loader.libraries));
+      loader.computeHierarchy(program);
+      loader.checkOverrides(sourceClasses);
       if (uri == null) return program;
       return await writeLinkedProgram(uri, program, isFullProgram: false);
     } on InputError catch (e) {
@@ -247,7 +253,6 @@ class KernelTarget extends TargetImplementation {
       return handleInputError(uri, null, isFullProgram: true);
     }
     try {
-      loader.computeHierarchy(program);
       await loader.buildBodies();
       loader.finishStaticInvocations();
       finishAllConstructors();
@@ -317,6 +322,7 @@ class KernelTarget extends TargetImplementation {
           AsyncMarker.Sync,
           ProcedureKind.Method,
           library,
+          -1,
           -1,
           -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);

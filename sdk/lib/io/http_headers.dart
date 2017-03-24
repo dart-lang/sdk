@@ -8,7 +8,7 @@ class _HttpHeaders implements HttpHeaders {
   final Map<String, List<String>> _headers;
   final String protocolVersion;
 
-  bool _mutable = true;  // Are the headers currently mutable?
+  bool _mutable = true; // Are the headers currently mutable?
   List<String> _noFoldingHeaders;
 
   int _contentLength = -1;
@@ -20,8 +20,8 @@ class _HttpHeaders implements HttpHeaders {
   final int _defaultPortForScheme;
 
   _HttpHeaders(this.protocolVersion,
-               {int defaultPortForScheme: HttpClient.DEFAULT_HTTP_PORT,
-                _HttpHeaders initialHeaders})
+      {int defaultPortForScheme: HttpClient.DEFAULT_HTTP_PORT,
+      _HttpHeaders initialHeaders})
       : _headers = new HashMap<String, List<String>>(),
         _defaultPortForScheme = defaultPortForScheme {
     if (initialHeaders != null) {
@@ -38,7 +38,7 @@ class _HttpHeaders implements HttpHeaders {
     }
   }
 
-  List<String> operator[](String name) => _headers[name.toLowerCase()];
+  List<String> operator [](String name) => _headers[name.toLowerCase()];
 
   String value(String name) {
     name = name.toLowerCase();
@@ -454,8 +454,7 @@ class _HttpHeaders implements HttpHeaders {
 
   _foldHeader(String name) {
     if (name == HttpHeaders.SET_COOKIE ||
-        (_noFoldingHeaders != null &&
-         _noFoldingHeaders.indexOf(name) != -1)) {
+        (_noFoldingHeaders != null && _noFoldingHeaders.indexOf(name) != -1)) {
       return false;
     }
     return true;
@@ -523,8 +522,8 @@ class _HttpHeaders implements HttpHeaders {
 
       void skipWS() {
         while (!done()) {
-         if (s[index] != " " && s[index] != "\t") return;
-         index++;
+          if (s[index] != " " && s[index] != "\t") return;
+          index++;
         }
       }
 
@@ -577,6 +576,7 @@ class _HttpHeaders implements HttpHeaders {
         }
       }
     }
+
     List<String> values = _headers[HttpHeaders.COOKIE];
     if (values != null) {
       values.forEach((headerValue) => parseCookieString(headerValue));
@@ -606,7 +606,6 @@ class _HttpHeaders implements HttpHeaders {
   }
 }
 
-
 class _HeaderValue implements HeaderValue {
   String _value;
   Map<String, String> _parameters;
@@ -619,9 +618,9 @@ class _HeaderValue implements HeaderValue {
   }
 
   static _HeaderValue parse(String value,
-                            {parameterSeparator: ";",
-                             valueSeparator: null,
-                             preserveBackslash: false}) {
+      {parameterSeparator: ";",
+      valueSeparator: null,
+      preserveBackslash: false}) {
     // Parse the string.
     var result = new _HeaderValue();
     result._parse(value, parameterSeparator, valueSeparator, preserveBackslash);
@@ -655,10 +654,8 @@ class _HeaderValue implements HeaderValue {
     return sb.toString();
   }
 
-  void _parse(String s,
-        String parameterSeparator,
-        String valueSeparator,
-        bool preserveBackslash) {
+  void _parse(String s, String parameterSeparator, String valueSeparator,
+      bool preserveBackslash) {
     int index = 0;
 
     bool done() => index == s.length;
@@ -763,7 +760,7 @@ class _HeaderValue implements HeaderValue {
         skipWS();
         if (done()) return;
         // TODO: Implement support for multi-valued parameters.
-        if(s[index] == valueSeparator) return;
+        if (s[index] == valueSeparator) return;
         expect(parameterSeparator);
       }
     }
@@ -777,16 +774,15 @@ class _HeaderValue implements HeaderValue {
   }
 }
 
-
 class _ContentType extends _HeaderValue implements ContentType {
   String _primaryType = "";
   String _subType = "";
 
-  _ContentType(String primaryType,
-               String subType,
-               String charset,
-               Map<String, String> parameters)
-      : _primaryType = primaryType, _subType = subType, super("") {
+  _ContentType(String primaryType, String subType, String charset,
+      Map<String, String> parameters)
+      : _primaryType = primaryType,
+        _subType = subType,
+        super("") {
     if (_primaryType == null) _primaryType = "";
     if (_subType == null) _subType = "";
     _value = "$_primaryType/$_subType";
@@ -831,7 +827,6 @@ class _ContentType extends _HeaderValue implements ContentType {
 
   String get charset => parameters["charset"];
 }
-
 
 class _Cookie implements Cookie {
   String name;
@@ -909,7 +904,7 @@ class _Cookie implements Cookie {
         String name = parseAttributeName();
         String value = "";
         if (!done() && s[index] == "=") {
-          index++;  // Skip the = character.
+          index++; // Skip the = character.
           value = parseAttributeValue();
         }
         if (name == "expires") {
@@ -925,7 +920,7 @@ class _Cookie implements Cookie {
         } else if (name == "secure") {
           secure = true;
         }
-        if (!done()) index++;  // Skip the ; character
+        if (!done()) index++; // Skip the ; character
       }
     }
 
@@ -933,11 +928,11 @@ class _Cookie implements Cookie {
     if (done() || name.length == 0) {
       throw new HttpException("Failed to parse header value [$s]");
     }
-    index++;  // Skip the = character.
+    index++; // Skip the = character.
     value = parseValue();
     _validate();
     if (done()) return;
-    index++;  // Skip the ; character.
+    index++; // Skip the ; character.
     parseAttributes();
   }
 
@@ -963,8 +958,24 @@ class _Cookie implements Cookie {
 
   void _validate() {
     const SEPERATORS = const [
-        "(", ")", "<", ">", "@", ",", ";", ":", "\\",
-        '"', "/", "[", "]", "?", "=", "{", "}"];
+      "(",
+      ")",
+      "<",
+      ">",
+      "@",
+      ",",
+      ";",
+      ":",
+      "\\",
+      '"',
+      "/",
+      "[",
+      "]",
+      "?",
+      "=",
+      "{",
+      "}"
+    ];
     for (int i = 0; i < name.length; i++) {
       int codeUnit = name.codeUnits[i];
       if (codeUnit <= 32 ||
@@ -977,10 +988,10 @@ class _Cookie implements Cookie {
     for (int i = 0; i < value.length; i++) {
       int codeUnit = value.codeUnits[i];
       if (!(codeUnit == 0x21 ||
-            (codeUnit >= 0x23 && codeUnit <= 0x2B) ||
-            (codeUnit >= 0x2D && codeUnit <= 0x3A) ||
-            (codeUnit >= 0x3C && codeUnit <= 0x5B) ||
-            (codeUnit >= 0x5D && codeUnit <= 0x7E))) {
+          (codeUnit >= 0x23 && codeUnit <= 0x2B) ||
+          (codeUnit >= 0x2D && codeUnit <= 0x3A) ||
+          (codeUnit >= 0x3C && codeUnit <= 0x5B) ||
+          (codeUnit >= 0x5D && codeUnit <= 0x7E))) {
         throw new FormatException(
             "Invalid character in cookie value, code unit: '$codeUnit'");
       }

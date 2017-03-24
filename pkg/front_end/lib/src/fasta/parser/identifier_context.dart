@@ -240,8 +240,9 @@ class IdentifierContext {
 
   /// Identifier is a reference to a named argument of a function or method
   /// invocation (e.g. `foo` in `f(foo: 0);`.
-  static const namedArgumentReference =
-      const IdentifierContext._('namedArgumentReference');
+  static const namedArgumentReference = const IdentifierContext._(
+      'namedArgumentReference',
+      allowedInConstantExpression: true);
 
   /// Identifier is a name being declared by a local variable declaration.
   static const localVariableDeclaration = const IdentifierContext._(
@@ -249,8 +250,8 @@ class IdentifierContext {
       inDeclaration: true);
 
   /// Identifier is a reference to a label (e.g. `foo` in `break foo;`).
-  static const labelReference =
-      const IdentifierContext._('labelReference', isScopeReference: true);
+  /// Labels have their own scope.
+  static const labelReference = const IdentifierContext._('labelReference');
 
   final String _name;
 
@@ -274,13 +275,24 @@ class IdentifierContext {
   /// Indicates whether built-in identifiers are allowed in this context.
   final bool isBuiltInIdentifierAllowed;
 
+  /// Indicated whether the identifier is allowed in a context where constant
+  /// expressions are required.
+  final bool allowedInConstantExpression;
+
   const IdentifierContext._(this._name,
       {this.inDeclaration: false,
       this.inLibraryOrPartOfDeclaration: false,
       this.inSymbol: false,
       this.isContinuation: false,
       this.isScopeReference: false,
-      this.isBuiltInIdentifierAllowed: true});
+      this.isBuiltInIdentifierAllowed: true,
+      bool allowedInConstantExpression})
+      : this.allowedInConstantExpression =
+            // Generally, declarations are legal in constant expressions.  A
+            // continuation doesn't affect constant expressions: if what it's
+            // continuing is a problem, it has already been reported.
+            allowedInConstantExpression ??
+                (inDeclaration || isContinuation || inSymbol);
 
   String toString() => _name;
 }

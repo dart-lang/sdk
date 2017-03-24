@@ -4,14 +4,11 @@
 
 library testing.test_dart;
 
-import 'dart:convert' show
-    JSON;
+import 'dart:convert' show JSON;
 
-import 'dart:io' show
-    Platform;
+import 'dart:io' show Platform;
 
-import 'suite.dart' show
-    Suite;
+import 'suite.dart' show Suite;
 
 /// A suite that runs test.dart.
 class TestDart extends Suite {
@@ -22,10 +19,12 @@ class TestDart extends Suite {
   final List<String> commandLines;
 
   TestDart(String name, this.common, this.processes, this.commandLines)
-      : super(name, "test_dart",
-          // This suite doesn't know what it's status file is because test.dart
-          // doesn't know.
-          null);
+      : super(
+            name,
+            "test_dart",
+            // This suite doesn't know what it's status file is because
+            // test.dart doesn't know.
+            null);
 
   factory TestDart.fromJsonMap(Uri base, Map json, String name, String kind) {
     String common = json["common"] ?? "";
@@ -52,8 +51,9 @@ class TestDart extends Suite {
       throw "Operating system not supported: ${Platform.operatingSystem}";
     }
     List<String> processedArguments = <String>[];
-    processedArguments.add(Uri.base.resolve(
-            "tools/testing/dart/package_testing_support.dart").toFilePath());
+    processedArguments.add(Uri.base
+        .resolve("tools/testing/dart/package_testing_support.dart")
+        .toFilePath());
     for (String commandLine in commandLines) {
       String arguments = common;
       arguments += " $processes";

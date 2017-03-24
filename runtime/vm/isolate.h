@@ -163,7 +163,6 @@ class Isolate : public BaseIsolate {
     // Internal message ids.
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
-    kVMRestartMsg = 12,     // Sent to isolates when vm is restarting.
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -530,7 +529,7 @@ class Isolate : public BaseIsolate {
     should_pause_post_service_request_ = should_pause_post_service_request;
   }
 
-  void PausePostRequest();
+  RawError* PausePostRequest();
 
   uword user_tag() const { return user_tag_; }
   static intptr_t user_tag_offset() { return OFFSET_OF(Isolate, user_tag_); }

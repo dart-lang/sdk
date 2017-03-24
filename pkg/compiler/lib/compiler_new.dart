@@ -33,7 +33,7 @@ abstract class CompilerInput {
   /// scanner is more efficient in this case. In either case, the data structure
   /// is expected to hold a zero element at the last position. If this is not
   /// the case, the entire data structure is copied before scanning.
-  Future/*<String | List<int>>*/ readFromUri(Uri uri);
+  Future /* <String | List<int>> */ readFromUri(Uri uri);
 }
 
 /// Output types used in `CompilerOutput.createOutputSink`.

@@ -8,18 +8,24 @@ import 'package:observatory/src/elements/nav/menu_item.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import '../../mocks.dart';
 
-main(){
+main() {
   NavVMMenuElement.tag.ensureRegistration();
 
   final mTag = '.nav-menu_label > a';
   final miTag = NavMenuItemElement.tag.name;
 
   EventRepositoryMock events;
-  final vm1 = const VMMock(name: 'vm-name-1', displayName: 'display-name-1',
+  final vm1 = const VMMock(
+      name: 'vm-name-1',
+      displayName: 'display-name-1',
       isolates: const [const IsolateRefMock(id: 'i-id-1', name: 'i-name-1')]);
-  final vm2 = const VMMock(name: 'vm-name-2', displayName: 'display-name-2',
-      isolates: const [const IsolateRefMock(id: 'i-id-1', name: 'i-name-1'),
-                       const IsolateRefMock(id: 'i-id-2', name: 'i-name-2')]);
+  final vm2 = const VMMock(
+      name: 'vm-name-2',
+      displayName: 'display-name-2',
+      isolates: const [
+        const IsolateRefMock(id: 'i-id-1', name: 'i-name-1'),
+        const IsolateRefMock(id: 'i-id-2', name: 'i-name-2')
+      ]);
   setUp(() {
     events = new EventRepositoryMock();
   });
@@ -53,13 +59,11 @@ main(){
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelectorAll(mTag).single.text, equals(vm1.displayName));
-      expect(e.querySelectorAll(miTag).length,
-          equals(vm1.isolates.length));
+      expect(e.querySelectorAll(miTag).length, equals(vm1.isolates.length));
       events.add(new VMUpdateEventMock(vm: vm2));
       await e.onRendered.first;
       expect(e.querySelectorAll(mTag).single.text, equals(vm2.displayName));
-      expect(e.querySelectorAll(miTag).length,
-          equals(vm2.isolates.length));
+      expect(e.querySelectorAll(miTag).length, equals(vm2.isolates.length));
       e.remove();
     });
   });

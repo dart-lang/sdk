@@ -100,7 +100,7 @@ Stream timedCounter(int maxCount) {
     controller.add(counter); // Ask stream to send counter values as event.
     if (counter >= maxCount) {
       timer.cancel();
-      controller.close();    // Ask stream to shut down and tell listeners.
+      controller.close(); //    Ask stream to shut down and tell listeners.
     }
   }
 

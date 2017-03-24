@@ -809,13 +809,6 @@ DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
 }
 
 
-DART_EXPORT bool Dart_IsVMRestartRequest(Dart_Handle handle) {
-  DARTSCOPE(Thread::Current());
-  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
-  return (obj.IsUnwindError() && UnwindError::Cast(obj).is_vm_restart());
-}
-
-
 DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
@@ -6686,6 +6679,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                             &image_writer, &image_writer);
 
   writer.WriteFullSnapshot();
+  image_writer.Finalize();
   *assembly_size = image_writer.AssemblySize();
 
   return Api::Success();

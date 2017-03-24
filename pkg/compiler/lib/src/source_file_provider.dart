@@ -88,7 +88,9 @@ abstract class SourceFileProvider implements CompilerInput {
 
   // TODO(johnniwinther): Remove this when no longer needed for the old compiler
   // API.
-  Future/*<List<int> | String>*/ call(Uri resourceUri) => throw "unimplemented";
+  Future /* <List<int> | String> */ call(Uri resourceUri) {
+    throw "unimplemented";
+  }
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
 

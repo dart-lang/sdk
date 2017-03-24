@@ -8,8 +8,8 @@
 // annotation had a syntax error.
 
 @Deprecated("m"
-,,                                /// 01: compile-time error
-)
+,, //                               //# 01: compile-time error
+    )
 class A {}
 
 main() => new A();

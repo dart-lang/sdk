@@ -10,7 +10,7 @@ import 'batch_util.dart';
 import 'util.dart';
 
 import 'package:args/args.dart';
-import 'package:kernel/analyzer/loader.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/application_root.dart';
 import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';

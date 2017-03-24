@@ -201,6 +201,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel});
@@ -230,6 +231,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName);
 
@@ -442,6 +444,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   List<TypeVariableBuilder> copyTypeVariables(
       List<TypeVariableBuilder> original);
+
+  @override
+  String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to

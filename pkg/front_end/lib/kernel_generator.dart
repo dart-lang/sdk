@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource;
 // TODO(sigmund): move loader logic under front_end/lib/src/kernel/
-import 'package:kernel/analyzer/loader.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/kernel.dart';
 import 'package:source_span/source_span.dart' show SourceSpan;
 

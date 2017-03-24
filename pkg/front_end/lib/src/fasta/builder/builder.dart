@@ -52,7 +52,11 @@ export 'mixed_accessor.dart' show MixedAccessor;
 
 export 'scope.dart' show AccessErrorBuilder;
 
+export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
+
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
+
+export 'void_type_builder.dart' show VoidTypeBuilder;
 
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 
@@ -158,15 +162,21 @@ abstract class Builder {
 
   bool get isTypeDeclaration => false;
 
+  bool get isTypeVariable => false;
+
   bool get isConstructor => false;
 
   bool get isFactory => false;
 
   bool get isLocal => false;
 
+  bool get isConst => false;
+
   get target => internalError("Unsupported operation $runtimeType.");
 
   bool get hasProblem => false;
+
+  String get fullNameForErrors;
 
   static Uri getUri(Builder builder) {
     if (builder == null) return internalError("Builder is null.");

@@ -2953,8 +2953,8 @@ void Assembler::StoreIntoObject(Register object,
     movq(RDX, object);
   }
   pushq(CODE_REG);
-  movq(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   movq(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  movq(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   call(TMP);
 
   popq(CODE_REG);

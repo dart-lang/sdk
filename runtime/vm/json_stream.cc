@@ -562,12 +562,6 @@ void JSONStream::PrintValue(Thread* thread) {
 }
 
 
-void JSONStream::PrintValue(Zone* zone) {
-  PrintCommaIfNeeded();
-  zone->PrintJSON(this);
-}
-
-
 void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
   PrintCommaIfNeeded();
   timeline_event->PrintJSON(this);
@@ -700,12 +694,6 @@ void JSONStream::PrintProperty(const char* name, ThreadRegistry* reg) {
 void JSONStream::PrintProperty(const char* name, Thread* thread) {
   PrintPropertyName(name);
   PrintValue(thread);
-}
-
-
-void JSONStream::PrintProperty(const char* name, Zone* zone) {
-  PrintPropertyName(name);
-  PrintValue(zone);
 }
 
 

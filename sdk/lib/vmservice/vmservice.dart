@@ -51,14 +51,14 @@ final Map<int, IsolateEmbedderData> isolateEmbedderData =
     new Map<int, IsolateEmbedderData>();
 
 // These must be kept in sync with the declarations in vm/json_stream.h.
-const kInvalidParams             = -32602;
-const kInternalError             = -32603;
-const kFeatureDisabled           = 100;
-const kStreamAlreadySubscribed   = 103;
-const kStreamNotSubscribed       = 104;
-const kFileSystemAlreadyExists   = 1001;
-const kFileSystemDoesNotExist    = 1002;
-const kFileDoesNotExist          = 1003;
+const kInvalidParams = -32602;
+const kInternalError = -32603;
+const kFeatureDisabled = 100;
+const kStreamAlreadySubscribed = 103;
+const kStreamNotSubscribed = 104;
+const kFileSystemAlreadyExists = 1001;
+const kFileSystemDoesNotExist = 1002;
+const kFileDoesNotExist = 1003;
 
 var _errorMessages = {
   kInvalidParams: 'Invalid params',
@@ -74,8 +74,8 @@ var _errorMessages = {
 String encodeRpcError(Message message, int code, {String details}) {
   var response = {
     'jsonrpc': '2.0',
-    'id' : message.serial,
-    'error' : {
+    'id': message.serial,
+    'error': {
       'code': code,
       'message': _errorMessages[code],
     },
@@ -89,29 +89,27 @@ String encodeRpcError(Message message, int code, {String details}) {
 }
 
 String encodeMissingParamError(Message message, String param) {
-  return encodeRpcError(
-      message, kInvalidParams,
+  return encodeRpcError(message, kInvalidParams,
       details: "${message.method} expects the '${param}' parameter");
 }
 
 String encodeInvalidParamError(Message message, String param) {
   var value = message.params[param];
-  return encodeRpcError(
-      message, kInvalidParams,
+  return encodeRpcError(message, kInvalidParams,
       details: "${message.method}: invalid '${param}' parameter: ${value}");
 }
 
 String encodeResult(Message message, Map result) {
   var response = {
     'jsonrpc': '2.0',
-    'id' : message.serial,
-    'result' : result,
+    'id': message.serial,
+    'result': result,
   };
   return JSON.encode(response);
 }
 
 String encodeSuccess(Message message) {
-  return encodeResult(message, { 'type': 'Success' });
+  return encodeResult(message, {'type': 'Success'});
 }
 
 const shortDelay = const Duration(milliseconds: 10);
@@ -141,7 +139,7 @@ typedef Future WriteStreamFileCallback(Uri path, Stream<List<int>> bytes);
 typedef Future<List<int>> ReadFileCallback(Uri path);
 
 /// Called to list all files under some path.
-typedef Future<List<Map<String,String>>> ListFilesCallback(Uri path);
+typedef Future<List<Map<String, String>>> ListFilesCallback(Uri path);
 
 /// Called when we need information about the server.
 typedef Future<Uri> ServerInformationCallback();
@@ -202,21 +200,18 @@ class VMService extends MessageRouter {
     }
   }
 
-  void _controlMessageHandler(int code,
-                              int portId,
-                              SendPort sp,
-                              String name) {
+  void _controlMessageHandler(int code, int portId, SendPort sp, String name) {
     switch (code) {
       case Constants.ISOLATE_STARTUP_MESSAGE_ID:
         runningIsolates.isolateStartup(portId, sp, name);
-      break;
+        break;
       case Constants.ISOLATE_SHUTDOWN_MESSAGE_ID:
         runningIsolates.isolateShutdown(portId, sp);
         IsolateEmbedderData ied = isolateEmbedderData.remove(portId);
         if (ied != null) {
           ied.cleanup();
         }
-      break;
+        break;
     }
   }
 
@@ -229,7 +224,7 @@ class VMService extends MessageRouter {
         }
         Uri uri = await VMServiceEmbedderHooks.webServerControl(enable);
         sp.send(uri);
-      break;
+        break;
       case Constants.SERVER_INFO_MESSAGE_ID:
         if (VMServiceEmbedderHooks.serverInformation == null) {
           sp.send(null);
@@ -237,7 +232,7 @@ class VMService extends MessageRouter {
         }
         Uri uri = await VMServiceEmbedderHooks.serverInformation();
         sp.send(uri);
-      break;
+        break;
     }
   }
 
@@ -283,7 +278,7 @@ class VMService extends MessageRouter {
       if (message.length == 3) {
         // This is a message interacting with the web server.
         assert((message[0] == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
-               (message[0] == Constants.SERVER_INFO_MESSAGE_ID));
+            (message[0] == Constants.SERVER_INFO_MESSAGE_ID));
         _serverMessageHandler(message[0], message[1], message[2]);
         return;
       }
@@ -297,8 +292,7 @@ class VMService extends MessageRouter {
     print('Internal vm-service error: ignoring illegal message: $message');
   }
 
-  VMService._internal()
-      : eventPort = isolateControlPort {
+  VMService._internal() : eventPort = isolateControlPort {
     eventPort.handler = messageHandler;
   }
 
@@ -328,9 +322,8 @@ class VMService extends MessageRouter {
     }
     if (!_isAnyClientSubscribed(streamId)) {
       if (!_vmListenStream(streamId)) {
-        return encodeRpcError(
-            message, kInvalidParams,
-            details:"streamListen: invalid 'streamId' parameter: ${streamId}");
+        return encodeRpcError(message, kInvalidParams,
+            details: "streamListen: invalid 'streamId' parameter: ${streamId}");
       }
     }
     client.streams.add(streamId);
@@ -369,8 +362,7 @@ class VMService extends MessageRouter {
       return encodeInvalidParamError(message, 'uri');
     }
     var args = message.params['args'];
-    if (args != null &&
-        args is! List<String>) {
+    if (args != null && args is! List<String>) {
       return encodeInvalidParamError(message, 'args');
     }
     var msg = message.params['message'];
@@ -398,26 +390,25 @@ class VMService extends MessageRouter {
   Future<String> _getCrashDump(Message message) async {
     var client = message.client;
     final perIsolateRequests = [
-        // ?isolateId=<isolate id> will be appended to each of these requests.
-        // Isolate information.
-        Uri.parse('getIsolate'),
-        // State of heap.
-        Uri.parse('_getAllocationProfile'),
-        // Call stack + local variables.
-        Uri.parse('getStack?_full=true'),
+      // ?isolateId=<isolate id> will be appended to each of these requests.
+      // Isolate information.
+      Uri.parse('getIsolate'),
+      // State of heap.
+      Uri.parse('_getAllocationProfile'),
+      // Call stack + local variables.
+      Uri.parse('getStack?_full=true'),
     ];
 
     // Snapshot of running isolates.
     var isolates = runningIsolates.isolates.values.toList();
 
     // Collect the mapping from request uris to responses.
-    var responses = {
-    };
+    var responses = {};
 
     // Request VM.
     var getVM = Uri.parse('getVM');
-    var getVmResponse = responseAsJson(
-        await new Message.fromUri(client, getVM).sendToVM());
+    var getVmResponse =
+        responseAsJson(await new Message.fromUri(client, getVM).sendToVM());
     responses[getVM.toString()] = getVmResponse['result'];
 
     // Request command line flags.

@@ -5,13 +5,11 @@
 // Check that all final instance fields of a class are initialized by
 // constructors.
 
-
 class Klass {
-  Klass(var v): field_ = v { }
-  final uninitializedFinalField_;  /// 01: static type warning
+  Klass(var v) : field_ = v {}
+  final uninitializedFinalField_; // //# 01: static type warning
   var field_;
 }
-
 
 main() {
   new Klass(5);

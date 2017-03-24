@@ -4,26 +4,25 @@
 
 import "package:expect/expect.dart";
 
-class M {
-}
+class M {}
 
 class P0 {
   foo() {
-    super.toString();    /// 01: compile-time error
-    super.foo();         /// 02: compile-time error
-    super.bar = 100;     /// 03: compile-time error
+    super.toString(); //   //# 01: compile-time error
+    super.foo(); //        //# 02: compile-time error
+    super.bar = 100; //    //# 03: compile-time error
 
     void inner() {
-      super.toString();  /// 04: compile-time error
-      super.foo();       /// 05: compile-time error
-      super.bar = 100;   /// 06: compile-time error
+      super.toString(); // //# 04: compile-time error
+      super.foo(); //      //# 05: compile-time error
+      super.bar = 100; //  //# 06: compile-time error
     }
     inner();
 
     (() {
-      super.toString();  /// 07: compile-time error
-      super.foo();       /// 08: compile-time error
-      super.bar = 100;   /// 09: compile-time error
+      super.toString(); // //# 07: compile-time error
+      super.foo(); //      //# 08: compile-time error
+      super.bar = 100; //  //# 09: compile-time error
     })();
 
     return 42;
@@ -32,7 +31,7 @@ class P0 {
 
 class P1 {
   bar() {
-    super.toString();    /// 10: compile-time error
+    super.toString(); //   //# 10: compile-time error
     return 87;
   }
 
@@ -52,7 +51,7 @@ class P1 {
 
 class P2 {
   baz() {
-    super.toString();   /// 11: compile-time error
+    super.toString(); //  //# 11: compile-time error
     return 99;
   }
 }

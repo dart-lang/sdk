@@ -314,8 +314,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
     }
     case Isolate::kKillMsg:
-    case Isolate::kInternalKillMsg:
-    case Isolate::kVMRestartMsg: {
+    case Isolate::kInternalKillMsg: {
       // [ OOB, kKillMsg, terminate capability, priority ]
       if (message.Length() != 4) return Error::null();
       Object& obj = Object::Handle(zone, message.At(3));
@@ -336,16 +335,6 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
             const String& msg =
                 String::Handle(String::New("isolate terminated by vm"));
             return UnwindError::New(msg);
-          } else if (msg_type == Isolate::kVMRestartMsg) {
-            // If this is the main isolate, this request to restart
-            // will be caught and handled in the embedder.  Otherwise
-            // this unwind error will cause the isolate to exit.
-            const String& msg = String::Handle(
-                String::New("isolate terminated for vm restart"));
-            const UnwindError& error =
-                UnwindError::Handle(UnwindError::New(msg));
-            error.set_is_vm_restart(true);
-            return error.raw();
           } else {
             UNREACHABLE();
           }
@@ -531,7 +520,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
           switch (Smi::Cast(oob_tag).Value()) {
             case Message::kServiceOOBMsg: {
               if (FLAG_support_service) {
-                Service::HandleIsolateMessage(I, oob_msg);
+                const Error& error =
+                    Error::Handle(Service::HandleIsolateMessage(I, oob_msg));
+                if (!error.IsNull()) {
+                  status = ProcessUnhandledException(error);
+                }
               } else {
                 UNREACHABLE();
               }
@@ -650,11 +643,7 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
   if (error.IsUnwindError()) {
     const UnwindError& unwind = UnwindError::Cast(error);
     if (!unwind.is_user_initiated()) {
-      if (unwind.is_vm_restart()) {
-        return MessageHandler::kRestart;
-      } else {
-        return MessageHandler::kShutdown;
-      }
+      return MessageHandler::kShutdown;
     }
   }
   return MessageHandler::kError;
@@ -1033,18 +1022,24 @@ bool Isolate::IsPaused() const {
 }
 
 
-void Isolate::PausePostRequest() {
+RawError* Isolate::PausePostRequest() {
   if (!FLAG_support_debugger) {
-    return;
+    return Error::null();
   }
   if (debugger_ == NULL) {
-    return;
+    return Error::null();
   }
   ASSERT(!IsPaused());
   const Error& error = Error::Handle(debugger_->PausePostRequest());
   if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
+    if (Thread::Current()->top_exit_frame_info() == 0) {
+      return error.raw();
+    } else {
+      Exceptions::PropagateError(error);
+      UNREACHABLE();
+    }
   }
+  return Error::null();
 }
 
 

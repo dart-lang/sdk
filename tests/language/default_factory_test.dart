@@ -7,29 +7,29 @@ import "package:expect/expect.dart";
 // Dart test program for testing default factories.
 
 abstract class Vehicle {
-  factory Vehicle() = GoogleOne.Vehicle; /// 01: static type warning
+  factory Vehicle() = GoogleOne.Vehicle; //# 01: static type warning
 }
-
 
 class Bike implements Vehicle, GoogleOne {
   Bike.redOne() {}
 }
 
-
 abstract class SpaceShip {
   factory SpaceShip() = GoogleOne;
 }
 
-
 class GoogleOne implements SpaceShip {
   GoogleOne.internal_() {}
-  factory GoogleOne() { return new GoogleOne.internal_(); }
-  factory GoogleOne.Vehicle() { return new Bike.redOne(); }
+  factory GoogleOne() {
+    return new GoogleOne.internal_();
+  }
+  factory GoogleOne.Vehicle() {
+    return new Bike.redOne();
+  }
 }
-
 
 main() {
   Expect.equals(true, (new Bike.redOne()) is Bike);
   Expect.equals(true, (new SpaceShip()) is GoogleOne);
-  Expect.equals(true, (new Vehicle()) is Bike); /// 01: continued
+  Expect.equals(true, (new Vehicle()) is Bike); //# 01: continued
 }

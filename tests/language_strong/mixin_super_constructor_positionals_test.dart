@@ -6,11 +6,12 @@ import "package:expect/expect.dart";
 
 class Base {
   int i, j;
-  Base.ctor(int this.i,
-            [                  /// 01: compile-time error
-            int this.j
-            ]                  /// 01: continued
-           );
+  Base.ctor(
+      int this.i,
+            [ //                 //# 01: compile-time error
+      int this.j
+            ] //                 //# 01: continued
+      );
 }
 
 abstract class M {
@@ -23,7 +24,7 @@ abstract class M {
 class C extends Base with M {
   int l = 131;
   C.foo() : super.ctor(1, 13);
-  C.bar() : super.ctor(1);     /// 01: continued
+  C.bar() : super.ctor(1); //    //# 01: continued
 }
 
 main() {
@@ -33,5 +34,5 @@ main() {
   Expect.equals(14, c1.foo());
   Expect.equals(42, c1.k);
   Expect.equals(131, c1.l);
-  C c2 = new C.bar();          /// 01: continued
+  C c2 = new C.bar(); //         //# 01: continued
 }

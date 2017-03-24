@@ -9,7 +9,7 @@ import 'dart:mirrors';
 main() {
   var cls = reflectClass(List);
   Expect.throws(() => cls.newInstance(const Symbol(''), [null]),
-                (e) => e is ArgumentError);
+      (e) => e is ArgumentError);
 
   var list = cls.newInstance(const Symbol(''), [42]).reflectee;
   // Check that the list is fixed.
@@ -18,7 +18,7 @@ main() {
   list[0] = 1;
   Expect.equals(1, list[0]);
 
-  testGrowableList(); /// 01: ok
+  testGrowableList(); //# 01: ok
 }
 
 testGrowableList() {

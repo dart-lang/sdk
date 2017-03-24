@@ -6,16 +6,21 @@ import "package:expect/expect.dart";
 
 // Regression test for recursive inheritance patterns
 abstract class Comparable<T> {
-  int compare(T a);
+  int compareTo(T a);
 }
-class MI<T extends MI<T>> {
-}
+class MI<T extends MI<T>> {}
+
+class _MI extends MI<_MI> {}
 
 class PMI<T extends Comparable<T>> extends MI<PMI<T>> {}
 
+class _PMI extends PMI<_PMI> implements Comparable<_PMI> {
+  int compareTo(_PMI other) => throw new UnimplementedError();
+}
+
 void main() {
-  var a = new MI();
-  var b = new PMI();
+  MI a = new MI<_MI>();
+  PMI b = new PMI<_PMI>();
   a = b;
   Expect.isTrue(a is MI);
   Expect.isTrue(b is PMI);

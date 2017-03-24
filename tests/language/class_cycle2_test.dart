@@ -8,11 +8,11 @@ class C extends B {}
 class A extends B {}
 
 class B
-  extends A  /// 01: compile-time error
-  extends A  /// 02: compile-time error
+  extends A // //# 01: compile-time error
+  extends A // //# 02: compile-time error
 {}
 
 main() {
-  new C();  /// 01: continued
-  new List<C>();  /// 02: continued
+  new C(); // //# 01: continued
+  new List<C>(); // //# 02: continued
 }

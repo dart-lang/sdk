@@ -14,15 +14,15 @@ isCheckedMode() {
   }
 }
 
-class A<T extends num> { }
+class A<T extends num> {}
 
 class B<T> {
   test() {
-    new A() is A<T>;  /// static type warning
+    new A() is A<T>; // //# static type warning
   }
 }
 
-main () {
+main() {
   var b = new B<String>();
   if (isCheckedMode()) {
     Expect.throws(() => b.test(), (e) => e is TypeError);

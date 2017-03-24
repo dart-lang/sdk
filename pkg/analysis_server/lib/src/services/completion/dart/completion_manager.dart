@@ -7,6 +7,7 @@ library services.completion.dart.manager;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -115,6 +116,9 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final AnalysisContext context;
 
   @override
+  IdeOptions ideOptions;
+
+  @override
   final Source source;
 
   @override
@@ -173,7 +177,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.offset,
       CompilationUnit unit,
       this._originalRequest,
-      this.performance) {
+      this.performance,
+      this.ideOptions) {
     _updateTargets(unit);
   }
 
@@ -446,7 +451,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         request.offset,
         unit,
         request,
-        performance);
+        performance,
+        request.ideOptions);
 
     // Resolve the expression in which the completion occurs
     // to properly determine if identifiers should be suggested

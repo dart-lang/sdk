@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  for(
-      const                           /// 01: compile-time error
-      final                           /// 02: ok
+  for (
+      const //                          //# 01: compile-time error
+      final //                          //# 02: ok
       int x in const [1, 2, 3]) {
     break;
   }

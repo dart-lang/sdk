@@ -6,10 +6,10 @@ import 'package:expect/expect.dart';
 
 class Class {
   static set o(_) {}
-  m() => o; /// 01: static type warning
+  m() => o; //# 01: static type warning
   noSuchMethod(_) => 42;
 }
 
 main() {
-  Expect.throws(() => new Class().m()); /// 01: continued
+  Expect.throws(() => new Class().m()); //# 01: continued
 }

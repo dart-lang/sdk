@@ -100,12 +100,12 @@ main() {
   // string_trimlr_test/01 fails on these engines.
   // Should be fixed in tip-of-tree V8 per 2014-02-10.
   var s200B = new String.fromCharCode(0x200B);
-  Expect.identical(s200B, s200B.trimLeft());     /// 01: ok
-  Expect.identical(s200B, s200B.trimRight());    /// 01: ok
+  Expect.identical(s200B, s200B.trimLeft()); //    //# 01: ok
+  Expect.identical(s200B, s200B.trimRight()); //   //# 01: ok
 
   // U+180E ceased to be whitespace in Unicode version 6.3.0
   // string_trimlr_test/02 fails on implementations using earlier versions.
   var s180E = new String.fromCharCode(0x180E);
-  Expect.identical(s180E, s180E.trimLeft());     /// 02: ok
-  Expect.identical(s180E, s180E.trimRight());    /// 02: ok
+  Expect.identical(s180E, s180E.trimLeft()); //    //# 02: ok
+  Expect.identical(s180E, s180E.trimRight()); //   //# 02: ok
 }

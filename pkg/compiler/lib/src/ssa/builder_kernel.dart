@@ -153,28 +153,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     this.localsHandler = new LocalsHandler(this, targetElement, null, compiler);
     this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
-    Element originTarget = targetElement;
-    if (originTarget.isPatch) {
-      originTarget = originTarget.origin;
-    }
-    if (originTarget is FunctionElement) {
-      if (originTarget is ConstructorBodyElement) {
-        ConstructorBodyElement body = originTarget;
-        _targetIsConstructorBody = true;
-        originTarget = body.constructor;
-      }
-      target = kernel.functions[originTarget];
-      // Closures require a lookup one level deeper in the closure class mapper.
-      if (target == null) {
-        FunctionElement originTargetFunction = originTarget;
-        ClosureClassMap classMap = compiler.closureToClassMapper
-            .getClosureToClassMapping(originTargetFunction.resolvedAst);
-        if (classMap.closureElement != null) {
-          target = kernel.localFunctions[classMap.closureElement];
-        }
-      }
-    } else if (originTarget is FieldElement) {
-      target = kernel.fields[originTarget];
+    target = astAdapter.getInitialKernelNode(targetElement);
+    if (targetElement is ConstructorBodyElement) {
+      _targetIsConstructorBody = true;
     }
   }
 
@@ -866,7 +847,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator;
     //   while ($iter.moveNext()) {
-    //     <declaredIdentifier> = $iter.current;
+    //     <variable> = $iter.current;
     //     <body>
     //   }
 

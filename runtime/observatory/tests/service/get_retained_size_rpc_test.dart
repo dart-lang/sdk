@@ -29,8 +29,7 @@ eval(Isolate isolate, String expression) async {
 var tests = [
   (Isolate isolate) async {
     // One instance of _TestClass retained.
-    var evalResult = await eval(
-        isolate, 'myVar = new _TestClass(null, null)');
+    var evalResult = await eval(isolate, 'myVar = new _TestClass(null, null)');
     var params = {
       'targetId': evalResult['id'],
     };

@@ -28,6 +28,8 @@ class Zone::Segment {
   // Allocate or delete individual segments.
   static Segment* New(intptr_t size, Segment* next);
   static void DeleteSegmentList(Segment* segment);
+  static void IncrementMemoryCapacity(uintptr_t size);
+  static void DecrementMemoryCapacity(uintptr_t size);
 
  private:
   Segment* next_;
@@ -40,27 +42,6 @@ class Zone::Segment {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Segment);
 };
-
-
-void Zone::Segment::DeleteSegmentList(Segment* head) {
-  Segment* current = head;
-  Thread* current_thread = Thread::Current();
-  while (current != NULL) {
-    if (current_thread != NULL) {
-      current_thread->DecrementMemoryUsage(current->size());
-    } else if (ApiNativeScope::Current() != NULL) {
-      // If there is no current thread, we might be inside of a native scope.
-      ApiNativeScope::DecrementNativeScopeMemoryUsage(current->size());
-    }
-    Segment* next = current->next();
-#ifdef DEBUG
-    // Zap the entire current segment (including the header).
-    memset(current, kZapDeletedByte, current->size());
-#endif
-    Segment::Delete(current);
-    current = next;
-  }
-}
 
 
 Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
@@ -76,15 +57,47 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 #endif
   result->next_ = next;
   result->size_ = size;
-  Thread* current = Thread::Current();
-  if (current != NULL) {
-    current->IncrementMemoryUsage(size);
-  } else if (ApiNativeScope::Current() != NULL) {
-    // If there is no current thread, we might be inside of a native scope.
-    ApiNativeScope::IncrementNativeScopeMemoryUsage(size);
-  }
+  IncrementMemoryCapacity(size);
   return result;
 }
+
+
+void Zone::Segment::DeleteSegmentList(Segment* head) {
+  Segment* current = head;
+  while (current != NULL) {
+    DecrementMemoryCapacity(current->size());
+    Segment* next = current->next();
+#ifdef DEBUG
+    // Zap the entire current segment (including the header).
+    memset(current, kZapDeletedByte, current->size());
+#endif
+    Segment::Delete(current);
+    current = next;
+  }
+}
+
+
+void Zone::Segment::IncrementMemoryCapacity(uintptr_t size) {
+  Thread* current_thread = Thread::Current();
+  if (current_thread != NULL) {
+    current_thread->IncrementMemoryCapacity(size);
+  } else if (ApiNativeScope::Current() != NULL) {
+    // If there is no current thread, we might be inside of a native scope.
+    ApiNativeScope::IncrementNativeScopeMemoryCapacity(size);
+  }
+}
+
+
+void Zone::Segment::DecrementMemoryCapacity(uintptr_t size) {
+  Thread* current_thread = Thread::Current();
+  if (current_thread != NULL) {
+    current_thread->DecrementMemoryCapacity(size);
+  } else if (ApiNativeScope::Current() != NULL) {
+    // If there is no current thread, we might be inside of a native scope.
+    ApiNativeScope::DecrementNativeScopeMemoryCapacity(size);
+  }
+}
+
 
 // TODO(bkonyi): We need to account for the initial chunk size when a new zone
 // is created within a new thread or ApiNativeScope when calculating high
@@ -98,10 +111,7 @@ Zone::Zone()
       handles_(),
       previous_(NULL) {
   ASSERT(Utils::IsAligned(position_, kAlignment));
-  Thread* current = Thread::Current();
-  if (current != NULL) {
-    current->IncrementMemoryUsage(kInitialChunkSize);
-  }
+  Segment::IncrementMemoryCapacity(kInitialChunkSize);
 #ifdef DEBUG
   // Zap the entire initial buffer.
   memset(initial_buffer_.pointer(), kZapUninitializedByte,
@@ -114,11 +124,8 @@ Zone::~Zone() {
   if (FLAG_trace_zones) {
     DumpZoneSizes();
   }
-  Thread* current = Thread::Current();
-  if (current != NULL) {
-    current->DecrementMemoryUsage(kInitialChunkSize);
-  }
   DeleteAll();
+  Segment::DecrementMemoryCapacity(kInitialChunkSize);
 }
 
 
@@ -144,8 +151,8 @@ void Zone::DeleteAll() {
 }
 
 
-intptr_t Zone::SizeInBytes() const {
-  intptr_t size = 0;
+uintptr_t Zone::SizeInBytes() const {
+  uintptr_t size = 0;
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
     size += s->size();
   }
@@ -160,8 +167,8 @@ intptr_t Zone::SizeInBytes() const {
 }
 
 
-intptr_t Zone::CapacityInBytes() const {
-  intptr_t size = 0;
+uintptr_t Zone::CapacityInBytes() const {
+  uintptr_t size = 0;
   for (Segment* s = large_segments_; s != NULL; s = s->next()) {
     size += s->size();
   }
@@ -298,19 +305,6 @@ char* Zone::PrintToString(const char* format, ...) {
 char* Zone::VPrint(const char* format, va_list args) {
   return OS::VSCreate(this, format, args);
 }
-
-
-#ifndef PRODUCT
-// TODO(bkonyi): Currently dead code. See issue #28885.
-void Zone::PrintJSON(JSONStream* stream) const {
-  JSONObject jsobj(stream);
-  intptr_t capacity = CapacityInBytes();
-  intptr_t used_size = SizeInBytes();
-  jsobj.AddProperty("type", "_Zone");
-  jsobj.AddProperty("capacity", capacity);
-  jsobj.AddProperty("used", used_size);
-}
-#endif
 
 
 StackZone::StackZone(Thread* thread) : StackResource(thread), zone_() {

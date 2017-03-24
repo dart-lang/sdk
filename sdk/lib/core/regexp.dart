@@ -40,8 +40,8 @@ abstract class RegExp implements Pattern {
    * Throws a [FormatException] if [source] is not valid regular
    * expression syntax.
    */
-  external factory RegExp(String source, {bool multiLine: false,
-                                          bool caseSensitive: true});
+  external factory RegExp(String source,
+      {bool multiLine: false, bool caseSensitive: true});
 
   /**
    * Searches for the first match of the regular expression

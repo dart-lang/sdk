@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 class A {
   toString() {
     if (false
-          || true  /// 01: runtime error
+          || true // //# 01: runtime error
         ) {
       return 499;
     } else {
@@ -25,6 +25,7 @@ void interceptedPrint(self, parent, zone, message) {
 }
 
 main() {
-  runZoned(() { print(new A()); },
-           zoneSpecification: new ZoneSpecification(print: interceptedPrint));
+  runZoned(() {
+    print(new A());
+  }, zoneSpecification: new ZoneSpecification(print: interceptedPrint));
 }

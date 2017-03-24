@@ -12,17 +12,17 @@ import 'service_test_common.dart';
 
 const int LINE_A = 20;
 
-foo() async { }
-bar() { }
+foo() async {}
+bar() {}
 
 doAsync(stop) async {
   if (stop) debugger();
   await foo(); // Line A.
-  bar();       // Line A + 1.
-  bar();       // Line A + 2.
+  bar(); // Line A + 1.
+  bar(); // Line A + 2.
   await foo(); // Line A + 3.
   await foo(); // Line A + 4.
-  bar();       // Line A + 5.
+  bar(); // Line A + 5.
   return null;
 }
 
@@ -59,7 +59,7 @@ smartNext(Isolate isolate) async {
 }
 
 var tests = [
-             hasStoppedAtBreakpoint, stoppedAtLine(LINE_A), // foo()
+  hasStoppedAtBreakpoint, stoppedAtLine(LINE_A), // foo()
   smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A), // await
   smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 1), // bar()
   smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 2), // bar()

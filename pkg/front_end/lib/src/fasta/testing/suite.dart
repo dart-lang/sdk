@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 
 import 'package:kernel/ast.dart' show Library, Program;
 
-import 'package:kernel/analyzer/loader.dart' show DartLoader;
+import 'package:analyzer/src/kernel/loader.dart' show DartLoader;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 

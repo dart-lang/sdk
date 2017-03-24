@@ -51,7 +51,7 @@ class AsciiCodec extends Encoding {
    * If [allowInvalid] is not provided, it defaults to the value used to create
    * this [AsciiCodec].
    */
-  String decode(List<int> bytes, { bool allowInvalid }) {
+  String decode(List<int> bytes, {bool allowInvalid}) {
     if (allowInvalid == null) allowInvalid = _allowInvalid;
     if (allowInvalid) {
       return const AsciiDecoder(allowInvalid: true).convert(bytes);
@@ -62,16 +62,15 @@ class AsciiCodec extends Encoding {
 
   AsciiEncoder get encoder => const AsciiEncoder();
 
-  AsciiDecoder get decoder =>
-      _allowInvalid ? const AsciiDecoder(allowInvalid: true)
-                    : const AsciiDecoder(allowInvalid: false);
+  AsciiDecoder get decoder => _allowInvalid
+      ? const AsciiDecoder(allowInvalid: true)
+      : const AsciiDecoder(allowInvalid: false);
 }
 
 // Superclass for [AsciiEncoder] and [Latin1Encoder].
 // Generalizes common operations that only differ by a mask;
 class _UnicodeSubsetEncoder extends Converter<String, List<int>>
     implements ChunkedConverter<String, List<int>, String, List<int>> {
-
   final int _subsetMask;
 
   const _UnicodeSubsetEncoder(this._subsetMask);
@@ -158,7 +157,6 @@ class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
  */
 abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String>
     implements ChunkedConverter<List<int>, String, List<int>, String> {
-
   final bool _allowInvalid;
   final int _subsetMask;
 
@@ -271,7 +269,7 @@ class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
       if ((source[i] & ~_ASCII_MASK) != 0) {
         if (i > start) _utf8Sink.addSlice(source, start, i, false);
         // Add UTF-8 encoding of U+FFFD.
-        _utf8Sink.add(const<int>[0xEF, 0xBF, 0xBD]);
+        _utf8Sink.add(const <int>[0xEF, 0xBF, 0xBD]);
         start = i + 1;
       }
     }

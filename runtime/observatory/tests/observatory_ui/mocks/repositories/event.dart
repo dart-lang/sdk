@@ -39,7 +39,8 @@ class EventRepositoryMock implements M.EventRepository {
   get onIsolateUpdate => _onIsolateUpdate.stream;
   get onIsolateUpdateHasListener => _onIsolateUpdate.hasListener;
 
-  final _onIsolateReload = new StreamController<M.IsolateReloadEvent>.broadcast();
+  final _onIsolateReload =
+      new StreamController<M.IsolateReloadEvent>.broadcast();
   get onIsolateReload => _onIsolateReload.stream;
   get onIsolateReloadHasListener => _onIsolateReload.hasListener;
 
@@ -86,7 +87,7 @@ class EventRepositoryMock implements M.EventRepository {
   get onBreakpointAddedHasListener => _onBreakpointAdded.hasListener;
 
   final _onBreakpointResolved =
-    new StreamController<M.BreakpointResolvedEvent>.broadcast();
+      new StreamController<M.BreakpointResolvedEvent>.broadcast();
   get onBreakpointResolved => _onBreakpointResolved.stream;
   get onBreakpointResolvedHasListener => _onBreakpointResolved.hasListener;
 

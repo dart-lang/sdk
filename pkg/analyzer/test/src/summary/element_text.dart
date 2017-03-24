@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
 
 /**
@@ -53,8 +54,13 @@ void applyCheckElementTextReplacements() {
  * actual text with the given [expected] one.
  */
 void checkElementText(LibraryElement library, String expected,
-    {bool withOffsets: false}) {
-  var writer = new _ElementWriter(withOffsets: withOffsets);
+    {bool withOffsets: false,
+    bool withSyntheticAccessors: false,
+    bool withSyntheticFields: false}) {
+  var writer = new _ElementWriter(
+      withOffsets: withOffsets,
+      withSyntheticAccessors: withSyntheticAccessors,
+      withSyntheticFields: withSyntheticFields);
   writer.writeLibraryElement(library);
 
   String actualText = writer.buffer.toString();
@@ -117,14 +123,21 @@ void checkElementText(LibraryElement library, String expected,
 class _ElementWriter {
   final bool withOffsets;
   final bool withConstElements;
+  final bool withSyntheticAccessors;
+  final bool withSyntheticFields;
   final StringBuffer buffer = new StringBuffer();
 
-  _ElementWriter({this.withOffsets: false, this.withConstElements: true});
+  _ElementWriter(
+      {this.withOffsets: false,
+      this.withConstElements: true,
+      this.withSyntheticAccessors,
+      this.withSyntheticFields: false});
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
-  bool isEnumElement(Element e) {
-    return e is ClassElement && e.isEnum;
+  bool isEnumField(Element e) {
+    Element enclosing = e.enclosingElement;
+    return enclosing is ClassElement && enclosing.isEnum;
   }
 
   void newLineIfNotEmpty() {
@@ -175,7 +188,7 @@ class _ElementWriter {
 
     buffer.writeln(' {');
 
-    e.fields.forEach(writeFieldElement);
+    e.fields.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
 
     if (e.isEnum) {
@@ -410,22 +423,6 @@ class _ElementWriter {
     }
   }
 
-  void writeFieldElement(FieldElement e) {
-    if (e.isSynthetic && !isEnumElement(e.enclosingElement)) {
-      return;
-    }
-
-    writeDocumentation(e, '  ');
-    writeMetadata(e, '  ', '\n');
-
-    buffer.write('  ');
-
-    writeIf(e.isStatic, 'static ');
-    writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
-
-    writePropertyInducingElement(e);
-  }
-
   void writeFunctionElement(FunctionElement e) {
     writeIf(e.isExternal, 'external ');
 
@@ -602,6 +599,8 @@ class _ElementWriter {
 
     writeName(e);
 
+    writeVariableTypeInferenceError(e);
+
     if (defaultValue != null) {
       buffer.write(defaultValueSeparator);
       writeExpression(defaultValue);
@@ -623,7 +622,7 @@ class _ElementWriter {
   }
 
   void writePropertyAccessorElement(PropertyAccessorElement e) {
-    if (e.isSynthetic) {
+    if (e.isSynthetic && !withSyntheticAccessors) {
       return;
     }
 
@@ -633,10 +632,12 @@ class _ElementWriter {
 
       buffer.write('  ');
 
+      writeIf(e.isSynthetic, 'synthetic ');
       writeIf(e.isStatic, 'static ');
     } else {
       writeDocumentation(e);
       writeMetadata(e, '', '\n');
+      writeIf(e.isSynthetic, 'synthetic ');
     }
 
     writeIf(e.isExternal, 'external ');
@@ -669,14 +670,34 @@ class _ElementWriter {
   }
 
   void writePropertyInducingElement(PropertyInducingElement e) {
+    if (e.isSynthetic && !withSyntheticFields && !isEnumField(e)) {
+      return;
+    }
+
     DartType type = e.type;
     expect(type, isNotNull);
+
+    if (e.enclosingElement is ClassElement) {
+      writeDocumentation(e, '  ');
+      writeMetadata(e, '  ', '\n');
+
+      buffer.write('  ');
+
+      writeIf(e.isSynthetic, 'synthetic ');
+      writeIf(e.isStatic, 'static ');
+      writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
+    } else {
+      writeDocumentation(e);
+      writeMetadata(e, '', '\n');
+    }
 
     writeIf(e.isFinal, 'final ');
     writeIf(e.isConst, 'const ');
     writeType2(type);
 
     writeName(e);
+
+    writeVariableTypeInferenceError(e);
 
     if (e is ConstVariableElement) {
       Expression initializer = (e as ConstVariableElement).constantInitializer;
@@ -691,15 +712,6 @@ class _ElementWriter {
     // initializer.  Can we write that out (along with its return type)?
 
     buffer.writeln(';');
-  }
-
-  void writeTopLevelVariableElement(TopLevelVariableElement e) {
-    if (e.isSynthetic) {
-      return;
-    }
-    writeDocumentation(e);
-    writeMetadata(e, '', '\n');
-    writePropertyInducingElement(e);
   }
 
   void writeType(DartType type) {
@@ -739,7 +751,7 @@ class _ElementWriter {
     e.functionTypeAliases.forEach(writeFunctionTypeAliasElement);
     e.enums.forEach(writeClassElement);
     e.types.forEach(writeClassElement);
-    e.topLevelVariables.forEach(writeTopLevelVariableElement);
+    e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);
   }
@@ -752,6 +764,19 @@ class _ElementWriter {
       buffer.write('${e.uriOffset}, ');
       buffer.write('${e.uriEnd})');
       buffer.write(')');
+    }
+  }
+
+  void writeVariableTypeInferenceError(VariableElement e) {
+    if (e is VariableElementImpl) {
+      TopLevelInferenceError inferenceError = e.typeInferenceError;
+      if (inferenceError != null) {
+        String kindName = inferenceError.kind.toString();
+        if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
+          kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
+        }
+        buffer.write('/*error: $kindName*/');
+      }
     }
   }
 

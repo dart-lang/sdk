@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
+
 // NOTE: Do not import 'dart:io' in builtin.
 import 'dart:async';
 import 'dart:collection';
@@ -14,36 +15,29 @@ import 'dart:typed_data';
 // command line.
 bool _traceLoading = false;
 
-
 // Before handling an embedder entrypoint we finalize the setup of the
 // dart:_builtin library.
 bool _setupCompleted = false;
-
 
 // The root library (aka the script) is imported into this library. The
 // standalone embedder uses this to lookup the main entrypoint in the
 // root library's namespace.
 Function _getMainClosure() => main;
 
-
 // 'print' implementation.
 // The standalone embedder registers the closurized _print function with the
 // dart:core library.
 void _printString(String s) native "Builtin_PrintString";
 
-
 void _print(arg) {
   _printString(arg.toString());
 }
 
-
 _getPrintClosure() => _print;
-
 
 // Corelib 'Uri.base' implementation.
 // Uri.base is susceptible to changes in the current working directory.
 _getCurrentDirectoryPath() native "Builtin_GetCurrentDirectory";
-
 
 Uri _uriBase() {
   // We are not using Dircetory.current here to limit the dependency
@@ -52,7 +46,6 @@ Uri _uriBase() {
   var path = _getCurrentDirectoryPath();
   return new Uri.directory(path);
 }
-
 
 _getUriBaseClosure() => _uriBase;
 
@@ -68,11 +61,11 @@ int _isolateId;
 // Requests made to the service isolate over the load port.
 
 // Extra requests. Keep these in sync between loader.dart and builtin.dart.
-const _Dart_kInitLoader = 4;           // Initialize the loader.
-const _Dart_kResourceLoad = 5;         // Resource class support.
-const _Dart_kGetPackageRootUri = 6;    // Uri of the packages/ directory.
-const _Dart_kGetPackageConfigUri = 7;  // Uri of the .packages file.
-const _Dart_kResolvePackageUri = 8;    // Resolve a package: uri.
+const _Dart_kInitLoader = 4; // Initialize the loader.
+const _Dart_kResourceLoad = 5; // Resource class support.
+const _Dart_kGetPackageRootUri = 6; // Uri of the packages/ directory.
+const _Dart_kGetPackageConfigUri = 7; // Uri of the .packages file.
+const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
 // Make a request to the loader. Future will complete with result which is
 // either a Uri or a List<int>.
@@ -89,7 +82,6 @@ Future _makeLoaderRequest(int tag, String uri) {
   _loadPort.send([_traceLoading, _isolateId, tag, port.sendPort, uri]);
   return completer.future;
 }
-
 
 // The current working directory when the embedder was launched.
 Uri _workingDirectory;
@@ -301,20 +293,20 @@ String _filePathFromUri(String userUri) {
   switch (uri.scheme) {
     case '':
     case 'file':
-    return uri.toFilePath();
+      return uri.toFilePath();
     case 'package':
-    return _filePathFromUri(_resolvePackageUri(uri).toString());
+      return _filePathFromUri(_resolvePackageUri(uri).toString());
     case 'data':
     case 'http':
     case 'https':
-    return uri.toString();
+      return uri.toString();
     default:
-    // Only handling file, http, and package URIs
-    // in standalone binary.
-    if (_traceLoading) {
-      _log('Unknown scheme (${uri.scheme}) in $uri.');
-    }
-    throw 'Not a known scheme: $uri';
+      // Only handling file, http, and package URIs
+      // in standalone binary.
+      if (_traceLoading) {
+        _log('Unknown scheme (${uri.scheme}) in $uri.');
+      }
+      throw 'Not a known scheme: $uri';
   }
 }
 
@@ -380,8 +372,8 @@ Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
     // Return the incoming parameter if not passed a package: URI.
     return packageUri;
   }
-  var result = await _makeLoaderRequest(_Dart_kResolvePackageUri,
-                                        packageUri.toString());
+  var result =
+      await _makeLoaderRequest(_Dart_kResolvePackageUri, packageUri.toString());
   if (result is! Uri) {
     if (_traceLoading) {
       _log("Exception when resolving package URI: $packageUri");

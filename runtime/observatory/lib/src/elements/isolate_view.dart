@@ -302,13 +302,13 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ..children = [
                   new DivElement()
                     ..classes = ['memberName']
-                    ..text = 'native memory usage high watermark'
-                    ..title = '''The maximum amount of native memory allocated
-                    by the isolate over it\'s life.''',
+                    ..text = 'zone capacity high watermark'
+                    ..title = '''The maximum amount of native zone memory
+                    allocated by the isolate over it\'s life.''',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..text = Utils.formatSize(_isolate.memoryHighWatermark)
-                    ..title = '${_isolate.memoryHighWatermark}B'
+                    ..text = Utils.formatSize(_isolate.zoneHighWatermark)
+                    ..title = '${_isolate.zoneHighWatermark}B'
                 ],
               new BRElement(),
               new DivElement()
@@ -340,8 +340,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                     ..classes = ['memberValue']
                     ..children = [
                       new CurlyBlockElement(queue: _r.queue)
-                        ..content = threads
-                          .map(_populateThreadInfo)
+                        ..content = threads.map(_populateThreadInfo)
                     ]
                 ]
             ],
@@ -368,8 +367,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     return new DivElement()
       ..classes = ['indent']
       ..children = [
-        new SpanElement()
-          ..text = '${t.id} ',
+        new SpanElement()..text = '${t.id} ',
         new CurlyBlockElement(queue: _r.queue)
           ..content = [
             new DivElement()
@@ -377,57 +375,15 @@ class IsolateViewElement extends HtmlElement implements Renderable {
               ..text = 'kind ${t.kindString}',
             new DivElement()
               ..classes = ['indent']
-              ..title = '${t.memoryHighWatermark}B'
-              ..text =
-              'native memory usage high watermark ${Utils.formatSize(t.memoryHighWatermark)}',
+              ..title = '${t.zoneHighWatermark}B'
+              ..text = 'zone capacity high watermark ' +
+                  '${Utils.formatSize(t.zoneHighWatermark)}',
             new DivElement()
-              ..children = t.zones
-                .map((z) => new DivElement()
-                ..classes = ['indent']
-                ..children = [
-                  new DivElement()
-                    ..children = [
-                      new SpanElement()
-                        ..children = [
-                          // TODO(bkonyi): zones will always be empty. See
-                          // issue #28885.
-                          new SpanElement()
-                            ..text = 'zone ${index++} ',
-                          new CurlyBlockElement(queue: _r.queue)
-                            ..content = [
-                              new DivElement()
-                                ..classes = ['memberList']
-                                ..children = [
-                                  new DivElement()
-                                    ..classes = ['memberItem']
-                                    ..children = [
-                                      new SpanElement()
-                                        ..classes = ['memberName']
-                                        ..text = 'used ',
-                                      new SpanElement()
-                                        ..classes = ['memberValue']
-                                        ..title = '${z.used}B'
-                                        ..text =
-                                        Utils.formatSize(z.used)
-                                    ],
-                                  new DivElement()
-                                    ..classes = ['memberItem']
-                                    ..children = [
-                                        new SpanElement()
-                                          ..classes = ['memberName']
-                                          ..text = 'capacity',
-                                        new SpanElement()
-                                          ..classes = ['memberValue']
-                                          ..title = '${z.capacity}B'
-                                          ..text =
-                                          Utils.formatSize(z.capacity)
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-          )]
+              ..classes = ['indent']
+              ..title = '${t.zoneCapacity}B'
+              ..text = 'current zone capacity ' +
+                  '${Utils.formatSize(t.zoneCapacity)}',
+          ]
       ];
   }
 

@@ -1938,6 +1938,18 @@ Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) {
+    return NULL;
+  }
+  if ((constrained_type() != NULL) &&
+      Type()->IsEqualTo(value()->definition()->Type())) {
+    return value()->definition();
+  }
+  return this;
+}
+
+
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (recognized_kind()) {
     case MethodRecognizer::kObjectArrayLength:
@@ -2057,16 +2069,20 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // are constant, instantiate the target type here.
   if (dst_type().IsInstantiated()) return this;
 
+  // TODO(regis): Only try to instantiate here if function_type_args is constant
+  // or null and dst_type does not refer to parent function type parameters.
   ConstantInstr* constant_type_args =
       instantiator_type_arguments()->definition()->AsConstant();
-  if (constant_type_args != NULL && !constant_type_args->value().IsNull() &&
-      constant_type_args->value().IsTypeArguments()) {
-    const TypeArguments& instantiator_type_args =
-        TypeArguments::Cast(constant_type_args->value());
+  if (constant_type_args != NULL) {
+    ASSERT(constant_type_args->value().IsNull() ||
+           constant_type_args->value().IsTypeArguments());
+    TypeArguments& instantiator_type_args = TypeArguments::Handle();
+    instantiator_type_args ^= constant_type_args->value().raw();
     Error& bound_error = Error::Handle();
     AbstractType& new_dst_type =
         AbstractType::Handle(dst_type().InstantiateFrom(
-            instantiator_type_args, &bound_error, NULL, NULL, Heap::kOld));
+            instantiator_type_args, /* function_type_args, */
+            &bound_error, NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }
@@ -2084,6 +2100,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
+    // TODO(regis): function_type_arguments()->BindTo(null_constant);
   }
   return this;
 }

@@ -14,7 +14,6 @@
 #include "vm/os_thread.h"
 #include "vm/store_buffer.h"
 #include "vm/runtime_entry_list.h"
-
 namespace dart {
 
 class AbstractType;
@@ -266,21 +265,23 @@ class Thread : public BaseThread {
 
   bool ZoneIsOwnedByThread(Zone* zone) const;
 
-  void IncrementMemoryUsage(uintptr_t value) {
-    current_thread_memory_ += value;
-    if (current_thread_memory_ > memory_high_watermark_) {
-      memory_high_watermark_ = current_thread_memory_;
+  void IncrementMemoryCapacity(uintptr_t value) {
+    current_zone_capacity_ += value;
+    if (current_zone_capacity_ > zone_high_watermark_) {
+      zone_high_watermark_ = current_zone_capacity_;
     }
   }
 
-  void DecrementMemoryUsage(uintptr_t value) {
-    ASSERT(current_thread_memory_ >= value);
-    current_thread_memory_ -= value;
+  void DecrementMemoryCapacity(uintptr_t value) {
+    ASSERT(current_zone_capacity_ >= value);
+    current_zone_capacity_ -= value;
   }
 
-  uintptr_t memory_high_watermark() const { return memory_high_watermark_; }
+  uintptr_t current_zone_capacity() { return current_zone_capacity_; }
 
-  void ResetHighWatermark() { memory_high_watermark_ = current_thread_memory_; }
+  uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
+
+  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -506,6 +507,7 @@ class Thread : public BaseThread {
   RawError* sticky_error() const;
   void set_sticky_error(const Error& value);
   void clear_sticky_error();
+  RawError* get_and_clear_sticky_error();
 
   RawStackTrace* async_stack_trace() const;
   void set_async_stack_trace(const StackTrace& stack_trace);
@@ -716,8 +718,8 @@ class Thread : public BaseThread {
   OSThread* os_thread_;
   Monitor* thread_lock_;
   Zone* zone_;
-  uintptr_t current_thread_memory_;
-  uintptr_t memory_high_watermark_;
+  uintptr_t current_zone_capacity_;
+  uintptr_t zone_high_watermark_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
   StackResource* top_resource_;
@@ -802,7 +804,6 @@ class Thread : public BaseThread {
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
-
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

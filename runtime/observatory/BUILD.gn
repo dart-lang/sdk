@@ -19,7 +19,11 @@ declare_args() {
   # built as part of the build to invoke pub. If this arg is set to a non-empty
   # string, we assume that there is no need for dart_bootstrap. If it is set to
   # "", then we assume that there may be a need for dart_bootstrap.
-  dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub")
+  if (defined(is_win) && is_win) {
+    dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub.bat")
+  } else {
+    dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub")
+  }
 }
 
 # We set this to "" in the Fuchsia build to force building with dart_bootstrap.

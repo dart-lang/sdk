@@ -2060,6 +2060,17 @@ class CompileTimeErrorCode extends ErrorCode {
           "renaming the prefix.");
 
   /**
+   * It is an error for a mixin to add a private name that conflicts with a
+   * private name added by a superclass or another mixin.
+   */
+  static const CompileTimeErrorCode PRIVATE_COLLISION_IN_MIXIN_APPLICATION =
+      const CompileTimeErrorCode(
+          'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
+          "The private name {0}, defined by {1}, conflicts with the same name "
+          "defined by {2}.",
+          "Try removing {1} from the 'with' clause.");
+
+  /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named
    * optional parameter begins with an '_' character.
    */
@@ -4771,7 +4782,7 @@ class StrongModeCode extends ErrorCode {
   static const StrongModeCode COULD_NOT_INFER = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'COULD_NOT_INFER',
-      "Couldn't infer type parameter '{0}'; '{1}' must be of type '{2}'.");
+      "Couldn't infer type parameter '{0}'.{1}");
 
   static const StrongModeCode INFERRED_TYPE = const StrongModeCode(
       ErrorType.HINT, 'INFERRED_TYPE', _inferredTypeMessage);

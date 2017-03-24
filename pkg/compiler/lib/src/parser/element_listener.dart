@@ -741,9 +741,30 @@ class ElementListener extends Listener {
         errorCode = MessageKind.GENERIC;
         arguments = {"text": "Can't use '${token.lexeme}' as a name here."};
         break;
+
+      case ErrorKind.AsyncAsIdentifier:
+        errorCode = MessageKind.GENERIC;
+        arguments = {
+          "text": "'async' can't be used as an identifier in "
+              "'async', 'async*', or 'sync*' methods."
+        };
+        break;
+
+      case ErrorKind.AbstractNotSync:
+      case ErrorKind.AwaitAsIdentifier:
+      case ErrorKind.AwaitForNotAsync:
+      case ErrorKind.AwaitNotAsync:
+      case ErrorKind.FactoryNotSync:
+      case ErrorKind.GeneratorReturnsValue:
+      case ErrorKind.OnlyTry:
+      case ErrorKind.SetterNotSync:
+      case ErrorKind.YieldAsIdentifier:
+      case ErrorKind.YieldNotGenerator:
+        return null; // Ignored. This error is already implemented elsewhere.
     }
     SourceSpan span = reporter.spanFromToken(token);
     reportError(span, errorCode, arguments);
+    return null;
   }
 
   /// Finds the preceding token via the begin token of the last AST node pushed

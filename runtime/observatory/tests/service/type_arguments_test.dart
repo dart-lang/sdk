@@ -8,34 +8,39 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 var tests = [
-(Isolate isolate) =>
-  isolate.getTypeArgumentsList(false).then((ServiceMap allTypeArgs) {
-    var allTypeArgsTableSize = allTypeArgs['canonicalTypeArgumentsTableSize'];
-    var allTypeArgsTableUsed = allTypeArgs['canonicalTypeArgumentsTableUsed'];
-    var allTypeArgsList = allTypeArgs['typeArguments'];
-    expect(allTypeArgsList, isNotNull);
-    // Check size >= used.
-    expect(allTypeArgsTableSize, greaterThanOrEqualTo(allTypeArgsTableUsed));
-    return isolate.getTypeArgumentsList(true).then((ServiceMap instantiatedTypeARgs) {
-      var instantiatedTypeArgsTableSize =
-          instantiatedTypeARgs['canonicalTypeArgumentsTableSize'];
-      var instantiatedTypeArgsTableUsed =
-          instantiatedTypeARgs['canonicalTypeArgumentsTableUsed'];
-      // Check size >= used.
-      expect(instantiatedTypeArgsTableSize,
-             greaterThanOrEqualTo(instantiatedTypeArgsTableUsed));
-      // Check that |instantiated| <= |all|
-      var instantiatedTypeArgsList = instantiatedTypeARgs['typeArguments'];
-      expect(instantiatedTypeArgsList, isNotNull);
-      expect(allTypeArgsList.length,
-             greaterThanOrEqualTo(instantiatedTypeArgsList.length));
-      // Check that we can 'get' this object again.
-      var firstType = allTypeArgsList[0];
-      return isolate.getObject(firstType.id).then((TypeArguments type) {
-        expect(firstType.name, type.name);
-      });
-    });
-  }),
+  (Isolate isolate) =>
+      isolate.getTypeArgumentsList(false).then((ServiceMap allTypeArgs) {
+        var allTypeArgsTableSize =
+            allTypeArgs['canonicalTypeArgumentsTableSize'];
+        var allTypeArgsTableUsed =
+            allTypeArgs['canonicalTypeArgumentsTableUsed'];
+        var allTypeArgsList = allTypeArgs['typeArguments'];
+        expect(allTypeArgsList, isNotNull);
+        // Check size >= used.
+        expect(
+            allTypeArgsTableSize, greaterThanOrEqualTo(allTypeArgsTableUsed));
+        return isolate
+            .getTypeArgumentsList(true)
+            .then((ServiceMap instantiatedTypeARgs) {
+          var instantiatedTypeArgsTableSize =
+              instantiatedTypeARgs['canonicalTypeArgumentsTableSize'];
+          var instantiatedTypeArgsTableUsed =
+              instantiatedTypeARgs['canonicalTypeArgumentsTableUsed'];
+          // Check size >= used.
+          expect(instantiatedTypeArgsTableSize,
+              greaterThanOrEqualTo(instantiatedTypeArgsTableUsed));
+          // Check that |instantiated| <= |all|
+          var instantiatedTypeArgsList = instantiatedTypeARgs['typeArguments'];
+          expect(instantiatedTypeArgsList, isNotNull);
+          expect(allTypeArgsList.length,
+              greaterThanOrEqualTo(instantiatedTypeArgsList.length));
+          // Check that we can 'get' this object again.
+          var firstType = allTypeArgsList[0];
+          return isolate.getObject(firstType.id).then((TypeArguments type) {
+            expect(firstType.name, type.name);
+          });
+        });
+      }),
 ];
 
 main(args) => runIsolateTests(args, tests);

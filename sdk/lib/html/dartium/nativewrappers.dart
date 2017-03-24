@@ -4,10 +4,10 @@
 
 library nativewrappers;
 
-class NativeFieldWrapperClass1 { }
+class NativeFieldWrapperClass1 {}
 
-class NativeFieldWrapperClass2 { }
+class NativeFieldWrapperClass2 {}
 
-class NativeFieldWrapperClass3 { }
+class NativeFieldWrapperClass3 {}
 
-class NativeFieldWrapperClass4 { }
+class NativeFieldWrapperClass4 {}

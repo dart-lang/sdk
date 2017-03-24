@@ -8,44 +8,35 @@ import 'dart:_js_helper' show patch, checkNum;
 import 'dart:typed_data' show ByteData;
 
 @patch
-double sqrt(num x)
-  => JS('num', r'Math.sqrt(#)', checkNum(x));
+double sqrt(num x) => JS('num', r'Math.sqrt(#)', checkNum(x));
 
 @patch
-double sin(num x)
-  => JS('num', r'Math.sin(#)', checkNum(x));
+double sin(num x) => JS('num', r'Math.sin(#)', checkNum(x));
 
 @patch
-double cos(num x)
-  => JS('num', r'Math.cos(#)', checkNum(x));
+double cos(num x) => JS('num', r'Math.cos(#)', checkNum(x));
 
 @patch
-double tan(num x)
-  => JS('num', r'Math.tan(#)', checkNum(x));
+double tan(num x) => JS('num', r'Math.tan(#)', checkNum(x));
 
 @patch
-double acos(num x)
-  => JS('num', r'Math.acos(#)', checkNum(x));
+double acos(num x) => JS('num', r'Math.acos(#)', checkNum(x));
 
 @patch
-double asin(num x)
-  => JS('num', r'Math.asin(#)', checkNum(x));
+double asin(num x) => JS('num', r'Math.asin(#)', checkNum(x));
 
 @patch
-double atan(num x)
-  => JS('num', r'Math.atan(#)', checkNum(x));
+double atan(num x) => JS('num', r'Math.atan(#)', checkNum(x));
 
 @patch
-double atan2(num a, num b)
-  => JS('num', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
+double atan2(num a, num b) =>
+    JS('num', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
 
 @patch
-double exp(num x)
-  => JS('num', r'Math.exp(#)', checkNum(x));
+double exp(num x) => JS('num', r'Math.exp(#)', checkNum(x));
 
 @patch
-double log(num x)
-  => JS('num', r'Math.log(#)', checkNum(x));
+double log(num x) => JS('num', r'Math.log(#)', checkNum(x));
 
 @patch
 num pow(num x, num exponent) {
@@ -90,7 +81,6 @@ class _JSRandom implements Random {
    */
   bool nextBool() => JS("bool", "Math.random() < 0.5");
 }
-
 
 class _Random implements Random {
   // Constants used by the algorithm or masking.
@@ -194,9 +184,9 @@ class _Random implements Random {
   //   _hi = state >> 32;
   void _nextState() {
     // Simulate (0xFFFFDA61 * lo + hi) without overflowing 53 bits.
-    int tmpHi = 0xFFFF0000 * _lo;  // At most 48 bits of significant result.
-    int tmpHiLo = tmpHi & _MASK32;             // Get the lower 32 bits.
-    int tmpHiHi = tmpHi - tmpHiLo;            // And just the upper 32 bits.
+    int tmpHi = 0xFFFF0000 * _lo; // At most 48 bits of significant result.
+    int tmpHiLo = tmpHi & _MASK32; // Get the lower 32 bits.
+    int tmpHiHi = tmpHi - tmpHiLo; // And just the upper 32 bits.
     int tmpLo = 0xDA61 * _lo;
     int tmpLoLo = tmpLo & _MASK32;
     int tmpLoHi = tmpLo - tmpLoLo;
@@ -243,7 +233,6 @@ class _Random implements Random {
   }
 }
 
-
 class _JSSecureRandom implements Random {
   // Reused buffer with room enough for a double.
   final _buffer = new ByteData(8);
@@ -263,7 +252,7 @@ class _JSSecureRandom implements Random {
   /// Fill _buffer from [start] to `start + length` with random bytes.
   void _getRandomBytes(int start, int length) {
     JS("void", "crypto.getRandomValues(#)",
-       _buffer.buffer.asUint8List(start, length));
+        _buffer.buffer.asUint8List(start, length));
   }
 
   bool nextBool() {
@@ -286,7 +275,7 @@ class _JSSecureRandom implements Random {
     // The getFloat64 method is big-endian as default.
     double result = _buffer.getFloat64(0) - 1.0;
     if (highByte & 0x10 != 0) {
-      result += 1.1102230246251565e-16;  // pow(2,-53).
+      result += 1.1102230246251565e-16; // pow(2,-53).
     }
     return result;
   }

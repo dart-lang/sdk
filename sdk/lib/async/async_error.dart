@@ -4,8 +4,8 @@
 
 part of dart.async;
 
-_invokeErrorHandler(Function errorHandler,
-                    Object error, StackTrace stackTrace) {
+_invokeErrorHandler(
+    Function errorHandler, Object error, StackTrace stackTrace) {
   if (errorHandler is ZoneBinaryCallback) {
     return errorHandler(error, stackTrace);
   } else {
@@ -16,32 +16,10 @@ _invokeErrorHandler(Function errorHandler,
 
 Function _registerErrorHandler<R>(Function errorHandler, Zone zone) {
   if (errorHandler is ZoneBinaryCallback) {
-    return zone.registerBinaryCallback<R, dynamic, StackTrace>(
-        errorHandler as dynamic/*=ZoneBinaryCallback<R, dynamic, StackTrace>*/);
+    return zone.registerBinaryCallback<R, Object, StackTrace>(
+        errorHandler as dynamic/*=ZoneBinaryCallback<R, Object, StackTrace>*/);
   } else {
-    return zone.registerUnaryCallback<R, dynamic>(
-        errorHandler as dynamic/*=ZoneUnaryCallback<R, dynamic>*/);
-  }
-}
-
-class _UncaughtAsyncError extends AsyncError {
-  _UncaughtAsyncError(error, StackTrace stackTrace)
-      : super(error, _getBestStackTrace(error, stackTrace));
-
-  static StackTrace _getBestStackTrace(error, StackTrace stackTrace) {
-    if (stackTrace != null) return stackTrace;
-    if (error is Error) {
-      return error.stackTrace;
-    }
-    return null;
-  }
-
-  String toString() {
-    String result = "Uncaught Error: ${error}";
-
-    if (stackTrace != null) {
-      result += "\nStack Trace:\n$stackTrace";
-    }
-    return result;
+    return zone.registerUnaryCallback<R, Object>(
+        errorHandler as dynamic/*=ZoneUnaryCallback<R, Object>*/);
   }
 }

@@ -8,16 +8,15 @@ class Fisk {
   int i;
 }
 
-class Hest extends Fisk {
-}
+class Hest extends Fisk {}
 
 main() {
   Fisk x1 = new Fisk();
   if (false) {
-    x1.i();  /// 01: static type warning
+    x1.i(); // //# 01: static type warning
   }
   Hest x2 = new Hest();
   if (false) {
-    x2.i();  /// 02: static type warning
+    x2.i(); // //# 02: static type warning
   }
 }

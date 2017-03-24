@@ -1629,7 +1629,6 @@ class RawUnwindError : public RawError {
   RawString* message_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->message_); }
   bool is_user_initiated_;
-  bool is_vm_restart_;
 };
 
 

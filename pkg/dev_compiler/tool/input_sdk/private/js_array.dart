@@ -243,7 +243,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   /*=T*/ fold/*<T>*/(
-      /*=T*/ initialValue, /*=T*/ combine(/*=T*/ previousValue, E element)) {
+      /*=T*/ initialValue,
+      /*=T*/ combine(/*=T*/ previousValue, E element)) {
     var/*=T*/ value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {

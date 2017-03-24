@@ -44,7 +44,7 @@ test3() {
 }
 
 main() {
-  test1(); /// 01: ok
-  test2(); /// 02: ok
-  test3(); /// 03: ok
+  test1(); //# 01: ok
+  test2(); //# 02: ok
+  test3(); //# 03: ok
 }

@@ -12,9 +12,17 @@ import '../export.dart' show Export;
 
 import '../loader.dart' show Loader;
 
+import '../messages.dart' show nit, warning;
+
 import '../util/relativize.dart' show relativizeUri;
 
-import 'builder.dart' show Builder, ClassBuilder, TypeBuilder;
+import 'builder.dart'
+    show
+        Builder,
+        DynamicTypeBuilder,
+        ClassBuilder,
+        TypeBuilder,
+        VoidTypeBuilder;
 
 import 'scope.dart' show Scope;
 
@@ -60,6 +68,22 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     compileTimeErrors.add(new InputError(fileUri, charOffset, message));
   }
 
+  void addWarning(int charOffset, Object message,
+      {Uri fileUri, bool silent: false}) {
+    fileUri ??= this.fileUri;
+    if (!silent) {
+      warning(fileUri, charOffset, message);
+    }
+  }
+
+  void addNit(int charOffset, Object message,
+      {Uri fileUri, bool silent: false}) {
+    fileUri ??= this.fileUri;
+    if (!silent) {
+      nit(fileUri, charOffset, message);
+    }
+  }
+
   bool addToExportScope(String name, Builder member);
 
   void addToScope(String name, Builder member);
@@ -82,7 +106,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     constructorName ??= "";
     Builder cls = (isPrivate ? members : exports)[className];
     if (cls is ClassBuilder) {
-      // TODO(ahe): This code is similar to code in `handleNewExpression` in
+      // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
       Builder constructor = cls.findConstructorOrFactory(constructorName);
       if (constructor == null) {
@@ -100,4 +124,10 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   }
 
   int finishTypeVariables(ClassBuilder object) => 0;
+
+  void becomeCoreLibrary(dynamicType, voidType) {
+    addBuilder("dynamic",
+        new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
+    addBuilder("void", new VoidTypeBuilder<T, dynamic>(voidType, this, -1), -1);
+  }
 }

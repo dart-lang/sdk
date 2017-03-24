@@ -16,9 +16,9 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../source/diet_listener.dart' show DietListener;
 
-import 'element_store.dart' show ElementStore;
+import 'package:analyzer/src/fasta/element_store.dart' show ElementStore;
 
-import 'ast_builder.dart' show AstBuilder;
+import 'package:analyzer/src/fasta/ast_builder.dart' show AstBuilder;
 
 class AnalyzerDietListener extends DietListener {
   final ElementStore elementStore;
@@ -29,7 +29,8 @@ class AnalyzerDietListener extends DietListener {
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
-    return new AstBuilder(library, builder, elementStore, memberScope, uri);
+    return new AstBuilder(
+        null, library, builder, elementStore, memberScope, uri);
   }
 
   @override

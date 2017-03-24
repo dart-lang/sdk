@@ -4,26 +4,17 @@
 
 library testing.analyze;
 
-import 'dart:async' show
-    Stream,
-    Future;
+import 'dart:async' show Stream, Future;
 
-import 'dart:convert' show
-    LineSplitter,
-    UTF8;
+import 'dart:convert' show LineSplitter, UTF8;
 
-import 'dart:io' show
-    File,
-    Process;
+import 'dart:io' show File, Process;
 
-import '../testing.dart' show
-    dartSdk;
+import '../testing.dart' show dartSdk;
 
-import 'log.dart' show
-    isVerbose;
+import 'log.dart' show isVerbose;
 
-import 'suite.dart' show
-    Suite;
+import 'suite.dart' show Suite;
 
 class Analyze extends Suite {
   final Uri analysisOptions;
@@ -85,9 +76,14 @@ class AnalyzerDiagnostic {
     if (parts.length != 8) {
       throw "Malformed output: $line";
     }
-    return new AnalyzerDiagnostic(parts[0], parts[1], parts[2],
+    return new AnalyzerDiagnostic(
+        parts[0],
+        parts[1],
+        parts[2],
         Uri.base.resolve(parts[3]),
-        int.parse(parts[4]), int.parse(parts[5]), int.parse(parts[6]),
+        int.parse(parts[4]),
+        int.parse(parts[5]),
+        int.parse(parts[6]),
         parts[7]);
   }
 
@@ -108,8 +104,7 @@ Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
 }
 
 /// Run dartanalyzer on all tests in [uris].
-Future<Null> analyzeUris(
-    Uri analysisOptions, Uri packages, List<Uri> uris,
+Future<Null> analyzeUris(Uri analysisOptions, Uri packages, List<Uri> uris,
     List<RegExp> exclude) async {
   if (uris.isEmpty) return;
   const String analyzerPath = "bin/dartanalyzer";
@@ -118,9 +113,9 @@ Future<Null> analyzeUris(
     throw "Couldn't find '$analyzerPath' in '${dartSdk.toFilePath()}'";
   }
   List<String> arguments = <String>[
-      "--packages=${packages.toFilePath()}",
-      "--package-warnings",
-      "--format=machine",
+    "--packages=${packages.toFilePath()}",
+    "--package-warnings",
+    "--format=machine",
   ];
   if (analysisOptions != null) {
     arguments.add("--options=${analysisOptions.toFilePath()}");
@@ -157,4 +152,3 @@ Future<Null> analyzeUris(
   sw.stop();
   print("Running analyzer took: ${sw.elapsed}.");
 }
-

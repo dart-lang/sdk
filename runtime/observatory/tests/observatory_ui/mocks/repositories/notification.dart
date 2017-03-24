@@ -27,7 +27,6 @@ class NotificationRepositoryMock implements M.NotificationRepository {
   bool deleteInvoked = false;
   bool deleteAllInvoked = false;
 
-
   void add(M.Notification notification) {
     addInvoked = true;
     if (_add != null) _add(notification);
@@ -43,16 +42,19 @@ class NotificationRepositoryMock implements M.NotificationRepository {
     if (_add != null) _delete(notification);
   }
 
-  void deleteAll() { deleteAllInvoked = true; }
+  void deleteAll() {
+    deleteAllInvoked = true;
+  }
 
   void triggerChangeEvent() {
     _onChange.add(new NotificationChangeEventMock(repository: this));
   }
 
-  NotificationRepositoryMock({Iterable<M.Notification> list : const [],
+  NotificationRepositoryMock(
+      {Iterable<M.Notification> list: const [],
       NotificationRepositoryMockCallback add,
       NotificationRepositoryMockCallback delete})
-    : _list = list,
-      _add = add,
-      _delete = delete;
+      : _list = list,
+        _add = add,
+        _delete = delete;
 }

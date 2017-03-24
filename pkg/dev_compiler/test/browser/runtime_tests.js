@@ -132,6 +132,7 @@ define(['dart_sdk'], function(dart_sdk) {
     let List = core.List;
     let Map = core.Map;
     let Map$ = core.Map$;
+    let double = core.double;
     let int = core.int;
     let num = core.num;
     let bool = core.bool;
@@ -281,6 +282,23 @@ define(['dart_sdk'], function(dart_sdk) {
       checkType("foo", dynamic);
 
       expect(cast(null, String), null);
+    });
+
+    test('FutureOr', () => {
+      let FutureOr = async.FutureOr$;
+
+      assert.equal(dart.as(3, FutureOr(int)), 3);
+      assert.equal(dart.as(3, FutureOr(double)), 3);
+      assert.throws(() => dart.as(3.5, FutureOr(int)));
+      assert.equal(dart.as(3.5, FutureOr(double)), 3.5);
+      assert.isTrue(dart.is(3, FutureOr(int)));
+      assert.isTrue(dart.is(3, FutureOr(double)));
+      assert.isFalse(dart.is(3.5, FutureOr(int)));
+      assert.isTrue(dart.is(3.5, FutureOr(double)));
+
+      assert.equal(dart.as(3, FutureOr(FutureOr(double))), 3);
+      assert.isTrue(dart.is(3, FutureOr(FutureOr(double))));
+
     });
 
     test('Map', () => {

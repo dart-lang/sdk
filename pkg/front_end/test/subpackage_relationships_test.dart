@@ -44,13 +44,10 @@ final subpackageRules = {
   ]),
   'lib/src/fasta/analyzer':
       new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
-    'lib/src/scanner',
     'lib/src/fasta',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
-    'lib/src/fasta/parser',
-    'lib/src/fasta/scanner',
     'lib/src/fasta/source',
   ]),
   'lib/src/fasta/builder': new SubpackageRules(allowedDependencies: [
@@ -73,14 +70,12 @@ final subpackageRules = {
     'lib/src/fasta/source',
     'lib/src/fasta/util',
   ]),
-  'lib/src/fasta/parser':
-      new SubpackageRules(allowSubdirs: true, allowedDependencies: [
+  'lib/src/fasta/parser': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
     'lib/src/fasta/scanner',
     'lib/src/fasta/util',
   ]),
-  'lib/src/fasta/scanner':
-      new SubpackageRules(allowSubdirs: true, allowedDependencies: [
+  'lib/src/fasta/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
     'lib/src/fasta/parser',
     // fasta scanner produces analyzer scanner tokens
@@ -128,6 +123,14 @@ class SubpackageRules {
   /// on.
   final List<String> allowedDependencies;
 
+  var actuallyContainsFiles = false;
+
+  var actuallyImportsAnalyzer = false;
+
+  var actuallyHasSubdirs = false;
+
+  var actualDependencies = new Set<String>();
+
   SubpackageRules(
       {this.mayImportAnalyzer: false,
       this.allowSubdirs: false,
@@ -157,15 +160,21 @@ class _SubpackageRelationshipsTest {
           'subpackageRules');
       return;
     }
-    if (!srcSubpackageRules.mayImportAnalyzer &&
-        dst.pathSegments[0] == 'analyzer') {
-      problem('$src depends on $dst, but subpackage "$srcSubpackage" may not '
-          'import analyzer');
+    srcSubpackageRules.actuallyContainsFiles = true;
+    if (dst.pathSegments[0] == 'analyzer') {
+      if (srcSubpackageRules.mayImportAnalyzer) {
+        srcSubpackageRules.actuallyImportsAnalyzer = true;
+      } else {
+        problem('$src depends on $dst, but subpackage "$srcSubpackage" may not '
+            'import analyzer');
+      }
     }
     var dstSubPackage = subpackageForUri(dst);
     if (dstSubPackage == null) return;
     if (dstSubPackage == srcSubpackage) return;
-    if (!srcSubpackageRules.allowedDependencies.contains(dstSubPackage)) {
+    if (srcSubpackageRules.allowedDependencies.contains(dstSubPackage)) {
+      srcSubpackageRules.actualDependencies.add(dstSubPackage);
+    } else {
       problem('$src depends on $dst, but subpackage "$srcSubpackage" is not '
           'allowed to depend on subpackage "$dstSubPackage"');
     }
@@ -210,6 +219,22 @@ class _SubpackageRelationshipsTest {
         }
       }
     }
+    subpackageRules.forEach((subpackage, rule) {
+      if (!rule.actuallyContainsFiles) {
+        problem("$subpackage contains no files");
+      }
+      if (rule.mayImportAnalyzer && !rule.actuallyImportsAnalyzer) {
+        problem("$subpackage is allowed to import analyzer, but doesn't");
+      }
+      if (rule.allowSubdirs && !rule.actuallyHasSubdirs) {
+        problem("$subpackage is allowed to have subdirectories, but doesn't");
+      }
+      for (var dep in rule.allowedDependencies
+          .toSet()
+          .difference(rule.actualDependencies)) {
+        problem("$subpackage lists $dep as a dependency, but doesn't use it");
+      }
+    });
     return problemsReported ? 1 : 0;
   }
 
@@ -234,10 +259,13 @@ class _SubpackageRelationshipsTest {
     if (subpackage == null) {
       problem('Uri $src is inside package:front_end but is not in any known '
           'subpackage');
-    } else if (!subpackageRules[subpackage].allowSubdirs &&
-        pathWithinSubpackage.contains('/')) {
-      problem('Uri $src is in a subfolder of $subpackage, but that '
-          'subpackage does not allow dart files in subdirectories.');
+    } else if (pathWithinSubpackage.contains('/')) {
+      if (subpackageRules[subpackage].allowSubdirs) {
+        subpackageRules[subpackage].actuallyHasSubdirs = true;
+      } else {
+        problem('Uri $src is in a subfolder of $subpackage, but that '
+            'subpackage does not allow dart files in subdirectories.');
+      }
     }
     return subpackage;
   }

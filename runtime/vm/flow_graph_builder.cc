@@ -1218,14 +1218,23 @@ void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
   if (type.IsInstantiated()) {
     ReturnDefinition(new (Z) ConstantInstr(type));
-  } else {
-    const Class& instantiator_class =
-        Class::ZoneHandle(Z, owner()->function().Owner());
-    Value* instantiator_value = BuildInstantiatorTypeArguments(
-        node->token_pos(), instantiator_class, NULL);
-    ReturnDefinition(new (Z) InstantiateTypeInstr(
-        node->token_pos(), type, instantiator_class, instantiator_value));
+    return;
   }
+  const TokenPosition token_pos = node->token_pos();
+  Value* instantiator_type_arguments = NULL;
+  if (type.IsInstantiated(kClass)) {
+    instantiator_type_arguments = BuildNullValue(token_pos);
+  } else {
+    instantiator_type_arguments = BuildInstantiatorTypeArguments(token_pos);
+  }
+  Value* function_type_arguments = NULL;
+  if (type.IsInstantiated(kCurrentFunction)) {
+    // TODO(regis): function_type_arguments = BuildNullValue((token_pos);
+  } else {
+    function_type_arguments = BuildFunctionTypeArguments(token_pos);
+  }
+  ReturnDefinition(new (Z) InstantiateTypeInstr(
+      token_pos, type, instantiator_type_arguments, function_type_arguments));
 }
 
 
@@ -1404,47 +1413,27 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
-void EffectGraphVisitor::BuildTypecheckPushArguments(
-    TokenPosition token_pos,
-    PushArgumentInstr** push_instantiator_type_arguments_result) {
-  const Class& instantiator_class =
-      Class::Handle(Z, owner()->function().Owner());
-  // Since called only when type tested against is not instantiated.
-  ASSERT(instantiator_class.IsGeneric());
-  Value* instantiator_type_arguments = NULL;
-  Value* instantiator = BuildInstantiator(token_pos);
-  if (instantiator == NULL) {
-    // No instantiator when inside factory.
-    instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
+PushArgumentInstr* EffectGraphVisitor::PushInstantiatorTypeArguments(
+    const AbstractType& type,
+    TokenPosition token_pos) {
+  if (type.IsInstantiated(kClass)) {
+    return PushArgument(BuildNullValue(token_pos));
   } else {
-    instantiator_type_arguments = BuildInstantiatorTypeArguments(
-        token_pos, instantiator_class, instantiator);
+    Value* instantiator_type_args = BuildInstantiatorTypeArguments(token_pos);
+    return PushArgument(instantiator_type_args);
   }
-  *push_instantiator_type_arguments_result =
-      PushArgument(instantiator_type_arguments);
 }
 
 
-void EffectGraphVisitor::BuildTypecheckArguments(
-    TokenPosition token_pos,
-    Value** instantiator_type_arguments_result) {
-  Value* instantiator = NULL;
-  Value* instantiator_type_arguments = NULL;
-  const Class& instantiator_class =
-      Class::Handle(Z, owner()->function().Owner());
-  // Since called only when type tested against is not instantiated.
-  ASSERT(instantiator_class.IsGeneric());
-  instantiator = BuildInstantiator(token_pos);
-  if (instantiator == NULL) {
-    // No instantiator when inside factory.
-    instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
+PushArgumentInstr* EffectGraphVisitor::PushFunctionTypeArguments(
+    const AbstractType& type,
+    TokenPosition token_pos) {
+  if (type.IsInstantiated(kCurrentFunction)) {
+    return PushArgument(BuildNullValue(token_pos));
   } else {
-    instantiator_type_arguments = BuildInstantiatorTypeArguments(
-        token_pos, instantiator_class, instantiator);
+    Value* function_type_args = BuildFunctionTypeArguments(token_pos);
+    return PushArgument(function_type_args);
   }
-  *instantiator_type_arguments_result = instantiator_type_arguments;
 }
 
 
@@ -1462,16 +1451,22 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
     const String& dst_name) {
   // Build the type check computation.
   Value* instantiator_type_arguments = NULL;
-  if (dst_type.IsInstantiated()) {
+  Value* function_type_arguments = NULL;
+  if (dst_type.IsInstantiated(kClass)) {
     instantiator_type_arguments = BuildNullValue(token_pos);
   } else {
-    BuildTypecheckArguments(token_pos, &instantiator_type_arguments);
+    instantiator_type_arguments = BuildInstantiatorTypeArguments(token_pos);
+  }
+  if (dst_type.IsInstantiated(kCurrentFunction)) {
+    // TODO(regis): function_type_arguments = BuildNullValue(token_pos);
+  } else {
+    function_type_arguments = BuildFunctionTypeArguments(token_pos);
   }
 
   const intptr_t deopt_id = Thread::Current()->GetNextDeoptId();
-  return new (Z)
-      AssertAssignableInstr(token_pos, value, instantiator_type_arguments,
-                            dst_type, dst_name, deopt_id);
+  return new (Z) AssertAssignableInstr(
+      token_pos, value, instantiator_type_arguments, function_type_arguments,
+      dst_type, dst_name, deopt_id);
 }
 
 
@@ -1528,7 +1523,6 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   // and the type check could NOT be removed at compile time.
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
   if (simpleInstanceOfType(type)) {
-    ASSERT(!node->right()->AsTypeNode()->type().IsNull());
     ZoneGrowableArray<PushArgumentInstr*>* arguments =
         new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
     arguments->Add(push_left);
@@ -1548,17 +1542,15 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     return;
   }
 
-  PushArgumentInstr* push_type_args = NULL;
-  if (type.IsInstantiated()) {
-    push_type_args = PushArgument(BuildNullValue(node->token_pos()));
-  } else {
-    BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
-  }
+  PushArgumentInstr* push_instantiator_type_args =
+      PushInstantiatorTypeArguments(type, node->token_pos());
+  // TODO(regis): PushArgumentInstr* push_function_type_args =
+  //    PushFunctionTypeArguments(type, node->token_pos());
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
   arguments->Add(push_left);
-  arguments->Add(push_type_args);
-  ASSERT(!node->right()->AsTypeNode()->type().IsNull());
+  arguments->Add(push_instantiator_type_args);
+  // TODO(regis): arguments->Add(push_function_type_args);
   Value* type_const = Bind(new (Z) ConstantInstr(type));
   arguments->Add(PushArgument(type_const));
   const intptr_t kNumArgsChecked = 1;
@@ -1588,16 +1580,15 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
     return;
   }
   PushArgumentInstr* push_left = PushArgument(for_value.value());
-  PushArgumentInstr* push_type_args = NULL;
-  if (type.IsInstantiated()) {
-    push_type_args = PushArgument(BuildNullValue(node->token_pos()));
-  } else {
-    BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
-  }
+  PushArgumentInstr* push_instantiator_type_args =
+      PushInstantiatorTypeArguments(type, node->token_pos());
+  // TODO(regis): PushArgumentInstr* push_function_type_args =
+  //    PushFunctionTypeArguments(type, node->token_pos());
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
   arguments->Add(push_left);
-  arguments->Add(push_type_args);
+  arguments->Add(push_instantiator_type_args);
+  // TODO(regis): arguments->Add(push_function_type_args);
   Value* type_arg = Bind(new (Z) ConstantInstr(type));
   arguments->Add(PushArgument(type_arg));
   const intptr_t kNumArgsChecked = 1;
@@ -2372,10 +2363,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       ASSERT(function.Owner() == scope_cls.raw());
       Value* closure_tmp_val =
           Bind(new (Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
-      const Class& instantiator_class =
-          Class::Handle(Z, owner()->function().Owner());
-      Value* type_arguments = BuildInstantiatorTypeArguments(
-          node->token_pos(), instantiator_class, NULL);
+      Value* type_arguments = BuildInstantiatorTypeArguments(node->token_pos());
       Do(new (Z) StoreInstanceFieldInstr(Closure::instantiator_offset(),
                                          closure_tmp_val, type_arguments,
                                          kEmitStoreBarrier, node->token_pos()));
@@ -2698,12 +2686,10 @@ Value* EffectGraphVisitor::BuildInstantiator(TokenPosition token_pos) {
 }
 
 
-// 'expression_temp_var' may not be used inside this method if 'instantiator'
-// is not NULL.
 Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
-    TokenPosition token_pos,
-    const Class& instantiator_class,
-    Value* instantiator) {
+    TokenPosition token_pos) {
+  const Class& instantiator_class =
+      Class::Handle(Z, owner()->function().Owner());
   if (!instantiator_class.IsGeneric()) {
     // The type arguments are compile time constants.
     TypeArguments& type_arguments =
@@ -2723,19 +2709,15 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     outer_function = outer_function.parent_function();
   }
   if (outer_function.IsFactory()) {
-    // No instantiator for factories.
-    ASSERT(instantiator == NULL);
+    // Note that in the factory case, the instantiator is the first parameter
+    // of the factory, i.e. already a TypeArguments object.
     LocalVariable* instantiator_var = owner()->parsed_function().instantiator();
     ASSERT(instantiator_var != NULL);
     return Bind(BuildLoadLocal(*instantiator_var, token_pos));
   }
-  if (instantiator == NULL) {
-    instantiator = BuildInstantiator(token_pos);
-  }
   // The instantiator is the receiver of the caller, which is not a factory.
   // The receiver cannot be null; extract its TypeArguments object.
-  // Note that in the factory case, the instantiator is the first parameter
-  // of the factory, i.e. already a TypeArguments object.
+  Value* instantiator = BuildInstantiator(token_pos);
   intptr_t type_arguments_field_offset =
       instantiator_class.type_arguments_field_offset();
   ASSERT(type_arguments_field_offset != Class::kNoTypeArguments);
@@ -2744,6 +2726,12 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
       instantiator, type_arguments_field_offset,
       Type::ZoneHandle(Z, Type::null()),  // Not an instance, no type.
       token_pos));
+}
+
+
+Value* EffectGraphVisitor::BuildFunctionTypeArguments(TokenPosition token_pos) {
+  UNIMPLEMENTED();
+  return NULL;
 }
 
 
@@ -2756,17 +2744,22 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   // The type arguments are uninstantiated.
   const Class& instantiator_class =
       Class::ZoneHandle(Z, owner()->function().Owner());
-  Value* instantiator_value =
-      BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
+  Value* instantiator_type_args = BuildInstantiatorTypeArguments(token_pos);
   const bool use_instantiator_type_args =
       type_arguments.IsUninstantiatedIdentity() ||
       type_arguments.CanShareInstantiatorTypeArguments(instantiator_class);
   if (use_instantiator_type_args) {
-    return instantiator_value;
-  } else {
-    return Bind(new (Z) InstantiateTypeArgumentsInstr(
-        token_pos, type_arguments, instantiator_class, instantiator_value));
+    return instantiator_type_args;
   }
+  Value* function_type_args = NULL;
+  if (type_arguments.IsInstantiated(kCurrentFunction)) {
+    // TODO(regis): function_type_args = BuildNullValue(token_pos);
+  } else {
+    function_type_args = BuildFunctionTypeArguments(token_pos);
+  }
+  return Bind(new (Z) InstantiateTypeArgumentsInstr(
+      token_pos, type_arguments, instantiator_class, instantiator_type_args,
+      function_type_args));
 }
 
 
@@ -3813,8 +3806,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       check_pos = parameter.token_pos();
     }
 
-    if (!check_pos.IsDebugPause()) {
-      // No parameters or synthetic parameters.
+    if (check_pos.IsNoSource() || (check_pos.Pos() < node->token_pos().Pos())) {
+      // No parameters or synthetic parameters, e.g. 'this'.
       check_pos = node->token_pos();
       ASSERT(check_pos.IsDebugPause());
     }

@@ -13,7 +13,7 @@ const _SCRIPT_KEY = '_test_script';
 void expectEquals(a, b) {
   if (a != b) {
     throw 'Expected: $a\n'
-          '  Actual: $b';
+        '  Actual: $b';
   }
 }
 
@@ -28,10 +28,10 @@ void verify(String exePath, {String altPath}) {
 
   if (processResult.exitCode != 0) {
     throw 'Error with process\n'
-          '$scriptPath'
-          'Exit code: ${processResult.exitCode}\n'
-          '   STDOUT: ${processResult.stdout}\n'
-          '   STDERR: ${processResult.stderr}\n';
+        '$scriptPath'
+        'Exit code: ${processResult.exitCode}\n'
+        '   STDOUT: ${processResult.stdout}\n'
+        '   STDERR: ${processResult.stderr}\n';
   }
 
   var result = processResult.stdout.trim();
@@ -47,15 +47,15 @@ void testShouldFailOutsidePath() {
   var threw = false;
   try {
     Process.runSync(platformExeName, ['--version'],
-                    includeParentEnvironment: false,
-                    environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
+        includeParentEnvironment: false,
+        environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
   } catch (_) {
     threw = true;
   }
 
   if (!threw) {
     throw 'Expected running the dart executable – "$platformExeName" without'
-          ' the parent environment or path to fail.';
+        ' the parent environment or path to fail.';
   }
 }
 
@@ -141,17 +141,17 @@ void main() {
   }
 
   testDartExecShouldNotBeInCurrentDir();
-  testShouldSucceedWithSourcePlatformExecutable(); /// 00: ok
+  testShouldSucceedWithSourcePlatformExecutable(); //# 00: ok
   // dart:io does not support linking to files in Windows.
   if (!Platform.isWindows) {
-    withTempDir(testExeSymLinked); /// 01: ok
+    withTempDir(testExeSymLinked); //# 01: ok
   }
-  withTempDir(testExeDirSymLinked); /// 02: ok
-  testPathToSDKDir(); /// 03: ok
-  withTempDir(testPathPointsToSymLinkedSDKPath); /// 04: ok
+  withTempDir(testExeDirSymLinked); //# 02: ok
+  testPathToSDKDir(); //# 03: ok
+  withTempDir(testPathPointsToSymLinkedSDKPath); //# 04: ok
   // dart:io does not support linking to files in Windows.
   if (!Platform.isWindows) {
-    withTempDir(testPathToDirWithExeSymLinked); /// 05: ok
+    withTempDir(testPathToDirWithExeSymLinked); //# 05: ok
   }
-  testShouldFailOutsidePath(); /// 06: ok
+  testShouldFailOutsidePath(); //# 06: ok
 }

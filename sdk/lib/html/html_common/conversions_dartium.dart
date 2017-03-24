@@ -1,17 +1,18 @@
 part of html_common;
 
 convertDartToNative_PrepareForStructuredClone(value) =>
-    new _StructuredCloneDartium().convertDartToNative_PrepareForStructuredClone(value);
+    new _StructuredCloneDartium()
+        .convertDartToNative_PrepareForStructuredClone(value);
 
 convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) =>
-    new _AcceptStructuredCloneDartium().convertNativeToDart_AcceptStructuredClone(object, mustCopy: mustCopy);
+    new _AcceptStructuredCloneDartium()
+        .convertNativeToDart_AcceptStructuredClone(object, mustCopy: mustCopy);
 
 class _StructuredCloneDartium extends _StructuredClone {
   newJsMap() => js.JsNative.newObject();
   putIntoMap(map, key, value) => js.JsNative.setProperty(map, key, value);
   newJsList(length) => js.JsNative.newArray()..length = length;
-  cloneNotRequired(e) =>
-      e is js.JSObject || e is TypedData || e is ByteBuffer;
+  cloneNotRequired(e) => e is js.JSObject || e is TypedData || e is ByteBuffer;
 }
 
 /// A version of _AcceptStructuredClone, but using a different algorithm
@@ -44,7 +45,9 @@ class _AcceptStructuredCloneDartium {
     return clones.putIfAbsent(value, () => null);
   }
 
-  writeSlot(original, x) { clones[original] = x; }
+  writeSlot(original, x) {
+    clones[original] = x;
+  }
 
   walk(e) {
     if (e == null) return e;
@@ -105,8 +108,10 @@ class _AcceptStructuredCloneDartium {
 final _dateConstructor = js.JsNative.getProperty(window, "Date");
 final _regexConstructor = js.JsNative.getProperty(window, "RegExp");
 
-bool isJavaScriptDate(value) => value is js.JSObject && js.JsNative.instanceof(value, _dateConstructor);
-bool isJavaScriptRegExp(value) => value is js.JSObject && js.JsNative.instanceof(value, _regexConstructor);
+bool isJavaScriptDate(value) =>
+    value is js.JSObject && js.JsNative.instanceof(value, _dateConstructor);
+bool isJavaScriptRegExp(value) =>
+    value is js.JSObject && js.JsNative.instanceof(value, _regexConstructor);
 bool isJavaScriptArray(value) => value is js.JSArray;
 
 final _object = js.JsNative.getProperty(window, "Object");
@@ -114,6 +119,7 @@ final _getPrototypeOf = js.JsNative.getProperty(_object, "getPrototypeOf");
 _getProto(object) {
   return _getPrototypeOf(object);
 }
+
 final _objectProto = js.JsNative.getProperty(_object, "prototype");
 
 bool isJavaScriptSimpleObject(value) {
@@ -125,16 +131,22 @@ bool isJavaScriptSimpleObject(value) {
 // TODO(jacobr): this makes little sense unless we are doing something
 // ambitious to make Dartium and Dart2Js interop well with each other.
 bool isImmutableJavaScriptArray(value) =>
-    isJavaScriptArray(value) && js.JsNative.getProperty(value, "immutable$list") != null;
+    isJavaScriptArray(value) &&
+    js.JsNative.getProperty(value, "immutable$list") != null;
 
 final _promiseConstructor = js.JsNative.getProperty(window, 'Promise');
-bool isJavaScriptPromise(value) => value is js.JSObject && identical(js.JsNative.getProperty(value, 'constructor'), _promiseConstructor);
+bool isJavaScriptPromise(value) =>
+    value is js.JSObject &&
+    identical(
+        js.JsNative.getProperty(value, 'constructor'), _promiseConstructor);
 
 Future convertNativePromiseToDartFuture(js.JSObject promise) {
   var completer = new Completer();
-  var newPromise = js.JsNative.callMethod(js.JsNative.callMethod(promise,
-    "then", [js.allowInterop((result) => completer.complete(result))]),
-    "catch", [js.allowInterop((result) => completer.completeError(result))]);
+  var newPromise = js.JsNative.callMethod(
+      js.JsNative.callMethod(promise, "then",
+          [js.allowInterop((result) => completer.complete(result))]),
+      "catch",
+      [js.allowInterop((result) => completer.completeError(result))]);
   return completer.future;
 }
 
@@ -168,7 +180,7 @@ convertDartToNative_Dictionary(Map dict) {
     if (value is List) {
       var jsArray = js.JsNative.newArray();
       value.forEach((elem) {
-        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem): elem);
+        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem) : elem);
       });
       js.JsNative.setProperty(jsObject, key, jsArray);
     } else {
@@ -189,14 +201,14 @@ class _ReturnedDictionary {
     if (invocation.isGetter) {
       return _values[key];
     } else if (invocation.isSetter && key.endsWith('=')) {
-      key = key.substring(0, key.length-1);
+      key = key.substring(0, key.length - 1);
       _values[key] = invocation.positionalArguments[0];
     }
   }
 
   Map get toMap => _values;
 
-  _ReturnedDictionary(Map value): _values = value != null ? value : {};
+  _ReturnedDictionary(Map value) : _values = value != null ? value : {};
 }
 
 // Helper function to wrapped a returned dictionary from blink to a Dart looking
@@ -209,7 +221,8 @@ convertNativeDictionaryToDartDictionary(values) {
   return values != null ? new _ReturnedDictionary(values) : null;
 }
 
-convertNativeToDart_Dictionary(values) => convertNativeToDart_SerializedScriptValue(values);
+convertNativeToDart_Dictionary(values) =>
+    convertNativeToDart_SerializedScriptValue(values);
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
@@ -226,14 +239,14 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 // the old JsObject types to bootstrap the new typed bindings.
 Type lookupType(js.JsObject jsObject, bool isElement) {
   try {
-  // TODO(jacobr): add static methods that return the runtime type of the patch
-  // class so that this code works as expected.
-  if (jsObject is js.JsArray) {
-    return js.JSArray.instanceRuntimeType;
-  }
-  if (jsObject is js.JsFunction) {
-    return js.JSFunction.instanceRuntimeType;
-  }
+    // TODO(jacobr): add static methods that return the runtime type of the patch
+    // class so that this code works as expected.
+    if (jsObject is js.JsArray) {
+      return js.JSArray.instanceRuntimeType;
+    }
+    if (jsObject is js.JsFunction) {
+      return js.JSFunction.instanceRuntimeType;
+    }
 
     var constructor = js.JsNative.getProperty(jsObject, 'constructor');
     if (constructor == null) {
@@ -250,7 +263,7 @@ Type lookupType(js.JsObject jsObject, bool isElement) {
 
     var dartClass_instance;
     var customElementClass = null;
-    var extendsTag = "";    
+    var extendsTag = "";
 
     Type type = getHtmlCreateType(jsTypeName);
     if (type != null) return type;
@@ -260,7 +273,7 @@ Type lookupType(js.JsObject jsObject, bool isElement) {
     while (prototype != null) {
       // We're a Dart class that's pointing to a JS class.
       var constructor = js.JsNative.getProperty(prototype, 'constructor');
-      if (constructor != null) {          
+      if (constructor != null) {
         jsTypeName = js.JsNative.getProperty(constructor, 'name');
         type = getHtmlCreateType(jsTypeName);
         if (type != null) return type;

@@ -395,12 +395,14 @@ type SuperPropertySet extends Expression {
 
 type DirectPropertyGet extends Expression {
   Byte tag = 15; // Note: tag is out of order
+  FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
 }
 
 type DirectPropertySet extends Expression {
   Byte tag = 16; // Note: tag is out of order
+  FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
   Expression value;
@@ -745,6 +747,7 @@ type SwitchStatement extends Statement {
 type SwitchCase {
   // Note: there is no tag on SwitchCase
   List<Expression> expressions;
+  FileOffset[expressions.length] expressionOffsets; // 1-to-1 with expressions.
   Byte isDefault; // 1 if default, 0 is not default.
   Statement body;
 }

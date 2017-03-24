@@ -1,0 +1,82 @@
+library generic_methods_dynamic_test;
+import self as self;
+import "dart:core" as core;
+import "../../runtime/reify/interceptors.dart" as int;
+import "../../runtime/reify/types.dart" as typ;
+import "./test_base.dart" as tes;
+import "../../runtime/reify/declarations.dart" as dec;
+
+class A extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](0));
+  get $is$List() → core::bool
+    return false;
+}
+class B extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](1));
+  get $is$List() → core::bool
+    return false;
+}
+class C extends core::Object implements int::HasRuntimeTypeGetter {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo<T extends core::Object>(dynamic t, {core::List<typ::ReifiedType> $typeParameters}) → dynamic {
+    return t;
+  }
+  method bar<T extends core::Object>(core::Iterable<self::C::bar::T> t, {core::List<typ::ReifiedType> $typeParameters}) → core::List<self::C::bar::T> {
+    return int::attachType(<dynamic>[t.{core::Iterable::first}], new typ::Interface::•(self::$declarations.[](3), <dynamic>[this.$C$T]));
+  }
+  get $type() → typ::ReifiedType
+    return new typ::Interface::•(self::$declarations.[](2));
+  get $is$List() → core::bool
+    return false;
+}
+static final field core::List<dec::Class> $declarations = (core::List<dec::Class> d) → core::List<dec::Class> {
+  dec::init(d, 0, new typ::Interface::•(d.[](17)));
+  dec::init(d, 1, new typ::Interface::•(d.[](17)));
+  dec::init(d, 2, new typ::Interface::•(d.[](17)));
+  dec::init(d, 3, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](19), <dynamic>[d.[](3).variables.[](0)])]);
+  dec::init(d, 4, new typ::Interface::•(d.[](17)));
+  dec::init(d, 5, new typ::Interface::•(d.[](17)));
+  dec::init(d, 6, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](20), <dynamic>[new typ::Interface::•(d.[](6))]), new typ::Interface::•(d.[](21))]);
+  dec::init(d, 7, new typ::Interface::•(d.[](22)));
+  dec::init(d, 8, new typ::Interface::•(d.[](22)));
+  dec::init(d, 9, new typ::Interface::•(d.[](17)));
+  dec::init(d, 10, new typ::Interface::•(d.[](23)));
+  dec::init(d, 11, new typ::Interface::•(d.[](23)));
+  dec::init(d, 12, new typ::Interface::•(d.[](23)));
+  dec::init(d, 13, new typ::Interface::•(d.[](23)));
+  dec::init(d, 14, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](24))]);
+  dec::init(d, 15, new typ::Interface::•(d.[](16)));
+  dec::init(d, 16, new typ::Interface::•(d.[](23)));
+  dec::init(d, 17, null);
+  dec::init(d, 19, new typ::Interface::•(d.[](25), <dynamic>[d.[](19).variables.[](0)]));
+  dec::init(d, 20, new typ::Interface::•(d.[](17)));
+  dec::init(d, 21, new typ::Interface::•(d.[](17)));
+  dec::init(d, 22, new typ::Interface::•(d.[](17)), <dynamic>[new typ::Interface::•(d.[](20), <dynamic>[new typ::Interface::•(d.[](22))])]);
+  dec::init(d, 23, new typ::Interface::•(d.[](17)));
+  dec::init(d, 24, new typ::Interface::•(d.[](17)));
+  dec::init(d, 25, new typ::Interface::•(d.[](17)));
+  return d;
+}.call(dec::allocateDeclarations(<dynamic>["A", "B", "C", "List", "Null", "bool", "String", "int", "double", "Type", "AbstractClassInstantiationError", "NoSuchMethodError", "CyclicInitializationError", "UnsupportedError", "IntegerDivisionByZeroException", "RangeError", "ArgumentError", "Object", "HasRuntimeTypeGetter", "EfficientLengthIterable", "Comparable", "Pattern", "num", "Error", "Exception", "Iterable"], <dynamic>[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1]));
+static method main() → dynamic {
+  self::B b = new self::B::•();
+  self::C c = new self::C::•();
+  dynamic obj = c;
+  tes::expectTrue(c.{self::C::foo}(b, $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](1))]).{core::Object::==}(b));
+  tes::expectTrue(obj.foo(b, $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](1))]).==(b));
+  dynamic x = c.{self::C::bar}(int::attachType(<self::B>[new self::B::•()], new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])), $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](1))]);
+  tes::expectTrue(typ::isSubtypeOf(int::type(x), new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+  tes::expectTrue(x.length.==(1));
+  dynamic y = obj.bar(int::attachType(<self::B>[new self::B::•()], new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])), $typeParameters: <typ::ReifiedType>[new typ::Interface::•(self::$declarations.[](1))]);
+  tes::expectTrue(typ::isSubtypeOf(int::type(y), new typ::Interface::•(self::$declarations.[](3), <dynamic>[new typ::Interface::•(self::$declarations.[](1))])));
+  tes::expectTrue(y.length.==(1));
+}

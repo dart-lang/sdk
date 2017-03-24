@@ -32,12 +32,14 @@ class Foo {
 ''');
     standardAnalysisSetup();
 
-    await sendAnalysisUpdateOptions(new AnalysisOptions()..generateHints = false);
+    await sendAnalysisUpdateOptions(
+        new AnalysisOptions()..generateHints = false);
     await sendAnalysisReanalyze();
     await analysisFinished;
     expect(getErrors(pathname), isEmpty);
 
-    await sendAnalysisUpdateOptions(new AnalysisOptions()..generateHints = true);
+    await sendAnalysisUpdateOptions(
+        new AnalysisOptions()..generateHints = true);
     await sendAnalysisReanalyze();
     await analysisFinished;
     expect(getErrors(pathname), hasLength(1));

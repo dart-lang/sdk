@@ -59,7 +59,10 @@ main(List<String> args) {
   /*
    * Collect arguments
    */
-  var perfArgs = ['-i${inputFile.path}', '-t$tmpSrcDirPath',];
+  var perfArgs = [
+    '-i${inputFile.path}',
+    '-t$tmpSrcDirPath',
+  ];
   for (int index = 3; index < args.length; ++index) {
     perfArgs.add(args[index].replaceAll('@tmpSrcDir@', tmpSrcDirPath));
   }

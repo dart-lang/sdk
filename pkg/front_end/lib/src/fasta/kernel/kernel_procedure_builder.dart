@@ -175,6 +175,7 @@ abstract class KernelFunctionBuilder
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
   final Procedure procedure;
+  final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier;
 
@@ -191,6 +192,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
+      this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName,
       this.redirectionTarget])
@@ -228,6 +230,8 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     if (procedure.name == null) {
       procedure.function = buildFunction(library);
       procedure.function.parent = procedure;
+      procedure.function.fileOffset = charOpenParenOffset;
+      procedure.function.fileEndOffset = procedure.fileEndOffset;
       procedure.isAbstract = isAbstract;
       procedure.isStatic = isStatic;
       procedure.isExternal = isExternal;
@@ -243,6 +247,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
 // TODO(ahe): Move this to own file?
 class KernelConstructorBuilder extends KernelFunctionBuilder {
   final Constructor constructor;
+  final int charOpenParenOffset;
 
   bool hasMovedSuperInitializer = false;
 
@@ -259,6 +264,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       List<FormalParameterBuilder> formals,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
+      this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
       : constructor = new Constructor(null)
@@ -279,6 +285,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     if (constructor.name == null) {
       constructor.function = buildFunction(library);
       constructor.function.parent = constructor;
+      constructor.function.fileOffset = charOpenParenOffset;
+      constructor.function.fileEndOffset = constructor.fileEndOffset;
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);

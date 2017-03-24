@@ -7,7 +7,9 @@
 #include "vm/cha.h"
 #include "vm/bit_vector.h"
 #include "vm/il_printer.h"
+#include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
+#include "vm/resolver.h"
 #include "vm/timeline.h"
 
 namespace dart {
@@ -251,10 +253,44 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 }
 
 
+void FlowGraphTypePropagator::CheckNonNullSelector(
+    Instruction* call,
+    Definition* receiver,
+    const String& function_name) {
+  if (!receiver->Type()->is_nullable()) {
+    // Nothing to do if type is already non-nullable.
+    return;
+  }
+  const Class& null_class =
+      Class::Handle(Isolate::Current()->object_store()->null_class());
+  const Function& target = Function::Handle(Resolver::ResolveDynamicAnyArgs(
+      Thread::Current()->zone(), null_class, function_name));
+  if (target.IsNull()) {
+    // If the selector is not defined on Null, we can propagate non-nullness.
+    CompileType* type = TypeOf(receiver);
+    if (type->is_nullable()) {
+      // Insert redefinition for the receiver to guard against invalid
+      // code motion.
+      RedefinitionInstr* redef = flow_graph_->EnsureRedefinition(
+          call, receiver, type->CopyNonNullable());
+      // Grow types array if a new redefinition was inserted.
+      if (redef != NULL) {
+        for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1;
+             ++i) {
+          types_.Add(NULL);
+        }
+      }
+    }
+  }
+}
+
+
 void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->has_unique_selector()) {
     SetCid(instr->ArgumentAt(0), instr->ic_data()->GetReceiverClassIdAt(0));
+    return;
   }
+  CheckNonNullSelector(instr, instr->ArgumentAt(0), instr->function_name());
 }
 
 
@@ -262,7 +298,10 @@ void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
   if (instr->instance_call()->has_unique_selector()) {
     SetCid(instr->ArgumentAt(0), instr->ic_data().GetReceiverClassIdAt(0));
+    return;
   }
+  CheckNonNullSelector(instr, instr->ArgumentAt(0),
+                       instr->instance_call()->function_name());
 }
 
 
@@ -727,24 +766,28 @@ bool PhiInstr::RecomputeType() {
 
 
 CompileType RedefinitionInstr::ComputeType() const {
-  if (type_ != NULL) {
+  if (constrained_type_ != NULL) {
     // Check if the type associated with this redefinition is more specific
     // than the type of its input. If yes, return it. Otherwise, fall back
     // to the input's type.
 
-    // If the input type has a concrete cid, stick with it.
+    // If either type has a concrete cid, stick with it.
     if (value()->Type()->ToCid() != kDynamicCid) {
       return *value()->Type();
     }
-
+    if (constrained_type_->ToCid() != kDynamicCid) {
+      return *constrained_type_;
+    }
     // If either type is non-nullable, the resulting type is non-nullable.
     const bool is_nullable =
-        value()->Type()->is_nullable() && type_->is_nullable();
-    if (value()->Type()->IsMoreSpecificThan(*type_->ToAbstractType())) {
-      return is_nullable ? value()->Type()->CopyNonNullable()
-                         : *value()->Type();
+        value()->Type()->is_nullable() && constrained_type_->is_nullable();
+    if (value()->Type()->IsMoreSpecificThan(
+            *constrained_type_->ToAbstractType())) {
+      return is_nullable ? *value()->Type()
+                         : value()->Type()->CopyNonNullable();
     } else {
-      return is_nullable ? type_->CopyNonNullable() : *type_;
+      return is_nullable ? *constrained_type_
+                         : constrained_type_->CopyNonNullable();
     }
   }
   return *value()->Type();

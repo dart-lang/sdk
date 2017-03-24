@@ -1486,7 +1486,7 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/regress_22936_test_01_multi',
   'language/regress_23038_test_01_multi',
   'language/regress_23051_test_01_multi',
-  'language/regress_23089_test', // issue 28450
+  'language/regress_23089_test',
   'language/regress_23408_test',
   'language/return_type_test',
   'language/rewrite_implicit_this_test_01_multi',
@@ -2405,6 +2405,7 @@ final notYetStrongTests = new HashSet<String>.from([
   'lib/html/custom/document_register_basic_test',
   'lib/html/custom/document_register_type_extensions_test',
   'lib/html/custom/element_upgrade_test',
+  'lib/html/element_dimensions_test',
   'lib/html/element_test',
   'lib/html/events_test',
   'lib/html/fileapi_test',

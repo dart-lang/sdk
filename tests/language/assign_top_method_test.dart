@@ -4,10 +4,12 @@
 
 import "package:expect/expect.dart";
 
-method() { return 0; }
+method() {
+  return 0;
+}
 
 main() {
   // Illegal, can't change a top level method
-  Expect.throws(() { method = () { return 1; }; }, /// 01: static type warning
-                (e) => e is NoSuchMethodError);    /// 01: continued
+  Expect.throws(() { method = () { return 1; }; }, // //# 01: static type warning
+                (e) => e is NoSuchMethodError); //    //# 01: continued
 }

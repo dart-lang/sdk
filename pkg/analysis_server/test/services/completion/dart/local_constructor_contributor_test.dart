@@ -4168,7 +4168,6 @@ class A {
 }''');
     await computeSuggestions();
 
-    assertSuggestConstructor('A',
-        defaultArgListString: 'bar, baz: null');
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
   }
 }

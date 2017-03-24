@@ -9,37 +9,33 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 var tests = [
+  (Isolate isolate) =>
+      isolate.vm.invokeRpc('_echo', {'text': 'hello'}).then((result) {
+        expect(result['type'], equals('_EchoResponse'));
+        expect(result['text'], equals('hello'));
+      }),
+  (Isolate isolate) =>
+      isolate.invokeRpc('_echo', {'text': 'hello'}).then((result) {
+        expect(result['type'], equals('_EchoResponse'));
+        expect(result['text'], equals('hello'));
+      }),
+  (Isolate isolate) async {
+    Completer completer = new Completer();
+    var stream = await isolate.vm.getEventStream('_Echo');
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+      assert(event.kind == '_Echo');
+      expect(event.data.lengthInBytes, equals(3));
+      expect(event.data.getUint8(0), equals(0));
+      expect(event.data.getUint8(1), equals(128));
+      expect(event.data.getUint8(2), equals(255));
+      subscription.cancel();
+      completer.complete();
+    });
 
-(Isolate isolate) =>
-  isolate.vm.invokeRpc('_echo', { 'text': 'hello'}).then((result) {
-    expect(result['type'], equals('_EchoResponse'));
-    expect(result['text'], equals('hello'));
-  }),
-
-(Isolate isolate) =>
-  isolate.invokeRpc('_echo', { 'text': 'hello'}).then((result) {
-    expect(result['type'], equals('_EchoResponse'));
-    expect(result['text'], equals('hello'));
-  }),
-
-(Isolate isolate) async {
-  Completer completer = new Completer();
-  var stream = await isolate.vm.getEventStream('_Echo');
-  var subscription;
-  subscription = stream.listen((ServiceEvent event) {
-    assert(event.kind == '_Echo');
-    expect(event.data.lengthInBytes, equals(3));
-    expect(event.data.getUint8(0), equals(0));
-    expect(event.data.getUint8(1), equals(128));
-    expect(event.data.getUint8(2), equals(255));
-    subscription.cancel();
-    completer.complete();
-  });
-
-  await isolate.invokeRpc('_triggerEchoEvent', { 'text': 'hello' });
-  await completer.future;
-},
-
+    await isolate.invokeRpc('_triggerEchoEvent', {'text': 'hello'});
+    await completer.future;
+  },
 ];
 
 main(args) => runIsolateTests(args, tests);

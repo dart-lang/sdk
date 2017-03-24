@@ -321,6 +321,7 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
+  function_.EnsureHasCompiledUnoptimizedCode();
   code_ = function_.unoptimized_code();
   ctx_ = async_activation.context();
   ASSERT(fp_ == 0);
@@ -806,7 +807,6 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   ExceptionHandlers& handlers = ExceptionHandlers::Handle();
   Array& handled_types = Array::Handle();
   AbstractType& type = Type::Handle();
-  const TypeArguments& no_instantiator = TypeArguments::Handle();
   const bool is_async =
       function().IsAsyncClosure() || function().IsAsyncGenClosure();
   handlers = code().exception_handlers();
@@ -831,7 +831,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         if (type.IsDynamicType()) {
           return true;
         }
-        if (exc_obj.IsInstanceOf(type, no_instantiator, NULL)) {
+        if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(), NULL)) {
           return true;
         }
       }
@@ -1817,8 +1817,7 @@ void Debugger::AppendCodeFrames(Thread* thread,
          it.Advance()) {
       *inlined_code = it.code();
       if (FLAG_trace_debugger_stacktrace) {
-        const Function& function =
-            Function::Handle(zone, inlined_code->function());
+        const Function& function = Function::Handle(zone, it.function());
         ASSERT(!function.IsNull());
         OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
                      function.ToFullyQualifiedCString());
@@ -1904,7 +1903,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
           for (InlinedFunctionsIterator it(code, pc); !it.Done();
                it.Advance()) {
             inlined_code = it.code();
-            stack_trace->AddAsyncCausalFrame(pc, inlined_code);
+            stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
           }
         } else {
           stack_trace->AddAsyncCausalFrame(pc, code);
@@ -1923,6 +1922,9 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   if (!FLAG_causal_async_stacks) {
     return NULL;
   }
+  // Causal async stacks are not supported in the AOT runtime.
+  ASSERT(!FLAG_precompiled_runtime);
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -1939,21 +1941,60 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
+                   frame->ToCString());
+    }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      function = code.function();
-      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        ActivationFrame* activation = CollectDartFrame(
-            isolate, frame->pc(), frame, code, Object::null_array(), 0,
-            ActivationFrame::kAsyncActivation);
-        ASSERT(activation != NULL);
-        stack_trace->AddActivation(activation);
-        // Grab the awaiter.
-        async_activation ^= activation->GetAsyncAwaiter();
-        break;
+      if (code.is_optimized()) {
+        deopt_frame = DeoptimizeToArray(thread, frame, code);
+        bool found_async_awaiter = false;
+        for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
+             it.Advance()) {
+          inlined_code = it.code();
+          function = it.function();
+          if (FLAG_trace_debugger_stacktrace) {
+            ASSERT(!function.IsNull());
+            OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
+                         function.ToFullyQualifiedCString());
+          }
+          intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
+          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+            ActivationFrame* activation = CollectDartFrame(
+                isolate, it.pc(), frame, inlined_code, deopt_frame,
+                deopt_frame_offset, ActivationFrame::kAsyncActivation);
+            ASSERT(activation != NULL);
+            stack_trace->AddActivation(activation);
+            // Grab the awaiter.
+            async_activation ^= activation->GetAsyncAwaiter();
+            found_async_awaiter = true;
+            break;
+          } else {
+            stack_trace->AddActivation(
+                CollectDartFrame(isolate, it.pc(), frame, inlined_code,
+                                 deopt_frame, deopt_frame_offset));
+          }
+        }
+        // Break out of outer loop.
+        if (found_async_awaiter) {
+          break;
+        }
       } else {
-        AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
-                         &inlined_code, &deopt_frame);
+        function = code.function();
+        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+          ActivationFrame* activation = CollectDartFrame(
+              isolate, frame->pc(), frame, code, Object::null_array(), 0,
+              ActivationFrame::kAsyncActivation);
+          ASSERT(activation != NULL);
+          stack_trace->AddActivation(activation);
+          // Grab the awaiter.
+          async_activation ^= activation->GetAsyncAwaiter();
+          break;
+        } else {
+          stack_trace->AddActivation(CollectDartFrame(
+              isolate, frame->pc(), frame, code, Object::null_array(), 0));
+        }
       }
     }
   }
@@ -2076,29 +2117,6 @@ Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() const {
 }
 
 
-bool Debugger::ShouldPauseOnAsyncException(DebuggerStackTrace* stack_trace,
-                                           const Instance& exc) {
-  if (exc_pause_info_ == kNoPauseOnExceptions) {
-    return false;
-  }
-  if (exc_pause_info_ == kPauseOnAllExceptions) {
-    return true;
-  }
-  ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
-  for (intptr_t i = 0; i < stack_trace->Length(); i++) {
-    ActivationFrame* frame = stack_trace->FrameAt(i);
-    if (frame->HandlesException(exc)) {
-      if (FLAG_verbose_debug) {
-        OS::PrintErr("%s is caught by frame %s\n", exc.ToCString(),
-                     frame->ToCString());
-      }
-      return false;
-    }
-  }
-  return true;
-}
-
-
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                                       const Instance& exception) {
   if (exc_pause_info_ == kNoPauseOnExceptions) {
@@ -2122,6 +2140,9 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 
 void Debugger::PauseException(const Instance& exc) {
+  if (FLAG_stress_async_stacks) {
+    CollectAwaiterReturnStackTrace();
+  }
   // We ignore this exception event when the VM is executing code invoked
   // by the debugger to evaluate variables values, when we see a nested
   // breakpoint or exception event, or if the debugger is not
@@ -2133,7 +2154,7 @@ void Debugger::PauseException(const Instance& exc) {
   DebuggerStackTrace* awaiter_stack_trace = CollectAwaiterReturnStackTrace();
   DebuggerStackTrace* stack_trace = CollectStackTrace();
   if (awaiter_stack_trace != NULL) {
-    if (!ShouldPauseOnAsyncException(awaiter_stack_trace, exc)) {
+    if (!ShouldPauseOnException(awaiter_stack_trace, exc)) {
       return;
     }
   } else {

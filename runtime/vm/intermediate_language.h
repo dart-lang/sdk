@@ -2409,7 +2409,7 @@ class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
 
 class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit RedefinitionInstr(Value* value) : type_(NULL) {
+  explicit RedefinitionInstr(Value* value) : constrained_type_(NULL) {
     SetInputAt(0, value);
   }
 
@@ -2420,15 +2420,17 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
-  void set_type(CompileType* type) { type_ = type; }
-  CompileType* type() const { return type_; }
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  void set_constrained_type(CompileType* type) { constrained_type_ = type; }
+  CompileType* constrained_type() const { return constrained_type_; }
 
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  CompileType* type_;
+  CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 
@@ -2532,6 +2534,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
                         Value* instantiator_type_arguments,
+                        Value* function_type_arguments,
                         const AbstractType& dst_type,
                         const String& dst_name,
                         intptr_t deopt_id)
@@ -2544,6 +2547,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
@@ -3959,12 +3963,14 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
   InstanceOfInstr(TokenPosition token_pos,
                   Value* value,
                   Value* instantiator_type_arguments,
+                  Value* function_type_arguments,
                   const AbstractType& type,
                   intptr_t deopt_id)
       : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
@@ -4383,21 +4389,20 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
  public:
   InstantiateTypeInstr(TokenPosition token_pos,
                        const AbstractType& type,
-                       const Class& instantiator_class,
-                       Value* instantiator)
+                       Value* instantiator_type_arguments,
+                       Value* function_type_arguments)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
-        type_(type),
-        instantiator_class_(instantiator_class) {
+        type_(type) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
-    SetInputAt(0, instantiator);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(0, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateType)
 
-  Value* instantiator() const { return inputs_[0]; }
+  Value* instantiator_type_arguments() const { return inputs_[0]; }
   const AbstractType& type() const { return type_; }
-  const Class& instantiator_class() const { return instantiator_class_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return true; }
@@ -4409,7 +4414,6 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
  private:
   const TokenPosition token_pos_;
   const AbstractType& type_;
-  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
@@ -4420,18 +4424,20 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
-                                Value* instantiator)
+                                Value* instantiator_type_arguments,
+                                Value* function_type_arguments)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
     ASSERT(type_arguments.IsZoneHandle());
-    SetInputAt(0, instantiator);
+    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(0, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
 
-  Value* instantiator() const { return inputs_[0]; }
+  Value* instantiator_type_arguments() const { return inputs_[0]; }
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
   virtual TokenPosition token_pos() const { return token_pos_; }

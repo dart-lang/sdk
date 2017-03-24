@@ -4,9 +4,7 @@
 
 library testing.test_description;
 
-import 'dart:io' show
-    File,
-    FileSystemEntity;
+import 'dart:io' show File, FileSystemEntity;
 
 class TestDescription implements Comparable<TestDescription> {
   final Uri root;
@@ -44,8 +42,8 @@ class TestDescription implements Comparable<TestDescription> {
     sink.writeln('.main,');
   }
 
-  static TestDescription from(
-      Uri root, FileSystemEntity entity, {Pattern pattern}) {
+  static TestDescription from(Uri root, FileSystemEntity entity,
+      {Pattern pattern}) {
     if (entity is! File) return null;
     pattern ??= "_test.dart";
     String path = entity.uri.path;

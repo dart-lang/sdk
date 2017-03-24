@@ -42,18 +42,28 @@ async_(gen, T, @rest args) => JS(
     return next(iter.throw(err));
   }
   function next(ret) {
-    if (ret.done) return ret.value;
-    // Checks if the awaited value is a Future.
     let future = ret.value;
-    if (!$instanceOf(future, ${getGenericClass(Future)})) {
+    if (ret.done) {
+      return ret.value;
+    }
+    // Checks if the awaited value is a Future.
+    if (!$instanceOf(future, $Future)) {
       future = $Future.value(future);
     }
     // Chain the Future so `await` receives the Future's value.
     return future.then($dynamic)(onValue, {onError: onError});
   }
-  return ${getGenericClass(Future)}($T).microtask(function() {
+  let FutureT = ${getGenericClass(Future)(T)};
+  return FutureT.microtask(function() {
     iter = $gen.apply(null, $args)[Symbol.iterator]();
-    return onValue();
+    var result = onValue();
+    if ($strongInstanceOf(result, FutureT) == null) {
+      // Chain the Future<dynamic> to a Future<T> to produce the correct
+      // final type.
+      return result.then($T)((x) => x, {onError: onError});
+    } else {
+      return result;
+    }
   });
 })()''');
 

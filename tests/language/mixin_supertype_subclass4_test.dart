@@ -17,19 +17,26 @@
 // a warning.
 
 class B {}
+
 class C {}
+
 class D {}
+
 class E extends B with C implements D {}
+
 class F extends E {}
+
 class G {}
+
 class A = E with M;
+
 class M
-  extends B with G /// 01: static type warning
-  extends C with G /// 02: static type warning
-  extends D with G /// 03: static type warning
-  extends E with G /// 04: static type warning
-  extends F with G /// 05: static type warning
-  {}
+  extends B with G //# 01: static type warning
+  extends C with G //# 02: static type warning
+  extends D with G //# 03: static type warning
+  extends E with G //# 04: static type warning
+  extends F with G //# 05: static type warning
+{}
 
 main() {
   new A();

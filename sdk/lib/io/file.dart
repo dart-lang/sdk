@@ -10,17 +10,21 @@ part of dart.io;
 class FileMode {
   /// The mode for opening a file only for reading.
   static const READ = const FileMode._internal(0);
+
   /// Mode for opening a file for reading and writing. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
   static const WRITE = const FileMode._internal(1);
+
   /// Mode for opening a file for reading and writing to the
   /// end of it. The file is created if it does not already exist.
   static const APPEND = const FileMode._internal(2);
+
   /// Mode for opening a file for writing *only*. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
   static const WRITE_ONLY = const FileMode._internal(3);
+
   /// Mode for opening a file for writing *only* to the
   /// end of it. The file is created if it does not already exist.
   static const WRITE_ONLY_APPEND = const FileMode._internal(4);
@@ -31,30 +35,36 @@ class FileMode {
 
 /// The mode for opening a file only for reading.
 const READ = FileMode.READ;
+
 /// The mode for opening a file for reading and writing. The file is
 /// overwritten if it already exists. The file is created if it does not
 /// already exist.
 const WRITE = FileMode.WRITE;
+
 /// The mode for opening a file for reading and writing to the
 /// end of it. The file is created if it does not already exist.
 const APPEND = FileMode.APPEND;
+
 /// Mode for opening a file for writing *only*. The file is
 /// overwritten if it already exists. The file is created if it does not
 /// already exist.
 const WRITE_ONLY = FileMode.WRITE_ONLY;
+
 /// Mode for opening a file for writing *only* to the
 /// end of it. The file is created if it does not already exist.
 const WRITE_ONLY_APPEND = FileMode.WRITE_ONLY_APPEND;
-
 
 /// Type of lock when requesting a lock on a file.
 enum FileLock {
   /// Shared file lock.
   SHARED,
+
   /// Exclusive file lock.
   EXCLUSIVE,
+
   /// Blocking shared file lock.
   BLOCKING_SHARED,
+
   /// Blocking exclusive file lock.
   BLOCKING_EXCLUSIVE,
 }
@@ -257,7 +267,7 @@ abstract class File implements FileSystemEntity {
    */
   Future<File> rename(String newPath);
 
-   /**
+  /**
    * Synchronously renames this file. Returns a [File]
    * instance for the renamed file.
    *
@@ -277,7 +287,7 @@ abstract class File implements FileSystemEntity {
    */
   Future<File> copy(String newPath);
 
-   /**
+  /**
    * Synchronously copy this file. Returns a [File]
    * instance for the copied file.
    *
@@ -441,8 +451,7 @@ abstract class File implements FileSystemEntity {
    *  has an `encoding` property which can be changed after the
    *  [IOSink] has been created.
    */
-  IOSink openWrite({FileMode mode: FileMode.WRITE,
-                    Encoding encoding: UTF8});
+  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: UTF8});
 
   /**
    * Read the entire file contents as a list of bytes. Returns a
@@ -507,8 +516,7 @@ abstract class File implements FileSystemEntity {
    * flushed to the file system before the returned future completes.
    */
   Future<File> writeAsBytes(List<int> bytes,
-                            {FileMode mode: FileMode.WRITE,
-                             bool flush: false});
+      {FileMode mode: FileMode.WRITE, bool flush: false});
 
   /**
    * Synchronously write a list of bytes to a file.
@@ -525,8 +533,7 @@ abstract class File implements FileSystemEntity {
    * Throws a [FileSystemException] if the operation fails.
    */
   void writeAsBytesSync(List<int> bytes,
-                        {FileMode mode: FileMode.WRITE,
-                         bool flush: false});
+      {FileMode mode: FileMode.WRITE, bool flush: false});
 
   /**
    * Write a string to a file.
@@ -544,9 +551,9 @@ abstract class File implements FileSystemEntity {
    *
    */
   Future<File> writeAsString(String contents,
-                             {FileMode mode: FileMode.WRITE,
-                              Encoding encoding: UTF8,
-                              bool flush: false});
+      {FileMode mode: FileMode.WRITE,
+      Encoding encoding: UTF8,
+      bool flush: false});
 
   /**
    * Synchronously write a string to a file.
@@ -565,16 +572,15 @@ abstract class File implements FileSystemEntity {
    * Throws a [FileSystemException] if the operation fails.
    */
   void writeAsStringSync(String contents,
-                         {FileMode mode: FileMode.WRITE,
-                          Encoding encoding: UTF8,
-                          bool flush: false});
+      {FileMode mode: FileMode.WRITE,
+      Encoding encoding: UTF8,
+      bool flush: false});
 
   /**
    * Get the path of the file.
    */
   String get path;
 }
-
 
 /**
  * `RandomAccessFile` provides random access to the data in a
@@ -681,8 +687,8 @@ abstract class RandomAccessFile {
    * Returns a `Future<RandomAccessFile>` that completes with this
    * [RandomAccessFile] when the write completes.
    */
-  Future<RandomAccessFile> writeFrom(
-      List<int> buffer, [int start = 0, int end]);
+  Future<RandomAccessFile> writeFrom(List<int> buffer,
+      [int start = 0, int end]);
 
   /**
    * Synchronously writes from a [List<int>] to the file. It will read the
@@ -700,7 +706,7 @@ abstract class RandomAccessFile {
    * RandomAccessFile when the write completes.
    */
   Future<RandomAccessFile> writeString(String string,
-                                       {Encoding encoding: UTF8});
+      {Encoding encoding: UTF8});
 
   /**
    * Synchronously writes a single string to the file using the given
@@ -708,8 +714,7 @@ abstract class RandomAccessFile {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  void writeStringSync(String string,
-                       {Encoding encoding: UTF8});
+  void writeStringSync(String string, {Encoding encoding: UTF8});
 
   /**
    * Gets the current byte position in the file. Returns a
@@ -898,7 +903,6 @@ abstract class RandomAccessFile {
    */
   String get path;
 }
-
 
 /**
  * Exception thrown when a file operation fails.

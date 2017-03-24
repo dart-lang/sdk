@@ -764,10 +764,9 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       const Instance& instance = Instance::Cast(value);
       const AbstractType& checked_type = instr->type();
       if (instr->instantiator_type_arguments()->BindsToConstantNull()) {
-        const TypeArguments& checked_type_arguments = TypeArguments::Handle();
         Error& bound_error = Error::Handle();
         bool is_instance = instance.IsInstanceOf(
-            checked_type, checked_type_arguments, &bound_error);
+            checked_type, Object::null_type_arguments(), &bound_error);
         // Can only have bound error with generics.
         ASSERT(bound_error.IsNull());
         SetValue(instr, Bool::Get(is_instance));
@@ -859,7 +858,9 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
 
 
 void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
-  const Object& object = instr->instantiator()->definition()->constant_value();
+  const Object& object =
+      instr->instantiator_type_arguments()->definition()->constant_value();
+  // TODO(regis): Check function type arguments.
   if (IsNonConstant(object)) {
     SetValue(instr, non_constant_);
     return;
@@ -880,7 +881,9 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
 
 void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
-  const Object& object = instr->instantiator()->definition()->constant_value();
+  const Object& object =
+      instr->instantiator_type_arguments()->definition()->constant_value();
+  // TODO(regis): Check function type arguments.
   if (IsNonConstant(object)) {
     SetValue(instr, non_constant_);
     return;

@@ -58,4 +58,7 @@ class PrefixBuilder extends Builder {
     }
     return super.combineAmbiguousImport(name, other, library);
   }
+
+  @override
+  String get fullNameForErrors => name;
 }

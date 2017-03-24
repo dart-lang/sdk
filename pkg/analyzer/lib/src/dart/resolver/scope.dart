@@ -1148,26 +1148,27 @@ abstract class Scope {
 }
 
 /**
- * The scope defined by the type parameters in a class.
+ * The scope defined by the type parameters in an element that defines type
+ * parameters.
  */
 class TypeParameterScope extends EnclosedScope {
   /**
    * Initialize a newly created scope, enclosed within the [enclosingScope],
-   * that defined the type parameters from the given [classElement].
+   * that defines the type parameters from the given [element].
    */
-  TypeParameterScope(Scope enclosingScope, ClassElement classElement)
+  TypeParameterScope(Scope enclosingScope, TypeParameterizedElement element)
       : super(enclosingScope) {
-    if (classElement == null) {
-      throw new ArgumentError("class element cannot be null");
+    if (element == null) {
+      throw new ArgumentError("element cannot be null");
     }
-    _defineTypeParameters(classElement);
+    _defineTypeParameters(element);
   }
 
   /**
-   * Define the type parameters declared by the [classElement].
+   * Define the type parameters declared by the [element].
    */
-  void _defineTypeParameters(ClassElement classElement) {
-    for (TypeParameterElement typeParameter in classElement.typeParameters) {
+  void _defineTypeParameters(TypeParameterizedElement element) {
+    for (TypeParameterElement typeParameter in element.typeParameters) {
       define(typeParameter);
     }
   }

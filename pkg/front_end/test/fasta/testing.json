@@ -131,7 +131,7 @@
 
   "analyze": {
 
-    "options": "../../.analysis_options",
+    "options": "../../analysis_options.yaml",
 
     "uris": [
       "../../lib/src/fasta",
@@ -152,13 +152,21 @@
       "kompile_test.dart",
       "outline_test.dart",
       "sdk_test.dart",
+      "../../../analyzer/lib/src/fasta",
+      "../../../compiler/bin",
+      "../../../compiler/tool",
       "../../../../utils/kernel-service/kernel-service.dart",
       "../../../../tools/patch_sdk.dart"
     ],
 
     "exclude": [
       "/third_party/pkg/",
-      "/pkg/analyzer/"
+      "/pkg/analyzer/(?!.*/fasta/)",
+      "/pkg/compiler/lib/(?!.*/(scanner|parser)/)",
+      "/pkg/compiler/lib/src/parser/partial_elements\\.dart$",
+      "/pkg/js_ast/",
+      "/pkg/compiler/tool/dart2js_profile_many\\.dart$",
+      "/pkg/compiler/tool/track_memory\\.dart$"
     ]
   }
 }

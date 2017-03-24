@@ -24,9 +24,9 @@ import '../util/relativize.dart' show relativizeUri;
 import 'kernel_builder.dart'
     show
         Builder,
+        BuiltinTypeBuilder,
         ClassBuilder,
         ConstructorReferenceBuilder,
-        DynamicTypeBuilder,
         FormalParameterBuilder,
         FunctionTypeAliasBuilder,
         KernelConstructorBuilder,
@@ -75,15 +75,8 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addNamedType(
       String name, List<KernelTypeBuilder> arguments, int charOffset) {
-    KernelNamedTypeBuilder type =
-        new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri);
-    if (identical(name, "dynamic")) {
-      type.builder =
-          new DynamicTypeBuilder(const DynamicType(), this, charOffset);
-    } else {
-      addType(type);
-    }
-    return type;
+    return addType(
+        new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri));
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
@@ -94,7 +87,7 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder addVoidType(int charOffset) {
-    return new KernelNamedTypeBuilder("void", null, charOffset, fileUri);
+    return addNamedType("void", null, charOffset);
   }
 
   void addClass(
@@ -169,6 +162,7 @@ class KernelLibraryBuilder
       AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel}) {
@@ -187,6 +181,7 @@ class KernelLibraryBuilder
           formals,
           this,
           charOffset,
+          charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
     } else {
@@ -201,6 +196,7 @@ class KernelLibraryBuilder
           kind,
           this,
           charOffset,
+          charOpenParenOffset,
           charEndOffset,
           nativeMethodName);
     }
@@ -218,6 +214,7 @@ class KernelLibraryBuilder
       AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
+      int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName) {
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
@@ -239,6 +236,7 @@ class KernelLibraryBuilder
         ProcedureKind.Factory,
         this,
         charOffset,
+        charOpenParenOffset,
         charEndOffset,
         nativeMethodName,
         redirectionTarget);
@@ -314,6 +312,8 @@ class KernelLibraryBuilder
       library.addClass(builder.build(this));
     } else if (builder is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
+    } else if (builder is BuiltinTypeBuilder) {
+      // Nothing needed.
     } else {
       internalError("Unhandled builder: ${builder.runtimeType}");
     }
@@ -335,12 +335,6 @@ class KernelLibraryBuilder
       }
     }
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
-  }
-
-  void addArgumentsWithMissingDefaultValues(
-      Arguments arguments, FunctionNode function) {
-    assert(partOfLibrary == null);
-    argumentsWithMissingDefaultValues.add([arguments, function]);
   }
 
   int finishStaticInvocations() {

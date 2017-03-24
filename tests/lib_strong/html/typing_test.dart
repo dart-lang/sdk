@@ -7,10 +7,10 @@ main() {
       predicate((x) => x is List<StyleSheet>, 'is a List<StyleSheet>');
 
   test('NodeList', () {
-    List<Node> asList = window.document.queryAll('body');
+    List<Element> asList = window.document.queryAll('body');
     // Check it's Iterable
     int counter = 0;
-    for (Node node in window.document.queryAll('body')) {
+    for (Element node in window.document.queryAll('body')) {
       counter++;
     }
     expect(counter, 1);

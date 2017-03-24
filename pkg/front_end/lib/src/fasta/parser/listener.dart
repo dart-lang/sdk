@@ -172,8 +172,8 @@ class Listener {
 
   void beginFormalParameter(Token token) {}
 
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     logEvent("FormalParameter");
   }
 
@@ -269,7 +269,7 @@ class Listener {
 
   void beginFunctionName(Token token) {}
 
-  void endFunctionName(Token token) {
+  void endFunctionName(Token beginToken, Token token) {
     logEvent("FunctionName");
   }
 
@@ -757,7 +757,7 @@ class Listener {
   /// - Formal parameters
   /// - Async marker
   /// - Body
-  void endUnnamedFunction(Token token) {
+  void endUnnamedFunction(Token beginToken, Token token) {
     logEvent("UnnamedFunction");
   }
 
@@ -789,7 +789,9 @@ class Listener {
     logEvent("ConditionalExpression");
   }
 
-  void handleConstExpression(Token token) {
+  void beginConstExpression(Token constKeyword) {}
+
+  void endConstExpression(Token token) {
     logEvent("ConstExpression");
   }
 
@@ -886,7 +888,9 @@ class Listener {
     logEvent("NamedArgument");
   }
 
-  void handleNewExpression(Token token) {
+  void beginNewExpression(Token token) {}
+
+  void endNewExpression(Token token) {
     logEvent("NewExpression");
   }
 
@@ -940,7 +944,7 @@ class Listener {
     logEvent("StringPart");
   }
 
-  void handleSuperExpression(Token token) {
+  void handleSuperExpression(Token token, IdentifierContext context) {
     logEvent("SuperExpression");
   }
 
@@ -956,7 +960,7 @@ class Listener {
     logEvent("SwitchCase");
   }
 
-  void handleThisExpression(Token token) {
+  void handleThisExpression(Token token, IdentifierContext context) {
     logEvent("ThisExpression");
   }
 

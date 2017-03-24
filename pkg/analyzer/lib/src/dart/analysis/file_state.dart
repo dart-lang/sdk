@@ -28,9 +28,9 @@ import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/fasta/analyzer/ast_builder.dart' as fasta;
-import 'package:front_end/src/fasta/analyzer/element_store.dart' as fasta;
-import 'package:front_end/src/fasta/analyzer/mock_element.dart' as fasta;
+import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
+import 'package:analyzer/src/fasta/element_store.dart' as fasta;
+import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
 import 'package:front_end/src/fasta/builder/scope.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
@@ -359,11 +359,16 @@ class FileState {
       try {
         fasta.ScannerResult scanResult = fasta.scan(_contentBytes);
 
-        var listener = new fasta.AstBuilder(null, null,
-            new _FastaElementStoreProxy(), new _FastaEmptyScope(), uri);
-        var parser = new fasta.Parser(listener);
+        var astBuilder = new fasta.AstBuilder(
+            new ErrorReporter(errorListener, source),
+            null,
+            null,
+            new _FastaElementStoreProxy(),
+            new _FastaEmptyScope(),
+            uri);
+        var parser = new fasta.Parser(astBuilder);
         parser.parseUnit(scanResult.tokens);
-        var unit = listener.pop() as CompilationUnit;
+        var unit = astBuilder.pop() as CompilationUnit;
 
         LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
         unit.lineInfo = lineInfo;

@@ -361,6 +361,12 @@ abstract class CodeRange extends base.SummaryClass {
  */
 abstract class EntityRef extends base.SummaryClass {
   /**
+   * The kind of entity being represented.
+   */
+  @Id(8)
+  EntityRefKind get entityKind;
+
+  /**
    * If this is a reference to a function type implicitly defined by a
    * function-typed parameter, a list of zero-based indices indicating the path
    * from the entity referred to by [reference] to the appropriate type
@@ -443,16 +449,6 @@ abstract class EntityRef extends base.SummaryClass {
   EntityRef get syntheticReturnType;
 
   /**
-   * If this [EntityRef] is a result of type inference, and so contained within
-   * [LinkedUnit.types], and was computed as a result of top-level type
-   * inference, which failed for this target, contains the list of one or more
-   * errors describing the failure.  The [reference] must point at `dynamic` in
-   * this case.
-   */
-  @Id(8)
-  List<TopLevelInferenceError> get topLevelInferenceErrors;
-
-  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it (if any).
    */
@@ -465,6 +461,27 @@ abstract class EntityRef extends base.SummaryClass {
    */
   @Id(7)
   List<UnlinkedTypeParam> get typeParameters;
+}
+
+/**
+ * Enum used to indicate the kind of an entity reference.
+ */
+enum EntityRefKind {
+  /**
+   * The entity represents a named type.
+   */
+  named,
+
+  /**
+   * The entity represents a generic function type.
+   */
+  genericFunctionType,
+
+  /**
+   * The entity represents a function type that was synthesized by a LUB
+   * computation.
+   */
+  syntheticFunction
 }
 
 /**
@@ -824,9 +841,9 @@ abstract class LinkedUnit extends base.SummaryClass {
   List<int> get constCycles;
 
   /**
-   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
-   * corresponding to parameters that inherit `@covariant` behavior from a base
-   * class.
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
+   * [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
+   * that inherit `@covariant` behavior from a base class.
    */
   @Id(3)
   List<int> get parametersInheritingCovariant;
@@ -841,6 +858,12 @@ abstract class LinkedUnit extends base.SummaryClass {
    */
   @Id(0)
   List<LinkedReference> get references;
+
+  /**
+   * The list of type inference errors.
+   */
+  @Id(4)
+  List<TopLevelInferenceError> get topLevelInferenceErrors;
 
   /**
    * List associating slot ids found inside the unlinked summary for the
@@ -1117,10 +1140,30 @@ enum ReferenceKind {
  */
 abstract class TopLevelInferenceError extends base.SummaryClass {
   /**
-   * The message describing the error.
+   * The kind of the error.
+   */
+  @Id(1)
+  TopLevelInferenceErrorKind get kind;
+
+  /**
+   * The slot id (which is unique within the compilation unit) identifying the
+   * target of type inference with which this [TopLevelInferenceError] is
+   * associated.
    */
   @Id(0)
-  String get message;
+  int get slot;
+}
+
+/**
+ * Enum used to indicate the kind of the error during top-level inference.
+ */
+enum TopLevelInferenceErrorKind {
+  assignment,
+  instanceGetter,
+  dependencyCycle,
+  overrideConflictFieldType,
+  overrideConflictReturnType,
+  overrideConflictParameterType
 }
 
 /**
@@ -3191,6 +3234,17 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(9)
   int get inferredTypeSlot;
+
+  /**
+   * If this is an instance non-final field, a nonzero slot id which is unique
+   * within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then the parameter of the
+   * synthetic setter inherits `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  @Id(15)
+  int get inheritsCovariantSlot;
 
   /**
    * The synthetic initializer function of the variable.  Absent if the variable

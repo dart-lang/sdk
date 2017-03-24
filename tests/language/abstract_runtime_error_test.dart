@@ -10,9 +10,8 @@ import "package:expect/expect.dart";
 //   If q is a constructor of an abstract class then an
 //   AbstractClassInstantiation- Error is thrown.
 
-
 abstract class Interface {
-  void foo(); /// 03: static type warning
+  void foo(); //# 03: static type warning
 }
 
 abstract class AbstractClass {
@@ -27,19 +26,19 @@ class NonAbstractClass implements Interface {
   toString() => 'NonAbstractClass';
 }
 
-Interface interface() => new Interface(); /// 01: static type warning
+Interface interface() => new Interface(); //# 01: static type warning
 
-AbstractClass abstractClass() => new AbstractClass(); /// 02: static type warning
+AbstractClass abstractClass() => new AbstractClass(); //# 02: static type warning
 
 bool isAbstractClassInstantiationError(e) {
   return e is AbstractClassInstantiationError;
 }
 
 void main() {
-  Expect.throws(interface, isAbstractClassInstantiationError, /// 01: continued
-                "expected AbstractClassInstantiationError");  /// 01: continued
-  Expect.throws(abstractClass, isAbstractClassInstantiationError, /// 02: continued
-                "expected AbstractClassInstantiationError");      /// 02: continued
+  Expect.throws(interface, isAbstractClassInstantiationError, //     //# 01: continued
+                "expected AbstractClassInstantiationError"); //      //# 01: continued
+  Expect.throws(abstractClass, isAbstractClassInstantiationError, // //# 02: continued
+                "expected AbstractClassInstantiationError"); //      //# 02: continued
   Expect.stringEquals('ConcreteSubclass', '${new ConcreteSubclass()}');
   Expect.stringEquals('NonAbstractClass', '${new NonAbstractClass()}');
 }

@@ -4,26 +4,16 @@
 
 library testing;
 
-export 'dart:async' show
-    Future;
+export 'dart:async' show Future;
 
 export 'src/discover.dart';
 
 export 'src/test_description.dart';
 
-export 'src/chain.dart' show
-    Chain,
-    ChainContext,
-    Result,
-    Step;
+export 'src/chain.dart' show Chain, ChainContext, Result, Step;
 
-export 'src/stdio_process.dart' show
-    StdioProcess;
+export 'src/stdio_process.dart' show StdioProcess;
 
-export 'src/run.dart' show
-    run,
-    runMe;
+export 'src/run.dart' show run, runMe;
 
-export 'src/expectation.dart' show
-    Expectation,
-    ExpectationSet;
+export 'src/expectation.dart' show Expectation, ExpectationSet;

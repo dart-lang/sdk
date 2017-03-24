@@ -79,8 +79,8 @@ class NetworkRpcException extends RpcException
   String toString() => 'NetworkRpcException(${message})';
 }
 
-Future<ServiceObject> ignoreNetworkErrors(
-    Object error, [ServiceObject resultOnNetworkError = null]) {
+Future<ServiceObject> ignoreNetworkErrors(Object error,
+    [ServiceObject resultOnNetworkError = null]) {
   if (error is NetworkRpcException) {
     return new Future.value(resultOnNetworkError);
   }
@@ -261,8 +261,17 @@ abstract class ServiceObject {
           case 'PcDescriptors':
             obj = new PcDescriptors._empty(owner);
             break;
+          case 'SingleTargetCache':
+            obj = new SingleTargetCache._empty(owner);
+            break;
+          case 'SubtypeTestCache':
+            obj = new SubtypeTestCache._empty(owner);
+            break;
           case 'TokenStream':
             obj = new TokenStream._empty(owner);
+            break;
+          case 'UnlinkedCall':
+            obj = new UnlinkedCall._empty(owner);
             break;
         }
         break;
@@ -844,10 +853,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
   }
 
-  Future restart() {
-    return invokeRpc('_restartVM', {});
-  }
-
   Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
@@ -879,8 +884,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       'streamId': streamId,
     };
     // Ignore network errors on stream listen.
-    return invokeRpc('streamListen', params).catchError(
-        (e) => ignoreNetworkErrors(e));
+    return invokeRpc('streamListen', params)
+        .catchError((e) => ignoreNetworkErrors(e));
   }
 
   Future<ServiceObject> _streamCancel(String streamId) {
@@ -888,8 +893,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       'streamId': streamId,
     };
     // Ignore network errors on stream cancel.
-    return invokeRpc('streamCancel', params).catchError(
-        (e) => ignoreNetworkErrors(e));
+    return invokeRpc('streamCancel', params)
+        .catchError((e) => ignoreNetworkErrors(e));
   }
 
   // A map from stream id to event stream state.
@@ -1349,9 +1354,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('getSourceReport', params);
   }
 
-  Future<ServiceMap> reloadSources(
-      {String rootLibUri,
-       bool pause}) {
+  Future<ServiceMap> reloadSources({String rootLibUri, bool pause}) {
     Map<String, dynamic> params = <String, dynamic>{};
     if (rootLibUri != null) {
       params['rootLibUri'] = rootLibUri;
@@ -1366,10 +1369,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   void _handleIsolateReloadEvent(ServiceEvent event) {
-    if (event.reloadError != null) {
-      // Failure.
-      print('Reload failed: ${event.reloadError}');
-    } else {
+    if (event.reloadError == null) {
       _cache.clear();
     }
   }
@@ -1519,8 +1519,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
 
-  int get memoryHighWatermark => _memoryHighWatermark;
-  int _memoryHighWatermark = 0;
+  int get zoneHighWatermark => _zoneHighWatermark;
+  int _zoneHighWatermark = 0;
 
   int get numZoneHandles => _numZoneHandles;
   int _numZoneHandles;
@@ -1560,8 +1560,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   static String _rootsToString(M.HeapSnapshotRoots roots) {
     switch (roots) {
-      case M.HeapSnapshotRoots.user: return "User";
-      case M.HeapSnapshotRoots.vm: return "VM";
+      case M.HeapSnapshotRoots.user:
+        return "User";
+      case M.HeapSnapshotRoots.vm:
+        return "VM";
     }
     return null;
   }
@@ -1571,8 +1573,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       _snapshotFetch = new StreamController.broadcast();
       // isolate.vm.streamListen('_Graph');
       isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
-                                 {'roots': _rootsToString(roots),
-                                  'collectGarbage': collectGarbage});
+          {'roots': _rootsToString(roots), 'collectGarbage': collectGarbage});
     }
     return _snapshotFetch.stream;
   }
@@ -1653,17 +1654,17 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
 
     threads.clear();
-    if(map['_threads'] != null) {
+    if (map['_threads'] != null) {
       threads.addAll(map['_threads']);
     }
 
-    int currentMemoryHighWatermark = 0;
+    int currentZoneHighWatermark = 0;
     for (var i = 0; i < threads.length; i++) {
-      currentMemoryHighWatermark += threads[i].memoryHighWatermark;
+      currentZoneHighWatermark += threads[i].zoneHighWatermark;
     }
 
-    if (currentMemoryHighWatermark > _memoryHighWatermark) {
-      _memoryHighWatermark = currentMemoryHighWatermark;
+    if (currentZoneHighWatermark > _zoneHighWatermark) {
+      _zoneHighWatermark = currentZoneHighWatermark;
     }
 
     _numZoneHandles = map['_numZoneHandles'];
@@ -2113,7 +2114,7 @@ class ServiceEvent extends ServiceObject {
   DartError error;
   String extensionRPC;
   Instance exception;
-  Instance reloadError;
+  DartError reloadError;
   bool atAsyncSuspension;
   Instance inspectee;
   ByteData data;
@@ -3105,19 +3106,17 @@ class Thread extends ServiceObject implements M.Thread {
   M.ThreadKind _kind;
   String get kindString => _kindString;
   String _kindString;
-  int get memoryHighWatermark => _memoryHighWatermark;
-  int _memoryHighWatermark;
-
-  // TODO(bkonyi): zones will always be empty. See issue #28885.
-  List<Zone> get zones => _zones;
-  final List<Zone> _zones = new List<Zone>();
+  int get zoneHighWatermark => _zoneHighWatermark;
+  int _zoneHighWatermark;
+  int get zoneCapacity => _zoneCapacity;
+  int _zoneCapacity;
 
   Thread._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(Map map, bool mapIsRef) {
     String rawKind = map['kind'];
 
-    switch(rawKind) {
+    switch (rawKind) {
       case "kUnknownTask":
         _kind = M.ThreadKind.unknownTask;
         _kindString = 'unknown';
@@ -3146,7 +3145,8 @@ class Thread extends ServiceObject implements M.Thread {
         assert(false);
     }
 
-    _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
+    _zoneHighWatermark = int.parse(map['_zoneHighWatermark']);
+    _zoneCapacity = int.parse(map['_zoneCapacity']);
   }
 }
 
@@ -3767,14 +3767,8 @@ class LocalVarDescriptor implements M.LocalVarDescriptorsRef {
   final int scopeId;
   final String kind;
 
-  LocalVarDescriptor(this.id,
-                     this.name,
-                     this.index,
-                     this.declarationPos,
-                     this.beginPos,
-                     this.endPos,
-                     this.scopeId,
-                     this.kind);
+  LocalVarDescriptor(this.id, this.name, this.index, this.declarationPos,
+      this.beginPos, this.endPos, this.scopeId, this.kind);
 }
 
 class LocalVarDescriptors extends ServiceObject {
@@ -3885,6 +3879,66 @@ class ICData extends HeapObject implements M.ICData {
     }
     argumentsDescriptor = map['_argumentsDescriptor'];
     entries = map['_entries'];
+  }
+}
+
+class UnlinkedCall extends HeapObject implements M.UnlinkedCall {
+  String selector;
+  Instance argumentsDescriptor;
+
+  bool get immutable => false;
+
+  UnlinkedCall._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    selector = map['_selector'];
+    if (mapIsRef) {
+      return;
+    }
+    argumentsDescriptor = map['_argumentsDescriptor'];
+  }
+}
+
+class SingleTargetCache extends HeapObject implements M.SingleTargetCache {
+  Code target;
+  int lowerLimit;
+  int upperLimit;
+
+  bool get immutable => false;
+
+  SingleTargetCache._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    target = map['_target'];
+    if (mapIsRef) {
+      return;
+    }
+    lowerLimit = map['_lowerLimit'];
+    upperLimit = map['_upperLimit'];
+  }
+}
+
+class SubtypeTestCache extends HeapObject implements M.SubtypeTestCache {
+  Instance cache;
+
+  bool get immutable => false;
+
+  SubtypeTestCache._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    if (mapIsRef) {
+      return;
+    }
+    cache = map['_cache'];
   }
 }
 
@@ -4435,9 +4489,12 @@ class Frame extends ServiceObject implements M.Frame {
       return M.FrameKind.regular;
     }
     switch (frameKind) {
-      case 'Regular': return M.FrameKind.regular;
-      case 'AsyncCausal': return M.FrameKind.asyncCausal;
-      case 'AsyncSuspensionMarker': return M.FrameKind.asyncSuspensionMarker;
+      case 'Regular':
+        return M.FrameKind.regular;
+      case 'AsyncCausal':
+        return M.FrameKind.asyncCausal;
+      case 'AsyncSuspensionMarker':
+        return M.FrameKind.asyncSuspensionMarker;
       default:
         throw new UnsupportedError('Unknown FrameKind: $frameKind');
     }
@@ -4456,7 +4513,7 @@ class Frame extends ServiceObject implements M.Frame {
   Future<String> toUserString() async {
     if (function != null) {
       return "Frame([$kind] ${function.qualifiedName} "
-             "${await location.toUserString()})";
+          "${await location.toUserString()})";
     } else if (location != null) {
       return "Frame([$kind] ${await location.toUserString()}";
     } else {

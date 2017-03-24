@@ -18,4 +18,3 @@ class HttpClientChannel extends Channel {
     });
   }
 }
-

@@ -15,7 +15,7 @@ import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/incremental_resolved_ast_generator_impl.dart';
-import 'package:kernel/analyzer/loader.dart';
+import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/kernel.dart' hide Source;
 
 dynamic unimplemented() {

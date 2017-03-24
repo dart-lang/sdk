@@ -38,6 +38,10 @@
 CMakeLists.txt
 .clang_complete
 
+# VSCode project files
+.vscode
+.history
+
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
 

@@ -82,10 +82,10 @@ DEFINE_FLAG(bool,
 #endif
 
 #if defined(USING_SIMULATOR)
-#if defined(TARGET_ARCH_ARM_5TE)
-DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the softfp ABI.");
+#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID)
+DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the hardfp ABI.");
 #else
-DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the softfp ABI.");
+DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the hardfp ABI.");
 #endif
 #endif
 

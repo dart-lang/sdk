@@ -7,13 +7,16 @@
  */
 import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
+import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -35,8 +38,10 @@ final TypeName NO_RETURN_TYPE = astFactory.typeName(
  */
 void addDefaultArgDetails(
     CompletionSuggestion suggestion,
+    Element element,
     Iterable<ParameterElement> requiredParams,
-    Iterable<ParameterElement> namedParams) {
+    Iterable<ParameterElement> namedParams,
+    IdeOptions options) {
   StringBuffer sb = new StringBuffer();
   List<int> ranges = <int>[];
 
@@ -63,6 +68,32 @@ void addDefaultArgDetails(
       String defaultValue = _getDefaultValue(param);
       sb.write(defaultValue);
       ranges.addAll([offset, defaultValue.length]);
+    }
+  }
+
+  //TODO(pq): generalize and unify with _getDefaultValue
+  if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
+    if (element is ConstructorElement) {
+      ConstructorElement constructorElement = element;
+      ClassElement classElement = constructorElement.enclosingElement;
+      if (isFlutterWidget(classElement)) {
+        for (ParameterElement param in constructorElement.parameters) {
+          if (param.name == 'children') {
+            DartType type = param.type;
+            if (type is InterfaceType && isDartList(type)) {
+              InterfaceType interfaceType = type;
+              List<DartType> typeArguments = interfaceType.typeArguments;
+              if (typeArguments.length == 1) {
+                if (sb.isNotEmpty) {
+                  sb.write(', ');
+                }
+                offset = sb.length;
+                sb.write('children: <${typeArguments.first.name}>[]');
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -151,6 +182,14 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     }
   }
   return suggestion;
+}
+
+bool isDartList(DartType type) {
+  ClassElement element = type.element;
+  if (element != null) {
+    return element.name == "List" && element.library.isDartCore;
+  }
+  return false;
 }
 
 /**

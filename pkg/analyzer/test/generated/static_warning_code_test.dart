@@ -3062,6 +3062,16 @@ class B {
     verify([source]);
   }
 
+  test_returnWithoutValue_Null() async {
+    // Test that block bodied functions with return type Null and an empty
+    // return cause a static warning.
+    Source source = addSource(r'''
+Null f() {return;}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+  }
+
   test_returnWithoutValue_async() async {
     Source source = addSource('''
 import 'dart:async';

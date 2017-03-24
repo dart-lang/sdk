@@ -10,7 +10,7 @@ import 'dart:io' show Directory, File, Platform;
 
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 
-import 'package:kernel/analyzer/loader.dart'
+import 'package:analyzer/src/kernel/loader.dart'
     show DartLoader, DartOptions, createDartSdk;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;

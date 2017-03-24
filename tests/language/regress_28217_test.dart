@@ -6,10 +6,9 @@
 // redirecting to a factory constructor.
 
 class B {
-  B() : this.a();    /// none: compile-time error
-  factory B.a() { }  /// 01: compile-time error
-  B.a();             /// 02: ok
+  B() : this.a(); //   //# none: compile-time error
+  factory B.a() { } // //# 01: compile-time error
+  B.a(); //            //# 02: ok
 }
 
 main() => new B();
-

@@ -43,16 +43,14 @@ static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
 
 // Entry and exit frame layout.
-#if defined(TARGET_ABI_IOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
 static const int kExitLinkSlotFromEntryFp = -26;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 6);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
-#elif defined(TARGET_ABI_EABI)
+#else
 static const int kExitLinkSlotFromEntryFp = -27;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 7);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
-#else
-#error Unknown ABI
 #endif
 
 }  // namespace dart

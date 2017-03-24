@@ -386,7 +386,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * [element], and also initialize [typeArguments] to match the
    * [typeParameters], which permits later substitution.
    */
-  FunctionTypeImpl(ExecutableElement element,
+  FunctionTypeImpl(FunctionTypedElement element,
       [List<FunctionTypeAliasElement> prunedTypedefs])
       : this._(element, null, prunedTypedefs, null, null, null, null, false);
 
@@ -398,19 +398,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       List<DartType> typeArguments, bool isInstantiated)
       : this._(element, name, null, typeArguments, null, null, null,
             isInstantiated);
-
-  /**
-   * Initialize a newly created function type to represent a type described by
-   * a generic function type.
-   */
-  FunctionTypeImpl.forGenericFunctionType(
-      List<TypeParameterElement> typeParameters,
-      List<DartType> typeArguments,
-      DartType returnType,
-      List<ParameterElement> parameters,
-      bool isInstantiated)
-      : this._(null, null, null, typeArguments, typeParameters, returnType,
-            parameters, isInstantiated);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -425,7 +412,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Private constructor.
    */
   FunctionTypeImpl._(
-      TypeParameterizedElement element,
+      FunctionTypedElement element,
       String name,
       this.prunedTypedefs,
       this._typeArguments,
@@ -454,13 +441,42 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   String get displayName {
     String name = this.name;
+
+    // Function types have an empty name when they are defined implicitly by
+    // either a closure or as part of a parameter declaration.
     if (name == null || name.length == 0) {
-      // Function types have an empty name when they are defined implicitly by
-      // either a closure or as part of a parameter declaration.
       StringBuffer buffer = new StringBuffer();
       appendTo(buffer, new Set.identity());
+      return buffer.toString();
+    }
+
+    List<DartType> typeArguments = this.typeArguments;
+
+    bool areAllTypeArgumentsDynamic() {
+      for (DartType type in typeArguments) {
+        if (type != null && !type.isDynamic) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // If there is at least one non-dynamic type, then list them out.
+    if (!areAllTypeArgumentsDynamic()) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write(name);
+      buffer.write("<");
+      for (int i = 0; i < typeArguments.length; i++) {
+        if (i != 0) {
+          buffer.write(", ");
+        }
+        DartType typeArg = typeArguments[i];
+        buffer.write(typeArg.displayName);
+      }
+      buffer.write(">");
       name = buffer.toString();
     }
+
     return name;
   }
 
@@ -1380,16 +1396,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   String get displayName {
     String name = this.name;
+
     List<DartType> typeArguments = this.typeArguments;
-    bool allDynamic = true;
-    for (DartType type in typeArguments) {
-      if (type != null && !type.isDynamic) {
-        allDynamic = false;
-        break;
+
+    bool areAllTypeArgumentsDynamic() {
+      for (DartType type in typeArguments) {
+        if (type != null && !type.isDynamic) {
+          return false;
+        }
       }
+      return true;
     }
-    // If there is at least one non-dynamic type, then list them out
-    if (!allDynamic) {
+
+    // If there is at least one non-dynamic type, then list them out.
+    if (!areAllTypeArgumentsDynamic()) {
       StringBuffer buffer = new StringBuffer();
       buffer.write(name);
       buffer.write("<");
@@ -2643,6 +2663,10 @@ abstract class TypeImpl implements DartType {
  * A concrete implementation of a [TypeParameterType].
  */
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
+  static bool _comparingBounds = false;
+
+  static bool _appendingBounds = false;
+
   /**
    * Initialize a newly created type parameter type to be declared by the given
    * [element] and to have the given name.
@@ -2663,8 +2687,43 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   int get hashCode => element.hashCode;
 
   @override
-  bool operator ==(Object object) =>
-      object is TypeParameterTypeImpl && (element == object.element);
+  bool operator ==(Object other) {
+    if (other is TypeParameterTypeImpl && element == other.element) {
+      if (_comparingBounds) {
+        // If we're comparing bounds already, then we only need type variable
+        // equality.
+        return true;
+      }
+      _comparingBounds = true;
+      try {
+        return bound == other.bound;
+      } finally {
+        _comparingBounds = false;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Append a textual representation of this type to the given [buffer]. The set
+   * of [visitedTypes] is used to prevent infinite recursion.
+   */
+  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes) {
+    super.appendTo(buffer, visitedTypes);
+    TypeParameterElement e = element;
+    if (e is TypeParameterMember &&
+        e.bound != e.baseElement.bound &&
+        !_appendingBounds) {
+      buffer.write(' extends ');
+      // If we're appending bounds already, we don't want to do it recursively.
+      _appendingBounds = true;
+      try {
+        (e.bound as TypeImpl).appendTo(buffer, visitedTypes);
+      } finally {
+        _appendingBounds = false;
+      }
+    }
+  }
 
   @override
   bool isMoreSpecificThan(DartType s,

@@ -153,13 +153,18 @@ bool ClassFinalizer::ProcessPendingClasses(bool from_kernel) {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
-      // Classes compiled from Dart sources are finalized more lazily, classes
-      // compiled from Kernel binaries can be finalized now (and should be,
-      // since we will not revisit them).
-      if (from_kernel) {
+    }
+
+    // Classes compiled from Dart sources are finalized more lazily, classes
+    // compiled from Kernel binaries can be finalized now (and should be,
+    // since we will not revisit them).
+    if (from_kernel) {
+      for (intptr_t i = 0; i < class_array.Length(); i++) {
+        cls ^= class_array.At(i);
         FinalizeClass(cls);
       }
     }
+
     if (FLAG_print_classes) {
       for (intptr_t i = 0; i < class_array.Length(); i++) {
         cls ^= class_array.At(i);
@@ -3302,7 +3307,7 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
       UnresolvedClass::Handle(UnresolvedClass::New(LibraryPrefix::Handle(),
                                                    Symbols::Empty(), type_pos));
   const Type& type = Type::Handle(
-      Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
+      Type::New(unresolved_class, Object::null_type_arguments(), type_pos));
   MarkTypeMalformed(prev_error, script, type, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());

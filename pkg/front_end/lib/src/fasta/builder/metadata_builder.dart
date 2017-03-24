@@ -37,6 +37,9 @@ class ConstructorMetadataBuilder<T extends TypeBuilder>
   ConstructorMetadataBuilder(
       this.constructorReference, this.arguments, Builder parent, int charOffset)
       : super(parent, charOffset);
+
+  @override
+  String get fullNameForErrors => constructorReference.fullNameForErrors;
 }
 
 /// Expression metadata (without arguments).
@@ -53,4 +56,9 @@ class ExpressionMetadataBuilder<T extends TypeBuilder>
   ExpressionMetadataBuilder(
       this.qualified, this.identifier, Builder parent, int charOffset)
       : super(parent, charOffset);
+
+  @override
+  String get fullNameForErrors {
+    return identifier == null ? qualified : "$qualified.$identifier";
+  }
 }

@@ -9,8 +9,8 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-class Foo {
-}
+class Foo {}
+
 List<Foo> foos;
 
 void script() {
@@ -18,18 +18,17 @@ void script() {
 }
 
 var tests = [
-
-(Isolate isolate) =>
-  isolate.rootLibrary.load().then((Library lib) {
-    expect(lib.uri.endsWith('allocations_test.dart'), isTrue);
-    expect(lib.classes.length, equals(1));
-    return lib.classes.first.load().then((Class fooClass) {
-      expect(fooClass.name, equals('Foo'));
-      expect(fooClass.newSpace.current.instances +
-             fooClass.oldSpace.current.instances, equals(3));
-    });
-}),
-
+  (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
+        expect(lib.uri.endsWith('allocations_test.dart'), isTrue);
+        expect(lib.classes.length, equals(1));
+        return lib.classes.first.load().then((Class fooClass) {
+          expect(fooClass.name, equals('Foo'));
+          expect(
+              fooClass.newSpace.current.instances +
+                  fooClass.oldSpace.current.instances,
+              equals(3));
+        });
+      }),
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

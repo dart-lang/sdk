@@ -756,12 +756,27 @@ void ExceptionHandlers::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void SingleTargetCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_target", Code::Handle(target()));
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_lowerLimit", lower_limit());
+  jsobj.AddProperty("_upperLimit", upper_limit());
 }
 
 
 void UnlinkedCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_argumentsDescriptor", Array::Handle(args_descriptor()));
 }
 
 
@@ -925,7 +940,13 @@ void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void SubtypeTestCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_cache", Array::Handle(cache()));
 }
 
 
@@ -976,7 +997,6 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
   jsobj.AddProperty("_is_user_initiated", is_user_initiated());
-  jsobj.AddProperty("_is_vm_restart", is_vm_restart());
 }
 
 
@@ -1481,8 +1501,7 @@ void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "StackTrace");
   jsobj.AddServiceId(*this);
-  intptr_t idx = 0;
-  jsobj.AddProperty("valueAsString", ToCStringInternal(*this, &idx));
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 

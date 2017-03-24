@@ -136,6 +136,7 @@ class EnumTest {
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
       engine.ElementKind.ERROR: ElementKind.UNKNOWN,
       engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
+      engine.ElementKind.GENERIC_FUNCTION_TYPE: ElementKind.UNKNOWN,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN

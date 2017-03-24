@@ -4,18 +4,13 @@
 
 library testing.log;
 
-import 'chain.dart' show
-    Result,
-    Step;
+import 'chain.dart' show Result, Step;
 
-import 'suite.dart' show
-    Suite;
+import 'suite.dart' show Suite;
 
-import 'test_description.dart' show
-    TestDescription;
+import 'test_description.dart' show TestDescription;
 
-import 'expectation.dart' show
-    Expectation;
+import 'expectation.dart' show Expectation;
 
 /// ANSI escape code for moving cursor one line up.
 /// See [CSI codes](https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes).
@@ -35,8 +30,8 @@ void enableVerboseOutput() {
   _isVerbose = true;
 }
 
-void logTestComplete(int completed, int failed, int total,
-    Suite suite, TestDescription description) {
+void logTestComplete(int completed, int failed, int total, Suite suite,
+    TestDescription description) {
   String message = formatProgress(completed, failed, total);
   if (suite != null) {
     message += ": ${formatTestDescription(suite, description)}";
@@ -44,8 +39,8 @@ void logTestComplete(int completed, int failed, int total,
   logProgress(message);
 }
 
-void logStepStart(int completed, int failed, int total,
-    Suite suite, TestDescription description, Step step) {
+void logStepStart(int completed, int failed, int total, Suite suite,
+    TestDescription description, Step step) {
   String message = formatProgress(completed, failed, total);
   if (suite != null) {
     message += ": ${formatTestDescription(suite, description)} ${step.name}";
@@ -56,8 +51,8 @@ void logStepStart(int completed, int failed, int total,
   logProgress(message);
 }
 
-void logStepComplete(int completed, int failed, int total,
-    Suite suite, TestDescription description, Step step) {
+void logStepComplete(int completed, int failed, int total, Suite suite,
+    TestDescription description, Step step) {
   if (!step.isAsync) return;
   String message = formatProgress(completed, failed, total);
   if (suite != null) {

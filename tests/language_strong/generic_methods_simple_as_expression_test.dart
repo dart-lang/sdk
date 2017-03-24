@@ -13,6 +13,6 @@ T cast<T>(dynamic obj) {
 }
 
 main() {
-  Expect.equals(cast<num>(42), 42); /// 01: ok
-  cast<String>(42); /// 02: runtime error
+  Expect.equals(cast<num>(42), 42); //# 01: ok
+  cast<String>(42); //# 02: runtime error
 }

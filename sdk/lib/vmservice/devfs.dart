@@ -5,20 +5,17 @@
 part of dart._vmservice;
 
 String _encodeDevFSDisabledError(Message message) {
-  return encodeRpcError(
-      message, kFeatureDisabled,
+  return encodeRpcError(message, kFeatureDisabled,
       details: "DevFS is not supported by this Dart implementation");
 }
 
 String _encodeFileSystemAlreadyExistsError(Message message, String fsName) {
-  return encodeRpcError(
-      message, kFileSystemAlreadyExists,
+  return encodeRpcError(message, kFileSystemAlreadyExists,
       details: "${message.method}: file system '${fsName}' already exists");
 }
 
 String _encodeFileSystemDoesNotExistError(Message message, String fsName) {
-  return encodeRpcError(
-      message, kFileSystemDoesNotExist,
+  return encodeRpcError(message, kFileSystemDoesNotExist,
       details: "${message.method}: file system '${fsName}' does not exist");
 }
 
@@ -38,7 +35,7 @@ class _FileSystem {
     Uri pathUri;
     try {
       pathUri = new Uri.file(path);
-    } on FormatException catch(e) {
+    } on FormatException catch (e) {
       return null;
     }
 
@@ -76,13 +73,13 @@ class DevFS {
   Map<String, _FileSystem> _fsMap = {};
 
   final Set _rpcNames = new Set.from([
-      '_listDevFS',
-      '_createDevFS',
-      '_deleteDevFS',
-      '_readDevFSFile',
-      '_writeDevFSFile',
-      '_writeDevFSFiles',
-      '_listDevFSFiles',
+    '_listDevFS',
+    '_createDevFS',
+    '_deleteDevFS',
+    '_readDevFSFile',
+    '_writeDevFSFile',
+    '_writeDevFSFiles',
+    '_listDevFSFiles',
   ]);
 
   void cleanup() {
@@ -119,16 +116,13 @@ class DevFS {
       case '_listDevFSFiles':
         return _listDevFSFiles(message);
       default:
-        return encodeRpcError(
-            message, kInternalError,
+        return encodeRpcError(message, kInternalError,
             details: 'Unexpected rpc ${message.method}');
     }
   }
 
-  Future<String> handlePutStream(Object fsName,
-                                 Object path,
-                                 Uri fsUri,
-                                 Stream<List<int>> bytes) async {
+  Future<String> handlePutStream(
+      Object fsName, Object path, Uri fsUri, Stream<List<int>> bytes) async {
     // A dummy Message for error message construction.
     Message message = new Message.forMethod('_writeDevFSFile');
     var writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
@@ -170,7 +164,7 @@ class DevFS {
   Future<String> _listDevFS(Message message) async {
     var result = {};
     result['type'] = 'FileSystemList';
-    result['fsNames'] =  _fsMap.keys.toList();
+    result['fsNames'] = _fsMap.keys.toList();
     return encodeResult(message, result);
   }
 
@@ -262,14 +256,10 @@ class DevFS {
     }
     try {
       List<int> bytes = await readFile(uri);
-      var result = {
-        'type': 'FSFile',
-        'fileContents': BASE64.encode(bytes)
-      };
+      var result = {'type': 'FSFile', 'fileContents': BASE64.encode(bytes)};
       return encodeResult(message, result);
     } catch (e) {
-      return encodeRpcError(
-          message, kFileDoesNotExist,
+      return encodeRpcError(message, kFileDoesNotExist,
           details: "_readDevFSFile: $e");
     }
   }
@@ -359,18 +349,17 @@ class DevFS {
       var fileInfo = files[i];
       if (fileInfo is! List ||
           fileInfo.length != 2 ||
-          fileInfo[0] is! String || fileInfo[1] is! String) {
-        return encodeRpcError(
-            message, kInvalidParams,
+          fileInfo[0] is! String ||
+          fileInfo[1] is! String) {
+        return encodeRpcError(message, kInvalidParams,
             details: "${message.method}: invalid 'files' parameter "
-                     "at index ${i}: ${fileInfo}");
+                "at index ${i}: ${fileInfo}");
       }
       var uri = fs.resolvePath(fileInfo[0]);
       if (uri == null) {
-        return encodeRpcError(
-            message, kInvalidParams,
+        return encodeRpcError(message, kInvalidParams,
             details: "${message.method}: invalid 'files' parameter "
-                     "at index ${i}: ${fileInfo}");
+                "at index ${i}: ${fileInfo}");
       }
       uris.add(uri);
     }
@@ -404,7 +393,7 @@ class DevFS {
     for (int i = 0; i < fileList.length; i++) {
       fileList[i]['name'] = Uri.decodeFull(fileList[i]['name']);
     }
-    var result = { 'type': 'FSFileList', 'files': fileList };
+    var result = {'type': 'FSFileList', 'files': fileList};
     return encodeResult(message, result);
   }
 }

@@ -343,8 +343,8 @@ class Response {
    */
   Response.debugPortCouldNotBeOpened(Request request, dynamic error)
       : this(request.id,
-      error: new RequestError(
-          RequestErrorCode.DEBUG_PORT_COULD_NOT_BE_OPENED, '$error'));
+            error: new RequestError(
+                RequestErrorCode.DEBUG_PORT_COULD_NOT_BE_OPENED, '$error'));
 
   /**
    * Initialize a newly created instance to represent the FILE_NOT_ANALYZED

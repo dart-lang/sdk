@@ -1,8 +1,6 @@
 class Foo {}
 
-set foo(x) {
-
-}
+set foo(x) {}
 
 main() {
   foo = new Foo();

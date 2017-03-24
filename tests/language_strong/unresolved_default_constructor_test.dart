@@ -14,5 +14,5 @@ class A {
 
 main() {
   A.method();
-  Expect.throws(() => new A()); /// 01: static type warning
+  Expect.throws(() => new A()); //# 01: static type warning
 }

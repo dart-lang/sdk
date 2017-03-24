@@ -21,7 +21,6 @@ import 'package:kernel/ast.dart'
         MapEntry,
         MapLiteral,
         MethodInvocation,
-        Name,
         ProcedureKind,
         ReturnStatement,
         StaticGet,
@@ -50,6 +49,8 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder;
+
+import '../names.dart' show indexGetName;
 
 class KernelEnumBuilder extends SourceClassBuilder
     implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
@@ -120,6 +121,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         ],
         parent,
         charOffset,
+        charOffset,
         charEndOffset);
     members[""] = constructorBuilder;
     int index = 0;
@@ -137,6 +139,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         AsyncMarker.Sync,
         ProcedureKind.Method,
         parent,
+        charOffset,
         charOffset,
         charEndOffset);
     members["toString"] = toStringBuilder;
@@ -198,7 +201,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     KernelProcedureBuilder toStringBuilder = members["toString"];
     toStringBuilder.body = new ReturnStatement(new MethodInvocation(
         toStringMap,
-        new Name("[]"),
+        indexGetName,
         new Arguments(<Expression>[
           new DirectPropertyGet(new ThisExpression(), indexField)
         ])));

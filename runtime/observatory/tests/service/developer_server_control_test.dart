@@ -69,17 +69,16 @@ Future<Null> testeeBefore() async {
 }
 
 var tests = [
-(Isolate isolate) async {
-  await isolate.reload();
-  // Just getting here means that the testee enabled the service protocol
-  // web server.
-  expect(true, true);
-}
+  (Isolate isolate) async {
+    await isolate.reload();
+    // Just getting here means that the testee enabled the service protocol
+    // web server.
+    expect(true, true);
+  }
 ];
 
-main(args) => runIsolateTests(args,
-                              tests,
-                              testeeBefore: testeeBefore,
-                              // the testee is responsible for starting the
-                              // web server.
-                              testeeControlsServer: true);
+main(args) => runIsolateTests(args, tests,
+    testeeBefore: testeeBefore,
+    // the testee is responsible for starting the
+    // web server.
+    testeeControlsServer: true);

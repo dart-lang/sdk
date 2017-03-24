@@ -5,7 +5,7 @@
 // Test that class with a cyclic hierarchy doesn't cause a loop in dart2js.
 
 class A
-    extends A /// 01: compile-time error
+    extends A //# 01: compile-time error
 {
   // When checking that foo isn't overriding an instance method in the
   // superclass, dart2js might loop.

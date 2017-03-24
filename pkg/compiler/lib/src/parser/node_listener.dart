@@ -8,6 +8,8 @@ import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType;
+import 'package:front_end/src/fasta/parser/identifier_context.dart'
+    show IdentifierContext;
 import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
     show INDEX_INFO;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
@@ -227,8 +229,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -602,12 +604,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleSuperExpression(Token token) {
+  void handleSuperExpression(Token token, IdentifierContext context) {
     pushNode(new Identifier(token));
   }
 
   @override
-  void handleThisExpression(Token token) {
+  void handleThisExpression(Token token, IdentifierContext context) {
     pushNode(new Identifier(token));
   }
 
@@ -722,16 +724,16 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleNewExpression(Token token) {
+  void endNewExpression(Token token) {
     NodeList arguments = popNode();
     Node name = popNode();
     pushNode(new NewExpression(token, new Send(null, name, arguments)));
   }
 
   @override
-  void handleConstExpression(Token token) {
+  void endConstExpression(Token token) {
     // [token] carries the 'const' information.
-    handleNewExpression(token);
+    endNewExpression(token);
   }
 
   @override
@@ -971,7 +973,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endUnnamedFunction(Token token) {
+  void endUnnamedFunction(Token beginToken, Token token) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();

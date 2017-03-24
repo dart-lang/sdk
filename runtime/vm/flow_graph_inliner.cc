@@ -158,8 +158,12 @@ class GraphInfoCollector : public ValueObject {
          block_it.Advance()) {
       for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
            it.Advance()) {
-        ++instruction_count_;
         Instruction* current = it.Current();
+        // Don't count instructions that won't generate any code.
+        if (current->IsRedefinition()) {
+          continue;
+        }
+        ++instruction_count_;
         if (current->IsInstanceCall() || current->IsStaticCall() ||
             current->IsClosureCall()) {
           ++call_site_count_;
@@ -2419,6 +2423,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     }
     AssertAssignableInstr* assert_value = new (Z) AssertAssignableInstr(
         token_pos, new (Z) Value(stored_value), new (Z) Value(type_args),
+        NULL,  // TODO(regis): Pass null value for function type arguments.
         value_type, Symbols::Value(), call->deopt_id());
     cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
                                   FlowGraph::kValue);

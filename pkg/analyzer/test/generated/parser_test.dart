@@ -107,6 +107,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   Expression parseConstExpression(String code);
 
+  ConstructorInitializer parseConstructorInitializer(String code);
+
   /**
    * Parse the given source as a compilation unit.
    *
@@ -190,8 +192,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Statement parseStatement(String source, [bool enableLazyAssignmentOperators]);
 
   Expression parseStringLiteral(String code);
-
-  SuperConstructorInvocation parseSuperConstructorInvocation(String code);
 
   SymbolLiteral parseSymbolLiteral(String code);
 
@@ -1092,6 +1092,23 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(constructor.body, new isInstanceOf<EmptyFunctionBody>());
   }
 
+  void test_parseConstructor_assert() {
+    enableAssertInitializer = true;
+    createParser('C(x, y) : _x = x, assert (x < y), _y = y;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ConstructorDeclaration>());
+    ConstructorDeclaration constructor = member as ConstructorDeclaration;
+    NodeList<ConstructorInitializer> initializers = constructor.initializers;
+    expect(initializers, hasLength(3));
+    ConstructorInitializer initializer = initializers[1];
+    expect(initializer, new isInstanceOf<AssertInitializer>());
+    AssertInitializer assertInitializer = initializer;
+    expect(assertInitializer.condition, isNotNull);
+    expect(assertInitializer.message, isNull);
+  }
+
   void test_parseConstructor_initializers_field() {
     createParser('C(x, y) : _x = x, this._y = y;');
     ClassMember member = parser.parseClassMember('C');
@@ -1117,23 +1134,6 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
       expect(initializer.fieldName.name, '_y');
       expect(initializer.expression, isNotNull);
     }
-  }
-
-  void test_parseConstructor_assert() {
-    enableAssertInitializer = true;
-    createParser('C(x, y) : _x = x, assert (x < y), _y = y;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    assertNoErrors();
-    expect(member, new isInstanceOf<ConstructorDeclaration>());
-    ConstructorDeclaration constructor = member as ConstructorDeclaration;
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    expect(initializers, hasLength(3));
-    ConstructorInitializer initializer = initializers[1];
-    expect(initializer, new isInstanceOf<AssertInitializer>());
-    AssertInitializer assertInitializer = initializer;
-    expect(assertInitializer.condition, isNotNull);
-    expect(assertInitializer.message, isNull);
   }
 
   void test_parseConstructor_named() {
@@ -4162,6 +4162,19 @@ class ExpressionParserTest extends ParserTestCase
     with ExpressionParserTestMixin {}
 
 abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
+  void test_namedArgument() {
+    var invocation = parseExpression('m(a: 1, b: 2)') as MethodInvocation;
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    var a = arguments[0] as NamedExpression;
+    expect(a.name.label.name, 'a');
+    expect(a.expression, isNotNull);
+
+    var b = arguments[1] as NamedExpression;
+    expect(b.name.label.name, 'b');
+    expect(b.expression, isNotNull);
+  }
+
   void test_parseAdditiveExpression_normal() {
     Expression expression = parseAdditiveExpression('x + y');
     expect(expression, isNotNull);
@@ -5941,6 +5954,26 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.value, isTrue);
   }
 
+  void test_parseRedirectingConstructorInvocation_named() {
+    var invocation = parseConstructorInitializer('this.a()')
+        as RedirectingConstructorInvocation;
+    assertNoErrors();
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNotNull);
+    expect(invocation.thisKeyword, isNotNull);
+    expect(invocation.period, isNotNull);
+  }
+
+  void test_parseRedirectingConstructorInvocation_unnamed() {
+    var invocation = parseConstructorInitializer('this()')
+        as RedirectingConstructorInvocation;
+    assertNoErrors();
+    expect(invocation.argumentList, isNotNull);
+    expect(invocation.constructorName, isNull);
+    expect(invocation.thisKeyword, isNotNull);
+    expect(invocation.period, isNull);
+  }
+
   void test_parseRelationalExpression_as_functionType_noReturnType() {
     Expression expression = parseRelationalExpression('x as Function(int)');
     expect(expression, isNotNull);
@@ -6362,8 +6395,8 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseSuperConstructorInvocation_named() {
-    SuperConstructorInvocation invocation =
-        parseSuperConstructorInvocation('super.a()');
+    var invocation =
+        parseConstructorInitializer('super.a()') as SuperConstructorInvocation;
     expect(invocation, isNotNull);
     assertNoErrors();
     expect(invocation.argumentList, isNotNull);
@@ -6373,9 +6406,8 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseSuperConstructorInvocation_unnamed() {
-    SuperConstructorInvocation invocation =
-        parseSuperConstructorInvocation('super()');
-    expect(invocation, isNotNull);
+    var invocation =
+        parseConstructorInitializer('super()') as SuperConstructorInvocation;
     assertNoErrors();
     expect(invocation.argumentList, isNotNull);
     expect(invocation.constructorName, isNull);
@@ -8018,6 +8050,15 @@ class ParserTestCase extends EngineTestCase
   }
 
   @override
+  ConstructorInitializer parseConstructorInitializer(String code) {
+    createParser('class __Test { __Test() : $code; }');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var constructor = clazz.members[0] as ConstructorDeclaration;
+    return constructor.initializers.single;
+  }
+
+  @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     createParser(source);
@@ -8278,12 +8319,6 @@ class ParserTestCase extends EngineTestCase
   Expression parseStringLiteral(String code) {
     createParser(code);
     return parser.parseStringLiteral();
-  }
-
-  @override
-  SuperConstructorInvocation parseSuperConstructorInvocation(String code) {
-    createParser(code);
-    return parser.parseSuperConstructorInvocation();
   }
 
   @override
@@ -11088,52 +11123,6 @@ void''');
     expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
   }
 
-  void test_parseFunctionDeclarationStatement() {
-    createParser('void f(int p) => p * 2;');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-    expect(statement.functionDeclaration, isNotNull);
-  }
-
-  void test_parseFunctionDeclarationStatement_typeParameterComments() {
-    enableGenericMethodComments = true;
-    createParser('/*=E*/ f/*<E>*/(/*=E*/ p) => p * 2;');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-    FunctionDeclaration f = statement.functionDeclaration;
-    expect(f, isNotNull);
-    expect(f.functionExpression.typeParameters, isNotNull);
-    expect(f.returnType, isNotNull);
-    SimpleFormalParameter p = f.functionExpression.parameters.parameters[0];
-    expect(p.type, isNotNull);
-  }
-
-  void test_parseFunctionDeclarationStatement_typeParameters() {
-    createParser('E f<E>(E p) => p * 2;');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-    expect(statement.functionDeclaration, isNotNull);
-    expect(statement.functionDeclaration.functionExpression.typeParameters,
-        isNotNull);
-  }
-
-  void test_parseFunctionDeclarationStatement_typeParameters_noReturnType() {
-    createParser('f<E>(E p) => p * 2;');
-    FunctionDeclarationStatement statement =
-        parser.parseFunctionDeclarationStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-    expect(statement.functionDeclaration, isNotNull);
-    expect(statement.functionDeclaration.functionExpression.typeParameters,
-        isNotNull);
-  }
-
   void test_parseIdentifierList_multiple() {
     createParser('a, b, c');
     List<SimpleIdentifier> list = parser.parseIdentifierList();
@@ -11263,30 +11252,6 @@ void''');
 
   void test_Parser() {
     expect(new Parser(null, null), isNotNull);
-  }
-
-  void test_parseRedirectingConstructorInvocation_named() {
-    createParser('this.a()');
-    RedirectingConstructorInvocation invocation =
-        parser.parseRedirectingConstructorInvocation(true);
-    expectNotNullIfNoErrors(invocation);
-    listener.assertNoErrors();
-    expect(invocation.argumentList, isNotNull);
-    expect(invocation.constructorName, isNotNull);
-    expect(invocation.thisKeyword, isNotNull);
-    expect(invocation.period, isNotNull);
-  }
-
-  void test_parseRedirectingConstructorInvocation_unnamed() {
-    createParser('this()');
-    RedirectingConstructorInvocation invocation =
-        parser.parseRedirectingConstructorInvocation(false);
-    expectNotNullIfNoErrors(invocation);
-    listener.assertNoErrors();
-    expect(invocation.argumentList, isNotNull);
-    expect(invocation.constructorName, isNull);
-    expect(invocation.thisKeyword, isNotNull);
-    expect(invocation.period, isNull);
   }
 
   void test_parseReturnStatement_noValue() {
@@ -12503,6 +12468,44 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(forStatement.body, isNotNull);
   }
 
+  void test_parseFunctionDeclarationStatement() {
+    var statement = parseStatement('void f(int p) => p * 2;')
+        as FunctionDeclarationStatement;
+    assertNoErrors();
+    expect(statement.functionDeclaration, isNotNull);
+  }
+
+  void test_parseFunctionDeclarationStatement_typeParameterComments() {
+    enableGenericMethodComments = true;
+    var statement = parseStatement('/*=E*/ f/*<E>*/(/*=E*/ p) => p * 2;')
+        as FunctionDeclarationStatement;
+    assertNoErrors();
+    FunctionDeclaration f = statement.functionDeclaration;
+    expect(f, isNotNull);
+    expect(f.functionExpression.typeParameters, isNotNull);
+    expect(f.returnType, isNotNull);
+    SimpleFormalParameter p = f.functionExpression.parameters.parameters[0];
+    expect(p.type, isNotNull);
+  }
+
+  void test_parseFunctionDeclarationStatement_typeParameters() {
+    var statement =
+        parseStatement('E f<E>(E p) => p * 2;') as FunctionDeclarationStatement;
+    assertNoErrors();
+    expect(statement.functionDeclaration, isNotNull);
+    expect(statement.functionDeclaration.functionExpression.typeParameters,
+        isNotNull);
+  }
+
+  void test_parseFunctionDeclarationStatement_typeParameters_noReturnType() {
+    var statement =
+        parseStatement('f<E>(E p) => p * 2;') as FunctionDeclarationStatement;
+    assertNoErrors();
+    expect(statement.functionDeclaration, isNotNull);
+    expect(statement.functionDeclaration.functionExpression.typeParameters,
+        isNotNull);
+  }
+
   void test_parseIfStatement_else_block() {
     var statement = parseStatement('if (x) {} else {}') as IfStatement;
     assertNoErrors();
@@ -12987,7 +12990,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 
   Statement _parseAsyncStatement(String code, {bool isGenerator: false}) {
     var star = isGenerator ? '*' : '';
-    var localFunction = parseStatement('wrapper() async$star { $code };')
+    var localFunction = parseStatement('wrapper() async$star { $code }')
         as FunctionDeclarationStatement;
     var localBody = localFunction.functionDeclaration.functionExpression.body
         as BlockFunctionBody;

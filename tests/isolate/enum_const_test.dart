@@ -5,17 +5,15 @@
 import "dart:isolate";
 import "package:expect/expect.dart";
 
-enum Foo {
-  BAR, BAZ
-}
+enum Foo { BAR, BAZ }
 
 verify(val) {
   Expect.identical(Foo.BAR, val);
 }
 
 main() {
-  test1(); /// 01: ok
-  test2(); /// 02: ok
+  test1(); //# 01: ok
+  test2(); //# 02: ok
 }
 
 test1() => verify(Foo.BAR);

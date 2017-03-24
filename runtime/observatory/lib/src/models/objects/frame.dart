@@ -4,11 +4,7 @@
 
 part of models;
 
-enum FrameKind {
-  regular,
-  asyncCausal,
-  asyncSuspensionMarker
-}
+enum FrameKind { regular, asyncCausal, asyncSuspensionMarker }
 
 abstract class Frame {
   FrameKind get kind;

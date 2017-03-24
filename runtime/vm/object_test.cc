@@ -2619,8 +2619,8 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
-  const Closure& closure =
-      Closure::Handle(Closure::New(TypeArguments::Handle(), function, context));
+  const Closure& closure = Closure::Handle(
+      Closure::New(Object::null_type_arguments(), function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());

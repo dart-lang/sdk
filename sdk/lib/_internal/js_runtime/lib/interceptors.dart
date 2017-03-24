@@ -4,49 +4,51 @@
 
 library _interceptors;
 
-import 'dart:_js_embedded_names' show
-    DISPATCH_PROPERTY_NAME,
-    TYPE_TO_INTERCEPTOR_MAP;
+import 'dart:_js_embedded_names'
+    show DISPATCH_PROPERTY_NAME, TYPE_TO_INTERCEPTOR_MAP;
 
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import "dart:_internal" as _symbol_dev show Symbol;
-import 'dart:_js_helper' show allMatchesInStringUnchecked,
-                              JSSyntaxRegExp,
-                              Primitives,
-                              argumentErrorValue,
-                              checkInt,
-                              checkNull,
-                              checkNum,
-                              checkString,
-                              defineProperty,
-                              diagnoseIndexError,
-                              getIsolateAffinityTag,
-                              getRuntimeType,
-                              initNativeDispatch,
-                              initNativeDispatchFlag,
-                              regExpGetNative,
-                              regExpCaptureCount,
-                              stringContainsUnchecked,
-                              stringIndexOfStringUnchecked,
-                              stringLastIndexOfUnchecked,
-                              stringReplaceAllFuncUnchecked,
-                              stringReplaceAllUnchecked,
-                              stringReplaceFirstUnchecked,
-                              stringReplaceFirstMappedUnchecked,
-                              stringReplaceRangeUnchecked,
-                              throwConcurrentModificationError,
-                              lookupAndCacheInterceptor,
-                              StringMatch,
-                              firstMatchAfter,
-                              NoInline;
+import 'dart:_js_helper'
+    show
+        allMatchesInStringUnchecked,
+        JSSyntaxRegExp,
+        Primitives,
+        argumentErrorValue,
+        checkInt,
+        checkNull,
+        checkNum,
+        checkString,
+        defineProperty,
+        diagnoseIndexError,
+        getIsolateAffinityTag,
+        getRuntimeType,
+        initNativeDispatch,
+        initNativeDispatchFlag,
+        regExpGetNative,
+        regExpCaptureCount,
+        stringContainsUnchecked,
+        stringIndexOfStringUnchecked,
+        stringLastIndexOfUnchecked,
+        stringReplaceAllFuncUnchecked,
+        stringReplaceAllUnchecked,
+        stringReplaceFirstUnchecked,
+        stringReplaceFirstMappedUnchecked,
+        stringReplaceRangeUnchecked,
+        throwConcurrentModificationError,
+        lookupAndCacheInterceptor,
+        StringMatch,
+        firstMatchAfter,
+        NoInline;
 
-import 'dart:_foreign_helper' show
-    JS,
-    JS_EFFECT,
-    JS_EMBEDDED_GLOBAL,
-    JS_INTERCEPTOR_CONSTANT,
-    JS_STRING_CONCAT;
+import 'dart:_foreign_helper'
+    show
+        JS,
+        JS_EFFECT,
+        JS_EMBEDDED_GLOBAL,
+        JS_INTERCEPTOR_CONSTANT,
+        JS_STRING_CONCAT;
 import 'dart:math' show Random;
 
 part 'js_array.dart';
@@ -84,14 +86,13 @@ getInterceptor(object) {
 }
 
 getDispatchProperty(object) {
-  return JS('', '#[#]',
-      object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME));
+  return JS(
+      '', '#[#]', object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME));
 }
 
 setDispatchProperty(object, value) {
-  defineProperty(object,
-                JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME),
-                value);
+  defineProperty(
+      object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME), value);
 }
 
 // Avoid inlining this method because inlining gives us multiple allocation
@@ -126,8 +127,8 @@ makeDispatchRecord(interceptor, proto, extension, indexability) {
   //     P      I                     if object's prototype is P, use I
   //     F      -           P         if object's prototype is P, call F
 
-  return JS('', '{i: #, p: #, e: #, x: #}',
-            interceptor, proto, extension, indexability);
+  return JS('', '{i: #, p: #, e: #, x: #}', interceptor, proto, extension,
+      indexability);
 }
 
 dispatchRecordInterceptor(record) => JS('', '#.i', record);
@@ -207,7 +208,6 @@ getNativeInterceptor(object) {
   }
   return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
 }
-
 
 // A JS String or Symbol.
 final JS_INTEROP_INTERCEPTOR_TAG = getIsolateAffinityTag(r'_$dart_js');
@@ -362,11 +362,8 @@ abstract class Interceptor {
   // calls to use interceptor calling convention).  If we did allow it, the
   // interceptor context would select the correct `this`.
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(
-        this,
-        invocation.memberName,
-        invocation.positionalArguments,
-        invocation.namedArguments);
+    throw new NoSuchMethodError(this, invocation.memberName,
+        invocation.positionalArguments, invocation.namedArguments);
   }
 
   Type get runtimeType => getRuntimeType(this);
@@ -420,7 +417,7 @@ class JSNull extends Interceptor implements Null {
  */
 abstract class JSIndexable<E> {
   int get length;
-  E operator[](int index);
+  E operator [](int index);
 }
 
 /**
@@ -429,7 +426,7 @@ abstract class JSIndexable<E> {
  * that contains the objects we can use the JS []= operator on.
  */
 abstract class JSMutableIndexable<E> extends JSIndexable<E> {
-  operator[]=(int index, E value);
+  operator []=(int index, E value);
 }
 
 /**
@@ -438,9 +435,7 @@ abstract class JSMutableIndexable<E> extends JSIndexable<E> {
  *
  * This is the type that should be exported by a JavaScript interop library.
  */
-abstract class JSObject {
-}
-
+abstract class JSObject {}
 
 /**
  * Interceptor base class for JavaScript objects not recognized as some more
@@ -460,7 +455,6 @@ class JavaScriptObject extends Interceptor implements JSObject {
   String toString() => JS('String', 'String(#)', this);
 }
 
-
 /**
  * Interceptor for plain JavaScript objects created as JavaScript object
  * literals or `new Object()`.
@@ -468,7 +462,6 @@ class JavaScriptObject extends Interceptor implements JSObject {
 class PlainJavaScriptObject extends JavaScriptObject {
   const PlainJavaScriptObject();
 }
-
 
 /**
  * Interceptor for unclassified JavaScript objects, typically objects with a

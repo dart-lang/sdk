@@ -4,11 +4,9 @@
 
 library testing.suite;
 
-import 'chain.dart' show
-    Chain;
+import 'chain.dart' show Chain;
 
-import 'test_dart.dart' show
-    TestDart;
+import 'test_dart.dart' show TestDart;
 
 /// Records the properties of a test suite.
 abstract class Suite {
@@ -79,10 +77,10 @@ class Dart extends Suite {
 
   factory Dart.fromJsonMap(Uri base, Map json, String name) {
     Uri uri = base.resolve(json["path"]);
-    List<RegExp> pattern = new List<RegExp>.from(
-        json["pattern"].map((String p) => new RegExp(p)));
-    List<RegExp> exclude = new List<RegExp>.from(
-        json["exclude"].map((String p) => new RegExp(p)));
+    List<RegExp> pattern =
+        new List<RegExp>.from(json["pattern"].map((String p) => new RegExp(p)));
+    List<RegExp> exclude =
+        new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
     return new Dart(name, uri, pattern, exclude);
   }
 

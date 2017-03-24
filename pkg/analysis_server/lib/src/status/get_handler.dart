@@ -2186,7 +2186,7 @@ class GetHandler implements AbstractGetHandler {
         }
         buffer.write('<p>element count: ');
         buffer.write(counter.counts.values
-            .fold(0, (int prev, int element) => prev + element));
+            .fold<int>(0, (int prev, int element) => prev + element));
         buffer.write('</p>');
         buffer.write('<p>  (w/docs): ');
         buffer.write(counter.elementsWithDocs);
@@ -2202,7 +2202,7 @@ class GetHandler implements AbstractGetHandler {
     buffer.write('</h3></p>');
     buffer.write('<p>element count: ');
     buffer.write(sdkCounter.counts.values
-        .fold(0, (int prev, int element) => prev + element));
+        .fold<int>(0, (int prev, int element) => prev + element));
     buffer.write('</p>');
     buffer.write('<p>  (w/docs): ');
     buffer.write(sdkCounter.elementsWithDocs);

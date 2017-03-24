@@ -10,6 +10,8 @@ library kernel.frontend.accessors;
 
 import 'package:kernel/ast.dart';
 
+import '../names.dart' show indexGetName, indexSetName;
+
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
 /// used.
@@ -147,7 +149,7 @@ class PropertyAccessor extends Accessor {
   static Accessor make(Expression receiver, Name name, Member getter,
       Member setter, int charOffset) {
     if (receiver is ThisExpression) {
-      return new ThisPropertyAccessor(name, getter, setter);
+      return new ThisPropertyAccessor(name, getter, setter, charOffset);
     } else {
       return new PropertyAccessor.internal(
           receiver, name, getter, setter, charOffset);
@@ -185,13 +187,16 @@ class PropertyAccessor extends Accessor {
 class ThisPropertyAccessor extends Accessor {
   Name name;
   Member getter, setter;
+  final int charOffset;
 
-  ThisPropertyAccessor(this.name, this.getter, this.setter);
+  ThisPropertyAccessor(this.name, this.getter, this.setter, this.charOffset);
 
-  _makeRead() => new PropertyGet(new ThisExpression(), name, getter);
+  _makeRead() => new PropertyGet(new ThisExpression(), name, getter)
+    ..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
-    return new PropertySet(new ThisExpression(), name, value, setter);
+    return new PropertySet(new ThisExpression(), name, value, setter)
+      ..fileOffset = charOffset;
   }
 }
 
@@ -222,29 +227,28 @@ class NullAwarePropertyAccessor extends Accessor {
 class SuperPropertyAccessor extends Accessor {
   Name name;
   Member getter, setter;
+  final int charOffset;
 
-  SuperPropertyAccessor(this.name, this.getter, this.setter);
+  SuperPropertyAccessor(this.name, this.getter, this.setter, this.charOffset);
 
   _makeRead() {
     if (getter == null) return makeInvalidRead();
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    Expression result = new DirectPropertyGet(new ThisExpression(), getter);
-    result = new SuperPropertyGet(name, getter);
+    Expression result = new DirectPropertyGet(new ThisExpression(), getter)
+      ..fileOffset = charOffset;
+    result = new SuperPropertyGet(name, getter)..fileOffset = charOffset;
     return result;
   }
 
   _makeWrite(Expression value, bool voidContext) {
     if (setter == null) return makeInvalidWrite(value);
     // TODO(ahe): Use [DirectPropertySet] when possible.
-    Expression result =
-        new DirectPropertySet(new ThisExpression(), setter, value);
-    result = new SuperPropertySet(name, value, setter);
+    Expression result = new DirectPropertySet(
+        new ThisExpression(), setter, value)..fileOffset = charOffset;
+    result = new SuperPropertySet(name, value, setter)..fileOffset = charOffset;
     return result;
   }
 }
-
-final Name _indexGet = new Name('[]');
-final Name _indexSet = new Name('[]=');
 
 class IndexAccessor extends Accessor {
   Expression receiver;
@@ -268,14 +272,16 @@ class IndexAccessor extends Accessor {
       this.receiver, this.index, this.getter, this.setter, this.charOffset);
 
   _makeSimpleRead() => new MethodInvocation(
-      receiver, _indexGet, new Arguments(<Expression>[index]), getter)
+      receiver, indexGetName, new Arguments(<Expression>[index]), getter)
     ..fileOffset = charOffset;
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(
-        receiver, _indexSet, new Arguments(<Expression>[index, value]), setter)
-      ..fileOffset = charOffset;
+        receiver,
+        indexSetName,
+        new Arguments(<Expression>[index, value]),
+        setter)..fileOffset = charOffset;
   }
 
   receiverAccess() {
@@ -293,7 +299,7 @@ class IndexAccessor extends Accessor {
   _makeRead() {
     return new MethodInvocation(
         receiverAccess(),
-        _indexGet,
+        indexGetName,
         new Arguments(<Expression>[indexAccess()]),
         getter)..fileOffset = charOffset;
   }
@@ -302,7 +308,7 @@ class IndexAccessor extends Accessor {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(
         receiverAccess(),
-        _indexSet,
+        indexSetName,
         new Arguments(<Expression>[indexAccess(), value]),
         setter)..fileOffset = charOffset;
   }
@@ -313,7 +319,7 @@ class IndexAccessor extends Accessor {
     var valueVariable = new VariableDeclaration.forValue(value);
     var dummy = new VariableDeclaration.forValue(new MethodInvocation(
         receiverAccess(),
-        _indexSet,
+        indexSetName,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter)..fileOffset = charOffset);
@@ -336,13 +342,13 @@ class ThisIndexAccessor extends Accessor {
   ThisIndexAccessor(this.index, this.getter, this.setter);
 
   _makeSimpleRead() {
-    return new MethodInvocation(new ThisExpression(), _indexGet,
+    return new MethodInvocation(new ThisExpression(), indexGetName,
         new Arguments(<Expression>[index]), getter);
   }
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new MethodInvocation(new ThisExpression(), _indexSet,
+    return new MethodInvocation(new ThisExpression(), indexSetName,
         new Arguments(<Expression>[index, value]), setter);
   }
 
@@ -351,12 +357,12 @@ class ThisIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  _makeRead() => new MethodInvocation(new ThisExpression(), _indexGet,
+  _makeRead() => new MethodInvocation(new ThisExpression(), indexGetName,
       new Arguments(<Expression>[indexAccess()]), getter);
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new MethodInvocation(new ThisExpression(), _indexSet,
+    return new MethodInvocation(new ThisExpression(), indexSetName,
         new Arguments(<Expression>[indexAccess(), value]), setter);
   }
 
@@ -364,7 +370,7 @@ class ThisIndexAccessor extends Accessor {
     var valueVariable = new VariableDeclaration.forValue(value);
     var dummy = new VariableDeclaration.forValue(new MethodInvocation(
         new ThisExpression(),
-        _indexSet,
+        indexSetName,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter));
@@ -388,29 +394,29 @@ class SuperIndexAccessor extends Accessor {
   }
 
   _makeSimpleRead() => new SuperMethodInvocation(
-      _indexGet, new Arguments(<Expression>[index]), getter);
+      indexGetName, new Arguments(<Expression>[index]), getter);
 
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new SuperMethodInvocation(
-        _indexSet, new Arguments(<Expression>[index, value]), setter);
+        indexSetName, new Arguments(<Expression>[index, value]), setter);
   }
 
   _makeRead() {
     return new SuperMethodInvocation(
-        _indexGet, new Arguments(<Expression>[indexAccess()]), getter);
+        indexGetName, new Arguments(<Expression>[indexAccess()]), getter);
   }
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new SuperMethodInvocation(
-        _indexSet, new Arguments(<Expression>[indexAccess(), value]), setter);
+    return new SuperMethodInvocation(indexSetName,
+        new Arguments(<Expression>[indexAccess(), value]), setter);
   }
 
   _makeWriteAndReturn(Expression value) {
     var valueVariable = new VariableDeclaration.forValue(value);
     var dummy = new VariableDeclaration.forValue(new SuperMethodInvocation(
-        _indexSet,
+        indexSetName,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
         setter));
@@ -426,16 +432,18 @@ class SuperIndexAccessor extends Accessor {
 class StaticAccessor extends Accessor {
   Member readTarget;
   Member writeTarget;
+  int charOffset;
 
-  StaticAccessor(this.readTarget, this.writeTarget);
+  StaticAccessor(this.readTarget, this.writeTarget, this.charOffset);
 
   _makeRead() =>
-      readTarget == null ? makeInvalidRead() : new StaticGet(readTarget);
+      readTarget == null ? makeInvalidRead() : new StaticGet(readTarget)
+        ..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
         ? makeInvalidWrite(value)
-        : new StaticSet(writeTarget, value);
+        : new StaticSet(writeTarget, value)..fileOffset = charOffset;
   }
 }
 

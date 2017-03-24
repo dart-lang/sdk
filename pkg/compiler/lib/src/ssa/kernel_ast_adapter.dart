@@ -5,6 +5,7 @@
 import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
+import '../closure.dart';
 import '../common.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
@@ -84,6 +85,35 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
       _nodeToElement[kernel.typeParameters[typeVariable]] = typeVariable;
     }
     _typeConverter = new DartTypeConverter(this);
+  }
+
+  /// Called to find the corresponding Kernel element for a particular Element
+  /// before traversing over it with a Kernel visitor.
+  ir.Node getInitialKernelNode(Element originTarget) {
+    ir.Node target;
+    if (originTarget.isPatch) {
+      originTarget = originTarget.origin;
+    }
+    if (originTarget is FunctionElement) {
+      if (originTarget is ConstructorBodyElement) {
+        ConstructorBodyElement body = originTarget;
+        originTarget = body.constructor;
+      }
+      target = kernel.functions[originTarget];
+      // Closures require a lookup one level deeper in the closure class mapper.
+      if (target == null) {
+        FunctionElement originTargetFunction = originTarget;
+        ClosureClassMap classMap = _compiler.closureToClassMapper
+            .getClosureToClassMapping(originTargetFunction.resolvedAst);
+        if (classMap.closureElement != null) {
+          target = kernel.localFunctions[classMap.closureElement];
+        }
+      }
+    } else if (originTarget is FieldElement) {
+      target = kernel.fields[originTarget];
+    }
+    assert(target != null);
+    return target;
   }
 
   @override

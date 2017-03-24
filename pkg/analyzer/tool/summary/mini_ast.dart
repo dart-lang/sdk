@@ -163,7 +163,7 @@ class MiniAstBuilder extends StackListener {
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
     if (token.precedingComments != null) {
-      push(new Comment(token.precedingComments));
+      push(new Comment(token.precedingCommentTokens));
     } else {
       push(NullValue.Comments);
     }
@@ -189,12 +189,10 @@ class MiniAstBuilder extends StackListener {
       Token implementsKeyword,
       Token endToken) {
     debugEvent("ClassDeclaration");
-    // ignore: strong_mode_down_cast_composite
     List<ClassMember> members = pop();
     TypeName superclass = pop();
     pop(); // Type variables
     String name = pop();
-    // ignore: strong_mode_down_cast_composite
     List<Annotation> metadata = pop();
     Comment comment = pop();
     compilationUnit.declarations.add(
@@ -226,10 +224,8 @@ class MiniAstBuilder extends StackListener {
 
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     debugEvent("Enum");
-    // ignore: strong_mode_down_cast_composite
     List<EnumConstantDeclaration> constants = popList(count);
     String name = pop();
-    // ignore: strong_mode_down_cast_composite
     List<Annotation> metadata = pop();
     Comment comment = pop();
     compilationUnit.declarations
@@ -242,7 +238,6 @@ class MiniAstBuilder extends StackListener {
     debugEvent("FactoryMethod");
     pop(); // Body
     ConstructorReference name = pop();
-    // ignore: strong_mode_down_cast_composite
     List<Annotation> metadata = pop();
     Comment comment = pop();
     push(new ConstructorDeclaration(comment, metadata, name));
@@ -255,8 +250,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      Token nameToken, FormalParameterType kind) {
     debugEvent("FormalParameter");
     pop(); // Name
     pop(); // Type
@@ -309,7 +304,6 @@ class MiniAstBuilder extends StackListener {
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     inMetadata = false;
-    // ignore: strong_mode_down_cast_composite
     List<Expression> arguments = pop();
     String constructorName = popIfNotNull(periodBeforeName);
     pop(); // Type arguments
@@ -331,7 +325,6 @@ class MiniAstBuilder extends StackListener {
     pop(); // Type variables
     String name = pop();
     TypeName returnType = pop();
-    // ignore: strong_mode_down_cast_composite
     List<Annotation> metadata = pop();
     Comment comment = pop();
     push(new MethodDeclaration(
@@ -341,7 +334,6 @@ class MiniAstBuilder extends StackListener {
   @override
   void endSend(Token beginToken, Token endToken) {
     debugEvent("Send");
-    // ignore: strong_mode_down_cast_composite
     pop(); // Arguments
     pop(); // Type arguments
     pop(); // Receiver
@@ -397,7 +389,7 @@ class MiniAstBuilder extends StackListener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      var comment = new Comment(token.precedingComments);
+      var comment = new Comment(token.precedingCommentTokens);
       push(new EnumConstantDeclaration(comment, null, token.lexeme));
     } else {
       push(token.lexeme);
@@ -435,7 +427,6 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
-    // ignore: strong_mode_down_cast_composite
     List<TypeName> typeArguments = pop();
     String name = pop();
     push(new TypeName(name, typeArguments));

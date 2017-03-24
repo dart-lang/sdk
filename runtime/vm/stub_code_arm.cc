@@ -814,9 +814,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   __ Push(R4);
-#if defined(TARGET_ABI_IOS)
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   ASSERT(kExitLinkSlotFromEntryFp == -26);
-#elif defined(TARGET_ABI_EABI)
+#else
   ASSERT(kExitLinkSlotFromEntryFp == -27);
 #endif
   __ Push(R9);

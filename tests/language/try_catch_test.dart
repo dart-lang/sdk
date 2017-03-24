@@ -5,11 +5,11 @@
 
 import "package:expect/expect.dart";
 
-class MyException { }
+class MyException {}
 
-class MyException1 extends MyException { }
+class MyException1 extends MyException {}
 
-class MyException2 extends MyException { }
+class MyException2 extends MyException {}
 
 class TryCatchTest {
   static void test1() {
@@ -142,7 +142,7 @@ class TryCatchTest {
     try {
       throw "up";
     } on String catch (e) {
-      var e = 1;  // ok, shadows exception variable.
+      var e = 1; // ok, shadows exception variable.
       Expect.equals(1, e);
     }
   }
@@ -168,11 +168,10 @@ class TryCatchTest {
     } on String catch (e) {
       // Compile-time constants in unreachable catch blocks are still
       // compiled.
-      const y = x[0];  /// 01: compile-time error
+      const y = x[0]; // //# 01: compile-time error
       Expect.fail("unreachable");
     }
   }
-
 
   static void testMain() {
     test1();

@@ -6,7 +6,6 @@ part of dart.collection;
 
 /** Common parts of [HashSet] and [LinkedHashSet] implementations. */
 abstract class _HashSetBase<E> extends SetBase<E> {
-
   // The following two methods override the ones in SetBase.
   // It's possible to be more efficient if we have a way to create an empty
   // set of the correct type.
@@ -96,9 +95,10 @@ abstract class HashSet<E> implements Set<E> {
    * and the `isValidKey` defaults to accepting all keys.
    * Such a map can be created directly using [HashSet.identity].
    */
-  external factory HashSet({bool equals(E e1, E e2),
-                            int hashCode(E e),
-                            bool isValidKey(potentialKey)});
+  external factory HashSet(
+      {bool equals(E e1, E e2),
+      int hashCode(E e),
+      bool isValidKey(potentialKey)});
 
   /**
    * Creates an unordered identity-based set.

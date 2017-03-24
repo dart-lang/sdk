@@ -11,31 +11,33 @@ abstract class Bi implements Ai {
   factory Bi() = InterfaceTest;
 }
 
-abstract class Simple implements Ai { }
+abstract class Simple implements Ai {}
 
-abstract class Aai { }
+abstract class Aai {}
 
-abstract class Abi { }
+abstract class Abi {}
 
-abstract class Bar { }
+abstract class Bar {}
 
-abstract class Foo implements Bar { }
+abstract class Foo implements Bar {}
 
-abstract class Baz implements Bar, Foo { }
+abstract class Baz implements Bar, Foo {}
 
 class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
   var f;
 
   InterfaceTest() {}
-  int foo() { return 1; }
+  int foo() {
+    return 1;
+  }
 
   // intentionally unimplemented methods
-  beta();  // Abstract.
-  String beta1();  // Abstract.
-  String beta2(double d);  // Abstract.
+  beta(); // Abstract.
+  String beta1(); // Abstract.
+  String beta2(double d); // Abstract.
 }
 
 main() {
   // instantiate an abstract class
-  var o = new Bi(); /// 00: static type warning
+  var o = new Bi(); //# 00: static type warning
 }

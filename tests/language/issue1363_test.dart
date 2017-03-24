@@ -4,6 +4,7 @@
 // VMOptions=--enable_type_checks
 
 library Issue1363Test.dart;
+
 import 'issue1363_lib.dart' as lib;
 
 main() {
@@ -23,7 +24,7 @@ class C {
     C contents = myCup.getContents(); // expect no warning or error
     bool hasThrown = false;
     try {
-      contents = libCup.getContents(); /// static type warning
+      contents = libCup.getContents(); //# static type warning
     } on TypeError catch (e) {
       hasThrown = true;
     }

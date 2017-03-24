@@ -4,5 +4,5 @@ import "dart:core" as core;
 import "dart:collection" as col;
 
 static method main() → dynamic {
-  core::print(col::LinkedHashMap::•<dynamic, dynamic>(equals: null, hashCode: null, isValidKey: null));
+  core::print(col::LinkedHashMap::•<dynamic, dynamic>());
 }

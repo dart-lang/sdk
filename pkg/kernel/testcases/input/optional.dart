@@ -8,6 +8,7 @@ abstract class External {
   String externalMethod(int x, [int y, int z]);
   void listen(Listener listener);
 }
+
 external External createExternal();
 
 abstract class Listener {

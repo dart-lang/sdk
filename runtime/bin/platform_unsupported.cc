@@ -64,12 +64,6 @@ void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
       "Platform is not supported on this platform"));
 }
 
-
-void FUNCTION_NAME(Platform_AnsiSupported)(Dart_NativeArguments args) {
-  Dart_ThrowException(DartUtils::NewInternalError(
-      "Platform is not supported on this platform"));
-}
-
 }  // namespace bin
 }  // namespace dart
 

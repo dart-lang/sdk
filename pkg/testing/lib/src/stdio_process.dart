@@ -4,27 +4,15 @@
 
 library testing.stdio_process;
 
-import 'dart:async' show
-    EventSink,
-    Future,
-    Stream,
-    StreamTransformer,
-    Timer;
+import 'dart:async' show EventSink, Future, Stream, StreamTransformer, Timer;
 
-import 'dart:convert' show
-    UTF8;
+import 'dart:convert' show UTF8;
 
-import 'dart:io' show
-    Process,
-    ProcessSignal,
-    Stdout;
+import 'dart:io' show Process, ProcessSignal, Stdout;
 
-import 'dart:io' as io show
-    stderr,
-    stdout;
+import 'dart:io' as io show stderr, stdout;
 
-import 'chain.dart' show
-    Result;
+import 'chain.dart' show Result;
 
 class StdioProcess {
   final int exitCode;
@@ -44,15 +32,15 @@ class StdioProcess {
   static StreamTransformer<String, String> transformToStdio(Stdout stdio) {
     return new StreamTransformer<String, String>.fromHandlers(
         handleData: (String data, EventSink<String> sink) {
-          sink.add(data);
-          stdio.write(data);
-        });
+      sink.add(data);
+      stdio.write(data);
+    });
   }
 
-  static Future<StdioProcess> run(
-      String executable, List<String> arguments,
-      {String input, Duration timeout: const Duration(seconds: 60),
-       bool suppressOutput: true}) async {
+  static Future<StdioProcess> run(String executable, List<String> arguments,
+      {String input,
+      Duration timeout: const Duration(seconds: 60),
+      bool suppressOutput: true}) async {
     Process process = await Process.start(executable, arguments);
     Timer timer;
     StringBuffer sb = new StringBuffer();

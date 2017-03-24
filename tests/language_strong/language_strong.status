@@ -717,7 +717,6 @@ no_main_test/01: MissingStaticWarning # Issue 28823
 regress_23089_test: CompileTimeError # Issue 28823
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 super_setter_test: StaticWarning # Issue 28823
-top_level_non_prefixed_library_test: CompileTimeError # Issue 28823
 try_catch4_test: StaticWarning # Issue 28823
 try_catch5_test: StaticWarning # Issue 28823
 

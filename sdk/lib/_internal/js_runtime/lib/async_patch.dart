@@ -4,21 +4,18 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper' show
-    patch,
-    ExceptionAndStackTrace,
-    Primitives,
-    convertDartClosureToJS,
-    getTraceFromException,
-    requiresPreamble,
-    wrapException,
-    unwrapException;
-import 'dart:_isolate_helper' show
-    IsolateNatives,
-    TimerImpl,
-    leaveJsAsync,
-    enterJsAsync,
-    isWorker;
+import 'dart:_js_helper'
+    show
+        patch,
+        ExceptionAndStackTrace,
+        Primitives,
+        convertDartClosureToJS,
+        getTraceFromException,
+        requiresPreamble,
+        wrapException,
+        unwrapException;
+import 'dart:_isolate_helper'
+    show IsolateNatives, TimerImpl, leaveJsAsync, enterJsAsync, isWorker;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -52,12 +49,13 @@ class _AsyncRun {
         var f = storedCallback;
         storedCallback = null;
         f();
-      };
+      }
+
+      ;
 
       var observer = JS('', 'new self.MutationObserver(#)',
           convertDartClosureToJS(internalCallback, 1));
-      JS('', '#.observe(#, { childList: true })',
-          observer, div);
+      JS('', '#.observe(#, { childList: true })', observer, div);
 
       return (void callback()) {
         assert(storedCallback == null);
@@ -66,8 +64,8 @@ class _AsyncRun {
         // Because of a broken shadow-dom polyfill we have to change the
         // children instead a cheap property.
         // See https://github.com/Polymer/ShadowDOM/issues/468
-        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)',
-            div, div, span, div, span);
+        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div,
+            span, div, span);
       };
     } else if (JS('', 'self.setImmediate') != null) {
       return _scheduleImmediateWithSetImmediate;
@@ -80,20 +78,24 @@ class _AsyncRun {
     internalCallback() {
       leaveJsAsync();
       callback();
-    };
+    }
+
+    ;
     enterJsAsync();
     JS('void', 'self.scheduleImmediate(#)',
-       convertDartClosureToJS(internalCallback, 0));
+        convertDartClosureToJS(internalCallback, 0));
   }
 
   static void _scheduleImmediateWithSetImmediate(void callback()) {
     internalCallback() {
       leaveJsAsync();
       callback();
-    };
+    }
+
+    ;
     enterJsAsync();
     JS('void', 'self.setImmediate(#)',
-       convertDartClosureToJS(internalCallback, 0));
+        convertDartClosureToJS(internalCallback, 0));
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {
@@ -106,7 +108,7 @@ class DeferredLibrary {
   @patch
   Future<Null> load() {
     throw 'DeferredLibrary not supported. '
-          'please use the `import "lib.dart" deferred as lib` syntax.';
+        'please use the `import "lib.dart" deferred as lib` syntax.';
   }
 }
 
@@ -120,8 +122,8 @@ class Timer {
   }
 
   @patch
-  static Timer _createPeriodicTimer(Duration duration,
-                             void callback(Timer timer)) {
+  static Timer _createPeriodicTimer(
+      Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
     return new TimerImpl.periodic(milliseconds, callback);
@@ -144,7 +146,8 @@ class Timer {
 /// on the success of the future.
 ///
 /// Returns the future of the completer for convenience of the first call.
-dynamic _asyncHelper(dynamic object,
+dynamic _asyncHelper(
+    dynamic object,
     dynamic /* int | _WrappedAsyncBody */ bodyFunctionOrErrorCode,
     Completer completer) {
   if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
@@ -152,8 +155,8 @@ dynamic _asyncHelper(dynamic object,
     return;
   } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
     // The error is a js-error.
-    completer.completeError(unwrapException(object),
-    getTraceFromException(object));
+    completer.completeError(
+        unwrapException(object), getTraceFromException(object));
     return;
   }
 
@@ -216,7 +219,8 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
             }
           }
         })(#, #)""",
-      function, async_error_codes.ERROR);
+      function,
+      async_error_codes.ERROR);
 
   return Zone.current.registerBinaryCallback((int errorCode, dynamic result) {
     JS('', '#(#, #)', protected, errorCode, result);
@@ -259,7 +263,8 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
 ///
 /// If [object] is not a [Future], it is wrapped in a `Future.value`.
 /// The [asyncBody] is called on completion of the future (see [asyncHelper].
-void _asyncStarHelper(dynamic object,
+void _asyncStarHelper(
+    dynamic object,
     dynamic /* int | _WrappedAsyncBody */ bodyFunctionOrErrorCode,
     _AsyncStarStreamController controller) {
   if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
@@ -274,11 +279,10 @@ void _asyncStarHelper(dynamic object,
     // The error is a js-error.
     if (controller.isCanceled) {
       controller.cancelationCompleter.completeError(
-          unwrapException(object),
-          getTraceFromException(object));
+          unwrapException(object), getTraceFromException(object));
     } else {
-      controller.addError(unwrapException(object),
-                          getTraceFromException(object));
+      controller.addError(
+          unwrapException(object), getTraceFromException(object));
       controller.close();
     }
     return;
@@ -369,38 +373,36 @@ class _AsyncStarStreamController {
   close() => controller.close();
 
   _AsyncStarStreamController(_WrappedAsyncBody body) {
-
     _resumeBody() {
       scheduleMicrotask(() {
         body(async_error_codes.SUCCESS, null);
       });
     }
 
-    controller = new StreamController(
-      onListen: () {
+    controller = new StreamController(onListen: () {
+      _resumeBody();
+    }, onResume: () {
+      // Only schedule again if the async* function actually is suspended.
+      // Resume directly instead of scheduling, so that the sequence
+      // `pause-resume-pause` will result in one extra event produced.
+      if (isSuspended) {
+        isSuspended = false;
         _resumeBody();
-      }, onResume: () {
-        // Only schedule again if the async* function actually is suspended.
-        // Resume directly instead of scheduling, so that the sequence
-        // `pause-resume-pause` will result in one extra event produced.
+      }
+    }, onCancel: () {
+      // If the async* is finished we ignore cancel events.
+      if (!controller.isClosed) {
+        cancelationCompleter = new Completer();
         if (isSuspended) {
+          // Resume the suspended async* function to run finalizers.
           isSuspended = false;
-          _resumeBody();
+          scheduleMicrotask(() {
+            body(async_error_codes.STREAM_WAS_CANCELED, null);
+          });
         }
-      }, onCancel: () {
-        // If the async* is finished we ignore cancel events.
-        if (!controller.isClosed) {
-          cancelationCompleter = new Completer();
-          if (isSuspended) {
-            // Resume the suspended async* function to run finalizers.
-            isSuspended = false;
-            scheduleMicrotask(() {
-              body(async_error_codes.STREAM_WAS_CANCELED, null);
-            });
-          }
-          return cancelationCompleter.future;
-        }
-      });
+        return cancelationCompleter.future;
+      }
+    });
   }
 }
 
@@ -468,7 +470,8 @@ class _SyncStarIterator implements Iterator {
 
   _runBody() {
     // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
-    return JS('',
+    return JS(
+        '',
         '''
         // Invokes [body] with [errorCode] and [result].
         //
@@ -485,7 +488,9 @@ class _SyncStarIterator implements Iterator {
             }
           }
         })(#, #, #)''',
-        _body, async_error_codes.SUCCESS, async_error_codes.ERROR);
+        _body,
+        async_error_codes.SUCCESS,
+        async_error_codes.ERROR);
   }
 
   bool moveNext() {
@@ -537,7 +542,7 @@ class _SyncStarIterator implements Iterator {
         return true;
       }
     }
-    return false;  // TODO(sra): Fix type inference so that this is not needed.
+    return false; // TODO(sra): Fix type inference so that this is not needed.
   }
 }
 

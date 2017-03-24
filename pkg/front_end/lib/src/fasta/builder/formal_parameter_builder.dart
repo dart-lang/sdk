@@ -37,4 +37,7 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
   bool get isOptional => !isRequired;
 
   bool get isLocal => true;
+
+  @override
+  String get fullNameForErrors => name;
 }

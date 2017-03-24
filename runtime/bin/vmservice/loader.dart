@@ -62,6 +62,8 @@ class FileRequest {
   FileRequest(this.sp, this.tag, this.uri, this.resolvedUri, this.libraryUrl);
 }
 
+bool _traceLoading = false;
+
 // State associated with the isolate that is used for loading.
 class IsolateLoaderState extends IsolateEmbedderData {
   IsolateLoaderState(this.isolateId);
@@ -70,10 +72,8 @@ class IsolateLoaderState extends IsolateEmbedderData {
 
   SendPort sp;
 
-  void init(String packageRootFlag,
-            String packagesConfigFlag,
-            String workingDirectory,
-            String rootScript) {
+  void init(String packageRootFlag, String packagesConfigFlag,
+      String workingDirectory, String rootScript) {
     // _workingDirectory must be set first.
     _workingDirectory = new Uri.directory(workingDirectory);
     if (rootScript != null) {
@@ -103,13 +103,12 @@ class IsolateLoaderState extends IsolateEmbedderData {
   // The root script's uri.
   Uri _rootScript;
 
-  bool _traceLoading = false;
-
   // Packages are either resolved looking up in a map or resolved from within a
   // package root.
-  bool get _packagesReady => (_packageRoot != null) ||
-                             (_packageMap != null) ||
-                             (_packageError != null);
+  bool get _packagesReady =>
+      (_packageRoot != null) ||
+      (_packageMap != null) ||
+      (_packageError != null);
 
   // Error string set if there was an error resolving package configuration.
   // For example not finding a .packages file or packages/ directory, malformed
@@ -135,6 +134,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
   void enqueueFileRequest(FileRequest fr) {
     _fileRequestQueue.add(fr);
   }
+
   FileRequest dequeueFileRequest() {
     if (_fileRequestQueue.length == 0) {
       return null;
@@ -203,14 +203,14 @@ class IsolateLoaderState extends IsolateEmbedderData {
       var wrong = 'package://$path';
 
       throw "URIs using the 'package:' scheme should look like "
-            "'$right', not '$wrong'.";
+          "'$right', not '$wrong'.";
     }
 
     var packageNameEnd = uri.path.indexOf('/');
     if (packageNameEnd == 0) {
       // Package URIs must have a non-empty package name (not start with "/").
       throw "URIS using the 'package:' scheme should look like "
-            "'package:packageName${uri.path}', not 'package:${uri.path}'";
+          "'package:packageName${uri.path}', not 'package:${uri.path}'";
     }
     if (_traceLoading) {
       _log('Resolving package with uri path: ${uri.path}');
@@ -228,7 +228,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
         // Package URIs must have a path after the package name, even if it's
         // just "/".
         throw "URIS using the 'package:' scheme should look like "
-              "'package:${uri.path}/', not 'package:${uri.path}'";
+            "'package:${uri.path}/', not 'package:${uri.path}'";
       }
       var packageName = uri.path.substring(0, packageNameEnd);
       var mapping = _packageMap[packageName];
@@ -263,16 +263,10 @@ class IsolateLoaderState extends IsolateEmbedderData {
 
     if (packageConfig != null) {
       // Explicitly specified .packages path.
-      _handlePackagesRequest(sp,
-                             _traceLoading,
-                             -2,
-                             packageConfig);
+      _handlePackagesRequest(sp, _traceLoading, -2, packageConfig);
     } else {
       // Search for .packages or packages/ starting at the root script.
-      _handlePackagesRequest(sp,
-                             _traceLoading,
-                             -1,
-                             _rootScript);
+      _handlePackagesRequest(sp, _traceLoading, -1, _rootScript);
     }
 
     if (_traceLoading) {
@@ -308,9 +302,9 @@ class IsolateLoaderState extends IsolateEmbedderData {
         assert(msg[1] == null);
         _packageConfig = Uri.parse(msg[0]);
         _packageMap = new Map<String, Uri>();
-        for (var i = 2; i < msg.length; i+=2) {
+        for (var i = 2; i < msg.length; i += 2) {
           // TODO(iposva): Complain about duplicate entries.
-          _packageMap[msg[i]] = Uri.parse(msg[i+1]);
+          _packageMap[msg[i]] = Uri.parse(msg[i + 1]);
         }
         if (_traceLoading) {
           _log("Setup package map: $_packageMap");
@@ -334,7 +328,6 @@ class IsolateLoaderState extends IsolateEmbedderData {
     // finish loading.
     _pendingPackageLoads = [];
   }
-
 }
 
 _log(msg) {
@@ -344,12 +337,8 @@ _log(msg) {
 var _httpClient;
 
 // Send a response to the requesting isolate.
-void _sendResourceResponse(SendPort sp,
-                           int tag,
-                           Uri uri,
-                           Uri resolvedUri,
-                           String libraryUrl,
-                           dynamic data) {
+void _sendResourceResponse(SendPort sp, int tag, Uri uri, Uri resolvedUri,
+    String libraryUrl, dynamic data) {
   assert((data is List<int>) || (data is String));
   var msg = new List(5);
   if (data is String) {
@@ -370,10 +359,8 @@ void _sendResourceResponse(SendPort sp,
 }
 
 // Send a response to the requesting isolate.
-void _sendExtensionImportResponse(SendPort sp,
-                                  Uri uri,
-                                  String libraryUrl,
-                                  String resolvedUri) {
+void _sendExtensionImportResponse(
+    SendPort sp, Uri uri, String libraryUrl, String resolvedUri) {
   var msg = new List(5);
   int tag = _Dart_kImportExtension;
   if (resolvedUri == null) {
@@ -389,56 +376,44 @@ void _sendExtensionImportResponse(SendPort sp,
   sp.send(msg);
 }
 
-void _loadHttp(SendPort sp,
-               int tag,
-               Uri uri,
-               Uri resolvedUri,
-               String libraryUrl) {
+void _loadHttp(
+    SendPort sp, int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
   if (_httpClient == null) {
     _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
   }
-  _httpClient.getUrl(resolvedUri)
-    .then((HttpClientRequest request) => request.close())
-    .then((HttpClientResponse response) {
-      var builder = new BytesBuilder(copy: false);
-      response.listen(
-          builder.add,
-          onDone: () {
-            if (response.statusCode != 200) {
-              var msg = "Failure getting $resolvedUri:\n"
-                        "  ${response.statusCode} ${response.reasonPhrase}";
-              _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, msg);
-            } else {
-              _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl,
-                                    builder.takeBytes());
-            }
-          },
-          onError: (e) {
-            _sendResourceResponse(
-                sp, tag, uri, resolvedUri, libraryUrl, e.toString());
-          });
-    })
-    .catchError((e) {
+  _httpClient
+      .getUrl(resolvedUri)
+      .then((HttpClientRequest request) => request.close())
+      .then((HttpClientResponse response) {
+    var builder = new BytesBuilder(copy: false);
+    response.listen(builder.add, onDone: () {
+      if (response.statusCode != 200) {
+        var msg = "Failure getting $resolvedUri:\n"
+            "  ${response.statusCode} ${response.reasonPhrase}";
+        _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, msg);
+      } else {
+        _sendResourceResponse(
+            sp, tag, uri, resolvedUri, libraryUrl, builder.takeBytes());
+      }
+    }, onError: (e) {
       _sendResourceResponse(
-        sp, tag, uri, resolvedUri, libraryUrl, e.toString());
+          sp, tag, uri, resolvedUri, libraryUrl, e.toString());
     });
+  }).catchError((e) {
+    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, e.toString());
+  });
   // It's just here to push an event on the event loop so that we invoke the
   // scheduled microtasks.
   Timer.run(() {});
 }
 
-void _loadFile(IsolateLoaderState loaderState,
-               SendPort sp,
-               int tag,
-               Uri uri,
-               Uri resolvedUri,
-               String libraryUrl) {
+void _loadFile(IsolateLoaderState loaderState, SendPort sp, int tag, Uri uri,
+    Uri resolvedUri, String libraryUrl) {
   var path = resolvedUri.toFilePath();
   var sourceFile = new File(path);
   sourceFile.readAsBytes().then((data) {
     _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, data);
-  },
-  onError: (e) {
+  }, onError: (e) {
     _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, e.toString());
   }).whenComplete(() {
     loaderState.currentFileRequests--;
@@ -454,20 +429,15 @@ void _loadFile(IsolateLoaderState loaderState,
   });
 }
 
-void _loadDataUri(SendPort sp,
-                  int tag,
-                  Uri uri,
-                  Uri resolvedUri,
-                  String libraryUrl) {
+void _loadDataUri(
+    SendPort sp, int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
   try {
     var mime = uri.data.mimeType;
-    if ((mime != "application/dart") &&
-        (mime != "text/plain")) {
+    if ((mime != "application/dart") && (mime != "text/plain")) {
       throw "MIME-type must be application/dart or text/plain: $mime given.";
     }
     var charset = uri.data.charset;
-    if ((charset != "utf-8") &&
-        (charset != "US-ASCII")) {
+    if ((charset != "utf-8") && (charset != "US-ASCII")) {
       // The C++ portion of the embedder assumes UTF-8.
       throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
     }
@@ -475,19 +445,14 @@ void _loadDataUri(SendPort sp,
         sp, tag, uri, resolvedUri, libraryUrl, uri.data.contentAsBytes());
   } catch (e) {
     _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl,
-                          "Invalid data uri ($uri):\n  $e");
+        "Invalid data uri ($uri):\n  $e");
   }
 }
 
 // Loading a package URI needs to first map the package name to a loadable
 // URI.
-_loadPackage(IsolateLoaderState loaderState,
-             SendPort sp,
-             bool traceLoading,
-             int tag,
-             Uri uri,
-             Uri resolvedUri,
-             String libraryUrl) {
+_loadPackage(IsolateLoaderState loaderState, SendPort sp, bool traceLoading,
+    int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
   if (loaderState._packagesReady) {
     var resolvedUri;
     try {
@@ -497,22 +462,13 @@ _loadPackage(IsolateLoaderState loaderState,
         _log("Exception ($e) when resolving package URI: $uri");
       }
       // Report error.
-      _sendResourceResponse(sp,
-                            tag,
-                            uri,
-                            resolvedUri,
-                            libraryUrl,
-                            e.toString());
+      _sendResourceResponse(
+          sp, tag, uri, resolvedUri, libraryUrl, e.toString());
       return;
     }
     // Recursively call with the new resolved uri.
-    _handleResourceRequest(loaderState,
-                           sp,
-                           traceLoading,
-                           tag,
-                           uri,
-                           resolvedUri,
-                           libraryUrl);
+    _handleResourceRequest(
+        loaderState, sp, traceLoading, tag, uri, resolvedUri, libraryUrl);
   } else {
     if (loaderState._pendingPackageLoads.isEmpty) {
       // Package resolution has not been setup yet, and this is the first
@@ -522,30 +478,20 @@ _loadPackage(IsolateLoaderState loaderState,
     // Register the action of loading this package once the package resolution
     // is ready.
     loaderState._pendingPackageLoads.add(() {
-      _handleResourceRequest(loaderState,
-                             sp,
-                             traceLoading,
-                             tag,
-                             uri,
-                             uri,
-                             libraryUrl);
+      _handleResourceRequest(
+          loaderState, sp, traceLoading, tag, uri, uri, libraryUrl);
     });
     if (traceLoading) {
       _log("Pending package load of '$uri': "
-           "${loaderState._pendingPackageLoads.length} pending");
+          "${loaderState._pendingPackageLoads.length} pending");
     }
   }
 }
 
 // TODO(johnmccutchan): This and most other top level functions in this file
 // should be turned into methods on the IsolateLoaderState class.
-_handleResourceRequest(IsolateLoaderState loaderState,
-                       SendPort sp,
-                       bool traceLoading,
-                       int tag,
-                       Uri uri,
-                       Uri resolvedUri,
-                       String libraryUrl) {
+_handleResourceRequest(IsolateLoaderState loaderState, SendPort sp,
+    bool traceLoading, int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
   if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
     if (loaderState.shouldIssueFileRequest) {
       _loadFile(loaderState, sp, tag, uri, resolvedUri, libraryUrl);
@@ -555,69 +501,136 @@ _handleResourceRequest(IsolateLoaderState loaderState,
       loaderState.enqueueFileRequest(fr);
     }
   } else if ((resolvedUri.scheme == 'http') ||
-             (resolvedUri.scheme == 'https')) {
+      (resolvedUri.scheme == 'https')) {
     _loadHttp(sp, tag, uri, resolvedUri, libraryUrl);
   } else if ((resolvedUri.scheme == 'data')) {
     _loadDataUri(sp, tag, uri, resolvedUri, libraryUrl);
   } else if ((resolvedUri.scheme == 'package')) {
-    _loadPackage(loaderState,
-                 sp,
-                 traceLoading,
-                 tag,
-                 uri,
-                 resolvedUri,
-                 libraryUrl);
+    _loadPackage(
+        loaderState, sp, traceLoading, tag, uri, resolvedUri, libraryUrl);
   } else {
-    _sendResourceResponse(sp, tag,
-                          uri,
-                          resolvedUri,
-                          libraryUrl,
-                          'Unknown scheme (${resolvedUri.scheme}) for '
-                          '$resolvedUri');
+    _sendResourceResponse(
+        sp,
+        tag,
+        uri,
+        resolvedUri,
+        libraryUrl,
+        'Unknown scheme (${resolvedUri.scheme}) for '
+        '$resolvedUri');
   }
 }
 
 // Handling of packages requests. Finding and parsing of .packages file or
 // packages/ directories.
-const _LF    = 0x0A;
-const _CR    = 0x0D;
+const _LF = 0x0A;
+const _CR = 0x0D;
 const _SPACE = 0x20;
-const _HASH  = 0x23;
-const _DOT   = 0x2E;
+const _HASH = 0x23;
+const _DOT = 0x2E;
 const _COLON = 0x3A;
-const _DEL   = 0x7F;
+const _DEL = 0x7F;
 
 const _invalidPackageNameChars = const [
-  // space  !      "      #      $      %      &      '
-     true , false, true , true , false, true , false, false,
-  // (      )      *      +      ,      -      .      /
-     false, false, false, false, false, false, false, true ,
-  // 0      1      2      3      4      5      6      7
-     false, false, false, false, false, false, false, false,
-  // 8      9      :      ;      <      =      >      ?
-     false, false, true , false, true , false, true , true ,
-  // @      A      B      C      D      E      F      G
-     false, false, false, false, false, false, false, false,
-  // H      I      J      K      L      M      N      O
-     false, false, false, false, false, false, false, false,
-  // P      Q      R      S      T      U      V      W
-     false, false, false, false, false, false, false, false,
-  // X      Y      Z      [      \      ]      ^      _
-     false, false, false, true , true , true , true , false,
-  // `      a      b      c      d      e      f      g
-     true , false, false, false, false, false, false, false,
-  // h      i      j      k      l      m      n      o
-     false, false, false, false, false, false, false, false,
-  // p      q      r      s      t      u      v      w
-     false, false, false, false, false, false, false, false,
-  // x      y      z      {      |      }      ~      DEL
-     false, false, false, true , true , true , false, true
+  true, //  space
+  false, // !
+  true, //  "
+  true, //  #
+  false, // $
+  true, //  %
+  false, // &
+  false, // '
+  false, // (
+  false, // )
+  false, // *
+  false, // +
+  false, // ,
+  false, // -
+  false, // .
+  true, //  /
+  false, // 0
+  false, // 1
+  false, // 2
+  false, // 3
+  false, // 4
+  false, // 5
+  false, // 6
+  false, // 7
+  false, // 8
+  false, // 9
+  true, //  :
+  false, // ;
+  true, //  <
+  false, // =
+  true, //  >
+  true, //  ?
+  false, // @
+  false, // A
+  false, // B
+  false, // C
+  false, // D
+  false, // E
+  false, // F
+  false, // G
+  false, // H
+  false, // I
+  false, // J
+  false, // K
+  false, // L
+  false, // M
+  false, // N
+  false, // O
+  false, // P
+  false, // Q
+  false, // R
+  false, // S
+  false, // T
+  false, // U
+  false, // V
+  false, // W
+  false, // X
+  false, // Y
+  false, // Z
+  true, //  [
+  true, //  \
+  true, //  ]
+  true, //  ^
+  false, // _
+  true, //  `
+  false, // a
+  false, // b
+  false, // c
+  false, // d
+  false, // e
+  false, // f
+  false, // g
+  false, // h
+  false, // i
+  false, // j
+  false, // k
+  false, // l
+  false, // m
+  false, // n
+  false, // o
+  false, // p
+  false, // q
+  false, // r
+  false, // s
+  false, // t
+  false, // u
+  false, // v
+  false, // w
+  false, // x
+  false, // y
+  false, // z
+  true, //  {
+  true, //  |
+  true, //  }
+  false, // ~
+  true, //  DEL
 ];
 
-_parsePackagesFile(SendPort sp,
-                   bool traceLoading,
-                   Uri packagesFile,
-                   List<int> data) {
+_parsePackagesFile(
+    SendPort sp, bool traceLoading, Uri packagesFile, List<int> data) {
   // The first entry contains the location of the identified .packages file
   // instead of a mapping.
   var result = [packagesFile.toString(), null];
@@ -654,8 +667,9 @@ _parsePackagesFile(SendPort sp,
           // the characters.
           nonDot = nonDot || (char != _DOT);
           invalidPackageName = invalidPackageName ||
-                               (char < _SPACE) || (char > _DEL) ||
-                               _invalidPackageNameChars[char - _SPACE];
+              (char < _SPACE) ||
+              (char > _DEL) ||
+              _invalidPackageNameChars[char - _SPACE];
         }
       }
       // Identify end of line.
@@ -669,7 +683,7 @@ _parsePackagesFile(SendPort sp,
     if (data[start] == _HASH) {
       if (traceLoading) {
         _log("Skipping comment in $packagesFile:\n"
-             "${new String.fromCharCodes(data, start, end)}");
+            "${new String.fromCharCodes(data, start, end)}");
       }
       continue;
     }
@@ -679,10 +693,10 @@ _parsePackagesFile(SendPort sp,
       var line = new String.fromCharCodes(data, start, end);
       if (traceLoading) {
         _log("Line starts with ':' in $packagesFile:\n"
-             "$line");
+            "$line");
       }
       sp.send("Missing package name in $packagesFile:\n"
-              "$line");
+          "$line");
       return;
     }
 
@@ -691,10 +705,10 @@ _parsePackagesFile(SendPort sp,
       var line = new String.fromCharCodes(data, start, end);
       if (traceLoading) {
         _log("Line has no ':' in $packagesFile:\n"
-              "$line");
+            "$line");
       }
       sp.send("Missing ':' separator in $packagesFile:\n"
-              "$line");
+          "$line");
       return;
     }
 
@@ -707,7 +721,7 @@ _parsePackagesFile(SendPort sp,
         _log("Invalid package name $packageName in $packagesFile");
       }
       sp.send("Invalid package name '$packageName' in $packagesFile:\n"
-              "$line");
+          "$line");
       return;
     }
 
@@ -741,7 +755,7 @@ _loadPackagesFile(SendPort sp, bool traceLoading, Uri packagesFile) async {
     var data = await new File.fromUri(packagesFile).readAsBytes();
     if (traceLoading) {
       _log("Loaded packages file from $packagesFile:\n"
-           "${new String.fromCharCodes(data)}");
+          "${new String.fromCharCodes(data)}");
     }
     _parsePackagesFile(sp, traceLoading, packagesFile, data);
   } catch (e, s) {
@@ -812,9 +826,8 @@ _findPackagesFile(SendPort sp, bool traceLoading, Uri base) async {
   }
 }
 
-Future<bool> _loadHttpPackagesFile(SendPort sp,
-                                   bool traceLoading,
-                                   Uri resource) async {
+Future<bool> _loadHttpPackagesFile(
+    SendPort sp, bool traceLoading, Uri resource) async {
   try {
     if (_httpClient == null) {
       _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
@@ -837,7 +850,7 @@ Future<bool> _loadHttpPackagesFile(SendPort sp,
     var data = builder.takeBytes();
     if (traceLoading) {
       _log("Loaded packages file from '$resource':\n"
-           "${new String.fromCharCodes(data)}");
+          "${new String.fromCharCodes(data)}");
     }
     _parsePackagesFile(sp, traceLoading, resource, data);
   } catch (e, s) {
@@ -849,7 +862,7 @@ Future<bool> _loadHttpPackagesFile(SendPort sp,
   return false;
 }
 
-_loadPackagesData(sp, traceLoading, resource){
+_loadPackagesData(sp, traceLoading, resource) {
   try {
     var data = resource.data;
     var mime = data.mimeType;
@@ -857,8 +870,7 @@ _loadPackagesData(sp, traceLoading, resource){
       throw "MIME-type must be text/plain: $mime given.";
     }
     var charset = data.charset;
-    if ((charset != "utf-8") &&
-        (charset != "US-ASCII")) {
+    if ((charset != "utf-8") && (charset != "US-ASCII")) {
       // The C++ portion of the embedder assumes UTF-8.
       throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
     }
@@ -872,10 +884,8 @@ _loadPackagesData(sp, traceLoading, resource){
 // report it's return value. This could be refactored so that it returns it's
 // value and the caller could wait on the future rather than a message on
 // SendPort.
-_handlePackagesRequest(SendPort sp,
-                       bool traceLoading,
-                       int tag,
-                       Uri resource) async {
+_handlePackagesRequest(
+    SendPort sp, bool traceLoading, int tag, Uri resource) async {
   try {
     if (tag == -1) {
       if (resource.scheme == '' || resource.scheme == 'file') {
@@ -892,7 +902,7 @@ _handlePackagesRequest(SendPort sp,
         }
       } else {
         sp.send("Unsupported scheme used to locate .packages file: "
-                "'$resource'.");
+            "'$resource'.");
       }
     } else if (tag == -2) {
       if (traceLoading) {
@@ -914,7 +924,7 @@ _handlePackagesRequest(SendPort sp,
         _loadPackagesData(sp, traceLoading, resource);
       } else {
         sp.send("Unknown scheme (${resource.scheme}) for package file at "
-                "'$resource'.");
+            "'$resource'.");
       }
     } else {
       sp.send("Unknown packages request tag: $tag for '$resource'.");
@@ -942,21 +952,21 @@ void shutdownLoaders() {
 }
 
 // See Dart_LibraryTag in dart_api.h
-const _Dart_kCanonicalizeUrl = 0;      // Canonicalize the URL.
-const _Dart_kScriptTag = 1;            // Load the root script.
-const _Dart_kSourceTag = 2;            // Load a part source.
-const _Dart_kImportTag = 3;            // Import a library.
+const _Dart_kCanonicalizeUrl = 0; // Canonicalize the URL.
+const _Dart_kScriptTag = 1; // Load the root script.
+const _Dart_kSourceTag = 2; // Load a part source.
+const _Dart_kImportTag = 3; // Import a library.
 
 // Extra requests. Keep these in sync between loader.dart and builtin.dart.
-const _Dart_kInitLoader = 4;           // Initialize the loader.
-const _Dart_kResourceLoad = 5;         // Resource class support.
-const _Dart_kGetPackageRootUri = 6;    // Uri of the packages/ directory.
-const _Dart_kGetPackageConfigUri = 7;  // Uri of the .packages file.
-const _Dart_kResolvePackageUri = 8;    // Resolve a package: uri.
+const _Dart_kInitLoader = 4; // Initialize the loader.
+const _Dart_kResourceLoad = 5; // Resource class support.
+const _Dart_kGetPackageRootUri = 6; // Uri of the packages/ directory.
+const _Dart_kGetPackageConfigUri = 7; // Uri of the .packages file.
+const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
 // Extra requests. Keep these in sync between loader.dart and loader.cc.
-const _Dart_kImportExtension = 9;      // Import a dart-ext: file.
-const _Dart_kResolveAsFilePath = 10;   // Resolve uri to file path.
+const _Dart_kImportExtension = 9; // Import a dart-ext: file.
+const _Dart_kResolveAsFilePath = 10; // Resolve uri to file path.
 
 // External entry point for loader requests.
 _processLoadRequest(request) {
@@ -983,74 +993,61 @@ _processLoadRequest(request) {
 
   // Handle the request specified in the tag.
   switch (tag) {
-    case _Dart_kScriptTag: {
-      Uri uri = Uri.parse(request[4]);
-      // Remember the root script.
-      loaderState._rootScript = uri;
-      _handleResourceRequest(loaderState,
-                             sp,
-                             traceLoading,
-                             tag,
-                             uri,
-                             uri,
-                             null);
-    }
-    break;
-    case _Dart_kSourceTag:
-    case _Dart_kImportTag: {
-      // The url of the file being loaded.
-      var uri = Uri.parse(request[4]);
-      // The library that is importing/parting the file.
-      String libraryUrl = request[5];
-      _handleResourceRequest(loaderState,
-                             sp,
-                             traceLoading,
-                             tag,
-                             uri,
-                             uri,
-                             libraryUrl);
-    }
-    break;
-    case _Dart_kInitLoader: {
-      String packageRoot = request[4];
-      String packagesFile = request[5];
-      String workingDirectory = request[6];
-      String rootScript = request[7];
-      if (loaderState == null) {
-        loaderState = new IsolateLoaderState(isolateId);
-        isolateEmbedderData[isolateId] = loaderState;
-        loaderState.init(packageRoot,
-                         packagesFile,
-                         workingDirectory,
-                         rootScript);
+    case _Dart_kScriptTag:
+      {
+        Uri uri = Uri.parse(request[4]);
+        // Remember the root script.
+        loaderState._rootScript = uri;
+        _handleResourceRequest(
+            loaderState, sp, traceLoading, tag, uri, uri, null);
       }
-      loaderState.sp = sp;
-      assert(isolateEmbedderData[isolateId] == loaderState);
-    }
-    break;
-    case _Dart_kResourceLoad: {
-      Uri uri = Uri.parse(request[4]);
-      _handleResourceRequest(loaderState,
-                             sp,
-                             traceLoading,
-                             tag,
-                             uri,
-                             uri,
-                             null);
-    }
-    break;
+      break;
+    case _Dart_kSourceTag:
+    case _Dart_kImportTag:
+      {
+        // The url of the file being loaded.
+        var uri = Uri.parse(request[4]);
+        // The library that is importing/parting the file.
+        String libraryUrl = request[5];
+        _handleResourceRequest(
+            loaderState, sp, traceLoading, tag, uri, uri, libraryUrl);
+      }
+      break;
+    case _Dart_kInitLoader:
+      {
+        String packageRoot = request[4];
+        String packagesFile = request[5];
+        String workingDirectory = request[6];
+        String rootScript = request[7];
+        if (loaderState == null) {
+          loaderState = new IsolateLoaderState(isolateId);
+          isolateEmbedderData[isolateId] = loaderState;
+          loaderState.init(
+              packageRoot, packagesFile, workingDirectory, rootScript);
+        }
+        loaderState.sp = sp;
+        assert(isolateEmbedderData[isolateId] == loaderState);
+      }
+      break;
+    case _Dart_kResourceLoad:
+      {
+        Uri uri = Uri.parse(request[4]);
+        _handleResourceRequest(
+            loaderState, sp, traceLoading, tag, uri, uri, null);
+      }
+      break;
     case _Dart_kGetPackageRootUri:
       loaderState._triggerPackageResolution(() {
         // Respond with the package root (if any) after package resolution.
         sp.send(loaderState._packageRoot);
       });
-    break;
+      break;
     case _Dart_kGetPackageConfigUri:
       loaderState._triggerPackageResolution(() {
         // Respond with the packages config (if any) after package resolution.
         sp.send(loaderState._packageConfig);
       });
-    break;
+      break;
     case _Dart_kResolvePackageUri:
       Uri uri = Uri.parse(request[4]);
       loaderState._triggerPackageResolution(() {
@@ -1066,7 +1063,7 @@ _processLoadRequest(request) {
         }
         sp.send(resolvedUri);
       });
-    break;
+      break;
     case _Dart_kImportExtension:
       Uri uri = Uri.parse(request[4]);
       String libraryUri = request[5];
@@ -1082,15 +1079,14 @@ _processLoadRequest(request) {
       switch (pathUri.scheme) {
         case '':
         case 'file':
-          _sendExtensionImportResponse(sp, uri, libraryUri,
-                                       pathUri.toFilePath());
-        break;
+          _sendExtensionImportResponse(
+              sp, uri, libraryUri, pathUri.toFilePath());
+          break;
         case 'data':
         case 'http':
         case 'https':
-          _sendExtensionImportResponse(sp, uri, libraryUri,
-                                       pathUri.toString());
-        break;
+          _sendExtensionImportResponse(sp, uri, libraryUri, pathUri.toString());
+          break;
         case 'package':
           // Start package resolution.
           loaderState._triggerPackageResolution(() {
@@ -1104,20 +1100,18 @@ _processLoadRequest(request) {
               }
               resolvedUri = null;
             }
-            _sendExtensionImportResponse(sp,
-                                         uri,
-                                         libraryUri,
-                                         resolvedUri.toString());
+            _sendExtensionImportResponse(
+                sp, uri, libraryUri, resolvedUri.toString());
           });
-        break;
+          break;
         default:
           if (traceLoading) {
             _log('Unknown scheme (${pathUri.scheme}) in $pathUri.');
           }
           _sendExtensionImportResponse(sp, uri, libraryUri, null);
-        break;
+          break;
       }
-    break;
+      break;
     case _Dart_kResolveAsFilePath:
       String uri = request[4];
       Uri resolvedUri = Uri.parse(_sanitizeWindowsPath(uri));
@@ -1136,7 +1130,7 @@ _processLoadRequest(request) {
           sp.send(msg);
         } else {
           throw "Cannot resolve scheme (${resolvedUri.scheme}) to file path"
-                " for $resolvedUri";
+              " for $resolvedUri";
         }
       } catch (e) {
         var msg = new List(5);
@@ -1147,7 +1141,7 @@ _processLoadRequest(request) {
         msg[4] = e.toString();
         sp.send(msg);
       }
-    break;
+      break;
     default:
       _log('Unknown loader request tag=$tag from $isolateId');
   }

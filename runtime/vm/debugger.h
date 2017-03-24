@@ -669,9 +669,6 @@ class Debugger {
 
   intptr_t nextId() { return next_id_++; }
 
-  bool ShouldPauseOnAsyncException(DebuggerStackTrace* stack_trace,
-                                   const Instance& exc);
-
   bool ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                               const Instance& exc);
 

@@ -10,7 +10,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-class Foo { }
+class Foo {}
 
 Foo foo;
 var /*MirrorReference*/ ref;
@@ -20,11 +20,12 @@ void script() {
   ClassMirror fooClassMirror = reflectClass(Foo);
   InstanceMirror fooClassMirrorMirror = reflect(fooClassMirror);
   LibraryMirror libmirrors = fooClassMirrorMirror.type.owner;
-  ref = reflect(fooClassMirror).getField(MirrorSystem.getSymbol('_reflectee', libmirrors)).reflectee;
+  ref = reflect(fooClassMirror)
+      .getField(MirrorSystem.getSymbol('_reflectee', libmirrors))
+      .reflectee;
 }
 
 var tests = [
-
   (Isolate isolate) async {
     var lib = await isolate.rootLibrary.load();
     Field fooField = lib.variables.singleWhere((v) => v.name == 'foo');
@@ -42,7 +43,6 @@ var tests = [
     expect(loadedRef.referent.name, equals('Foo'));
     expect(loadedRef.referent, equals(foo.clazz));
   },
-
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

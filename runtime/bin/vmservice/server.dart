@@ -4,8 +4,7 @@
 
 part of vmservice_io;
 
-final bool silentObservatory =
-    const bool.fromEnvironment('SILENT_OBSERVATORY');
+final bool silentObservatory = const bool.fromEnvironment('SILENT_OBSERVATORY');
 
 void serverPrint(String s) {
   if (silentObservatory) {
@@ -63,7 +62,7 @@ class WebSocketClient extends Client {
     }
     try {
       if (result is String || result is Uint8List) {
-        socket.add(result);  // String or binary message.
+        socket.add(result); // String or binary message.
       } else {
         // String message as external Uint8List.
         assert(result is List);
@@ -85,14 +84,13 @@ class WebSocketClient extends Client {
   }
 }
 
-
 class HttpRequestClient extends Client {
   static ContentType jsonContentType =
       new ContentType("application", "json", charset: "utf-8");
   final HttpRequest request;
 
   HttpRequestClient(this.request, VMService service)
-      : super(service, sendEvents:false);
+      : super(service, sendEvents: false);
 
   disconnect() {
     request.response.close();
@@ -112,7 +110,7 @@ class HttpRequestClient extends Client {
       response.write(result);
     } else {
       assert(result is List);
-      Uint8List cstring = result[0];  // Already in UTF-8.
+      Uint8List cstring = result[0]; // Already in UTF-8.
       response.add(cstring);
     }
     response.close();
@@ -169,7 +167,7 @@ class Server {
 
     if ((uri.port == _server.port) &&
         ((uri.host == _server.address.address) ||
-         (uri.host == _server.address.host))) {
+            (uri.host == _server.address.host))) {
       return true;
     }
 
@@ -217,8 +215,9 @@ class Server {
       return null;
     }
     // Construct the actual request path by chopping off the auth token.
-    return (requestPathSegments[1] == '') ?
-        ROOT_REDIRECT_PATH : '/${requestPathSegments.sublist(1).join('/')}';
+    return (requestPathSegments[1] == '')
+        ? ROOT_REDIRECT_PATH
+        : '/${requestPathSegments.sublist(1).join('/')}';
   }
 
   Future _requestHandler(HttpRequest request) async {
@@ -261,16 +260,13 @@ class Server {
             fsPath = fsPathList[0];
           }
         }
-      } catch (e) { /* ignore */ }
+      } catch (e) {/* ignore */}
 
       String result;
       try {
         result = await _service.devfs.handlePutStream(
-            fsName,
-            fsPath,
-            fsUri,
-            request.transform(GZIP.decoder));
-      } catch (e) { /* ignore */ }
+            fsName, fsPath, fsUri, request.transform(GZIP.decoder));
+      } catch (e) {/* ignore */}
 
       if (result != null) {
         request.response.headers.contentType =
@@ -294,8 +290,7 @@ class Server {
     }
 
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request).then(
-                                   (WebSocket webSocket) {
+      WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
       });
       return;
@@ -304,8 +299,7 @@ class Server {
     Asset asset = assets[path];
     if (asset != null) {
       // Serving up a static asset (e.g. .css, .html, .png).
-      request.response.headers.contentType =
-          ContentType.parse(asset.mimeType);
+      request.response.headers.contentType = ContentType.parse(asset.mimeType);
       request.response.add(asset.data);
       request.response.close();
       return;
@@ -317,7 +311,7 @@ class Server {
       client.onMessage(null, message);
     } catch (e) {
       serverPrint('Unexpected error processing HTTP request uri: '
-                  '${request.uri}\n$e\n');
+          '${request.uri}\n$e\n');
       rethrow;
     }
   }
@@ -329,38 +323,58 @@ class Server {
     }
 
     // Startup HTTP server.
-    try {
-      var address;
-      if (Platform.isFuchsia) {
-        address = InternetAddress.ANY_IP_V4;
-      } else {
-        var addresses = await InternetAddress.lookup(_ip);
-        // Prefer IPv4 addresses.
-        for (var i = 0; i < addresses.length; i++) {
-          address = addresses[i];
-          if (address.type == InternetAddressType.IP_V4) break;
+    var pollError;
+    var pollStack;
+    Future<bool> poll() async {
+      try {
+        var address;
+        if (Platform.isFuchsia) {
+          address = InternetAddress.ANY_IP_V4;
+        } else {
+          var addresses = await InternetAddress.lookup(_ip);
+          // Prefer IPv4 addresses.
+          for (var i = 0; i < addresses.length; i++) {
+            address = addresses[i];
+            if (address.type == InternetAddressType.IP_V4) break;
+          }
         }
+        _server = await HttpServer.bind(address, _port);
+        return true;
+      } catch (e, st) {
+        pollError = e;
+        pollStack = st;
+        return false;
       }
-      _server = await HttpServer.bind(address, _port);
-      _server.listen(_requestHandler, cancelOnError: true);
-      serverPrint('Observatory listening on $serverAddress');
-      if (Platform.isFuchsia) {
-        // Create a file with the port number.
-        String tmp = Directory.systemTemp.path;
-        String path = "$tmp/dart.services/${_server.port}";
-        serverPrint("Creating $path");
-        new File(path)..createSync(recursive: true);
-      }
-      // Server is up and running.
-      _notifyServerState(serverAddress.toString());
-      onServerAddressChange('$serverAddress');
-      return this;
-    } catch (e, st) {
-      serverPrint('Could not start Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("");
-      onServerAddressChange(null);
-      return this;
     }
+
+    // poll for the network for ~10 seconds.
+    int attempts = 0;
+    final int maxAttempts = 10;
+    while (!await poll()) {
+      attempts++;
+      serverPrint("Observatory server failed to start after $attempts tries");
+      if (attempts > maxAttempts) {
+        serverPrint('Could not start Observatory HTTP server:\n'
+                    '$pollError\n$pollStack\n');
+        _notifyServerState("");
+        onServerAddressChange(null);
+        return this;
+      }
+      await new Future<Null>.delayed(const Duration(seconds: 1));
+    }
+    _server.listen(_requestHandler, cancelOnError: true);
+    serverPrint('Observatory listening on $serverAddress');
+    if (Platform.isFuchsia) {
+      // Create a file with the port number.
+      String tmp = Directory.systemTemp.path;
+      String path = "$tmp/dart.services/${_server.port}";
+      serverPrint("Creating $path");
+      new File(path)..createSync(recursive: true);
+    }
+    // Server is up and running.
+    _notifyServerState(serverAddress.toString());
+    onServerAddressChange('$serverAddress');
+    return this;
   }
 
   Future cleanup(bool force) {
@@ -399,8 +413,6 @@ class Server {
       return this;
     });
   }
-
 }
 
-void _notifyServerState(String uri)
-    native "VMServiceIO_NotifyServerState";
+void _notifyServerState(String uri) native "VMServiceIO_NotifyServerState";

@@ -125,8 +125,6 @@ abstract class AbstractAnalysisServerIntegrationTest
    */
   bool _subscribedToServerStatus = false;
 
-  List<AnalysisError> getErrors(String pathname) => currentAnalysisErrors[pathname];
-
   AbstractAnalysisServerIntegrationTest() {
     initializeInttestMixin();
   }
@@ -167,6 +165,14 @@ abstract class AbstractAnalysisServerIntegrationTest
   void debugStdio() {
     server.debugStdio();
   }
+
+  List<AnalysisError> getErrors(String pathname) =>
+      currentAnalysisErrors[pathname];
+
+  /**
+   * Read a source file with the given absolute [pathname].
+   */
+  String readFile(String pathname) => new File(pathname).readAsStringSync();
 
   @override
   Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
@@ -214,7 +220,9 @@ abstract class AbstractAnalysisServerIntegrationTest
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill('server failed to exit');
+      // The integer value of the exit code isn't used, but we have to return
+      // an integer to keep the typing correct.
+      return server.kill('server failed to exit').then((_) => -1);
     });
   }
 
@@ -278,24 +286,6 @@ abstract class AbstractAnalysisServerIntegrationTest
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
-
-  /**
-   * Read a source file with the given absolute [pathname].
-   */
-  String readFile(String pathname) => new File(pathname).readAsStringSync();
-}
-
-/**
- * An error result from a server request.
- */
-class ServerErrorMessage {
-  final Map message;
-
-  ServerErrorMessage(this.message);
-
-  dynamic get error => message['error'];
-
-  String toString() => message.toString();
 }
 
 /**
@@ -555,7 +545,7 @@ class Server {
   /**
    * Stop the server.
    */
-  Future kill(String reason) {
+  Future<int> kill(String reason) {
     debugStdio();
     _recordStdio('FORCIBLY TERMINATING PROCESS: $reason');
     _process.kill();
@@ -765,6 +755,19 @@ class Server {
     }
     _recordedStdio.add(line);
   }
+}
+
+/**
+ * An error result from a server request.
+ */
+class ServerErrorMessage {
+  final Map message;
+
+  ServerErrorMessage(this.message);
+
+  dynamic get error => message['error'];
+
+  String toString() => message.toString();
 }
 
 /**

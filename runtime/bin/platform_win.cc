@@ -83,24 +83,16 @@ class PlatformWin {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 
-    ansi_supported_ = true;
+    // Try to set the bits for ANSI support, but swallow any failures.
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD out_mode;
     if ((out != INVALID_HANDLE_VALUE) && GetConsoleMode(out, &out_mode)) {
       const DWORD request = out_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-      ansi_supported_ = ansi_supported_ && SetConsoleMode(out, request);
-    } else {
-      ansi_supported_ = false;
+      SetConsoleMode(out, request);
     }
-
-    HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD in_mode;
-    if ((in != INVALID_HANDLE_VALUE) && GetConsoleMode(in, &in_mode)) {
-      const DWORD request = in_mode | ENABLE_VIRTUAL_TERMINAL_INPUT;
-      ansi_supported_ = ansi_supported_ && SetConsoleMode(in, request);
-    } else {
-      ansi_supported_ = false;
-    }
+    // TODO(28984): Due to issue #29104, we cannot set
+    // ENABLE_VIRTUAL_TERMINAL_INPUT here, as it causes ENABLE_PROCESSED_INPUT
+    // to be ignored.
   }
 
   static void RestoreConsole() {
@@ -108,13 +100,10 @@ class PlatformWin {
     RestoreConsoleLocked();
   }
 
-  static bool ansi_supported() { return ansi_supported_; }
-
  private:
   static Mutex* platform_win_mutex_;
   static int saved_output_cp_;
   static int saved_input_cp_;
-  static bool ansi_supported_;
 
   static void RestoreConsoleLocked() {
     // STD_OUTPUT_HANDLE and STD_INPUT_HANDLE may have been closed or
@@ -179,7 +168,6 @@ class PlatformWin {
 int PlatformWin::saved_output_cp_ = -1;
 int PlatformWin::saved_input_cp_ = -1;
 Mutex* PlatformWin::platform_win_mutex_ = NULL;
-bool PlatformWin::ansi_supported_ = false;
 
 bool Platform::Initialize() {
   PlatformWin::InitOnce();
@@ -273,11 +261,6 @@ const char* Platform::ResolveExecutablePath() {
   // Return the canonical path as the returned path might contain symlinks.
   const char* canon_path = File::GetCanonicalPath(path);
   return canon_path;
-}
-
-
-bool Platform::AnsiSupported() {
-  return PlatformWin::ansi_supported();
 }
 
 

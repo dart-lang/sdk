@@ -25,4 +25,7 @@ abstract class MemberBuilder extends ModifierBuilder {
   bool get isTopLevel => !isClassMember;
 
   bool get isNative => false;
+
+  @override
+  String get fullNameForErrors => name;
 }

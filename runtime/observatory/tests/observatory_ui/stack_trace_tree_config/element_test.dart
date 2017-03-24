@@ -142,10 +142,10 @@ main() {
         expect(e.mode, equals(ProfileTreeMode.code));
       }, count: 1));
       final select = (e.querySelector('.mode-select') as SelectElement);
-      select.selectedIndex = select.options.indexOf(
-          (select.options.toSet()
-            ..removeAll(select.selectedOptions)).toList().first
-        );
+      select.selectedIndex = select.options.indexOf((select.options.toSet()
+            ..removeAll(select.selectedOptions))
+          .toList()
+          .first);
       select.dispatchEvent(new Event("change"));
       e.remove();
       await e.onRendered.first;
@@ -159,10 +159,10 @@ main() {
         expect(e.direction, equals(M.ProfileTreeDirection.inclusive));
       }, count: 1));
       final select = (e.querySelector('.direction-select') as SelectElement);
-      select.selectedIndex = select.options.indexOf(
-          (select.options.toSet()
-            ..removeAll(select.selectedOptions)).toList().first
-        );
+      select.selectedIndex = select.options.indexOf((select.options.toSet()
+            ..removeAll(select.selectedOptions))
+          .toList()
+          .first);
       select.dispatchEvent(new Event("change"));
       e.remove();
       await e.onRendered.first;

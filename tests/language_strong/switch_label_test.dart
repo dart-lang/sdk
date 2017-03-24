@@ -89,10 +89,10 @@ class SwitchLabelTest {
 
     Expect.equals(100, s.say3("cow", "moo"));
     Expect.equals(200, s.say3("cow", "muh"));
-    Expect.equals(400, s.say3("cow", "boeh"));  // Don't ask.
+    Expect.equals(400, s.say3("cow", "boeh")); // Don't ask.
     Expect.equals(300, s.say3("dog", "woof"));
-    Expect.equals(400, s.say3("dog", "boj"));   // Ĉu vi parolas Esperanton?
-    Expect.equals(400, s.say3("unicorn", ""));  // Still dead.
+    Expect.equals(400, s.say3("dog", "boj")); // Ĉu vi parolas Esperanton?
+    Expect.equals(400, s.say3("unicorn", "")); // Still dead.
     Expect.equals(500, s.say3("angry bird", "whoooo"));
   }
 }

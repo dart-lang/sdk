@@ -316,8 +316,9 @@ main() {
     test('call from js', () {
       localClosure(x) => x * 10;
       var wrappedLocalClosure = allowInterop(localClosure);
+      var wrappedLocalClosure2 = allowInterop(localClosure);
       expect(
-          identical(allowInterop(localClosure), wrappedLocalClosure), isTrue);
+          identical(wrappedLocalClosure2, wrappedLocalClosure), isTrue);
       expect(foo.callClosureWithArg1(wrappedLocalClosure, 10), equals(100));
       expect(foo.callClosureWithArg1(wrappedLocalClosure, "a"),
           equals("aaaaaaaaaa"));

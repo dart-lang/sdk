@@ -1407,8 +1407,8 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
     const Class& cls = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
     const bool smi_is_subtype =
-        cls.IsSubtypeOf(TypeArguments::Handle(), type_class,
-                        TypeArguments::Handle(), NULL, NULL, Heap::kOld);
+        cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
+                        Object::null_type_arguments(), NULL, NULL, Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1549,9 +1549,10 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     }
   }
 
-  InstanceOfInstr* instance_of =
-      new (Z) InstanceOfInstr(call->token_pos(), new (Z) Value(left),
-                              new (Z) Value(type_args), type, call->deopt_id());
+  InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
+      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
+      NULL,  // TODO(regis): Pass function type args.
+      type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
@@ -1592,8 +1593,9 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     }
   }
   AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args), type,
-      Symbols::InTypeCast(), call->deopt_id());
+      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
+      NULL,  // TODO(regis): Pass function type arguments.
+      type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }
 

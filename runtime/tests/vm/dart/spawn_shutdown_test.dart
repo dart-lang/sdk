@@ -27,7 +27,9 @@ void worker(SendPort parentPort) {
   var port = new RawReceivePort();
 
   // This worker will exit when it receives any message.
-  port.handler = (_) { port.close(); };
+  port.handler = (_) {
+    port.close();
+  };
 
   // Send a message to terminate our parent isolate.
   if (parentPort != null) {
@@ -40,7 +42,7 @@ void worker(SendPort parentPort) {
 
 void main() {
   const numWorkers = 50;
-  const delay = const Duration(milliseconds:(1000 ~/ numWorkers));
+  const delay = const Duration(milliseconds: (1000 ~/ numWorkers));
   const exitDelay = const Duration(seconds: 2);
 
   // Take about a second to spin up our workers in a staggered

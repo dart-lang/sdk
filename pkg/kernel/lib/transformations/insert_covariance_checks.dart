@@ -378,7 +378,7 @@ class _ClassTransformer {
       var targetType = cloneParameter.type;
       cloneParameter.type = cloner.visitType(getSafeType(unsafeInputs));
       return new AsExpression(new VariableGet(cloneParameter), targetType)
-          ..fileOffset = parameter.fileOffset;
+        ..fileOffset = parameter.fileOffset;
     }
 
     // TODO: Insert checks for type parameter bounds.
@@ -418,7 +418,7 @@ class _ClassTransformer {
     if (unsafeTypes != null) {
       var castType = substitute(field.type, ownSubstitution);
       argument = new AsExpression(argument, castType)
-          ..fileOffset = field.fileOffset;
+        ..fileOffset = field.fileOffset;
       var inputType = substitute(getSafeType(unsafeTypes), ownSubstitution);
       parameter.type = inputType;
     }

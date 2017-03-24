@@ -4,18 +4,10 @@
 
 library fasta.dynamic_type_builder;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
+import 'builder.dart' show LibraryBuilder, TypeBuilder, BuiltinTypeBuilder;
 
 class DynamicTypeBuilder<T extends TypeBuilder, R>
-    extends TypeDeclarationBuilder<T, R> {
-  final R type;
-
-  DynamicTypeBuilder(this.type, LibraryBuilder compilationUnit, int charOffset)
-      : super(null, 0, "dynamic", compilationUnit, charOffset);
-
-  R buildType(LibraryBuilder library, List<T> arguments) => type;
-
-  R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments) {
-    return type;
-  }
+    extends BuiltinTypeBuilder<T, R> {
+  DynamicTypeBuilder(R type, LibraryBuilder compilationUnit, int charOffset)
+      : super("dynamic", type, compilationUnit, charOffset);
 }

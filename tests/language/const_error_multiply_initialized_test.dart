@@ -14,15 +14,15 @@ import "package:expect/expect.dart";
 
 class C {
   final x = 1;
-  const C() : x = 2; /// 01: compile-time error
-  const C() : x = 2; /// 02: static type warning
-  const C(this.x); /// 03: compile-time error
-  const C(this.x); /// 04: static type warning
+  const C() : x = 2; //# 01: compile-time error
+  const C() : x = 2; //# 02: static type warning
+  const C(this.x); //# 03: compile-time error
+  const C(this.x); //# 04: static type warning
 }
 
 main() {
-  const C(); /// 01: continued
-  Expect.throws(() => new C()); /// 02: continued
-  const C(2); /// 03: continued
-  Expect.throws(() => new C(2)); /// 04: continued
+  const C(); //# 01: continued
+  Expect.throws(() => new C()); //# 02: continued
+  const C(2); //# 03: continued
+  Expect.throws(() => new C(2)); //# 04: continued
 }

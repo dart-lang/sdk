@@ -3080,22 +3080,26 @@ class SwitchStatement extends Statement {
 /// This is a potential target of [ContinueSwitchStatement].
 class SwitchCase extends TreeNode {
   final List<Expression> expressions;
+  final List<int> expressionOffsets;
   Statement body;
   bool isDefault;
 
-  SwitchCase(this.expressions, this.body, {this.isDefault: false}) {
+  SwitchCase(this.expressions, this.expressionOffsets, this.body,
+      {this.isDefault: false}) {
     setParents(expressions, this);
     body?.parent = this;
   }
 
   SwitchCase.defaultCase(this.body)
       : isDefault = true,
-        expressions = <Expression>[] {
+        expressions = <Expression>[],
+        expressionOffsets = <int>[] {
     body?.parent = this;
   }
 
   SwitchCase.empty()
       : expressions = <Expression>[],
+        expressionOffsets = <int>[],
         body = null,
         isDefault = false;
 

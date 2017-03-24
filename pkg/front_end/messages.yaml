@@ -1,0 +1,334 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Each entry in this map corresponds to a diagnostic message. Ideally, each
+# entry contains three parts:
+#
+# 1. A message template (template).
+#
+# 2. A suggestion for how to correct the problem (tip).
+#
+# 3. Examples that produce the message (one of expression, statement,
+#    declaration, member, script, or bytes).
+#
+# ## Parameter Substitution in Template and Tip
+#
+# The fields `template` and `tip` are subject to parameter substitution. When
+# the compiler reports a problem, it may also specify a map with the following
+# keys to be substituted into the message:
+#
+# `#character` a Unicode character.
+#
+# `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
+#  units or code points.
+#
+# `#name` a name (a string).
+#
+# `#lexeme` a token. The token's `lexeme` property is used.
+#
+# `#string` a string.
+
+AsciiControlCharacter:
+  template: "The control character #unicode can only be used in strings and comments."
+  expresssion: "\x1b 1"
+
+NonAsciiIdentifier:
+  template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
+  tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."
+  expresssion: "å"
+
+NonAsciiWhitespace:
+  template: "The non-ASCII space character #unicode can only be used in strings and comments."
+  expresssion: "\u2028 1"
+
+Encoding:
+  template: "Unable to decode bytes as UTF-8."
+  bytes: [255]
+
+EmptyNamedParameterList:
+  template: "Named parameter lists cannot be empty."
+  tip: "Try adding a named parameter to the list."
+  script: >
+    foo({}) {}
+
+    main() {
+      foo();
+    }
+
+EmptyOptionalParameterList:
+  template: "Optional parameter lists cannot be empty."
+  tip: "Try adding an optional parameter to the list."
+  script: >
+    foo([]) {}
+
+    main() {
+      foo();
+    }
+
+ExpectedBlockToSkip: ExpectedBody
+
+ExpectedBody:
+  template: "Expected a function body or '=>'."
+  # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
+  tip: "Try adding {}."
+  script: "main();"
+
+ExpectedButGot:
+  template: "Expected '#lexeme' before this."
+  # Consider the second example below: the parser expects a ')' before 'y', but
+  # a ',' would also have worked. We don't have enough information to give a
+  # good suggestion.
+  tip: DONT_KNOW_HOW_TO_FIX,
+  script:
+    - "main() => true ? 1;"
+    - "main() => foo(x: 1 y: 2);"
+
+ExpectedClassBody:
+  template: "Expected a class body, but got '#lexeme'."
+
+ExpectedClassBodyToSkip: ExpectedClassBody
+
+ExpectedDeclaration:
+  template: "Expected a declaration, but got '#lexeme'."
+
+ExpectedExpression:
+  template: "Expected an expression, but got '#lexeme'."
+
+ExpectedFunctionBody:
+  template: "Expected a function body, but got '#lexeme'."
+
+ExpectedHexDigit:
+  template: "A hex digit (0-9 or A-F) must follow '0x'."
+  # No tip, seems obvious from the error message.
+  script: >
+    main() {
+      var i = 0x;
+    }
+
+ExpectedIdentifier:
+  template: "'#lexeme' is a reserved word and can't be used here."
+  tip: "Try using a different name."
+  script: "do() {} main() {}"
+
+ExpectedOpenParens:
+  template: "Expected '('."
+
+ExpectedString:
+  template: "Expected a String, but got '#lexeme'."
+
+ExpectedType:
+  template: "Expected a type, but got '#lexeme'."
+
+ExtraneousModifier:
+  template: "Can't have modifier '#lexeme' here."
+  tip: "Try removing '#lexeme'."
+  script:
+    - "var String foo; main(){}"
+    - "var set foo; main(){}"
+    - "var final foo; main(){}"
+    - "var var foo; main(){}"
+    - "var const foo; main(){}"
+    - "var abstract foo; main(){}"
+    - "var static foo; main(){}"
+    - "var external foo; main(){}"
+    - "get var foo; main(){}"
+    - "set var foo; main(){}"
+    - "final var foo; main(){}"
+    - "var var foo; main(){}"
+    - "const var foo; main(){}"
+    - "abstract var foo; main(){}"
+    - "static var foo; main(){}"
+    - "external var foo; main(){}"
+
+ExtraneousModifierReplace:
+  template: "Can't have modifier '#lexeme' here."
+  tip: "Try replacing modifier '#lexeme' with 'var', 'final', or a type."
+  script:
+    - "set foo; main(){}"
+    - "abstract foo; main(){}"
+    - "static foo; main(){}"
+    - "external foo; main(){}"
+
+InvalidAwaitFor:
+  template: "'await' is only supported in methods with an 'async' or 'async*' body modifier."
+  tip: "Try adding 'async' or 'async*' to the method body or removing the 'await' keyword."
+  script: >
+    main(o) sync* {
+      await for (var e in o) {}
+    }
+
+InvalidSyncModifier:
+  template: "Invalid modifier 'sync'."
+  tip: "Try replacing 'sync' with 'sync*'."
+  script: "main() sync {}"
+
+InvalidVoid:
+  template: "Type 'void' can't be used here because it isn't a return type."
+  tip: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
+  script:
+    - "void x; main() {}"
+    - "foo(void x) {} main() { foo(null); }"
+
+MissingExponent:
+  template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
+  tip: "Make sure there is an exponent, and remove any whitespace before it."
+  script: >
+    main() {
+      var i = 1e;
+    }
+
+PositionalParameterWithEquals:
+  template: "Positional optional parameters can't use ':' to specify a default value."
+  tip: "Try replacing ':' with '='."
+  script: >
+    main() {
+      foo([a: 1]) => print(a);
+      foo(2);
+    }
+
+RequiredParameterWithDefault:
+  template: "Non-optional parameters can't have a default value."
+  tip: "Try removing the default value or making the parameter optional."
+  script:
+    - >
+      main() {
+        foo(a: 1) => print(a);
+        foo(2);
+      }
+    - >
+      main() {
+        foo(a = 1) => print(a);
+        foo(2);
+      }
+
+StackOverflow:
+  template: "Stack overflow."
+
+UnexpectedDollarInString:
+  template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
+  tip: "Try adding a backslash (\\) to escape the '$'."
+  script:
+    - >
+      main() {
+        return '$';
+      }
+    - >
+      main() {
+        return "$";
+      }
+    - >
+      main() {
+        return '''$''';
+      }
+    - >
+      main() {
+        return """$""";
+      }
+
+UnexpectedToken:
+  template: "Unexpected token '#lexeme'."
+
+UnmatchedToken:
+  template: "Can't find '#string' to match '#lexeme'."
+  script:
+    - "main("
+    - "main(){"
+    - "main(){[}"
+
+UnsupportedPrefixPlus:
+  template: "'+' is not a prefix operator. "
+  tip: "Try removing '+'."
+  script: "main() => +2;  // No longer a valid way to write '2'"
+
+UnterminatedComment:
+  template: "Comment starting with '/*' must end with '*/'."
+  script:
+    main() {
+    }
+    /*
+
+UnterminatedString:
+  template: "String must end with #string."
+  script:
+    - >
+      main() {
+        return '
+      ;
+      }
+    - >
+      main() {
+        return \"
+      ;
+      }
+    - >
+      main() {
+        return r'
+      ;
+      }
+    - >
+      main() {
+        return r\"
+      ;
+      }
+    - >
+      main() => '''
+    - >
+      main() => \"\"\"
+    - >
+      main() => r'''
+    - >
+      main() => r\"\"\"
+
+UnterminatedToken:
+  # This is a fall-back message that shouldn't happen.
+  template: "Incomplete token."
+
+Unspecified:
+  template: "#string"
+
+AbstractNotSync:
+  template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
+
+AsyncAsIdentifier:
+  template: "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+
+AwaitAsIdentifier:
+  template: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+
+AwaitNotAsync:
+  template: "'await' can only be used in 'async' or 'async*' methods."
+
+BuiltInIdentifierAsType:
+  template: "Can't use '#lexeme' as a type."
+
+BuiltInIdentifierInDeclaration:
+  template: "Can't use '#lexeme' as a name here."
+
+AwaitForNotAsync:
+  template: "Asynchronous for-loop can only be used in 'async' or 'async*' methods."
+
+FactoryNotSync:
+  template: "Factories can't use 'async', 'async*', or 'sync*'."
+
+GeneratorReturnsValue:
+  template: "'sync*' and 'async*' can't return a value."
+
+InvalidInlineFunctionType:
+  template: "Invalid inline function type."
+  tip: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
+  declaration: "typedef F = Function(int f(String x)); main() { F f; }"
+
+SetterNotSync:
+  template: "Setters can't use 'async', 'async*', or 'sync*'."
+
+YieldAsIdentifier:
+  template: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
+
+YieldNotGenerator:
+  template: "'yield' can only be used in 'sync*' or 'async*' methods."
+
+OnlyTry:
+  template: "Try block should be followed by 'on', 'catch', or 'finally' block."
+  tip: "Did you forget to add a 'finally' block?"
+  statement: "try {}"

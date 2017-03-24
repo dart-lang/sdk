@@ -50,9 +50,9 @@ class RunningIsolates implements MessageRouter {
       // There is some chance that this isolate may have lived before,
       // so return a sentinel rather than an error.
       var result = {
-        'type' : 'Sentinel',
-        'kind' : 'Collected',
-        'valueAsString' : '<collected>',
+        'type': 'Sentinel',
+        'kind': 'Collected',
+        'valueAsString': '<collected>',
       };
       message.setResponse(encodeResult(message, result));
       return message.response;

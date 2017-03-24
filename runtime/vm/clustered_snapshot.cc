@@ -1572,8 +1572,10 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->catch_entry_.variables_);
 #endif
     s->Push(code->ptr()->stackmaps_);
-    s->Push(code->ptr()->inlined_id_to_function_);
-    s->Push(code->ptr()->code_source_map_);
+    if (!FLAG_dwarf_stack_traces) {
+      s->Push(code->ptr()->inlined_id_to_function_);
+      s->Push(code->ptr()->code_source_map_);
+    }
     if (s->kind() != Snapshot::kAppAOT) {
       s->Push(code->ptr()->await_token_positions_);
     }
@@ -1634,13 +1636,16 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteRef(code->ptr()->catch_entry_.variables_);
 #endif
       s->WriteRef(code->ptr()->stackmaps_);
-      s->WriteRef(code->ptr()->inlined_id_to_function_);
-      s->WriteRef(code->ptr()->code_source_map_);
+      if (FLAG_dwarf_stack_traces) {
+        s->WriteRef(Array::null());
+        s->WriteRef(CodeSourceMap::null());
+      } else {
+        s->WriteRef(code->ptr()->inlined_id_to_function_);
+        s->WriteRef(code->ptr()->code_source_map_);
+      }
       if (s->kind() != Snapshot::kAppAOT) {
         s->WriteRef(code->ptr()->await_token_positions_);
       }
-
-
       if (s->kind() == Snapshot::kAppJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);

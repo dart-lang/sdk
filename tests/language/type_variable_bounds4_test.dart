@@ -4,23 +4,27 @@
 
 // Test instantiation of object with malbounded types.
 
-class A<T
-          extends num /// 01: static type warning
-                     > {}
+class A<
+    T
+          extends num //# 01: static type warning
+    > {}
+
 class B<T> implements A<T> {}
-class C<T
-          extends num /// 01: continued
-                     > implements B<T> {}
+
+class C<
+    T
+          extends num //# 01: continued
+    > implements B<T> {}
 
 class Class<T> {
   newA() {
-    new A<T>(); /// 01: continued
+    new A<T>(); //# 01: continued
   }
   newB() {
-    new B<T>(); /// 01: continued
+    new B<T>(); //# 01: continued
   }
   newC() {
-    new C<T>(); /// 01: continued
+    new C<T>(); //# 01: continued
   }
 }
 
@@ -47,15 +51,14 @@ void test(bool expectTypeError, f()) {
   }
 }
 
-
 void main() {
   test(false, () => new A<int>());
   test(false, () => new B<int>());
   test(false, () => new C<int>());
 
-  test(true, () => new A<String>()); /// 01: continued
-  test(true, () => new B<String>()); /// 01: continued
-  test(true, () => new C<String>()); /// 01: continued
+  test(true, () => new A<String>()); //# 01: continued
+  test(true, () => new B<String>()); //# 01: continued
+  test(true, () => new C<String>()); //# 01: continued
 
   var c = new Class<int>();
   test(false, () => c.newA());
@@ -63,7 +66,7 @@ void main() {
   test(false, () => c.newC());
 
   c = new Class<String>();
-  test(true, () => c.newA()); /// 01: continued
-  test(true, () => c.newB()); /// 01: continued
-  test(true, () => c.newC()); /// 01: continued
+  test(true, () => c.newA()); //# 01: continued
+  test(true, () => c.newB()); //# 01: continued
+  test(true, () => c.newC()); //# 01: continued
 }

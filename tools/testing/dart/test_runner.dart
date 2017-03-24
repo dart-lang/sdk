@@ -2734,13 +2734,10 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    // TODO: We should find a way for us to cache the runner binary and avoid
-    // pushhing it for every single test (this is bad for SSD cycle time, test
-    // timing).
-    steps.add(() => device.runAdbCommand(
-        ['push', runner, '$devicedir/dart_precompiled_runtime']));
-    steps.add(() => device.runAdbCommand(
-        ['push', processTest, '$devicedir/process_test']));
+    steps.add(() => device.pushCachedData(runner,
+                                          '$devicedir/dart_precompiled_runtime'));
+    steps.add(() => device.pushCachedData(processTest,
+                                          '$devicedir/process_test'));
     steps.add(() => device.runAdbShellCommand(
         ['chmod', '777', '$devicedir/dart_precompiled_runtime $devicedir/process_test']));
 

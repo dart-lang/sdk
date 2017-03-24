@@ -18,7 +18,7 @@ import 'builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
-import 'scope.dart' show AmbiguousBuilder, Scope;
+import 'scope.dart' show AccessErrorBuilder, AmbiguousBuilder, Scope;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -54,6 +54,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   Map<String, Builder> get membersInScope => members;
 
+  LibraryBuilder get library {
+    LibraryBuilder library = parent;
+    return library.partOfLibrary ?? library;
+  }
+
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
     Scope scope = computeInstanceScope(library.scope);
@@ -88,11 +93,26 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         } else if (current.isSetter && setterBuilder == null) {
           setterBuilder = current;
         } else {
-          return new AmbiguousBuilder(builder, charOffset, fileUri);
+          return new AmbiguousBuilder(name, builder, charOffset, fileUri);
         }
         current = current.next;
       }
+      if (getterBuilder?.isInstanceMember ?? false) {
+        getterBuilder = null;
+      }
+      if (setterBuilder?.isInstanceMember ?? false) {
+        setterBuilder = null;
+      }
       builder = isSetter ? setterBuilder : getterBuilder;
+      if (builder == null) {
+        if (isSetter && getterBuilder != null) {
+          return new AccessErrorBuilder(
+              name, getterBuilder, charOffset, fileUri);
+        } else if (!isSetter && setterBuilder != null) {
+          return new AccessErrorBuilder(
+              name, setterBuilder, charOffset, fileUri);
+        }
+      }
     }
     if (builder == null) {
       return null;
@@ -166,5 +186,17 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       }
     }
     return substitutionMap;
+  }
+
+  void addCompileTimeError(int charOffset, String message) {
+    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
+  }
+
+  void addWarning(int charOffset, String message) {
+    library.addWarning(charOffset, message, fileUri: fileUri);
+  }
+
+  void addNit(int charOffset, String message) {
+    library.addNit(charOffset, message, fileUri: fileUri);
   }
 }

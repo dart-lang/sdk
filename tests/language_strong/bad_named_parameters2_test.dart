@@ -5,9 +5,7 @@
 
 import "package:expect/expect.dart";
 
-
 class BadNamedParameters2Test {
-
   int foo(int a) {
     // Although no optional named parameters are declared, we must check that
     // no named arguments are passed in, either here or in the resolving stub.
@@ -22,11 +20,11 @@ class BadNamedParameters2Test {
     try {
       caught = false;
       // No formal parameter named b.
-      np.foo(b:25);  /// 01: static type warning
+      np.foo(b:25); // //# 01: static type warning
     } on NoSuchMethodError catch (e) {
       caught = true;
     }
-    Expect.equals(true, caught); /// 01: continued
+    Expect.equals(true, caught); //# 01: continued
   }
 }
 

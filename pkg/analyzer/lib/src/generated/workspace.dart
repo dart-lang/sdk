@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/source.dart';
  * in which analysis is being performed.
  */
 abstract class Workspace {
-
   /**
    * Return a map of package sources.
    */

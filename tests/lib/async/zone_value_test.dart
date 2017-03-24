@@ -93,9 +93,9 @@ main() {
   // Creating a further nested zone with new values allows keeping, overriding,
   // and shadowing existing values from the outer zone.
   zoneValues = new Map();
-  zoneValues[#foo] = -499;     // Values can be overridden.
-  zoneValues["bar"] = null;    // Values can be changed to null.
-  zoneValues["qux"] = 99;      // Values can be added
+  zoneValues[#foo] = -499; //     Values can be overridden.
+  zoneValues["bar"] = null; //    Values can be changed to null.
+  zoneValues["qux"] = 99; //      Values can be added
   // Overriding with equal, but not identical, key is possible.
   zoneValues[mimic] = "floo";
   zoneValues[0.0] = "zero!ZERO!";
@@ -103,26 +103,26 @@ main() {
   Zone forkedChild = forked.fork(zoneValues: zoneValues);
 
   // New values available on zone.
-  Expect.equals(-499, forkedChild[#foo]);         // Overridden.
-  Expect.isNull(forkedChild["bar"]);              // Overridden to null.
-  Expect.equals("floo", forkedChild[baz]);        // Overridden by mimic.
-  Expect.equals("floo", forkedChild[mimic]);      // Now recognizes mimic.
-  Expect.equals("zero!ZERO!", forkedChild[0]);    // Overridden by 0.0.
+  Expect.equals(-499, forkedChild[#foo]); //         Overridden.
+  Expect.isNull(forkedChild["bar"]); //              Overridden to null.
+  Expect.equals("floo", forkedChild[baz]); //        Overridden by mimic.
+  Expect.equals("floo", forkedChild[mimic]); //      Now recognizes mimic.
+  Expect.equals("zero!ZERO!", forkedChild[0]); //    Overridden by 0.0.
   Expect.equals("zero!ZERO!", forkedChild[0.0]);  // Overriding 0.
-  Expect.equals(baz, forkedChild[null]);          // Inherited.
-  Expect.equals(99, forkedChild["qux"]);          // Added.
+  Expect.equals(baz, forkedChild[null]); //          Inherited.
+  Expect.equals(99, forkedChild["qux"]); //          Added.
 
   forkedChild.run(() {
     Expect.identical(forkedChild, Zone.current);  // Sanity check.
     // New values available on current zone when the zone is current.
-    Expect.equals(-499, Zone.current[#foo]);         // Overridden.
-    Expect.isNull(Zone.current["bar"]);              // Overridden to null.
-    Expect.equals("floo", Zone.current[baz]);        // Overridden by mimic.
-    Expect.equals("floo", Zone.current[mimic]);      // Now recognizes mimic.
-    Expect.equals("zero!ZERO!", Zone.current[0]);    // Overridden by 0.0.
+    Expect.equals(-499, Zone.current[#foo]); //         Overridden.
+    Expect.isNull(Zone.current["bar"]); //              Overridden to null.
+    Expect.equals("floo", Zone.current[baz]); //        Overridden by mimic.
+    Expect.equals("floo", Zone.current[mimic]); //      Now recognizes mimic.
+    Expect.equals("zero!ZERO!", Zone.current[0]); //    Overridden by 0.0.
     Expect.equals("zero!ZERO!", Zone.current[0.0]);  // Overriding 0.
-    Expect.equals(baz, Zone.current[null]);          // Inherited.
-    Expect.equals(99, Zone.current["qux"]);          // Added.
+    Expect.equals(baz, Zone.current[null]); //          Inherited.
+    Expect.equals(99, Zone.current["qux"]); //          Added.
   });
 
   // Parent zone values are unchanged.

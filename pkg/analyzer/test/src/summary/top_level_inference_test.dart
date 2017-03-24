@@ -27,6 +27,35 @@ class ApplyCheckElementTextReplacements {
 
 @reflectiveTest
 class TopLevelInferenceTest extends BaseAnalysisDriverTest {
+  void addFile(String path, String code) {
+    provider.newFile(_p(path), code);
+  }
+
+  test_initializer_additive() async {
+    var library = await _encodeDecodeLibrary(r'''
+var vPlusIntInt = 1 + 2;
+var vPlusIntDouble = 1 + 2.0;
+var vPlusDoubleInt = 1.0 + 2;
+var vPlusDoubleDouble = 1.0 + 2.0;
+var vMinusIntInt = 1 - 2;
+var vMinusIntDouble = 1 - 2.0;
+var vMinusDoubleInt = 1.0 - 2;
+var vMinusDoubleDouble = 1.0 - 2.0;
+''');
+    checkElementText(
+        library,
+        r'''
+int vPlusIntInt;
+double vPlusIntDouble;
+double vPlusDoubleInt;
+double vPlusDoubleDouble;
+int vMinusIntInt;
+double vMinusIntDouble;
+double vMinusDoubleInt;
+double vMinusDoubleDouble;
+''');
+  }
+
   test_initializer_as() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = 1 as num;
@@ -35,23 +64,6 @@ var V = 1 as num;
         library,
         r'''
 num V;
-''');
-  }
-
-  @failingTest
-  test_initializer_assignment() async {
-    var library = await _encodeDecodeLibrary(r'''
-var a = 1;
-var b = a = 2;
-var c = a += 2;
-''');
-    // TODO(scheglov) test for inference failure error
-    checkElementText(
-        library,
-        r'''
-int a;
-dynamic b;
-dynamic c;
 ''');
   }
 
@@ -124,6 +136,364 @@ var V = true ? 1 : 2.3;
         library,
         r'''
 num V;
+''');
+  }
+
+  test_initializer_error_assign() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = 1;
+var t1 = (a = 2);
+var t2 = (a += 2);
+''');
+    checkElementText(
+        library,
+        r'''
+int a;
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
+''');
+  }
+
+  test_initializer_error_assign_prefixed() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f;
+}
+var a = new A();
+var t1 = (a.f = 1);
+var t2 = (a.f += 2);
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  int f;
+}
+A a;
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
+''');
+  }
+
+  test_initializer_error_assign_prefixed_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  int f;
+}
+abstract class C implements I {}
+C c;
+var t1 = (c.f = 1);
+var t2 = (c.f += 2);
+''');
+    checkElementText(
+        library,
+        r'''
+class I {
+  int f;
+}
+abstract class C implements I {
+}
+C c;
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
+''');
+  }
+
+  test_initializer_error_assign_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  int f;
+}
+abstract class C implements I {}
+C getC() => null;
+var t1 = (getC().f = 1);
+var t2 = (getC().f += 2);
+''');
+    checkElementText(
+        library,
+        r'''
+class I {
+  int f;
+}
+abstract class C implements I {
+}
+dynamic t1/*error: assignment*/;
+dynamic t2/*error: assignment*/;
+C getC() {}
+''');
+  }
+
+  /**
+   * A simple or qualified identifier referring to a top level function, static
+   * variable, field, getter; or a static class variable, static getter or
+   * method; or an instance method; has the inferred type of the identifier.
+   *
+   * Note: specifically, references to instance fields and instance getters are
+   * disallowed here.
+   */
+  test_initializer_error_classField_useInstanceGetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f = 1;
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+class X {
+  A a = new A();
+  B b = new B();
+  C c = new C();
+  var t01 = a.f;
+  var t02 = b.a.f;
+  var t03 = c.b.a.f;
+  var t11 = new A().f;
+  var t12 = new B().a.f;
+  var t13 = new C().b.a.f;
+  var t21 = newA().f;
+  var t22 = newB().a.f;
+  var t23 = newC().b.a.f;
+}
+A newA() => new A();
+B newB() => new B();
+C newC() => new C();
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  int f;
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+class X {
+  A a;
+  B b;
+  C c;
+  dynamic t01/*error: instanceGetter*/;
+  dynamic t02/*error: instanceGetter*/;
+  dynamic t03/*error: instanceGetter*/;
+  dynamic t11/*error: instanceGetter*/;
+  dynamic t12/*error: instanceGetter*/;
+  dynamic t13/*error: instanceGetter*/;
+  dynamic t21/*error: instanceGetter*/;
+  dynamic t22/*error: instanceGetter*/;
+  dynamic t23/*error: instanceGetter*/;
+}
+A newA() {}
+B newB() {}
+C newC() {}
+''');
+  }
+
+  test_initializer_error_extractProperty() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  bool b;
+}
+C f() => null;
+var x = f().b;
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  bool b;
+}
+dynamic x/*error: instanceGetter*/;
+C f() {}
+''');
+  }
+
+  test_initializer_error_extractProperty_inOtherLibraryCycle() async {
+    addFile(
+        '/a.dart',
+        r'''
+import 'b.dart';
+var x = new C().f;
+''');
+    addFile(
+        '/b.dart',
+        r'''
+class C {
+  var f = 0;
+}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var t1 = x;
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+dynamic t1;
+''');
+  }
+
+  test_initializer_error_extractProperty_inStaticField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int f;
+}
+class B {
+  static var t = new A().f;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  int f;
+}
+class B {
+  static dynamic t/*error: instanceGetter*/;
+}
+''');
+  }
+
+  test_initializer_error_extractProperty_prefixedIdentifier() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  bool b;
+}
+C c;
+var x = c.b;
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  bool b;
+}
+C c;
+dynamic x/*error: instanceGetter*/;
+''');
+  }
+
+  test_initializer_error_extractProperty_prefixedIdentifier_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C c;
+var x = c.b;
+''');
+    checkElementText(
+        library,
+        r'''
+class I {
+  bool b;
+}
+abstract class C implements I {
+}
+C c;
+dynamic x/*error: instanceGetter*/;
+''');
+  }
+
+  test_initializer_error_extractProperty_viaInterface() async {
+    var library = await _encodeDecodeLibrary(r'''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C f() => null;
+var x = f().b;
+''');
+    checkElementText(
+        library,
+        r'''
+class I {
+  bool b;
+}
+abstract class C implements I {
+}
+dynamic x/*error: instanceGetter*/;
+C f() {}
+''');
+  }
+
+  test_initializer_error_instanceGetterOfObject() async {
+    var library = await _encodeDecodeLibrary(r'''
+dynamic f() => null;
+var s = f().toString();
+var h = f().hashCode;
+''');
+    checkElementText(
+        library,
+        r'''
+String s;
+dynamic h/*error: instanceGetter*/;
+dynamic f() {}
+''');
+  }
+
+  test_initializer_error_instanceGetterOfObject_prefixed() async {
+    var library = await _encodeDecodeLibrary(r'''
+dynamic d;
+var s = d.toString();
+var h = d.hashCode;
+''');
+    checkElementText(
+        library,
+        r'''
+dynamic d;
+String s;
+dynamic h/*error: instanceGetter*/;
+''');
+  }
+
+  test_initializer_error_referenceToFieldOfStaticField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final x = C.d.i;
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final dynamic x/*error: instanceGetter*/;
+''');
+  }
+
+  test_initializer_error_referenceToFieldOfStaticGetter() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  static D get d => null;
+}
+class D {
+  int i;
+}
+var x = C.d.i;
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  static D get d {}
+}
+class D {
+  int i;
+}
+dynamic x/*error: instanceGetter*/;
 ''');
   }
 
@@ -233,6 +603,65 @@ A instanceOfA;
 (int) → String r_instanceClassMethod;
 int get topLevelGetter {}
 String topLevelFunction(int p) {}
+''');
+  }
+
+  test_initializer_identifier_error_cycle_classField() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  static var a = B.b;
+}
+class B {
+  static var b = A.a;
+}
+var c = A.a;
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  static dynamic a/*error: dependencyCycle*/;
+}
+class B {
+  static dynamic b/*error: dependencyCycle*/;
+}
+dynamic c;
+''');
+  }
+
+  test_initializer_identifier_error_cycle_mix() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  static var a = b;
+}
+var b = A.a;
+var c = b;
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  static dynamic a/*error: dependencyCycle*/;
+}
+dynamic b/*error: dependencyCycle*/;
+dynamic c;
+''');
+  }
+
+  test_initializer_identifier_error_cycle_topLevel() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = b;
+var b = c;
+var c = a;
+var d = a;
+''');
+    checkElementText(
+        library,
+        r'''
+dynamic a/*error: dependencyCycle*/;
+dynamic b/*error: dependencyCycle*/;
+dynamic c/*error: dependencyCycle*/;
+dynamic d;
 ''');
   }
 
@@ -631,27 +1060,57 @@ Null V;
 ''');
   }
 
-  test_instanceField_functionTypeAlias_doesNotUseItsTypeParameter() async {
+  test_instanceField_fieldFormal() async {
     var library = await _encodeDecodeLibrary(r'''
-typedef F<T>();
-
-class A<T> {
-  F<T> get x => null;
-}
-
-class B extends A<int> {
-  get x => null;
+class A {
+  var f = 0;
+  A([this.f = 'hello']);
 }
 ''');
     checkElementText(
         library,
         r'''
-typedef dynamic F<T>();
-class A<T> {
-  F get x {}
+class A {
+  int f;
+  A([int this.f]);
 }
-class B extends A<int> {
-  F get x {}
+''');
+  }
+
+  test_instanceField_fromAccessors_multiple_different() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  var x;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  dynamic x/*error: overrideConflictFieldType*/;
+}
+''');
+  }
+
+  test_instanceField_fromAccessors_multiple_same() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(int _);
 }
 class C implements A, B {
   var x;
@@ -1249,7 +1708,6 @@ class C extends A<int> implements B<double> {
   m(a) {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -1260,7 +1718,7 @@ class B<E> {
   void m(E a) {}
 }
 class C extends A<int> implements B<double> {
-  void m(dynamic a) {}
+  void m(dynamic a/*error: overrideConflictParameterType*/) {}
 }
 ''');
   }
@@ -1277,7 +1735,6 @@ class C extends A implements B {
   m(a) {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(
         library,
         r'''
@@ -1288,7 +1745,7 @@ class B {
   void m(String a) {}
 }
 class C extends A implements B {
-  void m(dynamic a) {}
+  void m(dynamic a/*error: overrideConflictParameterType*/) {}
 }
 ''');
   }
@@ -1358,7 +1815,8 @@ class B extends A {
   m(a, b) {}
 }
 ''');
-    // TODO(scheglov) test for inference failure error
+    // It's an error to add a new required parameter, but it is not a
+    // top-level type inference error.
     checkElementText(
         library,
         r'''

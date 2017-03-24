@@ -8,6 +8,8 @@ BSD-style license that can be found in the LICENSE file.
 When changing Fasta, your changes can affect dart2js or the VM, so you may need
 to test them.
 
+Most of the tests below use a 32-bit build because the test runs significantly faster.
+
 <!-- TODO(ahe): Soon, also the analyzer. -->
 
 ## Test package:front_end and package:analyzer.
@@ -15,7 +17,7 @@ to test them.
 The absolutely bare minimum of testing is the basic unit tests:
 
 ```
-./tools/test.py -mrelease 'pkg/front_end|*fasta*' --checked --time -pcolor --report --failure-summary
+./tools/test.py -mrelease 'pkg/front_end|*fasta*' --checked --time -pcolor --report --failure-summary -aia32
 ```
 
 ## Testing dart2js
@@ -24,15 +26,17 @@ If you're making changes to dart2js, it most likely involves the scanner or pars
 
 ```
 # Unit tests for dart2js
-./tools/test.py --dart2js-batch --time -pcolor --report --failure-summary -ax64 -mrelease --checked dart2js
+./tools/test.py --dart2js-batch --time -pcolor --report --failure-summary -aia32 -mrelease --checked dart2js
 
 # Language and co19, dart2js.
-./tools/test.py --dart2js-batch --time -pcolor --report --failure-summary -ax64 -mrelease -cdart2js -rd8 language co19
+./tools/test.py --dart2js-batch --time -pcolor --report --failure-summary -aia32 -mrelease -cdart2js -rd8 language co19
 ```
 
 ## Testing the Dart VM
 
 If you're making changes that affect Kernel output, for example, BodyBuilder.dart, you probably also need to test on the VM:
+
+Note that this test requires a 64-bit build because app-jit snapshot does not work for ia32.
 
 ```
 # Language, co19, kernel, for VM using Fasta.

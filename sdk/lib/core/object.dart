@@ -56,7 +56,7 @@ class Object {
    * If a subclass overrides the equality operator it should override
    * the [hashCode] method as well to maintain consistency.
    */
-  external bool operator==(other);
+  external bool operator ==(other);
 
   /**
    * The hash code for this object.

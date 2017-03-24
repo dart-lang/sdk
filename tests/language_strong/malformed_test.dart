@@ -6,7 +6,7 @@
 // wrong number of type arguments are handled as raw types.
 
 import 'package:expect/expect.dart';
-import 'package:expect/expect.dart' as prefix;  // Define 'prefix'.
+import 'package:expect/expect.dart' as prefix; // Define 'prefix'.
 
 checkIsUnresolved(var v) {
   Expect.throws(() => v is Unresolved, (e) => e is TypeError);
@@ -46,8 +46,8 @@ checkAsListUnresolved(bool expect, var v) {
     Expect.throws(() => v as List<Unresolved>, (e) => e is CastError);
     Expect.throws(() => v as List<Unresolved<int>>, (e) => e is CastError);
     Expect.throws(() => v as List<prefix.Unresolved>, (e) => e is CastError);
-    Expect.throws(() => v as List<prefix.Unresolved<int>>,
-                  (e) => e is CastError);
+    Expect.throws(
+        () => v as List<prefix.Unresolved<int>>, (e) => e is CastError);
     Expect.throws(() => v as List<int, String>, (e) => e is CastError);
   }
 }
@@ -56,7 +56,6 @@ checkIsMapDynamic(bool first, bool second, var v) {
   Expect.equals(first, v is Map<String, Object> && v is Map<int, Object>);
   Expect.equals(second, v is Map<Object, int> && v is Map<Object, String>);
 }
-
 
 void main() {
   checkIsUnresolved('');
@@ -76,7 +75,7 @@ void main() {
   checkAsListUnresolved(true, new List<int, String>());
 
   checkIsListDynamic(true, []);
-  checkIsListDynamic(true, <>[]); /// 01: compile-time error
+  checkIsListDynamic(true, <>[]); //# 01: compile-time error
   checkIsListDynamic(false, <int>[]);
   checkIsListDynamic(true, <Unresolved>[]);
   checkIsListDynamic(true, <Unresolved<int>>[]);
@@ -85,7 +84,7 @@ void main() {
   checkIsListDynamic(true, <int, String>[]);
 
   checkIsListDynamic(true, new List());
-  checkIsListDynamic(true, new List<>()); /// 02: compile-time error
+  checkIsListDynamic(true, new List<>()); //# 02: compile-time error
   checkIsListDynamic(true, new List<Unresolved>());
   checkIsListDynamic(true, new List<Unresolved<int>>());
   checkIsListDynamic(true, new List<prefix.Unresolved>());
@@ -94,23 +93,23 @@ void main() {
 
   checkIsMapDynamic(true, true, <dynamic, dynamic>{});
   checkIsMapDynamic(true, true, {});
-  checkIsMapDynamic(true, true, <>{}); /// 03: compile-time error
+  checkIsMapDynamic(true, true, <>{}); //# 03: compile-time error
   checkIsMapDynamic(true, true, <int>{});
   checkIsMapDynamic(false, false, <String, int>{});
   checkIsMapDynamic(true, true, <String, int, String>{});
   checkIsMapDynamic(true, false, <Unresolved, int>{});
   checkIsMapDynamic(false, true, <String, Unresolved<int>>{});
-  checkIsMapDynamic(true, false,  <prefix.Unresolved, int>{});
+  checkIsMapDynamic(true, false, <prefix.Unresolved, int>{});
   checkIsMapDynamic(false, true, <String, prefix.Unresolved<int>>{});
 
   checkIsMapDynamic(true, true, new Map());
-  checkIsMapDynamic(true, true, new Map<>); /// 04: compile-time error
+  checkIsMapDynamic(true, true, new Map<>); //# 04: compile-time error
   checkIsMapDynamic(true, true, new Map<int>());
   checkIsMapDynamic(false, false, new Map<String, int>());
   checkIsMapDynamic(true, true, new Map<String, int, String>());
   checkIsMapDynamic(true, false, new Map<Unresolved, int>());
   checkIsMapDynamic(false, true, new Map<String, Unresolved<int>>());
-  checkIsMapDynamic(true, false,  new Map<prefix.Unresolved, int>());
+  checkIsMapDynamic(true, false, new Map<prefix.Unresolved, int>());
   checkIsMapDynamic(false, true, new Map<String, prefix.Unresolved<int>>());
 
   Expect.throws(() => new Unresolved(), (e) => true);
@@ -131,8 +130,7 @@ void main() {
       Expect.fail("This code shouldn't be executed");
     }
     Expect.fail("This code shouldn't be executed");
-  } on TypeError catch (e) {
-  }
+  } on TypeError catch (e) {}
   try {
     try {
       throw 'foo';
@@ -140,8 +138,7 @@ void main() {
       Expect.fail("This code shouldn't be executed");
     }
     Expect.fail("This code shouldn't be executed");
-  } on TypeError catch (e) {
-  }
+  } on TypeError catch (e) {}
   try {
     try {
       throw 'foo';
@@ -149,8 +146,7 @@ void main() {
       Expect.fail("This code shouldn't be executed");
     }
     Expect.fail("This code shouldn't be executed");
-  } on TypeError catch (e) {
-  }
+  } on TypeError catch (e) {}
   try {
     try {
       throw 'foo';
@@ -158,12 +154,10 @@ void main() {
       Expect.fail("This code shouldn't be executed");
     }
     Expect.fail("This code shouldn't be executed");
-  } on TypeError catch (e) {
-  }
+  } on TypeError catch (e) {}
   try {
     throw 'foo';
   }
-    on undeclared_prefix.Unresolved<int>  /// 06: runtime error
-    catch (e) {
-  }
+    on undeclared_prefix.Unresolved<int> // //# 06: runtime error
+  catch (e) {}
 }

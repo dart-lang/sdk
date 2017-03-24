@@ -545,8 +545,9 @@ void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
 
 void Assembler::BranchLinkToRuntime() {
   lw(T9, Address(THR, Thread::call_to_runtime_entry_point_offset()));
-  lw(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   jalr(T9);
+  delay_slot()->lw(CODE_REG,
+                   Address(THR, Thread::call_to_runtime_stub_offset()));
 }
 
 
@@ -701,9 +702,10 @@ void Assembler::StoreIntoObject(Register object,
   if (object != T0) {
     mov(T0, object);
   }
-  lw(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   lw(T9, Address(THR, Thread::update_store_buffer_entry_point_offset()));
   jalr(T9);
+  delay_slot()->lw(CODE_REG,
+                   Address(THR, Thread::update_store_buffer_code_offset()));
   lw(RA, Address(SP, 0 * kWordSize));
   if (value != T0) {
     // Restore T0.

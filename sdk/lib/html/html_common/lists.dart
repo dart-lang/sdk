@@ -5,16 +5,12 @@
 part of html_common;
 
 class Lists {
-
   /**
    * Returns the index in the array [a] of the given [element], starting
    * the search at index [startIndex] to [endIndex] (exclusive).
    * Returns -1 if [element] is not found.
    */
-  static int indexOf(List a,
-                     Object element,
-                     int startIndex,
-                     int endIndex) {
+  static int indexOf(List a, Object element, int startIndex, int endIndex) {
     if (startIndex >= a.length) {
       return -1;
     }

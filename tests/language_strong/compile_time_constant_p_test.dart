@@ -6,8 +6,8 @@ import "package:expect/expect.dart";
 
 class A {
   const A(
-    this.x  /// 01: compile-time error
-  );
+    this.x // //# 01: compile-time error
+      );
   final x = null;
 }
 

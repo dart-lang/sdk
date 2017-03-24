@@ -418,7 +418,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'custom_element_name_clash_test': async_unittest,
       'custom_elements_23127_test': async_unittest,
       'custom_elements_test': async_unittest,
-      'debugger_test': firefox_fail,
+
+      // TODO(jmesserly): investigate the change here; it is likely due to
+      // different reified types affecting the (gigantic) HTML literal
+      'debugger_test': fail, // firefox_fail
       'element_animate_test': 'unittest',
 
       // https://github.com/dart-lang/sdk/issues/27579.
@@ -470,7 +473,11 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'mutationobserver_test': async_unittest,
       'native_gc_test': async_unittest,
       'postmessage_structured_test': async_unittest,
-      'queryall_test': ['slow'], // see sdk #27794
+
+      // this is timing out on Chrome Canary only
+      // pinning this skip in case it's a transient canary issue
+      'queryall_test': is.chrome('59') ? ['skip'] : ['slow'], // see sdk #27794
+
       'request_animation_frame_test': async_unittest,
       'resource_http_test': async_unittest,
 

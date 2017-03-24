@@ -4,7 +4,7 @@
 
 main() {
   var closure;
-  for (var i=0, fn = () => i; i < 3; i++) {
+  for (var i = 0, fn = () => i; i < 3; i++) {
     i += 1;
     closure = fn;
   }

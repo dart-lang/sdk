@@ -36,7 +36,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
 
   static bool get _supportsEs6Maps {
     return JS('returns:bool;depends:none;effects:none;throws:never;gvn:true',
-              'typeof Map != "undefined"');
+        'typeof Map != "undefined"');
   }
 
   JsLinkedHashMap();

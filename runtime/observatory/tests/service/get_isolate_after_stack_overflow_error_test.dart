@@ -19,7 +19,6 @@ void nonTailableRecursion() {
 
 var tests = [
   hasStoppedAtExit,
-
   (Isolate isolate) async {
     await isolate.reload();
     expect(isolate.error, isNotNull);
@@ -27,7 +26,5 @@ var tests = [
   }
 ];
 
-main(args) async => runIsolateTests(args,
-                              tests,
-                              pause_on_exit: true,
-                              testeeConcurrent: nonTailableRecursion);
+main(args) async => runIsolateTests(args, tests,
+    pause_on_exit: true, testeeConcurrent: nonTailableRecursion);

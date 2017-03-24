@@ -4,32 +4,32 @@
 
 import "package:expect/expect.dart";
 
-void badReturnTypeAsync() async {}  /// 01: static type warning
-void badReturnTypeAsyncStar() async* {}  /// 02: static type warning
-void badReturnTypeSyncStar() sync* {}  /// 03: static type warning
+void badReturnTypeAsync() async {} // //# 01: static type warning
+void badReturnTypeAsyncStar() async* {} // //# 02: static type warning
+void badReturnTypeSyncStar() sync* {} // //# 03: static type warning
 
 main() {
   try {
-    badReturnTypeAsync();  /// 01: continued
-  } catch(e, st) {
+    badReturnTypeAsync(); // //# 01: continued
+  } catch (e, st) {
     Expect.isTrue(e is TypeError, "wrong exception type");
-    Expect.isTrue(st.toString().contains("badReturnTypeAsync"),
-                  "missing frame");
+    Expect.isTrue(
+        st.toString().contains("badReturnTypeAsync"), "missing frame");
   }
 
   try {
-    badReturnTypeAsyncStar();  /// 02: continued
-  } catch(e, st) {
+    badReturnTypeAsyncStar(); // //# 02: continued
+  } catch (e, st) {
     Expect.isTrue(e is TypeError, "wrong exception type");
-    Expect.isTrue(st.toString().contains("badReturnTypeAsyncStar"),
-                  "missing frame");
+    Expect.isTrue(
+        st.toString().contains("badReturnTypeAsyncStar"), "missing frame");
   }
 
   try {
-    badReturnTypeSyncStar();  /// 03: continued
-  } catch(e, st) {
+    badReturnTypeSyncStar(); // //# 03: continued
+  } catch (e, st) {
     Expect.isTrue(e is TypeError, "wrong exception type");
-    Expect.isTrue(st.toString().contains("badReturnTypeSyncStar"),
-                  "missing frame");
+    Expect.isTrue(
+        st.toString().contains("badReturnTypeSyncStar"), "missing frame");
   }
 }

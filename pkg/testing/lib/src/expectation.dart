@@ -38,26 +38,26 @@ class Expectation {
 }
 
 class ExpectationSet {
-  static const ExpectationSet Default = const ExpectationSet(
-      const <String, Expectation>{
-        "pass": Expectation.Pass,
-        "crash": Expectation.Crash,
-        "timeout": Expectation.Timeout,
-        "fail": Expectation.Fail,
-        "skip": Expectation.Skip,
-        "missingcompiletimeerror":
-            const Expectation("MissingCompileTimeError", ExpectationGroup.Fail),
-        "missingruntimeerror":
-            const Expectation("MissingRuntimeError", ExpectationGroup.Fail),
-      });
+  static const ExpectationSet Default =
+      const ExpectationSet(const <String, Expectation>{
+    "pass": Expectation.Pass,
+    "crash": Expectation.Crash,
+    "timeout": Expectation.Timeout,
+    "fail": Expectation.Fail,
+    "skip": Expectation.Skip,
+    "missingcompiletimeerror":
+        const Expectation("MissingCompileTimeError", ExpectationGroup.Fail),
+    "missingruntimeerror":
+        const Expectation("MissingRuntimeError", ExpectationGroup.Fail),
+  });
 
   final Map<String, Expectation> internalMap;
 
   const ExpectationSet(this.internalMap);
 
-  operator[] (String name) {
-    return internalMap[name.toLowerCase()]
-        ?? (throw "No expectation named: '$name'.");
+  operator [](String name) {
+    return internalMap[name.toLowerCase()] ??
+        (throw "No expectation named: '$name'.");
   }
 
   factory ExpectationSet.fromJsonList(List data) {
@@ -108,12 +108,18 @@ enum ExpectationGroup {
 
 ExpectationGroup groupFromString(String name) {
   switch (name) {
-    case "Crash": return ExpectationGroup.Crash;
-    case "Fail": return ExpectationGroup.Fail;
-    case "Meta": return ExpectationGroup.Meta;
-    case "Pass": return ExpectationGroup.Pass;
-    case "Skip": return ExpectationGroup.Skip;
-    case "Timeout": return ExpectationGroup.Timeout;
+    case "Crash":
+      return ExpectationGroup.Crash;
+    case "Fail":
+      return ExpectationGroup.Fail;
+    case "Meta":
+      return ExpectationGroup.Meta;
+    case "Pass":
+      return ExpectationGroup.Pass;
+    case "Skip":
+      return ExpectationGroup.Skip;
+    case "Timeout":
+      return ExpectationGroup.Timeout;
     default:
       throw "Unrecognized group: '$name'.";
   }

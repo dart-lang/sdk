@@ -108,6 +108,8 @@ class AnalysisStats {
 class ErrorFormatter {
   static final int _pipeCodeUnit = '|'.codeUnitAt(0);
   static final int _slashCodeUnit = '\\'.codeUnitAt(0);
+  static final int _newline = '\n'.codeUnitAt(0);
+  static final int _return = '\r'.codeUnitAt(0);
 
   final StringSink out;
   final CommandLineOptions options;
@@ -144,7 +146,7 @@ class ErrorFormatter {
       out.write('|');
       out.write(error.errorCode.name);
       out.write('|');
-      out.write(escapePipe(source.fullName));
+      out.write(escapeForMachineMode(source.fullName));
       out.write('|');
       out.write(location.lineNumber);
       out.write('|');
@@ -152,7 +154,7 @@ class ErrorFormatter {
       out.write('|');
       out.write(length);
       out.write('|');
-      out.write(escapePipe(error.message));
+      out.write(escapeForMachineMode(error.message));
       out.writeln();
     } else {
       // Get display name.
@@ -252,13 +254,19 @@ class ErrorFormatter {
     }
   }
 
-  static String escapePipe(String input) {
+  static String escapeForMachineMode(String input) {
     StringBuffer result = new StringBuffer();
     for (int c in input.codeUnits) {
-      if (c == _slashCodeUnit || c == _pipeCodeUnit) {
-        result.write('\\');
+      if (c == _newline) {
+        result.write(r'\n');
+      } else if (c == _return) {
+        result.write(r'\r');
+      } else {
+        if (c == _slashCodeUnit || c == _pipeCodeUnit) {
+          result.write('\\');
+        }
+        result.writeCharCode(c);
       }
-      result.writeCharCode(c);
     }
     return result.toString();
   }

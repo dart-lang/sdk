@@ -25,7 +25,6 @@ testF(F o) {
   return o.foo;
 }
 
-
 _injectJs() {
   document.body.append(new ScriptElement()
     ..type = 'text/javascript'
@@ -53,7 +52,5 @@ main() {
   var f = new F(6);
 
   Expect.equals(testA(a), 1);
-  Expect.equals(testF(f), 6); /// 01: ok
+  Expect.equals(testF(f), 6); //# 01: ok
 }
-
-

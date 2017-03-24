@@ -1185,21 +1185,6 @@ dart::RawClass* TranslationHelper::LookupClassByKernelClass(
 }
 
 
-dart::RawUnresolvedClass* TranslationHelper::ToUnresolvedClass(
-    Class* kernel_klass) {
-  dart::RawClass* klass = NULL;
-
-  const dart::String& class_name = DartClassName(kernel_klass);
-  Library* kernel_library = Library::Cast(kernel_klass->parent());
-  dart::Library& library =
-      dart::Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
-
-  ASSERT(klass != Object::null());
-  return dart::UnresolvedClass::New(library, class_name,
-                                    TokenPosition::kNoSource);
-}
-
-
 dart::RawField* TranslationHelper::LookupFieldByKernelField(
     Field* kernel_field) {
   TreeNode* node = kernel_field->parent();
@@ -2127,8 +2112,9 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 
 
 Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
-  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
-      TokenPosition::kNoSource, type, *active_class_.klass, Pop());
+  InstantiateTypeInstr* instr = new (Z)
+      InstantiateTypeInstr(TokenPosition::kNoSource, type, Pop(),
+                           NULL);  // TODO(regis): Pop function type arguments.
   Push(instr);
   return Fragment(instr);
 }
@@ -2137,7 +2123,8 @@ Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
 Fragment FlowGraphBuilder::InstantiateTypeArguments(
     const TypeArguments& type_arguments) {
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
-      TokenPosition::kNoSource, type_arguments, *active_class_.klass, Pop());
+      TokenPosition::kNoSource, type_arguments, *active_class_.klass, Pop(),
+      NULL);  // TODO(regis): Pop function type arguments.
   Push(instr);
   return Fragment(instr);
 }
@@ -3752,6 +3739,7 @@ Fragment FlowGraphBuilder::AssertAssignable(const dart::AbstractType& dst_type,
 
   AssertAssignableInstr* instr = new (Z)
       AssertAssignableInstr(TokenPosition::kNoSource, value, type_args,
+                            NULL,  // TODO(regis): Pop function type arguments.
                             dst_type, dst_name, H.thread()->GetNextDeoptId());
   Push(instr);
 
@@ -4485,7 +4473,7 @@ void DartTypeTranslator::VisitInterfaceType(InterfaceType* node) {
 
 
   dart::Object& klass =
-      dart::Object::Handle(Z, H.ToUnresolvedClass(node->klass()));
+      dart::Object::Handle(Z, H.LookupClassByKernelClass(node->klass()));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
@@ -5825,13 +5813,14 @@ void FlowGraphBuilder::VisitSwitchStatement(SwitchStatement* node) {
         TargetEntryInstr* then;
         TargetEntryInstr* otherwise;
 
-        current_instructions += Constant(constant_evaluator_.EvaluateExpression(
-            switch_case->expressions()[j]));
+        Expression* expression = switch_case->expressions()[j];
+        current_instructions +=
+            Constant(constant_evaluator_.EvaluateExpression(expression));
         current_instructions += PushArgument();
         current_instructions += LoadLocal(scopes_->switch_variable);
         current_instructions += PushArgument();
         current_instructions += InstanceCall(
-            TokenPosition::kNoSource, Symbols::EqualOperator(), Token::kEQ,
+            expression->position(), Symbols::EqualOperator(), Token::kEQ,
             /*argument_count=*/2,
             /*num_args_checked=*/2);
         current_instructions += BranchIfTrue(&then, &otherwise);

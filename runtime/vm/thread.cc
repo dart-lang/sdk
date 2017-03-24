@@ -49,7 +49,6 @@ Thread::~Thread() {
   thread_lock_ = NULL;
 }
 
-
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
   reusable_##object##_handle_scope_active_(false),
@@ -75,8 +74,8 @@ Thread::Thread(Isolate* isolate)
       os_thread_(NULL),
       thread_lock_(new Monitor()),
       zone_(NULL),
-      current_thread_memory_(0),
-      memory_high_watermark_(0),
+      current_zone_capacity_(0),
+      zone_high_watermark_(0),
       api_reusable_scope_(NULL),
       api_top_scope_(NULL),
       top_resource_(NULL),
@@ -137,15 +136,15 @@ Thread::Thread(Isolate* isolate)
   // This thread should not yet own any zones. If it does, we need to make sure
   // we've accounted for any memory it has already allocated.
   if (zone_ == NULL) {
-    ASSERT(current_thread_memory_ == 0);
+    ASSERT(current_zone_capacity_ == 0);
   } else {
     Zone* current = zone_;
     uintptr_t total_zone_capacity = 0;
     while (current != NULL) {
-      total_zone_capacity += static_cast<uintptr_t>(current->CapacityInBytes());
+      total_zone_capacity += current->CapacityInBytes();
       current = current->previous();
     }
-    ASSERT(current_thread_memory_ == total_zone_capacity);
+    ASSERT(current_zone_capacity_ == total_zone_capacity);
   }
 }
 
@@ -229,7 +228,8 @@ void Thread::PrintJSON(JSONStream* stream) const {
   jsobj.AddPropertyF("id", "threads/%" Pd "",
                      OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
   jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
-  jsobj.AddPropertyF("_memoryHighWatermark", "%" Pu "", memory_high_watermark_);
+  jsobj.AddPropertyF("_zoneHighWatermark", "%" Pu "", zone_high_watermark_);
+  jsobj.AddPropertyF("_zoneCapacity", "%" Pu "", current_zone_capacity_);
 }
 #endif
 
@@ -271,6 +271,14 @@ void Thread::set_sticky_error(const Error& value) {
 
 void Thread::clear_sticky_error() {
   sticky_error_ = Error::null();
+}
+
+
+RawError* Thread::get_and_clear_sticky_error() {
+  NoSafepointScope nss;
+  RawError* return_value = sticky_error_;
+  sticky_error_ = Error::null();
+  return return_value;
 }
 
 

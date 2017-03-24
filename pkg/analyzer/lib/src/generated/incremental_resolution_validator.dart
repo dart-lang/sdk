@@ -18,7 +18,8 @@ import 'package:analyzer/src/dart/element/member.dart';
  */
 void assertSameResolution(CompilationUnit actual, CompilationUnit expected,
     {bool validateTypes: false}) {
-  _SameResolutionValidator validator = new _SameResolutionValidator(validateTypes);
+  _SameResolutionValidator validator =
+      new _SameResolutionValidator(validateTypes);
   validator.isEqualNodes(expected, actual);
 }
 
