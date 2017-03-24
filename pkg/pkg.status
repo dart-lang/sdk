@@ -39,7 +39,7 @@ front_end/test/fasta/kompile_test: Pass, Slow
 kernel/testcases/*: Skip
 
 [ $compiler != dart2analyzer ]
-analyzer/test/src/summary/summarize_fasta_test: RuntimeError
+analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
