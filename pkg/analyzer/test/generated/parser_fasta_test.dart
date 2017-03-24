@@ -185,13 +185,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_multipleLabels_statement() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement handleLabel().
-    super.test_multipleLabels_statement();
-  }
-
-  @override
-  @failingTest
   void test_topLevelFunction_nestedGenericFunction() {
     // TODO(paulberry): Implement parseCompilationUnitWithOptions
     super.test_topLevelFunction_nestedGenericFunction();
@@ -600,6 +593,16 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  ConstructorInitializer parseConstructorInitializer(String code) {
+    String source = 'class __Test { __Test() : $code; }';
+    var unit =
+        _runParser(source, (parser) => parser.parseUnit) as CompilationUnit;
+    var clazz = unit.declarations[0] as ClassDeclaration;
+    var constructor = clazz.members[0] as ConstructorDeclaration;
+    return constructor.initializers.single;
+  }
+
+  @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     return _runParser(source, (parser) => parser.parseUnit, errorCodes);
@@ -798,16 +801,6 @@ class FastaParserTestCase extends Object
   @override
   Expression parseStringLiteral(String code) {
     return _parseExpression(code);
-  }
-
-  @override
-  ConstructorInitializer parseConstructorInitializer(String code) {
-    String source = 'class __Test { __Test() : $code; }';
-    var unit =
-        _runParser(source, (parser) => parser.parseUnit) as CompilationUnit;
-    var clazz = unit.declarations[0] as ClassDeclaration;
-    var constructor = clazz.members[0] as ConstructorDeclaration;
-    return constructor.initializers.single;
   }
 
   @override
@@ -1148,48 +1141,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseStatement_functionDeclaration_returnType_typeParameters() {
     super.test_parseStatement_functionDeclaration_returnType_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseStatement_multipleLabels() {
-    super.test_parseStatement_multipleLabels();
-  }
-
-  @override
-  @failingTest
-  void test_parseStatement_singleLabel() {
-    super.test_parseStatement_singleLabel();
-  }
-
-  @override
-  @failingTest
-  void test_parseSwitchStatement_case() {
-    super.test_parseSwitchStatement_case();
-  }
-
-  @override
-  @failingTest
-  void test_parseSwitchStatement_empty() {
-    super.test_parseSwitchStatement_empty();
-  }
-
-  @override
-  @failingTest
-  void test_parseSwitchStatement_labeledCase() {
-    super.test_parseSwitchStatement_labeledCase();
-  }
-
-  @override
-  @failingTest
-  void test_parseSwitchStatement_labeledDefault() {
-    super.test_parseSwitchStatement_labeledDefault();
-  }
-
-  @override
-  @failingTest
-  void test_parseSwitchStatement_labeledStatementInCase() {
-    super.test_parseSwitchStatement_labeledStatementInCase();
   }
 
   @override

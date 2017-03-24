@@ -100,7 +100,7 @@ rasta/super_mixin: Crash
 rasta/super_operator: Crash
 rasta/supports_reflection: Crash
 rasta/switch_execution_case_t02: Crash
-rasta/switch_fall_through: Crash
+rasta/switch_fall_through: Fail
 rasta/this_invoke: Crash
 rasta/try_label: Crash
 rasta/type_literals: Crash

@@ -902,6 +902,65 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(endToken)));
   }
 
+  @override
+  void endSwitchBlock(int caseCount, Token leftBracket, Token rightBracket) {
+    debugEvent("SwitchBlock");
+    List<List<SwitchMember>> membersList = popList(caseCount);
+    exitBreakTarget();
+    exitLocalScope();
+    List<SwitchMember> members =
+        membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
+    push(leftBracket);
+    push(members);
+    push(rightBracket);
+  }
+
+  @override
+  void handleSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
+    debugEvent("SwitchCase");
+    List<Statement> statements = popList(statementCount);
+    List<SwitchMember> members = popList(expressionCount) ?? [];
+    List<Label> labels = popList(labelCount);
+    if (defaultKeyword != null) {
+      members.add(ast.switchDefault(
+          <Label>[], defaultKeyword, defaultKeyword.next, <Statement>[]));
+    }
+    members.last.statements.addAll(statements);
+    members.first.labels.addAll(labels);
+    push(members);
+  }
+
+  @override
+  void handleCaseMatch(Token caseKeyword, Token colon) {
+    debugEvent("CaseMatch");
+    Expression expression = pop();
+    push(ast.switchCase(
+        <Label>[], caseKeyword, expression, colon, <Statement>[]));
+  }
+
+  @override
+  void endSwitchStatement(Token switchKeyword, Token endToken) {
+    debugEvent("SwitchStatement");
+    Token rightBracket = pop();
+    List<SwitchMember> members = pop();
+    Token leftBracket = pop();
+    ParenthesizedExpression expression = pop();
+    push(ast.switchStatement(
+        switchKeyword,
+        expression.leftParenthesis,
+        expression.expression,
+        expression.rightParenthesis,
+        leftBracket,
+        members,
+        rightBracket));
+  }
+
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     debugEvent("CatchBlock");
     Block body = pop();
@@ -942,6 +1001,13 @@ class AstBuilder extends ScopeListener {
     Block body = pop();
     push(ast.tryStatement(toAnalyzerToken(tryKeyword), body, catchClauses,
         toAnalyzerToken(finallyKeyword), finallyBlock));
+  }
+
+  @override
+  void handleLabel(Token colon) {
+    debugEvent("Label");
+    SimpleIdentifier name = pop();
+    push(ast.label(name, colon));
   }
 
   void handleNoExpression(Token token) {
@@ -1309,6 +1375,14 @@ class AstBuilder extends ScopeListener {
         withClause,
         implementsClause,
         toAnalyzerToken(endToken)));
+  }
+
+  @override
+  void endLabeledStatement(int labelCount) {
+    debugEvent("LabeledStatement");
+    Statement statement = pop();
+    List<Label> labels = popList(labelCount);
+    push(ast.labeledStatement(labels, statement));
   }
 
   @override
