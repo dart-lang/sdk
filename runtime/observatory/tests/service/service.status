@@ -14,10 +14,6 @@ field_script_test: Pass, RuntimeError
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Not yet triaged.
 
-[ $compiler == dartk ]
-async_single_step_into_test: RuntimeError # Issue 29158
-async_star_single_step_into_test: RuntimeError # Issue 29158
-
 # Kernel version of tests
 [ $compiler != dartk ]
 ###

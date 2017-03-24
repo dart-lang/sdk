@@ -34,12 +34,17 @@ eval_internal_class_test: Skip # no evaluation test for now
 evaluate_*: Skip # no evaluation test for now
 
 ###
+### Async debugging
+###
+async_single_step_into_test: RuntimeError # Issue 29158
+async_star_single_step_into_test: RuntimeError # Issue 29158
+
+###
 ### These tests currently crash the VM
 ###
 capture_stdio_test: Crash
 address_mapper_test: Crash
 vm_restart_test: Crash
-rewind_test: RuntimeError # The testee VM crashes.
 
 ###
 ### --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
