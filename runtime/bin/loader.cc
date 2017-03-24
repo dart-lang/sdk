@@ -12,6 +12,7 @@
 #include "bin/lockers.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
+#include "platform/growable_array.h"
 
 namespace dart {
 namespace bin {
@@ -283,6 +284,28 @@ static bool PathContainsSeparator(const char* path) {
 }
 
 
+void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
+  MallocGrowableArray<char*>* dependencies =
+      loader->isolate_data_->dependencies();
+  if (dependencies == NULL) {
+    return;
+  }
+  uint8_t* scoped_file_path = NULL;
+  intptr_t scoped_file_path_length = -1;
+  Dart_Handle uri = Dart_NewStringFromCString(resolved_uri);
+  ASSERT(!Dart_IsError(uri));
+  Dart_Handle result = Loader::ResolveAsFilePath(uri, &scoped_file_path,
+                                                 &scoped_file_path_length);
+  if (Dart_IsError(result)) {
+    Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
+    return;
+  }
+  dependencies->Add(StringUtils::StrNDup(
+      reinterpret_cast<const char*>(scoped_file_path),
+      scoped_file_path_length));
+}
+
+
 bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
@@ -295,6 +318,8 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     library_uri =
         Dart_NewStringFromCString(reinterpret_cast<char*>(result->library_uri));
   }
+
+  AddDependencyLocked(loader, result->resolved_uri);
 
   // A negative result tag indicates a loading error occurred in the service
   // isolate. The payload is a C string of the error message.
