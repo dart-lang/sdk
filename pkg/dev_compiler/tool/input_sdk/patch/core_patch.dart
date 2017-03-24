@@ -331,14 +331,15 @@ class List<E> {
   }
 
   @patch
-  factory List.filled(int length, E fill) {
+  factory List.filled(int length, E fill, {bool growable: true}) {
     List<E> result = new List<E>(length);
     if (length != 0 && fill != null) {
       for (int i = 0; i < result.length; i++) {
         result[i] = fill;
       }
     }
-    return result;
+    if (growable) return result;
+    return makeListFixedLength/*<E>*/(result);
   }
 
   @patch
