@@ -13400,6 +13400,9 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(0));
+    expect(unit.beginToken, isNotNull);
+    expect(unit.endToken, isNotNull);
+    expect(unit.endToken.type, TokenType.EOF);
   }
 
   void test_parseCompilationUnit_exportAsPrefix() {
@@ -13460,6 +13463,10 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
+    expect(unit.beginToken, isNotNull);
+    expect(unit.beginToken.keyword, Keyword.CLASS);
+    expect(unit.endToken, isNotNull);
+    expect(unit.endToken.type, TokenType.EOF);
   }
 
   void test_parseCompilationUnit_typedefAsPrefix() {

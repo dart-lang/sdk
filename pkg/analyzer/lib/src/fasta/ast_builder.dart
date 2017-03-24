@@ -1054,14 +1054,19 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endCompilationUnit(int count, Token token) {
+  void beginCompilationUnit(Token token) {
+    push(token);
+  }
+
+  @override
+  void endCompilationUnit(int count, Token endToken) {
     debugEvent("CompilationUnit");
-    analyzer.Token beginToken = null; // TODO(paulberry)
+    List<Object> elements = popList(count);
+    Token beginToken = pop();
+
     ScriptTag scriptTag = null;
     var directives = <Directive>[];
     var declarations = <CompilationUnitMember>[];
-    analyzer.Token endToken = null; // TODO(paulberry)
-    List<Object> elements = popList(count);
     if (elements != null) {
       for (AstNode node in elements) {
         if (node is ScriptTag) {
@@ -1076,6 +1081,7 @@ class AstBuilder extends ScopeListener {
         }
       }
     }
+
     push(ast.compilationUnit(
         beginToken, scriptTag, directives, declarations, endToken));
   }
