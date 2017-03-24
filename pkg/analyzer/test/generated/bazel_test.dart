@@ -438,6 +438,16 @@ class BazelPackageUriResolverTest extends _BaseTest {
     _assertRestore('/workspace/my/foo/lib', null);
   }
 
+  void test_restoreAbsolute_thirdPartyNotDart_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/third_party/something/lib/foo.dart',
+    ]);
+    _assertRestore('/workspace/third_party/something/lib/foo.dart',
+        'package:third_party.something/foo.dart');
+  }
+
   void _addResources(List<String> paths, {String workspacePath: '/workspace'}) {
     for (String path in paths) {
       if (path.endsWith('/')) {
