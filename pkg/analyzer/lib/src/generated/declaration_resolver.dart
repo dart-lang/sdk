@@ -127,7 +127,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ParameterElement element =
         _match(normalParameter.identifier, _walker.getParameter());
     if (normalParameter is SimpleFormalParameterImpl) {
-      normalParameter.element = node.identifier.staticElement;
+      normalParameter.element = element;
     }
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
@@ -276,6 +276,28 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    GenericFunctionTypeElement element = node.type.element;
+    _walk(new ElementWalker.forGenericFunctionType(element), () {
+      super.visitGenericFunctionType(node);
+    });
+    return null;
+  }
+
+  @override
+  Object visitGenericTypeAlias(GenericTypeAlias node) {
+    GenericTypeAliasElementImpl element =
+        _match(node.name, _walker.getTypedef());
+    (node.functionType as GenericFunctionTypeImpl)?.type =
+        element.function?.type;
+    _walk(new ElementWalker.forGenericTypeAlias(element), () {
+      super.visitGenericTypeAlias(node);
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
+  }
+
+  @override
   Object visitImportDirective(ImportDirective node) {
     super.visitImportDirective(node);
     List<ElementAnnotation> annotations =
@@ -370,8 +392,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
-      (node as SimpleFormalParameterImpl).element =
-          node.identifier.staticElement;
+      (node as SimpleFormalParameterImpl).element = element;
+      TypeAnnotation type = node.type;
+      if (type is GenericFunctionTypeImpl) {
+        type.type = element.type;
+      }
       _walk(new ElementWalker.forParameter(element), () {
         super.visitSimpleFormalParameter(node);
       });
@@ -461,7 +486,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       SimpleIdentifier identifier, Element/*=E*/ element,
       {String elementName, int offset}) {
     elementName ??= identifier?.name ?? '';
-    offset ??= identifier.offset;
+    offset ??= identifier?.offset ?? -1;
     if (element.name != elementName) {
       throw new StateError(
           'Expected an element matching `$elementName`, got `${element.name}`');
@@ -615,6 +640,23 @@ class ElementWalker {
   ElementWalker.forExecutable(
       ExecutableElement element, CompilationUnitElement compilationUnit)
       : this._forExecutable(element, compilationUnit, new ElementHolder());
+
+  /**
+   * Creates an [ElementWalker] which walks the child elements of a typedef
+   * element.
+   */
+  ElementWalker.forGenericFunctionType(GenericFunctionTypeElement element)
+      : element = element,
+        _parameters = element.parameters,
+        _typeParameters = element.typeParameters;
+
+  /**
+   * Creates an [ElementWalker] which walks the child elements of a typedef
+   * element defined using a generic function type.
+   */
+  ElementWalker.forGenericTypeAlias(FunctionTypeAliasElement element)
+      : element = element,
+        _typeParameters = element.typeParameters;
 
   /**
    * Creates an [ElementWalker] which walks the child elements of a parameter

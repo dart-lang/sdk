@@ -5172,10 +5172,11 @@ class GenericTypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters => function.parameters;
+  List<ParameterElement> get parameters =>
+      function?.parameters ?? const <ParameterElement>[];
 
   @override
-  DartType get returnType => function.returnType;
+  DartType get returnType => function?.returnType;
 
   @override
   FunctionType get type {
@@ -5227,7 +5228,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
       buffer.write(">");
     }
     buffer.write(" = ");
-    (function as FunctionElementImpl).appendTo(buffer);
+    if (function != null) {
+      (function as ElementImpl).appendTo(buffer);
+    }
   }
 
   @override

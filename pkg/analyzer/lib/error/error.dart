@@ -368,6 +368,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.INVALID_AWAIT_IN_FOR,
   ParserErrorCode.INVALID_CODE_POINT,
   ParserErrorCode.INVALID_COMMENT_REFERENCE,
+  ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE,
   ParserErrorCode.INVALID_HEX_ESCAPE,
   ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
   ParserErrorCode.INVALID_OPERATOR,

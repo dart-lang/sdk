@@ -1342,8 +1342,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
-    EntityRefBuilder serializedType =
-        serializeGenericFunctionType(node.functionType);
+    GenericFunctionType functionType = node.functionType;
+    EntityRefBuilder serializedType = functionType == null
+        ? null
+        : serializeGenericFunctionType(functionType);
     if (serializedType != null) {
       b.returnType = serializedType;
     }
