@@ -241,6 +241,8 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   RawCodeSourceMap* Finalize();
 
  private:
+  intptr_t GetFunctionId(intptr_t inline_id);
+
   void BufferChangePosition(TokenPosition pos) {
     buffered_token_pos_stack_.Last() = pos;
   }
@@ -257,7 +259,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   }
   void WritePush(intptr_t inline_id) {
     stream_.Write<uint8_t>(kPushFunction);
-    stream_.Write<int32_t>(inline_id);
+    stream_.Write<int32_t>(GetFunctionId(inline_id));
     written_inline_id_stack_.Add(inline_id);
     written_token_pos_stack_.Add(kInitialPosition);
   }
@@ -294,6 +296,8 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   const GrowableArray<intptr_t>& caller_inline_id_;
   const GrowableArray<TokenPosition>& inline_id_to_token_pos_;
   const GrowableArray<const Function*>& inline_id_to_function_;
+
+  const GrowableObjectArray& inlined_functions_;
 
   uint8_t* buffer_;
   WriteStream stream_;

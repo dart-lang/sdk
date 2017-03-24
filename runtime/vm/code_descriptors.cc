@@ -240,6 +240,8 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
       caller_inline_id_(caller_inline_id),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       inline_id_to_function_(inline_id_to_function),
+      inlined_functions_(
+          GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld))),
       buffer_(NULL),
       stream_(&buffer_, zone_allocator, 64),
       stack_traces_only_(stack_traces_only) {
@@ -388,17 +390,23 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
 }
 
 
+intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
+  const Function& function = *inline_id_to_function_[inline_id];
+  for (intptr_t i = 0; i < inlined_functions_.Length(); i++) {
+    if (inlined_functions_.At(i) == function.raw()) {
+      return i;
+    }
+  }
+  inlined_functions_.Add(function, Heap::kOld);
+  return inlined_functions_.Length() - 1;
+}
+
+
 RawArray* CodeSourceMapBuilder::InliningIdToFunction() {
-  if (inline_id_to_function_.length() <= 1) {
-    // Not optimizing, or optimizing and nothing inlined.
+  if (inlined_functions_.Length() == 0) {
     return Object::empty_array().raw();
   }
-  const Array& res =
-      Array::Handle(Array::New(inline_id_to_function_.length(), Heap::kOld));
-  for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
-    res.SetAt(i, *inline_id_to_function_[i]);
-  }
-  return res.raw();
+  return Array::MakeArray(inlined_functions_);
 }
 
 
