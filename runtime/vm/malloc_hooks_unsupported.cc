@@ -51,11 +51,6 @@ void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
 }
 
 
-Sample* MallocHooks::GetSample(const void* ptr) {
-  return NULL;
-}
-
-
 intptr_t MallocHooks::allocation_count() {
   return 0;
 }

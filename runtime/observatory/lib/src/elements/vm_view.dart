@@ -230,17 +230,6 @@ class VMViewElement extends HtmlElement implements Renderable {
                       new AnchorElement(href: Uris.timeline())
                         ..text = 'timeline'
                     ]
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = [
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..children = [
-                      new SpanElement()..text = 'view ',
-                      new AnchorElement(href: Uris.nativeMemory())
-                        ..text = 'native memory profile'
-                    ]
                 ]
             ],
           new BRElement(),

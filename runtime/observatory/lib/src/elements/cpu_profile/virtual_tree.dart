@@ -29,14 +29,12 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
 
   M.ProfileTreeDirection _direction;
   ProfileTreeMode _mode;
-  M.SampleProfileType _type;
   M.IsolateRef _isolate;
   M.SampleProfile _profile;
   Iterable<M.CallTreeNodeFilter> _filters;
 
   M.ProfileTreeDirection get direction => _direction;
   ProfileTreeMode get mode => _mode;
-  M.SampleProfileType get type => _type;
   M.IsolateRef get isolate => _isolate;
   M.SampleProfile get profile => _profile;
   Iterable<M.CallTreeNodeFilter> get filters => _filters;
@@ -52,9 +50,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
   factory CpuProfileVirtualTreeElement(
       M.IsolateRef isolate, M.SampleProfile profile,
       {ProfileTreeMode mode: ProfileTreeMode.function,
-      M.SampleProfileType type: M.SampleProfileType.cpu,
       M.ProfileTreeDirection direction: M.ProfileTreeDirection.exclusive,
       RenderingQueue queue}) {
+    assert(isolate != null);
     assert(profile != null);
     assert(mode != null);
     assert(direction != null);
@@ -63,7 +61,6 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     e._isolate = isolate;
     e._profile = profile;
     e._mode = mode;
-    e._type = type;
     e._direction = direction;
     return e;
   }
@@ -87,37 +84,18 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
 
   void render() {
     var tree;
-    var create;
     var update;
-
-    switch (type) {
-      case M.SampleProfileType.cpu:
-        create = _createCpuRow;
-        if (mode == ProfileTreeMode.code) {
-          update = _updateCpuCodeRow;
-          tree = _profile.loadCodeTree(_direction);
-        } else if (mode == ProfileTreeMode.function) {
-          update = _updateCpuFunctionRow;
-          tree = _profile.loadFunctionTree(_direction);
-        } else {
-          throw new Exception('Unknown ProfileTreeMode: $mode');
-        }
+    switch (mode) {
+      case ProfileTreeMode.code:
+        tree = _profile.loadCodeTree(_direction);
+        update = _updateCodeRow;
         break;
-      case M.SampleProfileType.memory:
-        create = _createMemoryRow;
-        if (mode == ProfileTreeMode.code) {
-          update = _updateMemoryCodeRow;
-          tree = _profile.loadCodeTree(_direction);
-        } else if (mode == ProfileTreeMode.function) {
-          update = _updateMemoryFunctionRow;
-          tree = _profile.loadFunctionTree(_direction);
-        } else {
-          throw new Exception('Unknown ProfileTreeMode: $mode');
-        }
+      case ProfileTreeMode.function:
+        tree = _profile.loadFunctionTree(_direction);
+        update = _updateFunctionRow;
         break;
       default:
-        throw new Exception('Unknown SampleProfileType: $type');
-        break;
+        throw new Exception('Unknown ProfileTreeMode: $mode');
     }
     if (filters != null) {
       tree = filters.fold(tree, (tree, filter) {
@@ -128,7 +106,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       children = [new HeadingElement.h1()..text = 'No Results'];
       return;
     }
-    _tree = new VirtualTreeElement(create, update, _getChildren,
+    _tree = new VirtualTreeElement(_createRow, update, _getChildren,
         items: tree.root.children, queue: _r.queue);
     if (tree.root.children.length == 1) {
       _tree.expand(tree.root.children.first, autoExpandSingleChildNodes: true);
@@ -136,7 +114,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     children = [_tree];
   }
 
-  static Element _createCpuRow(toggle) {
+  static Element _createRow(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
       ..children = [
@@ -157,33 +135,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       ];
   }
 
-  static Element _createMemoryRow(toggle) {
-    return new DivElement()
-      ..classes = ['tree-item']
-      ..children = [
-        new SpanElement()
-          ..classes = ['inclusive']
-          ..title = 'memory allocated from resulting calls: ',
-        new SpanElement()
-          ..classes = ['exclusive']
-          ..title = 'memory allocated during execution: ',
-        new SpanElement()..classes = ['lines'],
-        new ButtonElement()
-          ..classes = ['expander']
-          ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
-        new SpanElement()
-          ..classes = ['percentage']
-          ..title = 'tree node %',
-        new SpanElement()..classes = ['name']
-      ];
-  }
-
   static _getChildren(M.CallTreeNode node) => node.children;
 
-  static const String _expandedIcon = '▼';
-  static const String _collapsedIcon = '►';
-
-  void _updateCpuFunctionRow(
+  void _updateFunctionRow(
       HtmlElement element, M.FunctionCallTreeNode item, int depth) {
     element.children[0].text = Utils
         .formatPercentNormalized(item.profileFunction.normalizedInclusiveTicks);
@@ -191,8 +145,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
         .formatPercentNormalized(item.profileFunction.normalizedExclusiveTicks);
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
-      element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
+      element.children[3].text = _tree.isExpanded(item) ? '▼' : '►';
     } else {
       element.children[3].text = '';
     }
@@ -202,66 +155,19 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       ..classes = ['name'];
   }
 
-  void _updateMemoryFunctionRow(
-      HtmlElement element, M.FunctionCallTreeNode item, int depth) {
-    element.children[0].text =
-        Utils.formatSize(item.inclusiveNativeAllocations);
-    element.children[0].title = 'memory allocated from resulting calls: ' +
-        '${item.inclusiveNativeAllocations}B';
-    element.children[1].text =
-        Utils.formatSize(item.exclusiveNativeAllocations);
-    element.children[1].title = 'memory allocated during execution: ' +
-        '${item.exclusiveNativeAllocations}B';
-    _updateLines(element.children[2].children, depth);
-    if (item.children.isNotEmpty) {
-      element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
-    } else {
-      element.children[3].text = '';
-    }
-    element.children[4].text = Utils.formatPercentNormalized(item.percentage);
-    element.children[5] = new FunctionRefElement(
-        null, item.profileFunction.function, queue: _r.queue)
-      ..classes = ['name'];
-  }
-
-  void _updateCpuCodeRow(
-      HtmlElement element, M.CodeCallTreeNode item, int depth) {
+  void _updateCodeRow(HtmlElement element, M.CodeCallTreeNode item, int depth) {
     element.children[0].text = Utils
         .formatPercentNormalized(item.profileCode.normalizedInclusiveTicks);
     element.children[1].text = Utils
         .formatPercentNormalized(item.profileCode.normalizedExclusiveTicks);
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
-      element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
+      element.children[3].text = _tree.isExpanded(item) ? '▼' : '►';
     } else {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] = new CodeRefElement(_isolate, item.profileCode.code,
-        queue: _r.queue)..classes = ['name'];
-  }
-
-  void _updateMemoryCodeRow(
-      HtmlElement element, M.CodeCallTreeNode item, int depth) {
-    element.children[0].text =
-        Utils.formatSize(item.inclusiveNativeAllocations);
-    element.children[0].title = 'memory allocated from resulting calls: ' +
-        '${item.inclusiveNativeAllocations}B';
-    element.children[1].text =
-        Utils.formatSize(item.exclusiveNativeAllocations);
-    element.children[1].title = 'memory allocated during execution: ' +
-        '${item.exclusiveNativeAllocations}B';
-    _updateLines(element.children[2].children, depth);
-    if (item.children.isNotEmpty) {
-      element.children[3].text =
-          _tree.isExpanded(item) ? _expandedIcon : _collapsedIcon;
-    } else {
-      element.children[3].text = '';
-    }
-    element.children[4].text = Utils.formatPercentNormalized(item.percentage);
-    element.children[5] = new CodeRefElement(null, item.profileCode.code,
         queue: _r.queue)..classes = ['name'];
   }
 
