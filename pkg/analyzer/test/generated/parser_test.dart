@@ -1568,7 +1568,7 @@ abstract class ComplexParserTestMixin implements AbstractParserTestCase {
 
   void test_cascade_withAssignment() {
     CascadeExpression cascade =
-        parseExpression("new Map()..[3] = 4 ..[0] = 11;");
+        parseExpression("new Map()..[3] = 4 ..[0] = 11");
     Expression target = cascade.target;
     for (Expression section in cascade.cascadeSections) {
       EngineTestCase.assertInstanceOf(
@@ -12604,7 +12604,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseNonLabeledStatement_functionDeclaration() {
-    var statement = parseStatement('f() {};') as FunctionDeclarationStatement;
+    var statement = parseStatement('f() {}') as FunctionDeclarationStatement;
     assertNoErrors();
     var function = statement.functionDeclaration.functionExpression;
     expect(function.parameters.parameters, isEmpty);
@@ -12613,7 +12613,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 
   void test_parseNonLabeledStatement_functionDeclaration_arguments() {
     var statement =
-        parseStatement('f(void g()) {};') as FunctionDeclarationStatement;
+        parseStatement('f(void g()) {}') as FunctionDeclarationStatement;
     assertNoErrors();
     var function = statement.functionDeclaration.functionExpression;
     expect(function.parameters.parameters, hasLength(1));
@@ -12691,7 +12691,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
       test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
     enableGenericMethodComments = true;
     var statement =
-        parseStatement('f/*<E>*/(a, b) {};') as FunctionDeclarationStatement;
+        parseStatement('f/*<E>*/(a, b) {}') as FunctionDeclarationStatement;
     assertNoErrors();
     expect(statement.functionDeclaration, isNotNull);
     expect(statement.functionDeclaration.functionExpression.typeParameters,
@@ -12700,7 +12700,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 
   void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
     var statement =
-        parseStatement('f<E>(a, b) {};') as FunctionDeclarationStatement;
+        parseStatement('f<E>(a, b) {}') as FunctionDeclarationStatement;
     assertNoErrors();
     expect(statement.functionDeclaration, isNotNull);
   }
@@ -12708,14 +12708,14 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
   void test_parseStatement_functionDeclaration_returnType() {
     // TODO(brianwilkerson) Implement more tests for this method.
     var statement =
-        parseStatement('int f(a, b) {};') as FunctionDeclarationStatement;
+        parseStatement('int f(a, b) {}') as FunctionDeclarationStatement;
     assertNoErrors();
     expect(statement.functionDeclaration, isNotNull);
   }
 
   void test_parseStatement_functionDeclaration_returnType_typeParameters() {
     var statement =
-        parseStatement('int f<E>(a, b) {};') as FunctionDeclarationStatement;
+        parseStatement('int f<E>(a, b) {}') as FunctionDeclarationStatement;
     assertNoErrors();
     expect(statement.functionDeclaration, isNotNull);
   }

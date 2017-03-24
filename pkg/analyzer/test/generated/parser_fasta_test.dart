@@ -134,14 +134,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_cascade_withAssignment() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // endConstructorReference().
-    super.test_cascade_withAssignment();
-  }
-
-  @override
-  @failingTest
   void test_conditionalExpression_precedence_nullableType_as() {
     // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
     super.test_conditionalExpression_precedence_nullableType_as();
@@ -1101,18 +1093,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNonLabeledStatement_functionDeclaration() {
-    super.test_parseNonLabeledStatement_functionDeclaration();
-  }
-
-  @override
-  @failingTest
-  void test_parseNonLabeledStatement_functionDeclaration_arguments() {
-    super.test_parseNonLabeledStatement_functionDeclaration_arguments();
-  }
-
-  @override
-  @failingTest
   void test_parseStatement_emptyTypeArgumentList() {
     super.test_parseStatement_emptyTypeArgumentList();
   }
@@ -1123,24 +1103,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
       test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
     super
         .test_parseStatement_functionDeclaration_noReturnType_typeParameterComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
-    super.test_parseStatement_functionDeclaration_noReturnType_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseStatement_functionDeclaration_returnType() {
-    super.test_parseStatement_functionDeclaration_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseStatement_functionDeclaration_returnType_typeParameters() {
-    super.test_parseStatement_functionDeclaration_returnType_typeParameters();
   }
 
   @override
