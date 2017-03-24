@@ -12990,7 +12990,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 
   Statement _parseAsyncStatement(String code, {bool isGenerator: false}) {
     var star = isGenerator ? '*' : '';
-    var localFunction = parseStatement('wrapper() async$star { $code };')
+    var localFunction = parseStatement('wrapper() async$star { $code }')
         as FunctionDeclarationStatement;
     var localBody = localFunction.functionDeclaration.functionExpression.body
         as BlockFunctionBody;

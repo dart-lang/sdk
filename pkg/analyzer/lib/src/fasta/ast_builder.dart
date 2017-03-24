@@ -439,6 +439,15 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
+    debugEvent("YieldStatement");
+    assert(endToken.lexeme == ';');
+    Expression expression = pop();
+    push(ast.yieldStatement(toAnalyzerToken(yieldToken),
+        toAnalyzerToken(starToken), expression, toAnalyzerToken(endToken)));
+  }
+
+  @override
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer");
   }

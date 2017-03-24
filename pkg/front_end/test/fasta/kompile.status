@@ -24,7 +24,7 @@ map: Fail
 mixin: Crash
 operators: Crash
 redirecting_constructor: Fail
-statements: Crash
+statements: Fail
 super_rasta_copy: Crash
 top_level_accessors: Crash
 type_variable_as_super: Fail
