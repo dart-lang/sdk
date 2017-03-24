@@ -3183,7 +3183,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
   if (FLAG_causal_async_stacks &&
       (dart_function.IsAsyncFunction() || dart_function.IsAsyncGenerator())) {
     LocalScope* scope = parsed_function_->node_sequence()->scope();
-    // :async_stack_trace = _asyncStackTraceHelper();
+    // :async_stack_trace = _asyncStackTraceHelper(:async_op);
     const dart::Library& async_lib =
         dart::Library::Handle(dart::Library::AsyncLibrary());
     const Function& target = Function::ZoneHandle(
@@ -3191,9 +3191,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
         async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
     ASSERT(!target.IsNull());
 
+    // TODO(johnmccutchan): Why does this have the null value?
     LocalVariable* async_op =
-        scope->LookupVariable(Symbols::AsyncOperation(), true);
+        scope->child()->LookupVariable(Symbols::AsyncOperation(), false);
     ASSERT(async_op != NULL);
+    ASSERT(async_op->is_captured());
     body += LoadLocal(async_op);
     body += PushArgument();
     body += StaticCall(TokenPosition::kNoSource, target, 1);
