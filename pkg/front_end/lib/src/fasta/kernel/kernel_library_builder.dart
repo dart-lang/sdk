@@ -248,11 +248,11 @@ class KernelLibraryBuilder
   }
 
   void addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants, int charOffset, int charEndOffset) {
+      List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(
-            metadata, name, constants, this, charOffset, charEndOffset),
+        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
+            charOffset, charEndOffset),
         charOffset);
   }
 

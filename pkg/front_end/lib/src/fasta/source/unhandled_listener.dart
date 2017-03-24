@@ -25,6 +25,10 @@ enum Unhandled {
 
 // TODO(ahe): Get rid of this class when all listeners are complete.
 abstract class UnhandledListener extends StackListener {
+  int popCharOffset() => -1;
+
+  List<String> popIdentifierList(int count) => popList(count);
+
   @override
   void endMetadataStar(int count, bool forParameter) {
     debugEvent("MetadataStar");
@@ -34,7 +38,9 @@ abstract class UnhandledListener extends StackListener {
   @override
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     debugEvent("ConditionalUri");
+    popCharOffset();
     pop(); // URI.
+    if (equalitySign != null) popCharOffset();
     popIfNotNull(equalitySign); // String.
     pop(); // DottedName.
     push(Unhandled.ConditionalUri);
@@ -70,7 +76,7 @@ abstract class UnhandledListener extends StackListener {
   @override
   void endDottedName(int count, Token firstIdentifier) {
     debugEvent("DottedName");
-    popList(count);
+    popIdentifierList(count);
     push(Unhandled.DottedName);
   }
 }

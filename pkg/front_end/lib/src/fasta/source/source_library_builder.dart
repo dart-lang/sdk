@@ -184,10 +184,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name, int charOffset);
 
   void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
-      List<String> names) {
-    for (String name in names) {
-      // TODO(ahe): Get charOffset of name.
-      addField(metadata, modifiers, type, name, -1);
+      List<Object> namesAndOffsets) {
+    for (int i = 0; i < namesAndOffsets.length; i += 2) {
+      String name = namesAndOffsets[i];
+      int charOffset = namesAndOffsets[i + 1];
+      addField(metadata, modifiers, type, name, charOffset);
     }
   }
 
@@ -207,7 +208,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       {bool isTopLevel});
 
   void addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants, int charOffset, int charEndOffset);
+      List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
