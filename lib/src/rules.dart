@@ -25,6 +25,7 @@ import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:linter/src/rules/do_not_catch_errors.dart';
+import 'package:linter/src/rules/do_not_check_for_null_in_equality_operators.dart';
 import 'package:linter/src/rules/empty_catches.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
@@ -102,6 +103,7 @@ void registerLintRules() {
     ..registerDefault(new ConstantIdentifierNames())
     ..register(new DirectivesOrdering())
     ..register(new DoNotCatchErrors())
+    ..register(new DoNotCheckForNullInEqualityOperators())
     ..register(new EmptyCatches())
     ..registerDefault(new EmptyConstructorBodies())
     ..register(new EmptyStatements())
