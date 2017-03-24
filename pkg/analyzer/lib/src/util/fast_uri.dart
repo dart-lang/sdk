@@ -86,6 +86,14 @@ class FastUri implements Uri {
   bool get isAbsolute => hasScheme;
 
   @override
+  bool isScheme(String scheme) {
+    if (scheme == null || scheme.isEmpty) {
+      return !hasScheme;
+    }
+    return scheme.toLowerCase() == this.scheme.toLowerCase();
+  }
+
+  @override
   String get origin => _fallbackUri.origin;
 
   @override
