@@ -1,3 +1,7 @@
+## 0.29.9
+
+* Strong mode fixes so all of analyzer can be compiled with dartdevc.
+
 ## 0.29.8
 
 * Add toSource() to ElementAnnotation.
