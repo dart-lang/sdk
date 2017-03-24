@@ -164,7 +164,6 @@ Language/Expressions/Constants/no_other_constant_expressions_t11: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t14: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t15: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t17: Crash
-Language/Expressions/Constants/parenthesized_expression_t01: CompileTimeError
 Language/Expressions/Constants/static_constant_t06: MissingCompileTimeError
 Language/Expressions/Constants/static_constant_t07: MissingCompileTimeError
 Language/Expressions/Constants/static_method_t02: Crash

@@ -517,8 +517,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   finishSend(Object receiver, Arguments arguments, int charOffset) {
+    bool isIdentical(Object receiver) {
+      return receiver is StaticAccessor &&
+          receiver.readTarget ==
+              coreTypes.tryGetTopLevelMember("dart:core", null, "identical");
+    }
+
     if (receiver is BuilderAccessor) {
-      if (constantExpressionRequired) {
+      if (constantExpressionRequired && !isIdentical(receiver)) {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
       return receiver.doInvocation(charOffset, arguments);
@@ -799,7 +805,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           new StaticAccessor.fromBuilder(this, builder, charOffset, setter);
       if (constantExpressionRequired) {
         Member readTarget = accessor.readTarget;
-        if (!(readTarget is Field && readTarget.isConst)) {
+        if (!(readTarget is Field && readTarget.isConst ||
+            // Static tear-offs are also compile time constants.
+            readTarget is Procedure)) {
           addCompileTimeError(charOffset, "Not a constant expression.");
         }
       }

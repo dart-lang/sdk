@@ -33,7 +33,6 @@ call_nonexistent_static_test/06: CompileTimeError
 cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
-compile_time_constant10_test/none: CompileTimeError
 compile_time_constant13_test/03: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_c_test/03: MissingCompileTimeError
@@ -71,8 +70,7 @@ const_error_multiply_initialized_test/01: MissingCompileTimeError
 const_error_multiply_initialized_test/02: RuntimeError
 const_error_multiply_initialized_test/03: MissingCompileTimeError
 const_error_multiply_initialized_test/04: RuntimeError
-const_evaluation_test/01: CompileTimeError
-const_evaluation_test/none: CompileTimeError
+const_evaluation_test/01: RuntimeError
 const_factory_with_body_test/01: MissingCompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
@@ -80,9 +78,16 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_nested_test: RuntimeError
 const_optional_args_negative_test: Fail
-const_string_test: CompileTimeError
+const_string_test: RuntimeError
 const_switch2_test/01: MissingCompileTimeError
-const_syntax_test/none: CompileTimeError
+const_syntax_test/01: MissingCompileTimeError
+const_syntax_test/02: MissingCompileTimeError
+const_syntax_test/03: MissingCompileTimeError
+const_syntax_test/04: MissingCompileTimeError
+const_syntax_test/05: MissingCompileTimeError
+const_syntax_test/08: MissingCompileTimeError
+const_syntax_test/09: MissingCompileTimeError
+const_syntax_test/10: Crash
 const_types_test/06: CompileTimeError
 const_types_test/13: CompileTimeError
 const_types_test/23: MissingCompileTimeError
@@ -284,15 +289,6 @@ getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 getter_setter_in_lib_test: RuntimeError
-identical_const_test/01: CompileTimeError
-identical_const_test/02: CompileTimeError
-identical_const_test/03: CompileTimeError
-identical_const_test/04: CompileTimeError
-identical_const_test/05: CompileTimeError
-identical_const_test/06: CompileTimeError
-identical_const_test/07: CompileTimeError
-identical_const_test/08: CompileTimeError
-identical_const_test/none: CompileTimeError
 if_null_assignment_behavior_test/09: RuntimeError
 if_null_assignment_behavior_test/10: RuntimeError
 if_null_assignment_behavior_test/15: RuntimeError
@@ -388,11 +384,6 @@ part2_test: RuntimeError
 private_access_test/05: RuntimeError
 private_access_test/06: RuntimeError
 private_super_constructor_test/01: MissingCompileTimeError
-proxy3_test/01: CompileTimeError
-proxy3_test/02: CompileTimeError
-proxy3_test/03: CompileTimeError
-proxy3_test/04: CompileTimeError
-proxy3_test/none: CompileTimeError
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
