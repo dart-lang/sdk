@@ -4886,6 +4886,14 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
   fragment_ = instructions + InstanceCall(node->position(), name, token_kind,
                                           argument_count, argument_names,
                                           num_args_checked);
+  // Later optimization passes assume that result of a x.[]=(...) call is not
+  // used. We must guarantee this invariant because violation will lead to an
+  // illegal IL once we replace x.[]=(...) with a sequence that does not
+  // actually produce any value. See http://dartbug.com/29135 for more details.
+  if (name.raw() == Symbols::AssignIndexToken().raw()) {
+    fragment_ += Drop();
+    fragment_ += NullConstant();
+  }
 }
 
 
