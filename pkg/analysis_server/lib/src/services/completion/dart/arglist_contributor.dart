@@ -272,12 +272,11 @@ class ArgListContributor extends DartCompletionContributor {
 
       String defaultValue = _getDefaultValue(parameter, request.ideOptions);
       if (defaultValue != null) {
-        //TODO(pq): unify with `utilities.dart`
         StringBuffer sb = new StringBuffer();
         sb.write('${parameter.name}: ');
         int offset = sb.length;
         sb.write(defaultValue);
-        suggestion.defaultArgumentListString = defaultValue;
+        suggestion.defaultArgumentListString = sb.toString();
         suggestion.defaultArgumentListTextRanges = [
           offset,
           defaultValue.length
@@ -288,28 +287,13 @@ class ArgListContributor extends DartCompletionContributor {
     }
   }
 
-  //TODO(pq): move and unify w/ `utilities.dart`
   String _getDefaultValue(ParameterElement param, IdeOptions options) {
     if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
       Element element = param.enclosingElement;
       if (element is ConstructorElement) {
         ClassElement classElement = element.enclosingElement;
-        if (isFlutterWidget(classElement)) {
-          if (param.name == 'children') {
-            DartType type = param.type;
-            if (type is InterfaceType && isDartList(type)) {
-              List<DartType> typeArguments = type.typeArguments;
-              StringBuffer sb = new StringBuffer();
-              if (typeArguments.length == 1) {
-                DartType typeArg = typeArguments.first;
-                if (!typeArg.isDynamic) {
-                  sb.write('<${typeArg.name}>');
-                }
-                sb.write('[]');
-                return sb.toString();
-              }
-            }
-          }
+        if (isFlutterWidget(classElement) && param.name == 'children') {
+          return getDefaultStringParameterValue(param);
         }
       }
     }

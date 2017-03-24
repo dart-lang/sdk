@@ -4540,7 +4540,8 @@ build() => new Container(
     await computeSuggestions(options: generateChildrenBoilerPlate);
 
     assertSuggestConstructor("Row",
-        defaultArgListString: "children: <Widget>[]");
+        defaultArgListString: "children: <Widget>[]",
+        defaultArgumentListTextRanges: [10, 10]);
   }
 
   /// Sanity check.  Permutations tested in local_ref_contributor.
