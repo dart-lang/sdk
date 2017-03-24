@@ -107,9 +107,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       unmatchedBeginGroup(groupingStack.head);
       groupingStack = groupingStack.tail;
     }
-    appendToken(new SymbolToken(EOF_INFO, tokenStart));
-    // EOF points to itself so there's always infinite look-ahead.
-    tail.next = tail;
+    appendToken(new SymbolToken.eof(tokenStart));
   }
 
   /**

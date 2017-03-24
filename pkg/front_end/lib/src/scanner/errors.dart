@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/base/errors.dart';
+import 'package:front_end/src/fasta/scanner/error_token.dart';
+import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 /**
  * The error codes used for errors detected by the scanner.
@@ -56,4 +59,83 @@ class ScannerErrorCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
+}
+
+/**
+ * Used to report a scan error at the given offset.
+ * The [errorCode] is the error code indicating the nature of the error.
+ * The [arguments] are any arguments needed to complete the error message.
+ */
+typedef ReportError(
+    ScannerErrorCode errorCode, int offset, List<Object> arguments);
+
+/**
+ *  Translates the given error [token] into an analyzer error and reports it
+ *  using [reportError].
+ */
+void translateErrorToken(ErrorToken token, ReportError reportError) {
+  int charOffset = token.charOffset;
+  // TODO(paulberry,ahe): why is endOffset sometimes null?
+  int endOffset = token.endOffset ?? charOffset;
+  void _makeError(ScannerErrorCode errorCode, List<Object> arguments) {
+    if (_isAtEnd(token, charOffset)) {
+      // Analyzer never generates an error message past the end of the input,
+      // since such an error would not be visible in an editor.
+      // TODO(paulberry,ahe): would it make sense to replicate this behavior
+      // in fasta, or move it elsewhere in analyzer?
+      charOffset--;
+    }
+    reportError(errorCode, charOffset, arguments);
+  }
+
+  var errorCode = token.errorCode;
+  switch (errorCode) {
+    case ErrorKind.UnterminatedString:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // string; analyzer expects the end of the string.
+      charOffset = endOffset;
+      return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
+    case ErrorKind.UnmatchedToken:
+      return null;
+    case ErrorKind.UnterminatedComment:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // comment; analyzer expects the end of the comment.
+      charOffset = endOffset;
+      return _makeError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, null);
+    case ErrorKind.MissingExponent:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // number; analyzer expects the end of the number.
+      charOffset = endOffset;
+      return _makeError(ScannerErrorCode.MISSING_DIGIT, null);
+    case ErrorKind.ExpectedHexDigit:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // number; analyzer expects the end of the number.
+      charOffset = endOffset;
+      return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
+    case ErrorKind.NonAsciiIdentifier:
+    case ErrorKind.NonAsciiWhitespace:
+      return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
+    case ErrorKind.UnexpectedDollarInString:
+      return null;
+    default:
+      throw new UnimplementedError('$errorCode');
+  }
+}
+
+/**
+ * Determines whether the given [charOffset], which came from the non-EOF token
+ * [token], represents the end of the input.
+ */
+bool _isAtEnd(Token token, int charOffset) {
+  while (true) {
+    // Skip to the next token.
+    token = token.next;
+    // If we've found an EOF token, its charOffset indicates where the end of
+    // the input is.
+    if (token.isEof) return token.charOffset == charOffset;
+    // If we've found a non-error token, then we know there is additional input
+    // text after [charOffset].
+    if (token.info.kind != BAD_INPUT_TOKEN) return false;
+    // Otherwise keep looking.
+  }
 }

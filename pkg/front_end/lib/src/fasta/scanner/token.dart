@@ -256,13 +256,21 @@ class SymbolToken extends Token {
 
   SymbolToken(this.info, int charOffset) : super(charOffset);
 
+  SymbolToken.eof(int charOffset)
+      : info = EOF_INFO,
+        super(charOffset) {
+    // EOF points to itself so there's always infinite look-ahead.
+    previousToken = this;
+    next = this;
+  }
+
   String get lexeme => info.value;
 
   String get stringValue => info.value;
 
   bool isIdentifier() => false;
 
-  String toString() => "SymbolToken($lexeme)";
+  String toString() => "SymbolToken(${info == EOF_INFO ? '-eof-' : lexeme})";
 
   bool get isEof => info == EOF_INFO;
 

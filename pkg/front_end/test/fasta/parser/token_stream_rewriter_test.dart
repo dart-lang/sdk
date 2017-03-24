@@ -104,7 +104,8 @@ abstract class TokenStreamRewriterTest {
   ///
   /// The EOF token is returned.
   Token _link(Iterable<Token> tokens) {
-    Token head = new SymbolToken(EOF_INFO, -1);
+    Token head = new SymbolToken.eof(-1);
+    if (!setPrevious) head.previousToken = null;
     for (var token in tokens) {
       head.next = token;
       if (setPrevious) token.previousToken = head;
@@ -112,7 +113,8 @@ abstract class TokenStreamRewriterTest {
     }
     int eofOffset = head.charOffset + head.lexeme.length;
     if (eofOffset < 0) eofOffset = 0;
-    Token eof = new SymbolToken(EOF_INFO, eofOffset);
+    Token eof = new SymbolToken.eof(eofOffset);
+    if (!setPrevious) eof.previousToken = null;
     head.next = eof;
     if (setPrevious) eof.previousToken = head;
     return eof;

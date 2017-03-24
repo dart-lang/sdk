@@ -42,7 +42,7 @@ abstract class AbstractScanner implements Scanner {
    * is not exposed to clients of the scanner, which are expected to invoke
    * [firstToken] to access the token stream.
    */
-  final Token tokens = new SymbolToken(EOF_INFO, -1);
+  final Token tokens = new SymbolToken.eof(-1);
 
   /**
    * A pointer to the last scanned token.

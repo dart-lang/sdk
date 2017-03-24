@@ -4,7 +4,7 @@
 
 library fasta.scanner.recover;
 
-import 'token.dart' show StringToken, Token;
+import 'token.dart' show StringToken, SymbolToken, Token;
 
 import 'error_token.dart' show NonAsciiIdentifierToken, ErrorKind, ErrorToken;
 
@@ -155,6 +155,7 @@ Token defaultRecoveryStrategy(
           error = next;
         } else {
           errorTail.next = next;
+          next.previousToken = errorTail;
         }
         errorTail = next;
         next = next.next;
@@ -213,12 +214,23 @@ Token defaultRecoveryStrategy(
       good = current;
     } else {
       goodTail.next = current;
+      current.previousToken = goodTail;
     }
     beforeGoodTail = goodTail;
     goodTail = current;
   }
 
-  errorTail.next = good;
+  error.previousToken = new SymbolToken.eof(-1)..next = error;
+  Token tail;
+  if (good != null) {
+    errorTail.next = good;
+    good.previousToken = errorTail;
+    tail = goodTail;
+  } else {
+    tail = errorTail;
+  }
+  if (!tail.isEof)
+    tail.next = new SymbolToken.eof(tail.end)..previousToken = tail;
   return error;
 }
 

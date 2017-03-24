@@ -165,12 +165,16 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.AMPERSAND_EQ, "&=");
   }
 
-  void test_angle_brackets_are_ordinary_tokens() {
-    // Analyzer's token streams don't consider "<" to be an opener.
-    var lessThan = _scan('<>');
-    var greaterThan = lessThan.next;
+  void test_angle_brackets() {
+    var lessThan = _scan('<String>');
+    var identifier = lessThan.next;
+    var greaterThan = identifier.next;
     expect(greaterThan.next.type, TokenType.EOF);
-    expect(lessThan, isNot(new isInstanceOf<BeginToken>()));
+    // Analyzer's token streams don't consider "<" to be an opener
+    // but fasta does.
+    if (lessThan is BeginToken) {
+      expect(lessThan.endToken, greaterThan);
+    }
     expect(greaterThan, isNot(new isInstanceOf<BeginToken>()));
   }
 

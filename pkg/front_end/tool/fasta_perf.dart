@@ -168,7 +168,7 @@ Set<String> extractDirectiveUris(List<int> contents) {
 class DirectiveParser extends ClassMemberParser {
   DirectiveParser(listener) : super(listener);
 
-  static final _endToken = new SymbolToken(EOF_INFO, -1);
+  static final _endToken = new SymbolToken.eof(-1);
 
   Token parseClassOrNamedMixinApplication(Token token) => _endToken;
   Token parseEnum(Token token) => _endToken;

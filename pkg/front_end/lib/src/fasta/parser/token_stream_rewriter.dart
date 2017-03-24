@@ -28,7 +28,7 @@ class TokenStreamRewriter {
   /// stream whose first token is [firstToken].
   TokenStreamRewriter(Token firstToken)
       : _head = firstToken.previousToken ??
-            (new SymbolToken(EOF_INFO, -1)..next = firstToken);
+            (new SymbolToken.eof(-1)..next = firstToken);
 
   /// Gets the first token in the stream (which may not be the same token that
   /// was passed to the constructor, if something was inserted before it).
