@@ -291,8 +291,8 @@ class ArgListContributor extends DartCompletionContributor {
     if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
       Element element = param.enclosingElement;
       if (element is ConstructorElement) {
-        ClassElement classElement = element.enclosingElement;
-        if (isFlutterWidget(classElement) && param.name == 'children') {
+        if (isFlutterWidget(element.enclosingElement) &&
+            param.name == 'children') {
           return getDefaultStringParameterValue(param);
         }
       }
