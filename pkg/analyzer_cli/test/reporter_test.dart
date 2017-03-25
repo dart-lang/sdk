@@ -33,6 +33,7 @@ main() {
     when(options.hintsAreFatal).thenReturn(false);
     when(options.machineFormat).thenReturn(false);
     when(options.verbose).thenReturn(false);
+    when(options.color).thenReturn(false);
 
     var reporter = new ErrorFormatter(out, options, stats);
 
