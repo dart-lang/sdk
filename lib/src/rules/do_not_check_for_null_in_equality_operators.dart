@@ -99,8 +99,8 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
-    final parameters = node.parameters.parameters;
-    if (_isComparingEquality(node.name.token?.type) && parameters.length == 1) {
+    final parameters = node.parameters?.parameters;
+    if (node.name.token?.type == TokenType.EQ_EQ && parameters?.length == 1) {
       final parameter = DartTypeUtilities
           .getCanonicalElementFromIdentifier(parameters.first.identifier);
       bool checkIfParameterIsNull(AstNode node) {
