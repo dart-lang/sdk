@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -143,6 +144,9 @@ class CommandLineOptions {
   /// Emit output in a verbose mode.
   final bool verbose;
 
+  /// Use ANSI color codes for output.
+  final bool color;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
       : buildAnalysisOutput = args['build-analysis-output'],
@@ -181,7 +185,8 @@ class CommandLineOptions {
         lintsAreFatal = args['fatal-lints'],
         useAnalysisDriverMemoryByteStore =
             args['use-analysis-driver-memory-byte-store'],
-        verbose = args['verbose'];
+        verbose = args['verbose'],
+        color = args['color'];
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -383,6 +388,10 @@ class CommandLineOptions {
           help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
           negatable: false,
+          hide: hide)
+      ..addFlag('color',
+          help: 'Use asni colors when printing messages.',
+          defaultsTo: ansi.terminalSupportsAnsi(),
           hide: hide);
 
     // Hidden flags.

@@ -14,6 +14,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
@@ -30,6 +31,7 @@ main() {
 
   /// Base setup.
   _setUp() {
+    ansi.runningTests = true;
     savedOutSink = outSink;
     savedErrorSink = errorSink;
     savedExitHandler = exitHandler;
@@ -45,6 +47,7 @@ main() {
     errorSink = savedErrorSink;
     exitCode = savedExitCode;
     exitHandler = savedExitHandler;
+    ansi.runningTests = false;
   }
 
   setUp(() => _setUp());
@@ -176,8 +179,8 @@ main() {
 
           test('generates lints', () async {
             await runLinter();
-            expect(outSink.toString(),
-                contains('[lint] Name types using UpperCamelCase'));
+            expect(_bulletToDash(outSink),
+                contains('lint - Name types using UpperCamelCase'));
           });
         });
 
@@ -202,8 +205,8 @@ main() {
 
           test('generates lints', () async {
             await runLinter();
-            expect(outSink.toString(),
-                contains('[lint] Name types using UpperCamelCase'));
+            expect(_bulletToDash(outSink),
+                contains('lint - Name types using UpperCamelCase'));
           });
         });
 
@@ -287,9 +290,9 @@ linter:
             ]);
             expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
             expect(
-                outSink.toString(),
+                _bulletToDash(outSink),
                 contains(
-                    "[error] This function declares a return type of 'int'"));
+                    "error - This function declares a return type of 'int'"));
             expect(
                 outSink.toString(), contains("1 error and 1 warning found."));
           });
@@ -327,8 +330,8 @@ linter:
             expect(processorFor(undefined_function).severity,
                 ErrorSeverity.WARNING);
             // Should not be made fatal by `--fatal-warnings`.
-            expect(outSink.toString(),
-                contains("[warning] The function 'baz' isn't defined"));
+            expect(_bulletToDash(outSink),
+                contains("warning - The function 'baz' isn't defined"));
             expect(
                 outSink.toString(), contains("1 error and 1 warning found."));
           });
@@ -568,3 +571,6 @@ class TestSource implements Source {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+/// Normalize text with bullets.
+String _bulletToDash(item) => '$item'.replaceAll('•', '-');
