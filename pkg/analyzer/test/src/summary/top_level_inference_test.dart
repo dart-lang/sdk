@@ -1077,60 +1077,6 @@ class A {
 ''');
   }
 
-  test_instanceField_fromAccessors_multiple_different() async {
-    var library = await _encodeDecodeLibrary(r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(String _);
-}
-class C implements A, B {
-  var x;
-}
-''');
-    checkElementText(
-        library,
-        r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(String _);
-}
-class C implements A, B {
-  dynamic x/*error: overrideConflictFieldType*/;
-}
-''');
-  }
-
-  test_instanceField_fromAccessors_multiple_same() async {
-    var library = await _encodeDecodeLibrary(r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(int _);
-}
-class C implements A, B {
-  var x;
-}
-''');
-    checkElementText(
-        library,
-        r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(int _);
-}
-class C implements A, B {
-  int x;
-}
-''');
-  }
-
   test_instanceField_fromField() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
@@ -1427,7 +1373,103 @@ class C implements A, B {
 ''');
   }
 
-  test_instanceField_fromGetterSetter_field() async {
+  test_instanceField_fromGetterSetter_different_field() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+  int get y;
+}
+abstract class B {
+  void set x(String _);
+  void set y(String _);
+}
+class C implements A, B {
+  var x;
+  final y;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+  int get y;
+}
+abstract class B {
+  void set x(String _);
+  void set y(String _);
+}
+class C implements A, B {
+  dynamic x/*error: overrideConflictFieldType*/;
+  final int y;
+}
+''');
+  }
+
+  test_instanceField_fromGetterSetter_different_getter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  synthetic final int x;
+  int get x;
+}
+abstract class B {
+  synthetic String x;
+  void set x(String _);
+}
+class C implements A, B {
+  synthetic final int x;
+  int get x {}
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromGetterSetter_different_setter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  set x(_);
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  synthetic final int x;
+  int get x;
+}
+abstract class B {
+  synthetic String x;
+  void set x(String _);
+}
+class C implements A, B {
+  synthetic dynamic x;
+  void set x(dynamic _);
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromGetterSetter_same_field() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
   int get x;
@@ -1454,7 +1496,7 @@ class C implements A, B {
 ''');
   }
 
-  test_instanceField_fromGetterSetter_getter() async {
+  test_instanceField_fromGetterSetter_same_getter() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
   int get x;
@@ -1485,13 +1527,13 @@ class C implements A, B {
         withSyntheticFields: true);
   }
 
-  test_instanceField_fromGetterSetter_setter() async {
+  test_instanceField_fromGetterSetter_same_setter() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
   int get x;
 }
 abstract class B {
-  void set x(String _);
+  void set x(int _);
 }
 class C implements A, B {
   set x(_);
@@ -1505,12 +1547,12 @@ abstract class A {
   int get x;
 }
 abstract class B {
-  synthetic String x;
-  void set x(String _);
+  synthetic int x;
+  void set x(int _);
 }
 class C implements A, B {
-  synthetic dynamic x;
-  void set x(dynamic _);
+  synthetic int x;
+  void set x(int _);
 }
 ''',
         withSyntheticFields: true);
