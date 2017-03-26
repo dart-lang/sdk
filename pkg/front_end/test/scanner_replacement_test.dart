@@ -96,20 +96,6 @@ class ScannerTest_Replacement extends ScannerTest {
 
   @override
   @failingTest
-  void test_double_missingDigitInExponent() {
-    // TODO(danrubel): investigate and fix
-    super.test_double_missingDigitInExponent();
-  }
-
-  @override
-  @failingTest
-  void test_hexidecimal_missingDigit() {
-    // TODO(danrubel): investigate and fix
-    super.test_hexidecimal_missingDigit();
-  }
-
-  @override
-  @failingTest
   void test_mismatched_closer() {
     // TODO(danrubel): investigate and fix
     super.test_mismatched_closer();

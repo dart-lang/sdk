@@ -105,12 +105,12 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case ErrorKind.MissingExponent:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
-      charOffset = endOffset;
+      charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.MISSING_DIGIT, null);
     case ErrorKind.ExpectedHexDigit:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
-      charOffset = endOffset;
+      charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
     case ErrorKind.NonAsciiIdentifier:
     case ErrorKind.NonAsciiWhitespace:
