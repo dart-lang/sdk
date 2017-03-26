@@ -72,7 +72,7 @@ class Keyword implements analyzer.Keyword {
 
   static const ASYNC = const Keyword("async", isPseudo: true);
   static const AWAIT = const Keyword("await", isPseudo: true);
-  static const DEFERRED = const Keyword("deferred", isPseudo: true);
+  static const DEFERRED = const Keyword("deferred", isBuiltIn: true);
   static const FUNCTION = const Keyword("Function", isPseudo: true);
   static const HIDE = const Keyword("hide", isPseudo: true);
   static const NATIVE = const Keyword("native", isPseudo: true);
@@ -123,6 +123,7 @@ class Keyword implements analyzer.Keyword {
     ABSTRACT,
     AS,
     COVARIANT,
+    DEFERRED,
     DYNAMIC,
     EXPORT,
     EXTERNAL,
@@ -139,7 +140,6 @@ class Keyword implements analyzer.Keyword {
     // ==== Pseudo
     ASYNC,
     AWAIT,
-    DEFERRED,
     FUNCTION,
     HIDE,
     NATIVE,
@@ -178,16 +178,13 @@ class Keyword implements analyzer.Keyword {
 
   String toString() => syntax;
 
+  /// The term "pseudo-keyword" doesn't exist in the spec, and
+  /// Analyzer and Fasta have different notions of what it means.
+  /// Analyzer's notion of "pseudo-keyword" corresponds with Fasta's
+  /// notion of "built-in keyword".
+  /// Use [isBuiltIn] instead.
   @override
-  bool get isPseudoKeyword {
-    // The term "pseudo-keyword" doesn't exist in the spec, and
-    // Analyzer and Fasta have different notions of what it means.
-    // Analyzer's notion of "pseudo-keyword" corresponds with Fasta's
-    // notion of "built-in keyword".
-
-    // TODO(danrubel) remove `this == DEFERRED` once dartbug.com/29069 is fixed.
-    return isBuiltIn || this == DEFERRED;
-  }
+  bool get isPseudoKeyword => isBuiltIn;
 
   @override
   String get name => syntax.toUpperCase();

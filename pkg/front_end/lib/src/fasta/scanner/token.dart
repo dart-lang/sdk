@@ -317,11 +317,7 @@ class KeywordToken extends Token {
 
   bool get isPseudo => keyword.isPseudo;
 
-  bool get isBuiltInIdentifier {
-    // TODO(ahe): Remove special case for "deferred" once dartbug.com/29069 is
-    // fixed.
-    return keyword.isBuiltIn || identical("deferred", lexeme);
-  }
+  bool get isBuiltInIdentifier => keyword.isBuiltIn;
 
   String toString() => "KeywordToken($lexeme)";
 
@@ -329,22 +325,12 @@ class KeywordToken extends Token {
   Token copyWithoutComments() => new KeywordToken(keyword, charOffset);
 
   @override
-  Object value() {
-    // Analyzer has different set of keyword tokens
-    // TODO(danrubel): Remove special case for "deferred" once dartbug.com/29069
-    // is fixed.
-    return isPseudo && !identical("deferred", lexeme) ? lexeme : keyword;
-  }
+  // Analyzer considers pseudo-keywords to have a different value
+  Object value() => isPseudo ? lexeme : keyword;
 
   @override
-  analyzer.TokenType get type {
-    // Analyzer considers pseudo-keywords to be identifiers
-    // TODO(danrubel): Remove special case for "deferred" once dartbug.com/29069
-    // is fixed.
-    return isPseudo && !identical("deferred", lexeme)
-        ? IDENTIFIER_INFO
-        : KEYWORD_INFO;
-  }
+  // Analyzer considers pseudo-keywords to be identifiers
+  analyzer.TokenType get type => isPseudo ? IDENTIFIER_INFO : KEYWORD_INFO;
 }
 
 /**

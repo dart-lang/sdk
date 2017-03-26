@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
+import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
 import 'package:front_end/src/scanner/reader.dart' as analyzer;
@@ -154,6 +155,60 @@ class Foo {
     expect(token.matchesAny([TokenType.AMPERSAND]), false);
   }
 
+  /// Return all fasta and all analyzer keywords
+  List<Keyword> get _allKeywords =>
+      new List.from(Keyword.values)..addAll(fasta.Keyword.values);
+
+  void test_built_in_keywords() {
+    var builtInKeywords = new Set<Keyword>.from([
+      Keyword.ABSTRACT,
+      Keyword.AS,
+      Keyword.COVARIANT,
+      Keyword.DEFERRED,
+      Keyword.DYNAMIC,
+      Keyword.EXPORT,
+      Keyword.EXTERNAL,
+      Keyword.FACTORY,
+      Keyword.GET,
+      Keyword.IMPLEMENTS,
+      Keyword.IMPORT,
+      Keyword.LIBRARY,
+      Keyword.OPERATOR,
+      Keyword.PART,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.TYPEDEF,
+    ]);
+    for (Keyword keyword in _allKeywords) {
+      var isBuiltIn = builtInKeywords.contains(keyword);
+      expect(keyword.isPseudoKeyword, isBuiltIn, reason: keyword.name);
+      expect((keyword as fasta.Keyword).isBuiltIn, isBuiltIn,
+          reason: keyword.name);
+    }
+  }
+
+  void test_pseudo_keywords() {
+    var pseudoKeywords = new Set<Keyword>.from([
+      fasta.Keyword.ASYNC,
+      fasta.Keyword.AWAIT,
+      fasta.Keyword.FUNCTION,
+      fasta.Keyword.HIDE,
+      fasta.Keyword.NATIVE,
+      fasta.Keyword.OF,
+      fasta.Keyword.ON,
+      fasta.Keyword.PATCH,
+      fasta.Keyword.SHOW,
+      fasta.Keyword.SOURCE,
+      fasta.Keyword.SYNC,
+      fasta.Keyword.YIELD,
+    ]);
+    for (Keyword keyword in _allKeywords) {
+      var isPseudo = pseudoKeywords.contains(keyword);
+      expect((keyword as fasta.Keyword).isPseudo, isPseudo,
+          reason: keyword.name);
+    }
+  }
+
   void test_value() {
     var scanner = new StringScanner('true & "home"', includeComments: true);
     var token = scanner.tokenize();
@@ -166,7 +221,6 @@ class Foo {
     expect(token.value(), '&');
     // String tokens
     token = token.next;
-    print('String token :: ${token.runtimeType}');
     expect(token.lexeme, '"home"');
     expect(token.value(), '"home"');
   }
