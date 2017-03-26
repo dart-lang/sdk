@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N do_not_check_for_null_in_double_equals_operator`
+// test w/ `pub run test -N do_not_check_for_null_in_equality_operators`
 
 class BadPerson1 {
   final String name = 'I am a bad person';
+
+  get age => 42;
 
   @override
   operator ==(other) =>
