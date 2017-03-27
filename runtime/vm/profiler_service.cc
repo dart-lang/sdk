@@ -1101,6 +1101,7 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
            TokenPosition* token_position) {
     const intptr_t offset = OffsetForPC(pc, code, sample, frame_index);
     CacheEntry* cache_entry = &cache_[NextFreeIndex()];
+    cache_entry->Reset();
     cache_entry->pc = pc;
     cache_entry->offset = offset;
     code.GetInlinedFunctionsAtInstruction(
@@ -1151,6 +1152,8 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
     void Reset() {
       pc = 0;
       offset = 0;
+      inlined_functions.Clear();
+      inlined_token_positions.Clear();
     }
     uword pc;
     intptr_t offset;
