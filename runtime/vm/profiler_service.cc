@@ -1621,6 +1621,17 @@ class ProfileBuilder : public ValueObject {
       return current;
     }
 
+    if (!code.is_optimized()) {
+      OS::PrintErr("Code that should be optimized is not. Please file a bug\n");
+      OS::PrintErr("Code object: %s\n", code.ToCString());
+      OS::PrintErr("Inlined functions length: %" Pd "\n",
+                   inlined_functions->length());
+      for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+        OS::PrintErr("IF[%" Pd "] = %s\n", i,
+                     (*inlined_functions)[i]->ToFullyQualifiedCString());
+      }
+    }
+
     ASSERT(code.is_optimized());
 
     if (inclusive_tree_) {
