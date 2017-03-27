@@ -1140,6 +1140,12 @@ enum ReferenceKind {
  */
 abstract class TopLevelInferenceError extends base.SummaryClass {
   /**
+   * The [kind] specific arguments.
+   */
+  @Id(2)
+  List<String> get arguments;
+
+  /**
    * The kind of the error.
    */
   @Id(1)

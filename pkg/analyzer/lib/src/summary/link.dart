@@ -4797,13 +4797,13 @@ class TypeInferenceDependencyWalker
     extends DependencyWalker<TypeInferenceNode> {
   @override
   void evaluate(TypeInferenceNode v) {
-    v.evaluate(false);
+    v.evaluate(null);
   }
 
   @override
   void evaluateScc(List<TypeInferenceNode> scc) {
     for (TypeInferenceNode v in scc) {
-      v.evaluate(true);
+      v.evaluate(scc);
     }
   }
 }
@@ -4922,10 +4922,24 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     return dependencies;
   }
 
-  void evaluate(bool inCycle) {
-    if (inCycle) {
+  void evaluate(List<TypeInferenceNode> cycle) {
+    if (cycle != null) {
+      List<String> cycleNames = cycle
+          .map((node) {
+            Element e = node.functionElement;
+            while (e != null) {
+              if (e is VariableElement) {
+                return e.name;
+              }
+              e = e.enclosingElement;
+            }
+            return '<unknown>';
+          })
+          .toSet()
+          .toList();
       functionElement._setInferenceError(new TopLevelInferenceErrorBuilder(
-          kind: TopLevelInferenceErrorKind.dependencyCycle));
+          kind: TopLevelInferenceErrorKind.dependencyCycle,
+          arguments: cycleNames));
       functionElement._setInferredType(DynamicTypeImpl.instance);
     } else {
       var computer = new ExprTypeComputer(functionElement);

@@ -4721,8 +4721,19 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
 class TopLevelInferenceErrorBuilder extends Object
     with _TopLevelInferenceErrorMixin
     implements idl.TopLevelInferenceError {
+  List<String> _arguments;
   idl.TopLevelInferenceErrorKind _kind;
   int _slot;
+
+  @override
+  List<String> get arguments => _arguments ??= <String>[];
+
+  /**
+   * The [kind] specific arguments.
+   */
+  void set arguments(List<String> value) {
+    this._arguments = value;
+  }
 
   @override
   idl.TopLevelInferenceErrorKind get kind =>
@@ -4748,8 +4759,10 @@ class TopLevelInferenceErrorBuilder extends Object
     this._slot = value;
   }
 
-  TopLevelInferenceErrorBuilder({idl.TopLevelInferenceErrorKind kind, int slot})
-      : _kind = kind,
+  TopLevelInferenceErrorBuilder(
+      {List<String> arguments, idl.TopLevelInferenceErrorKind kind, int slot})
+      : _arguments = arguments,
+        _kind = kind,
         _slot = slot;
 
   /**
@@ -4763,10 +4776,26 @@ class TopLevelInferenceErrorBuilder extends Object
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._slot ?? 0);
     signature.addInt(this._kind == null ? 0 : this._kind.index);
+    if (this._arguments == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._arguments.length);
+      for (var x in this._arguments) {
+        signature.addString(x);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_arguments;
+    if (!(_arguments == null || _arguments.isEmpty)) {
+      offset_arguments = fbBuilder
+          .writeList(_arguments.map((b) => fbBuilder.writeString(b)).toList());
+    }
     fbBuilder.startTable();
+    if (offset_arguments != null) {
+      fbBuilder.addOffset(2, offset_arguments);
+    }
     if (_kind != null && _kind != idl.TopLevelInferenceErrorKind.assignment) {
       fbBuilder.addUint8(1, _kind.index);
     }
@@ -4794,8 +4823,16 @@ class _TopLevelInferenceErrorImpl extends Object
 
   _TopLevelInferenceErrorImpl(this._bc, this._bcOffset);
 
+  List<String> _arguments;
   idl.TopLevelInferenceErrorKind _kind;
   int _slot;
+
+  @override
+  List<String> get arguments {
+    _arguments ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    return _arguments;
+  }
 
   @override
   idl.TopLevelInferenceErrorKind get kind {
@@ -4816,6 +4853,7 @@ abstract class _TopLevelInferenceErrorMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (arguments.isNotEmpty) _result["arguments"] = arguments;
     if (kind != idl.TopLevelInferenceErrorKind.assignment)
       _result["kind"] = kind.toString().split('.')[1];
     if (slot != 0) _result["slot"] = slot;
@@ -4824,6 +4862,7 @@ abstract class _TopLevelInferenceErrorMixin
 
   @override
   Map<String, Object> toMap() => {
+        "arguments": arguments,
         "kind": kind,
         "slot": slot,
       };

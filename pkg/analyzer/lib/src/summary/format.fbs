@@ -1640,6 +1640,11 @@ table PackageIndex {
  */
 table TopLevelInferenceError {
   /**
+   * The [kind] specific arguments.
+   */
+  arguments:[string] (id: 2);
+
+  /**
    * The kind of the error.
    */
   kind:TopLevelInferenceErrorKind (id: 1);
