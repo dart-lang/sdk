@@ -84,12 +84,13 @@ class SimpleExpressionConverter : public ExpressionVisitor {
 
 
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
-    Library* library) {
+    CanonicalName* library) {
   return reader_->LookupLibrary(library).raw();
 }
 
 
-RawClass* BuildingTranslationHelper::LookupClassByKernelClass(Class* klass) {
+RawClass* BuildingTranslationHelper::LookupClassByKernelClass(
+    CanonicalName* klass) {
   return reader_->LookupClass(klass).raw();
 }
 
@@ -110,9 +111,6 @@ KernelReader::KernelReader(Program* program)
 Object& KernelReader::ReadProgram() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Procedure* main = program_->main_method();
-    Library* kernel_main_library = Library::Cast(main->parent());
-
     intptr_t length = program_->libraries().length();
     for (intptr_t i = 0; i < length; i++) {
       Library* kernel_library = program_->libraries()[i];
@@ -120,12 +118,16 @@ Object& KernelReader::ReadProgram() {
     }
 
     for (intptr_t i = 0; i < length; i++) {
-      dart::Library& library = LookupLibrary(program_->libraries()[i]);
+      dart::Library& library =
+          LookupLibrary(program_->libraries()[i]->canonical_name());
       if (!library.Loaded()) library.SetLoaded();
     }
 
     if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
-      dart::Library& library = LookupLibrary(kernel_main_library);
+      Procedure* main = program_->main_method();
+      Library* kernel_main_library = Library::Cast(main->parent());
+      dart::Library& library =
+          LookupLibrary(kernel_main_library->canonical_name());
 
       // Sanity check that we can find the main entrypoint.
       Object& main_obj = Object::Handle(
@@ -145,8 +147,9 @@ Object& KernelReader::ReadProgram() {
 
 
 void KernelReader::ReadLibrary(Library* kernel_library) {
-  dart::Library& library = LookupLibrary(kernel_library);
+  dart::Library& library = LookupLibrary(kernel_library->canonical_name());
   if (library.Loaded()) return;
+  library.SetName(H.DartSymbol(kernel_library->name()));
 
   // The bootstrapper will take care of creating the native wrapper classes, but
   // we will add the synthetic constructors to them here.
@@ -283,8 +286,20 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
 dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                      const dart::Class& toplevel_class,
                                      Class* kernel_klass) {
-  // This will trigger a call to [ReadPreliminaryClass] if not already done.
-  dart::Class& klass = LookupClass(kernel_klass);
+  dart::Class& klass = LookupClass(kernel_klass->canonical_name());
+
+  // The class needs to have a script because all the functions in the class
+  // will inherit it.  The predicate Function::IsOptimizable uses the absence of
+  // a script to detect test functions that should not be optimized.
+  if (klass.script() == Script::null()) {
+    klass.set_script(ScriptAt(kernel_klass->source_uri_index()));
+  }
+  if (klass.token_pos() == TokenPosition::kNoSource) {
+    klass.set_token_pos(kernel_klass->position());
+  }
+  if (!klass.is_cycle_free()) {
+    ReadPreliminaryClass(&klass, kernel_klass);
+  }
 
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
 
@@ -743,16 +758,16 @@ void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
   }
 }
 
-dart::Library& KernelReader::LookupLibrary(Library* library) {
+
+dart::Library& KernelReader::LookupLibrary(CanonicalName* library) {
   dart::Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
-    const dart::String& url = H.DartSymbol(library->import_uri());
+    const dart::String& url = H.DartSymbol(library->name());
     handle =
         &dart::Library::Handle(Z, dart::Library::LookupLibrary(thread_, url));
     if (handle->IsNull()) {
       *handle = dart::Library::New(url);
       handle->Register(thread_);
-      handle->SetName(H.DartSymbol(library->name()));
     }
     ASSERT(!handle->IsNull());
     libraries_.Insert(library, handle);
@@ -760,34 +775,22 @@ dart::Library& KernelReader::LookupLibrary(Library* library) {
   return *handle;
 }
 
-dart::Class& KernelReader::LookupClass(Class* klass) {
+
+dart::Class& KernelReader::LookupClass(CanonicalName* klass) {
   dart::Class* handle = NULL;
   if (!classes_.Lookup(klass, &handle)) {
     dart::Library& library = LookupLibrary(klass->parent());
     const dart::String& name = H.DartClassName(klass);
     handle = &dart::Class::Handle(Z, library.LookupClass(name));
     if (handle->IsNull()) {
-      // The class needs to have a script because all the functions in the class
-      // will inherit it.  The predicate Function::IsOptimizable uses the
-      // absence of a script to detect test functions that should not be
-      // optimized.
-      Script& script = ScriptAt(klass->source_uri_index());
-      handle = &dart::Class::Handle(
-          Z, dart::Class::New(library, name, script, klass->position()));
+      *handle = dart::Class::New(library, name, Script::Handle(Z),
+                                 TokenPosition::kNoSource);
       library.AddClass(*handle);
-    } else if (handle->script() == Script::null()) {
-      // When bootstrapping we can encounter classes that do not yet have a
-      // dummy script.
-      Script& script = ScriptAt(klass->source_uri_index());
-      handle->set_script(script);
     }
     // Insert the class in the cache before calling ReadPreliminaryClass so
     // we do not risk allocating the class again by calling LookupClass
     // recursively from ReadPreliminaryClass for the same class.
     classes_.Insert(klass, handle);
-    if (!handle->is_cycle_free()) {
-      ReadPreliminaryClass(handle, klass);
-    }
   }
   return *handle;
 }

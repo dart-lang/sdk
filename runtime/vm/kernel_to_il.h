@@ -253,7 +253,7 @@ class TranslationHelper {
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
 
-  const dart::String& DartClassName(Class* kernel_klass);
+  const dart::String& DartClassName(CanonicalName* kernel_klass);
   const dart::String& DartConstructorName(Constructor* node);
   const dart::String& DartProcedureName(Procedure* procedure);
 
@@ -269,8 +269,8 @@ class TranslationHelper {
   // A subclass overrides these when reading in the Kernel program in order to
   // support recursive type expressions (e.g. for "implements X" ...
   // annotations).
-  virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
-  virtual RawClass* LookupClassByKernelClass(Class* klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
+  virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
 
   RawField* LookupFieldByKernelField(Field* field);
   RawFunction* LookupStaticMethodByKernelProcedure(Procedure* procedure);
@@ -287,7 +287,7 @@ class TranslationHelper {
  private:
   // This will mangle [kernel_name] (if necessary) and make the result a symbol.
   // The result will be avilable in [name_to_modify] and it is also returned.
-  dart::String& ManglePrivateName(Library* kernel_library,
+  dart::String& ManglePrivateName(CanonicalName* kernel_library,
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
 
