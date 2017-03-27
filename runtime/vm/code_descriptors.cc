@@ -223,7 +223,7 @@ RawTypedData* CatchEntryStateMapBuilder::FinalizeCatchEntryStateMap() {
 
 
 const TokenPosition CodeSourceMapBuilder::kInitialPosition =
-    TokenPosition::kDartCodePrologue;
+    TokenPosition(TokenPosition::kDartCodeProloguePos);
 
 
 CodeSourceMapBuilder::CodeSourceMapBuilder(
