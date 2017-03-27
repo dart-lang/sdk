@@ -59,7 +59,7 @@ class _Protected {
 }
 class _Required {
   final String reason;
-  const _Required([this.reason]));
+  const _Required([this.reason]);
 }
 '''
       ],
