@@ -31,6 +31,32 @@ namespace kernel {
 #define I Isolate::Current()
 
 
+class NeedsExprTempVisitor : public RecursiveVisitor {
+ public:
+  NeedsExprTempVisitor() : needs_expr_temp_(false) {}
+
+  virtual void VisitConditionalExpression(ConditionalExpression* node) {
+    needs_expr_temp_ = true;
+  }
+
+  virtual void VisitLogicalExpression(LogicalExpression* node) {
+    needs_expr_temp_ = true;
+  }
+
+  bool needs_expr_temp() const { return needs_expr_temp_; }
+
+ private:
+  bool needs_expr_temp_;
+};
+
+
+static bool NeedsExprTemp(TreeNode* node) {
+  NeedsExprTempVisitor visitor;
+  node->AcceptVisitor(&visitor);
+  return visitor.needs_expr_temp();
+}
+
+
 static void DiscoverEnclosingElements(Zone* zone,
                                       const Function& function,
                                       Function* outermost_function,
@@ -98,6 +124,9 @@ void ScopeBuilder::AddParameter(VariableDeclaration* declaration,
       H.DartSymbol(declaration->name()), T.TranslateVariableType(declaration));
   if (declaration->IsFinal()) {
     variable->set_is_final();
+  }
+  if (variable->name().raw() == Symbols::IteratorParameter().raw()) {
+    variable->set_is_forced_stack();
   }
   scope_->InsertParameterAt(pos, variable);
   result_->locals.Insert(declaration, variable);
@@ -300,7 +329,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   LocalVariable* context_var = parsed_function->current_context_var();
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
-  scope_->AddVariable(parsed_function->EnsureExpressionTemp());
+  bool has_expr_temp = false;
+  if (node_ != NULL && NeedsExprTemp(node_)) {
+    scope_->AddVariable(parsed_function->EnsureExpressionTemp());
+    has_expr_temp = true;
+  }
 
   parsed_function->SetNodeSequence(
       new SequenceNode(TokenPosition::kNoSource, scope_));
@@ -348,6 +381,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
             Field* field = klass->fields()[i];
             if (!field->IsStatic() && (field->initializer() != NULL)) {
               EnterScope(field, field->position());
+              if (!has_expr_temp && NeedsExprTemp(field->initializer())) {
+                scope_->AddVariable(parsed_function->EnsureExpressionTemp());
+                has_expr_temp = true;
+              }
               field->initializer()->AcceptExpressionVisitor(this);
               ExitScope(field->end_position());
             }
