@@ -141,7 +141,7 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       backend.noSuchMethodRegistry,
       backend.customElementsResolutionAnalysis,
       backend.lookupMapResolutionAnalysis,
-      backend.mirrorsAnalysis,
+      backend.mirrorsResolutionAnalysis,
       new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
           backend.impacts, backend.backendUsageBuilder),
       backend.nativeResolutionEnqueuer);

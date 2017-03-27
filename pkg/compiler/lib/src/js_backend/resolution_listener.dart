@@ -53,7 +53,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
   final LookupMapResolutionAnalysis _lookupMapResolutionAnalysis;
-  final MirrorsAnalysis _mirrorsAnalysis;
+  final MirrorsResolutionAnalysis _mirrorsAnalysis;
   final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;

@@ -43,7 +43,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
   final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
   final LookupMapAnalysis _lookupMapAnalysis;
-  final MirrorsAnalysis _mirrorsAnalysis;
+  final MirrorsCodegenAnalysis _mirrorsAnalysis;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 

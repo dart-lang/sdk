@@ -405,8 +405,11 @@ class JavaScriptBackend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
-  /// Resolution and codegen support for computing reflectable elements.
-  MirrorsAnalysis mirrorsAnalysis;
+  /// Resolution support for computing reflectable elements.
+  MirrorsResolutionAnalysis _mirrorsResolutionAnalysis;
+
+  /// Codegen support for computing reflectable elements.
+  MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
 
   /// Builds kernel representation for the program.
   KernelTask kernelTask;
@@ -533,7 +536,8 @@ class JavaScriptBackend {
         helpers,
         nativeBaseData);
     jsInteropAnalysis = new JsInteropAnalysis(this);
-    mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
+    _mirrorsResolutionAnalysis =
+        new MirrorsResolutionAnalysisImpl(this, compiler.resolution);
     lookupMapResolutionAnalysis =
         new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
 
@@ -591,6 +595,17 @@ class JavaScriptBackend {
   MirrorsData get mirrorsData => _mirrorsData;
 
   MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
+
+  /// Resolution support for computing reflectable elements.
+  MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
+      _mirrorsResolutionAnalysis;
+
+  /// Codegen support for computing reflectable elements.
+  MirrorsCodegenAnalysis get mirrorsCodegenAnalysis {
+    assert(invariant(NO_LOCATION_SPANNABLE, _mirrorsCodegenAnalysis != null,
+        message: "MirrorsCodegenAnalysis has not been created yet."));
+    return _mirrorsCodegenAnalysis;
+  }
 
   /// Codegen support for tree-shaking entries of `LookupMap`.
   LookupMapAnalysis get lookupMapAnalysis {
@@ -815,7 +830,7 @@ class JavaScriptBackend {
         _interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
         new OneShotInterceptorData(interceptorData, helpers);
-    mirrorsAnalysis.onResolutionComplete();
+    mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
   void onTypeInferenceComplete() {
@@ -897,7 +912,7 @@ class JavaScriptBackend {
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
             lookupMapResolutionAnalysis,
-            mirrorsAnalysis,
+            mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer),
         new ElementResolutionWorldBuilder(
@@ -919,6 +934,7 @@ class JavaScriptBackend {
         helpers,
         backendClasses,
         lookupMapResolutionAnalysis);
+    _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     return new CodegenEnqueuer(
         task,
         compiler.options,
@@ -937,7 +953,7 @@ class JavaScriptBackend {
             customElementsCodegenAnalysis,
             typeVariableCodegenAnalysis,
             lookupMapAnalysis,
-            mirrorsAnalysis,
+            mirrorsCodegenAnalysis,
             _nativeCodegenEnqueuer));
   }
 
@@ -1046,9 +1062,9 @@ class JavaScriptBackend {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic();
     int totalMethodCount = generatedCode.length;
-    if (totalMethodCount != mirrorsAnalysis.preMirrorsMethodCount) {
+    if (totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
       int mirrorCount =
-          totalMethodCount - mirrorsAnalysis.preMirrorsMethodCount;
+          totalMethodCount - mirrorsCodegenAnalysis.preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
       DiagnosticMessage hint =
           reporter.createMessage(compiler.mainApp, MessageKind.MIRROR_BLOAT, {
