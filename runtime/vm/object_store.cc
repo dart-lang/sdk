@@ -97,6 +97,8 @@ ObjectStore::ObjectStore()
       async_clear_thread_stack_trace_(Function::null()),
       async_set_thread_stack_trace_(Function::null()),
       async_star_move_next_helper_(Function::null()),
+      complete_on_async_return_(Function::null()),
+      async_star_stream_controller_(Class::null()),
       library_load_error_table_(Array::null()),
       unique_dynamic_targets_(Array::null()),
       token_objects_(GrowableObjectArray::null()),
@@ -256,12 +258,44 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!function.IsNull());
   set_async_clear_thread_stack_trace(function);
 
+
   function_name ^= async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());
   function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
                                       function_name, 1, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_star_move_next_helper(function);
+
+  function_name ^= async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
+  ASSERT(!function_name.IsNull());
+  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                      function_name, 2, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_on_async_return(function);
+  if (FLAG_async_debugger_stepping) {
+    // Disable debugging and inlining the _CompleteOnAsyncReturn function.
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
+  }
+
+  cls =
+      async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
+  ASSERT(!cls.IsNull());
+  set_async_star_stream_controller(cls);
+
+  if (FLAG_async_debugger_stepping) {
+    // Disable debugging and inlining of all functions on the
+    // _AsyncStarStreamController class.
+    const Array& functions = Array::Handle(cls.functions());
+    for (intptr_t i = 0; i < functions.Length(); i++) {
+      function ^= functions.At(i);
+      if (function.IsNull()) {
+        break;
+      }
+      function.set_is_debuggable(false);
+      function.set_is_inlinable(false);
+    }
+  }
 
   const Library& internal_lib = Library::Handle(_internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());

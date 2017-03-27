@@ -459,6 +459,20 @@ class ObjectStore {
     async_star_move_next_helper_ = func.raw();
     ASSERT(async_star_move_next_helper_ != Object::null());
   }
+  RawFunction* complete_on_async_return() const {
+    return complete_on_async_return_;
+  }
+  void set_complete_on_async_return(const Function& func) {
+    complete_on_async_return_ = func.raw();
+    ASSERT(complete_on_async_return_ != Object::null());
+  }
+  RawClass* async_star_stream_controller() const {
+    return async_star_stream_controller_;
+  }
+  void set_async_star_stream_controller(const Class& cls) {
+    async_star_stream_controller_ = cls.raw();
+    ASSERT(async_star_stream_controller_ != Object::null());
+  }
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -564,6 +578,8 @@ class ObjectStore {
   V(RawFunction*, async_clear_thread_stack_trace_)                             \
   V(RawFunction*, async_set_thread_stack_trace_)                               \
   V(RawFunction*, async_star_move_next_helper_)                                \
+  V(RawFunction*, complete_on_async_return_)                                   \
+  V(RawClass*, async_star_stream_controller_)                                  \
   V(RawArray*, library_load_error_table_)                                      \
   V(RawArray*, unique_dynamic_targets_)                                        \
   V(RawGrowableObjectArray*, token_objects_)                                   \

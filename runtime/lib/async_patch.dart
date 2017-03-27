@@ -242,6 +242,10 @@ class _StreamImpl<T> {
   Function _generator;
 }
 
+void _completeOnAsyncReturn(Object completer, Object value) {
+  completer.complete(value);
+}
+
 /// Returns a [StackTrace] object containing the synchronous prefix for this
 /// asynchronous method.
 Object _asyncStackTraceHelper(Function async_op)

@@ -1591,37 +1591,6 @@ void Debugger::Shutdown() {
 
 
 void Debugger::OnIsolateRunnable() {
-  if (!FLAG_async_debugger_stepping) {
-    // We don't have async debugger stepping enabled.
-    return;
-  }
-  Thread::EnterIsolate(isolate_);
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  {
-    StackZone zone(thread);
-    HandleScope handle_scope(thread);
-
-    const Library& async_lib =
-        Library::Handle(zone.GetZone(), Library::AsyncLibrary());
-    // Grab the _AsyncStarStreamController class.
-    const Class& controller_class = Class::Handle(
-        zone.GetZone(), async_lib.LookupClassAllowPrivate(
-                            Symbols::_AsyncStarStreamController()));
-    const Array& functions =
-        Array::Handle(zone.GetZone(), controller_class.functions());
-    Function& function = Function::Handle(zone.GetZone());
-    // Mark all functions as not debuggable or inlinable.
-    for (intptr_t i = 0; i < functions.Length(); i++) {
-      function ^= functions.At(i);
-      if (function.IsNull()) {
-        break;
-      }
-      function.set_is_debuggable(false);
-      function.set_is_inlinable(false);
-    }
-  }
-  Thread::ExitIsolate();
 }
 
 

@@ -124,6 +124,7 @@ class ObjectPointerVisitor;
   V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
   V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
+  V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
   V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
   V(AsyncErrorWrapperHelper, "_asyncErrorWrapperHelper")                       \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
