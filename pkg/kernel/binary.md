@@ -660,6 +660,29 @@ type CheckLibraryIsLoaded extends Expression {
   DeferredImportReference import;
 }
 
+type VectorCreation extends Expression {
+  Byte tag = 102;
+  UInt length;
+}
+
+type VectorGet extends Expression {
+  Byte tag = 103;
+  Expression vectorExpression;
+  UInt index;
+}
+
+type VectorSet extends Expression {
+  Byte tag = 104;
+  Expression vectorExpression;
+  UInt index;
+  Expression value;
+}
+
+type VectorCopy extends Expression {
+  Byte tag = 105;
+  Expression vectorExpression;
+}
+
 abstract type Statement extends Node {}
 
 type InvalidStatement extends Statement {
@@ -914,6 +937,10 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
+}
+
+type VectorType extends DartType {
+  Byte tag = 88;
 }
 
 type TypeParameter {

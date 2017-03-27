@@ -54,6 +54,10 @@ abstract class ExpressionVisitor<R> {
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
+  R visitVectorCreation(VectorCreation node) => defaultExpression(node);
+  R visitVectorGet(VectorGet node) => defaultExpression(node);
+  R visitVectorSet(VectorSet node) => defaultExpression(node);
+  R visitVectorCopy(VectorCopy node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -161,6 +165,10 @@ class TreeVisitor<R>
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
+  R visitVectorCreation(VectorCreation node) => defaultExpression(node);
+  R visitVectorGet(VectorGet node) => defaultExpression(node);
+  R visitVectorSet(VectorSet node) => defaultExpression(node);
+  R visitVectorCopy(VectorCopy node) => defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
@@ -229,6 +237,7 @@ class DartTypeVisitor<R> {
   R visitVoidType(VoidType node) => defaultDartType(node);
   R visitBottomType(BottomType node) => defaultDartType(node);
   R visitInterfaceType(InterfaceType node) => defaultDartType(node);
+  R visitVectorType(VectorType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
 }
@@ -257,6 +266,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitVoidType(VoidType node) => defaultDartType(node);
   R visitBottomType(BottomType node) => defaultDartType(node);
   R visitInterfaceType(InterfaceType node) => defaultDartType(node);
+  R visitVectorType(VectorType node) => defaultDartType(node);
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
 
@@ -380,6 +390,11 @@ abstract class ExpressionVisitor1<R> {
   R visitLoadLibrary(LoadLibrary node, arg) => defaultExpression(node, arg);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, arg) =>
       defaultExpression(node, arg);
+  R visitVectorCreation(VectorCreation node, arg) =>
+      defaultExpression(node, arg);
+  R visitVectorGet(VectorGet node, arg) => defaultExpression(node, arg);
+  R visitVectorSet(VectorSet node, arg) => defaultExpression(node, arg);
+  R visitVectorCopy(VectorCopy node, arg) => defaultExpression(node, arg);
 }
 
 abstract class StatementVisitor1<R> {

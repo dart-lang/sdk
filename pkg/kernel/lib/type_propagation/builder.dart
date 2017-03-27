@@ -1802,6 +1802,11 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
     return builder.nullNode;
   }
 
+  int visitVectorType(VectorType node) {
+    throw "Internal error: CovariantExternalTypeVisitor encountered VectorType "
+        "in native method signature";
+  }
+
   int visitInterfaceType(InterfaceType node) {
     int object = builder.getExternalInstanceVariable(node.classNode);
     for (int i = 0; i < node.typeArguments.length; ++i) {
@@ -1908,6 +1913,8 @@ class ContravariantExternalTypeVisitor extends DartTypeVisitor<Null> {
   visitDynamicType(DynamicType node) {}
 
   visitVoidType(VoidType node) {}
+
+  visitVectorType(VectorType node) {}
 
   visitInterfaceType(InterfaceType node) {
     int escapePoint = builder.getInterfaceEscapeVariable(node.classNode);

@@ -13,30 +13,28 @@ abstract class AstRewriter {
   /// The declared variable that holds the context.
   VariableDeclaration contextDeclaration;
 
-  /// The expression used to initialize the size of the context stored in
-  /// [contextDeclaration]. This expression is modified when the context is
-  /// extended.
-  IntLiteral contextSize;
+  /// Expression that is used to initialize the vector representing the context.
+  /// It's [length] field is modified by the [extend] operation
+  VectorCreation vectorCreation;
 
   /// Creates a new [AstRewriter] for a (nested) [Block].
   BlockRewriter forNestedBlock(Block block);
 
   /// Inserts an allocation of a context and initializes [contextDeclaration]
-  /// and [contextSize].
-  void insertContextDeclaration(Class contextClass, Expression accessParent);
+  /// and [vectorCreation].
+  void insertContextDeclaration(Expression accessParent);
 
-  /// Inserts an expression or statement that extends the context, where
-  /// [arguments] holds a pair of the new index and the initial value.
-  void insertExtendContext(Expression accessContext, Arguments arguments);
+  /// Inserts an expression or statement that extends the context.
+  void insertExtendContext(VectorSet extender);
 
-  void _createDeclaration(Class contextClass) {
-    assert(contextDeclaration == null && contextSize == null);
+  void _createDeclaration() {
+    assert(contextDeclaration == null && vectorCreation == null);
 
-    contextSize = new IntLiteral(0);
-    contextDeclaration = new VariableDeclaration.forValue(
-        new ConstructorInvocation(contextClass.constructors.first,
-            new Arguments(<Expression>[contextSize])),
-        type: new InterfaceType(contextClass));
+    // Context size is set to 1 initially, because the 0-th element of it works
+    // as a link to the parent context.
+    vectorCreation = new VectorCreation(1);
+    contextDeclaration = new VariableDeclaration.forValue(vectorCreation,
+        type: new VectorType());
     contextDeclaration.name = "#context";
   }
 }
@@ -72,20 +70,18 @@ class BlockRewriter extends AstRewriter {
     statement.parent = _currentBlock;
   }
 
-  void insertContextDeclaration(Class contextClass, Expression accessParent) {
-    _createDeclaration(contextClass);
+  void insertContextDeclaration(Expression accessParent) {
+    _createDeclaration();
     _insertStatement(contextDeclaration);
     if (accessParent is! NullLiteral) {
-      _insertStatement(new ExpressionStatement(new PropertySet(
-          new VariableGet(contextDeclaration),
-          new Name('parent'),
-          accessParent)));
+      // Index 0 of a context always points to the parent.
+      _insertStatement(new ExpressionStatement(
+          new VectorSet(new VariableGet(contextDeclaration), 0, accessParent)));
     }
   }
 
-  void insertExtendContext(Expression accessContext, Arguments arguments) {
-    _insertStatement(new ExpressionStatement(
-        new MethodInvocation(accessContext, new Name('[]='), arguments)));
+  void insertExtendContext(VectorSet extender) {
+    _insertStatement(new ExpressionStatement(extender));
   }
 }
 
@@ -104,8 +100,8 @@ class InitializerRewriter extends AstRewriter {
   }
 
   @override
-  void insertContextDeclaration(Class contextClass, Expression accessParent) {
-    _createDeclaration(contextClass);
+  void insertContextDeclaration(Expression accessParent) {
+    _createDeclaration();
     FieldInitializer parent = initializingExpression.parent;
     Let binding = new Let(contextDeclaration, initializingExpression);
     initializingExpression.parent = binding;
@@ -114,12 +110,9 @@ class InitializerRewriter extends AstRewriter {
   }
 
   @override
-  void insertExtendContext(Expression accessContext, Arguments arguments) {
-    Expression extendContext =
-        new MethodInvocation(accessContext, new Name('[]='), arguments);
+  void insertExtendContext(VectorSet extender) {
     Let parent = initializingExpression.parent;
-    Let binding = new Let(
-        new VariableDeclaration(null, initializer: extendContext),
+    Let binding = new Let(new VariableDeclaration(null, initializer: extender),
         initializingExpression);
     parent.body = binding;
     binding.parent = parent;

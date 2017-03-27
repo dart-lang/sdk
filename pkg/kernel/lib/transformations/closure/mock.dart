@@ -48,6 +48,7 @@ import '../../frontend/accessors.dart'
         ThisPropertyAccessor,
         VariableAccessor;
 
+/// TODO(dmitryas): make the "[]=" operator return the value.
 /// Extend the program with this mock:
 ///
 ///     class Context {

@@ -52,6 +52,7 @@ import '../../ast.dart'
         VariableDeclaration,
         VariableGet,
         VariableSet,
+        VectorType,
         transformList;
 
 import '../../frontend/accessors.dart' show VariableAccessor;
@@ -263,7 +264,7 @@ class ClosureConverter extends Transformer {
 
     VariableDeclaration contextVariable = new VariableDeclaration(
         "#contextParameter",
-        type: contextClass.rawType,
+        type: const VectorType(),
         isFinal: true);
     Context parent = context;
     context = context.toNestedContext(
@@ -315,13 +316,13 @@ class ClosureConverter extends Transformer {
   /// Add a new class to the current library that looks like this:
   ///
   ///     class Closure#0 extends core::Object implements core::Function {
-  ///       field _in::Context context;
-  ///       constructor •(final _in::Context #t1) → dynamic
-  ///         : self::Closure 0::context = #t1
+  ///       field Vector context;
+  ///       constructor •(final Vector #t1) → dynamic
+  ///         : self::Closure#0::context = #t1
   ///         ;
   ///       method call(/* The parameters of [function] */) → dynamic {
   ///         /// #t2 is [contextVariable].
-  ///         final _in::Context #t2 = this.{self::Closure#0::context};
+  ///         final Vector #t2 = this.{self::Closure#0::context};
   ///         /* The body of [function]. */
   ///       }
   ///     }
@@ -340,7 +341,7 @@ class ClosureConverter extends Transformer {
     Field contextField = new Field(
         // TODO(ahe): Rename to #context.
         new Name("context"),
-        type: contextClass.rawType,
+        type: const VectorType(),
         fileUri: currentFileUri);
     Class closureClass = createClosureClass(function,
         fields: [contextField], substitution: substitution);

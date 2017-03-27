@@ -324,6 +324,8 @@ class IndexAccessor extends Accessor {
         setter)..fileOffset = offset;
   }
 
+  // TODO(dmitryas): remove this method after the "[]=" operator of the Context
+  // class is made to return a value.
   _makeWriteAndReturn(Expression value) {
     // The call to []= does not return the value like direct-style assignments
     // do.  We need to bind the value in a let.

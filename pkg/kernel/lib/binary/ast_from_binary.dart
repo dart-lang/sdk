@@ -827,6 +827,21 @@ class BinaryBuilder {
         var body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
+      case Tag.VectorCreation:
+        var length = readUInt();
+        return new VectorCreation(length);
+      case Tag.VectorGet:
+        var vectorExpression = readExpression();
+        var index = readUInt();
+        return new VectorGet(vectorExpression, index);
+      case Tag.VectorSet:
+        var vectorExpression = readExpression();
+        var index = readUInt();
+        var value = readExpression();
+        return new VectorSet(vectorExpression, index, value);
+      case Tag.VectorCopy:
+        var vectorExpression = readExpression();
+        return new VectorCopy(vectorExpression);
       default:
         throw fail('Invalid expression tag: $tag');
     }
@@ -1010,6 +1025,8 @@ class BinaryBuilder {
   DartType readDartType() {
     int tag = readByte();
     switch (tag) {
+      case Tag.VectorType:
+        return const VectorType();
       case Tag.BottomType:
         return const BottomType();
       case Tag.InvalidType:

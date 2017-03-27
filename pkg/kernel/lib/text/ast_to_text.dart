@@ -455,6 +455,10 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  visitVectorType(VectorType type) {
+    writeWord('Vector');
+  }
+
   void writeModifier(bool isThere, String name) {
     if (isThere) {
       writeWord(name);
@@ -1015,6 +1019,36 @@ class Printer extends Visitor<Null> {
     writeWord(node.import.name);
     writeSymbol(')');
     state = WORD;
+  }
+
+  visitVectorCreation(VectorCreation node) {
+    writeWord('MakeVector');
+    writeSymbol('(');
+    writeWord(node.length.toString());
+    writeSymbol(')');
+  }
+
+  visitVectorGet(VectorGet node) {
+    writeExpression(node.vectorExpression);
+    writeSymbol('[');
+    writeWord(node.index.toString());
+    writeSymbol(']');
+  }
+
+  visitVectorSet(VectorSet node) {
+    writeExpression(node.vectorExpression);
+    writeSymbol('[');
+    writeWord(node.index.toString());
+    writeSymbol(']');
+    writeSpaced('=');
+    writeExpression(node.value);
+  }
+
+  visitVectorCopy(VectorCopy node) {
+    writeWord('CopyVector');
+    writeSymbol('(');
+    writeExpression(node.vectorExpression);
+    writeSymbol(')');
   }
 
   visitDeferredImport(DeferredImport node) {

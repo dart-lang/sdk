@@ -741,6 +741,29 @@ class BinaryPrinter extends Visitor {
     writeDeferredImportReference(node.import);
   }
 
+  visitVectorCreation(VectorCreation node) {
+    writeByte(Tag.VectorCreation);
+    writeUInt30(node.length);
+  }
+
+  visitVectorGet(VectorGet node) {
+    writeByte(Tag.VectorGet);
+    writeNode(node.vectorExpression);
+    writeUInt30(node.index);
+  }
+
+  visitVectorSet(VectorSet node) {
+    writeByte(Tag.VectorSet);
+    writeNode(node.vectorExpression);
+    writeUInt30(node.index);
+    writeNode(node.value);
+  }
+
+  visitVectorCopy(VectorCopy node) {
+    writeByte(Tag.VectorCopy);
+    writeNode(node.vectorExpression);
+  }
+
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
@@ -986,6 +1009,10 @@ class BinaryPrinter extends Visitor {
   visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
+  }
+
+  visitVectorType(VectorType node) {
+    writeByte(Tag.VectorType);
   }
 
   visitTypeParameter(TypeParameter node) {
