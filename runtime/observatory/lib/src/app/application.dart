@@ -153,6 +153,7 @@ class ObservatoryApplication {
   void _registerPages() {
     _pageRegistry.add(new VMPage(this));
     _pageRegistry.add(new FlagsPage(this));
+    _pageRegistry.add(new NativeMemoryProfilerPage(this));
     _pageRegistry.add(new InspectPage(this));
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new DebuggerPage(this));

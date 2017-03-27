@@ -316,6 +316,9 @@ bool SampleFilter::TimeFilterSample(Sample* sample) {
 
 bool SampleFilter::TaskFilterSample(Sample* sample) {
   const intptr_t task = static_cast<intptr_t>(sample->thread_task());
+  if (thread_task_mask_ == kNoTaskFilter) {
+    return true;
+  }
   return (task & thread_task_mask_) != 0;
 }
 
@@ -938,12 +941,11 @@ static Sample* SetupSampleNative(SampleBuffer* sample_buffer, ThreadId tid) {
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(ILLEGAL_PORT, OS::GetCurrentMonotonicMicros(), tid);
   sample->set_is_native_allocation_sample(true);
-
   Thread* thread = Thread::Current();
 
-  // TODO(bkonyi) Any samples created while a current thread doesn't exist are
-  // ignored by the NativeAllocationSampleFilter since the default task is
-  // kUnknownTask. Is this what we want to do?
+  // Note: setting thread task in order to be consistent with other samples. The
+  // task kind is not used by NativeAllocationSampleFilter for filtering
+  // purposes as some samples may be collected when no thread exists.
   if (thread != NULL) {
     sample->set_thread_task(thread->task_kind());
   }
@@ -1092,7 +1094,9 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 }
 
 
-Sample* Profiler::SampleNativeAllocation(intptr_t skip_count) {
+Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
+                                         uword address,
+                                         uintptr_t allocation_size) {
   SampleBuffer* sample_buffer = Profiler::sample_buffer();
   if (sample_buffer == NULL) {
     return NULL;
@@ -1122,9 +1126,13 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count) {
 
   OSThread* os_thread = OSThread::Current();
   Sample* sample = SetupSampleNative(sample_buffer, os_thread->trace_id());
+  sample->set_native_allocation_address(address);
+  sample->set_native_allocation_size_bytes(allocation_size);
+
   ProfilerNativeStackWalker native_stack_walker(
       ILLEGAL_PORT, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp,
       skip_count);
+
   native_stack_walker.walk();
   return sample;
 }
@@ -1457,6 +1465,8 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
   ProcessedSample* processed_sample = new (zone) ProcessedSample();
 
   // Copy state bits from sample.
+  processed_sample->set_native_allocation_size_bytes(
+      sample->native_allocation_size_bytes());
   processed_sample->set_timestamp(sample->timestamp());
   processed_sample->set_tid(sample->tid());
   processed_sample->set_vm_tag(sample->vm_tag());

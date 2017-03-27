@@ -156,10 +156,14 @@ VM_UNIT_TEST_CASE(StackTraceMallocHookLengthTest) {
   if (!(first_result && second_result)) {
     OS::PrintErr(
         "If this test is failing, it's likely that the value set for"
-        "the number of frames to skip in malloc_hooks.cc is "
+        " the number of frames to skip in malloc_hooks.cc is "
         "incorrect for this configuration/platform. This value can be"
         " found in malloc_hooks.cc in the AllocationInfo class, and "
-        "is stored in the kSkipCount constant.");
+        "is stored in the kSkipCount constant.\n");
+    OS::PrintErr("First result: %d Second Result: %d\n", first_result,
+                 second_result);
+    OS::PrintErr("Dumping sample stack trace:\n");
+    sample->DumpStackTrace();
   }
 
   free(var);
