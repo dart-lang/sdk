@@ -716,11 +716,10 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = node.element;
+    var supertype = element.supertype;
 
     // Forward all generative constructors from the base class.
     var methods = <JS.Method>[];
-
-    var supertype = element.supertype;
     if (!supertype.isObject) {
       for (var ctor in element.constructors) {
         var parentCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
@@ -740,14 +739,45 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
     }
 
-    var classExpr = _emitClassExpression(element, methods);
-
     var typeFormals = element.typeParameters;
-    if (typeFormals.isNotEmpty) {
+    var isGeneric = typeFormals.isNotEmpty;
+    var className = isGeneric ? element.name : _emitTopLevelName(element);
+    JS.Statement declareInterfaces(JS.Statement decl) {
+      if (element.interfaces.isNotEmpty) {
+        var body = [decl]
+          ..add(js.statement('#[#.implements] = () => #;', [
+            className,
+            _runtimeModule,
+            new JS.ArrayInitializer(
+                new List<JS.Expression>.from(element.interfaces.map(_emitType)))
+          ]));
+        decl = _statement(body);
+      }
+      return decl;
+    }
+
+    if (supertype.isObject && element.mixins.length == 1) {
+      // Special case where supertype is Object, and we mixin a single class.
+      // The resulting 'class' is a mixable class in this case.
+      var classExpr = _emitClassHeritage(element);
+      if (isGeneric) {
+        var classStmt = js.statement('const # = #;', [className, classExpr]);
+        return _defineClassTypeArguments(
+            element, typeFormals, declareInterfaces(classStmt));
+      } else {
+        var classStmt = js.statement('# = #;', [className, classExpr]);
+        return declareInterfaces(classStmt);
+      }
+    }
+
+    var classExpr = _emitClassExpression(element, methods);
+    if (isGeneric) {
+      var classStmt = new JS.ClassDeclaration(classExpr);
       return _defineClassTypeArguments(
-          element, typeFormals, new JS.ClassDeclaration(classExpr));
+          element, typeFormals, declareInterfaces(classStmt));
     } else {
-      return js.statement('# = #;', [_emitTopLevelName(element), classExpr]);
+      var classStmt = js.statement('# = #;', [className, classExpr]);
+      return declareInterfaces(classStmt);
     }
   }
 
