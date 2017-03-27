@@ -83,6 +83,16 @@ class SimpleExpressionConverter : public ExpressionVisitor {
 };
 
 
+RawArray* KernelReader::MakeFunctionsArray() {
+  const intptr_t len = functions_.length();
+  const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
+  for (intptr_t i = 0; i < len; i++) {
+    res.SetAt(i, *functions_[i]);
+  }
+  return res.raw();
+}
+
+
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     CanonicalName* library) {
   return reader_->LookupLibrary(library).raw();
@@ -169,6 +179,8 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
+  fields_.Clear();
+  functions_.Clear();
   ActiveClassScope active_class_scope(&active_class_, NULL, &toplevel_class);
   // Load toplevel fields.
   for (intptr_t i = 0; i < kernel_library->fields().length(); i++) {
@@ -187,15 +199,18 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
     field.SetFieldType(type);
     field.set_has_initializer(kernel_field->initializer() != NULL);
     GenerateFieldAccessors(toplevel_class, field, kernel_field);
-    toplevel_class.AddField(field);
+    fields_.Add(&field);
     library.AddObject(field, name);
   }
+  toplevel_class.AddFields(fields_);
 
   // Load toplevel procedures.
   for (intptr_t i = 0; i < kernel_library->procedures().length(); i++) {
     Procedure* kernel_procedure = kernel_library->procedures()[i];
     ReadProcedure(library, toplevel_class, kernel_procedure);
   }
+
+  toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
 
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(I->object_store()->pending_classes());
@@ -302,6 +317,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   }
 
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
+  fields_.Clear();
+  functions_.Clear();
 
   if (library.raw() == dart::Library::InternalLibrary() &&
       klass.Name() == Symbols::ClassID().raw()) {
@@ -332,8 +349,9 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
       field.set_kernel_field(kernel_field);
       field.set_has_initializer(kernel_field->initializer() != NULL);
       GenerateFieldAccessors(klass, field, kernel_field);
-      klass.AddField(field);
+      fields_.Add(&field);
     }
+    klass.AddFields(fields_);
   }
 
   for (intptr_t i = 0; i < kernel_klass->constructors().length(); i++) {
@@ -352,7 +370,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                false,  // is_native
                                klass, kernel_constructor->position()));
     function.set_end_token_pos(kernel_constructor->end_position());
-    klass.AddFunction(function);
+    functions_.Add(&function);
     function.set_kernel_function(kernel_constructor);
     function.set_result_type(T.ReceiverType(klass));
     SetupFunctionParameters(H, T, klass, function,
@@ -371,6 +389,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     ActiveMemberScope active_member_scope(&active_class_, kernel_procedure);
     ReadProcedure(library, klass, kernel_procedure, kernel_klass);
   }
+
+  klass.SetFunctions(Array::Handle(MakeFunctionsArray()));
 
   if (!klass.is_marked_for_parsing()) {
     klass.set_is_marked_for_parsing();
@@ -440,7 +460,7 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        native_name != NULL,  // is_native
                        script_class, kernel_procedure->position()));
   function.set_end_token_pos(kernel_procedure->end_position());
-  owner.AddFunction(function);
+  functions_.Add(&function);
   function.set_kernel_function(kernel_procedure);
 
   function.set_is_debuggable(
@@ -629,7 +649,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_external
           false,  // is_native
           script_class, kernel_field->position()));
-  klass.AddFunction(getter);
+  functions_.Add(&getter);
   getter.set_end_token_pos(kernel_field->end_position());
   getter.set_kernel_function(kernel_field);
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
@@ -648,7 +668,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          false,  // is_external
                          false,  // is_native
                          script_class, kernel_field->position()));
-    klass.AddFunction(setter);
+    functions_.Add(&setter);
     setter.set_end_token_pos(kernel_field->end_position());
     setter.set_kernel_function(kernel_field);
     setter.set_result_type(Object::void_type());

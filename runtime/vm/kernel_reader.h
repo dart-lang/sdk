@@ -78,6 +78,8 @@ class KernelReader {
                      Procedure* procedure,
                      Class* kernel_klass = NULL);
 
+  RawArray* MakeFunctionsArray();
+
   // If klass's script is not the script at the uri index, return a PatchClass
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
@@ -109,6 +111,9 @@ class KernelReader {
 
   Mapping<CanonicalName, dart::Library> libraries_;
   Mapping<CanonicalName, dart::Class> classes_;
+
+  GrowableArray<const dart::Function*> functions_;
+  GrowableArray<const dart::Field*> fields_;
 };
 
 }  // namespace kernel
