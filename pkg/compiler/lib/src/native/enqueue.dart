@@ -104,7 +104,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     library.implementation.forEachLocalMember((Element element) {
       if (element.isClass) {
         ClassElement cls = element;
-        if (backend.nativeBaseData.isNativeClass(cls)) {
+        if (backend.nativeBasicData.isNativeClass(cls)) {
           processNativeClass(element);
         }
       }
@@ -145,7 +145,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     // fact a subclass of a native class.
 
     ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (backend.nativeBaseData.isNativeClass(classElement))
+      if (backend.nativeBasicData.isNativeClass(classElement))
         return classElement;
       if (classElement.superclass == null) return null;
       return nativeSuperclassOf(classElement.superclass);
@@ -367,11 +367,11 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     super.processNativeClass(classElement);
 
     // Js Interop interfaces do not have tags.
-    if (backend.nativeBaseData.isJsInteropClass(classElement)) return;
+    if (backend.nativeBasicData.isJsInteropClass(classElement)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
     for (String tag
-        in backend.nativeBaseData.getNativeTagsOfClass(classElement)) {
+        in backend.nativeBasicData.getNativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
         if (owner != classElement) {

@@ -133,7 +133,7 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       backend.helpers,
       backend.impacts,
       backend.backendClasses,
-      backend.nativeBaseData,
+      backend.nativeBasicData,
       backend.interceptorDataBuilder,
       backend.backendUsageBuilder,
       backend.rtiNeedBuilder,

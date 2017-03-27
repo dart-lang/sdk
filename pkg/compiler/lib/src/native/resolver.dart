@@ -43,7 +43,7 @@ class NativeDataResolverImpl implements NativeDataResolver {
 
   JavaScriptBackend get _backend => _compiler.backend;
   DiagnosticReporter get _reporter => _compiler.reporter;
-  NativeBasicData get _nativeBaseData => _backend.nativeBaseData;
+  NativeBasicData get _nativeBasicData => _backend.nativeBasicData;
   NativeDataBuilder get _nativeDataBuilder => _backend.nativeDataBuilder;
 
   @override
@@ -57,9 +57,9 @@ class NativeDataResolverImpl implements NativeDataResolver {
     // NativeData.isJsInterop.
     if (!isJsInterop && element is MethodElement && element.isExternal) {
       if (element.enclosingClass != null) {
-        isJsInterop = _nativeBaseData.isJsInteropClass(element.enclosingClass);
+        isJsInterop = _nativeBasicData.isJsInteropClass(element.enclosingClass);
       } else {
-        isJsInterop = _nativeBaseData.isJsInteropLibrary(element.library);
+        isJsInterop = _nativeBasicData.isJsInteropLibrary(element.library);
       }
     }
     return isJsInterop;
@@ -108,7 +108,7 @@ class NativeDataResolverImpl implements NativeDataResolver {
       return false;
     }
     if (element.isInstanceMember &&
-        _backend.nativeBaseData.isNativeClass(element.enclosingClass)) {
+        _backend.nativeBasicData.isNativeClass(element.enclosingClass)) {
       // Exclude non-instance (static) fields - they are not really native and
       // are compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
@@ -157,7 +157,7 @@ class NativeDataResolverImpl implements NativeDataResolver {
     if (name == null) name = element.name;
     if (_isIdentifier(name)) {
       List<String> nativeNames =
-          _nativeBaseData.getNativeTagsOfClass(element.enclosingClass);
+          _nativeBasicData.getNativeTagsOfClass(element.enclosingClass);
       if (nativeNames.length != 1) {
         _reporter.internalError(
             element,
@@ -222,17 +222,17 @@ class NativeDataResolverImpl implements NativeDataResolver {
 /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
 /// native name from the annotation.
 checkNativeAnnotation(Compiler compiler, ClassElement cls,
-    NativeBasicDataBuilder nativeBaseDataBuilder) {
+    NativeBasicDataBuilder nativeBasicDataBuilder) {
   EagerAnnotationHandler.checkAnnotation(
-      compiler, cls, new NativeAnnotationHandler(nativeBaseDataBuilder));
+      compiler, cls, new NativeAnnotationHandler(nativeBasicDataBuilder));
 }
 
 /// Annotation handler for pre-resolution detection of `@Native(...)`
 /// annotations.
 class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
-  final NativeBasicDataBuilder _nativeBaseDataBuilder;
+  final NativeBasicDataBuilder _nativeBasicDataBuilder;
 
-  NativeAnnotationHandler(this._nativeBaseDataBuilder);
+  NativeAnnotationHandler(this._nativeBasicDataBuilder);
 
   String getNativeAnnotation(MetadataAnnotationX annotation) {
     if (annotation.beginToken != null &&
@@ -252,7 +252,7 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
       ClassElement cls = element;
       String native = getNativeAnnotation(annotation);
       if (native != null) {
-        _nativeBaseDataBuilder.setNativeClassTagInfo(cls, native);
+        _nativeBasicDataBuilder.setNativeClassTagInfo(cls, native);
         return native;
       }
     }
@@ -272,20 +272,20 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
 }
 
 void checkJsInteropClassAnnotations(Compiler compiler, LibraryElement library,
-    NativeBasicDataBuilder nativeBaseDataBuilder) {
+    NativeBasicDataBuilder nativeBasicDataBuilder) {
   bool checkJsInteropAnnotation(Element element) {
     return EagerAnnotationHandler.checkAnnotation(
         compiler, element, const JsInteropAnnotationHandler());
   }
 
   if (checkJsInteropAnnotation(library)) {
-    nativeBaseDataBuilder.markAsJsInteropLibrary(library);
+    nativeBasicDataBuilder.markAsJsInteropLibrary(library);
   }
   library.forEachLocalMember((Element element) {
     if (element.isClass) {
       ClassElement cls = element;
       if (checkJsInteropAnnotation(element)) {
-        nativeBaseDataBuilder.markAsJsInteropClass(cls);
+        nativeBasicDataBuilder.markAsJsInteropClass(cls);
       }
     }
   });

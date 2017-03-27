@@ -47,8 +47,8 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
 
   JavaScriptBackend backend1 = compiler1.backend;
   JavaScriptBackend backend2 = compiler2.backend;
-  NativeBasicDataImpl nativeBaseData1 = backend1.nativeBaseData;
-  NativeBasicDataImpl nativeBaseData2 = backend2.nativeBaseData;
+  NativeBasicDataImpl nativeBasicData1 = backend1.nativeBasicData;
+  NativeBasicDataImpl nativeBasicData2 = backend2.nativeBasicData;
   NativeDataImpl nativeData1 = backend1.nativeData;
   NativeDataImpl nativeData2 = backend2.nativeData;
 
@@ -73,8 +73,8 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
       verbose: verbose);
 
   checkMaps(
-      nativeBaseData1.nativeClassTagInfo,
-      nativeBaseData2.nativeClassTagInfo,
+      nativeBasicData1.nativeClassTagInfo,
+      nativeBasicData2.nativeClassTagInfo,
       "NativeData.nativeClassTagInfo",
       areElementsEquivalent,
       equality,

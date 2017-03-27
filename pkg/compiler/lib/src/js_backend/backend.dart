@@ -387,11 +387,11 @@ class JavaScriptBackend {
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsResolutionAnalysis customElementsResolutionAnalysis;
+  CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsCodegenAnalysis customElementsCodegenAnalysis;
+  CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
   /// Resolution support for tree-shaking entries of `LookupMap`.
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
@@ -432,10 +432,10 @@ class JavaScriptBackend {
   JavaScriptBackendSerialization serialization;
 
   NativeDataImpl _nativeData;
-  final NativeBasicDataImpl _nativeBaseData = new NativeBasicDataImpl();
-  NativeBasicData get nativeBaseData => _nativeBaseData;
+  final NativeBasicDataBuilderImpl _nativeBasicDataBuilder =
+      new NativeBasicDataBuilderImpl();
+  NativeBasicDataImpl _nativeBasicData;
   NativeData get nativeData => _nativeData;
-  NativeBasicDataBuilder get nativeBaseDataBuilder => _nativeBaseData;
   NativeDataBuilder get nativeDataBuilder => _nativeData;
   final NativeDataResolver _nativeDataResolver;
   InterceptorDataBuilder _interceptorDataBuilder;
@@ -453,7 +453,7 @@ class JavaScriptBackend {
   BackendImpacts impacts;
 
   /// Common classes used by the backend.
-  BackendClasses backendClasses;
+  BackendClasses _backendClasses;
 
   /// Backend access to the front-end.
   final JSFrontendAccess frontend;
@@ -501,12 +501,9 @@ class JavaScriptBackend {
         frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
-    _nativeData = new NativeDataImpl(nativeBaseData);
     _target = new JavaScriptBackendTarget(this);
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
-    backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, helpers, nativeBaseData);
     _mirrorsData = new MirrorsDataImpl(
         compiler, compiler.options, commonElements, helpers, constants);
     _backendUsageBuilder = new BackendUsageBuilderImpl(
@@ -520,21 +517,6 @@ class JavaScriptBackend {
 
     _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
         compiler.elementEnvironment, impacts, backendUsageBuilder);
-    customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
-        compiler.resolution,
-        constantSystem,
-        commonElements,
-        backendClasses,
-        helpers,
-        nativeBaseData,
-        backendUsageBuilder);
-    customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        compiler.resolution,
-        constantSystem,
-        commonElements,
-        backendClasses,
-        helpers,
-        nativeBaseData);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
         new MirrorsResolutionAnalysisImpl(this, compiler.resolution);
@@ -543,25 +525,10 @@ class JavaScriptBackend {
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     kernelTask = new KernelTask(compiler);
-    impactTransformer = new JavaScriptImpactTransformer(
-        compiler.options,
-        compiler.resolution,
-        compiler.elementEnvironment,
-        commonElements,
-        impacts,
-        nativeBaseData,
-        nativeResolutionEnqueuer,
-        backendUsageBuilder,
-        mirrorsDataBuilder,
-        customElementsResolutionAnalysis,
-        rtiNeedBuilder);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
-    serialization =
-        new JavaScriptBackendSerialization(nativeBaseData, nativeData);
-    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeBaseData, helpers, commonElements, compiler.resolution);
+    serialization = new JavaScriptBackendSerialization(this);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -575,6 +542,39 @@ class JavaScriptBackend {
   Resolution get resolution => compiler.resolution;
 
   Target get target => _target;
+
+  /// Resolution support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsResolutionAnalysis get customElementsResolutionAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _customElementsResolutionAnalysis != null,
+        message: "CustomElementsResolutionAnalysis has not been created yet."));
+    return _customElementsResolutionAnalysis;
+  }
+
+  /// Codegen support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _customElementsCodegenAnalysis != null,
+        message: "CustomElementsCodegenAnalysis has not been created yet."));
+    return _customElementsCodegenAnalysis;
+  }
+
+  /// Common classes used by the backend.
+  BackendClasses get backendClasses {
+    assert(invariant(NO_LOCATION_SPANNABLE, _backendClasses != null,
+        message: "BackendClasses has not been created yet."));
+    return _backendClasses;
+  }
+
+  NativeBasicData get nativeBasicData {
+    assert(invariant(NO_LOCATION_SPANNABLE, _nativeBasicData != null,
+        message: "NativeBasicData has not been computed yet."));
+    return _nativeBasicData;
+  }
+
+  NativeBasicDataBuilder get nativeBasicDataBuilder => _nativeBasicDataBuilder;
 
   /// Resolution analysis for tracking reflective access to type variables.
   TypeVariableResolutionAnalysis get typeVariableResolutionAnalysis {
@@ -889,6 +889,32 @@ class JavaScriptBackend {
 
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
+    _nativeBasicData = nativeBasicDataBuilder.close();
+    _nativeData = new NativeDataImpl(nativeBasicData);
+    _backendClasses = new JavaScriptBackendClasses(
+        compiler.elementEnvironment, helpers, nativeBasicData);
+    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
+        compiler.resolution,
+        constantSystem,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeBasicData,
+        backendUsageBuilder);
+    impactTransformer = new JavaScriptImpactTransformer(
+        compiler.options,
+        compiler.resolution,
+        compiler.elementEnvironment,
+        commonElements,
+        impacts,
+        nativeBasicData,
+        nativeResolutionEnqueuer,
+        backendUsageBuilder,
+        mirrorsDataBuilder,
+        customElementsResolutionAnalysis,
+        rtiNeedBuilder);
+    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
+        nativeBasicData, helpers, commonElements, compiler.resolution);
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -904,7 +930,7 @@ class JavaScriptBackend {
             helpers,
             impacts,
             backendClasses,
-            nativeBaseData,
+            nativeBasicData,
             _interceptorDataBuilder,
             _backendUsageBuilder,
             _rtiNeedBuilder,
@@ -935,12 +961,19 @@ class JavaScriptBackend {
         backendClasses,
         lookupMapResolutionAnalysis);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
+    _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
+        compiler.resolution,
+        constantSystem,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeBasicData);
     return new CodegenEnqueuer(
         task,
         compiler.options,
         const TreeShakingEnqueuerStrategy(),
         new CodegenWorldBuilderImpl(
-            nativeBaseData, closedWorld, constants, const TypeMaskStrategy()),
+            nativeBasicData, closedWorld, constants, const TypeMaskStrategy()),
         new CodegenWorkItemBuilder(this, compiler.options),
         new CodegenEnqueuerListener(
             compiler.elementEnvironment,
@@ -1033,11 +1066,11 @@ class JavaScriptBackend {
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   ClassElement defaultSuperclass(ClassElement element) {
-    if (nativeBaseData.isJsInteropClass(element)) {
+    if (nativeBasicData.isJsInteropClass(element)) {
       return helpers.jsJavaScriptObjectClass;
     }
     // Native classes inherit from Interceptor.
-    return nativeBaseData.isNativeClass(element)
+    return nativeBasicData.isNativeClass(element)
         ? helpers.jsInterceptorClass
         : commonElements.objectClass;
   }
@@ -1119,11 +1152,11 @@ class JavaScriptBackend {
       if (canLibraryUseNative(library)) {
         library.forEachLocalMember((Element element) {
           if (element.isClass) {
-            checkNativeAnnotation(compiler, element, nativeBaseDataBuilder);
+            checkNativeAnnotation(compiler, element, nativeBasicDataBuilder);
           }
         });
       }
-      checkJsInteropClassAnnotations(compiler, library, nativeBaseDataBuilder);
+      checkJsInteropClassAnnotations(compiler, library, nativeBasicDataBuilder);
     }
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
@@ -1579,7 +1612,7 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isNativeClass(ClassEntity element) =>
-      _backend.nativeBaseData.isNativeClass(element);
+      _backend.nativeBasicData.isNativeClass(element);
 
   @override
   bool isForeign(Element element) => _backend.isForeign(element);

@@ -41,7 +41,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
-  final NativeBasicData _nativeBaseData;
+  final NativeBasicData _nativeBasicData;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final BackendUsageBuilder _backendUsageBuider;
   final MirrorsDataBuilder _mirrorsDataBuilder;
@@ -54,7 +54,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._elementEnvironment,
       this._commonElements,
       this._impacts,
-      this._nativeBaseData,
+      this._nativeBasicData,
       this._nativeResolutionEnqueuer,
       this._backendUsageBuider,
       this._mirrorsDataBuilder,
@@ -327,7 +327,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       registerImpact(_impacts.functionTypeCheck);
     }
     if (type is ResolutionInterfaceType &&
-        _nativeBaseData.isNativeClass(type.element)) {
+        _nativeBasicData.isNativeClass(type.element)) {
       registerImpact(_impacts.nativeTypeCheck);
     }
   }
