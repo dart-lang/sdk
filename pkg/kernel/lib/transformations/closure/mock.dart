@@ -34,6 +34,7 @@ import '../../ast.dart'
         Statement,
         StaticInvocation,
         Supertype,
+        TreeNode,
         VariableDeclaration,
         VariableGet;
 
@@ -72,13 +73,13 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
   ///     final List list;
   Field listField = new Field(new Name("list"),
       type: coreTypes.listClass.rawType, isFinal: true, fileUri: fileUri);
-  Accessor listFieldAccessor =
-      new ThisPropertyAccessor(listField.name, listField, null);
+  Accessor listFieldAccessor = new ThisPropertyAccessor(
+      listField.name, listField, null, TreeNode.noOffset);
 
   ///     var parent;
   Field parentField = new Field(new Name("parent"), fileUri: fileUri);
-  Accessor parentFieldAccessor =
-      new ThisPropertyAccessor(parentField.name, parentField, parentField);
+  Accessor parentFieldAccessor = new ThisPropertyAccessor(
+      parentField.name, parentField, parentField, TreeNode.noOffset);
 
   List<Field> fields = <Field>[listField, parentField];
 
@@ -100,7 +101,8 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
             new StaticInvocation(
                 listConstructor,
                 new Arguments(<Expression>[
-                  new VariableAccessor(iParameter).buildSimpleRead(),
+                  new VariableAccessor(iParameter, null, TreeNode.noOffset)
+                      .buildSimpleRead(),
                   new NullLiteral(),
                 ], types: <DartType>[
                   const DynamicType()
@@ -110,8 +112,12 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
   ///     operator[] (int i) => list[i];
   iParameter = new VariableDeclaration("i",
       type: coreTypes.intClass.rawType, isFinal: true);
-  Accessor accessor = IndexAccessor.make(listFieldAccessor.buildSimpleRead(),
-      new VariableAccessor(iParameter).buildSimpleRead(), null, null);
+  Accessor accessor = IndexAccessor.make(
+      listFieldAccessor.buildSimpleRead(),
+      new VariableAccessor(iParameter, null, TreeNode.noOffset)
+          .buildSimpleRead(),
+      null,
+      null);
   Procedure indexGet = new Procedure(
       new Name("[]"),
       ProcedureKind.Operator,
@@ -126,10 +132,15 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
       type: coreTypes.intClass.rawType, isFinal: true);
   VariableDeclaration valueParameter =
       new VariableDeclaration("value", isFinal: true);
-  accessor = IndexAccessor.make(listFieldAccessor.buildSimpleRead(),
-      new VariableAccessor(iParameter).buildSimpleRead(), null, null);
+  accessor = IndexAccessor.make(
+      listFieldAccessor.buildSimpleRead(),
+      new VariableAccessor(iParameter, null, TreeNode.noOffset)
+          .buildSimpleRead(),
+      null,
+      null);
   Expression expression = accessor.buildAssignment(
-      new VariableAccessor(valueParameter).buildSimpleRead(),
+      new VariableAccessor(valueParameter, null, TreeNode.noOffset)
+          .buildSimpleRead(),
       voidContext: true);
   Procedure indexSet = new Procedure(
       new Name("[]="),

@@ -20,6 +20,9 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import 'package:kernel/frontend/accessors.dart'
+    show buildIsNull, makeBinary, makeLet;
+
 import '../parser/dart_vm_native.dart' show skipNativeClause;
 
 import '../scanner/token.dart'
@@ -35,8 +38,6 @@ import '../builder/scope.dart' show ProblemBuilder, Scope;
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
 
 import 'builder_accessors.dart';
-
-import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
 
 import '../quote.dart'
     show
@@ -597,7 +598,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Not an operator: '$operator'.", token.charOffset);
     } else {
       Expression result =
-          makeBinary(a, new Name(operator), null, b, token.charOffset);
+          makeBinary(a, new Name(operator), null, b, offset: token.charOffset);
       if (isSuper) {
         result = toSuperMethodInvocation(result);
       }
@@ -1557,7 +1558,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(this, receiver.charOffset, index,
+      push(new SuperIndexAccessor(this, receiver.offset, index,
           lookupSuperMember(indexGetName), lookupSuperMember(indexSetName)));
     } else {
       push(IndexAccessor.make(this, openCurlyBracket.charOffset,
@@ -1578,7 +1579,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (receiver is ThisAccessor && receiver.isSuper) {
         push(toSuperMethodInvocation(buildMethodInvocation(
-            new ThisExpression()..fileOffset = receiver.charOffset,
+            new ThisExpression()..fileOffset = receiver.offset,
             new Name(operator),
             new Arguments.empty(),
             token.charOffset)));
@@ -1600,8 +1601,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("UnaryPrefixAssignmentExpression");
     var accessor = pop();
     if (accessor is BuilderAccessor) {
-      push(accessor.buildPrefixIncrement(
-          incrementOperator(token), token.charOffset));
+      push(accessor.buildPrefixIncrement(incrementOperator(token),
+          offset: token.charOffset));
     } else {
       push(wrapInvalid(toValue(accessor)));
     }
@@ -2488,11 +2489,27 @@ class CascadeReceiver extends Let {
 abstract class ContextAccessor extends BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
   final BuilderAccessor accessor;
 
-  ContextAccessor(this.helper, this.charOffset, this.accessor);
+  final int offset;
+
+  ContextAccessor(this.helper, this.offset, this.accessor);
+
+  @override
+  Expression get builtBinary => internalError("Unsupported operation.");
+
+  @override
+  void set builtBinary(Expression expression) {
+    internalError("Unsupported operation.");
+  }
+
+  @override
+  Expression get builtGetter => internalError("Unsupported operation.");
+
+  @override
+  void set builtGetter(Expression expression) {
+    internalError("Unsupported operation.");
+  }
 
   String get plainNameForRead => internalError("Unsupported operation.");
 
@@ -2513,19 +2530,24 @@ abstract class ContextAccessor extends BuilderAccessor {
     return makeInvalidWrite(value);
   }
 
-  Expression buildCompoundAssignment(
-      Name binaryOperator, Expression value, int charOffset,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return makeInvalidWrite(value);
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return makeInvalidWrite(null);
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return makeInvalidWrite(null);
   }
 
@@ -2533,7 +2555,7 @@ abstract class ContextAccessor extends BuilderAccessor {
 
   Expression makeInvalidWrite(Expression value) {
     return helper.buildCompileTimeError(
-        "Can't be used as left-hand side of assignment.", charOffset);
+        "Can't be used as left-hand side of assignment.", offset);
   }
 }
 
@@ -2558,41 +2580,41 @@ class DelayedAssignment extends ContextAccessor {
     if (identical("=", assignmentOperator)) {
       return accessor.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(plusName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(plusName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("-=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(minusName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(minusName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("*=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(multiplyName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(multiplyName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("%=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(percentName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(percentName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("&=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(ampersandName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(ampersandName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(divisionName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(divisionName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("<<=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(leftShiftName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(leftShiftName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(rightShiftName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(rightShiftName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
       return accessor.buildNullAwareAssignment(value, const DynamicType(),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(caretName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(caretName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("|=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(barName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(barName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("~/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(mustacheName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(mustacheName, value,
+          offset: offset, voidContext: voidContext);
     } else {
       return internalError("Unhandled: $assignmentOperator");
     }
@@ -2620,18 +2642,18 @@ class DelayedPostfixIncrement extends ContextAccessor {
 
   final Procedure interfaceTarget;
 
-  DelayedPostfixIncrement(BuilderHelper helper, int charOffset,
+  DelayedPostfixIncrement(BuilderHelper helper, int offset,
       BuilderAccessor accessor, this.binaryOperator, this.interfaceTarget)
-      : super(helper, charOffset, accessor);
+      : super(helper, offset, accessor);
 
   Expression buildSimpleRead() {
-    return accessor.buildPostfixIncrement(binaryOperator, charOffset,
-        voidContext: false, interfaceTarget: interfaceTarget);
+    return accessor.buildPostfixIncrement(binaryOperator,
+        offset: offset, voidContext: false, interfaceTarget: interfaceTarget);
   }
 
   Expression buildForEffect() {
-    return accessor.buildPostfixIncrement(binaryOperator, charOffset,
-        voidContext: true, interfaceTarget: interfaceTarget);
+    return accessor.buildPostfixIncrement(binaryOperator,
+        offset: offset, voidContext: true, interfaceTarget: interfaceTarget);
   }
 }
 

@@ -16,6 +16,7 @@ import '../../ast.dart'
         PropertyGet,
         StringLiteral,
         Throw,
+        TreeNode,
         VariableDeclaration,
         VariableGet,
         VariableSet;
@@ -127,7 +128,7 @@ class LocalContext extends Context {
 
   Expression get expression => accessor.buildSimpleRead();
 
-  Accessor get accessor => new VariableAccessor(self);
+  Accessor get accessor => new VariableAccessor(self, null, TreeNode.noOffset);
 
   void extend(VariableDeclaration variable, Expression value) {
     Arguments arguments =

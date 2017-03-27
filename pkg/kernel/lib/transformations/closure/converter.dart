@@ -266,7 +266,8 @@ class ClosureConverter extends Transformer {
         type: contextClass.rawType,
         isFinal: true);
     Context parent = context;
-    context = context.toNestedContext(new VariableAccessor(contextVariable));
+    context = context.toNestedContext(
+        new VariableAccessor(contextVariable, null, TreeNode.noOffset));
 
     Set<TypeParameter> captured = capturedTypeVariables[currentFunction];
     if (captured != null) {
