@@ -15,7 +15,8 @@ class NotImplemented {
 
 class Interpreter {
   Program program;
-  Evaluator evaluator = new Evaluator();
+  StatementExecuter visitor = new StatementExecuter();
+  Environment env = new Environment.empty();
 
   Interpreter(this.program);
 
@@ -23,26 +24,7 @@ class Interpreter {
     assert(program.libraries.isEmpty);
     Procedure mainMethod = program.mainMethod;
     Statement statementBlock = mainMethod.function.body;
-    // Executes only ExpressionStatements and VariableDeclarations in the top
-    // BlockStatement.
-    if (statementBlock is Block) {
-      var env = new Environment.empty();
-
-      for (Statement s in statementBlock.statements) {
-        if (s is ExpressionStatement) {
-          evaluator.eval(s.expression, env);
-        } else if (s is VariableDeclaration) {
-          var value = evaluator.eval(s.initializer ?? new NullLiteral(), env);
-          env.expand(s, value);
-        } else {
-          throw new NotImplemented('Evaluation for statement type '
-              '${s.runtimeType} is not implemented.');
-        }
-      }
-    } else {
-      throw new NotImplemented('Evaluation for statement type '
-          '${statementBlock.runtimeType} is not implemented.');
-    }
+    visitor.exec(statementBlock, env);
   }
 }
 
@@ -238,6 +220,52 @@ class Evaluator extends ExpressionVisitor1<Value> {
     var letEnv = new Environment(env);
     letEnv.expand(node.variable, value);
     return eval(node.body, letEnv);
+  }
+}
+
+/// Executes statements.
+class StatementExecuter extends StatementVisitor1 {
+  Evaluator evaluator = new Evaluator();
+
+  exec(Statement statement, env) => statement.accept1(this, env);
+  eval(Expression expression, env) => evaluator.eval(expression, env);
+
+  defaultStatement(Statement node, env) {
+    throw notImplemented(
+        m: "Execution is not implemented for statement:\n$node ");
+  }
+
+  visitInvalidStatement(InvalidStatement node, env) {
+    throw "Invalid statement at ${node.location}";
+  }
+
+  visitExpressionStatement(ExpressionStatement node, env) {
+    return eval(node.expression, env);
+  }
+
+  visitBlock(Block node, env) {
+    Environment blockEnv = new Environment(env);
+    for (Statement s in node.statements) {
+      exec(s, blockEnv);
+    }
+  }
+
+  visitEmptyStatement(EmptyStatement node, env) {}
+
+  visitIfStatement(IfStatement node, env) {
+    Value condition = eval(node.condition, env).toBoolean();
+    if (identical(Value.trueInstance, condition)) {
+      exec(node.then, env);
+    } else {
+      exec(node.otherwise, env);
+    }
+  }
+
+  visitVariableDeclaration(VariableDeclaration node, env) {
+    Value value = node.initializer != null
+        ? eval(node.initializer, env)
+        : Value.nullInstance;
+    env.expand(node, value);
   }
 }
 
