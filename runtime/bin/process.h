@@ -73,7 +73,8 @@ enum ProcessSignals {
   kSigprof = 27,
   kSigwinch = 28,
   kSigpoll = 29,
-  kSigsys = 31
+  kSigsys = 31,
+  kLastSignal = kSigsys,
 };
 
 
@@ -139,6 +140,7 @@ class Process {
 
   static intptr_t SetSignalHandler(intptr_t signal);
   static void ClearSignalHandler(intptr_t signal);
+  static void ClearAllSignalHandlers();
 
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid);

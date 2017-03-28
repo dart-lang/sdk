@@ -946,7 +946,9 @@ static Mutex* signal_mutex = new Mutex();
 
 
 SignalInfo::~SignalInfo() {
-  reinterpret_cast<FileHandle*>(fd_)->Close();
+  FileHandle* file_handle = reinterpret_cast<FileHandle*>(fd_);
+  file_handle->Close();
+  file_handle->Release();
 }
 
 
@@ -1005,7 +1007,12 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   if (signal_handlers == NULL) {
     if (SetConsoleCtrlHandler(SignalHandler, true) == 0) {
       int error_code = GetLastError();
-      delete write_handle;
+      // Since SetConsoleCtrlHandler failed, the IO completion port will
+      // never receive an event for this handle, and will therefore never
+      // release the reference Retained by EnsureInitialized(). So, we
+      // have to do a second Release() here.
+      write_handle->Release();
+      write_handle->Release();
       CloseProcessPipe(fds);
       SetLastError(error_code);
       return -1;
@@ -1038,6 +1045,8 @@ void Process::ClearSignalHandler(intptr_t signal) {
     if (signal_handlers == NULL) {
       USE(SetConsoleCtrlHandler(SignalHandler, false));
     }
+    FileHandle* file_handle = reinterpret_cast<FileHandle*>(handler->fd());
+    file_handle->Release();
   }
   delete handler;
 }

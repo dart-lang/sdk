@@ -33,6 +33,7 @@ void ErrorExit(int exit_code, const char* format, ...) {
     free(error);
   }
 
+  Process::ClearAllSignalHandlers();
   EventHandler::Stop();
   Platform::Exit(exit_code);
 }

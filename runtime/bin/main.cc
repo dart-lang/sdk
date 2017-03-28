@@ -1269,6 +1269,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       Log::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
+    Process::ClearAllSignalHandlers();
     EventHandler::Stop();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
@@ -1687,6 +1688,7 @@ void main(int argc, char** argv) {
     Log::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
+  Process::ClearAllSignalHandlers();
   EventHandler::Stop();
 
   delete app_snapshot;

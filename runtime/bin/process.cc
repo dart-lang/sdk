@@ -72,6 +72,14 @@ static char** ExtractCStringList(Dart_Handle strings,
   return string_args;
 }
 
+
+void Process::ClearAllSignalHandlers() {
+  for (intptr_t i = 1; i <= kLastSignal; i++) {
+    ClearSignalHandler(i);
+  }
+}
+
+
 void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_Handle process = Dart_GetNativeArgument(args, 0);
   intptr_t process_stdin;
@@ -153,12 +161,12 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       &process_stdin, &process_stderr, &pid, &exit_event, &os_error_message);
   if (error_code == 0) {
     if (mode != kDetached) {
-      Socket::SetSocketIdNativeField(stdin_handle, process_stdin);
-      Socket::SetSocketIdNativeField(stdout_handle, process_stdout);
-      Socket::SetSocketIdNativeField(stderr_handle, process_stderr);
+      Socket::SetSocketIdNativeField(stdin_handle, process_stdin, false);
+      Socket::SetSocketIdNativeField(stdout_handle, process_stdout, false);
+      Socket::SetSocketIdNativeField(stderr_handle, process_stderr, false);
     }
     if (mode == kNormal) {
-      Socket::SetSocketIdNativeField(exit_handle, exit_event);
+      Socket::SetSocketIdNativeField(exit_handle, exit_event, false);
     }
     Process::SetProcessIdNativeField(process, pid);
   } else {
@@ -181,19 +189,26 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
   Dart_Handle process = Dart_GetNativeArgument(args, 0);
-  intptr_t process_stdin =
+  Socket* process_stdin =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 1));
-  intptr_t process_stdout =
+  Socket* process_stdout =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 2));
-  intptr_t process_stderr =
+  Socket* process_stderr =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 3));
-  intptr_t exit_event =
+  Socket* exit_event =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 4));
   ProcessResult result;
   intptr_t pid;
   Process::GetProcessIdNativeField(process, &pid);
-  if (Process::Wait(pid, process_stdin, process_stdout, process_stderr,
-                    exit_event, &result)) {
+  bool success = Process::Wait(pid, process_stdin->fd(), process_stdout->fd(),
+                               process_stderr->fd(), exit_event->fd(), &result);
+  // Process::Wait() closes the file handles, so blow away the fds in the
+  // Sockets so that they don't get picked up by the finalizer on _NativeSocket.
+  process_stdin->SetClosedFd();
+  process_stdout->SetClosedFd();
+  process_stderr->SetClosedFd();
+  exit_event->SetClosedFd();
+  if (success) {
     Dart_Handle out = result.stdout_data();
     if (Dart_IsError(out)) {
       Dart_PropagateError(out);
