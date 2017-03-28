@@ -57,4 +57,3 @@ uri_query_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
 error_stack_trace2_test: CompileTimeError
-set_test: CompileTimeError

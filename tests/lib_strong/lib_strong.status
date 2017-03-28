@@ -133,8 +133,6 @@ typed_data/float64x2_functional_test: Skip
 typed_data/int32x4_test: Skip
 
 [ $compiler == dart2analyzer && $strong ]
-convert/streamed_conversion_json_utf8_decode_test: CompileTimeError
-convert/streamed_conversion_json_utf8_encode_test: CompileTimeError
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
 html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
@@ -143,8 +141,3 @@ html/debugger_test: CompileTimeError # Issue 28969
 html/input_element_test: CompileTimeError
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
 mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
-mirrors/invocation_fuzz_test/emptyarray: CompileTimeError
-mirrors/invocation_fuzz_test/false: CompileTimeError
-mirrors/invocation_fuzz_test/none: CompileTimeError
-mirrors/invocation_fuzz_test/smi: CompileTimeError
-mirrors/invocation_fuzz_test/string: CompileTimeError

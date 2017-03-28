@@ -5,7 +5,7 @@
 // Regression test for dart2js that used to not see a closure could be
 // invoked through a getter access followed by an invocation.
 
-var closure = (a) => a.toString();
+var closure = (Object a) => a.toString();
 
 get foo => closure;
 

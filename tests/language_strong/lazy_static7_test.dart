@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 var sideEffect = 0;
-var x = (() { sideEffect++; return 499; })();
+int x = (() { sideEffect++; return 499; })();
 
 main() {
   if (new DateTime.now().day >= -1) {

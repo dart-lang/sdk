@@ -10,7 +10,7 @@ var x3 = foo3();
 var x4 = foo4();
 var x5 = foo5();
 final x6 = foo6();
-var x7 = x7 + 1;
+int x7 = x7 + 1;
 
 foo() { throw "interrupt initialization"; }
 foo2() { x2 = 499; throw "interrupt initialization"; }

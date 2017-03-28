@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-final x = (t) => t + 1;
+final x = (int t) => t + 1;
 
 main() {
   Expect.equals(499, x(498));

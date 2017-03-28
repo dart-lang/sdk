@@ -376,7 +376,7 @@ Function customHash(int mod) => (CE e) => e.id % mod;
 CECompare customCompare(int mod) => (CE e1, CE e2) =>
     (e1.id % mod) - (e2.id % mod);
 bool validKey(Object o) => o is CE;
-final customId = new Map.identity();
+final customId = new Map<dynamic, dynamic>.identity();
 int counter = 0;
 int identityCompare(e1, e2) {
   if (identical(e1, e2)) return 0;
