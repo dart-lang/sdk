@@ -214,6 +214,26 @@ class FileEditBuilderImpl implements FileEditBuilder {
     }
   }
 
+  @override
+  void addSimpleInsertion(int offset, String text) {
+    EditBuilderImpl builder = createEditBuilder(offset, 0);
+    try {
+      builder.write(text);
+    } finally {
+      fileEdit.add(builder.sourceEdit);
+    }
+  }
+
+  @override
+  void addSimpleReplacement(int offset, int length, String text) {
+    EditBuilderImpl builder = createEditBuilder(offset, length);
+    try {
+      builder.write(text);
+    } finally {
+      fileEdit.add(builder.sourceEdit);
+    }
+  }
+
   EditBuilderImpl createEditBuilder(int offset, int length) {
     return new EditBuilderImpl(this, offset, length);
   }
