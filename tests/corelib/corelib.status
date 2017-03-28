@@ -132,11 +132,6 @@ list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 string_trimlr_test/01: Fail
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $compiler == dart2js && $runtime == ie10 ]
-string_case_test/01: Fail, OK  # Bug in IE.
-string_case_test/02: Fail, OK  # Bug in IE.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
 

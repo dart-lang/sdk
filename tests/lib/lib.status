@@ -259,13 +259,6 @@ typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 
-[ $runtime == opera ]
-async/multiple_timer_test: Pass, Fail # Probably issue 14734
-
-[ $runtime == opera && $system == windows]
-# TODO(efortuna): Investigate.
-async/timer_test: Fail, Pass
-
 [ $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 

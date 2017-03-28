@@ -151,13 +151,6 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
-[ $runtime == ie10 ]
-analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
-typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here explicitly, since this is not the same as on ie9)
-
-[ $runtime == ie11 ]
-kernel/test/verify_test: Skip # Times out. Issue 27935
-
 [ $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
