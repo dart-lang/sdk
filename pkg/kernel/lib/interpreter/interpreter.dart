@@ -4,6 +4,7 @@
 library kernel.interpreter;
 
 import '../ast.dart';
+import '../ast.dart' as ast show Class;
 
 class NotImplemented {
   String message;
@@ -103,25 +104,25 @@ class Evaluator extends ExpressionVisitor1<Value> {
 
   Value visitPropertyGet(PropertyGet node, env) {
     Value receiver = eval(node.receiver, env);
-    return receiver.classDeclaration.lookupGetter(node.name)(receiver);
+    return receiver.class_.lookupGetter(node.name)(receiver);
   }
 
   Value visitPropertySet(PropertySet node, env) {
     Value receiver = eval(node.receiver, env);
     Value value = eval(node.value, env);
-    receiver.classDeclaration.lookupSetter(node.name)(receiver, value);
+    receiver.class_.lookupSetter(node.name)(receiver, value);
     return value;
   }
 
   Value visitDirectPropertyGet(DirectPropertyGet node, env) {
     Value receiver = eval(node.receiver, env);
-    return receiver.classDeclaration.getProperty(receiver, node.target);
+    return receiver.class_.getProperty(receiver, node.target);
   }
 
   Value visitDirectPropertySet(DirectPropertySet node, env) {
     Value receiver = eval(node.receiver, env);
     Value value = eval(node.value, env);
-    receiver.classDeclaration.setProperty(receiver, node.target, value);
+    receiver.class_.setProperty(receiver, node.target, value);
     return value;
   }
 
@@ -153,19 +154,18 @@ class Evaluator extends ExpressionVisitor1<Value> {
   }
 
   Value visitConstructorInvocation(ConstructorInvocation node, env) {
-    ClassDeclaration classDeclaration =
-        new ClassDeclaration(node.target.enclosingClass.reference);
+    Class class_ = new Class(node.target.enclosingClass.reference);
 
     Environment emptyEnv = new Environment.empty();
     // Currently we don't support initializers.
     // TODO: Modify to respect dart semantics for initialization.
     //  1. Init fields and eval initializers, repeat the same with super.
     //  2. Eval the Function body of the constructor.
-    List<Value> fields = classDeclaration.instanceFields
-        .map((Field f) => eval(f.initializer, emptyEnv))
+    List<Value> fields = class_.instanceFields
+        .map((Field f) => eval(f.initializer ?? new NullLiteral(), emptyEnv))
         .toList(growable: false);
 
-    return new ObjectValue(classDeclaration, fields);
+    return new ObjectValue(class_, fields);
   }
 
   Value visitNot(Not node, env) {
@@ -274,11 +274,10 @@ typedef void Setter(Value receiver, Value value);
 
 // TODO(zhivkag): Change misleading name.
 // This is representation of a class in the interpreter, not a declaration.
-class ClassDeclaration {
-  static final Map<Reference, ClassDeclaration> _classes =
-      <Reference, ClassDeclaration>{};
+class Class {
+  static final Map<Reference, Class> _classes = <Reference, Class>{};
 
-  ClassDeclaration superclass;
+  Class superclass;
   List<Field> instanceFields = <Field>[];
   List<Field> staticFields = <Field>[];
   // Implicit getters and setters for instance Fields.
@@ -290,31 +289,19 @@ class ClassDeclaration {
 
   List<Procedure> methods = <Procedure>[];
 
-  factory ClassDeclaration(Reference classRef) {
-    if (_classes.containsKey(classRef)) {
-      return _classes[classRef];
-    }
-    _classes[classRef] = new ClassDeclaration._internal(classRef.asClass);
-    return _classes[classRef];
+  int get instanceSize => instanceFields.length;
+
+  factory Class(Reference classRef) {
+    return _classes.putIfAbsent(
+        classRef, () => new Class._internal(classRef.asClass));
   }
 
-  ClassDeclaration._internal(Class currentClass) {
+  Class._internal(ast.Class currentClass) {
     if (currentClass.superclass != null) {
-      superclass = new ClassDeclaration(currentClass.superclass.reference);
+      superclass = new Class(currentClass.superclass.reference);
     }
 
     _populateInstanceFields(currentClass);
-
-    // Populate implicit setters and getters.
-    for (int i = 0; i < instanceFields.length; i++) {
-      Field f = instanceFields[i];
-      assert(f.hasImplicitGetter);
-      getters[f.name] = (Value receiver) => receiver.fields[i];
-      if (f.hasImplicitSetter) {
-        setters[f.name] =
-            (Value receiver, Value value) => receiver.fields[i] = value;
-      }
-    }
     // TODO: Populate methods.
   }
 
@@ -353,23 +340,33 @@ class ClassDeclaration {
     return notImplemented(obj: member);
   }
 
-  // Populates with the instance fields of the current class and all its
-  // superclasses recursively.
-  _populateInstanceFields(Class class_) {
-    for (Field f in class_.fields) {
-      if (f.isInstanceMember) {
-        instanceFields.add(f);
-      }
-    }
-
+  /// Populates instance variables and the corresponding implicit getters and
+  /// setters for the current class and its superclass recursively.
+  _populateInstanceFields(ast.Class class_) {
     if (class_.superclass != null) {
       _populateInstanceFields(class_.superclass);
+    }
+
+    for (Field f in class_.fields) {
+      if (f.isStatic) continue;
+      instanceFields.add(f);
+      assert(f.hasImplicitGetter);
+
+      int currentFieldIndex = instanceFields.length - 1;
+
+      // Shadowing an inherited getter with the same name.
+      getters[f.name] = (Value receiver) => receiver.fields[currentFieldIndex];
+      if (f.hasImplicitSetter) {
+        // Shadowing an inherited setter with the same name.
+        setters[f.name] = (Value receiver, Value value) =>
+            receiver.fields[currentFieldIndex] = value;
+      }
     }
   }
 }
 
 abstract class Value {
-  ClassDeclaration get classDeclaration;
+  Class get class_;
   List<Value> get fields;
   Object get value;
 
@@ -394,15 +391,15 @@ abstract class Value {
 }
 
 class ObjectValue extends Value {
-  ClassDeclaration classDeclaration;
+  Class class_;
   List<Value> fields;
   Object get value => this;
 
-  ObjectValue(this.classDeclaration, this.fields);
+  ObjectValue(this.class_, this.fields);
 }
 
 abstract class LiteralValue extends Value {
-  ClassDeclaration get classDeclaration =>
+  Class get class_ =>
       notImplemented(m: "Loading class for literal is not implemented.");
   List<Value> get fields =>
       notImplemented(m: "Literal value does not have fields");
