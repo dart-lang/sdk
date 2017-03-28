@@ -516,27 +516,6 @@ class D {
     expect(classD.fields[0].inferredType.toString(), 'dynamic');
   }
 
-  void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaGeneric() {
-    var bundle = createPackageBundle(
-        '''
-class B {
-  T f<T>(T t) => t;
-}
-class C extends B {
-  f<T>(t) => t; // Inferred param type: T
-}
-''',
-        path: '/a.dart');
-    addBundle('/a.ds', bundle);
-    createLinker('''
-import 'a.dart';
-var x = new C().f(0); // Inferred type: int
-''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
-        'int');
-  }
-
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {
     var bundle = createPackageBundle(
         '''

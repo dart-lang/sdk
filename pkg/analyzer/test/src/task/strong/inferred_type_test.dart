@@ -4442,42 +4442,6 @@ class C {
     expect(v.type.toString(), '(String) → int');
   }
 
-  test_typeInferenceDependency_staticVariable_inIdentifierSequence() async {
-    // Check that type inference dependencies are properly checked when a static
-    // variable appears in the middle of a string of identifiers separated by
-    // '.'.
-    var mainUnit = await checkFileElement('''
-final a = /*info:DYNAMIC_INVOKE*/C.d.i;
-class C {
-  static final d = new D(a);
-}
-class D {
-  D(_);
-  int i;
-}
-''');
-    // No type should be inferred for a because there is a circular reference
-    // between a and C.d.
-    var a = mainUnit.topLevelVariables[0];
-    expect(a.type.toString(), 'dynamic');
-  }
-
-  test_typeInferenceDependency_topLevelVariable_inIdentifierSequence() async {
-    // Check that type inference dependencies are properly checked when a top
-    // level variable appears at the beginning of a string of identifiers
-    // separated by '.'.
-    await checkFileElement('''
-final a = /*info:DYNAMIC_INVOKE*/c.i;
-final c = new C(a);
-class C {
-  C(_);
-  int i;
-}
-''');
-    // No type should be inferred for a because there is a circular reference
-    // between a and c.
-  }
-
   test_unsafeBlockClosureInference_closureCall() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26962
     var mainUnit = await checkFileElement('''
@@ -4999,18 +4963,6 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
-  test_genericMethods_usesGreatestLowerBound_comment_topLevel() async {
-    await super.test_genericMethods_usesGreatestLowerBound_comment_topLevel();
-  }
-
-  @failingTest
-  @override
-  test_inferredType_customIndexOp() async {
-    await super.test_voidReturnTypeSubtypesDynamic();
-  }
-
-  @failingTest
-  @override
   test_listLiteralsCanInferNull_topLevel() =>
       super.test_listLiteralsCanInferNull_topLevel();
 
@@ -5045,11 +4997,5 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() async {
     await super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
-  }
-
-  @failingTest
-  @override
-  test_voidReturnTypeSubtypesDynamic() async {
-    await super.test_voidReturnTypeSubtypesDynamic();
   }
 }
