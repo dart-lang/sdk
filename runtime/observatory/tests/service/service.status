@@ -64,6 +64,7 @@ evaluate_activation_test/scope: RuntimeError # Issue 27806
 get_object_rpc_test: RuntimeError # Issue 27806
 get_source_report_test: RuntimeError # Issue 27806
 set_name_rpc_test: RuntimeError # Issue 27806
+pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout # Issue 29178
 
 debugger_location_second_test: Skip # Issue 28180
 
