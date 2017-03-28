@@ -10,6 +10,7 @@ import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/annotate_overrides.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:linter/src/rules/avoid_catches_without_on_clauses.dart';
+import 'package:linter/src/rules/avoid_classes_with_only_static_members.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
@@ -88,6 +89,7 @@ void registerLintRules() {
     ..register(new AnnotateOverrides())
     ..register(new AvoidAs())
     ..register(new AvoidCatchesWithoutOnClauses())
+    ..register(new AvoidClassesWithOnlyStaticMembers())
     ..register(new AvoidEmptyElse())
     ..register(new AvoidFunctionLiteralInForeachMethod())
     ..register(new AvoidInitToNull())
