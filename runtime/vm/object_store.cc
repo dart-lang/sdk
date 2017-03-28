@@ -249,6 +249,7 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!function_name.IsNull());
   function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
                                       function_name, 1, Object::null_array());
+  ASSERT(!function.IsNull());
   set_async_set_thread_stack_trace(function);
 
   function_name ^= async_lib.PrivateName(Symbols::ClearAsyncThreadStackTrace());
