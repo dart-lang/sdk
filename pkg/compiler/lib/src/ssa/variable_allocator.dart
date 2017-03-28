@@ -187,7 +187,6 @@ class LiveEnvironment {
  * instruction, and computes the liveIns of each basic block.
  */
 class SsaLiveIntervalBuilder extends HBaseVisitor {
-  final Compiler compiler;
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
 
@@ -209,17 +208,15 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
    */
   final Map<HInstruction, LiveInterval> liveIntervals;
 
-  SsaLiveIntervalBuilder(
-      this.compiler, this.generateAtUseSite, this.controlFlowOperators)
+  SsaLiveIntervalBuilder(this.generateAtUseSite, this.controlFlowOperators)
       : liveInstructions = new Map<HBasicBlock, LiveEnvironment>(),
         liveIntervals = new Map<HInstruction, LiveInterval>();
-
-  DiagnosticReporter get reporter => compiler.reporter;
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
     if (!liveInstructions[graph.entry].isEmpty) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
+      throw new SpannableAssertionFailure(
+          CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
     }
   }
 
@@ -495,13 +492,13 @@ class VariableNames {
  */
 class VariableNamer {
   final VariableNames names;
-  final Compiler compiler;
+  final Namer _namer;
   final Set<String> usedNames;
   final List<String> freeTemporaryNames;
   int temporaryIndex = 0;
   static final RegExp regexp = new RegExp('t[0-9]+');
 
-  VariableNamer(LiveEnvironment environment, this.names, this.compiler)
+  VariableNamer(LiveEnvironment environment, this.names, this._namer)
       : usedNames = new Set<String>(),
         freeTemporaryNames = new List<String>() {
     // [VariableNames.swapTemp] is used when there is a cycle in a copy handler.
@@ -521,10 +518,9 @@ class VariableNamer {
 
   String allocateWithHint(String originalName) {
     int i = 0;
-    JavaScriptBackend backend = compiler.backend;
-    String name = backend.namer.safeVariableName(originalName);
+    String name = _namer.safeVariableName(originalName);
     while (usedNames.contains(name)) {
-      name = backend.namer.safeVariableName('$originalName${i++}');
+      name = _namer.safeVariableName('$originalName${i++}');
     }
     return name;
   }
@@ -615,14 +611,14 @@ class VariableNamer {
  * it adds a copy to the CopyHandler of the corresponding predecessor.
  */
 class SsaVariableAllocator extends HBaseVisitor {
-  final Compiler compiler;
+  final Namer _namer;
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;
   final Set<HInstruction> generateAtUseSite;
 
   final VariableNames names;
 
-  SsaVariableAllocator(this.compiler, this.liveInstructions, this.liveIntervals,
+  SsaVariableAllocator(this._namer, this.liveInstructions, this.liveIntervals,
       this.generateAtUseSite)
       : this.names = new VariableNames();
 
@@ -631,15 +627,15 @@ class SsaVariableAllocator extends HBaseVisitor {
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    VariableNamer namer =
-        new VariableNamer(liveInstructions[block], names, compiler);
+    VariableNamer variableNamer =
+        new VariableNamer(liveInstructions[block], names, _namer);
 
     block.forEachPhi((HPhi phi) {
-      handlePhi(phi, namer);
+      handlePhi(phi, variableNamer);
     });
 
     block.forEachInstruction((HInstruction instruction) {
-      handleInstruction(instruction, namer);
+      handleInstruction(instruction, variableNamer);
     });
   }
 

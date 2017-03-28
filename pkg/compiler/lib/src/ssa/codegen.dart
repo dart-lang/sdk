@@ -318,17 +318,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionSelection(compiler, closedWorld).visitGraph(graph);
+    new SsaInstructionSelection(closedWorld, backend.interceptorData)
+        .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
-    new SsaTrustedCheckRemover(compiler).visitGraph(graph);
-    new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
+    new SsaTrustedCheckRemover(compiler.options).visitGraph(graph);
+    new SsaInstructionMerger(generateAtUseSite, backend).visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
         .visitGraph(graph);
-    SsaLiveIntervalBuilder intervalBuilder = new SsaLiveIntervalBuilder(
-        compiler, generateAtUseSite, controlFlowOperators);
+    SsaLiveIntervalBuilder intervalBuilder =
+        new SsaLiveIntervalBuilder(generateAtUseSite, controlFlowOperators);
     intervalBuilder.visitGraph(graph);
     SsaVariableAllocator allocator = new SsaVariableAllocator(
-        compiler,
+        backend.namer,
         intervalBuilder.liveInstructions,
         intervalBuilder.liveIntervals,
         generateAtUseSite);
