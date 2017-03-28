@@ -15,6 +15,7 @@ import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
+import 'package:linter/src/rules/avoid_returning_null.dart';
 import 'package:linter/src/rules/avoid_slow_async_io.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
@@ -93,6 +94,7 @@ void registerLintRules() {
     ..register(new AvoidEmptyElse())
     ..register(new AvoidFunctionLiteralInForeachMethod())
     ..register(new AvoidInitToNull())
+    ..register(new AvoidReturningNull())
     ..register(new AvoidReturnTypesOnSetters())
     ..register(new AvoidSlowAsyncIo())
     ..register(new AwaitOnlyFutures())
