@@ -256,9 +256,6 @@ class Visitor<R> extends TreeVisitor<R>
   R defaultNode(Node node) => null;
   R defaultTreeNode(TreeNode node) => defaultNode(node);
 
-  /// Inferred values
-  R visitInferredValue(InferredValue node) => defaultNode(node);
-
   // DartTypes
   R defaultDartType(DartType node) => defaultNode(node);
   R visitInvalidType(InvalidType node) => defaultDartType(node);

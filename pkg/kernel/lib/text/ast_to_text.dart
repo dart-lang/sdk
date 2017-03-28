@@ -5,7 +5,6 @@ library kernel.ast_to_text;
 
 import '../ast.dart';
 import '../import_table.dart';
-import '../type_propagation/type_propagation.dart';
 
 class Namer<T> {
   int index = 0;
@@ -157,25 +156,6 @@ abstract class Annotator {
   String annotateField(Printer printer, Field node);
 }
 
-class InferredValueAnnotator implements Annotator {
-  const InferredValueAnnotator();
-
-  String annotateVariable(Printer printer, VariableDeclaration node) {
-    if (node.inferredValue == null) return null;
-    return printer.getInferredValueString(node.inferredValue);
-  }
-
-  String annotateReturn(Printer printer, FunctionNode node) {
-    if (node.inferredReturnValue == null) return null;
-    return printer.getInferredValueString(node.inferredReturnValue);
-  }
-
-  String annotateField(Printer printer, Field node) {
-    if (node.inferredValue == null) return null;
-    return printer.getInferredValueString(node.inferredValue);
-  }
-}
-
 /// A quick and dirty ambiguous text printer.
 class Printer extends Visitor<Null> {
   final NameSystem syntheticNames;
@@ -197,7 +177,7 @@ class Printer extends Visitor<Null> {
       this.showExternal,
       this.showOffsets: false,
       this.importTable,
-      this.annotator: const InferredValueAnnotator()})
+      this.annotator})
       : this.syntheticNames = syntheticNames ?? new NameSystem();
 
   Printer._inner(Printer parent, this.importTable)
@@ -228,16 +208,6 @@ class Printer extends Visitor<Null> {
     String name = getClassName(node);
     String library = getLibraryReference(node.enclosingLibrary);
     return '$library::$name';
-  }
-
-  String getInferredValueString(InferredValue value) {
-    if (value.isNothing) return 'Nothing';
-    if (value.isAlwaysNull) return 'Null';
-    assert(value.baseClass != null);
-    String baseName = getClassReference(value.baseClass);
-    String baseSuffix = value.isSubclass ? '+' : value.isSubtype ? '*' : '!';
-    String bitSuffix = ValueBit.format(value.valueBits);
-    return '$baseName$baseSuffix $bitSuffix';
   }
 
   static final String emptyNameString = '•';

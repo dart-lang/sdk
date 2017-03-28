@@ -718,8 +718,6 @@ class ClosureConverter extends Transformer {
         function.positionalParameters.map(cloner.clone).toList();
     List<VariableDeclaration> namedParameters =
         function.namedParameters.map(cloner.clone).toList();
-    // TODO(ahe): Clone or copy inferredReturnValue?
-    InferredValue inferredReturnValue = null;
 
     List<DartType> types = typeParameters
         .map((TypeParameter parameter) => new TypeParameterType(parameter))
@@ -741,8 +739,7 @@ class ClosureConverter extends Transformer {
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
         requiredParameterCount: function.requiredParameterCount,
-        returnType: substitute(function.returnType, cloner.typeSubstitution),
-        inferredReturnValue: inferredReturnValue);
+        returnType: substitute(function.returnType, cloner.typeSubstitution));
   }
 
   /// Creates copies of the type variables in [original] and returns a

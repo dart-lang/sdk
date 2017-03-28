@@ -46,7 +46,6 @@ front_end/test/fasta/*: Skip
 
 [ $runtime == vm && $mode == release && $system == linux ]
 kernel/test/closures_test: Slow, Pass
-kernel/test/baseline_type_propagation_test: Slow, Pass
 
 [ $runtime != vm || $mode != release || $system != linux ]
 kernel/test/closures_test: Skip
@@ -100,12 +99,8 @@ analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
-kernel/test/baseline_type_propagation_test: RuntimeError, Timeout # Issue 28243
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
-
-[ $runtime == vm && $system == macos]
-kernel/test/baseline_type_propagation_test: Slow, Pass
 
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.

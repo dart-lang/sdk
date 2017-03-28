@@ -213,7 +213,6 @@ type Field extends Member {
   UriReference fileUri;
   List<Expression> annotations;
   DartType type;
-  Option<InferredValue> inferredValue;
   Option<Expression> initializer;
 }
 
@@ -304,7 +303,6 @@ type FunctionNode {
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
   DartType returnType;
-  Option<InferredValue> inferredReturnValue;
   Option<Statement> body;
 }
 
@@ -849,7 +847,6 @@ type VariableDeclaration {
   // and is not necessarily unique.
   StringReference name;
   DartType type;
-  Option<InferredValue> inferredValue;
 
   // For statements and for-loops, this is the initial value.
   // For optional parameters, this is the default value (if given).
@@ -947,14 +944,6 @@ type TypeParameter {
   // Note: there is no tag on TypeParameter
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
-}
-
-/* enum BaseClassKind { None, Exact, Subclass, Subtype, } */
-
-type InferredValue {
-  ClassReference baseClass; // May be NullReference if kind = None.
-  Byte kind; // Index into BaseClassKind.
-  Byte valueBits; // See lib/type_propagation/type_propagation.dart
 }
 
 ```

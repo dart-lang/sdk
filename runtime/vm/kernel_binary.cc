@@ -817,7 +817,6 @@ Field* Field::ReadFrom(Reader* reader) {
   reader->record_token_position(end_position_);
   annotations_.ReadFromStatic<Expression>(reader);
   type_ = DartType::ReadFrom(reader);
-  inferred_value_ = reader->ReadOptional<InferredValue>();
   initializer_ = reader->ReadOptional<Expression>();
   return this;
 }
@@ -1707,7 +1706,6 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
   decl->flags_ = reader->ReadFlags();
   decl->name_ = Reference::ReadStringFrom(reader);
   decl->type_ = DartType::ReadFrom(reader);
-  decl->inferred_value_ = reader->ReadOptional<InferredValue>();
   decl->initializer_ = reader->ReadOptional<Expression>();
 
   // Go to next token position so it ends *after* the last potentially
@@ -1740,15 +1738,6 @@ Name* Name::ReadFrom(Reader* reader) {
   } else {
     return new Name(string, NULL);
   }
-}
-
-
-InferredValue* InferredValue::ReadFrom(Reader* reader) {
-  InferredValue* type = new InferredValue();
-  type->klass_reference_ = Reference::ReadClassFrom(reader, true);
-  type->kind_ = static_cast<BaseClassKind>(reader->ReadByte());
-  type->value_bits_ = reader->ReadByte();
-  return type;
 }
 
 
@@ -1918,7 +1907,6 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
       reader);
   function->named_parameters().ReadFromStatic<VariableDeclarationImpl>(reader);
   function->return_type_ = DartType::ReadFrom(reader);
-  function->inferred_return_value_ = reader->ReadOptional<InferredValue>();
 
   LabelScope<ReaderHelper, BlockStack<LabeledStatement> > labels(
       reader->helper());

@@ -53,9 +53,6 @@ library kernel.ast;
 import 'visitor.dart';
 export 'visitor.dart';
 
-import 'type_propagation/type_propagation.dart';
-export 'type_propagation/type_propagation.dart';
-
 import 'canonical_name.dart' show CanonicalName;
 export 'canonical_name.dart' show CanonicalName;
 
@@ -732,7 +729,6 @@ abstract class Member extends NamedNode {
 /// but can be made explicit if needed.
 class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
-  InferredValue inferredValue; // May be null.
   int flags = 0;
   Expression initializer; // May be null.
 
@@ -741,7 +737,6 @@ class Field extends Member {
 
   Field(Name name,
       {this.type: const DynamicType(),
-      this.inferredValue,
       this.initializer,
       bool isFinal: false,
       bool isConst: false,
@@ -834,7 +829,6 @@ class Field extends Member {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     type?.accept(v);
-    inferredValue?.accept(v);
     name?.accept(v);
     initializer?.accept(v);
   }
@@ -1246,7 +1240,6 @@ class FunctionNode extends TreeNode {
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
-  InferredValue inferredReturnValue; // May be null.
   DartType returnType; // Not null.
   Statement body;
 
@@ -1256,7 +1249,6 @@ class FunctionNode extends TreeNode {
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
       this.returnType: const DynamicType(),
-      this.inferredReturnValue,
       this.asyncMarker: AsyncMarker.Sync,
       this.dartAsyncMarker})
       : this.positionalParameters =
@@ -1301,7 +1293,6 @@ class FunctionNode extends TreeNode {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType?.accept(v);
-    inferredReturnValue?.accept(v);
     body?.accept(v);
   }
 
@@ -3466,7 +3457,6 @@ class VariableDeclaration extends Statement {
   String name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
-  InferredValue inferredValue; // May be null.
 
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
@@ -3477,7 +3467,6 @@ class VariableDeclaration extends Statement {
   VariableDeclaration(this.name,
       {this.initializer,
       this.type: const DynamicType(),
-      this.inferredValue,
       bool isFinal: false,
       bool isConst: false}) {
     assert(type != null);
@@ -3517,7 +3506,6 @@ class VariableDeclaration extends Statement {
 
   visitChildren(Visitor v) {
     type?.accept(v);
-    inferredValue?.accept(v);
     initializer?.accept(v);
   }
 
