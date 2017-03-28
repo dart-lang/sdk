@@ -23,7 +23,7 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'common_elements.dart'
-    show CommonElements, CommonElementsMixin, ElementEnvironment;
+    show CommonElements, CommonElementsImpl, ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -88,7 +88,7 @@ abstract class Compiler {
 
   final IdGenerator idGenerator = new IdGenerator();
   Types types;
-  _CompilerCommonElements _commonElements;
+  CommonElementsImpl _commonElements;
   _CompilerElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
@@ -197,8 +197,7 @@ abstract class Compiler {
     }
     _resolution = createResolution();
     _elementEnvironment = new _CompilerElementEnvironment(this);
-    _commonElements =
-        new _CompilerCommonElements(_elementEnvironment, _resolution, reporter);
+    _commonElements = new CommonElementsImpl(_elementEnvironment);
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -1087,116 +1086,6 @@ class SuppressionInfo {
   int hints = 0;
 }
 
-class _CompilerCommonElements extends CommonElementsMixin {
-  final Resolution resolution;
-  final DiagnosticReporter reporter;
-
-  final ElementEnvironment environment;
-
-  _CompilerCommonElements(this.environment, this.resolution, this.reporter);
-
-  @override
-  ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
-
-  LibraryEntity _coreLibrary;
-  LibraryEntity get coreLibrary =>
-      _coreLibrary ??= environment.lookupLibrary(Uris.dart_core);
-
-  LibraryEntity _typedDataLibrary;
-  LibraryEntity get typedDataLibrary => _typedDataLibrary ??=
-      environment.lookupLibrary(Uris.dart__native_typed_data);
-
-  LibraryEntity _mirrorsLibrary;
-  LibraryEntity get mirrorsLibrary =>
-      _mirrorsLibrary ??= environment.lookupLibrary(Uris.dart_mirrors);
-
-  LibraryEntity _asyncLibrary;
-  LibraryEntity get asyncLibrary =>
-      _asyncLibrary ??= environment.lookupLibrary(Uris.dart_async);
-
-  @override
-  MemberElement findLibraryMember(LibraryElement library, String name,
-      {bool setter: false, bool required: true}) {
-    Element member = _findLibraryMember(library, name, required: required);
-    if (member != null && member.isAbstractField) {
-      AbstractFieldElement abstractField = member;
-      if (setter) {
-        member = abstractField.setter;
-      } else {
-        member = abstractField.getter;
-      }
-      if (member == null && required) {
-        reporter.internalError(
-            library,
-            "The library '${library.canonicalUri}' does not contain required "
-            "${setter ? 'setter' : 'getter'}: '$name'.");
-      }
-    }
-    return member;
-  }
-
-  @override
-  MemberElement findClassMember(ClassElement cls, String name,
-      {bool setter: false, bool required: true}) {
-    cls.ensureResolved(resolution);
-    Element member = cls.lookupLocalMember(name);
-    if (member != null && member.isAbstractField) {
-      AbstractFieldElement abstractField = member;
-      if (setter) {
-        member = abstractField.setter;
-      } else {
-        member = abstractField.getter;
-      }
-    }
-    if (member == null && required) {
-      reporter.internalError(
-          cls,
-          "The class '${cls}' in '${cls.library.canonicalUri}' does not "
-          "contain required member: '$name'.");
-    }
-    return member;
-  }
-
-  @override
-  ConstructorElement findConstructor(ClassElement cls, String name,
-      {bool required: true}) {
-    cls.ensureResolved(resolution);
-    ConstructorElement constructor = cls.lookupConstructor(name);
-    if (constructor == null && required) {
-      reporter.internalError(
-          cls,
-          "The class '${cls}' in '${cls.library.canonicalUri}' does not "
-          "contain required constructor: '$name'.");
-    }
-    return constructor;
-  }
-
-  @override
-  ClassElement findClass(LibraryElement library, String name,
-      {bool required: true}) {
-    return _findLibraryMember(library, name, required: required);
-  }
-
-  Element _findLibraryMember(LibraryElement library, String name,
-      {bool required: true}) {
-    // If the script of the library is synthesized, the library does not exist
-    // and we do not try to load the helpers.
-    //
-    // This could for example happen if dart:async is disabled, then loading it
-    // should not try to find the given element.
-    if (library == null || library.isSynthesized) return null;
-
-    Element element = library.find(name);
-    if (element == null && required) {
-      reporter.internalError(
-          library,
-          "The library '${library.canonicalUri}' does not contain required "
-          "element: '$name'.");
-    }
-    return element;
-  }
-}
-
 class CompilerDiagnosticReporter extends DiagnosticReporter {
   final Compiler compiler;
   final DiagnosticOptions options;
@@ -1924,6 +1813,8 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   LibraryProvider get _libraryProvider => _compiler.libraryLoader;
   Resolution get _resolution => _compiler.resolution;
 
+  ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
+
   @override
   LibraryEntity get mainLibrary => _compiler.mainApp;
 
@@ -2034,6 +1925,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   @override
   LibraryElement lookupLibrary(Uri uri, {bool required: false}) {
     LibraryElement library = _libraryProvider.lookupLibrary(uri);
+    // If the script of the library is synthesized, the library does not exist
+    // and we do not try to load the helpers.
+    //
+    // This could for example happen if dart:async is disabled, then loading it
+    // should not try to find the given element.
     if (library != null && library.isSynthesized) {
       return null;
     }

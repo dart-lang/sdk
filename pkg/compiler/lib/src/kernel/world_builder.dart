@@ -71,7 +71,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   KernelWorldBuilder(this.reporter, ir.Program program)
       : _env = new KEnv(program) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _commonElements = new KernelCommonElements(_elementEnvironment);
+    _commonElements = new CommonElementsImpl(_elementEnvironment);
     ConstantEnvironment constants = new KernelConstantEnvironment(this);
     _nativeBehaviorBuilder =
         new KernelBehaviorBuilder(_commonElements, helpers, constants);
@@ -520,6 +520,9 @@ class KernelElementEnvironment implements ElementEnvironment {
   KernelElementEnvironment(this.worldBuilder);
 
   @override
+  DartType get dynamicType => const DynamicType();
+
+  @override
   LibraryEntity get mainLibrary => worldBuilder._mainLibrary;
 
   @override
@@ -595,46 +598,6 @@ class KernelElementEnvironment implements ElementEnvironment {
           CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
     return library;
-  }
-}
-
-/// [CommonElements] implementation based on [KernelWorldBuilder].
-class KernelCommonElements extends CommonElementsMixin {
-  final ElementEnvironment environment;
-
-  KernelCommonElements(this.environment);
-
-  @override
-  LibraryEntity get coreLibrary {
-    return environment.lookupLibrary(Uris.dart_core, required: true);
-  }
-
-  @override
-  DynamicType get dynamicType => const DynamicType();
-
-  @override
-  ClassEntity get nativeAnnotationClass {
-    throw new UnimplementedError('KernelCommonElements.nativeAnnotationClass');
-  }
-
-  @override
-  ClassEntity get patchAnnotationClass {
-    throw new UnimplementedError('KernelCommonElements.patchAnnotationClass');
-  }
-
-  @override
-  LibraryEntity get typedDataLibrary {
-    throw new UnimplementedError('KernelCommonElements.typedDataLibrary');
-  }
-
-  @override
-  LibraryEntity get mirrorsLibrary {
-    throw new UnimplementedError('KernelCommonElements.mirrorsLibrary');
-  }
-
-  @override
-  LibraryEntity get asyncLibrary {
-    throw new UnimplementedError('KernelCommonElements.asyncLibrary');
   }
 }
 
