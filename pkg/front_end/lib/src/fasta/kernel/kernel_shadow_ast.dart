@@ -147,8 +147,8 @@ class KernelVariableDeclaration extends _KernelVariableDeclaration
       bool isFinal: false,
       bool isConst: false})
       : _declaredType = type,
-        super(name, initializer, type ?? const kernel.DynamicType(), null,
-            isFinal, isConst);
+        super(name, initializer, type ?? const kernel.DynamicType(), isFinal,
+            isConst);
 
   @override
   KernelExpression get shadowInitializer => initializer;
@@ -206,17 +206,11 @@ class _KernelReturnStatement extends kernel.ReturnStatement {
 /// a named constructor to [kernel.VariableDeclaration] in which all arguments
 /// are required.
 class _KernelVariableDeclaration extends kernel.VariableDeclaration {
-  _KernelVariableDeclaration(
-      String name,
-      kernel.Expression initializer,
-      DartType type,
-      kernel.InferredValue inferredValue,
-      bool isFinal,
-      bool isConst)
+  _KernelVariableDeclaration(String name, kernel.Expression initializer,
+      DartType type, bool isFinal, bool isConst)
       : super(name,
             initializer: initializer,
             type: type,
-            inferredValue: inferredValue,
             isFinal: isFinal,
             isConst: isConst);
 }

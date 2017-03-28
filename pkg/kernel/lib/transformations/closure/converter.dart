@@ -23,7 +23,6 @@ import '../../ast.dart'
         FunctionDeclaration,
         FunctionExpression,
         FunctionNode,
-        InferredValue,
         Initializer,
         InvalidExpression,
         InvocationExpression,
