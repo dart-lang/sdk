@@ -855,12 +855,11 @@ class JavaScriptBackend {
   native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
     if (element.name == BackendHelpers.JS) {
-      return _nativeResolutionEnqueuer.resolveJsCall(node, resolver);
+      return _nativeDataResolver.resolveJsCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
-      return _nativeResolutionEnqueuer.resolveJsEmbeddedGlobalCall(
-          node, resolver);
+      return _nativeDataResolver.resolveJsEmbeddedGlobalCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_BUILTIN) {
-      return _nativeResolutionEnqueuer.resolveJsBuiltinCall(node, resolver);
+      return _nativeDataResolver.resolveJsBuiltinCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a

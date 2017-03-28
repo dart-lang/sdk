@@ -388,49 +388,6 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     log('Resolved ${_registeredClasses.length} native elements used, '
         '${_unusedClasses.length} native elements dead.');
   }
-
-  /**
-   * Handles JS-calls, which can be an instantiation point for types.
-   *
-   * For example, the following code instantiates and returns native classes
-   * that are `_DOMWindowImpl` or a subtype.
-   *
-   *     JS('_DOMWindowImpl', 'window')
-   *
-   */
-  NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsCallSend(node, reporter, compiler.parsingContext,
-        compiler.commonElements, resolver);
-  }
-
-  /**
-   * Handles JS-embedded global calls, which can be an instantiation point for
-   * types.
-   *
-   * For example, the following code instantiates and returns a String class
-   *
-   *     JS_EMBEDDED_GLOBAL('String', 'foo')
-   *
-   */
-  NativeBehavior resolveJsEmbeddedGlobalCall(
-      Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsEmbeddedGlobalCallSend(
-        node, reporter, compiler.commonElements, resolver);
-  }
-
-  /**
-   * Handles JS-compiler builtin calls, which can be an instantiation point for
-   * types.
-   *
-   * For example, the following code instantiates and returns a String class
-   *
-   *     JS_BUILTIN('String', 'int2string', 0)
-   *
-   */
-  NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsBuiltinCallSend(
-        node, reporter, compiler.commonElements, resolver);
-  }
 }
 
 class NativeCodegenEnqueuer extends NativeEnqueuerBase {

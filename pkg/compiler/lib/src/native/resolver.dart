@@ -25,6 +25,8 @@ import '../patch_parser.dart';
 import '../tree/tree.dart';
 import 'behavior.dart';
 
+/// Interface for computing native members and [NativeBehavior]s in member code
+/// based on the AST.
 abstract class NativeDataResolver {
   /// Returns `true` if [element] is a JsInterop member.
   bool isJsInteropMember(MemberElement element);
@@ -32,6 +34,35 @@ abstract class NativeDataResolver {
   /// Computes whether [element] is native or JsInterop and, if so, registers
   /// its [NativeBehavior]s to [registry].
   void resolveNativeMember(MemberElement element, NativeRegistry registry);
+
+  /// Computes the [NativeBehavior] for a `JS` call, which can be an
+  /// instantiation point for types.
+  ///
+  /// For example, the following code instantiates and returns native classes
+  /// that are `_DOMWindowImpl` or a subtype.
+  ///
+  ///    JS('_DOMWindowImpl', 'window')
+  ///
+  NativeBehavior resolveJsCall(Send node, ForeignResolver resolver);
+
+  /// Computes the [NativeBehavior] for a `JS_EMBEDDED_GLOBAL` call, which can
+  /// be an instantiation point for types.
+  ///
+  /// For example, the following code instantiates and returns a String class
+  ///
+  ///     JS_EMBEDDED_GLOBAL('String', 'foo')
+  ///
+  NativeBehavior resolveJsEmbeddedGlobalCall(
+      Send node, ForeignResolver resolver);
+
+  /// Computes the [NativeBehavior] for a `JS_BUILTIN` call, which can be an
+  /// instantiation point for types.
+  ///
+  /// For example, the following code instantiates and returns a String class
+  ///
+  ///     JS_BUILTIN('String', 'int2string', 0)
+  ///
+  NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver);
 }
 
 class NativeDataResolverImpl implements NativeDataResolver {
@@ -216,6 +247,25 @@ class NativeDataResolverImpl implements NativeDataResolver {
       }
     }
     return name;
+  }
+
+  @override
+  NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
+    return NativeBehavior.ofJsCallSend(node, _reporter,
+        _compiler.parsingContext, _compiler.commonElements, resolver);
+  }
+
+  @override
+  NativeBehavior resolveJsEmbeddedGlobalCall(
+      Send node, ForeignResolver resolver) {
+    return NativeBehavior.ofJsEmbeddedGlobalCallSend(
+        node, _reporter, _compiler.commonElements, resolver);
+  }
+
+  @override
+  NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver) {
+    return NativeBehavior.ofJsBuiltinCallSend(
+        node, _reporter, _compiler.commonElements, resolver);
   }
 }
 
