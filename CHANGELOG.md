@@ -25,6 +25,56 @@
   characters to the console on Windows. Calls to `Stdout.add*()` behave as
   before.
 
+### Strong Mode
+
+* Strong mode will prefer the expected type to infer generic types,
+  functions, and methods
+  (SDK issue [27586](https://github.com/dart-lang/sdk/issues/27586)).
+
+  ```dart
+  main() {
+    List<Object> foo = /*infers: <Object>*/['hello', 'world'];
+    var bar = /*infers: <String>*/['hello', 'world'];
+  }
+  ```
+  
+* Strong mode inference error messages are improved
+  (SDK issue [29108](https://github.com/dart-lang/sdk/issues/29108)).
+
+  ```dart
+  import 'dart:math';
+  test(Iterable/* fix is to add <num> here */ values) {
+    num n = values.fold(values.first as num, max);
+  }
+  ```
+  Now produces the error on the generic function "max":
+  ```
+  Couldn't infer type parameter 'T'.
+
+  Tried to infer 'dynamic' for 'T' which doesn't work:
+    Function type declared as '<T extends num>(T, T) → T'
+                  used where  '(num, dynamic) → num' is required.
+
+  Consider passing explicit type argument(s) to the generic.
+  ```
+
+* Strong mode supports overriding fields, `@virtual` is no longer required
+    (SDK issue [28120](https://github.com/dart-lang/sdk/issues/28120)).
+
+    ```dart
+    class C {
+      int x = 42;
+    }
+    class D extends C {
+      int x = 123;
+      get y => super.x;
+    }
+    main() {
+      print(new D().x);
+      print(new D().y);
+    }
+    ```
+
 ### Tool changes
 
 * Analysis
