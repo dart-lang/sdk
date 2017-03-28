@@ -52,6 +52,7 @@ import 'package:linter/src/rules/parameter_assignments.dart';
 import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
 import 'package:linter/src/rules/prefer_collection_literals.dart';
 import 'package:linter/src/rules/prefer_const_constructors.dart';
+import 'package:linter/src/rules/prefer_constructors_instead_of_static_methods.dart';
 import 'package:linter/src/rules/prefer_contains.dart';
 import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
@@ -132,6 +133,7 @@ void registerLintRules() {
     ..register(new PreferAdjacentStringConcatenation())
     ..register(new PreferCollectionLiterals())
     ..register(new PreferConstConstructors())
+    ..register(new PreferConstructorsInsteadOfStaticMethods())
     ..register(new PreferContainsOverIndexOf())
     ..register(new PreferExpressionFunctionbBodies())
     ..register(new PreferFinalFields())
