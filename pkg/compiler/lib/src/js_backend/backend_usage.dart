@@ -92,7 +92,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   final BackendHelpers _helpers;
   // TODO(johnniwinther): Remove the need for these.
   Setlet<FunctionEntity> _globalFunctionDependencies;
-  Setlet<ClassElement> _globalClassDependencies;
+  Setlet<ClassEntity> _globalClassDependencies;
 
   /// List of methods that the backend may use.
   final Set<FunctionEntity> _helperFunctionsUsed = new Set<FunctionEntity>();
@@ -248,7 +248,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   void registerGlobalClassDependency(ClassEntity element) {
     assert(element != null);
     if (_globalClassDependencies == null) {
-      _globalClassDependencies = new Setlet<ClassElement>();
+      _globalClassDependencies = new Setlet<ClassEntity>();
     }
     _globalClassDependencies.add(element);
   }

@@ -5,7 +5,7 @@
 library js_backend.native_data;
 
 import '../common.dart';
-import '../elements/elements.dart' show ClassElement;
+import '../common_elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../util/util.dart';
@@ -106,7 +106,9 @@ abstract class NativeBasicDataBuilder {
   /// expected to be computed later.
   void markAsJsInteropClass(ClassEntity element);
 
-  NativeBasicData close();
+  /// Creates the [NativeBasicData] object for the data collected in this
+  /// builder.
+  NativeBasicData close(ElementEnvironment environment);
 }
 
 abstract class NativeDataBuilder {
@@ -180,13 +182,15 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
     jsInteropClasses.add(element);
   }
 
-  NativeBasicData close() {
+  NativeBasicData close(ElementEnvironment environment) {
     return new NativeBasicDataImpl(
-        nativeClassTagInfo, jsInteropLibraries, jsInteropClasses);
+        environment, nativeClassTagInfo, jsInteropLibraries, jsInteropClasses);
   }
 }
 
 class NativeBasicDataImpl implements NativeBasicData {
+  final ElementEnvironment _env;
+
   /// Tag info for native JavaScript classes names. See
   /// [setNativeClassTagInfo].
   final Map<ClassEntity, NativeClassTag> nativeClassTagInfo;
@@ -197,8 +201,8 @@ class NativeBasicDataImpl implements NativeBasicData {
   /// The JavaScript classes implemented via typed JavaScript interop.
   final Set<ClassEntity> jsInteropClasses;
 
-  NativeBasicDataImpl(
-      this.nativeClassTagInfo, this.jsInteropLibraries, this.jsInteropClasses);
+  NativeBasicDataImpl(this._env, this.nativeClassTagInfo,
+      this.jsInteropLibraries, this.jsInteropClasses);
 
   /// Returns `true` if [cls] is a native class.
   bool isNativeClass(ClassEntity element) {
@@ -227,13 +231,12 @@ class NativeBasicDataImpl implements NativeBasicData {
   }
 
   /// Returns `true` if [element] or any of its superclasses is native.
-  bool isNativeOrExtendsNative(ClassElement element) {
+  bool isNativeOrExtendsNative(ClassEntity element) {
     if (element == null) return false;
     if (isNativeClass(element) || isJsInteropClass(element)) {
       return true;
     }
-    assert(element.isResolved);
-    return isNativeOrExtendsNative(element.superclass);
+    return isNativeOrExtendsNative(_env.getSuperClass(element));
   }
 }
 

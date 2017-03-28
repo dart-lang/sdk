@@ -889,7 +889,8 @@ class JavaScriptBackend {
 
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
-    _nativeBasicData = nativeBasicDataBuilder.close();
+    _nativeBasicData =
+        nativeBasicDataBuilder.close(compiler.elementEnvironment);
     _nativeData = new NativeDataImpl(nativeBasicData);
     _backendClasses = new JavaScriptBackendClasses(
         compiler.elementEnvironment, helpers, nativeBasicData);

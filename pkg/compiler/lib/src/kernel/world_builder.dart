@@ -568,6 +568,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  ClassEntity getSuperClass(ClassEntity cls) {
+    throw new UnimplementedError('KernelElementEnvironment.getSuperClass');
+  }
+
+  @override
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
     throw new UnimplementedError('KernelElementEnvironment.forEachMixin');
   }

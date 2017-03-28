@@ -1893,6 +1893,15 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  ClassEntity getSuperClass(ClassElement cls) {
+    cls = cls.superclass;
+    while (cls != null && cls.isUnnamedMixinApplication) {
+      cls = cls.superclass;
+    }
+    return cls;
+  }
+
+  @override
   void forEachMixin(ClassElement cls, void f(ClassElement mixin)) {
     for (; cls != null; cls = cls.superclass) {
       if (cls.isMixinApplication) {
