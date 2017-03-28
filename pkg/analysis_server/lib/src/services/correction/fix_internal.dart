@@ -46,10 +46,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:path/path.dart';
 
 /**
@@ -1617,42 +1615,7 @@ class FixProcessor {
         _addFix(DartFixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
       }
     }
-    // check SDK libraries
-    {
-      DartSdk sdk = context.sourceFactory.dartSdk;
-      List<SdkLibrary> sdkLibraries = sdk.sdkLibraries;
-      for (SdkLibrary sdkLibrary in sdkLibraries) {
-        SourceFactory sdkSourceFactory = context.sourceFactory;
-        String libraryUri = sdkLibrary.shortName;
-        Source librarySource =
-            sdkSourceFactory.resolveUri(unitSource, libraryUri);
-        // maybe already imported
-        if (alreadyImportedWithPrefix.contains(librarySource)) {
-          continue;
-        }
-        // prepare LibraryElement
-        LibraryElement libraryElement =
-            context.getResult(librarySource, LIBRARY_ELEMENT1);
-        if (libraryElement == null) {
-          continue;
-        }
-        // prepare exported Element
-        Element element = getExportedElement(libraryElement, name);
-        if (element == null) {
-          continue;
-        }
-        if (element is PropertyAccessorElement) {
-          element = (element as PropertyAccessorElement).variable;
-        }
-        if (!elementKinds.contains(element.kind)) {
-          continue;
-        }
-        // add import
-        _addFix_importLibrary(
-            DartFixKind.IMPORT_LIBRARY_SDK, libraryElement.source);
-      }
-    }
-    // check project libraries
+    // Find new top-level declarations.
     {
       List<TopLevelDeclarationInSource> declarations =
           await getTopLevelDeclarations(name);
@@ -1663,15 +1626,14 @@ class FixProcessor {
         }
         // Check the source.
         Source librarySource = declaration.source;
-        if (librarySource.isInSystemLibrary) {
-          continue;
-        }
         if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }
         // Compute the fix kind.
         FixKind fixKind;
-        if (_isLibSrcPath(librarySource.fullName)) {
+        if (librarySource.isInSystemLibrary) {
+          fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
+        } else if (_isLibSrcPath(librarySource.fullName)) {
           // Bad: non-API.
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
         } else if (declaration.isExported) {
