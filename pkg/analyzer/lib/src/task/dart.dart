@@ -3755,22 +3755,22 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       //
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Expression initializer = declaration.initializer;
-      ResolutionContext resolutionContext =
-          ResolutionContextBuilder.contextFor(initializer);
-      ResolverVisitor visitor = new ResolverVisitor(
-          variable.library, variable.source, typeProvider, errorListener,
-          nameScope: resolutionContext.scope);
-      if (resolutionContext.enclosingClassDeclaration != null) {
-        visitor.prepareToResolveMembersInClass(
-            resolutionContext.enclosingClassDeclaration);
-      }
-      visitor.initForIncrementalResolution();
-      initializer.accept(visitor);
 
       DartType newType;
       if (!isValidForTypeInference(initializer)) {
         newType = typeProvider.dynamicType;
       } else {
+        ResolutionContext resolutionContext =
+            ResolutionContextBuilder.contextFor(initializer);
+        ResolverVisitor visitor = new ResolverVisitor(
+            variable.library, variable.source, typeProvider, errorListener,
+            nameScope: resolutionContext.scope, isTopLevelInference: true);
+        if (resolutionContext.enclosingClassDeclaration != null) {
+          visitor.prepareToResolveMembersInClass(
+              resolutionContext.enclosingClassDeclaration);
+        }
+        visitor.initForIncrementalResolution();
+        initializer.accept(visitor);
         newType = initializer.staticType;
         if (newType == null || newType.isBottom || newType.isDartCoreNull) {
           newType = typeProvider.dynamicType;

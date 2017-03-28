@@ -164,6 +164,75 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return inferred;
   }
 
+  DartType inferListType(ListLiteral node, {bool downwards: false}) {
+    DartType contextType = InferenceContext.getContext(node);
+
+    var ts = _typeSystem as StrongTypeSystemImpl;
+    List<DartType> elementTypes;
+    List<ParameterElement> parameters;
+
+    if (downwards) {
+      if (contextType == null) {
+        return null;
+      }
+
+      elementTypes = [];
+      parameters = [];
+    } else {
+      // Also use upwards information to infer the type.
+      elementTypes = node.elements
+          .map((e) => e.staticType)
+          .where((t) => t != null)
+          .toList();
+      var listTypeParam = _typeProvider.listType.typeParameters[0].type;
+      var syntheticParamElement = new ParameterElementImpl.synthetic(
+          'element', listTypeParam, ParameterKind.POSITIONAL);
+      parameters = new List.filled(elementTypes.length, syntheticParamElement);
+    }
+    DartType inferred = ts.inferGenericFunctionOrType/*<InterfaceType>*/(
+        _typeProvider.listType, parameters, elementTypes, contextType,
+        downwards: downwards,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
+    return inferred;
+  }
+
+  ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
+    DartType contextType = InferenceContext.getContext(node);
+
+    List<DartType> elementTypes;
+    List<ParameterElement> parameters;
+    if (downwards) {
+      if (contextType == null) {
+        return null;
+      }
+      elementTypes = [];
+      parameters = [];
+    } else {
+      var keyTypes =
+          node.entries.map((e) => e.key.staticType).where((t) => t != null);
+      var valueTypes =
+          node.entries.map((e) => e.value.staticType).where((t) => t != null);
+      var keyTypeParam = _typeProvider.mapType.typeParameters[0].type;
+      var valueTypeParam = _typeProvider.mapType.typeParameters[1].type;
+      var syntheticKeyParameter = new ParameterElementImpl.synthetic(
+          'key', keyTypeParam, ParameterKind.POSITIONAL);
+      var syntheticValueParameter = new ParameterElementImpl.synthetic(
+          'value', valueTypeParam, ParameterKind.POSITIONAL);
+      parameters = new List.filled(keyTypes.length, syntheticKeyParameter,
+          growable: true)
+        ..addAll(new List.filled(valueTypes.length, syntheticValueParameter));
+      elementTypes = new List<DartType>.from(keyTypes)..addAll(valueTypes);
+    }
+
+    // Use both downwards and upwards information to infer the type.
+    var ts = _typeSystem as StrongTypeSystemImpl;
+    ParameterizedType inferred = ts.inferGenericFunctionOrType(
+        _typeProvider.mapType, parameters, elementTypes, contextType,
+        errorReporter: _resolver.errorReporter, errorNode: node);
+    return inferred;
+  }
+
   /**
    * The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
    * `String`.</blockquote>
@@ -649,39 +718,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return null;
   }
 
-  DartType inferListType(ListLiteral node, {bool downwards: false}) {
-    DartType contextType = InferenceContext.getContext(node);
-
-    var ts = _typeSystem as StrongTypeSystemImpl;
-    List<DartType> elementTypes;
-    List<ParameterElement> parameters;
-
-    if (downwards) {
-      if (contextType == null) {
-        return null;
-      }
-
-      elementTypes = [];
-      parameters = [];
-    } else {
-      // Also use upwards information to infer the type.
-      elementTypes = node.elements
-          .map((e) => e.staticType)
-          .where((t) => t != null)
-          .toList();
-      var listTypeParam = _typeProvider.listType.typeParameters[0].type;
-      var syntheticParamElement = new ParameterElementImpl.synthetic(
-          'element', listTypeParam, ParameterKind.POSITIONAL);
-      parameters = new List.filled(elementTypes.length, syntheticParamElement);
-    }
-    DartType inferred = ts.inferGenericFunctionOrType/*<InterfaceType>*/(
-        _typeProvider.listType, parameters, elementTypes, contextType,
-        downwards: downwards,
-        errorReporter: _resolver.errorReporter,
-        errorNode: node);
-    return inferred;
-  }
-
   /**
    * The Dart Language Specification, 12.7: <blockquote>The static type of a map literal of the form
    * <i><b>const</b> &lt;K, V&gt; {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
@@ -742,42 +778,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // If no type arguments and no inference, use dynamic
     _recordStaticType(node, mapDynamicType);
     return null;
-  }
-
-  ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
-    DartType contextType = InferenceContext.getContext(node);
-
-    List<DartType> elementTypes;
-    List<ParameterElement> parameters;
-    if (downwards) {
-      if (contextType == null) {
-        return null;
-      }
-      elementTypes = [];
-      parameters = [];
-    } else {
-      var keyTypes =
-          node.entries.map((e) => e.key.staticType).where((t) => t != null);
-      var valueTypes =
-          node.entries.map((e) => e.value.staticType).where((t) => t != null);
-      var keyTypeParam = _typeProvider.mapType.typeParameters[0].type;
-      var valueTypeParam = _typeProvider.mapType.typeParameters[1].type;
-      var syntheticKeyParameter = new ParameterElementImpl.synthetic(
-          'key', keyTypeParam, ParameterKind.POSITIONAL);
-      var syntheticValueParameter = new ParameterElementImpl.synthetic(
-          'value', valueTypeParam, ParameterKind.POSITIONAL);
-      parameters = new List.filled(keyTypes.length, syntheticKeyParameter,
-          growable: true)
-        ..addAll(new List.filled(valueTypes.length, syntheticValueParameter));
-      elementTypes = new List<DartType>.from(keyTypes)..addAll(valueTypes);
-    }
-
-    // Use both downwards and upwards information to infer the type.
-    var ts = _typeSystem as StrongTypeSystemImpl;
-    ParameterizedType inferred = ts.inferGenericFunctionOrType(
-        _typeProvider.mapType, parameters, elementTypes, contextType,
-        errorReporter: _resolver.errorReporter, errorNode: node);
-    return inferred;
   }
 
   /**
@@ -1607,65 +1607,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return returnType.type;
   }
 
-  /**
-   * Given a constructor for a generic type, returns the equivalent generic
-   * function type that we could use to forward to the constructor, or for a
-   * non-generic type simply returns the constructor type.
-   *
-   * For example given the type `class C<T> { C(T arg); }`, the generic function
-   * type is `<T>(T) -> C<T>`.
-   */
-  static FunctionType constructorToGenericFunctionType(
-      ConstructorElement constructor) {
-    // TODO(jmesserly): it may be worth making this available from the
-    // constructor. It's nice if our inference code can operate uniformly on
-    // function types.
-    ClassElement cls = constructor.enclosingElement;
-    FunctionType type = constructor.type;
-    if (cls.typeParameters.isEmpty) {
-      return type;
-    }
-
-    // TODO(jmesserly): feels like we should be able to do this with less code.
-
-    // Create fresh type formals. This avoids capture if we're inferring the
-    // constructor to the class from inside it.
-
-    // We build up a substitution for the type parameters,
-    // {variablesFresh/variables} then apply it.
-    var typeVars = <DartType>[];
-    var freshTypeVars = <DartType>[];
-    var freshVarElements = <TypeParameterElement>[];
-    for (int i = 0; i < cls.typeParameters.length; i++) {
-      var typeParamElement = cls.typeParameters[i];
-      var freshElement =
-          new TypeParameterElementImpl.synthetic(typeParamElement.name);
-      var freshTypeVar = new TypeParameterTypeImpl(freshElement);
-      freshElement.type = freshTypeVar;
-
-      typeVars.add(typeParamElement.type);
-      freshTypeVars.add(freshTypeVar);
-      freshVarElements.add(freshElement);
-
-      var bound = typeParamElement.bound ?? DynamicTypeImpl.instance;
-      freshElement.bound = bound.substitute2(freshTypeVars, typeVars);
-    }
-
-    type = type.substitute2(freshTypeVars, typeVars);
-
-    var name = cls.name;
-    if (constructor.name != null) {
-      name += '.' + constructor.name;
-    }
-    var function = new FunctionElementImpl(name, -1);
-    function.enclosingElement = cls;
-    function.isSynthetic = true;
-    function.returnType = type.returnType;
-    function.typeParameters = freshVarElements;
-    function.shareParameters(type.parameters);
-    return function.type = new FunctionTypeImpl(function);
-  }
-
   DartType _findIteratedType(DartType type, DartType targetType) {
     // TODO(vsm): Use leafp's matchType here?
     // Set by _find if match is found
@@ -1993,7 +1934,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         fnType is FunctionType &&
         fnType.typeFormals.isNotEmpty &&
         ts is StrongTypeSystemImpl) {
-      // Get the parameters that correspond to the uninstantiated generic.
+      if (_resolver.isTopLevelInference) {
+        if (fnType.typeParameters.isNotEmpty) {
+          return null;
+        }
+      } // Get the parameters that correspond to the uninstantiated generic.
       List<ParameterElement> rawParameters = ResolverVisitor
           .resolveArgumentsToParameters(argumentList, fnType.parameters, null);
 
@@ -2349,6 +2294,65 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       expression.staticType = type;
     }
+  }
+
+  /**
+   * Given a constructor for a generic type, returns the equivalent generic
+   * function type that we could use to forward to the constructor, or for a
+   * non-generic type simply returns the constructor type.
+   *
+   * For example given the type `class C<T> { C(T arg); }`, the generic function
+   * type is `<T>(T) -> C<T>`.
+   */
+  static FunctionType constructorToGenericFunctionType(
+      ConstructorElement constructor) {
+    // TODO(jmesserly): it may be worth making this available from the
+    // constructor. It's nice if our inference code can operate uniformly on
+    // function types.
+    ClassElement cls = constructor.enclosingElement;
+    FunctionType type = constructor.type;
+    if (cls.typeParameters.isEmpty) {
+      return type;
+    }
+
+    // TODO(jmesserly): feels like we should be able to do this with less code.
+
+    // Create fresh type formals. This avoids capture if we're inferring the
+    // constructor to the class from inside it.
+
+    // We build up a substitution for the type parameters,
+    // {variablesFresh/variables} then apply it.
+    var typeVars = <DartType>[];
+    var freshTypeVars = <DartType>[];
+    var freshVarElements = <TypeParameterElement>[];
+    for (int i = 0; i < cls.typeParameters.length; i++) {
+      var typeParamElement = cls.typeParameters[i];
+      var freshElement =
+          new TypeParameterElementImpl.synthetic(typeParamElement.name);
+      var freshTypeVar = new TypeParameterTypeImpl(freshElement);
+      freshElement.type = freshTypeVar;
+
+      typeVars.add(typeParamElement.type);
+      freshTypeVars.add(freshTypeVar);
+      freshVarElements.add(freshElement);
+
+      var bound = typeParamElement.bound ?? DynamicTypeImpl.instance;
+      freshElement.bound = bound.substitute2(freshTypeVars, typeVars);
+    }
+
+    type = type.substitute2(freshTypeVars, typeVars);
+
+    var name = cls.name;
+    if (constructor.name != null) {
+      name += '.' + constructor.name;
+    }
+    var function = new FunctionElementImpl(name, -1);
+    function.enclosingElement = cls;
+    function.isSynthetic = true;
+    function.returnType = type.returnType;
+    function.typeParameters = freshVarElements;
+    function.shareParameters(type.parameters);
+    return function.type = new FunctionTypeImpl(function);
   }
 
   /**

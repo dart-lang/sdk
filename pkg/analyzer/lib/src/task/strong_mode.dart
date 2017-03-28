@@ -606,6 +606,65 @@ class _IsValidForTypeInferenceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitFunctionExpression(FunctionExpression node) {
+    FunctionBody body = node.body;
+    if (body is ExpressionFunctionBody) {
+      body.accept(this);
+    } else {
+      isValid = false;
+    }
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    node.function?.accept(this);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    isValid = false;
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorElement constructor = node.staticElement;
+    if (constructor != null) {
+      ClassElement clazz = constructor?.enclosingElement;
+      if (clazz.typeParameters.isNotEmpty &&
+          node.constructorName.type.typeArguments == null) {
+        isValid = false;
+        return;
+      }
+    }
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitListLiteral(node);
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    Element element = node.methodName.staticElement;
+    if (element is ExecutableElement) {
+      if (element.type.typeFormals.isNotEmpty && node.typeArguments == null) {
+        isValid = false;
+        return;
+      }
+    }
+    node.target?.accept(this);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element == null) {

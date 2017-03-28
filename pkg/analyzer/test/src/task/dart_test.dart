@@ -2918,10 +2918,7 @@ class M {}
         '/test.dart',
         '''
 var X = 1;
-
-var Y = () {
-  return 1 + X;
-};
+var Y = () => 1 + X;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT8,
         matcher: isInferStaticVariableTypesInUnitTask);
@@ -2929,9 +2926,8 @@ var Y = () {
     TopLevelVariableDeclaration declaration = unit.declarations[1];
     FunctionExpression function =
         declaration.variables.variables[0].initializer;
-    BlockFunctionBody body = function.body;
-    ReturnStatement statement = body.block.statements[0];
-    Expression expression = statement.expression;
+    ExpressionFunctionBody body = function.body;
+    Expression expression = body.expression;
     InterfaceType intType = context.typeProvider.intType;
     expect(expression.staticType, intType);
   }
