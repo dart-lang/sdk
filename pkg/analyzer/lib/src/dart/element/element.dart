@@ -5221,7 +5221,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  FunctionTypeAlias computeNode() =>
+  GenericTypeAlias computeNode() =>
       getNodeMatching((node) => node is GenericTypeAlias);
 
   @override
