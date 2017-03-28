@@ -726,10 +726,10 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/A f1; // invalid for getter
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/C f2; // invalid for setter
-  /*error:INVALID_FIELD_OVERRIDE*/var f3;
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic f4;
+  /*error:INVALID_METHOD_OVERRIDE*/A f1; // invalid for getter
+  /*error:INVALID_METHOD_OVERRIDE*/C f2; // invalid for setter
+  var f3;
+  /*error:INVALID_METHOD_OVERRIDE*/dynamic f4;
 }
 
 class Child2 implements Base {
@@ -755,10 +755,10 @@ abstract class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/A get f1 => null;
-  /*error:INVALID_FIELD_OVERRIDE*/C get f2 => null;
-  /*error:INVALID_FIELD_OVERRIDE*/get f3 => null;
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic get f4 => null;
+  /*error:INVALID_METHOD_OVERRIDE*/A get f1 => null;
+  C get f2 => null;
+  get f3 => null;
+  /*error:INVALID_METHOD_OVERRIDE*/dynamic get f4 => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR*/Child2 implements Base {
@@ -779,8 +779,8 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_FIELD_OVERRIDE*/final ToVoid<int> f = null;
-  /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/final ToVoid<dynamic> g = null;
+  final ToVoid<int> f = null;
+  /*error:INVALID_METHOD_OVERRIDE*/final ToVoid<dynamic> g = null;
 }
 
 class H implements F {
@@ -815,7 +815,7 @@ class OverrideWithField extends C {
   set superX(int v) { super.x = v; }
 }
 class VirtualNotInherited extends OverrideWithField {
-  /*error:INVALID_FIELD_OVERRIDE*/int x;
+  int x;
 }
     ''');
   }
@@ -835,17 +835,17 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_FIELD_OVERRIDE*/B get f1 => null;
-  /*error:INVALID_FIELD_OVERRIDE*/B get f2 => null;
-  /*error:INVALID_FIELD_OVERRIDE*/B get f3 => null;
-  /*error:INVALID_FIELD_OVERRIDE*/B get f4 => null;
-  /*error:INVALID_FIELD_OVERRIDE*/B get f5 => null;
+  B get f1 => null;
+  B get f2 => null;
+  B get f3 => null;
+  B get f4 => null;
+  B get f5 => null;
 
-  /*error:INVALID_FIELD_OVERRIDE*/void set f1(A value) {}
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
-  /*error:INVALID_FIELD_OVERRIDE*/void set f3(value) {}
-  /*error:INVALID_FIELD_OVERRIDE*/void set f4(dynamic value) {}
-  /*error:INVALID_FIELD_OVERRIDE*/set f5(B value) {}
+  void set f1(A value) {}
+  /*error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
+  void set f3(value) {}
+  void set f4(dynamic value) {}
+  set f5(B value) {}
 }
 
 class Child2 implements Base {
@@ -2494,21 +2494,21 @@ class Base {
 }
 
 class T1 extends Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B get f => null;
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_METHOD_OVERRIDE*/B get f => null;
 }
 
 class T2 extends Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/set f(
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,error:INVALID_METHOD_OVERRIDE*/set f(
       B b) => null;
 }
 
 class T3 extends Base {
-  /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/final B
+  /*error:INVALID_METHOD_OVERRIDE*/final B
       /*warning:FINAL_NOT_INITIALIZED*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B f;
+  /*error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B f;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
@@ -2610,7 +2610,7 @@ class Parent extends Grandparent {
 
 class Test extends Parent {
     /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
-    /*error:INVALID_FIELD_OVERRIDE*/int x;
+    int x;
 }
 ''');
   }
@@ -2655,9 +2655,9 @@ class M2 {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1 {}
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2 extends Base
-    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1, /*error:INVALID_FIELD_OVERRIDE*/M2 {}
+    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1, M2 {}
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T3 extends Base
-    with /*error:INVALID_FIELD_OVERRIDE*/M2, /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1 {}
+    with M2, /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1 {}
 ''');
   }
 
@@ -2681,7 +2681,7 @@ class M2 {
 
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
     with M1,
-    /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN,error:INVALID_FIELD_OVERRIDE*/M2 {}
+    /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2 {}
 ''');
   }
 
@@ -3294,8 +3294,8 @@ class Base {
 }
 
 class GrandChild extends main.Child {
-  /*error:INVALID_FIELD_OVERRIDE*/var _f2;
-  /*error:INVALID_FIELD_OVERRIDE*/var _f3;
+  var _f2;
+  var _f3;
   var _f4;
 
   /*error:INVALID_METHOD_OVERRIDE*/String _m1() => null;
@@ -3306,7 +3306,7 @@ class GrandChild extends main.Child {
 import 'helper.dart' as helper;
 
 class Child extends helper.Base {
-  /*error:INVALID_FIELD_OVERRIDE*/var f1;
+  var f1;
   var _f2;
   var _f4;
 

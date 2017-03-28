@@ -5291,10 +5291,8 @@ import 'lib1.dart';
 class C extends Object with A, B {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
-      StrongModeCode.INVALID_FIELD_OVERRIDE
-    ]);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
     verify([source]);
   }
 
@@ -5340,10 +5338,8 @@ import 'lib1.dart';
 class C extends A with B {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
-      StrongModeCode.INVALID_FIELD_OVERRIDE
-    ]);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
     verify([source]);
   }
 
@@ -5365,10 +5361,8 @@ import 'lib1.dart';
 class C extends A with A {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
-      StrongModeCode.INVALID_FIELD_OVERRIDE
-    ]);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
     verify([source]);
   }
 

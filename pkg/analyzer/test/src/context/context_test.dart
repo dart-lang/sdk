@@ -4326,9 +4326,8 @@ class B extends A {
 }
 ''');
     _performPendingAnalysisTasks();
-    expect(context.getErrors(a).errors, hasLength(2));
+    expect(context.getErrors(a).errors, hasLength(1));
     // Update a.dart: rename "int foo" to "int bar".
-    // The strong mode "getter cannot override field" error is gone.
     context.setContents(
         a,
         r'''

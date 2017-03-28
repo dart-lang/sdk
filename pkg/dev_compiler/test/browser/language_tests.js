@@ -298,6 +298,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'error_stack_trace1_test': fail,
       'error_stack_trace2_test': fail,
       'for_in_test': is.firefox('<=50') ? fail : pass,
+      'growable_list_test': fail,
       'hash_map2_test': skip_timeout,
       'hash_set_test_01_multi': fail,
       'hidden_library2_test_01_multi': fail,
@@ -349,7 +350,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // TODO(rnystrom): Times out because it tests a huge number of
       // combinations of URLs (4 * 5 * 5 * 8 * 6 * 6 * 4 = 115200).
       'uri_parse_test': skip_timeout,
-
       // this is timing out on Chrome Canary only
       // pinning this skip in case it's a transient canary issue
       'uri_test': is.chrome('59') ? ['skip'] : ['slow'],
@@ -655,6 +655,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'relation_assignable_test': fail,
       'relation_subtype_test': fail,
       'set_field_with_final_test': fail,
+      'set_field_with_final_inheritance_test': fail,
       'symbol_validation_test_01_multi': fail,
       'symbol_validation_test_none_multi': fail,
       'to_string_test': fail,

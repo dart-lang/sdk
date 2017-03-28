@@ -29,11 +29,35 @@ closure.Foo$ = dart.generic(T => {
     static some_static_constant: string;
     static some_static_final: string;
     static some_static_var: string;
+    get i() {
+      return this[i$];
+    }
+    set i(value) {
+      super.i = value;
+    }
+    get b() {
+      return this[b];
+    }
+    set b(value) {
+      this[b] = value;
+    }
+    get s() {
+      return this[s];
+    }
+    set s(value) {
+      this[s] = value;
+    }
+    get v() {
+      return this[v$];
+    }
+    set v(value) {
+      this[v$] = value;
+    }
     new(i: number, v: T) {
-      this.i = i;
-      this.v = v;
-      this.b = null;
-      this.s = null;
+      this[i$] = i;
+      this[v$] = v;
+      this[b] = null;
+      this[s] = null;
     }
     static build() {
       return new (FooOfT())(1, null);
@@ -63,6 +87,10 @@ closure.Foo$ = dart.generic(T => {
     static set staticProp(value: string) {}
   }
   dart.addTypeTests(Foo);
+  const i$ = Symbol("Foo.i");
+  const b = Symbol("Foo.b");
+  const s = Symbol("Foo.s");
+  const v$ = Symbol("Foo.v");
   dart.setSignature(Foo, {
     fields: () => ({
       i: core.int,

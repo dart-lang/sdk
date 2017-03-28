@@ -39,7 +39,6 @@ import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import 'ast_builder.dart' show AstBuilder;
-import 'class_property_model.dart';
 import 'compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
 import 'element_loader.dart' show ElementLoader;
@@ -50,6 +49,7 @@ import 'js_names.dart' as JS;
 import 'js_typeref_codegen.dart' show JsTypeRefCodegen;
 import 'module_builder.dart' show pathToJSIdentifier;
 import 'nullable_type_inference.dart' show NullableTypeInference;
+import 'property_model.dart';
 import 'reify_coercions.dart' show CoercionReifier;
 import 'side_effect_analysis.dart' show ConstFieldVisitor, isStateless;
 import 'type_utilities.dart';
@@ -156,6 +156,10 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// class we're currently compiling, or `null` if we aren't compiling a class.
   ClassPropertyModel _classProperties;
 
+  /// Information about virtual fields for all libraries in the current build
+  /// unit.
+  final virtualFields = new VirtualFieldModel();
+
   CodeGenerator(
       AnalysisContext c, this.summaryData, this.options, this._extensionTypes)
       : context = c,
@@ -246,7 +250,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Transform the AST to make coercions explicit.
     compilationUnits = CoercionReifier.reify(compilationUnits);
 
-    if (compilationUnits.any((u) => _isDartRuntime(
+    if (compilationUnits.any((u) => isSdkInternalRuntime(
         resolutionMap.elementDeclaredByCompilationUnit(u).library))) {
       // Don't allow these to be renamed when we're building the SDK.
       // There is JS code in dart:* that depends on their names.
@@ -266,7 +270,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           resolutionMap.elementDeclaredByCompilationUnit(unit).library;
       if (unit.element != library.definingCompilationUnit) continue;
 
-      var libraryTemp = _isDartRuntime(library)
+      var libraryTemp = isSdkInternalRuntime(library)
           ? _runtimeModule
           : new JS.TemporaryId(jsLibraryName(_libraryRoot, library));
       _libraries[library] = libraryTemp;
@@ -275,7 +279,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
       // dart:_runtime has a magic module that holds extension method symbols.
       // TODO(jmesserly): find a cleaner design for this.
-      if (_isDartRuntime(library)) {
+      if (isSdkInternalRuntime(library)) {
         items.add(new JS.ExportDeclaration(js
             .call('const # = Object.create(null)', [_extensionSymbolsModule])));
       }
@@ -286,7 +290,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var nodes = new HashMap<Element, AstNode>.identity();
     var sdkBootstrappingFns = new List<FunctionElement>();
     for (var unit in compilationUnits) {
-      if (_isDartRuntime(
+      if (isSdkInternalRuntime(
           resolutionMap.elementDeclaredByCompilationUnit(unit).library)) {
         sdkBootstrappingFns.addAll(
             resolutionMap.elementDeclaredByCompilationUnit(unit).functions);
@@ -860,7 +864,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var extensions = _extensionsToImplement(classElem);
     var savedClassProperties = _classProperties;
-    _classProperties = new ClassPropertyModel.build(classElem, extensions);
+    _classProperties =
+        new ClassPropertyModel.build(virtualFields, classElem, extensions);
 
     var classExpr = _emitClassExpression(
         classElem, _emitClassMethods(node, ctors, fields),
@@ -2550,7 +2555,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var element = resolutionMap.elementDeclaredByFunctionDeclaration(node);
     var nameExpr = _emitTopLevelName(element);
     body.add(annotate(js.statement('# = #', [nameExpr, fn]), node, element));
-    if (!_isDartRuntime(element.library)) {
+    if (!isSdkInternalRuntime(element.library)) {
       body.add(_emitFunctionTagged(nameExpr, element.type, topLevel: true)
           .toStatement());
     }
@@ -4123,7 +4128,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Treat dart:runtime stuff as safe to eagerly evaluate.
     // TODO(jmesserly): it'd be nice to avoid this special case.
-    var isJSTopLevel = field.isFinal && _isDartRuntime(element.library);
+    var isJSTopLevel = field.isFinal && isSdkInternalRuntime(element.library);
     if (eagerInit || isJSTopLevel) {
       // Remember that we emitted it this way, so re-export can take advantage
       // of this fact.
@@ -5053,7 +5058,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (isSuper &&
         !member.isSynthetic &&
         member is FieldElementImpl &&
-        !member.isVirtual) {
+        !virtualFields.isVirtual(member)) {
       // If super.x is a sealed field, then x is an instance property since
       // subclasses cannot override x.
       jsTarget = new JS.This();
@@ -6049,9 +6054,6 @@ bool isLibraryPrefix(Expression node) =>
 
 LibraryElement _getLibrary(AnalysisContext c, String uri) =>
     c.computeLibraryElement(c.sourceFactory.forUri(uri));
-
-bool _isDartRuntime(LibraryElement l) =>
-    l.isInSdk && l.source.uri.toString() == 'dart:_runtime';
 
 /// Returns `true` if [target] is a prefix for a deferred library and [name]
 /// is "loadLibrary".

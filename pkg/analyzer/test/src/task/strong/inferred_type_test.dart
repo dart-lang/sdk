@@ -3187,7 +3187,7 @@ main() {
   test_inferParameterType_setter_fromField() async {
     var mainUnit = await checkFileElement('''
 class C extends D {
-  /*error:INVALID_FIELD_OVERRIDE*/set foo(x) {}
+  set foo(x) {}
 }
 class D {
   int foo;
@@ -3601,7 +3601,7 @@ class A {
 }
 
 class B extends A {
-  /*error:INVALID_FIELD_OVERRIDE*/get x => 3;
+  get x => 3;
 }
 
 foo() {
@@ -3741,7 +3741,7 @@ class A<T> {
 
 class B<E> extends A<E> {
   E y;
-  /*error:INVALID_FIELD_OVERRIDE*/get x => y;
+  get x => y;
 }
 
 foo() {
