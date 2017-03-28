@@ -568,6 +568,18 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
+    throw new UnimplementedError('KernelElementEnvironment.forEachMixin');
+  }
+
+  @override
+  void forEachClassMember(
+      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
+    throw new UnimplementedError(
+        'KernelElementEnvironment.forEachInstanceMember');
+  }
+
+  @override
   MemberEntity lookupLibraryMember(LibraryEntity library, String name,
       {bool setter: false, bool required: false}) {
     MemberEntity member =

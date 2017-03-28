@@ -1883,6 +1883,26 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  void forEachClassMember(
+      ClassElement cls, void f(ClassElement declarer, MemberElement member)) {
+    cls.ensureResolved(_resolution);
+    cls.forEachMember((ClassElement declarer, MemberElement member) {
+      if (member.isSynthesized) return;
+      f(declarer, member);
+    }, includeSuperAndInjectedMembers: true);
+  }
+
+  @override
+  void forEachMixin(ClassElement cls, void f(ClassElement mixin)) {
+    for (; cls != null; cls = cls.superclass) {
+      if (cls.isMixinApplication) {
+        MixinApplicationElement mixinApplication = cls;
+        f(mixinApplication.mixin);
+      }
+    }
+  }
+
+  @override
   MemberElement lookupLibraryMember(LibraryElement library, String name,
       {bool setter: false, bool required: false}) {
     Element member = library.implementation.findLocal(name);

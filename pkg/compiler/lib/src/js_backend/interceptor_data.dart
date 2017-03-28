@@ -6,8 +6,8 @@ library js_backend.interceptor_data;
 
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
-import '../common_elements.dart' show CommonElements;
-import '../elements/elements.dart';
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../elements/elements.dart' show MemberElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -56,15 +56,15 @@ class InterceptorDataImpl implements InterceptorData {
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to
   /// know whether a send must be intercepted or not.
-  final Map<String, Set<Element>> _interceptedElements;
+  final Map<String, Set<MemberEntity>> _interceptedElements;
 
   /// Set of classes whose methods are intercepted.
-  final Set<ClassElement> _interceptedClasses;
+  final Set<ClassEntity> _interceptedClasses;
 
   /// Set of classes used as mixins on intercepted (native and primitive)
   /// classes. Methods on these classes might also be mixed in to regular Dart
   /// (unintercepted) classes.
-  final Set<ClassElement> _classesMixedIntoInterceptedClasses;
+  final Set<ClassEntity> _classesMixedIntoInterceptedClasses;
 
   /// The members of mixin classes that are mixed into an instantiated
   /// interceptor class.  This is a cached subset of [_interceptedElements].
@@ -75,13 +75,13 @@ class InterceptorDataImpl implements InterceptorData {
   ///
   /// These members must be invoked with a correct explicit receiver even when
   /// the receiver is not an intercepted class.
-  final Map<String, Set<Element>> _interceptedMixinElements =
-      new Map<String, Set<Element>>();
+  final Map<String, Set<MemberEntity>> _interceptedMixinElements =
+      new Map<String, Set<MemberEntity>>();
 
-  final Map<String, Set<ClassElement>> _interceptedClassesCache =
-      new Map<String, Set<ClassElement>>();
+  final Map<String, Set<ClassEntity>> _interceptedClassesCache =
+      new Map<String, Set<ClassEntity>>();
 
-  final Set<ClassElement> _noClasses = new Set<ClassElement>();
+  final Set<ClassEntity> _noClasses = new Set<ClassEntity>();
 
   InterceptorDataImpl(
       this._nativeData,
@@ -99,11 +99,11 @@ class InterceptorDataImpl implements InterceptorData {
     return _interceptedElements[element.name] != null;
   }
 
-  bool fieldHasInterceptedGetter(FieldElement element) {
+  bool fieldHasInterceptedGetter(FieldEntity element) {
     return _interceptedElements[element.name] != null;
   }
 
-  bool fieldHasInterceptedSetter(FieldElement element) {
+  bool fieldHasInterceptedSetter(FieldEntity element) {
     return _interceptedElements[element.name] != null;
   }
 
@@ -119,9 +119,9 @@ class InterceptorDataImpl implements InterceptorData {
   /// into an intercepted class.  These selectors are not eligible for the
   /// 'dummy explicit receiver' optimization.
   bool isInterceptedMixinSelector(Selector selector, TypeMask mask) {
-    Set<Element> elements =
+    Set<MemberEntity> elements =
         _interceptedMixinElements.putIfAbsent(selector.name, () {
-      Set<Element> elements = _interceptedElements[selector.name];
+      Set<MemberEntity> elements = _interceptedElements[selector.name];
       if (elements == null) return null;
       return elements
           .where((element) => _classesMixedIntoInterceptedClasses
@@ -133,14 +133,13 @@ class InterceptorDataImpl implements InterceptorData {
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
-          (mask == null ||
-              mask.canHit(element as MemberElement, selector, _closedWorld));
+          (mask == null || mask.canHit(element, selector, _closedWorld));
     });
   }
 
   /// True if the given class is an internal class used for type inference
   /// and never exists at runtime.
-  bool _isCompileTimeOnlyClass(ClassElement class_) {
+  bool _isCompileTimeOnlyClass(ClassEntity class_) {
     return class_ == _helpers.jsPositiveIntClass ||
         class_ == _helpers.jsUInt32Class ||
         class_ == _helpers.jsUInt31Class ||
@@ -153,22 +152,22 @@ class InterceptorDataImpl implements InterceptorData {
   /// Returns a set of interceptor classes that contain a member named [name]
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
-  Set<ClassElement> getInterceptedClassesOn(String name) {
-    Set<Element> intercepted = _interceptedElements[name];
+  Set<ClassEntity> getInterceptedClassesOn(String name) {
+    Set<MemberEntity> intercepted = _interceptedElements[name];
     if (intercepted == null) return _noClasses;
     return _interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
       // determine if the given selector applies to them.
-      Set<ClassElement> result = new Set<ClassElement>();
-      for (Element element in intercepted) {
-        ClassElement classElement = element.enclosingClass;
+      Set<ClassEntity> result = new Set<ClassEntity>();
+      for (MemberEntity element in intercepted) {
+        ClassEntity classElement = element.enclosingClass;
         if (_isCompileTimeOnlyClass(classElement)) continue;
         if (_nativeData.isNativeOrExtendsNative(classElement) ||
             interceptedClasses.contains(classElement)) {
           result.add(classElement);
         }
         if (_classesMixedIntoInterceptedClasses.contains(classElement)) {
-          Set<ClassElement> nativeSubclasses =
+          Set<ClassEntity> nativeSubclasses =
               nativeSubclassesOfMixin(classElement);
           if (nativeSubclasses != null) result.addAll(nativeSubclasses);
         }
@@ -177,13 +176,13 @@ class InterceptorDataImpl implements InterceptorData {
     });
   }
 
-  Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    Iterable<MixinApplicationElement> uses = _closedWorld.mixinUsesOf(mixin);
-    Set<ClassElement> result = null;
-    for (MixinApplicationElement use in uses) {
-      _closedWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
+  Set<ClassEntity> nativeSubclassesOfMixin(ClassEntity mixin) {
+    Iterable<ClassEntity> uses = _closedWorld.mixinUsesOf(mixin);
+    Set<ClassEntity> result = null;
+    for (ClassEntity use in uses) {
+      _closedWorld.forEachStrictSubclassOf(use, (ClassEntity subclass) {
         if (_nativeData.isNativeOrExtendsNative(subclass)) {
-          if (result == null) result = new Set<ClassElement>();
+          if (result == null) result = new Set<ClassEntity>();
           result.add(subclass);
         }
       });
@@ -191,7 +190,7 @@ class InterceptorDataImpl implements InterceptorData {
     return result;
   }
 
-  bool isInterceptedClass(ClassElement element) {
+  bool isInterceptedClass(ClassEntity element) {
     if (element == null) return false;
     if (_nativeData.isNativeOrExtendsNative(element)) return true;
     if (interceptedClasses.contains(element)) return true;
@@ -199,10 +198,10 @@ class InterceptorDataImpl implements InterceptorData {
     return false;
   }
 
-  bool isMixedIntoInterceptedClass(ClassElement element) =>
+  bool isMixedIntoInterceptedClass(ClassEntity element) =>
       _classesMixedIntoInterceptedClasses.contains(element);
 
-  Iterable<ClassElement> get interceptedClasses => _interceptedClasses;
+  Iterable<ClassEntity> get interceptedClasses => _interceptedClasses;
 
   bool mayGenerateInstanceofCheck(DartType type) {
     // We can use an instanceof check for raw types that have no subclass that
@@ -219,26 +218,27 @@ class InterceptorDataImpl implements InterceptorData {
 class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final NativeBasicData _nativeData;
   final BackendHelpers _helpers;
+  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final Resolution _resolution;
 
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to
   /// know whether a send must be intercepted or not.
-  final Map<String, Set<Element>> _interceptedElements =
-      <String, Set<Element>>{};
+  final Map<String, Set<MemberEntity>> _interceptedElements =
+      <String, Set<MemberEntity>>{};
 
   /// Set of classes whose methods are intercepted.
-  final Set<ClassElement> _interceptedClasses = new Set<ClassElement>();
+  final Set<ClassEntity> _interceptedClasses = new Set<ClassEntity>();
 
   /// Set of classes used as mixins on intercepted (native and primitive)
   /// classes. Methods on these classes might also be mixed in to regular Dart
   /// (unintercepted) classes.
-  final Set<ClassElement> _classesMixedIntoInterceptedClasses =
-      new Set<ClassElement>();
+  final Set<ClassEntity> _classesMixedIntoInterceptedClasses =
+      new Set<ClassEntity>();
 
-  InterceptorDataBuilderImpl(
-      this._nativeData, this._helpers, this._commonElements, this._resolution);
+  InterceptorDataBuilderImpl(this._nativeData, this._helpers,
+      this._elementEnvironment, this._commonElements, this._resolution);
 
   InterceptorData onResolutionComplete(ClosedWorld closedWorld) {
     return new InterceptorDataImpl(
@@ -250,39 +250,33 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
         _classesMixedIntoInterceptedClasses);
   }
 
-  void addInterceptorsForNativeClassMembers(ClassElement cls) {
-    cls.ensureResolved(_resolution);
-    cls.forEachMember((ClassElement classElement, Element member) {
-      if (member.name == Identifiers.call) {
-        return;
-      }
-      if (member.isSynthesized) return;
+  void addInterceptorsForNativeClassMembers(ClassEntity cls) {
+    _elementEnvironment.forEachClassMember(cls,
+        (ClassEntity cls, MemberEntity member) {
+      if (member.name == Identifiers.call) return;
       // All methods on [Object] are shadowed by [Interceptor].
-      if (classElement == _commonElements.objectClass) return;
-      Set<Element> set = _interceptedElements.putIfAbsent(
-          member.name, () => new Set<Element>());
+      if (cls == _commonElements.objectClass) return;
+      Set<MemberEntity> set = _interceptedElements.putIfAbsent(
+          member.name, () => new Set<MemberEntity>());
       set.add(member);
-    }, includeSuperAndInjectedMembers: true);
+    });
 
     // Walk superclass chain to find mixins.
-    for (; cls != null; cls = cls.superclass) {
-      if (cls.isMixinApplication) {
-        MixinApplicationElement mixinApplication = cls;
-        _classesMixedIntoInterceptedClasses.add(mixinApplication.mixin);
-      }
-    }
+    _elementEnvironment.forEachMixin(cls, (ClassEntity mixin) {
+      _classesMixedIntoInterceptedClasses.add(mixin);
+    });
   }
 
-  void addInterceptors(ClassElement cls) {
+  void addInterceptors(ClassEntity cls) {
     if (_interceptedClasses.add(cls)) {
-      cls.ensureResolved(_resolution);
-      cls.forEachMember((ClassElement classElement, Element member) {
+      _elementEnvironment.forEachClassMember(cls,
+          (ClassEntity cls, MemberEntity member) {
         // All methods on [Object] are shadowed by [Interceptor].
-        if (classElement == _commonElements.objectClass) return;
-        Set<Element> set = _interceptedElements.putIfAbsent(
-            member.name, () => new Set<Element>());
+        if (cls == _commonElements.objectClass) return;
+        Set<MemberEntity> set = _interceptedElements.putIfAbsent(
+            member.name, () => new Set<MemberEntity>());
         set.add(member);
-      }, includeSuperAndInjectedMembers: true);
+      });
     }
     _interceptedClasses.add(_helpers.jsInterceptorClass);
   }

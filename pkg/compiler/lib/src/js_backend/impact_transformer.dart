@@ -10,9 +10,9 @@ import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show Resolution, ResolutionImpact;
 import '../constants/expressions.dart';
-import '../constants/values.dart';
 import '../common_elements.dart' show ElementEnvironment;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../native/enqueue.dart';
@@ -20,7 +20,7 @@ import '../native/native.dart' as native;
 import '../options.dart';
 import '../universe/feature.dart';
 import '../universe/use.dart'
-    show ConstantUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+    show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
 import 'backend.dart';
@@ -442,7 +442,7 @@ class CodegenImpactTransformer {
       }
     }
 
-    for (Set<ClassElement> classes in impact.specializedGetInterceptors) {
+    for (Set<ClassEntity> classes in impact.specializedGetInterceptors) {
       _oneShotInterceptorData.registerSpecializedGetInterceptor(
           classes, _namer);
     }

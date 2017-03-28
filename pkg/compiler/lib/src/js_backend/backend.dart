@@ -914,7 +914,11 @@ class JavaScriptBackend {
         customElementsResolutionAnalysis,
         rtiNeedBuilder);
     _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeBasicData, helpers, commonElements, compiler.resolution);
+        nativeBasicData,
+        helpers,
+        compiler.elementEnvironment,
+        commonElements,
+        compiler.resolution);
     return new ResolutionEnqueuer(
         task,
         compiler.options,

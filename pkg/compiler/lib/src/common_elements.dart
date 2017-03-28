@@ -242,6 +242,18 @@ abstract class ElementEnvironment {
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false});
 
+  /// Calls [f] for each class member declared or inherited in [cls] together
+  /// with the class that declared the member.
+  ///
+  /// TODO(johnniwinther): This should not include static members of
+  /// superclasses.
+  void forEachClassMember(
+      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
+
+  /// Calls [f] for each class that is mixed into [cls] or one of its
+  /// superclasses.
+  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin));
+
   /// Create the instantiation of [cls] with the given [typeArguments].
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments);
