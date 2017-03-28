@@ -285,9 +285,8 @@ class KernelTarget extends TargetImplementation {
 
   Future writeDepsFile(Uri output, Uri depsFile,
       {Iterable<Uri> extraDependencies}) async {
-    Uri base = depsFile.resolve(".");
     String toRelativeFilePath(Uri uri) {
-      return Uri.parse(relativizeUri(uri, base: base)).toFilePath();
+      return Uri.parse(relativizeUri(uri)).toFilePath();
     }
 
     if (loader.first == null) return null;
