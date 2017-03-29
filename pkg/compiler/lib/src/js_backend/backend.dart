@@ -927,7 +927,6 @@ class JavaScriptBackend {
             ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
         new ResolutionEnqueuerListener(
-            kernelTask,
             compiler.options,
             compiler.elementEnvironment,
             commonElements,
@@ -944,7 +943,8 @@ class JavaScriptBackend {
             lookupMapResolutionAnalysis,
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
-            nativeResolutionEnqueuer),
+            nativeResolutionEnqueuer,
+            kernelTask),
         new ElementResolutionWorldBuilder(
             this, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution));
