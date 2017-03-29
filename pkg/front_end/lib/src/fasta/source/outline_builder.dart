@@ -31,7 +31,12 @@ import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
 import '../parser/dart_vm_native.dart'
     show removeNativeClause, skipNativeClause;
 
-import '../operator.dart' show Operator, operatorFromString, operatorToString;
+import '../operator.dart'
+    show
+        Operator,
+        operatorFromString,
+        operatorToString,
+        operatorRequiredArgumentCount;
 
 import '../quote.dart' show unescapeString;
 
@@ -369,6 +374,22 @@ class OutlineBuilder extends UnhandledListener {
     if (nameOrOperator is Operator) {
       name = operatorToString(nameOrOperator);
       kind = ProcedureKind.Operator;
+      int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
+      if ((formals?.length ?? 0) != requiredArgumentCount) {
+        library.addCompileTimeError(
+            charOffset,
+            "Operator '$name' must have exactly $requiredArgumentCount "
+            "parameters.");
+      } else {
+        if (formals != null) {
+          for (FormalParameterBuilder formal in formals) {
+            if (!formal.isRequired) {
+              library.addCompileTimeError(formal.charOffset,
+                  "An operator can't have optional parameters.");
+            }
+          }
+        }
+      }
     } else {
       name = nameOrOperator;
       kind = computeProcedureKind(getOrSet);
