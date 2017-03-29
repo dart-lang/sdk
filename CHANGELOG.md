@@ -37,7 +37,7 @@
     var bar = /*infers: <String>*/['hello', 'world'];
   }
   ```
-  
+
 * Strong mode inference error messages are improved
   (SDK issue [29108](https://github.com/dart-lang/sdk/issues/29108)).
 
@@ -122,9 +122,13 @@
       that's also valid according to the user's pubspec.
 
 * dartfmt
+  * Support new generic function typedef syntax.
   * Make the precedence of cascades more visible.
   * Fix a couple of places where spurious newlines were inserted.
   * Correctly report unchanged formatting when reading from stdin.
+  * Ensure space between `-` and `--`. Code that does this is pathological, but
+    it technically meant dartfmt could change the semantics of the code.
+  * Preserve a blank line between enum cases.
   * Other small formatting tweaks.
 
 ## 1.22.0
