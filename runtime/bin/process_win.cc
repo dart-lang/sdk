@@ -983,6 +983,7 @@ intptr_t GetWinSignal(intptr_t signal) {
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   signal = GetWinSignal(signal);
   if (signal == -1) {
+    SetLastError(ERROR_NOT_SUPPORTED);
     return -1;
   }
 
