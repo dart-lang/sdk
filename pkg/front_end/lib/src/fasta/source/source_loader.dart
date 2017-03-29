@@ -46,7 +46,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceLoader<L> extends Loader<L> {
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
-  final excludeSource = CompilerContext.current.options.excludeSource;
+  final bool excludeSource = CompilerContext.current.options.excludeSource;
 
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
