@@ -81,6 +81,54 @@ class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
   }
 };
 
+
+template <typename V>
+class IntKeyRawPointerValueTrait {
+ public:
+  typedef intptr_t Key;
+  typedef V Value;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(NULL), value() {}
+    Pair(const Key key, const Value& value) : key(key), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+  };
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
+template <typename V>
+class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
+ public:
+  typedef typename IntKeyRawPointerValueTrait<V>::Key Key;
+  typedef typename IntKeyRawPointerValueTrait<V>::Value Value;
+  typedef typename IntKeyRawPointerValueTrait<V>::Pair Pair;
+
+  inline void Insert(const Key& key, const Value& value) {
+    Pair pair(key, value);
+    DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Insert(pair);
+  }
+
+  inline V Lookup(const Key& key) {
+    Pair* pair =
+        DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
+    if (pair == NULL) {
+      return V();
+    } else {
+      return pair->value;
+    }
+  }
+
+  inline Pair* LookupPair(const Key& key) {
+    return DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
+  }
+};
+
 template <typename K, typename V>
 class MallocMap
     : public MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
@@ -502,7 +550,7 @@ class ConstantEvaluator : public ExpressionVisitor {
 
 
 struct FunctionScope {
-  FunctionNode* function;
+  intptr_t kernel_offset;
   LocalScope* scope;
 };
 
@@ -518,8 +566,8 @@ class ScopeBuildingResult : public ZoneAllocated {
         yield_jump_variable(NULL),
         yield_context_variable(NULL) {}
 
-  Map<VariableDeclaration, LocalVariable*> locals;
-  Map<TreeNode, LocalScope*> scopes;
+  IntMap<LocalVariable*> locals;
+  IntMap<LocalScope*> scopes;
   GrowableArray<FunctionScope> function_scopes;
 
   // Only non-NULL for instance functions.

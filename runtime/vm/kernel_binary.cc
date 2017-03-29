@@ -328,7 +328,7 @@ class ReaderHelper {
 
 class Reader {
  public:
-  Reader(const uint8_t* buffer, int64_t size)
+  Reader(const uint8_t* buffer, intptr_t size)
       : buffer_(buffer), size_(size), offset_(0) {}
 
   uint32_t ReadUInt32() {
@@ -501,10 +501,12 @@ class Reader {
     return name;
   }
 
+  intptr_t offset() { return offset_; }
+
  private:
   const uint8_t* buffer_;
-  int64_t size_;
-  int64_t offset_;
+  intptr_t size_;
+  intptr_t offset_;
   ReaderHelper builder_;
   TokenPosition max_position_;
   TokenPosition min_position_;
@@ -636,7 +638,7 @@ class VariableDeclarationImpl {
  public:
   static VariableDeclaration* ReadFrom(Reader* reader) {
     TRACE_READ_OFFSET();
-    return VariableDeclaration::ReadFromImpl(reader);
+    return VariableDeclaration::ReadFromImpl(reader, false);
   }
 };
 
@@ -803,6 +805,7 @@ String* Reference::ReadStringFrom(Reader* reader) {
 
 Field* Field::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
+  kernel_offset_ = reader->offset();  // Notice the ReadTag() below.
   Tag tag = reader->ReadTag();
   ASSERT(tag == kField);
 
@@ -919,7 +922,7 @@ RedirectingInitializer* RedirectingInitializer::ReadFromImpl(Reader* reader) {
 LocalInitializer* LocalInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   LocalInitializer* init = new LocalInitializer();
-  init->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  init->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   return init;
 }
 
@@ -1387,6 +1390,7 @@ FunctionExpression* FunctionExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableScope<ReaderHelper> parameters(reader->helper());
   FunctionExpression* expr = new FunctionExpression();
+  expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   expr->function_ = FunctionNode::ReadFrom(reader);
   return expr;
 }
@@ -1398,7 +1402,8 @@ Let* Let::ReadFrom(Reader* reader) {
   PositionScope scope(reader);
 
   Let* let = new Let();
-  let->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  let->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
+  let->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   let->body_ = Expression::ReadFrom(reader);
   let->position_ = reader->min_position();
   let->end_position_ = reader->max_position();
@@ -1450,7 +1455,7 @@ Statement* Statement::ReadFrom(Reader* reader) {
     case kYieldStatement:
       return YieldStatement::ReadFrom(reader);
     case kVariableDeclaration:
-      return VariableDeclaration::ReadFromImpl(reader);
+      return VariableDeclaration::ReadFromImpl(reader, true);
     case kFunctionDeclaration:
       return FunctionDeclaration::ReadFrom(reader);
     default:
@@ -1478,6 +1483,7 @@ Block* Block::ReadFromImpl(Reader* reader) {
 
   VariableScope<ReaderHelper> vars(reader->helper());
   Block* block = new Block();
+  block->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   block->statements().ReadFromStatic<Statement>(reader);
   block->position_ = reader->min_position();
   block->end_position_ = reader->max_position();
@@ -1544,6 +1550,7 @@ ForStatement* ForStatement::ReadFrom(Reader* reader) {
   PositionScope scope(reader);
 
   ForStatement* forstmt = new ForStatement();
+  forstmt->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   forstmt->variables_.ReadFromStatic<VariableDeclarationImpl>(reader);
   forstmt->condition_ = reader->ReadOptional<Expression>();
   forstmt->updates_.ReadFromStatic<Expression>(reader);
@@ -1561,9 +1568,10 @@ ForInStatement* ForInStatement::ReadFrom(Reader* reader, bool is_async) {
   PositionScope scope(reader);
 
   ForInStatement* forinstmt = new ForInStatement();
+  forinstmt->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   forinstmt->is_async_ = is_async;
   forinstmt->position_ = reader->ReadPosition();
-  forinstmt->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  forinstmt->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   forinstmt->iterable_ = Expression::ReadFrom(reader);
   forinstmt->body_ = Statement::ReadFrom(reader);
   forinstmt->end_position_ = reader->max_position();
@@ -1655,6 +1663,7 @@ Catch* Catch::ReadFrom(Reader* reader) {
   PositionScope scope(reader);
 
   Catch* c = new Catch();
+  c->kernel_offset_ = reader->offset();  // Catch has no tag.
   c->guard_ = DartType::ReadFrom(reader);
   c->exception_ =
       reader->ReadOptional<VariableDeclaration, VariableDeclarationImpl>();
@@ -1692,15 +1701,18 @@ VariableDeclaration* VariableDeclaration::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Tag tag = reader->ReadTag();
   ASSERT(tag == kVariableDeclaration);
-  return VariableDeclaration::ReadFromImpl(reader);
+  return VariableDeclaration::ReadFromImpl(reader, true);
 }
 
 
-VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
+VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader,
+                                                       bool read_tag) {
   TRACE_READ_OFFSET();
   PositionScope scope(reader);
 
   VariableDeclaration* decl = new VariableDeclaration();
+  // -1 or -0 depending on whether there's a tag or not.
+  decl->kernel_offset_ = reader->offset() - (read_tag ? 1 : 0);
   decl->position_ = reader->ReadPosition();
   decl->equals_position_ = reader->ReadPosition();
   decl->flags_ = reader->ReadFlags();
@@ -1722,8 +1734,9 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader) {
 FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   FunctionDeclaration* decl = new FunctionDeclaration();
+  decl->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   decl->position_ = reader->ReadPosition();
-  decl->variable_ = VariableDeclaration::ReadFromImpl(reader);
+  decl->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   VariableScope<ReaderHelper> parameters(reader->helper());
   decl->function_ = FunctionNode::ReadFrom(reader);
   return decl;
@@ -1895,6 +1908,7 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   TypeParameterScope<ReaderHelper> scope(reader->helper());
 
   FunctionNode* function = new FunctionNode();
+  function->kernel_offset_ = reader->offset();  // FunctionNode has no tag.
   function->position_ = reader->ReadPosition();
   function->end_position_ = reader->ReadPosition();
   function->async_marker_ =
