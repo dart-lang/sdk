@@ -257,7 +257,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
     if (mode != ProcessStartMode.DETACHED) {
       // stdin going to process.
-      _stdin = new _StdSocketSink(new _Socket._writePipe());
+      _stdin = new _StdSink(new _Socket._writePipe());
       _stdin._sink._owner = this;
       // stdout coming from process.
       _stdout = new _StdStream(new _Socket._readPipe());
@@ -516,7 +516,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   List<String> _environment;
   ProcessStartMode _mode;
   // Private methods of Socket are used by _in, _out, and _err.
-  _StdSocketSink _stdin;
+  _StdSink _stdin;
   _StdStream _stdout;
   _StdStream _stderr;
   Socket _exitHandler;

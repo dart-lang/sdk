@@ -76,22 +76,6 @@ void FUNCTION_NAME(File_SetPointer)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_SetTranslation)(Dart_NativeArguments args) {
-  File* file = GetFile(args);
-  ASSERT(file != NULL);
-  int64_t translation;
-  Dart_Handle status = Dart_GetNativeIntegerArgument(args, 1, &translation);
-  if (Dart_IsError(status)) {
-    Dart_PropagateError(status);
-  }
-  if ((translation != File::kText) && (translation != File::kBinary)) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "The argument must be a FileTranslation mode"));
-  }
-  file->SetTranslation(static_cast<File::DartFileTranslation>(translation));
-}
-
-
 void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
