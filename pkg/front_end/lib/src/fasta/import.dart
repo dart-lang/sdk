@@ -34,7 +34,9 @@ class Import {
     AddToScope add;
     PrefixBuilder prefix;
     if (this.prefix == null) {
-      add = importer.addToScope;
+      add = (String name, Builder member) {
+        importer.addToScope(name, member, charOffset, true);
+      };
     } else {
       prefix = new PrefixBuilder(
           this.prefix, <String, Builder>{}, importer, prefixCharOffset);
@@ -54,7 +56,7 @@ class Import {
     if (prefix != null) {
       Builder existing = importer.addBuilder(prefix.name, prefix, charOffset);
       if (existing == prefix) {
-        importer.addToScope(prefix.name, prefix);
+        importer.addToScope(prefix.name, prefix, prefixCharOffset, true);
       }
     }
   }

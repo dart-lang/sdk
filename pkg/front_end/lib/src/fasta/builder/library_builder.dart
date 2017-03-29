@@ -86,10 +86,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   bool addToExportScope(String name, Builder member);
 
-  void addToScope(String name, Builder member);
+  void addToScope(String name, Builder member, int charOffset, bool isImport);
 
   Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other, int charOffset);
+      String name, Builder builder, Builder other, int charOffset,
+      {bool isExport: false, bool isImport: false});
 
   int finishStaticInvocations() => 0;
 

@@ -273,7 +273,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         Builder other = existing.exports.putIfAbsent(name, () => builder);
         if (other != builder) {
           existing.exports[name] =
-              other.combineAmbiguousImport(name, builder, this);
+              buildAmbiguousBuilder(name, other, builder, charOffset);
         }
       });
       return existing;
@@ -383,7 +383,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void buildInitialScopes() {
     members.forEach(addToExportScope);
-    members.forEach(addToScope);
+    members.forEach((String name, Builder member) {
+      addToScope(name, member, member.charOffset, false);
+    });
   }
 
   void addImportsToScope() {
@@ -395,17 +397,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exports.forEach(addToScope);
+      loader.coreLibrary.exports.forEach((String name, Builder member) {
+        addToScope(name, member, -1, true);
+      });
     }
   }
 
-  void addToScope(String name, Builder member) {
+  @override
+  void addToScope(String name, Builder member, int charOffset, bool isImport) {
     Builder existing = scope.lookup(name, member.charOffset, fileUri);
     if (existing != null) {
       if (existing != member) {
-        scope.local[name] = existing.combineAmbiguousImport(name, member, this);
+        scope.local[name] = buildAmbiguousBuilder(
+            name, existing, member, charOffset,
+            isImport: isImport);
       }
-      // TODO(ahe): handle duplicated names.
     } else {
       scope.local[name] = member;
     }
@@ -418,7 +424,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Builder existing = exports[name];
     if (existing == member) return false;
     if (existing != null) {
-      exports[name] = buildAmbiguousBuilder(name, existing, member, -1);
+      Builder result =
+          buildAmbiguousBuilder(name, existing, member, -1, isExport: true);
+      exports[name] = result;
+      return result != existing;
     } else {
       exports[name] = member;
     }
