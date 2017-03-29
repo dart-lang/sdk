@@ -20,6 +20,7 @@ import 'package:kernel/frontend/accessors.dart' as kernel
         IndexAccessor,
         NullAwarePropertyAccessor,
         PropertyAccessor,
+        ReadOnlyAccessor,
         StaticAccessor,
         SuperIndexAccessor,
         SuperPropertyAccessor,
@@ -773,6 +774,32 @@ class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
   }
 
   toString() => "VariableAccessor()";
+}
+
+class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
+  final BuilderHelper helper;
+
+  final String plainNameForRead;
+
+  ReadOnlyAccessor(
+      this.helper, Expression expression, this.plainNameForRead, int offset)
+      : super(expression, offset);
+
+  Expression doInvocation(int offset, Arguments arguments) {
+    return buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, offset);
+  }
+}
+
+class ParenthesizedExpression extends ReadOnlyAccessor {
+  ParenthesizedExpression(
+      BuilderHelper helper, Expression expression, int offset)
+      : super(helper, expression, "<a parenthesized expression>", offset);
+
+  Expression makeInvalidWrite(Expression value) {
+    return helper.buildCompileTimeError(
+        "Can't assign to a parenthesized expression.", offset);
+  }
 }
 
 bool isFieldOrGetter(Member member) {

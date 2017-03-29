@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/errors.dart';
-import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 
 /// Provides the capability of inserting tokens into a token stream by rewriting

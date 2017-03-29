@@ -488,7 +488,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleParenthesizedExpression(BeginGroupToken token) {
     debugEvent("ParenthesizedExpression");
-    push(popForValue());
+    push(new ParenthesizedExpression(
+        this, popForValue(), token.endGroup.charOffset));
   }
 
   @override

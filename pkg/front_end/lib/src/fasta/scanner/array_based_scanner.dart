@@ -8,7 +8,7 @@ import 'error_token.dart' show ErrorToken;
 
 import 'keyword.dart' show Keyword;
 
-import 'precedence.dart' show EOF_INFO, PrecedenceInfo;
+import 'precedence.dart' show PrecedenceInfo;
 
 import 'token.dart'
     show

@@ -153,8 +153,8 @@
       "outline_test.dart",
       "sdk_test.dart",
       "../../../analyzer/lib/src/fasta",
-      "../../../compiler/bin",
-      "../../../compiler/tool",
+      "../../../compiler/lib/src/parser",
+      "../../../compiler/lib/src/scanner",
       "../../../../utils/kernel-service/kernel-service.dart",
       "../../../../tools/patch_sdk.dart"
     ],
@@ -163,11 +163,9 @@
       "/third_party/pkg/",
       "/third_party/pkg_tested/",
       "/pkg/analyzer/(?!.*/(fasta|kernel)/)",
-      "/pkg/compiler/lib/(?!.*/(scanner|parser)/)",
+      "/pkg/compiler/lib/src/(?!(scanner|parser)/)",
       "/pkg/compiler/lib/src/parser/partial_elements\\.dart$",
-      "/pkg/js_ast/",
-      "/pkg/compiler/tool/dart2js_profile_many\\.dart$",
-      "/pkg/compiler/tool/track_memory\\.dart$"
+      "/pkg/js_ast/"
     ]
   }
 }
