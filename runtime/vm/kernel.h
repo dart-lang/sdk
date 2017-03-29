@@ -434,14 +434,9 @@ class TreeNode : public Node {
 
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
-  intptr_t kernel_offset() { return kernel_offset_; }
 
  protected:
-  TreeNode() : kernel_offset_(-1) {}
-
-  // Offset for this node in the kernel-binary. If this node has a tag the
-  // offset includes the tag. Can be -1 to indicate "unknown" or invalid offset.
-  intptr_t kernel_offset_;
+  TreeNode() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TreeNode);
@@ -2455,7 +2450,7 @@ class VariableDeclaration : public Statement {
   };
 
   static VariableDeclaration* ReadFrom(Reader* reader);
-  static VariableDeclaration* ReadFromImpl(Reader* reader, bool read_tag);
+  static VariableDeclaration* ReadFromImpl(Reader* reader);
 
   virtual ~VariableDeclaration();
 
