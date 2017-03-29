@@ -270,10 +270,7 @@ Language/Libraries_and_Scripts/Imports/same_name_t15/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t19: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t02: Timeout
-Language/Libraries_and_Scripts/Parts/compilation_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t11: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/static_warning_t01: CompileTimeError
 Language/Libraries_and_Scripts/Parts/syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/syntax_t06: Pass # OK
 Language/Libraries_and_Scripts/Scripts/syntax_t05: MissingCompileTimeError

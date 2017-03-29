@@ -12,8 +12,6 @@ import '../errors.dart' show inputError, internalError;
 
 import '../export.dart' show Export;
 
-import '../messages.dart' show warning;
-
 import '../import.dart' show Import;
 
 import 'source_loader.dart' show SourceLoader;
@@ -339,11 +337,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void includeParts() {
+    Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
       if (part == this) {
         addCompileTimeError(-1, "A file can't be a part of itself.");
-      } else {
+      } else if (seenParts.add(part.fileUri)) {
         includePart(part);
+      } else {
+        addCompileTimeError(
+            -1, "Can't use '${part.fileUri}' as a part more than once.");
       }
     }
   }
@@ -351,21 +353,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void includePart(SourceLibraryBuilder<T, R> part) {
     if (name != null) {
       if (!part.isPart) {
-        warning(
-            part.fileUri,
+        addCompileTimeError(
             -1,
-            "Has no 'part of' declaration but is used as "
-            "a part by ${name} ($uri).");
+            "Can't use ${part.fileUri} as a part, because it has no 'part of'"
+            " declaration.");
         parts.remove(part);
         return;
       }
       if (part.partOfName != name && part.partOfUri != uri) {
         String partName = part.partOfName ?? "${part.partOfUri}";
         String myName = name == null ? "'$uri'" : "'${name}' ($uri)";
-        warning(part.fileUri, -1,
-            "Is part of '$partName' but is used as a part by $myName.");
-        parts.remove(part);
-        return;
+        addWarning(
+            -1,
+            "Using '${part.fileUri}' as part of '$myName' but it's 'part of'"
+            " declaration says '$partName'.");
+        // The part is still included.
       }
     }
     part.members.forEach((String name, Builder builder) {
