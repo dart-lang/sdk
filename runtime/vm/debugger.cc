@@ -806,6 +806,10 @@ RawObject* ActivationFrame::GetCausalStack() {
 
 
 bool ActivationFrame::HandlesException(const Instance& exc_obj) {
+  if ((kind_ == kAsyncSuspensionMarker) || (kind_ == kAsyncCausal)) {
+    // These frames are historical.
+    return false;
+  }
   intptr_t try_index = TryIndex();
   if (try_index < 0) {
     return false;
