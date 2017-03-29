@@ -170,8 +170,6 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
 
   // TODO(johnniwinther): Create Kernel based implementations for these:
   NativeBasicData nativeBasicData;
-  InterceptorDataBuilder interceptorDataBuilder;
-  BackendUsageBuilder backendUsageBuilder;
   RuntimeTypesNeedBuilder rtiNeedBuilder;
   MirrorsDataBuilder mirrorsDataBuilder;
   NoSuchMethodRegistry noSuchMethodRegistry;
@@ -179,6 +177,12 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
   MirrorsResolutionAnalysis mirrorsResolutionAnalysis;
   NativeResolutionEnqueuer nativeResolutionEnqueuer;
+
+  InterceptorDataBuilder interceptorDataBuilder =
+      new InterceptorDataBuilderImpl(
+          nativeBasicData, helpers, elementEnvironment, commonElements);
+  BackendUsageBuilder backendUsageBuilder =
+      new BackendUsageBuilderImpl(commonElements, helpers);
 
   return new ResolutionEnqueuerListener(
       options,

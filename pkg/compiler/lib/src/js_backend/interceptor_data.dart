@@ -220,7 +220,6 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final BackendHelpers _helpers;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
-  final Resolution _resolution;
 
   /// The members of instantiated interceptor classes: maps a member name to the
   /// list of members that have that name. This map is used by the codegen to
@@ -238,7 +237,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
       new Set<ClassEntity>();
 
   InterceptorDataBuilderImpl(this._nativeData, this._helpers,
-      this._elementEnvironment, this._commonElements, this._resolution);
+      this._elementEnvironment, this._commonElements);
 
   InterceptorData onResolutionComplete(ClosedWorld closedWorld) {
     return new InterceptorDataImpl(

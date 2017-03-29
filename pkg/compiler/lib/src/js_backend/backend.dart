@@ -506,8 +506,7 @@ class JavaScriptBackend {
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
     _mirrorsData = new MirrorsDataImpl(
         compiler, compiler.options, commonElements, helpers, constants);
-    _backendUsageBuilder = new BackendUsageBuilderImpl(
-        compiler.elementEnvironment, commonElements, helpers);
+    _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements, helpers);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
@@ -914,11 +913,7 @@ class JavaScriptBackend {
         customElementsResolutionAnalysis,
         rtiNeedBuilder);
     _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeBasicData,
-        helpers,
-        compiler.elementEnvironment,
-        commonElements,
-        compiler.resolution);
+        nativeBasicData, helpers, compiler.elementEnvironment, commonElements);
     return new ResolutionEnqueuer(
         task,
         compiler.options,

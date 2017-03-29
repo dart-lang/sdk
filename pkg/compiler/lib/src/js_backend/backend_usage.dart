@@ -4,7 +4,7 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart';
+import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../util/util.dart' show Setlet;
@@ -87,7 +87,6 @@ abstract class BackendUsageBuilder {
 }
 
 class BackendUsageBuilderImpl implements BackendUsageBuilder {
-  final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendHelpers _helpers;
   // TODO(johnniwinther): Remove the need for these.
@@ -121,27 +120,48 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
 
-  BackendUsageBuilderImpl(
-      this._elementEnvironment, this._commonElements, this._helpers);
+  BackendUsageBuilderImpl(this._commonElements, this._helpers);
 
   @override
-  void registerBackendFunctionUse(MethodElement element) {
+  void registerBackendFunctionUse(FunctionEntity element) {
     assert(invariant(element, _isValidBackendUse(element),
         message: "Backend use of $element is not allowed."));
     _helperFunctionsUsed.add(element);
   }
 
   @override
-  void registerBackendClassUse(ClassElement element) {
+  void registerBackendClassUse(ClassEntity element) {
     assert(invariant(element, _isValidBackendUse(element),
         message: "Backend use of $element is not allowed."));
     _helperClassesUsed.add(element);
   }
 
-  bool _isValidBackendUse(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Backend use $element must be the declaration."));
-    if (element is ConstructorElement &&
+  bool _isValidBackendUse(Entity element) {
+    if (_isValidEntity(element)) return true;
+    if (element is Element) {
+      assert(invariant(element, element.isDeclaration,
+          message: "Backend use $element must be the declaration."));
+      if (element.implementationLibrary.isPatch ||
+          // Needed to detect deserialized injected elements, that is
+          // element declared in patch files.
+          (element.library.isPlatformLibrary &&
+              element.sourcePosition.uri.path
+                  .contains('_internal/js_runtime/lib/')) ||
+          element.library == _helpers.jsHelperLibrary ||
+          element.library == _helpers.interceptorsLibrary ||
+          element.library == _helpers.isolateHelperLibrary) {
+        // TODO(johnniwinther): We should be more precise about these.
+        return true;
+      } else {
+        return false;
+      }
+    }
+    // TODO(johnniwinther): Support remaining checks on [Entity]s.
+    return true;
+  }
+
+  bool _isValidEntity(Entity element) {
+    if (element is ConstructorEntity &&
         (element == _helpers.streamIteratorConstructor ||
             _commonElements.isSymbolConstructor(element) ||
             _helpers.isSymbolValidatedConstructor(element) ||
@@ -151,17 +171,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     } else if (element == _commonElements.symbolClass ||
         element == _helpers.objectNoSuchMethod) {
       // TODO(johnniwinther): These are valid but we could be more precise.
-      return true;
-    } else if (element.implementationLibrary.isPatch ||
-        // Needed to detect deserialized injected elements, that is
-        // element declared in patch files.
-        (element.library.isPlatformLibrary &&
-            element.sourcePosition.uri.path
-                .contains('_internal/js_runtime/lib/')) ||
-        element.library == _helpers.jsHelperLibrary ||
-        element.library == _helpers.interceptorsLibrary ||
-        element.library == _helpers.isolateHelperLibrary) {
-      // TODO(johnniwinther): We should be more precise about these.
       return true;
     } else if (element == _commonElements.listClass ||
         element == _helpers.mapLiteralClass ||
@@ -225,7 +234,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
-  void registerUsedMember(MemberElement member) {
+  void registerUsedMember(MemberEntity member) {
     if (member == _helpers.getIsolateAffinityTagMarker) {
       _needToInitializeIsolateAffinityTag = true;
     } else if (member == _helpers.requiresPreambleMarker) {
@@ -240,7 +249,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   void registerGlobalFunctionDependency(FunctionEntity element) {
     assert(element != null);
     if (_globalFunctionDependencies == null) {
-      _globalFunctionDependencies = new Setlet<MethodElement>();
+      _globalFunctionDependencies = new Setlet<FunctionEntity>();
     }
     _globalFunctionDependencies.add(element);
   }
@@ -321,12 +330,12 @@ class BackendUsageImpl implements BackendUsage {
         this._helperClassesUsed = helperClassesUsed;
 
   @override
-  bool isFunctionUsedByBackend(MethodElement element) {
+  bool isFunctionUsedByBackend(FunctionEntity element) {
     return _helperFunctionsUsed.contains(element);
   }
 
   @override
-  bool isFieldUsedByBackend(FieldElement element) {
+  bool isFieldUsedByBackend(FieldEntity element) {
     return _helperClassesUsed.contains(element.enclosingClass);
   }
 
