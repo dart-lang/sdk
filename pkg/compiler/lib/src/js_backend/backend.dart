@@ -355,11 +355,6 @@ class JavaScriptBackend {
    */
   final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
 
-  /**
-   * A set of members that are called from subclasses via `super`.
-   */
-  final Set<MethodElement> aliasedSuperMembers = new Setlet<MethodElement>();
-
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
@@ -445,6 +440,8 @@ class JavaScriptBackend {
   BackendUsageBuilder _backendUsageBuilder;
   MirrorsDataImpl _mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
+
+  final SuperMemberData superMemberData = new SuperMemberData();
 
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -740,31 +737,6 @@ class JavaScriptBackend {
     MethodElement method = element;
     return !backendUsage.isFunctionUsedByBackend(method) &&
         !mirrorsData.invokedReflectively(method);
-  }
-
-  /**
-   * Record that [method] is called from a subclass via `super`.
-   */
-  bool maybeRegisterAliasedSuperMember(
-      MemberElement member, Selector selector) {
-    if (!canUseAliasedSuperMember(member, selector)) {
-      // Invoking a super getter isn't supported, this would require changes to
-      // compact field descriptors in the emitter.
-      return false;
-    }
-    aliasedSuperMembers.add(member);
-    return true;
-  }
-
-  bool canUseAliasedSuperMember(Element member, Selector selector) {
-    return !selector.isGetter;
-  }
-
-  /**
-   * Returns `true` if [member] is called from a subclass via `super`.
-   */
-  bool isAliasedSuperMember(FunctionElement member) {
-    return aliasedSuperMembers.contains(member);
   }
 
   /// Maps compile-time classes to their runtime class.  The runtime class is
@@ -1617,4 +1589,29 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isForeign(Element element) => _backend.isForeign(element);
+}
+
+class SuperMemberData {
+  /// A set of member that are called from subclasses via `super`.
+  final Set<MemberEntity> _aliasedSuperMembers = new Setlet<MemberEntity>();
+
+  /// Record that [member] is called from a subclass via `super`.
+  bool maybeRegisterAliasedSuperMember(MemberEntity member, Selector selector) {
+    if (!canUseAliasedSuperMember(member, selector)) {
+      // Invoking a super getter isn't supported, this would require changes to
+      // compact field descriptors in the emitter.
+      return false;
+    }
+    _aliasedSuperMembers.add(member);
+    return true;
+  }
+
+  bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
+    return !selector.isGetter;
+  }
+
+  /// Returns `true` if [member] is called from a subclass via `super`.
+  bool isAliasedSuperMember(MemberEntity member) {
+    return _aliasedSuperMembers.contains(member);
+  }
 }

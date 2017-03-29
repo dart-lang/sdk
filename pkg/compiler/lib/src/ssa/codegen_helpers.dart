@@ -334,7 +334,7 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
  *   t2 = add(4, 3);
  */
 class SsaInstructionMerger extends HBaseVisitor {
-  final JavaScriptBackend _backend;
+  final SuperMemberData _superMemberData;
   /**
    * List of [HInstruction] that the instruction merger expects in
    * order when visiting the inputs of an instruction.
@@ -353,7 +353,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(this.generateAtUseSite, this._backend);
+  SsaInstructionMerger(this.generateAtUseSite, this._superMemberData);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -436,7 +436,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     // after first access if we use lazy initialization.
     // In this case, we therefore don't allow the receiver (the first argument)
     // to be generated at use site, and only analyze all other arguments.
-    if (!_backend.canUseAliasedSuperMember(superMethod, selector)) {
+    if (!_superMemberData.canUseAliasedSuperMember(superMethod, selector)) {
       analyzeInputs(instruction, 1);
     } else {
       super.visitInvokeSuper(instruction);

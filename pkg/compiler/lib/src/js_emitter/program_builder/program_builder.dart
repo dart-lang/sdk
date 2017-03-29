@@ -701,7 +701,7 @@ class ProgramBuilder {
     bool canBeReflected = _methodCanBeReflected(element);
     bool canBeApplied = _methodCanBeApplied(element);
 
-    js.Name aliasName = backend.isAliasedSuperMember(element)
+    js.Name aliasName = backend.superMemberData.isAliasedSuperMember(element)
         ? namer.aliasedSuperMemberPropertyName(element)
         : null;
 

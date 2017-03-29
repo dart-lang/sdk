@@ -322,7 +322,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(compiler.options).visitGraph(graph);
-    new SsaInstructionMerger(generateAtUseSite, backend).visitGraph(graph);
+    new SsaInstructionMerger(generateAtUseSite, backend.superMemberData)
+        .visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
         .visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
@@ -1900,7 +1901,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       Selector selector = node.selector;
-      if (!backend.maybeRegisterAliasedSuperMember(superElement, selector)) {
+      if (!backend.superMemberData
+          .maybeRegisterAliasedSuperMember(superElement, selector)) {
         js.Name methodName;
         if (selector.isGetter && !superElement.isGetter) {
           // If this is a tear-off, register the fact that a tear-off closure
