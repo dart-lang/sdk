@@ -75,11 +75,25 @@ var t = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1)..isEven;
     await checkFile(content);
   }
 
-  test_initializer_classField_assign() async {
+  test_initializer_classField_instance_instanceCreation() async {
     var content = r'''
-class A {
-  static var a = 1;
-  static var t = /*error:TOP_LEVEL_UNSUPPORTED*/a += 1;
+class A<T> {}
+class B {
+  var t1 = new A<int>();
+  var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
+           /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
+}
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_classField_static_instanceCreation() async {
+    var content = r'''
+class A<T> {}
+class B {
+  static var t1 = 1;
+  static var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
+                  /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
 }
 ''';
     await checkFile(content);
@@ -198,8 +212,9 @@ var t = new A();
   test_initializer_instanceCreation_withTypeParameters() async {
     var content = r'''
 class A<T> {}
-var t1 = new /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
-var t2 = new A<int>();
+var t1 = new A<int>();
+var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
+         /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
 ''';
     await checkFile(content);
   }

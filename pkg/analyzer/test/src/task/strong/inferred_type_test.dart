@@ -828,6 +828,25 @@ void main() {
 ''');
   }
 
+  test_downwardsInference_insideTopLevel() async {
+    await checkFileElement('''
+class A {
+  B<int> b;
+}
+
+class B<T> {
+  B(T x);
+}
+
+var t1 = new A()..b = /*info:INFERRED_TYPE_ALLOCATION*/new B(1);
+var t2 = <B<int>>[/*info:INFERRED_TYPE_ALLOCATION*/new B(2)];
+var t3 = /*info:INFERRED_TYPE_LITERAL*/[
+            /*info:INFERRED_TYPE_ALLOCATION*/new
+            /*error:TOP_LEVEL_TYPE_ARGUMENTS*/B(3)
+         ];
+''');
+  }
+
   test_downwardsInferenceAnnotations() async {
     await checkFileElement('''
 class Foo {

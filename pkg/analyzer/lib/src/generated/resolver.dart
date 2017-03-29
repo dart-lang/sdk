@@ -5022,12 +5022,6 @@ class ResolverVisitor extends ScopedVisitor {
   bool resolveOnlyCommentInFunctionBody = false;
 
   /**
-   * This flag is set to `true` while the type of a top-level variable or a
-   * class field is being inferred using its initializer.
-   */
-  bool isTopLevelInference;
-
-  /**
    * Body of the function currently being analyzed, if any.
    */
   FunctionBody _currentFunctionBody;
@@ -5056,7 +5050,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope, this.isTopLevelInference: false})
+      {Scope nameScope})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     AnalysisOptions options = definingLibrary.context.analysisOptions;
@@ -5556,14 +5550,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
-    bool wasTopLevelInference = isTopLevelInference;
-    isTopLevelInference = false;
     _overrideManager.enterScope();
     try {
       inferenceContext.pushReturnContext(node);
       super.visitBlockFunctionBody(node);
     } finally {
-      isTopLevelInference = wasTopLevelInference;
       _overrideManager.exitScope();
       inferenceContext.popReturnContext(node);
     }
@@ -5882,13 +5873,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    bool wasTopLevelInference = isTopLevelInference;
-    isTopLevelInference = node.fields.type == null;
     _overrideManager.enterScope();
     try {
       super.visitFieldDeclaration(node);
     } finally {
-      isTopLevelInference = wasTopLevelInference;
       Map<VariableElement, DartType> overrides =
           _overrideManager.captureOverrides(node.fields);
       _overrideManager.exitScope();
@@ -6391,13 +6379,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    bool wasTopLevelInference = isTopLevelInference;
-    isTopLevelInference = node.variables.type == null;
     _overrideManager.enterScope();
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      isTopLevelInference = wasTopLevelInference;
       Map<VariableElement, DartType> overrides =
           _overrideManager.captureOverrides(node.variables);
       _overrideManager.exitScope();
@@ -6676,11 +6661,6 @@ class ResolverVisitor extends ScopedVisitor {
         uninstantiatedType is FunctionType &&
         uninstantiatedType.typeFormals.isNotEmpty &&
         ts is StrongTypeSystemImpl) {
-      if (isTopLevelInference) {
-        if (uninstantiatedType.typeFormals.isNotEmpty) {
-          return null;
-        }
-      }
       return ts.inferGenericFunctionOrType/*<FunctionType>*/(
           uninstantiatedType,
           ParameterElement.EMPTY_LIST,

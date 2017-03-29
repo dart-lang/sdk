@@ -3764,7 +3764,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
             ResolutionContextBuilder.contextFor(initializer);
         ResolverVisitor visitor = new ResolverVisitor(
             variable.library, variable.source, typeProvider, errorListener,
-            nameScope: resolutionContext.scope, isTopLevelInference: true);
+            nameScope: resolutionContext.scope);
         if (resolutionContext.enclosingClassDeclaration != null) {
           visitor.prepareToResolveMembersInClass(
               resolutionContext.enclosingClassDeclaration);

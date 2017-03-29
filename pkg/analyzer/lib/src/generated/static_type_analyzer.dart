@@ -1934,11 +1934,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         fnType is FunctionType &&
         fnType.typeFormals.isNotEmpty &&
         ts is StrongTypeSystemImpl) {
-      if (_resolver.isTopLevelInference) {
-        if (fnType.typeParameters.isNotEmpty) {
-          return null;
-        }
-      } // Get the parameters that correspond to the uninstantiated generic.
+      // Get the parameters that correspond to the uninstantiated generic.
       List<ParameterElement> rawParameters = ResolverVisitor
           .resolveArgumentsToParameters(argumentList, fnType.parameters, null);
 
