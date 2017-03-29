@@ -80,8 +80,6 @@ const_string_test: RuntimeError
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/01: MissingCompileTimeError
 const_syntax_test/02: MissingCompileTimeError
-const_syntax_test/03: MissingCompileTimeError
-const_syntax_test/04: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: MissingCompileTimeError
 const_syntax_test/09: MissingCompileTimeError
@@ -410,7 +408,6 @@ script2_negative_test: Fail
 setter4_test: CompileTimeError
 static_field3_test/03: CompileTimeError
 static_field3_test/04: CompileTimeError
-static_final_field2_test/02: MissingCompileTimeError
 static_parameter_test/01: MissingCompileTimeError
 static_parameter_test/02: MissingCompileTimeError
 static_parameter_test/03: MissingCompileTimeError

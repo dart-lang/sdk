@@ -979,7 +979,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
-    push(NullValue.FieldInitializer);
+    if (constantExpressionRequired) {
+      addCompileTimeError(
+          token.charOffset, "const field must have initializer.");
+      // Creating a null value to prevent the Dart VM from crashing.
+      push(new NullLiteral()..fileOffset = token.charOffset);
+    } else {
+      push(NullValue.FieldInitializer);
+    }
   }
 
   @override
