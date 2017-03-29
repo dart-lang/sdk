@@ -6,6 +6,8 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 
+import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
+
 import '../parser/parser.dart' show FormalParameterType, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
@@ -25,8 +27,6 @@ import '../modifier.dart' show Modifier;
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
-
-import '../parser/error_kind.dart' show ErrorKind;
 
 import '../parser/dart_vm_native.dart'
     show removeNativeClause, skipNativeClause;
@@ -782,15 +782,15 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    if (isDartLibrary && kind == ErrorKind.ExpectedBlockToSkip) {
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
       Token recover = skipNativeClause(token);
       if (recover != null) {
         nativeMethodName = unescapeString(token.next.lexeme);
         return recover;
       }
     }
-    return super.handleUnrecoverableError(token, kind, arguments);
+    return super.handleUnrecoverableError(token, message);
   }
 
   @override

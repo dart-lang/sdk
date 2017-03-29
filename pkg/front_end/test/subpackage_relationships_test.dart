@@ -77,7 +77,6 @@ final subpackageRules = {
   ]),
   'lib/src/fasta/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
-    'lib/src/fasta/parser',
     // fasta scanner produces analyzer scanner tokens
     'lib/src/scanner',
     'lib/src/fasta/util',
@@ -102,6 +101,8 @@ final subpackageRules = {
   'lib/src/fasta/util': new SubpackageRules(),
   'lib/src/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/base',
+    // For error codes.
+    'lib/src/fasta',
     // fasta scanner produces analyzer scanner tokens
     'lib/src/fasta/scanner',
   ]),

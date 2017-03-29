@@ -4,6 +4,10 @@
 
 library dart2js.parser.element_listener;
 
+import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
+
+import 'package:front_end/src/fasta/fasta_codes.dart' as codes;
+
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
 import '../elements/elements.dart'
@@ -26,11 +30,11 @@ import 'package:front_end/src/fasta/scanner.dart'
     show Keyword, BeginGroupToken, ErrorToken, KeywordToken, StringToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
-    show BAD_INPUT_INFO, IDENTIFIER_INFO;
+    show IDENTIFIER_INFO;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/parser.dart'
-    show ErrorKind, Listener, ParserError, optional;
+    show Listener, ParserError, optional;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'partial_elements.dart'
@@ -99,6 +103,9 @@ class ElementListener extends Listener {
       : this.reporter = reporter,
         stringValidator = new StringValidator(reporter),
         interpolationScope = const Link<StringQuoting>();
+
+  @override
+  Uri get uri => compilationUnitElement?.script?.resourceUri;
 
   bool get currentMemberHasParseError {
     return !memberErrors.isEmpty && memberErrors.head;
@@ -500,20 +507,20 @@ class ElementListener extends Listener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    Token next = handleError(token, kind, arguments);
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    Token next = handleError(token, message);
     if (next == null &&
-        kind != ErrorKind.UnterminatedComment &&
-        kind != ErrorKind.UnterminatedString) {
-      throw new ParserError.fromTokens(token, token, kind, arguments);
+        message.code != codes.codeUnterminatedComment &&
+        message.code != codes.codeUnterminatedString) {
+      throw new ParserError.fromTokens(token, token, message);
     } else {
       return next;
     }
   }
 
   @override
-  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
-    handleError(token, kind, arguments);
+  void handleRecoverableError(Token token, FastaMessage message) {
+    handleError(token, message);
   }
 
   @override
@@ -531,12 +538,13 @@ class ElementListener extends Listener {
     pushNode(null);
   }
 
-  Token handleError(Token token, ErrorKind kind, Map arguments) {
+  Token handleError(Token token, FastaMessage message) {
     MessageKind errorCode;
+    Map<String, dynamic> arguments = message.arguments;
 
-    switch (kind) {
-      case ErrorKind.ExpectedButGot:
-        String expected = arguments["expected"];
+    switch (message.code.dart2jsCode) {
+      case "MISSING_TOKEN_BEFORE_THIS":
+        String expected = arguments["string"];
         if (identical(";", expected)) {
           // When a semicolon is missing, it often leads to an error on the
           // following line. So we try to find the token preceding the semicolon
@@ -559,7 +567,7 @@ class ElementListener extends Listener {
         }
         break;
 
-      case ErrorKind.ExpectedIdentifier:
+      case "EXPECTED_IDENTIFIER":
         if (token is KeywordToken) {
           reportErrorFromToken(
               token,
@@ -574,25 +582,11 @@ class ElementListener extends Listener {
         }
         return newSyntheticToken(token);
 
-      case ErrorKind.ExpectedType:
-        reportFatalError(reporter.spanFromToken(token),
-            "Expected a type, but got '${token.lexeme}'.");
+      case "FASTA_FATAL":
+        reportFatalError(reporter.spanFromToken(token), message.message);
         return null;
 
-      case ErrorKind.ExpectedExpression:
-        reportFatalError(reporter.spanFromToken(token),
-            "Expected an expression, but got '${token.lexeme}'.");
-        return null;
-
-      case ErrorKind.UnexpectedToken:
-        String message = "Unexpected token '${token.lexeme}'.";
-        if (token.info == Precedence.BAD_INPUT_INFO) {
-          message = token.lexeme;
-        }
-        reportFatalError(reporter.spanFromToken(token), message);
-        return null;
-
-      case ErrorKind.ExpectedBlockToSkip:
+      case "NATIVE_OR_BODY_EXPECTED":
         if (optional("native", token)) {
           return newSyntheticToken(native.handleNativeBlockToSkip(this, token));
         } else {
@@ -600,166 +594,118 @@ class ElementListener extends Listener {
         }
         break;
 
-      case ErrorKind.ExpectedFunctionBody:
+      case "NATIVE_OR_FATAL":
         if (optional("native", token)) {
           lastErrorWasNativeFunctionBody = true;
           return newSyntheticToken(
               native.handleNativeFunctionBody(this, token));
         } else {
-          reportFatalError(reporter.spanFromToken(token),
-              "Expected a function body, but got '${token.lexeme}'.");
+          reportFatalError(reporter.spanFromToken(token), message.message);
         }
         return null;
 
-      case ErrorKind.ExpectedClassBodyToSkip:
-      case ErrorKind.ExpectedClassBody:
-        reportFatalError(reporter.spanFromToken(token),
-            "Expected a class body, but got '${token.lexeme}'.");
-        return null;
-
-      case ErrorKind.ExpectedDeclaration:
-        reportFatalError(reporter.spanFromToken(token),
-            "Expected a declaration, but got '${token.lexeme}'.");
-        return null;
-
-      case ErrorKind.UnmatchedToken:
-        reportErrorFromToken(token, MessageKind.UNMATCHED_TOKEN, arguments);
+      case "UNMATCHED_TOKEN":
+        reportErrorFromToken(token, MessageKind.UNMATCHED_TOKEN,
+            {"end": arguments["string"], "begin": arguments["token"]});
         Token next = token;
         while (next.next is ErrorToken) {
           next = next.next;
         }
         return next;
 
-      case ErrorKind.EmptyNamedParameterList:
+      case "EMPTY_NAMED_PARAMETER_LIST":
         errorCode = MessageKind.EMPTY_NAMED_PARAMETER_LIST;
         break;
 
-      case ErrorKind.EmptyOptionalParameterList:
+      case "EMPTY_OPTIONAL_PARAMETER_LIST":
         errorCode = MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST;
         break;
 
-      case ErrorKind.ExpectedBody:
+      case "BODY_EXPECTED":
         errorCode = MessageKind.BODY_EXPECTED;
         break;
 
-      case ErrorKind.ExpectedHexDigit:
+      case "HEX_DIGIT_EXPECTED":
         errorCode = MessageKind.HEX_DIGIT_EXPECTED;
         break;
 
-      case ErrorKind.ExpectedOpenParens:
+      case "GENERIC":
         errorCode = MessageKind.GENERIC;
-        arguments = {"text": "Expected '('."};
+        arguments = {"text": message.message};
         break;
 
-      case ErrorKind.ExpectedString:
-        reportFatalError(reporter.spanFromToken(token),
-            "Expected a String, but got '${token.lexeme}'.");
-        return null;
-
-      case ErrorKind.ExtraneousModifier:
+      case "EXTRANEOUS_MODIFIER":
         errorCode = MessageKind.EXTRANEOUS_MODIFIER;
+        arguments = {"modifier": arguments["token"]};
         break;
 
-      case ErrorKind.ExtraneousModifierReplace:
+      case "EXTRANEOUS_MODIFIER_REPLACE":
         errorCode = MessageKind.EXTRANEOUS_MODIFIER_REPLACE;
+        arguments = {"modifier": arguments["token"]};
         break;
 
-      case ErrorKind.InvalidAwaitFor:
+      case "INVALID_AWAIT_FOR":
         errorCode = MessageKind.INVALID_AWAIT_FOR;
         break;
 
-      case ErrorKind.AsciiControlCharacter:
-      case ErrorKind.NonAsciiIdentifier:
-      case ErrorKind.NonAsciiWhitespace:
-      case ErrorKind.Encoding:
+      case "BAD_INPUT_CHARACTER":
         errorCode = MessageKind.BAD_INPUT_CHARACTER;
+        int codePoint = arguments["codePoint"];
+        String hex = codePoint.toRadixString(16);
+        String padding = "0000".substring(hex.length);
+        arguments = {'characterHex': padding};
         break;
 
-      case ErrorKind.InvalidInlineFunctionType:
+      case "INVALID_INLINE_FUNCTION_TYPE":
         errorCode = MessageKind.INVALID_INLINE_FUNCTION_TYPE;
         break;
 
-      case ErrorKind.InvalidSyncModifier:
+      case "INVALID_SYNC_MODIFIER":
         errorCode = MessageKind.INVALID_SYNC_MODIFIER;
         break;
 
-      case ErrorKind.InvalidVoid:
+      case "VOID_NOT_ALLOWED":
         errorCode = MessageKind.VOID_NOT_ALLOWED;
         break;
 
-      case ErrorKind.UnexpectedDollarInString:
+      case "MALFORMED_STRING_LITERAL":
         errorCode = MessageKind.MALFORMED_STRING_LITERAL;
         break;
 
-      case ErrorKind.MissingExponent:
+      case "EXPONENT_MISSING":
         errorCode = MessageKind.EXPONENT_MISSING;
         break;
 
-      case ErrorKind.PositionalParameterWithEquals:
+      case "POSITIONAL_PARAMETER_WITH_EQUALS":
         errorCode = MessageKind.POSITIONAL_PARAMETER_WITH_EQUALS;
         break;
 
-      case ErrorKind.RequiredParameterWithDefault:
+      case "REQUIRED_PARAMETER_WITH_DEFAULT":
         errorCode = MessageKind.REQUIRED_PARAMETER_WITH_DEFAULT;
         break;
 
-      case ErrorKind.UnmatchedToken:
+      case "UNMATCHED_TOKEN":
         errorCode = MessageKind.UNMATCHED_TOKEN;
         break;
 
-      case ErrorKind.UnsupportedPrefixPlus:
+      case "UNSUPPORTED_PREFIX_PLUS":
         errorCode = MessageKind.UNSUPPORTED_PREFIX_PLUS;
         break;
 
-      case ErrorKind.UnterminatedComment:
+      case "UNTERMINATED_COMMENT":
         errorCode = MessageKind.UNTERMINATED_COMMENT;
         break;
 
-      case ErrorKind.UnterminatedString:
+      case "UNTERMINATED_STRING":
         errorCode = MessageKind.UNTERMINATED_STRING;
+        arguments = {"quote": arguments["string"]};
         break;
 
-      case ErrorKind.UnterminatedToken:
+      case "UNTERMINATED_TOKEN":
         errorCode = MessageKind.UNTERMINATED_TOKEN;
         break;
 
-      case ErrorKind.StackOverflow:
-        errorCode = MessageKind.GENERIC;
-        arguments = {"text": "Stack overflow."};
-        break;
-
-      case ErrorKind.Unspecified:
-        errorCode = MessageKind.GENERIC;
-        break;
-
-      case ErrorKind.BuiltInIdentifierAsType:
-        errorCode = MessageKind.GENERIC;
-        arguments = {"text": "Can't use '${token.lexeme}' as a type."};
-        break;
-
-      case ErrorKind.BuiltInIdentifierInDeclaration:
-        errorCode = MessageKind.GENERIC;
-        arguments = {"text": "Can't use '${token.lexeme}' as a name here."};
-        break;
-
-      case ErrorKind.AsyncAsIdentifier:
-        errorCode = MessageKind.GENERIC;
-        arguments = {
-          "text": "'async' can't be used as an identifier in "
-              "'async', 'async*', or 'sync*' methods."
-        };
-        break;
-
-      case ErrorKind.AbstractNotSync:
-      case ErrorKind.AwaitAsIdentifier:
-      case ErrorKind.AwaitForNotAsync:
-      case ErrorKind.AwaitNotAsync:
-      case ErrorKind.FactoryNotSync:
-      case ErrorKind.GeneratorReturnsValue:
-      case ErrorKind.OnlyTry:
-      case ErrorKind.SetterNotSync:
-      case ErrorKind.YieldAsIdentifier:
-      case ErrorKind.YieldNotGenerator:
+      case "FASTA_IGNORED":
         return null; // Ignored. This error is already implemented elsewhere.
     }
     SourceSpan span = reporter.spanFromToken(token);
@@ -978,8 +924,8 @@ class ElementListener extends Listener {
     reportError(spannable, MessageKind.GENERIC, {'text': message});
     // Some parse errors are infeasible to recover from, so we throw an error.
     SourceSpan span = reporter.spanFromSpannable(spannable);
-    throw new ParserError(
-        span.begin, span.end, ErrorKind.Unspecified, {'text': message});
+    throw new ParserError(span.begin, span.end,
+        codes.codeUnspecified.format(uri, span.begin, message));
   }
 
   void reportError(Spannable spannable, MessageKind errorCode,

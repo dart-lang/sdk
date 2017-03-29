@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/base/errors.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
@@ -89,35 +90,39 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   }
 
   var errorCode = token.errorCode;
-  switch (errorCode) {
-    case ErrorKind.UnterminatedString:
+  switch (errorCode.analyzerCode) {
+    case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
       charOffset = endOffset;
       return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
-    case ErrorKind.UnmatchedToken:
-      return null;
-    case ErrorKind.UnterminatedComment:
+
+    case "UNTERMINATED_MULTI_LINE_COMMENT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
       charOffset = endOffset;
       return _makeError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, null);
-    case ErrorKind.MissingExponent:
+
+    case "MISSING_DIGIT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.MISSING_DIGIT, null);
-    case ErrorKind.ExpectedHexDigit:
+
+    case "MISSING_HEX_DIGIT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
-    case ErrorKind.NonAsciiIdentifier:
-    case ErrorKind.NonAsciiWhitespace:
+
+    case "ILLEGAL_CHARACTER":
       return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
-    case ErrorKind.UnexpectedDollarInString:
-      return null;
+
     default:
+      if (errorCode == codeUnmatchedToken ||
+          errorCode == codeUnexpectedDollarInString) {
+        return null;
+      }
       throw new UnimplementedError('$errorCode');
   }
 }

@@ -4,6 +4,56 @@
 
 library fasta.parser.parser;
 
+import '../fasta_codes.dart'
+    show
+        FastaCode,
+        FastaMessage,
+        codeAbstractNotSync,
+        codeAsciiControlCharacter,
+        codeAsyncAsIdentifier,
+        codeAwaitAsIdentifier,
+        codeAwaitForNotAsync,
+        codeAwaitNotAsync,
+        codeBuiltInIdentifierAsType,
+        codeBuiltInIdentifierInDeclaration,
+        codeEmptyNamedParameterList,
+        codeEmptyOptionalParameterList,
+        codeEncoding,
+        codeExpectedBlockToSkip,
+        codeExpectedBody,
+        codeExpectedButGot,
+        codeExpectedClassBody,
+        codeExpectedClassBodyToSkip,
+        codeExpectedDeclaration,
+        codeExpectedExpression,
+        codeExpectedFunctionBody,
+        codeExpectedIdentifier,
+        codeExpectedOpenParens,
+        codeExpectedString,
+        codeExpectedType,
+        codeExtraneousModifier,
+        codeExtraneousModifierReplace,
+        codeFactoryNotSync,
+        codeGeneratorReturnsValue,
+        codeInvalidAwaitFor,
+        codeInvalidInlineFunctionType,
+        codeInvalidSyncModifier,
+        codeInvalidVoid,
+        codeNonAsciiIdentifier,
+        codeNonAsciiWhitespace,
+        codeOnlyTry,
+        codePositionalParameterWithEquals,
+        codeRequiredParameterWithDefault,
+        codeSetterNotSync,
+        codeStackOverflow,
+        codeUnexpectedToken,
+        codeUnmatchedToken,
+        codeUnspecified,
+        codeUnsupportedPrefixPlus,
+        codeUnterminatedString,
+        codeYieldAsIdentifier,
+        codeYieldNotGenerator;
+
 import '../scanner.dart' show ErrorToken;
 
 import '../scanner/recover.dart' show closeBraceFor, skipToEof;
@@ -70,8 +120,6 @@ import 'async_modifier.dart' show AsyncModifier;
 
 import 'listener.dart' show Listener;
 
-import 'error_kind.dart' show ErrorKind;
-
 import 'identifier_context.dart' show IdentifierContext;
 
 /// Returns true if [token] is the symbol or keyword [value].
@@ -131,6 +179,8 @@ class FormalParameterType {
 /// objects than strings, it can often be replaced by `==`.
 class Parser {
   final Listener listener;
+
+  Uri get uri => listener.uri;
 
   bool mayParseFunctionExpressions = true;
 
@@ -487,11 +537,12 @@ class Parser {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
-        reportRecoverableError(token, ErrorKind.ExpectedOpenParens);
+        reportRecoverableErrorCode(token, codeExpectedOpenParens);
         return token;
       }
-      return reportUnrecoverableError(
-          token, ErrorKind.ExpectedButGot, {"expected": "("})?.next;
+      return reportUnrecoverableErrorCodeWithString(
+              token, codeExpectedButGot, "(")
+          .next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endToken = beginGroupToken.endGroup;
@@ -525,7 +576,7 @@ class Parser {
         break;
       } else if (identical(value, '[]')) {
         --parameterCount;
-        reportRecoverableError(token, ErrorKind.EmptyOptionalParameterList);
+        reportRecoverableErrorCode(token, codeEmptyOptionalParameterList);
         token = token.next;
         break;
       }
@@ -593,8 +644,8 @@ class Parser {
       // The following isn't allowed:
       //    int Function(int bar(String x)).
       if (inFunctionType) {
-        reportRecoverableError(
-            inlineFunctionTypeStart, ErrorKind.InvalidInlineFunctionType);
+        reportRecoverableErrorCode(
+            inlineFunctionTypeStart, codeInvalidInlineFunctionType);
       }
     } else if (optional('<', token)) {
       Token inlineFunctionTypeStart = token;
@@ -607,8 +658,8 @@ class Parser {
       // The following isn't allowed:
       //    int Function(int bar(String x)).
       if (inFunctionType) {
-        reportRecoverableError(
-            inlineFunctionTypeStart, ErrorKind.InvalidInlineFunctionType);
+        reportRecoverableErrorCode(
+            inlineFunctionTypeStart, codeInvalidInlineFunctionType);
       }
     }
     String value = token.stringValue;
@@ -618,9 +669,9 @@ class Parser {
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
       if (kind.isRequired) {
-        reportRecoverableError(equal, ErrorKind.RequiredParameterWithDefault);
+        reportRecoverableErrorCode(equal, codeRequiredParameterWithDefault);
       } else if (kind.isPositional && identical(':', value)) {
-        reportRecoverableError(equal, ErrorKind.PositionalParameterWithEquals);
+        reportRecoverableErrorCode(equal, codePositionalParameterWithEquals);
       }
     } else {
       listener.handleFormalParameterWithoutValue(token);
@@ -648,11 +699,11 @@ class Parser {
       ++parameterCount;
     } while (optional(',', token));
     if (parameterCount == 0) {
-      reportRecoverableError(
+      reportRecoverableErrorCode(
           token,
           isNamed
-              ? ErrorKind.EmptyNamedParameterList
-              : ErrorKind.EmptyOptionalParameterList);
+              ? codeEmptyNamedParameterList
+              : codeEmptyOptionalParameterList);
     }
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     if (isNamed) {
@@ -791,17 +842,12 @@ class Parser {
 
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
-      return reportUnrecoverableError(token, ErrorKind.ExpectedBlockToSkip)
-          ?.next;
+      return reportUnrecoverableErrorCode(token, codeExpectedBlockToSkip).next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
-    if (endGroup == null) {
-      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
-          ?.next;
-    } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
-          ?.next;
+    if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
+      return reportUnmatchedToken(beginGroupToken).next;
     }
     return beginGroupToken.endGroup;
   }
@@ -910,7 +956,8 @@ class Parser {
 
   Token parseStringPart(Token token) {
     if (token.kind != STRING_TOKEN) {
-      token = reportUnrecoverableError(token, ErrorKind.ExpectedString)?.next;
+      token =
+          reportUnrecoverableErrorCodeWithToken(token, codeExpectedString).next;
     }
     listener.handleStringPart(token);
     return token.next;
@@ -919,21 +966,23 @@ class Parser {
   Token parseIdentifier(Token token, IdentifierContext context) {
     if (!token.isIdentifier()) {
       token =
-          reportUnrecoverableError(token, ErrorKind.ExpectedIdentifier)?.next;
+          reportUnrecoverableErrorCodeWithToken(token, codeExpectedIdentifier)
+              .next;
     } else if (token.isBuiltInIdentifier &&
         !context.isBuiltInIdentifierAllowed) {
       if (context.inDeclaration) {
-        reportRecoverableError(token, ErrorKind.BuiltInIdentifierInDeclaration);
+        reportRecoverableErrorCodeWithToken(
+            token, codeBuiltInIdentifierInDeclaration);
       } else if (!optional("dynamic", token)) {
-        reportRecoverableError(token, ErrorKind.BuiltInIdentifierAsType);
+        reportRecoverableErrorCodeWithToken(token, codeBuiltInIdentifierAsType);
       }
     } else if (!inPlainSync && token.isPseudo) {
       if (optional('await', token)) {
-        reportRecoverableError(token, ErrorKind.AwaitAsIdentifier);
+        reportRecoverableErrorCode(token, codeAwaitAsIdentifier);
       } else if (optional('yield', token)) {
-        reportRecoverableError(token, ErrorKind.YieldAsIdentifier);
+        reportRecoverableErrorCode(token, codeYieldAsIdentifier);
       } else if (optional('async', token)) {
-        reportRecoverableError(token, ErrorKind.AsyncAsIdentifier);
+        reportRecoverableErrorCode(token, codeAsyncAsIdentifier);
       }
     }
     listener.handleIdentifier(token, context);
@@ -942,8 +991,9 @@ class Parser {
 
   Token expect(String string, Token token) {
     if (!identical(string, token.stringValue)) {
-      return reportUnrecoverableError(
-          token, ErrorKind.ExpectedButGot, {"expected": string})?.next;
+      return reportUnrecoverableErrorCodeWithString(
+              token, codeExpectedButGot, string)
+          .next;
     }
     return token.next;
   }
@@ -1010,7 +1060,8 @@ class Parser {
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
       } else {
-        token = reportUnrecoverableError(token, ErrorKind.ExpectedType)?.next;
+        token =
+            reportUnrecoverableErrorCodeWithToken(token, codeExpectedType).next;
         listener.handleInvalidTypeReference(token);
       }
       token = parseTypeArgumentsOpt(token);
@@ -1086,15 +1137,17 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
-          ?.next;
+      return reportUnrecoverableErrorCodeWithToken(
+              start, codeExpectedDeclaration)
+          .next;
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
-          ?.next;
+      return reportUnrecoverableErrorCodeWithToken(
+              start, codeExpectedDeclaration)
+          .next;
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -1139,8 +1192,7 @@ class Parser {
         }
         break;
       } else {
-        token =
-            reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
+        token = reportUnexpectedToken(token).next;
         if (identical(token.kind, EOF_TOKEN)) return token;
       }
     }
@@ -1207,11 +1259,12 @@ class Parser {
       modifierList.remove(varFinalOrConst);
     }
     listener.handleModifiers(modifierCount);
-    var kind = hasTypeOrModifier
-        ? ErrorKind.ExtraneousModifier
-        : ErrorKind.ExtraneousModifierReplace;
     for (Token modifier in modifierList) {
-      reportRecoverableError(modifier, kind, {'modifier': modifier});
+      reportRecoverableErrorCodeWithToken(
+          modifier,
+          hasTypeOrModifier
+              ? codeExtraneousModifier
+              : codeExtraneousModifierReplace);
     }
     return null;
   }
@@ -1256,10 +1309,11 @@ class Parser {
     }
 
     if (getOrSet != null) {
-      var kind = (hasModifier || hasType)
-          ? ErrorKind.ExtraneousModifier
-          : ErrorKind.ExtraneousModifierReplace;
-      reportRecoverableError(getOrSet, kind, {'modifier': getOrSet});
+      reportRecoverableErrorCodeWithToken(
+          getOrSet,
+          hasModifier || hasType
+              ? codeExtraneousModifier
+              : codeExtraneousModifierReplace);
     }
 
     if (!hasType) {
@@ -1270,12 +1324,12 @@ class Parser {
       // TODO(ahe): This error is reported twice, second time is from
       // [parseVariablesDeclarationMaybeSemicolon] via
       // [PartialFieldListElement.parseNode].
-      reportRecoverableError(type, ErrorKind.InvalidVoid);
+      reportRecoverableErrorCode(type, codeInvalidVoid);
     } else {
       parseType(type);
       if (isVar) {
-        reportRecoverableError(modifiers.head, ErrorKind.ExtraneousModifier,
-            {'modifier': modifiers.head});
+        reportRecoverableErrorCodeWithToken(
+            modifiers.head, codeExtraneousModifier);
       }
     }
 
@@ -1311,8 +1365,7 @@ class Parser {
       if (externalModifier == null && optional('external', modifier)) {
         externalModifier = modifier;
       } else {
-        reportRecoverableError(
-            modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
+        reportRecoverableErrorCodeWithToken(modifier, codeExtraneousModifier);
       }
     }
     if (externalModifier != null) {
@@ -1340,7 +1393,7 @@ class Parser {
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
-      reportRecoverableError(asyncToken, ErrorKind.SetterNotSync);
+      reportRecoverableErrorCode(asyncToken, codeSetterNotSync);
     }
     token = parseFunctionBody(token, false, externalModifier != null);
     asyncState = savedAsyncModifier;
@@ -1434,7 +1487,7 @@ class Parser {
             if (token.next is BeginGroupToken) {
               BeginGroupToken beginGroup = token.next;
               if (beginGroup.endGroup == null) {
-                reportUnrecoverableError(beginGroup, ErrorKind.UnmatchedToken);
+                token = reportUnmatchedToken(beginGroup).next;
               } else {
                 token = beginGroup.endGroup;
               }
@@ -1449,7 +1502,7 @@ class Parser {
           if (token is BeginGroupToken) {
             BeginGroupToken beginGroup = token;
             if (beginGroup.endGroup == null) {
-              reportUnrecoverableError(beginGroup, ErrorKind.UnmatchedToken);
+              token = reportUnmatchedToken(beginGroup).next;
             } else {
               token = beginGroup.endGroup.next;
             }
@@ -1457,14 +1510,14 @@ class Parser {
         }
         if (!optional('(', token)) {
           if (optional(';', token)) {
-            reportRecoverableError(token, ErrorKind.ExpectedOpenParens);
+            reportRecoverableErrorCode(token, codeExpectedOpenParens);
           }
           token = expect("(", token);
         }
         if (token is BeginGroupToken) {
           BeginGroupToken beginGroup = token;
           if (beginGroup.endGroup == null) {
-            reportUnrecoverableError(beginGroup, ErrorKind.UnmatchedToken);
+            token = reportUnmatchedToken(beginGroup).next;
           } else {
             token = beginGroup.endGroup.next;
           }
@@ -1530,7 +1583,7 @@ class Parser {
     if (identical(token.kind, STRING_TOKEN)) {
       return parseLiteralString(token);
     } else {
-      reportRecoverableError(token, ErrorKind.ExpectedString);
+      reportRecoverableErrorCodeWithToken(token, codeExpectedString);
       return parseRecoverExpression(token);
     }
   }
@@ -1562,7 +1615,7 @@ class Parser {
       if (isModifier(token)) {
         parseModifier(token);
       } else {
-        reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+        reportUnexpectedToken(token);
         // Skip the remaining modifiers.
         break;
       }
@@ -1576,7 +1629,7 @@ class Parser {
     // change. For example, this is parsed as a local variable declaration:
     // `abstract foo;`. Ideally, this example should be handled as a local
     // variable having the type `abstract` (which should be reported as
-    // `ErrorKind.BuiltInIdentifierAsType` by [parseIdentifier]).
+    // `codeBuiltInIdentifierAsType` by [parseIdentifier]).
     int count = 0;
     while (identical(token.kind, KEYWORD_TOKEN)) {
       if (!isModifier(token)) break;
@@ -1686,17 +1739,14 @@ class Parser {
 
   Token skipClassBody(Token token) {
     if (!optional('{', token)) {
-      return reportUnrecoverableError(token, ErrorKind.ExpectedClassBodyToSkip)
-          ?.next;
+      return reportUnrecoverableErrorCodeWithToken(
+              token, codeExpectedClassBodyToSkip)
+          .next;
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
-    if (endGroup == null) {
-      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
-          ?.next;
-    } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnrecoverableError(beginGroupToken, ErrorKind.UnmatchedToken)
-          ?.next;
+    if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
+      return reportUnmatchedToken(beginGroupToken).next;
     }
     return endGroup;
   }
@@ -1706,7 +1756,8 @@ class Parser {
     listener.beginClassBody(token);
     if (!optional('{', token)) {
       token =
-          reportUnrecoverableError(token, ErrorKind.ExpectedClassBody)?.next;
+          reportUnrecoverableErrorCodeWithToken(token, codeExpectedClassBody)
+              .next;
     }
     token = token.next;
     int count = 0;
@@ -1743,15 +1794,17 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
-          ?.next;
+      return reportUnrecoverableErrorCodeWithToken(
+              start, codeExpectedDeclaration)
+          .next;
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableError(start, ErrorKind.ExpectedDeclaration)
-          ?.next;
+      return reportUnrecoverableErrorCodeWithToken(
+              start, codeExpectedDeclaration)
+          .next;
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -1803,8 +1856,7 @@ class Parser {
         isField = true;
         break;
       } else {
-        token =
-            reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
+        token = reportUnexpectedToken(token).next;
         if (identical(token.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
           listener.endFields(1, null, start, token);
@@ -1837,32 +1889,28 @@ class Parser {
         modifierCount++;
         externalModifier = modifier;
         if (modifierCount != allowedModifierCount) {
-          reportRecoverableError(
-              modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
+          reportRecoverableErrorCodeWithToken(modifier, codeExtraneousModifier);
         }
         allowedModifierCount++;
       } else if (staticModifier == null && optional('static', modifier)) {
         modifierCount++;
         staticModifier = modifier;
         if (modifierCount != allowedModifierCount) {
-          reportRecoverableError(
-              modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
+          reportRecoverableErrorCodeWithToken(modifier, codeExtraneousModifier);
         }
       } else if (constModifier == null && optional('const', modifier)) {
         modifierCount++;
         constModifier = modifier;
         if (modifierCount != allowedModifierCount) {
-          reportRecoverableError(
-              modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
+          reportRecoverableErrorCodeWithToken(modifier, codeExtraneousModifier);
         }
       } else {
-        reportRecoverableError(
-            modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
+        reportRecoverableErrorCodeWithToken(modifier, codeExtraneousModifier);
       }
     }
     if (getOrSet != null && constModifier != null) {
-      reportRecoverableError(constModifier, ErrorKind.ExtraneousModifier,
-          {'modifier': constModifier});
+      reportRecoverableErrorCodeWithToken(
+          constModifier, codeExtraneousModifier);
     }
     parseModifierList(modifiers);
 
@@ -1875,8 +1923,8 @@ class Parser {
     if (optional('operator', name)) {
       token = parseOperatorName(name);
       if (staticModifier != null) {
-        reportRecoverableError(staticModifier, ErrorKind.ExtraneousModifier,
-            {'modifier': staticModifier});
+        reportRecoverableErrorCodeWithToken(
+            staticModifier, codeExtraneousModifier);
       }
     } else {
       token = parseIdentifier(name, IdentifierContext.methodDeclaration);
@@ -1895,7 +1943,7 @@ class Parser {
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
-      reportRecoverableError(asyncToken, ErrorKind.SetterNotSync);
+      reportRecoverableErrorCode(asyncToken, codeSetterNotSync);
     }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -1929,7 +1977,7 @@ class Parser {
     Token asyncToken = token;
     token = parseAsyncModifier(token);
     if (!inPlainSync) {
-      reportRecoverableError(asyncToken, ErrorKind.FactoryNotSync);
+      reportRecoverableErrorCode(asyncToken, codeFactoryNotSync);
     }
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -2081,7 +2129,7 @@ class Parser {
     String value = token.stringValue;
     if (identical(value, ';')) {
       if (!allowAbstract) {
-        reportRecoverableError(token, ErrorKind.ExpectedBody);
+        reportRecoverableErrorCode(token, codeExpectedBody);
       }
       listener.handleNoFunctionBody(token);
     } else {
@@ -2090,7 +2138,7 @@ class Parser {
         expectSemicolon(token);
         listener.handleFunctionBodySkipped(token, true);
       } else if (identical(value, '=')) {
-        reportRecoverableError(token, ErrorKind.ExpectedBody);
+        reportRecoverableErrorCode(token, codeExpectedBody);
         token = parseExpression(token.next);
         expectSemicolon(token);
         listener.handleFunctionBodySkipped(token, true);
@@ -2105,7 +2153,7 @@ class Parser {
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     if (optional(';', token)) {
       if (!allowAbstract) {
-        reportRecoverableError(token, ErrorKind.ExpectedBody);
+        reportRecoverableErrorCode(token, codeExpectedBody);
       }
       listener.handleEmptyFunctionBody(token);
       return token;
@@ -2122,7 +2170,7 @@ class Parser {
     } else if (optional('=', token)) {
       Token begin = token;
       // Recover from a bad factory method.
-      reportRecoverableError(token, ErrorKind.ExpectedBody);
+      reportRecoverableErrorCode(token, codeExpectedBody);
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
@@ -2136,7 +2184,8 @@ class Parser {
     int statementCount = 0;
     if (!optional('{', token)) {
       token =
-          reportUnrecoverableError(token, ErrorKind.ExpectedFunctionBody)?.next;
+          reportUnrecoverableErrorCodeWithToken(token, codeExpectedFunctionBody)
+              .next;
       listener.handleInvalidFunctionBody(token);
       return token;
     }
@@ -2194,14 +2243,14 @@ class Parser {
         star = token;
         token = token.next;
       } else {
-        reportRecoverableError(async, ErrorKind.InvalidSyncModifier);
+        reportRecoverableErrorCode(async, codeInvalidSyncModifier);
       }
     }
     listener.handleAsyncModifier(async, star);
     if (inGenerator && optional('=>', token)) {
-      reportRecoverableError(token, ErrorKind.GeneratorReturnsValue);
+      reportRecoverableErrorCode(token, codeGeneratorReturnsValue);
     } else if (!inPlainSync && optional(';', token)) {
-      reportRecoverableError(token, ErrorKind.AbstractNotSync);
+      reportRecoverableErrorCode(token, codeAbstractNotSync);
     }
     return token;
   }
@@ -2212,7 +2261,7 @@ class Parser {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
       // example, provokes this.
-      return reportUnrecoverableError(token, ErrorKind.StackOverflow)?.next;
+      return reportUnrecoverableErrorCode(token, codeStackOverflow).next;
     }
     Token result = parseStatementX(token);
     statementDepth--;
@@ -2233,7 +2282,7 @@ class Parser {
       return parseIfStatement(token);
     } else if (identical(value, 'await') && optional('for', token.next)) {
       if (!inAsync) {
-        reportRecoverableError(token, ErrorKind.AwaitForNotAsync);
+        reportRecoverableErrorCode(token, codeAwaitForNotAsync);
       }
       return parseForStatement(token, token.next);
     } else if (identical(value, 'for')) {
@@ -2271,7 +2320,7 @@ class Parser {
           return parseYieldStatement(token);
 
         case AsyncModifier.Async:
-          reportRecoverableError(token, ErrorKind.YieldNotGenerator);
+          reportRecoverableErrorCode(token, codeYieldNotGenerator);
           return parseYieldStatement(token);
       }
       throw "Internal error: Unknown asyncState: '$asyncState'.";
@@ -2309,7 +2358,7 @@ class Parser {
     } else {
       token = parseExpression(token);
       if (inGenerator) {
-        reportRecoverableError(begin.next, ErrorKind.GeneratorReturnsValue);
+        reportRecoverableErrorCode(begin.next, codeGeneratorReturnsValue);
       }
       listener.endReturnStatement(true, begin, token);
     }
@@ -2534,7 +2583,7 @@ class Parser {
         BeginGroupToken begin = token;
         token = (begin.endGroup != null) ? begin.endGroup : token;
       } else if (token is ErrorToken) {
-        reportErrorToken(token, false)?.next;
+        reportErrorToken(token, false).next;
       }
       token = token.next;
     }
@@ -2549,7 +2598,7 @@ class Parser {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for examaple, the language test
       // deep_nesting1_negative_test.
-      return reportUnrecoverableError(token, ErrorKind.StackOverflow)?.next;
+      return reportUnrecoverableErrorCode(token, codeStackOverflow).next;
     }
     listener.beginExpression(token);
     Token result = optional('throw', token)
@@ -2617,8 +2666,7 @@ class Parser {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else {
-            token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken)
-                ?.next;
+            token = reportUnexpectedToken(token).next;
           }
         } else if (identical(info, IS_INFO)) {
           token = parseIsOperatorRest(token);
@@ -2658,7 +2706,7 @@ class Parser {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.handleBinaryExpression(cascadeOperator);
     } else {
-      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
+      return reportUnexpectedToken(token).next;
     }
     Token mark;
     do {
@@ -2691,7 +2739,7 @@ class Parser {
       }
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
-      reportRecoverableError(token, ErrorKind.UnsupportedPrefixPlus);
+      reportRecoverableErrorCode(token, codeUnsupportedPrefixPlus);
       return parseUnaryExpression(token.next, allowCascades);
     } else if ((identical(value, '!')) ||
         (identical(value, '-')) ||
@@ -2791,7 +2839,8 @@ class Parser {
   }
 
   Token expressionExpected(Token token) {
-    token = reportUnrecoverableError(token, ErrorKind.ExpectedExpression)?.next;
+    token = reportUnrecoverableErrorCodeWithToken(token, codeExpectedExpression)
+        .next;
     listener.handleInvalidExpression(token);
     return token;
   }
@@ -2826,7 +2875,7 @@ class Parser {
     // [begin] is now known to have type [BeginGroupToken].
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {
-      reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
+      reportUnexpectedToken(token).next;
       token = begin.endGroup;
     }
     listener.handleParenthesizedExpression(begin);
@@ -2930,8 +2979,7 @@ class Parser {
       }
       // Fall through.
     }
-    reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
-    return null;
+    return reportUnexpectedToken(token).next;
   }
 
   /// genericListLiteral | genericMapLiteral | genericFunctionLiteral.
@@ -2958,8 +3006,7 @@ class Parser {
       } else if ((optional('[', token)) || (optional('[]', token))) {
         return parseLiteralListSuffix(token, constKeyword);
       }
-      reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
-      return null;
+      return reportUnexpectedToken(token).next;
     }
   }
 
@@ -3015,7 +3062,7 @@ class Parser {
       token = parseArguments(token);
     } else {
       listener.handleNoArguments(token);
-      token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken)?.next;
+      token = reportUnexpectedToken(token).next;
     }
     return token;
   }
@@ -3220,7 +3267,7 @@ class Parser {
     if (identical(value, 'is') || identical(value, 'as')) {
       // The is- and as-operators cannot be chained, but they can take part of
       // expressions like: foo is Foo || foo is Bar.
-      reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      reportUnexpectedToken(token);
     }
     return token;
   }
@@ -3233,7 +3280,7 @@ class Parser {
     String value = token.stringValue;
     if (identical(value, 'is') || identical(value, 'as')) {
       // The is- and as-operators cannot be chained.
-      reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
+      reportUnexpectedToken(token);
     }
     return token;
   }
@@ -3308,7 +3355,7 @@ class Parser {
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else {
       if (awaitToken != null) {
-        reportRecoverableError(awaitToken, ErrorKind.InvalidAwaitFor);
+        reportRecoverableErrorCode(awaitToken, codeInvalidAwaitFor);
       }
       return parseForRest(forKeyword, leftParenthesis, token);
     }
@@ -3421,7 +3468,7 @@ class Parser {
     listener.beginAwaitExpression(awaitToken);
     token = expect('await', token);
     if (!inAsync) {
-      reportRecoverableError(awaitToken, ErrorKind.AwaitNotAsync);
+      reportRecoverableErrorCode(awaitToken, codeAwaitNotAsync);
     }
     token = parsePrecedenceExpression(token, POSTFIX_PRECEDENCE, allowCascades);
     listener.endAwaitExpression(awaitToken, token);
@@ -3489,7 +3536,7 @@ class Parser {
       listener.handleFinallyBlock(finallyKeyword);
     } else {
       if (catchCount == 0) {
-        reportRecoverableError(tryKeyword, ErrorKind.OnlyTry);
+        reportRecoverableErrorCode(tryKeyword, codeOnlyTry);
       }
     }
     listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
@@ -3568,8 +3615,8 @@ class Parser {
       } else {
         if (expressionCount == 0) {
           // TODO(ahe): This is probably easy to recover from.
-          reportUnrecoverableError(
-              token, ErrorKind.ExpectedButGot, {"expected": "case"});
+          reportUnrecoverableErrorCodeWithString(
+              token, codeExpectedButGot, "case");
         }
         break;
       }
@@ -3650,65 +3697,102 @@ class Parser {
 
   /// Don't call this method. Should only be used as a last resort when there
   /// is no feasible way to recover from a parser error.
-  Token reportUnrecoverableError(Token token, ErrorKind kind, [Map arguments]) {
+  Token reportUnrecoverableError(Token token, FastaMessage format()) {
     Token next;
     if (token is ErrorToken) {
       next = reportErrorToken(token, false);
     } else {
-      arguments ??= {};
-      arguments.putIfAbsent("actual", () => token.lexeme);
-      next = listener.handleUnrecoverableError(token, kind, arguments);
+      next = listener.handleUnrecoverableError(token, format());
     }
     return next ?? skipToEof(token);
   }
 
-  void reportRecoverableError(Token token, ErrorKind kind, [Map arguments]) {
+  void reportRecoverableError(Token token, FastaMessage format()) {
     if (token is ErrorToken) {
       reportErrorToken(token, true);
     } else {
-      arguments ??= {};
-      listener.handleRecoverableError(token, kind, arguments);
+      listener.handleRecoverableError(token, format());
     }
   }
 
   Token reportErrorToken(ErrorToken token, bool isRecoverable) {
-    ErrorKind kind = token.errorCode;
-    Map arguments = const {};
-    switch (kind) {
-      case ErrorKind.AsciiControlCharacter:
-      case ErrorKind.NonAsciiIdentifier:
-      case ErrorKind.NonAsciiWhitespace:
-      case ErrorKind.Encoding:
-        String hex = token.character.toRadixString(16);
-        if (hex.length < 4) {
-          String padding = "0000".substring(hex.length);
-          hex = "$padding$hex";
-        }
-        arguments = {'characterHex': hex};
-        break;
-
-      case ErrorKind.UnterminatedString:
-        arguments = {'quote': token.start};
-        break;
-
-      case ErrorKind.UnmatchedToken:
-        String begin = token.begin.lexeme;
-        String end = closeBraceFor(begin);
-        arguments = {'begin': begin, 'end': end};
-        break;
-
-      case ErrorKind.Unspecified:
-        arguments = {"text": token.assertionMessage};
-        break;
-
-      default:
-        break;
+    FastaCode code = token.errorCode;
+    FastaMessage message;
+    if (code == codeAsciiControlCharacter) {
+      message = codeAsciiControlCharacter.format(
+          uri, token.charOffset, token.character);
+    } else if (code == codeNonAsciiWhitespace) {
+      message =
+          codeNonAsciiWhitespace.format(uri, token.charOffset, token.character);
+    } else if (code == codeEncoding) {
+      message = codeEncoding.format(uri, token.charOffset);
+    } else if (code == codeNonAsciiIdentifier) {
+      message = codeNonAsciiIdentifier.format(uri, token.charOffset,
+          new String.fromCharCodes([token.character]), token.character);
+    } else if (code == codeUnterminatedString) {
+      message =
+          codeUnterminatedString.format(uri, token.charOffset, token.start);
+    } else if (code == codeUnmatchedToken) {
+      Token begin = token.begin;
+      message = codeUnmatchedToken.format(
+          uri, token.charOffset, closeBraceFor(begin.lexeme), begin);
+    } else if (code == codeUnspecified) {
+      message =
+          codeUnspecified.format(uri, token.charOffset, token.assertionMessage);
+    } else {
+      message = code.format(uri, token.charOffset);
     }
     if (isRecoverable) {
-      listener.handleRecoverableError(token, kind, arguments);
+      listener.handleRecoverableError(token, message);
       return null;
     } else {
-      return listener.handleUnrecoverableError(token, kind, arguments);
+      Token next = listener.handleUnrecoverableError(token, message);
+      return next ?? skipToEof(token);
     }
   }
+
+  Token reportUnmatchedToken(BeginGroupToken token) {
+    return reportUnrecoverableError(
+        token,
+        () => codeUnmatchedToken.format(
+            uri, token.charOffset, closeBraceFor(token.lexeme), token));
+  }
+
+  Token reportUnexpectedToken(Token token) {
+    return reportUnrecoverableError(
+        token, () => codeUnexpectedToken.format(uri, token.charOffset, token));
+  }
+
+  void reportRecoverableErrorCode(Token token, FastaCode<NoArgument> code) {
+    reportRecoverableError(token, () => code.format(uri, token.charOffset));
+  }
+
+  Token reportUnrecoverableErrorCode(Token token, FastaCode<NoArgument> code) {
+    return reportUnrecoverableError(
+        token, () => code.format(uri, token.charOffset));
+  }
+
+  void reportRecoverableErrorCodeWithToken(
+      Token token, FastaCode<TokenArgument> code) {
+    reportRecoverableError(
+        token, () => code.format(uri, token.charOffset, token));
+  }
+
+  Token reportUnrecoverableErrorCodeWithToken(
+      Token token, FastaCode<TokenArgument> code) {
+    return reportUnrecoverableError(
+        token, () => code.format(uri, token.charOffset, token));
+  }
+
+  Token reportUnrecoverableErrorCodeWithString(
+      Token token, FastaCode<StringArgument> code, String string) {
+    return reportUnrecoverableError(
+        token, () => code.format(uri, token.charOffset, string));
+  }
 }
+
+typedef FastaMessage NoArgument(Uri uri, int charOffset);
+
+typedef FastaMessage TokenArgument(Uri uri, int charOffset, Token token);
+
+typedef FastaMessage StringArgument(Uri uri, int charOffset, String string);

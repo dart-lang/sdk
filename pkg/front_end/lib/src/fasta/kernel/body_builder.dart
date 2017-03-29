@@ -4,9 +4,10 @@
 
 library fasta.body_builder;
 
-import '../parser/parser.dart' show FormalParameterType, optional;
+import '../fasta_codes.dart'
+    show FastaMessage, codeExpectedButGot, codeExpectedFunctionBody;
 
-import '../parser/error_kind.dart' show ErrorKind;
+import '../parser/parser.dart' show FormalParameterType, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -2343,29 +2344,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
+  void handleRecoverableError(Token token, FastaMessage message) {
     bool silent = hasParserError;
-    super.handleRecoverableError(token, kind, arguments);
-    addCompileTimeError(recoverableErrors.last.beginOffset,
-        '${recoverableErrors.last.kind} $arguments',
-        silent: silent);
+    super.handleRecoverableError(token, message);
+    addCompileTimeError(message.charOffset, message.message, silent: silent);
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    if (isDartLibrary && kind == ErrorKind.ExpectedFunctionBody) {
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    if (isDartLibrary && message.code == codeExpectedFunctionBody) {
       Token recover = skipNativeClause(token);
       if (recover != null) return recover;
-    } else if (kind == ErrorKind.UnexpectedToken) {
-      String expected = arguments["expected"];
+    } else if (message.code == codeExpectedButGot) {
+      String expected = message.arguments["string"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
-        arguments.putIfAbsent("actual", () => token.lexeme);
-        handleRecoverableError(token, ErrorKind.ExpectedButGot, arguments);
+        handleRecoverableError(token, message);
         return newSyntheticToken(token);
       }
     }
-    return super.handleUnrecoverableError(token, kind, arguments);
+    return super.handleUnrecoverableError(token, message);
   }
 
   @override

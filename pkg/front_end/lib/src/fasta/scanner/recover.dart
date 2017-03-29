@@ -4,9 +4,23 @@
 
 library fasta.scanner.recover;
 
+import '../fasta_codes.dart'
+    show
+        FastaCode,
+        codeAsciiControlCharacter,
+        codeEncoding,
+        codeExpectedHexDigit,
+        codeMissingExponent,
+        codeNonAsciiIdentifier,
+        codeNonAsciiWhitespace,
+        codeUnexpectedDollarInString,
+        codeUnmatchedToken,
+        codeUnterminatedComment,
+        codeUnterminatedString;
+
 import 'token.dart' show StringToken, SymbolToken, Token;
 
-import 'error_token.dart' show NonAsciiIdentifierToken, ErrorKind, ErrorToken;
+import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
 
 import 'precedence.dart' as Precedence;
 
@@ -161,52 +175,34 @@ Token defaultRecoveryStrategy(
         next = next.next;
       } while (next is ErrorToken && first.errorCode == next.errorCode);
 
-      switch (first.errorCode) {
-        case ErrorKind.Encoding:
-        case ErrorKind.NonAsciiWhitespace:
-        case ErrorKind.AsciiControlCharacter:
-          treatAsWhitespace = true;
-          break;
-
-        case ErrorKind.NonAsciiIdentifier:
-          current = recoverIdentifier(first);
-          assert(current.next != null);
-          break;
-
-        case ErrorKind.MissingExponent:
-          current = recoverExponent();
-          assert(current.next != null);
-          break;
-
-        case ErrorKind.UnterminatedString:
-          current = recoverString();
-          assert(current.next != null);
-          break;
-
-        case ErrorKind.ExpectedHexDigit:
-          current = recoverHexDigit();
-          assert(current.next != null);
-          break;
-
-        case ErrorKind.UnexpectedDollarInString:
-          current = recoverStringInterpolation();
-          assert(current.next != null);
-          break;
-
-        case ErrorKind.UnterminatedComment:
-          current = recoverComment();
-          assert(current.next != null);
-          break;
-
-        case ErrorKind.UnmatchedToken:
-          current = recoverUnmatched();
-          assert(current.next != null);
-          break;
-
-        case ErrorKind.UnterminatedToken: // TODO(ahe): Can this happen?
-        default:
-          treatAsWhitespace = true;
-          break;
+      FastaCode code = first.errorCode;
+      if (code == codeEncoding ||
+          code == codeNonAsciiWhitespace ||
+          code == codeAsciiControlCharacter) {
+        treatAsWhitespace = true;
+      } else if (code == codeNonAsciiIdentifier) {
+        current = recoverIdentifier(first);
+        assert(current.next != null);
+      } else if (code == codeMissingExponent) {
+        current = recoverExponent();
+        assert(current.next != null);
+      } else if (code == codeUnterminatedString) {
+        current = recoverString();
+        assert(current.next != null);
+      } else if (code == codeExpectedHexDigit) {
+        current = recoverHexDigit();
+        assert(current.next != null);
+      } else if (code == codeUnexpectedDollarInString) {
+        current = recoverStringInterpolation();
+        assert(current.next != null);
+      } else if (code == codeUnterminatedComment) {
+        current = recoverComment();
+        assert(current.next != null);
+      } else if (code == codeUnmatchedToken) {
+        current = recoverUnmatched();
+        assert(current.next != null);
+      } else {
+        treatAsWhitespace = true;
       }
       if (treatAsWhitespace) continue;
     }

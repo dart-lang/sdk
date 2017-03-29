@@ -15,6 +15,8 @@ import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, Token;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show FastaMessage, codeExpectedExpression;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -30,7 +32,6 @@ import 'element_store.dart'
         ElementStore,
         KernelClassElement;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:front_end/src/fasta/parser/error_kind.dart';
 import 'token_utils.dart' show toAnalyzerToken, toAnalyzerCommentToken;
 
 class AstBuilder extends ScopeListener {
@@ -1046,8 +1047,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    if (kind == ErrorKind.ExpectedExpression) {
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    if (message.code == codeExpectedExpression) {
       String lexeme = token.lexeme;
       if (identical('async', lexeme) || identical('yield', lexeme)) {
         errorReporter?.reportErrorForOffset(
@@ -1058,7 +1059,7 @@ class AstBuilder extends ScopeListener {
         return token;
       }
     }
-    return super.handleUnrecoverableError(token, kind, arguments);
+    return super.handleUnrecoverableError(token, message);
   }
 
   void handleUnaryPrefixExpression(Token token) {

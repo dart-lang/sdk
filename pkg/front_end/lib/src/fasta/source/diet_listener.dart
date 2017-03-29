@@ -10,14 +10,14 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
+
 import '../parser/parser.dart' show Parser, optional;
 
 import '../scanner/token.dart' show BeginGroupToken, Token;
 
 import '../parser/dart_vm_native.dart'
     show removeNativeClause, skipNativeClause;
-
-import '../parser/error_kind.dart' show ErrorKind;
 
 import '../util/link.dart' show Link;
 
@@ -462,15 +462,15 @@ class DietListener extends StackListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    if (isDartLibrary && kind == ErrorKind.ExpectedBlockToSkip) {
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
       Token recover = skipNativeClause(token);
       if (recover != null) {
         assert(isTargetingDartVm);
         return recover;
       }
     }
-    return super.handleUnrecoverableError(token, kind, arguments);
+    return super.handleUnrecoverableError(token, message);
   }
 
   @override
