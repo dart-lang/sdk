@@ -1699,6 +1699,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isConst: false, int charOffset: -1}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
+      assert(!target.enclosingClass.isAbstract);
       typeParameters = target.enclosingClass.typeParameters;
     }
     if (!checkArguments(target.function, arguments, typeParameters)) {
@@ -1792,7 +1793,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           // Not found. Reported below.
         } else if (b.isConstructor) {
           if (type.isAbstract) {
-            // TODO(ahe): Generate abstract instantiation error.
+            push(evaluateArgumentsBefore(
+                arguments,
+                buildAbstractClassInstantiationError(
+                    type.name, nameToken.charOffset)));
+            return;
           } else {
             target = b.target;
           }
@@ -2369,8 +2374,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String message = formatUnexpected(uri, charOffset, error);
     Builder constructor = library.loader.getCompileTimeError();
     return new Throw(buildStaticInvocation(constructor.target,
-        new Arguments(<Expression>[new StringLiteral(message)]),
-        isConst: false)); // TODO(ahe): Make this const.
+        new Arguments(<Expression>[new StringLiteral(message)])));
+  }
+
+  Expression buildAbstractClassInstantiationError(String className,
+      [int charOffset = -1]) {
+    warning("The class '$className' is abstract and can't be instantiated.",
+        charOffset);
+    Builder constructor = library.loader.getAbstractClassInstantiationError();
+    return new Throw(buildStaticInvocation(constructor.target,
+        new Arguments(<Expression>[new StringLiteral(className)])));
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {
@@ -2422,6 +2435,22 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       super.warning(message, charOffset);
     }
+  }
+
+  Expression evaluateArgumentsBefore(
+      Arguments arguments, Expression expression) {
+    if (arguments == null) return expression;
+    List<Expression> expressions =
+        new List<Expression>.from(arguments.positional);
+    for (NamedExpression named in arguments.named) {
+      expressions.add(named.value);
+    }
+    for (Expression argument in expressions.reversed) {
+      expression = new Let(
+          new VariableDeclaration.forValue(argument, isFinal: true),
+          expression);
+    }
+    return expression;
   }
 
   @override

@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-abstract_beats_arguments_test: RuntimeError
-abstract_runtime_error_test/01: RuntimeError
-abstract_runtime_error_test/02: RuntimeError
 accessor_conflict_export2_test: RuntimeError
 accessor_conflict_export_test: RuntimeError
 accessor_conflict_import2_test: RuntimeError

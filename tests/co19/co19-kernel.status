@@ -89,7 +89,6 @@ Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
-Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t03: RuntimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t04: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
@@ -184,10 +183,7 @@ Language/Expressions/Instance_Creation/Const/constant_constructor_same_name_as_c
 Language/Expressions/Instance_Creation/Const/deferred_type_t01: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/deferred_type_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/exception_t01: Crash
-Language/Expressions/Instance_Creation/New/evaluation_t01: RuntimeError
-Language/Expressions/Instance_Creation/New/evaluation_t02: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t06: RuntimeError
-Language/Expressions/Instance_Creation/New/evaluation_t12: RuntimeError # Dartk Issue 28564
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Lists/constant_list_t01: MissingCompileTimeError
@@ -265,8 +261,6 @@ Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Kerne
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass # OK
-Language/Libraries_and_Scripts/Imports/namespace_changes_t16: RuntimeError
-Language/Libraries_and_Scripts/Imports/namespace_changes_t17: RuntimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t27: CompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t02/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t05: RuntimeError

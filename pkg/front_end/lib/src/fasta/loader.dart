@@ -139,6 +139,10 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   Builder getCompileTimeError() => target.getCompileTimeError(this);
 
   Builder getNativeAnnotation() => target.getNativeAnnotation(this);
+
+  Builder getAbstractClassInstantiationError() {
+    return target.getAbstractClassInstantiationError(this);
+  }
 }
 
 String format(double d, int fractionDigits, int width) {

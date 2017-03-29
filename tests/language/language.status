@@ -5,6 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
+[ ($runtime == vm || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
+abstract_beats_arguments2_test: Crash # dartbug.com/29171
+
 # These test entries will be valid for vm/dartium (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
 async_star_cancel_while_paused_test: RuntimeError
