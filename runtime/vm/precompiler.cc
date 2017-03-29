@@ -653,7 +653,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
     // Functions
-    {"dart:async", "::", "_setScheduleImmediateClosure"},
     {"dart:core", "::", "_completeDeferredLoads"},
     {"dart:core", "AbstractClassInstantiationError",
      "AbstractClassInstantiationError._create"},
@@ -674,9 +673,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     {"dart:core", "_InvocationMirror", "_allocateInvocationMirror"},
     {"dart:core", "_TypeError", "_TypeError._create"},
     {"dart:isolate", "IsolateSpawnException", "IsolateSpawnException."},
-    {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
-    {"dart:isolate", "::", "_setupHooks"},
-    {"dart:isolate", "::", "_startMainIsolate"},
     {"dart:isolate", "::", "_startIsolate"},
     {"dart:isolate", "_RawReceivePortImpl", "_handleMessage"},
     {"dart:isolate", "_RawReceivePortImpl", "_lookupHandler"},
@@ -716,7 +712,11 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
     class_name = Symbols::New(thread(), entry_points[i].class_name);
     function_name = Symbols::New(thread(), entry_points[i].function_name);
 
-    lib = Library::LookupLibrary(T, library_uri);
+    if (library_uri.raw() == Symbols::TopLevel().raw()) {
+      lib = I->object_store()->root_library();
+    } else {
+      lib = Library::LookupLibrary(T, library_uri);
+    }
     if (lib.IsNull()) {
       String& msg =
           String::Handle(Z, String::NewFormatted("Cannot find entry point %s\n",

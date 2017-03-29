@@ -102,6 +102,21 @@ static_library("libdart_vm_nosnapshot_with_precompiler") {
   include_dirs = [ ".." ]
 }
 
+static_library("libdart_vm_with_precompiler") {
+  configs += [
+    "..:dart_config",
+    "..:dart_maybe_product_config",
+    "..:dart_precompiler_config",
+  ]
+  public_configs = [ ":libdart_vm_config" ]
+  set_sources_assignment_filter([
+                                  "*_test.cc",
+                                  "*_test.h",
+                                ])
+  sources = vm_sources_list
+  include_dirs = [ ".." ]
+}
+
 template("process_library_source") {
   assert(defined(invoker.libsources), "Need libsources in $target_name")
   assert(defined(invoker.output), "Need output in $target_name")
@@ -215,6 +230,16 @@ template("generate_core_libraries") {
     ]
     deps = libdeps
     sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
+    include_dirs = [ ".." ]
+  }
+  static_library("libdart_lib_with_precompiler") {
+    configs += [
+      "..:dart_config",
+      "..:dart_maybe_product_config",
+      "..:dart_precompiler_config",
+    ]
+    deps = libdeps
+    sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
   }
   static_library("libdart_lib") {

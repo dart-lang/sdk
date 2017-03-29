@@ -278,6 +278,14 @@ libdart_library("libdart_nosnapshot_with_precompiler") {
   ]
 }
 
+libdart_library("libdart_with_precompiler") {
+  extra_configs = [ ":dart_precompiler_config" ]
+  extra_deps = [
+    "vm:libdart_lib_with_precompiler",
+    "vm:libdart_vm_with_precompiler",
+  ]
+}
+
 action("generate_version_cc_file") {
   deps = [
     ":libdart_dependency_helper",
