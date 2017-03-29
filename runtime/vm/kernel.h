@@ -118,8 +118,6 @@
   M(ClassVisitor)                                                              \
   M(InitializerVisitor)                                                        \
   M(DartTypeVisitor)                                                           \
-  M(ClassReferenceVisitor)                                                     \
-  M(MemberReferenceVisitor)                                                    \
   M(TreeVisitor)                                                               \
   M(Visitor)
 
@@ -370,20 +368,29 @@ class CanonicalName {
 
   String* name() { return name_; }
   CanonicalName* parent() { return parent_; }
-  LinkedNode* definition() { return definition_; }
   bool is_referenced() { return is_referenced_; }
   void set_referenced(bool referenced) { is_referenced_ = referenced; }
 
-  void BindTo(LinkedNode* definition);
-  void Unbind();
   CanonicalName* AddChild(String* name);
 
-  Library* AsLibrary();
-  Class* AsClass();
-  Member* AsMember();
-  Field* AsField();
-  Constructor* AsConstructor();
-  Procedure* AsProcedure();
+  bool IsAdministrative();
+  bool IsPrivate();
+
+  bool IsRoot();
+  bool IsLibrary();
+  bool IsClass();
+  bool IsMember();
+  bool IsField();
+  bool IsConstructor();
+  bool IsProcedure();
+  bool IsMethod();
+  bool IsGetter();
+  bool IsSetter();
+  bool IsFactory();
+
+  // For a member (field, constructor, or procedure) return the canonical name
+  // of the enclosing class or library.
+  CanonicalName* EnclosingName();
 
   static CanonicalName* NewRoot();
 
@@ -393,7 +400,6 @@ class CanonicalName {
   bool is_referenced_;
   Ref<CanonicalName> parent_;
   Ref<String> name_;
-  Ref<LinkedNode> definition_;
   MallocGrowableArray<CanonicalName*> children_;
 
   DISALLOW_COPY_AND_ASSIGN(CanonicalName);
@@ -457,9 +463,9 @@ class LinkedNode : public TreeNode {
  protected:
   LinkedNode() {}
 
- private:
   Ref<CanonicalName> canonical_name_;
 
+ private:
   friend class CanonicalName;
 
   DISALLOW_COPY_AND_ASSIGN(LinkedNode);
@@ -533,7 +539,6 @@ class Class : public LinkedNode {
 
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void AcceptClassVisitor(ClassVisitor* visitor) = 0;
-  virtual void AcceptReferenceVisitor(ClassReferenceVisitor* visitor) = 0;
 
   Library* parent() { return parent_; }
   String* name() { return name_; }
@@ -575,7 +580,6 @@ class NormalClass : public Class {
   DEFINE_CASTING_OPERATIONS(NormalClass);
 
   virtual void AcceptClassVisitor(ClassVisitor* visitor);
-  virtual void AcceptReferenceVisitor(ClassReferenceVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
   virtual TypeParameterList& type_parameters() { return type_parameters_; }
@@ -613,7 +617,6 @@ class MixinClass : public Class {
   DEFINE_CASTING_OPERATIONS(MixinClass);
 
   virtual void AcceptClassVisitor(ClassVisitor* visitor);
-  virtual void AcceptReferenceVisitor(ClassReferenceVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
   virtual TypeParameterList& type_parameters() { return type_parameters_; }
@@ -654,7 +657,6 @@ class Member : public LinkedNode {
 
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void AcceptMemberVisitor(MemberVisitor* visitor) = 0;
-  virtual void AcceptReferenceVisitor(MemberReferenceVisitor* visitor) = 0;
 
   TreeNode* parent() { return parent_; }
   Name* name() { return name_; }
@@ -696,7 +698,6 @@ class Field : public Member {
   DEFINE_CASTING_OPERATIONS(Field);
 
   virtual void AcceptMemberVisitor(MemberVisitor* visitor);
-  virtual void AcceptReferenceVisitor(MemberReferenceVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
   bool IsConst() { return (flags_ & kFlagConst) == kFlagConst; }
@@ -736,7 +737,6 @@ class Constructor : public Member {
   DEFINE_CASTING_OPERATIONS(Constructor);
 
   virtual void AcceptMemberVisitor(MemberVisitor* visitor);
-  virtual void AcceptReferenceVisitor(MemberReferenceVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
   bool IsExternal() { return (flags_ & kFlagExternal) == kFlagExternal; }
@@ -786,7 +786,6 @@ class Procedure : public Member {
   DEFINE_CASTING_OPERATIONS(Procedure);
 
   virtual void AcceptMemberVisitor(MemberVisitor* visitor);
-  virtual void AcceptReferenceVisitor(MemberReferenceVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
   ProcedureKind kind() { return kind_; }
@@ -860,13 +859,13 @@ class FieldInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Field* field() { return field_reference_->AsField(); }
+  CanonicalName* field() { return field_reference_; }
   Expression* value() { return value_; }
 
  private:
   FieldInitializer() {}
 
-  Ref<CanonicalName> field_reference_;
+  Ref<CanonicalName> field_reference_;  // Field.
   Child<Expression> value_;
 
   DISALLOW_COPY_AND_ASSIGN(FieldInitializer);
@@ -884,13 +883,13 @@ class SuperInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Constructor* target() { return target_reference_->AsConstructor(); }
+  CanonicalName* target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   SuperInitializer() {}
 
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Constructor.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(SuperInitializer);
@@ -908,13 +907,13 @@ class RedirectingInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Constructor* target() { return target_reference_->AsConstructor(); }
+  CanonicalName* target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   RedirectingInitializer() {}
 
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Constructor.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(RedirectingInitializer);
@@ -1147,13 +1146,13 @@ class DirectPropertyGet : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
-  Member* target() { return target_reference_->AsMember(); }
+  CanonicalName* target() { return target_reference_; }
 
  private:
   DirectPropertyGet() {}
 
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Member.
 
   DISALLOW_COPY_AND_ASSIGN(DirectPropertyGet);
 };
@@ -1171,14 +1170,14 @@ class DirectPropertySet : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
-  Member* target() { return target_reference_->AsMember(); }
+  CanonicalName* target() { return target_reference_; }
   Expression* value() { return value_; }
 
  private:
   DirectPropertySet() {}
 
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Member.
   Child<Expression> value_;
 
   DISALLOW_COPY_AND_ASSIGN(DirectPropertySet);
@@ -1196,12 +1195,12 @@ class StaticGet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Member* target() { return target_reference_->AsMember(); }
+  CanonicalName* target() { return target_reference_; }
 
  private:
   StaticGet() {}
 
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Member.
 
   DISALLOW_COPY_AND_ASSIGN(StaticGet);
 };
@@ -1218,13 +1217,13 @@ class StaticSet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Member* target() { return target_reference_->AsMember(); }
+  CanonicalName* target() { return target_reference_; }
   Expression* expression() { return expression_; }
 
  private:
   StaticSet() {}
 
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Member.
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticSet);
@@ -1324,14 +1323,14 @@ class DirectMethodInvocation : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
-  Procedure* target() { return target_reference_->AsProcedure(); }
+  CanonicalName* target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   DirectMethodInvocation() {}
 
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Procedure.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(DirectMethodInvocation);
@@ -1346,14 +1345,14 @@ class StaticInvocation : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Procedure* procedure() { return procedure_reference_->AsProcedure(); }
+  CanonicalName* procedure() { return procedure_reference_; }
   Arguments* arguments() { return arguments_; }
   bool is_const() { return is_const_; }
 
  private:
   StaticInvocation() {}
 
-  Ref<CanonicalName> procedure_reference_;
+  Ref<CanonicalName> procedure_reference_;  // Procedure.
   Child<Arguments> arguments_;
   bool is_const_;
 
@@ -1373,14 +1372,14 @@ class ConstructorInvocation : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   bool is_const() { return is_const_; }
-  Constructor* target() { return target_reference_->AsConstructor(); }
+  CanonicalName* target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   ConstructorInvocation() {}
 
   bool is_const_;
-  Ref<CanonicalName> target_reference_;
+  Ref<CanonicalName> target_reference_;  // Constructor.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructorInvocation);
@@ -2529,18 +2528,14 @@ class Name : public Node {
   virtual void VisitChildren(Visitor* visitor);
 
   String* string() { return string_; }
-  Library* library() {
-    if (library_reference_ == NULL) return NULL;
-    return library_reference_->AsLibrary();
-  }
-  CanonicalName* library_reference() { return library_reference_; }
+  CanonicalName* library() { return library_reference_; }
 
  private:
   Name(String* string, CanonicalName* library_reference)
       : string_(string), library_reference_(library_reference) {}  // NOLINT
 
   Ref<String> string_;
-  Ref<CanonicalName> library_reference_;
+  Ref<CanonicalName> library_reference_;  // Library.
 
   DISALLOW_COPY_AND_ASSIGN(Name);
 };
@@ -2633,14 +2628,13 @@ class InterfaceType : public DartType {
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  Class* klass() { return class_reference_->AsClass(); }
-  CanonicalName* class_reference() { return class_reference_; }
+  CanonicalName* klass() { return class_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
 
  private:
   InterfaceType() {}
 
-  Ref<CanonicalName> class_reference_;
+  Ref<CanonicalName> class_reference_;  // Class.
   List<DartType> type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceType);
@@ -2745,10 +2739,7 @@ class Program : public TreeNode {
   StringTable& source_uri_table() { return source_uri_table_; }
   SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
-  Procedure* main_method() {
-    if (main_method_reference_ == NULL) return NULL;
-    return main_method_reference_->AsProcedure();
-  }
+  CanonicalName* main_method() { return main_method_reference_; }
   CanonicalName* canonical_name_root() { return canonical_name_root_; }
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> valid_token_positions;
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> yield_token_positions;
@@ -2758,7 +2749,7 @@ class Program : public TreeNode {
 
   Child<CanonicalName> canonical_name_root_;
   List<Library> libraries_;
-  Ref<CanonicalName> main_method_reference_;
+  Ref<CanonicalName> main_method_reference_;  // Procedure.
   StringTable string_table_;
   StringTable source_uri_table_;
   SourceTable source_table_;
@@ -3013,37 +3004,6 @@ class DartTypeVisitor {
 };
 
 
-class ClassReferenceVisitor {
- public:
-  virtual ~ClassReferenceVisitor() {}
-
-  virtual void VisitDefaultClassReference(Class* node) = 0;
-  virtual void VisitNormalClassReference(NormalClass* node) {
-    VisitDefaultClassReference(node);
-  }
-  virtual void VisitMixinClassReference(MixinClass* node) {
-    VisitDefaultClassReference(node);
-  }
-};
-
-
-class MemberReferenceVisitor {
- public:
-  virtual ~MemberReferenceVisitor() {}
-
-  virtual void VisitDefaultMemberReference(Member* node) = 0;
-  virtual void VisitFieldReference(Field* node) {
-    VisitDefaultMemberReference(node);
-  }
-  virtual void VisitConstructorReference(Constructor* node) {
-    VisitDefaultMemberReference(node);
-  }
-  virtual void VisitProcedureReference(Procedure* node) {
-    VisitDefaultMemberReference(node);
-  }
-};
-
-
 class TreeVisitor : public ExpressionVisitor,
                     public StatementVisitor,
                     public MemberVisitor,
@@ -3083,10 +3043,7 @@ class TreeVisitor : public ExpressionVisitor,
 };
 
 
-class Visitor : public TreeVisitor,
-                public DartTypeVisitor,
-                public ClassReferenceVisitor,
-                public MemberReferenceVisitor {
+class Visitor : public TreeVisitor, public DartTypeVisitor {
  public:
   virtual ~Visitor() {}
 
