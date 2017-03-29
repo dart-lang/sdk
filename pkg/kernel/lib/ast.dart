@@ -997,7 +997,6 @@ class Procedure extends Member {
   bool get isAccessor => isGetter || isSetter;
   bool get hasGetter => kind != ProcedureKind.Setter;
   bool get hasSetter => kind == ProcedureKind.Setter;
-  bool get isFactory => kind == ProcedureKind.Factory;
 
   accept(MemberVisitor v) => v.visitProcedure(this);
 

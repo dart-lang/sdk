@@ -301,26 +301,16 @@ class TranslationHelper {
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
 
-  const dart::String& DartClassName(CanonicalName* kernel_class);
+  const dart::String& DartClassName(CanonicalName* kernel_klass);
+  const dart::String& DartConstructorName(Constructor* node);
+  const dart::String& DartProcedureName(Procedure* procedure);
 
-  const dart::String& DartConstructorName(CanonicalName* constructor);
-
-  const dart::String& DartProcedureName(CanonicalName* procedure);
-
-  const dart::String& DartSetterName(CanonicalName* setter);
-  const dart::String& DartSetterName(Name* setter_name);
-
-  const dart::String& DartGetterName(CanonicalName* getter);
-  const dart::String& DartGetterName(Name* getter_name);
-
+  const dart::String& DartSetterName(Name* kernel_name);
+  const dart::String& DartGetterName(Name* kernel_name);
   const dart::String& DartFieldName(Name* kernel_name);
-
   const dart::String& DartInitializerName(Name* kernel_name);
-
-  const dart::String& DartMethodName(CanonicalName* method);
-  const dart::String& DartMethodName(Name* method_name);
-
-  const dart::String& DartFactoryName(CanonicalName* factory);
+  const dart::String& DartMethodName(Name* kernel_name);
+  const dart::String& DartFactoryName(Class* klass, Name* kernel_name);
 
   const Array& ArgumentNames(List<NamedExpression>* named);
 
@@ -330,12 +320,12 @@ class TranslationHelper {
   virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
   virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
 
-  RawField* LookupFieldByKernelField(CanonicalName* field);
-  RawFunction* LookupStaticMethodByKernelProcedure(CanonicalName* procedure);
-  RawFunction* LookupConstructorByKernelConstructor(CanonicalName* constructor);
+  RawField* LookupFieldByKernelField(Field* field);
+  RawFunction* LookupStaticMethodByKernelProcedure(Procedure* procedure);
+  RawFunction* LookupConstructorByKernelConstructor(Constructor* constructor);
   dart::RawFunction* LookupConstructorByKernelConstructor(
       const dart::Class& owner,
-      CanonicalName* constructor);
+      Constructor* constructor);
 
   dart::Type& GetCanonicalType(const dart::Class& klass);
 
@@ -343,17 +333,11 @@ class TranslationHelper {
   void ReportError(const Error& prev_error, const char* format, ...);
 
  private:
-  // This will mangle [name_to_modify] if necessary and make the result a symbol
-  // if asked.  The result will be avilable in [name_to_modify] and it is also
-  // returned.  If the name is private, the canonical name [parent] will be used
-  // to get the import URI of the library where the name is visible.
-  dart::String& ManglePrivateName(CanonicalName* parent,
+  // This will mangle [kernel_name] (if necessary) and make the result a symbol.
+  // The result will be avilable in [name_to_modify] and it is also returned.
+  dart::String& ManglePrivateName(CanonicalName* kernel_library,
                                   dart::String* name_to_modify,
                                   bool symbolize = true);
-
-  const dart::String& DartSetterName(CanonicalName* parent, String* setter);
-  const dart::String& DartGetterName(CanonicalName* parent, String* getter);
-  const dart::String& DartMethodName(CanonicalName* parent, String* method);
 
   dart::Thread* thread_;
   dart::Zone* zone_;
@@ -833,7 +817,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment TranslateArguments(Arguments* node, Array* argument_names);
   ArgumentArray GetArguments(int count);
 
-  Fragment TranslateInitializers(Class* kernel_class,
+  Fragment TranslateInitializers(Class* kernel_klass,
                                  List<Initializer>* initialiers);
 
   Fragment TranslateStatement(Statement* statement);
@@ -960,7 +944,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
 
-  dart::RawFunction* LookupMethodByMember(CanonicalName* target,
+  dart::RawFunction* LookupMethodByMember(Member* target,
                                           const dart::String& method_name);
 
   LocalVariable* MakeTemporary();
