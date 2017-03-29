@@ -786,15 +786,15 @@ RawObject* ActivationFrame::GetAsyncStreamControllerStreamAwaiter(
 
 
 RawObject* ActivationFrame::GetAsyncAwaiter() {
-  const Object& completer = Object::Handle(GetAsyncCompleter());
-  if (!completer.IsNull()) {
-    return GetAsyncCompleterAwaiter(completer);
-  }
   const Object& async_stream_controller_stream =
       Object::Handle(GetAsyncStreamControllerStream());
   if (!async_stream_controller_stream.IsNull()) {
     return GetAsyncStreamControllerStreamAwaiter(
         async_stream_controller_stream);
+  }
+  const Object& completer = Object::Handle(GetAsyncCompleter());
+  if (!completer.IsNull()) {
+    return GetAsyncCompleterAwaiter(completer);
   }
   return Object::null();
 }
@@ -3229,6 +3229,21 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
       OS::Print("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
+    if (FLAG_async_debugger_stepping) {
+      if (stack_trace->FrameAt(0)->function().IsAsyncClosure() ||
+          stack_trace->FrameAt(0)->function().IsAsyncGenClosure()) {
+        // Request to step out of an async/async* closure.
+        const Object& async_op =
+            Object::Handle(stack_trace->FrameAt(0)->GetAsyncAwaiter());
+        if (!async_op.IsNull()) {
+          // Step out to the awaiter.
+          ASSERT(async_op.IsClosure());
+          AsyncStepInto(Closure::Cast(async_op));
+          return;
+        }
+      }
+    }
+    // Fall through to synchronous stepping.
     DeoptimizeWorld();
     isolate_->set_single_step(true);
     // Find topmost caller that is debuggable.
@@ -4206,9 +4221,14 @@ void Debugger::MaybeAsyncStepInto(const Closure& async_op) {
   if (FLAG_async_debugger_stepping && IsSingleStepping()) {
     // We are single stepping, set a breakpoint on the closure activation
     // and resume execution so we can hit the breakpoint.
-    SetBreakpointAtActivation(async_op, true);
-    Continue();
+    AsyncStepInto(async_op);
   }
+}
+
+
+void Debugger::AsyncStepInto(const Closure& async_op) {
+  SetBreakpointAtActivation(async_op, true);
+  Continue();
 }
 
 

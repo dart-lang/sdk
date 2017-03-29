@@ -490,6 +490,7 @@ class Debugger {
   Breakpoint* GetBreakpointById(intptr_t id);
 
   void MaybeAsyncStepInto(const Closure& async_op);
+  void AsyncStepInto(const Closure& async_op);
 
   void Continue();
 

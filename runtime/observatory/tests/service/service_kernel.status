@@ -38,6 +38,8 @@ evaluate_*: Skip # no evaluation test for now
 ###
 async_single_step_into_test: RuntimeError # Issue 29158
 async_star_single_step_into_test: RuntimeError # Issue 29158
+async_step_out_test: RuntimeError # Issue 29158
+async_star_step_out_test: RuntimeError # Issue 29158
 
 ###
 ### These tests currently crash the VM
