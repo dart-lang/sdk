@@ -61,7 +61,8 @@ static void DiscoverEnclosingElements(Zone* zone,
 void ScopeBuilder::EnterScope(TreeNode* node, TokenPosition start_position) {
   scope_ = new (Z) LocalScope(scope_, depth_.function_, depth_.loop_);
   scope_->set_begin_token_pos(start_position);
-  result_->scopes.Insert(node, scope_);
+  ASSERT(node->kernel_offset() >= 0);
+  result_->scopes.Insert(node->kernel_offset(), scope_);
 }
 
 
@@ -100,7 +101,7 @@ void ScopeBuilder::AddParameter(VariableDeclaration* declaration,
     variable->set_is_final();
   }
   scope_->InsertParameterAt(pos, variable);
-  result_->locals.Insert(declaration, variable);
+  result_->locals.Insert(declaration->kernel_offset(), variable);
 
   // The default value may contain 'let' bindings for which the constant
   // evaluator needs scope bindings.
@@ -185,7 +186,8 @@ void ScopeBuilder::AddIteratorVariable() {
 
 
 void ScopeBuilder::LookupVariable(VariableDeclaration* declaration) {
-  LocalVariable* variable = result_->locals.Lookup(declaration);
+  LocalVariable* variable =
+      result_->locals.Lookup(declaration->kernel_offset());
   if (variable == NULL) {
     // We have not seen a declaration of the variable, so it must be the
     // case that we are compiling a nested function and the variable is
@@ -195,7 +197,7 @@ void ScopeBuilder::LookupVariable(VariableDeclaration* declaration) {
     const dart::String& name = H.DartSymbol(declaration->name());
     variable = current_function_scope_->parent()->LookupVariable(name, true);
     ASSERT(variable != NULL);
-    result_->locals.Insert(declaration, variable);
+    result_->locals.Insert(declaration->kernel_offset(), variable);
   }
   if (variable->owner()->function_level() < scope_->function_level()) {
     // We call `LocalScope->CaptureVariable(variable)` in two scenarios for two
@@ -249,7 +251,7 @@ void ScopeBuilder::AddVariable(VariableDeclaration* declaration) {
     variable->set_is_final();
   }
   scope_->AddVariable(variable);
-  result_->locals.Insert(declaration, variable);
+  result_->locals.Insert(declaration->kernel_offset(), variable);
 }
 
 
@@ -492,7 +494,7 @@ void ScopeBuilder::HandleLocalFunction(TreeNode* parent,
   current_function_scope_ = scope_;
   current_function_node_ = function;
   if (depth_.function_ == 1) {
-    FunctionScope function_scope = {function, scope_};
+    FunctionScope function_scope = {function->kernel_offset(), scope_};
     result_->function_scopes.Add(function_scope);
   }
   AddParameters(function);
@@ -2014,7 +2016,7 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
 Fragment FlowGraphBuilder::EnterScope(TreeNode* node, bool* new_context) {
   Fragment instructions;
   const intptr_t context_size =
-      scopes_->scopes.Lookup(node)->num_context_variables();
+      scopes_->scopes.Lookup(node->kernel_offset())->num_context_variables();
   if (context_size > 0) {
     instructions += PushContext(context_size);
     instructions += Drop();
@@ -2029,7 +2031,7 @@ Fragment FlowGraphBuilder::EnterScope(TreeNode* node, bool* new_context) {
 Fragment FlowGraphBuilder::ExitScope(TreeNode* node) {
   Fragment instructions;
   const intptr_t context_size =
-      scopes_->scopes.Lookup(node)->num_context_variables();
+      scopes_->scopes.Lookup(node->kernel_offset())->num_context_variables();
   if (context_size > 0) {
     instructions += PopContext();
   }
@@ -2882,7 +2884,7 @@ intptr_t FlowGraphBuilder::CurrentTryIndex() {
 
 dart::LocalVariable* FlowGraphBuilder::LookupVariable(
     VariableDeclaration* var) {
-  LocalVariable* local = scopes_->locals.Lookup(var);
+  LocalVariable* local = scopes_->locals.Lookup(var->kernel_offset());
   ASSERT(local != NULL);
   return local;
 }
@@ -6257,7 +6259,9 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
   // function and token position.
   Function& function = Function::ZoneHandle(Z);
   for (intptr_t i = 0; i < scopes_->function_scopes.length(); ++i) {
-    if (scopes_->function_scopes[i].function != node) continue;
+    if (scopes_->function_scopes[i].kernel_offset != node->kernel_offset()) {
+      continue;
+    }
 
     TokenPosition position = node->position();
     if (parent->IsFunctionDeclaration()) {
