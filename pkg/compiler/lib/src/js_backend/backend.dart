@@ -516,7 +516,8 @@ class JavaScriptBackend {
     lookupMapResolutionAnalysis =
         new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
 
-    noSuchMethodRegistry = new NoSuchMethodRegistry(this);
+    noSuchMethodRegistry =
+        new NoSuchMethodRegistry(helpers, new NoSuchMethodResolverImpl());
     kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
@@ -677,10 +678,6 @@ class JavaScriptBackend {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  bool isDefaultNoSuchMethod(MethodElement element) {
-    return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
-  }
-
   MethodElement resolveExternalFunction(MethodElement element) {
     if (isForeign(element)) {
       return element;
@@ -800,16 +797,8 @@ class JavaScriptBackend {
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
-  void onTypeInferenceComplete() {
-    noSuchMethodRegistry.onTypeInferenceComplete();
-  }
-
-  /// Register a runtime type variable bound tests between [typeArgument] and
-  /// [bound].
-  void registerTypeVariableBoundsSubtypeCheck(
-      ResolutionDartType typeArgument, ResolutionDartType bound) {
-    rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
-        typeArgument, bound);
+  void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
+    noSuchMethodRegistry.onTypeInferenceComplete(results);
   }
 
   /// Returns the [WorldImpact] of enabling deferred loading.
@@ -849,9 +838,6 @@ class JavaScriptBackend {
     // No native behavior for this call.
     return null;
   }
-
-  bool isComplexNoSuchMethod(FunctionElement element) =>
-      noSuchMethodRegistry.isComplex(element);
 
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
@@ -1066,7 +1052,7 @@ class JavaScriptBackend {
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
-    noSuchMethodRegistry.emitDiagnostic();
+    noSuchMethodRegistry.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
     if (totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
       int mirrorCount =
@@ -1575,7 +1561,7 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isDefaultNoSuchMethod(MethodElement element) {
-    return _backend.isDefaultNoSuchMethod(element);
+    return _backend.helpers.isDefaultNoSuchMethodImplementation(element);
   }
 
   @override

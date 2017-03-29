@@ -857,7 +857,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       return e is FunctionElement &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
-          inferrer.backend.isComplexNoSuchMethod(e);
+          inferrer.backend.noSuchMethodRegistry.isComplex(e);
     });
   }
 
