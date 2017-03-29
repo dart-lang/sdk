@@ -59,13 +59,10 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_nested_test: RuntimeError
 const_optional_args_negative_test: Fail
-const_string_test: RuntimeError
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/01: MissingCompileTimeError
 const_syntax_test/02: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: MissingCompileTimeError
-const_syntax_test/09: MissingCompileTimeError
 const_syntax_test/10: Crash
 const_types_test/06: CompileTimeError
 const_types_test/13: CompileTimeError
@@ -470,6 +467,9 @@ language/regress_22728_test: Fail # Dartk Issue 28498
 # dartk: JIT failures
 [ $compiler == dartk ]
 const_locals_test: RuntimeError
+const_string_test: RuntimeError
+const_syntax_test/08: MissingCompileTimeError
+const_syntax_test/09: MissingCompileTimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
@@ -508,6 +508,8 @@ vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
+const_syntax_test/08: Crash
+const_syntax_test/09: Crash
 final_syntax_test/09: MissingCompileTimeError
 getter_declaration_negative_test: Crash
 getter_parameters_test/02: Crash

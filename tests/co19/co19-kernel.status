@@ -82,9 +82,7 @@ Language/Classes/Setters/parameter_t01: MissingCompileTimeError
 Language/Classes/Setters/parameter_t02: MissingCompileTimeError
 Language/Classes/Setters/parameter_t03: MissingCompileTimeError
 Language/Classes/Setters/parameter_t04: MissingCompileTimeError
-Language/Classes/Setters/parameter_t05: MissingCompileTimeError
 Language/Classes/Setters/parameter_t06: MissingCompileTimeError
-Language/Classes/Setters/parameter_t07: MissingCompileTimeError
 Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
@@ -462,7 +460,11 @@ Language/Statements/Switch/syntax_t17: Crash
 
 # dartk: JIT failures
 [ $compiler == dartk ]
-Language/Overview/Scoping/conflicting_names_t43: MissingCompileTimeError
+Language/Classes/Getters/syntax_t06: MissingCompileTimeError
+Language/Classes/Setters/parameter_t05: MissingCompileTimeError
+Language/Classes/Setters/parameter_t07: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
@@ -486,11 +488,8 @@ Language/Metadata/compilation_t08: MissingCompileTimeError
 Language/Metadata/compilation_t09: MissingCompileTimeError
 Language/Metadata/compilation_t10: MissingCompileTimeError
 Language/Metadata/compilation_t11: MissingCompileTimeError
+Language/Overview/Scoping/conflicting_names_t43: MissingCompileTimeError
 LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
-Language/Classes/Getters/syntax_t06: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
@@ -502,6 +501,8 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 # dartk: precompilation failures
 [ $compiler == dartkp ]
 Language/Classes/Getters/syntax_t06: Crash
+Language/Classes/Setters/parameter_t05: Crash
+Language/Classes/Setters/parameter_t07: Crash
 Language/Expressions/Constants/depending_on_itself_t01: Crash
 Language/Expressions/Constants/depending_on_itself_t02: Crash
 Language/Overview/Scoping/conflicting_names_t43: Crash
