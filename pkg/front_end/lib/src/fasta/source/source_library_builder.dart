@@ -411,13 +411,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
+  /// Returns true if the export scope was modified.
   bool addToExportScope(String name, Builder member) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Builder existing = exports[name];
+    if (existing == member) return false;
     if (existing != null) {
-      // TODO(ahe): handle duplicated names.
-      return false;
+      exports[name] = buildAmbiguousBuilder(name, existing, member, -1);
     } else {
       exports[name] = member;
     }

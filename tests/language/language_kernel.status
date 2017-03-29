@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-accessor_conflict_export2_test: RuntimeError
-accessor_conflict_export_test: RuntimeError
 accessor_conflict_import2_test: RuntimeError
 application_negative_test: Crash
 arg_param_trailing_comma_test/107: MissingCompileTimeError
