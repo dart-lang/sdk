@@ -215,7 +215,7 @@ abstract class Token implements analyzer.TokenWithComment {
   Token copyWithoutComments();
 
   @override
-  bool get isSynthetic => charCount == 0;
+  bool get isSynthetic => false;
 
   @override
   analyzer.Keyword get keyword => null;
@@ -256,12 +256,12 @@ class SymbolToken extends Token {
 
   SymbolToken(this.info, int charOffset) : super(charOffset);
 
-  SymbolToken.eof(int charOffset)
-      : info = EOF_INFO,
-        super(charOffset) {
+  factory SymbolToken.eof(int charOffset) {
+    var eof = new SyntheticSymbolToken(EOF_INFO, charOffset);
     // EOF points to itself so there's always infinite look-ahead.
-    previousToken = this;
-    next = this;
+    eof.previousToken = eof;
+    eof.next = eof;
+    return eof;
   }
 
   String get lexeme => info.value;
@@ -276,6 +276,23 @@ class SymbolToken extends Token {
 
   @override
   Token copyWithoutComments() => new SymbolToken(info, charOffset);
+}
+
+/**
+ * A [SyntheticSymbolToken] represents the symbol in its precedence info
+ * which does not exist in the original source.
+ * For example, if the scanner finds '(' missing a ')'
+ * then it will insert an synthetic ')'.
+ */
+class SyntheticSymbolToken extends SymbolToken {
+  SyntheticSymbolToken(PrecedenceInfo info, int charOffset)
+      : super(info, charOffset);
+
+  @override
+  int get charCount => 0;
+
+  @override
+  bool get isSynthetic => true;
 }
 
 /**

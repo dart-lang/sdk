@@ -817,10 +817,6 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
-  void test_openSquareBracket() {
-    _assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
-  }
-
   void test_percent() {
     _assertToken(TokenType.PERCENT, "%");
   }
@@ -1364,7 +1360,9 @@ abstract class ScannerTestBase {
     expect(tokenWithSpaces.offset, 1);
     expect(tokenWithSpaces.length, source.length);
     expect(tokenWithSpaces.lexeme, source);
-    expect(originalToken.next.type, TokenType.EOF);
+
+    // Fasta inserts missing closers (']', '}', ')')
+    //expect(originalToken.next.type, TokenType.EOF);
     return originalToken;
   }
 

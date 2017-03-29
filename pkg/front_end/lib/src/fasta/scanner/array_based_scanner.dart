@@ -4,7 +4,7 @@
 
 library fasta.scanner.array_based_scanner;
 
-import 'error_token.dart' show ErrorToken;
+import 'error_token.dart' show ErrorToken, UnmatchedToken;
 
 import 'keyword.dart' show Keyword;
 
@@ -18,6 +18,7 @@ import 'token.dart'
         KeywordToken,
         StringToken,
         SymbolToken,
+        SyntheticSymbolToken,
         Token;
 
 import 'token_constants.dart'
@@ -29,7 +30,7 @@ import 'token_constants.dart'
 
 import 'characters.dart' show $LF, $STX;
 
-import 'abstract_scanner.dart' show AbstractScanner;
+import 'abstract_scanner.dart' show AbstractScanner, closeBraceInfoFor;
 
 import '../util/link.dart' show Link;
 
@@ -318,5 +319,56 @@ abstract class ArrayBasedScanner extends AbstractScanner {
         identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
+  }
+
+  void unmatchedBeginGroup(BeginGroupToken begin) {
+    // We want to ensure that unmatched BeginGroupTokens are reported as
+    // errors.  However, the diet parser assumes that groups are well-balanced
+    // and will never look at the endGroup token.  This is a nice property that
+    // allows us to skip quickly over correct code. By inserting an additional
+    // synthetic token in the stream, we can keep ignoring endGroup tokens.
+    //
+    // [begin] --next--> [tail]
+    // [begin] --endG--> [synthetic] --next--> [next] --next--> [tail]
+    //
+    // This allows the diet parser to skip from [begin] via endGroup to
+    // [synthetic] and ignore the [synthetic] token (assuming it's correct),
+    // then the error will be reported when parsing the [next] token.
+    //
+    // For example, tokenize("{[1};") produces:
+    //
+    // SymbolToken({) --endGroup------------------------+
+    //      |                                           |
+    //     next                                         |
+    //      v                                           |
+    // SymbolToken([) --endGroup--+                     |
+    //      |                     |                     |
+    //     next                   |                     |
+    //      v                     |                     |
+    // StringToken(1)             |                     |
+    //      |                     |                     |
+    //     next                   |                     |
+    //      v                     |                     |
+    // SymbolToken(])<------------+ <-- Synthetic token |
+    //      |                                           |
+    //     next                                         |
+    //      v                                           |
+    // UnmatchedToken([)                                |
+    //      |                                           |
+    //     next                                         |
+    //      v                                           |
+    // SymbolToken(})<----------------------------------+
+    //      |
+    //     next
+    //      v
+    // SymbolToken(;)
+    //      |
+    //     next
+    //      v
+    //     EOF
+    PrecedenceInfo info = closeBraceInfoFor(begin);
+    appendToken(new SyntheticSymbolToken(info, tokenStart));
+    begin.endGroup = tail;
+    appendErrorToken(new UnmatchedToken(begin));
   }
 }
