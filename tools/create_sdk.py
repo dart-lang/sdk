@@ -197,6 +197,8 @@ def CopyDevCompilerSdk(home, lib):
            join(lib, '_internal', 'ddc_sdk.sum'))
   copytree(join(home, 'pkg', 'dev_compiler', 'lib', 'js'),
            join(lib, 'dev_compiler'))
+  copyfile(join(home, 'third_party', 'requirejs', 'require.js'),
+           join(lib, 'dev_compiler', 'amd', 'require.js'))
 
 def Main():
   # Pull in all of the gypi files which will be munged into the sdk.
