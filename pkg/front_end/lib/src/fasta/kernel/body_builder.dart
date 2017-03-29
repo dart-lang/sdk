@@ -37,7 +37,7 @@ import '../builder/scope.dart' show ProblemBuilder, Scope;
 
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
 
-import 'builder_accessors.dart';
+import 'fasta_accessors.dart';
 
 import '../quote.dart'
     show
@@ -155,7 +155,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return throwNoSuchMethodError(
           node.name.name, new Arguments.empty(), node.fileOffset,
           isGetter: true);
-    } else if (node is BuilderAccessor) {
+    } else if (node is FastaAccessor) {
       return node.buildSimpleRead();
     } else if (node is TypeVariableBuilder) {
       TypeParameterType type = node.buildTypesWithBuiltArguments(library, null);
@@ -185,7 +185,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Expression toEffect(Object node) {
-    if (node is BuilderAccessor) return node.buildForEffect();
+    if (node is FastaAccessor) return node.buildForEffect();
     return toValue(node);
   }
 
@@ -389,7 +389,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Initializer initializer;
     if (node is Initializer) {
       initializer = node;
-    } else if (node is BuilderAccessor) {
+    } else if (node is FastaAccessor) {
       initializer = node.buildFieldInitializer(fieldInitializers);
     } else if (node is ConstructorInvocation) {
       initializer = new SuperInitializer(node.target, node.arguments);
@@ -524,7 +524,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               coreTypes.tryGetTopLevelMember("dart:core", null, "identical");
     }
 
-    if (receiver is BuilderAccessor) {
+    if (receiver is FastaAccessor) {
       if (constantExpressionRequired && !isIdentical(receiver)) {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
@@ -1043,7 +1043,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (accessor is TypeDeclarationBuilder) {
       push(wrapInvalid(new TypeLiteral(
           accessor.buildTypesWithBuiltArguments(library, null))));
-    } else if (accessor is! BuilderAccessor) {
+    } else if (accessor is! FastaAccessor) {
       push(buildCompileTimeError("Can't assign to this.", token.charOffset));
     } else {
       push(new DelayedAssignment(
@@ -1088,7 +1088,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List<VariableDeclaration> variables = <VariableDeclaration>[];
     dynamic variableOrExpression = pop();
     Statement begin;
-    if (variableOrExpression is BuilderAccessor) {
+    if (variableOrExpression is FastaAccessor) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
@@ -1300,7 +1300,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (name is Identifier) {
       name = name.name;
     }
-    if (name is BuilderAccessor) {
+    if (name is FastaAccessor) {
       warning("'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
     } else if (name is UnresolvedIdentifier) {
@@ -1617,7 +1617,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
     var accessor = pop();
-    if (accessor is BuilderAccessor) {
+    if (accessor is FastaAccessor) {
       push(accessor.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
@@ -1629,7 +1629,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
     var accessor = pop();
-    if (accessor is BuilderAccessor) {
+    if (accessor is FastaAccessor) {
       push(new DelayedPostfixIncrement(
           this, token.charOffset, accessor, incrementOperator(token), null));
     } else {
@@ -2002,7 +2002,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable;
     if (lvalue is VariableDeclaration) {
       variable = lvalue;
-    } else if (lvalue is BuilderAccessor) {
+    } else if (lvalue is FastaAccessor) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
       ///
       ///     for (lvalue in expression) body
@@ -2503,10 +2503,10 @@ class CascadeReceiver extends Let {
   }
 }
 
-abstract class ContextAccessor extends BuilderAccessor {
+abstract class ContextAccessor extends FastaAccessor {
   final BuilderHelper helper;
 
-  final BuilderAccessor accessor;
+  final FastaAccessor accessor;
 
   final int offset;
 
@@ -2582,7 +2582,7 @@ class DelayedAssignment extends ContextAccessor {
   final String assignmentOperator;
 
   DelayedAssignment(BuilderHelper helper, int charOffset,
-      BuilderAccessor accessor, this.value, this.assignmentOperator)
+      FastaAccessor accessor, this.value, this.assignmentOperator)
       : super(helper, charOffset, accessor);
 
   Expression buildSimpleRead() {
@@ -2660,7 +2660,7 @@ class DelayedPostfixIncrement extends ContextAccessor {
   final Procedure interfaceTarget;
 
   DelayedPostfixIncrement(BuilderHelper helper, int offset,
-      BuilderAccessor accessor, this.binaryOperator, this.interfaceTarget)
+      FastaAccessor accessor, this.binaryOperator, this.interfaceTarget)
       : super(helper, offset, accessor);
 
   Expression buildSimpleRead() {
@@ -2897,7 +2897,7 @@ String getNodeName(Object node) {
     return node.name;
   } else if (node is ThisAccessor) {
     return node.isSuper ? "super" : "this";
-  } else if (node is BuilderAccessor) {
+  } else if (node is FastaAccessor) {
     return node.plainNameForRead;
   } else {
     return internalError("Unhandled: ${node.runtimeType}");
