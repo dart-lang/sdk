@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
-import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
-
 import '../common.dart';
 import '../common/backend_api.dart';
 import '../common/resolution.dart' show Resolution;
@@ -23,6 +20,7 @@ import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'behavior.dart';
+import 'resolver.dart' show NativeClassResolver;
 
 /**
  * This could be an abstract class but we use it as a stub for the dart_backend.
@@ -65,8 +63,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   DiagnosticReporter get _reporter => _compiler.reporter;
   CommonElements get _commonElements => _compiler.commonElements;
-
-  NativeBasicData get _nativeBasicData => _backend.nativeBasicData;
 
   BackendClasses get _backendClasses => _backend.backendClasses;
 
@@ -187,13 +183,13 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 }
 
 class NativeResolutionEnqueuer extends NativeEnqueuerBase {
+  final NativeClassResolver _nativeClassResolver;
+
   /// The set of all native classes.  Each native class is in [nativeClasses]
   /// and exactly one of [unusedClasses] and [registeredClasses].
   final Set<ClassElement> _nativeClasses = new Set<ClassElement>();
 
-  Map<String, ClassElement> tagOwner = new Map<String, ClassElement>();
-
-  NativeResolutionEnqueuer(Compiler compiler)
+  NativeResolutionEnqueuer(Compiler compiler, this._nativeClassResolver)
       : super(compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   BackendUsageBuilder get _backendUsageBuilder => _backend.backendUsageBuilder;
@@ -205,175 +201,14 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    Set<ClassElement> nativeClasses = new Set<ClassElement>();
-    libraries.forEach((l) => _processNativeClassesInLibrary(l, nativeClasses));
-    if (_helpers.isolateHelperLibrary != null) {
-      _processNativeClassesInLibrary(
-          _helpers.isolateHelperLibrary, nativeClasses);
-    }
-    _processSubclassesOfNativeClasses(libraries, nativeClasses);
+    Set<ClassElement> nativeClasses =
+        _nativeClassResolver.computeNativeClasses(libraries);
     _nativeClasses.addAll(nativeClasses);
     _unusedClasses.addAll(nativeClasses);
     if (!enableLiveTypeAnalysis) {
       _registerTypeUses(impactBuilder, _nativeClasses, 'forced');
     }
     return impactBuilder;
-  }
-
-  void _processNativeClassesInLibrary(
-      LibraryElement library, Set<ClassElement> nativeClasses) {
-    // Use implementation to ensure the inclusion of injected members.
-    library.implementation.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        if (_nativeBasicData.isNativeClass(cls)) {
-          _processNativeClass(element, nativeClasses);
-        }
-      }
-    });
-  }
-
-  void _processNativeClass(
-      ClassElement classElement, Set<ClassElement> nativeClasses) {
-    nativeClasses.add(classElement);
-    // Resolve class to ensure the class has valid inheritance info.
-    classElement.ensureResolved(_resolution);
-    // Js Interop interfaces do not have tags.
-    if (_nativeBasicData.isJsInteropClass(classElement)) return;
-    // Since we map from dispatch tags to classes, a dispatch tag must be used
-    // on only one native class.
-    for (String tag in _nativeBasicData.getNativeTagsOfClass(classElement)) {
-      ClassElement owner = tagOwner[tag];
-      if (owner != null) {
-        if (owner != classElement) {
-          _reporter.internalError(
-              classElement, "Tag '$tag' already in use by '${owner.name}'");
-        }
-      } else {
-        tagOwner[tag] = classElement;
-      }
-    }
-  }
-
-  void _processSubclassesOfNativeClasses(
-      Iterable<LibraryElement> libraries, Set<ClassElement> nativeClasses) {
-    Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
-    // Collect potential subclasses, e.g.
-    //
-    //     class B extends foo.A {}
-    //
-    // String "A" has a potential subclass B.
-
-    var potentialExtends = new Map<String, Set<ClassElement>>();
-
-    libraries.forEach((library) {
-      library.implementation.forEachLocalMember((element) {
-        if (element.isClass) {
-          String extendsName = _findExtendsNameOfClass(element);
-          if (extendsName != null) {
-            Set<ClassElement> potentialSubclasses = potentialExtends
-                .putIfAbsent(extendsName, () => new Set<ClassElement>());
-            potentialSubclasses.add(element);
-          }
-        }
-      });
-    });
-
-    // Resolve all the native classes and any classes that might extend them in
-    // [potentialExtends], and then check that the properly resolved class is in
-    // fact a subclass of a native class.
-
-    ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (_nativeBasicData.isNativeClass(classElement)) return classElement;
-      if (classElement.superclass == null) return null;
-      return nativeSuperclassOf(classElement.superclass);
-    }
-
-    void walkPotentialSubclasses(ClassElement element) {
-      if (nativeClassesAndSubclasses.contains(element)) return;
-      element.ensureResolved(_resolution);
-      ClassElement nativeSuperclass = nativeSuperclassOf(element);
-      if (nativeSuperclass != null) {
-        nativeClassesAndSubclasses.add(element);
-        Set<ClassElement> potentialSubclasses = potentialExtends[element.name];
-        if (potentialSubclasses != null) {
-          potentialSubclasses.forEach(walkPotentialSubclasses);
-        }
-      }
-    }
-
-    nativeClasses.forEach(walkPotentialSubclasses);
-    nativeClasses.addAll(nativeClassesAndSubclasses);
-  }
-
-  /**
-   * Returns the source string of the class named in the extends clause, or
-   * `null` if there is no extends clause.
-   */
-  String _findExtendsNameOfClass(ClassElement classElement) {
-    if (classElement.isResolved) {
-      ClassElement superClass = classElement.superclass;
-      while (superClass != null) {
-        if (!superClass.isUnnamedMixinApplication) {
-          return superClass.name;
-        }
-        superClass = superClass.superclass;
-      }
-      return null;
-    }
-
-    //  "class B extends A ... {}"  --> "A"
-    //  "class B extends foo.A ... {}"  --> "A"
-    //  "class B<T> extends foo.A<T,T> with M1, M2 ... {}"  --> "A"
-
-    // We want to avoid calling classElement.parseNode on every class.  Doing so
-    // will slightly increase parse time and size and cause compiler errors and
-    // warnings to me emitted in more unused code.
-
-    // An alternative to this code is to extend the API of ClassElement to
-    // expose the name of the extended element.
-
-    // Pattern match the above cases in the token stream.
-    //  [abstract] class X extends [id.]* id
-
-    Token skipTypeParameters(Token token) {
-      BeginGroupToken beginGroupToken = token;
-      Token endToken = beginGroupToken.endGroup;
-      return endToken.next;
-      //for (;;) {
-      //  token = token.next;
-      //  if (token.stringValue == '>') return token.next;
-      //  if (token.stringValue == '<') return skipTypeParameters(token);
-      //}
-    }
-
-    String scanForExtendsName(Token token) {
-      if (token.stringValue == 'abstract') token = token.next;
-      if (token.stringValue != 'class') return null;
-      token = token.next;
-      if (!token.isIdentifier()) return null;
-      token = token.next;
-      //  class F<X extends B<X>> extends ...
-      if (token.stringValue == '<') {
-        token = skipTypeParameters(token);
-      }
-      if (token.stringValue != 'extends') return null;
-      token = token.next;
-      Token id = token;
-      while (token.kind != Tokens.EOF_TOKEN) {
-        token = token.next;
-        if (token.stringValue != '.') break;
-        token = token.next;
-        if (!token.isIdentifier()) return null;
-        id = token;
-      }
-      // Should be at '{', 'with', 'implements', '<' or 'native'.
-      return id.lexeme;
-    }
-
-    return _reporter.withCurrentElement(classElement, () {
-      return scanForExtendsName(classElement.position);
-    });
   }
 
   void logSummary(log(message)) {
@@ -383,14 +218,14 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 }
 
 class NativeCodegenEnqueuer extends NativeEnqueuerBase {
-  final CodeEmitterTask emitter;
+  final CodeEmitterTask _emitter;
 
-  final Set<ClassElement> doneAddSubtypes = new Set<ClassElement>();
+  final Set<ClassElement> _doneAddSubtypes = new Set<ClassElement>();
 
   final NativeResolutionEnqueuer _resolutionEnqueuer;
 
   NativeCodegenEnqueuer(
-      Compiler compiler, this.emitter, this._resolutionEnqueuer)
+      Compiler compiler, this._emitter, this._resolutionEnqueuer)
       : super(compiler, compiler.options.enableNativeLiveTypeAnalysis) {}
 
   NativeData get _nativeData => _backend.nativeData;
@@ -425,14 +260,14 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     for (ClassElement classElement in classes) {
       // Add the information that this class is a subtype of its supertypes. The
       // code emitter and the ssa builder use that information.
-      _addSubtypes(classElement, emitter.nativeEmitter);
+      _addSubtypes(classElement, _emitter.nativeEmitter);
     }
   }
 
   void _addSubtypes(ClassElement cls, NativeEmitter emitter) {
     if (!_nativeData.isNativeClass(cls)) return;
-    if (doneAddSubtypes.contains(cls)) return;
-    doneAddSubtypes.add(cls);
+    if (_doneAddSubtypes.contains(cls)) return;
+    _doneAddSubtypes.add(cls);
 
     // Walk the superclass chain since classes on the superclass chain might not
     // be instantiated (abstract or simply unused).

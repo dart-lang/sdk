@@ -511,9 +511,6 @@ class JavaScriptBackend {
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(compiler);
-    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
-        compiler, emitter, _nativeResolutionEnqueuer);
 
     _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
         compiler.elementEnvironment, impacts, backendUsageBuilder);
@@ -817,7 +814,7 @@ class JavaScriptBackend {
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    _backendUsage = _backendUsageBuilder.close();
+    _backendUsage = backendUsageBuilder.close();
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         compiler.enqueuer.resolution.worldBuilder,
         closedWorld,
@@ -826,8 +823,7 @@ class JavaScriptBackend {
         helpers,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
-    _interceptorData =
-        _interceptorDataBuilder.onResolutionComplete(closedWorld);
+    _interceptorData = interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
         new OneShotInterceptorData(interceptorData, helpers);
     mirrorsResolutionAnalysis.onResolutionComplete();
@@ -890,6 +886,10 @@ class JavaScriptBackend {
       CompilerTask task, Compiler compiler) {
     _nativeBasicData =
         nativeBasicDataBuilder.close(compiler.elementEnvironment);
+    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
+        compiler,
+        new NativeClassResolverImpl(
+            compiler.resolution, reporter, helpers, nativeBasicData));
     _nativeData = new NativeDataImpl(nativeBasicData);
     _backendClasses = new JavaScriptBackendClasses(
         compiler.elementEnvironment, helpers, nativeBasicData);
@@ -935,16 +935,16 @@ class JavaScriptBackend {
             impacts,
             backendClasses,
             nativeBasicData,
-            _interceptorDataBuilder,
-            _backendUsageBuilder,
-            _rtiNeedBuilder,
+            interceptorDataBuilder,
+            backendUsageBuilder,
+            rtiNeedBuilder,
             mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
             lookupMapResolutionAnalysis,
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
-            _nativeResolutionEnqueuer),
+            nativeResolutionEnqueuer),
         new ElementResolutionWorldBuilder(
             this, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution));
@@ -972,6 +972,8 @@ class JavaScriptBackend {
         backendClasses,
         helpers,
         nativeBasicData);
+    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
+        compiler, emitter, _nativeResolutionEnqueuer);
     return new CodegenEnqueuer(
         task,
         compiler.options,
@@ -991,7 +993,7 @@ class JavaScriptBackend {
             typeVariableCodegenAnalysis,
             lookupMapAnalysis,
             mirrorsCodegenAnalysis,
-            _nativeCodegenEnqueuer));
+            nativeCodegenEnqueuer));
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
