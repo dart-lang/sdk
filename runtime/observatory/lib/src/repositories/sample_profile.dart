@@ -32,7 +32,7 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
   Stream<SampleProfileLoadingProgressEvent> get onProgress =>
       _onProgress.stream;
 
-  final ServiceObjectOwner owner;
+  final M.ServiceObjectOwner owner;
   final S.Class cls;
   final M.SampleProfileTag tag;
   final bool clear;
@@ -174,7 +174,7 @@ class NativeMemorySampleProfileRepository
   SampleProfileLoadingProgress _last;
 
   Stream<SampleProfileLoadingProgressEvent> get(M.VM vm, M.SampleProfileTag t,
-      {bool forceFetch: false}) {
+      {bool forceFetch: false, bool clear: false}) {
     assert(forceFetch != null);
     if ((_last != null) && !forceFetch) {
       _last.reuse();

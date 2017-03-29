@@ -28,6 +28,10 @@ class IsolateMock implements M.Isolate {
   final M.DebugEvent pauseEvent;
   final M.LibraryRef rootLibrary;
   final M.FunctionRef entry;
+  final Iterable<M.Thread> threads = null;
+  final int zoneHighWatermark = 0;
+  final int numZoneHandles = 0;
+  final int numScopedHandles = 0;
 
   const IsolateMock(
       {this.id: 'i-id',

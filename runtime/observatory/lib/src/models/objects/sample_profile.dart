@@ -53,6 +53,8 @@ abstract class FunctionCallTree extends CallTree {
 
 abstract class CallTreeNode {
   double get percentage;
+  int get inclusiveNativeAllocations;
+  int get exclusiveNativeAllocations;
   Iterable<CallTreeNode> get children;
 }
 

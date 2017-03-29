@@ -10,6 +10,7 @@ class HeapSnapshotMock implements M.HeapSnapshot {
   final int references;
   final int size;
   final M.HeapSnapshotDominatorNode dominatorTree;
+  final M.HeapSnapshotMergedDominatorNode mergedDominatorTree = null;
   final Iterable<M.HeapSnapshotClassReferences> classReferences;
 
   const HeapSnapshotMock(
@@ -24,6 +25,7 @@ class HeapSnapshotMock implements M.HeapSnapshot {
 class HeapSnapshotDominatorNodeMock implements M.HeapSnapshotDominatorNode {
   final int shallowSize;
   final int retainedSize;
+  final bool isStack = false;
   final Future<M.ObjectRef> object;
   final Iterable<M.HeapSnapshotDominatorNode> children;
 

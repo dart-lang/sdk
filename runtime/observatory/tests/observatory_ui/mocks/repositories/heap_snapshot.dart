@@ -38,7 +38,7 @@ class HeapSnapshotRepositoryMock implements M.HeapSnapshotRepository {
   final HeapSnapshotRepositoryMockCallback _get;
 
   Stream<M.HeapSnapshotLoadingProgressEvent> get(M.IsolateRef isolate,
-      {bool gc: false}) {
+      {M.HeapSnapshotRoots roots: M.HeapSnapshotRoots.vm, bool gc: false}) {
     if (_get != null) {
       return _get(isolate, gc);
     }

@@ -13,7 +13,11 @@ abstract class VMRef {
   String get displayName;
 }
 
-abstract class VM implements VMRef {
+abstract class ServiceObjectOwner {
+  Future<dynamic> invokeRpc(String method, Map params);
+}
+
+abstract class VM implements VMRef, ServiceObjectOwner {
   /// Word length on target architecture (e.g. 32, 64).
   int get architectureBits;
 

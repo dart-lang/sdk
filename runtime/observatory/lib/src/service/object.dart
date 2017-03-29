@@ -441,7 +441,8 @@ class RetainingObject implements M.RetainingObject {
   RetainingObject(this.object);
 }
 
-abstract class ServiceObjectOwner extends ServiceObject {
+abstract class ServiceObjectOwner extends ServiceObject
+    implements M.ServiceObjectOwner {
   /// Creates an empty [ServiceObjectOwner].
   ServiceObjectOwner._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -449,6 +450,8 @@ abstract class ServiceObjectOwner extends ServiceObject {
   /// The result may come from the cache.  The result will not necessarily
   /// be [loaded].
   ServiceObject getFromMap(Map map);
+
+  Future<M.Object> invokeRpc(String method, Map params);
 }
 
 abstract class Location implements M.Location {
@@ -832,7 +835,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     });
   }
 
-  Future<ServiceObject> invokeRpc(String method, Map params) {
+  Future<dynamic> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((Map response) {
       var obj = new ServiceObject._fromMap(this, response);
       if ((obj != null) && obj.canCache) {
@@ -1465,7 +1468,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return vm.invokeRpcNoUpgrade(method, params);
   }
 
-  Future<ServiceObject> invokeRpc(String method, Map params) {
+  Future<dynamic> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((Map response) {
       return getFromMap(response);
     });

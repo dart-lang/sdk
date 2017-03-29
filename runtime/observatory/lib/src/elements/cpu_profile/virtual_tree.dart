@@ -49,8 +49,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  factory CpuProfileVirtualTreeElement(
-      M.IsolateRef isolate, M.SampleProfile profile,
+  factory CpuProfileVirtualTreeElement(Object owner, M.SampleProfile profile,
       {ProfileTreeMode mode: ProfileTreeMode.function,
       M.SampleProfileType type: M.SampleProfileType.cpu,
       M.ProfileTreeDirection direction: M.ProfileTreeDirection.exclusive,
@@ -60,7 +59,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     assert(direction != null);
     CpuProfileVirtualTreeElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
-    e._isolate = isolate;
+    e._isolate = owner;
     e._profile = profile;
     e._mode = mode;
     e._type = type;
@@ -117,7 +116,6 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
         break;
       default:
         throw new Exception('Unknown SampleProfileType: $type');
-        break;
     }
     if (filters != null) {
       tree = filters.fold(tree, (tree, filter) {
