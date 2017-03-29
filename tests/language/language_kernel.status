@@ -453,8 +453,6 @@ syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
-try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
-try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
 try_catch_syntax_test/05: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError

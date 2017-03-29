@@ -1393,7 +1393,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     Identifier name = pop();
     DartType type = pop();
-    pop(); // Modifiers.
+    int modifiers = Modifier.validate(pop());
+    if (inCatchClause) {
+      modifiers |= finalMask;
+    }
+    bool isConst = (modifiers & constMask) != 0;
+    bool isFinal = (modifiers & finalMask) != 0;
     ignore(Unhandled.Metadata);
     VariableDeclaration variable;
     if (!inCatchClause && functionNestingLevel == 0) {
@@ -1417,7 +1422,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
         type = field.target.type ?? const DynamicType();
         variable = new VariableDeclaration(name.name,
-            type: type, initializer: name.initializer);
+            type: type,
+            initializer: name.initializer,
+            isFinal: isFinal,
+            isConst: isConst)..fileOffset = name.fileOffset;
       } else {
         addCompileTimeError(
             name.fileOffset, "'${name.name}' isn't a field in this class.");
@@ -1425,7 +1433,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     variable ??= new VariableDeclaration(name.name,
         type: type ?? const DynamicType(),
-        initializer: name.initializer)..fileOffset = name.fileOffset;
+        initializer: name.initializer,
+        isFinal: isFinal,
+        isConst: isConst)..fileOffset = name.fileOffset;
     push(variable);
   }
 
