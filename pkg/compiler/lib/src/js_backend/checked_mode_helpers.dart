@@ -15,6 +15,7 @@ import '../ssa/nodes.dart' show HTypeConversion;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
 import 'backend_helpers.dart';
+import 'namer.dart' show Namer;
 
 class CheckedModeHelper {
   final String name;
@@ -30,20 +31,7 @@ class CheckedModeHelper {
 
   CallStructure get callStructure => CallStructure.ONE_ARG;
 
-  jsAst.Expression generateCall(
-      SsaCodeGenerator codegen, HTypeConversion node) {
-    StaticUse staticUse = getStaticUse(codegen.backend.helpers);
-    codegen.registry.registerStaticUse(staticUse);
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    codegen.use(node.checkedInput);
-    arguments.add(codegen.pop());
-    generateAdditionalArguments(codegen, node, arguments);
-    jsAst.Expression helper =
-        codegen.backend.emitter.staticFunctionAccess(staticUse.element);
-    return new jsAst.Call(helper, arguments);
-  }
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // No additional arguments needed.
   }
@@ -54,7 +42,7 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
 
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // TODO(johnniwinther): Support malformed types in [types.dart].
     MalformedType type = node.typeExpression;
@@ -68,10 +56,10 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
 
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
-    jsAst.Name additionalArgument = codegen.backend.namer.operatorIsType(type);
+    jsAst.Name additionalArgument = namer.operatorIsType(type);
     arguments.add(js.quoteName(additionalArgument));
   }
 }
@@ -81,7 +69,7 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
 
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isTypeVariable);
     codegen.use(node.typeRepresentation);
@@ -94,7 +82,7 @@ class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
 
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isFunctionType);
     codegen.use(node.typeRepresentation);
@@ -107,17 +95,17 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
 
   CallStructure get callStructure => const CallStructure.unnamed(4);
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // TODO(sra): Move these calls into the SSA graph so that the arguments can
     // be optimized, e,g, GVNed.
     InterfaceType type = node.typeExpression;
     ClassEntity element = type.element;
-    jsAst.Name isField = codegen.backend.namer.operatorIs(element);
+    jsAst.Name isField = namer.operatorIs(element);
     arguments.add(js.quoteName(isField));
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
-    jsAst.Name asField = codegen.backend.namer.substitutionName(element);
+    jsAst.Name asField = namer.substitutionName(element);
     arguments.add(js.quoteName(asField));
   }
 }
