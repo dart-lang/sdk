@@ -15,7 +15,6 @@ import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
