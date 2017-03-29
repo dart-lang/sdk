@@ -377,7 +377,8 @@ RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   if (trace->Length() > 0) {
     event.set_top_frame(trace->FrameAt(0));
   }
-  CacheStackTraces(trace, CollectAsyncCausalStackTrace());
+  CacheStackTraces(trace, CollectAsyncCausalStackTrace(),
+                   CollectAwaiterReturnStackTrace());
   resume_action_ = kContinue;
   Pause(&event);
   HandleSteppingRequest(trace);
@@ -713,7 +714,7 @@ intptr_t ActivationFrame::ContextLevel() {
 
 
 RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
-  if (!function_.IsAsyncClosure()) {
+  if (!function_.IsAsyncClosure() && !function_.IsAsyncGenClosure()) {
     return Object::null();
   }
   GetVarDescriptors();
@@ -796,6 +797,11 @@ RawObject* ActivationFrame::GetAsyncAwaiter() {
         async_stream_controller_stream);
   }
   return Object::null();
+}
+
+
+RawObject* ActivationFrame::GetCausalStack() {
+  return GetAsyncContextVariable(Symbols::AsyncStackTraceVar());
 }
 
 
@@ -1309,6 +1315,8 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj, bool full) {
     PrintToJSONObjectAsyncCausal(jsobj, full);
   } else if (kind_ == kAsyncSuspensionMarker) {
     PrintToJSONObjectAsyncSuspensionMarker(jsobj, full);
+  } else if (kind_ == kAsyncActivation) {
+    PrintToJSONObjectAsyncActivation(jsobj, full);
   } else {
     UNIMPLEMENTED();
   }
@@ -1343,7 +1351,8 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj, bool full) {
       if ((var_name.raw() != Symbols::AsyncOperation().raw()) &&
           (var_name.raw() != Symbols::AsyncCompleter().raw()) &&
           (var_name.raw() != Symbols::ControllerStream().raw()) &&
-          (var_name.raw() != Symbols::AwaitJumpVar().raw())) {
+          (var_name.raw() != Symbols::AwaitJumpVar().raw()) &&
+          (var_name.raw() != Symbols::AsyncStackTraceVar().raw())) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
         var_name = String::ScrubName(var_name);
@@ -1384,6 +1393,24 @@ void ActivationFrame::PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj,
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   jsobj->AddProperty("marker", "AsynchronousSuspension");
+}
+
+
+void ActivationFrame::PrintToJSONObjectAsyncActivation(JSONObject* jsobj,
+                                                       bool full) {
+  jsobj->AddProperty("type", "Frame");
+  jsobj->AddProperty("kind", KindToCString(kind_));
+  const Script& script = Script::Handle(SourceScript());
+  const TokenPosition pos = TokenPos().SourcePosition();
+  jsobj->AddLocation(script, pos);
+  jsobj->AddProperty("function", function(), !full);
+  jsobj->AddProperty("code", code());
+  if (full) {
+    // TODO(cutch): The old "full" script usage no longer fits
+    // in the world where we pass the script as part of the
+    // location.
+    jsobj->AddProperty("script", script, !full);
+  }
 }
 
 
@@ -1540,6 +1567,7 @@ Debugger::Debugger()
       obj_cache_(NULL),
       stack_trace_(NULL),
       async_causal_stack_trace_(NULL),
+      awaiter_stack_trace_(NULL),
       stepping_fp_(0),
       skip_next_step_(false),
       needs_breakpoint_cleanup_(false),
@@ -1937,10 +1965,13 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
 
   Code& code = Code::Handle(zone);
+  Smi& offset = Smi::Handle(zone);
   Function& function = Function::Handle(zone);
   Code& inlined_code = Code::Handle(zone);
   Closure& async_activation = Closure::Handle(zone);
+  Object& next_async_activation = Object::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
+  class StackTrace& async_stack_trace = StackTrace::Handle(zone);
 
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
@@ -2011,10 +2042,51 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
   // Append the awaiter return call stack.
   while (!async_activation.IsNull()) {
-    ActivationFrame* activation = new ActivationFrame(async_activation);
-    async_activation ^= activation->GetAsyncAwaiter();
+    ActivationFrame* activation = new (zone) ActivationFrame(async_activation);
     activation->ExtractTokenPositionFromAsyncClosure();
     stack_trace->AddActivation(activation);
+    next_async_activation = activation->GetAsyncAwaiter();
+    if (next_async_activation.IsNull()) {
+      // No more awaiters. Extract the causal stack trace (if it exists).
+      async_stack_trace ^= activation->GetCausalStack();
+      break;
+    }
+    async_activation = Closure::RawCast(next_async_activation.raw());
+  }
+
+  // Now we append the asynchronous causal stack trace. These are not active
+  // frames but a historical record of how this asynchronous function was
+  // activated.
+  while (!async_stack_trace.IsNull()) {
+    for (intptr_t i = 0; i < async_stack_trace.Length(); i++) {
+      if (async_stack_trace.CodeAtFrame(i) == Code::null()) {
+        // Incomplete OutOfMemory/StackOverflow trace OR array padding.
+        break;
+      }
+      if (async_stack_trace.CodeAtFrame(i) ==
+          StubCode::AsynchronousGapMarker_entry()->code()) {
+        stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
+        // The frame immediately below the asynchronous gap marker is the
+        // identical to the frame above the marker. Skip the frame to enhance
+        // the readability of the trace.
+        i++;
+      } else {
+        code = Code::RawCast(async_stack_trace.CodeAtFrame(i));
+        offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));
+        uword pc = code.PayloadStart() + offset.Value();
+        if (code.is_optimized()) {
+          for (InlinedFunctionsIterator it(code, pc); !it.Done();
+               it.Advance()) {
+            inlined_code = it.code();
+            stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
+          }
+        } else {
+          stack_trace->AddAsyncCausalFrame(pc, code);
+        }
+      }
+    }
+    // Follow the link.
+    async_stack_trace = async_stack_trace.async_link();
   }
 
   return stack_trace;
@@ -2052,6 +2124,17 @@ DebuggerStackTrace* Debugger::AsyncCausalStackTrace() {
 
 DebuggerStackTrace* Debugger::CurrentAsyncCausalStackTrace() {
   return CollectAsyncCausalStackTrace();
+}
+
+
+DebuggerStackTrace* Debugger::AwaiterStackTrace() {
+  return (awaiter_stack_trace_ != NULL) ? awaiter_stack_trace_
+                                        : CollectAwaiterReturnStackTrace();
+}
+
+
+DebuggerStackTrace* Debugger::CurrentAwaiterStackTrace() {
+  return CollectAwaiterReturnStackTrace();
 }
 
 
@@ -2171,7 +2254,8 @@ void Debugger::PauseException(const Instance& exc) {
   if (stack_trace->Length() > 0) {
     event.set_top_frame(stack_trace->FrameAt(0));
   }
-  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace());
+  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
+                   CollectAwaiterReturnStackTrace());
   Pause(&event);
   HandleSteppingRequest(stack_trace_);  // we may get a rewind request
   ClearCachedStackTraces();
@@ -3175,17 +3259,21 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
 
 
 void Debugger::CacheStackTraces(DebuggerStackTrace* stack_trace,
-                                DebuggerStackTrace* async_causal_stack_trace) {
+                                DebuggerStackTrace* async_causal_stack_trace,
+                                DebuggerStackTrace* awaiter_stack_trace) {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   ASSERT(async_causal_stack_trace_ == NULL);
   async_causal_stack_trace_ = async_causal_stack_trace;
+  ASSERT(awaiter_stack_trace_ == NULL);
+  awaiter_stack_trace_ = awaiter_stack_trace;
 }
 
 
 void Debugger::ClearCachedStackTraces() {
   stack_trace_ = NULL;
   async_causal_stack_trace_ = NULL;
+  awaiter_stack_trace_ = NULL;
 }
 
 
@@ -3526,7 +3614,8 @@ RawError* Debugger::PauseStepping() {
   }
 
 
-  CacheStackTraces(CollectStackTrace(), CollectAsyncCausalStackTrace());
+  CacheStackTraces(CollectStackTrace(), CollectAsyncCausalStackTrace(),
+                   CollectAwaiterReturnStackTrace());
   // If this step callback is part of stepping over an await statement,
   // we saved the synthetic async breakpoint in PauseBreakpoint. We report
   // that we are paused at that breakpoint and then delete it after continuing.
@@ -3567,7 +3656,8 @@ RawError* Debugger::PauseBreakpoint() {
   if (bpt_hit->is_synthetic_async()) {
     DebuggerStackTrace* stack_trace = CollectStackTrace();
     ASSERT(stack_trace->Length() > 0);
-    CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace());
+    CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
+                     CollectAwaiterReturnStackTrace());
 
     // Hit a synthetic async breakpoint.
     if (FLAG_verbose_debug) {
@@ -3602,7 +3692,8 @@ RawError* Debugger::PauseBreakpoint() {
               top_frame->pc());
   }
 
-  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace());
+  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
+                   CollectAwaiterReturnStackTrace());
   SignalPausedEvent(top_frame, bpt_hit);
   // When we single step from a user breakpoint, our next stepping
   // point will be at the exact same pc.  Skip it.
@@ -3671,7 +3762,8 @@ void Debugger::PauseDeveloper(const String& msg) {
 
   DebuggerStackTrace* stack_trace = CollectStackTrace();
   ASSERT(stack_trace->Length() > 0);
-  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace());
+  CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
+                   CollectAwaiterReturnStackTrace());
   // TODO(johnmccutchan): Send |msg| to Observatory.
 
   // We are in the native call to Developer_debugger.  the developer

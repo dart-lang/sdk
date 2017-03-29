@@ -336,6 +336,7 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObject(JSONObject* jsobj, bool full = false);
 
   RawObject* GetAsyncAwaiter();
+  RawObject* GetCausalStack();
 
   bool HandlesException(const Instance& exc_obj);
 
@@ -343,7 +344,7 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObjectRegular(JSONObject* jsobj, bool full);
   void PrintToJSONObjectAsyncCausal(JSONObject* jsobj, bool full);
   void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj, bool full);
-
+  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj, bool full);
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
@@ -368,6 +369,8 @@ class ActivationFrame : public ZoneAllocated {
         return "AsyncCausal";
       case kAsyncSuspensionMarker:
         return "AsyncSuspensionMarker";
+      case kAsyncActivation:
+        return "AsyncActivation";
       default:
         UNREACHABLE();
         return "";
@@ -541,6 +544,9 @@ class Debugger {
   DebuggerStackTrace* AsyncCausalStackTrace();
   DebuggerStackTrace* CurrentAsyncCausalStackTrace();
 
+  DebuggerStackTrace* AwaiterStackTrace();
+  DebuggerStackTrace* CurrentAwaiterStackTrace();
+
   // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
   // Frames corresponding to invisible functions are omitted. It is not valid
   // to query local variables in the returned stack.
@@ -693,7 +699,8 @@ class Debugger {
                              bool skip_next_step = false);
 
   void CacheStackTraces(DebuggerStackTrace* stack_trace,
-                        DebuggerStackTrace* async_causal_stack_trace);
+                        DebuggerStackTrace* async_causal_stack_trace,
+                        DebuggerStackTrace* awaiter_stack_trace);
   void ClearCachedStackTraces();
 
 
@@ -739,6 +746,7 @@ class Debugger {
   // Current stack trace. Valid only while IsPaused().
   DebuggerStackTrace* stack_trace_;
   DebuggerStackTrace* async_causal_stack_trace_;
+  DebuggerStackTrace* awaiter_stack_trace_;
 
   // When stepping through code, only pause the program if the top
   // frame corresponds to this fp value, or if the top frame is

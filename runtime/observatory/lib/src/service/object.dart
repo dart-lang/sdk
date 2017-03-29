@@ -4494,6 +4494,8 @@ class Frame extends ServiceObject implements M.Frame {
         return M.FrameKind.asyncCausal;
       case 'AsyncSuspensionMarker':
         return M.FrameKind.asyncSuspensionMarker;
+      case 'AsyncActivation':
+        return M.FrameKind.asyncActivation;
       default:
         throw new UnsupportedError('Unknown FrameKind: $frameKind');
     }
