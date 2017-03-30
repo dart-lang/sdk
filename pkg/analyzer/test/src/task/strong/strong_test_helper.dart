@@ -67,6 +67,11 @@ String _errorCodeName(ErrorCode errorCode) {
 
 ErrorSeverity _errorSeverity(
     AnalysisOptions analysisOptions, AnalysisError error) {
+  // TODO(brianwilkerson) Remove the if when top-level inference is made an
+  // error again.
+  if (error.errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
+    return ErrorSeverity.ERROR;
+  }
   return ErrorProcessor.getProcessor(analysisOptions, error)?.severity ??
       error.errorCode.errorSeverity;
 }
