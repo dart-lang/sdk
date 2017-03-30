@@ -32,6 +32,7 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 - [ ] edit.getAvailableRefactorings
 - [ ] edit.getFixes
 - [ ] edit.getRefactoring
+- [ ] edit.getStatementCompletion
 - [x] edit.sortMembers
 - [x] edit.organizeDirectives
 
