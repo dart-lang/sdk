@@ -4,14 +4,14 @@
 
 import 'package:kernel/ast.dart' show DartType;
 
-import '../builder/ast_factory.dart' as builder;
-import '../builder/shadow_ast.dart' as builder;
+import '../builder/ast_factory.dart';
+import '../builder/shadow_ast.dart';
 import 'kernel_shadow_ast.dart';
 
 /// Concrete implementation of [builder.AstFactory] for building a kernel AST.
-class KernelAstFactory implements builder.AstFactory {
+class KernelAstFactory implements AstFactory {
   @override
-  KernelBlock block(List<builder.ShadowStatement> statements, int charOffset) {
+  KernelBlock block(List<ShadowStatement> statements, int charOffset) {
     return new KernelBlock(statements)..fileOffset = charOffset;
   }
 
@@ -21,7 +21,7 @@ class KernelAstFactory implements builder.AstFactory {
   }
 
   @override
-  KernelListLiteral listLiteral(List<builder.ShadowExpression> expressions,
+  KernelListLiteral listLiteral(List<ShadowExpression> expressions,
       DartType typeArgument, bool isConst, int charOffset) {
     return new KernelListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)..fileOffset = charOffset;
@@ -34,14 +34,14 @@ class KernelAstFactory implements builder.AstFactory {
 
   @override
   KernelReturnStatement returnStatement(
-      builder.ShadowExpression expression, int charOffset) {
+      ShadowExpression expression, int charOffset) {
     return new KernelReturnStatement(expression)..fileOffset = charOffset;
   }
 
   @override
   KernelVariableDeclaration variableDeclaration(String name,
       {DartType type,
-      builder.ShadowExpression initializer,
+      ShadowExpression initializer,
       int charOffset,
       bool isFinal: false,
       bool isConst: false}) {
