@@ -1,3 +1,15 @@
+## 1.24.0
+
+### Language
+
+### Core library changes
+
+### Dart VM
+
+### Strong Mode
+
+### Tool Changes
+
 ## 1.23.0
 
 ### Language
@@ -135,7 +147,7 @@
   * Preserve a blank line between enum cases.
   * Other small formatting tweaks.
 
-## 1.22.0
+## 1.22.0 - 2017-02-14
 
 ### Language
 
