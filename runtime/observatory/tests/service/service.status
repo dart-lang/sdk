@@ -11,6 +11,9 @@ pause_on_start_then_step_test: Pass, RuntimeError # Issue 28624
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 field_script_test: Pass, RuntimeError
 
+[ $system == windows && $mode == debug && $checked ]
+async_scope_test: Pass, Slow
+
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Not yet triaged.
 
