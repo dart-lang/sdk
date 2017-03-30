@@ -125,16 +125,24 @@ CompilationUnit checkFile(String content) {
 
 void initStrongModeTests() {
   setUp(() {
-    AnalysisEngine.instance.processRequiredPlugins();
-    files = new MemoryResourceProvider();
-    _checkCalled = false;
+    setUpHelper();
   });
 
   tearDown(() {
-    // This is a sanity check, in case only addFile is called.
-    expect(_checkCalled, true, reason: 'must call check() method in test case');
-    files = null;
+    tearDownHelper();
   });
+}
+
+void setUpHelper() {
+  AnalysisEngine.instance.processRequiredPlugins();
+  files = new MemoryResourceProvider();
+  _checkCalled = false;
+}
+
+void tearDownHelper() {
+  // This is a sanity check, in case only addFile is called.
+  expect(_checkCalled, true, reason: 'must call check() method in test case');
+  files = null;
 }
 
 SourceSpanWithContext _createSpanHelper(

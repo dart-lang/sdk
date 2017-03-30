@@ -13,8 +13,29 @@ void main() {
   defineReflectiveTests(CheckerTest);
 }
 
+void _addMetaLibrary() {
+  addFile(
+      r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+
+class _Virtual { const _Virtual(); }
+const Object virtual = const _Virtual();
+    ''',
+      name: '/meta.dart');
+}
+
 @reflectiveTest
 class CheckerTest {
+  void setUp() {
+    setUpHelper();
+  }
+
+  void tearDown() {
+    tearDownHelper();
+  }
+
   void test_awaitForInCastsStreamElementToVariable() {
     checkFile('''
 import 'dart:async';
@@ -239,6 +260,20 @@ class T1 implements I2 {
 ''');
   }
 
+  void test_compoundAssignment_returnsDynamic() {
+    checkFile(r'''
+class Foo {
+  operator +(other) => null;
+}
+
+main() {
+  var foo = new Foo();
+  foo = /*info:DYNAMIC_CAST*/foo + 1;
+  /*info:DYNAMIC_CAST*/foo += 1;
+}
+    ''');
+  }
+
   void test_compoundAssignments() {
     checkFile('''
 class A {
@@ -376,20 +411,6 @@ class C<Q> {
 }
 main() {
   const SetEquality<String>();
-}
-    ''');
-  }
-
-  void test_compoundAssignment_returnsDynamic() {
-    checkFile(r'''
-class Foo {
-  operator +(other) => null;
-}
-
-main() {
-  var foo = new Foo();
-  foo = /*info:DYNAMIC_CAST*/foo + 1;
-  /*info:DYNAMIC_CAST*/foo += 1;
 }
     ''');
   }
@@ -3175,6 +3196,19 @@ abstract class D extends C {
     check(implicitCasts: false);
   }
 
+  void test_overrideNarrowsType_legalWithChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25232
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+abstract class A { void test(A arg) { } }
+abstract class B extends A { void test(@checked B arg) { } }
+abstract class X implements A { }
+class C extends B with X { }
+class D extends B implements A { }
+    ''');
+  }
+
   void test_overrideNarrowsType_noDuplicateError() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
     _addMetaLibrary();
@@ -3190,19 +3224,6 @@ class C extends B with X { }
 // We treat "implements A" as asking for another check.
 // This feels inconsistent to me.
 class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
-    ''');
-  }
-
-  void test_overrideNarrowsType_legalWithChecked() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/25232
-    _addMetaLibrary();
-    checkFile(r'''
-import 'meta.dart';
-abstract class A { void test(A arg) { } }
-abstract class B extends A { void test(@checked B arg) { } }
-abstract class X implements A { }
-class C extends B with X { }
-class D extends B implements A { }
     ''');
   }
 
@@ -3944,15 +3965,4 @@ void main () {
 }
 ''');
   }
-}
-
-void _addMetaLibrary() {
-  addFile(r'''
-library meta;
-class _Checked { const _Checked(); }
-const Object checked = const _Checked();
-
-class _Virtual { const _Virtual(); }
-const Object virtual = const _Virtual();
-    ''', name: '/meta.dart');
 }

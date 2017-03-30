@@ -4630,4 +4630,12 @@ class InferredTypeTest extends InferredTypeMixin {
   CompilationUnitElement checkFile(String content) {
     return helper.checkFile(content).element;
   }
+
+  void setUp() {
+    helper.setUpHelper();
+  }
+
+  void tearDown() {
+    helper.tearDownHelper();
+  }
 }
