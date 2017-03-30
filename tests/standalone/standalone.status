@@ -358,6 +358,9 @@ package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_test: Skip
 
+[ $runtime == dart_precompiled && $mode == product ]
+dwarf_stack_trace_test: Pass, RuntimeError # Results will flake due to identical code folding
+
 [ $arch == simdbc || $arch == simdbc64 ]
 # SIMDBC interpreter doesn't support lazy linking of natives.
 link_natives_lazily_test: SkipByDesign

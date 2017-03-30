@@ -71,7 +71,7 @@ main() {
     return;
   }
 
-  var frameRegex = new RegExp("pc ([0-9a-z]+)  ([0-9a-zA-Z/\._]+)");
+  var frameRegex = new RegExp("pc ([0-9a-z]+)  ([0-9a-zA-Z/\._-]+)");
   var symbolizedStack = new StringBuffer();
   for (var frameMatch in frameRegex.allMatches(rawStack)) {
     var framePC = frameMatch[1];
