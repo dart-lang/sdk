@@ -134,10 +134,8 @@ Object& KernelReader::ReadProgram() {
     }
 
     if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
-      Procedure* main = program_->main_method();
-      Library* kernel_main_library = Library::Cast(main->parent());
-      dart::Library& library =
-          LookupLibrary(kernel_main_library->canonical_name());
+      CanonicalName* main = program_->main_method();
+      dart::Library& library = LookupLibrary(main->EnclosingName());
 
       // Sanity check that we can find the main entrypoint.
       Object& main_obj = Object::Handle(
@@ -360,7 +358,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     ActiveFunctionScope active_function_scope(&active_class_,
                                               kernel_constructor->function());
 
-    const dart::String& name = H.DartConstructorName(kernel_constructor);
+    const dart::String& name =
+        H.DartConstructorName(kernel_constructor->canonical_name());
     Function& function = dart::Function::ZoneHandle(
         Z, dart::Function::New(name, RawFunction::kConstructor,
                                false,  // is_static
@@ -414,7 +413,8 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   ActiveFunctionScope active_function_scope(&active_class_,
                                             kernel_procedure->function());
 
-  const dart::String& name = H.DartProcedureName(kernel_procedure);
+  const dart::String& name =
+      H.DartProcedureName(kernel_procedure->canonical_name());
   bool is_method = kernel_klass != NULL && !kernel_procedure->IsStatic();
   bool is_abstract = kernel_procedure->IsAbstract();
   bool is_external = kernel_procedure->IsExternal();
@@ -428,16 +428,18 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       if (!annotation->IsConstructorInvocation()) continue;
       ConstructorInvocation* invocation =
           ConstructorInvocation::Cast(annotation);
-      Class* annotation_class = Class::Cast(invocation->target()->parent());
+      CanonicalName* annotation_class = invocation->target()->EnclosingName();
+      ASSERT(annotation_class->IsClass());
       String* class_name = annotation_class->name();
       // Just compare by name, do not generate the annotation class.
       int length = sizeof("ExternalName") - 1;
       if (class_name->size() != length) continue;
       if (memcmp(class_name->buffer(), "ExternalName", length) != 0) continue;
+      ASSERT(annotation_class->parent()->IsLibrary());
       String* library_name = annotation_class->parent()->name();
-      length = sizeof("dart._internal") - 1;
+      length = sizeof("dart:_internal") - 1;
       if (library_name->size() != length) continue;
-      if (memcmp(library_name->buffer(), "dart._internal", length) != 0) {
+      if (memcmp(library_name->buffer(), "dart:_internal", length) != 0) {
         continue;
       }
 
@@ -493,8 +495,9 @@ void KernelReader::ReadProcedure(const dart::Library& library,
 
   if (kernel_klass == NULL) {
     library.AddObject(function, name);
-    ASSERT(!Object::Handle(Z, library.LookupObjectAllowPrivate(
-                                  H.DartProcedureName(kernel_procedure)))
+    ASSERT(!Object::Handle(
+                Z, library.LookupObjectAllowPrivate(
+                       H.DartProcedureName(kernel_procedure->canonical_name())))
                 .IsNull());
   }
   if (FLAG_enable_mirrors) {
@@ -629,7 +632,8 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
     }
   }
 
-  const dart::String& getter_name = H.DartGetterName(kernel_field->name());
+  const dart::String& getter_name =
+      H.DartGetterName(kernel_field->canonical_name());
   const Object& script_class =
       ClassForScriptAt(klass, kernel_field->source_uri_index());
   Function& getter = Function::ZoneHandle(
@@ -659,7 +663,8 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   if (!kernel_field->IsStatic() && !kernel_field->IsFinal()) {
     // Only static fields can be const.
     ASSERT(!kernel_field->IsConst());
-    const dart::String& setter_name = H.DartSetterName(kernel_field->name());
+    const dart::String& setter_name =
+        H.DartSetterName(kernel_field->canonical_name());
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, RawFunction::kImplicitSetter,
                          false,  // is_static

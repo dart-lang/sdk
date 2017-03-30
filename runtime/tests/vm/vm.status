@@ -304,6 +304,6 @@ dart/data_uri_import_test/nomime: CompileTimeError
 dart/data_uri_import_test/percentencoded: CompileTimeError
 dart/data_uri_import_test/wrongmime: CompileTimeError
 dart/data_uri_spawn_test: RuntimeError
-dart/redirection_type_shuffling_test/00: RuntimeError
-dart/redirection_type_shuffling_test/none: RuntimeError
+dart/redirection_type_shuffling_test/00: Crash # Issue 29201
+dart/redirection_type_shuffling_test/none: Crash # Issue 29201
 dart/spawn_shutdown_test: Timeout

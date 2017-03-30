@@ -494,13 +494,6 @@ class Reader {
     return name;
   }
 
-  CanonicalName* ReadDefiningCanonicalNameReference(LinkedNode* node_to_link) {
-    CanonicalName* name = ReadCanonicalNameReference();
-    ASSERT(name != NULL);
-    name->BindTo(node_to_link);
-    return name;
-  }
-
   intptr_t offset() { return offset_; }
 
  private:
@@ -687,11 +680,9 @@ Library* Library::ReadFrom(Reader* reader) {
   int flags = reader->ReadFlags();
   ASSERT(flags == 0);  // external libraries not supported
 
-  CanonicalName* canonical_name =
-      reader->ReadDefiningCanonicalNameReference(this);
-
+  canonical_name_ = reader->ReadCanonicalNameReference();
   name_ = Reference::ReadStringFrom(reader);
-  import_uri_ = canonical_name->name();
+  import_uri_ = canonical_name_->name();
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
 
@@ -717,7 +708,7 @@ Library* Library::ReadFrom(Reader* reader) {
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
-  reader->ReadDefiningCanonicalNameReference(this);
+  canonical_name_ = reader->ReadCanonicalNameReference();
   position_ = reader->ReadPosition(false);
   is_abstract_ = reader->ReadBool();
   name_ = Reference::ReadStringFrom(reader);
@@ -809,7 +800,7 @@ Field* Field::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kField);
 
-  reader->ReadDefiningCanonicalNameReference(this);
+  canonical_name_ = reader->ReadCanonicalNameReference();
   position_ = reader->ReadPosition(false);
   end_position_ = reader->ReadPosition(false);
   flags_ = reader->ReadFlags();
@@ -830,7 +821,7 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kConstructor);
 
-  reader->ReadDefiningCanonicalNameReference(this);
+  canonical_name_ = reader->ReadCanonicalNameReference();
   VariableScope<ReaderHelper> parameters(reader->helper());
   position_ = reader->ReadPosition();
   end_position_ = reader->ReadPosition();
@@ -848,7 +839,7 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kProcedure);
 
-  reader->ReadDefiningCanonicalNameReference(this);
+  canonical_name_ = reader->ReadCanonicalNameReference();
   VariableScope<ReaderHelper> parameters(reader->helper());
   position_ = reader->ReadPosition(false);
   end_position_ = reader->ReadPosition(false);
@@ -1889,15 +1880,6 @@ Program* Program::ReadFrom(Reader* reader) {
   }
 
   program->main_method_reference_ = Reference::ReadMemberFrom(reader);
-
-#ifdef DEBUG
-  for (intptr_t i = 0; i < canonical_names; ++i) {
-    CanonicalName* name = reader->helper()->GetCanonicalName(i);
-    if (name->is_referenced() && name->definition() == NULL) {
-      FATAL("Missing definition for canonical name");
-    }
-  }
-#endif
 
   return program;
 }
