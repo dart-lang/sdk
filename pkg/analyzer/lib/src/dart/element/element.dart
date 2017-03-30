@@ -5029,7 +5029,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
  */
 class GenericTypeAliasElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements FunctionTypeAliasElement {
+    implements GenericTypeAliasElement {
   /**
    * The unlinked representation of the type in the summary.
    */
@@ -5097,10 +5097,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   CompilationUnitElementImpl get enclosingUnit =>
       _enclosingElement as CompilationUnitElementImpl;
 
-  /**
-   * Return the generic function type element representing the generic function
-   * type on the right side of the equals.
-   */
+  @override
   GenericFunctionTypeElement get function {
     if (_function == null && _unlinkedTypedef != null) {
       DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
