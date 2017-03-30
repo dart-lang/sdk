@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
@@ -1038,7 +1039,14 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {
-    var severity = errorCode.errorSeverity;
+    // Compute the right severity taking the analysis options into account.
+    // We construct a dummy error to make the common case where we end up
+    // ignoring the strong mode message cheaper.
+    var processor = ErrorProcessor.getProcessor(_options,
+        new AnalysisError.forValues(null, -1, 0, errorCode, null, null));
+    var severity =
+        (processor != null) ? processor.severity : errorCode.errorSeverity;
+
     if (severity == ErrorSeverity.ERROR) _failure = true;
     if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
       int begin = node is AnnotatedNode

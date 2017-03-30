@@ -9,6 +9,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2495,6 +2496,61 @@ class C {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  test_strongMode_downCastCompositeNoHint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    options.strongModeHints = false;
+    resetWith(options: options);
+    Source source = addSource(r'''
+main() {
+  List dynamicList = [ ];
+  List<int> list = dynamicList;
+  print(list);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_downCastCompositeHint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    options.strongModeHints = true;
+    resetWith(options: options);
+    Source source = addSource(r'''
+main() {
+  List dynamicList = [ ];
+  List<int> list = dynamicList;
+  print(list);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.DOWN_CAST_COMPOSITE]);
+    verify([source]);
+  }
+
+  test_strongMode_downCastCompositeWarn() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    applyToAnalysisOptions(options, {
+      AnalyzerOptions.analyzer: {
+        AnalyzerOptions.errors: {
+          StrongModeCode.DOWN_CAST_COMPOSITE.name: 'warning'
+        },
+      }
+    });
+    options.strongMode = true;
+    options.strongModeHints = false;
+    resetWith(options: options);
+    Source source = addSource(r'''
+main() {
+  List dynamicList = [ ];
+  List<int> list = dynamicList;
+  print(list);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.DOWN_CAST_COMPOSITE]);
     verify([source]);
   }
 
