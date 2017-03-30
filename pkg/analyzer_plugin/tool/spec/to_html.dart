@@ -326,11 +326,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     h5(() => write("Requests"));
     element('ul', {}, () {
       for (var request in requests) {
-        element(
-            'li',
-            {},
-            () => link(
-                'request_${request.longMethod}', () => write(request.method)));
+        if (!request.experimental) {
+          element(
+              'li',
+              {},
+              () => link('request_${request.longMethod}',
+                  () => write(request.method)));
+        }
       }
     });
   }
@@ -529,6 +531,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitRequest(Request request) {
+    if (request.experimental) {
+      return;
+    }
     dt('request', () {
       anchor('request_${request.longMethod}', () {
         write(request.longMethod);

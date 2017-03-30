@@ -392,7 +392,9 @@ Request requestFromHtml(dom.Element html, String context) {
   checkName(html, 'request', context);
   String method = html.attributes['method'];
   context = '$context.${method != null ? method : 'method'}';
-  checkAttributes(html, ['method'], context);
+  checkAttributes(html, ['method'], context,
+      optionalAttributes: ['experimental']);
+  bool experimental = html.attributes['experimental'] == 'true';
   TypeDecl params;
   TypeDecl result;
   recurse(html, context, {
@@ -403,7 +405,8 @@ Request requestFromHtml(dom.Element html, String context) {
       result = typeObjectFromHtml(child, '$context.result');
     }
   });
-  return new Request(domainName, method, params, result, html);
+  return new Request(domainName, method, params, result, html,
+      experimental: experimental);
 }
 
 /**
