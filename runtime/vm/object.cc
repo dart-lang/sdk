@@ -10774,6 +10774,7 @@ bool Library::ImportsCorelib() const {
 void Library::DropDependencies() const {
   StorePointer(&raw_ptr()->imports_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
+  StoreNonPointer(&raw_ptr()->num_imports_, 0);
 }
 
 
