@@ -3,25 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-abstract_beats_arguments_test: RuntimeError
-abstract_runtime_error_test/01: RuntimeError
-abstract_runtime_error_test/02: RuntimeError
-accessor_conflict_export2_test: RuntimeError
-accessor_conflict_export_test: RuntimeError
-accessor_conflict_import2_test: RuntimeError
-application_negative_test: Crash
-arg_param_trailing_comma_test/107: MissingCompileTimeError
-assignable_expression_test/02: MissingCompileTimeError
-assignable_expression_test/03: MissingCompileTimeError
-assignable_expression_test/12: MissingCompileTimeError
-assignable_expression_test/13: MissingCompileTimeError
-assignable_expression_test/22: MissingCompileTimeError
-assignable_expression_test/23: MissingCompileTimeError
-assignable_expression_test/32: MissingCompileTimeError
-assignable_expression_test/33: MissingCompileTimeError
-assignable_expression_test/42: MissingCompileTimeError
-assignable_expression_test/43: MissingCompileTimeError
-await_for_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
 bad_raw_string_negative_test: Fail
@@ -33,14 +14,6 @@ call_nonexistent_static_test/06: CompileTimeError
 cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
-compile_time_constant10_test/none: CompileTimeError
-compile_time_constant13_test/03: MissingCompileTimeError
-compile_time_constant_arguments_test/01: MissingCompileTimeError
-compile_time_constant_arguments_test/02: MissingCompileTimeError
-compile_time_constant_arguments_test/03: MissingCompileTimeError
-compile_time_constant_arguments_test/04: MissingCompileTimeError
-compile_time_constant_arguments_test/05: MissingCompileTimeError
-compile_time_constant_arguments_test/06: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_c_test/03: MissingCompileTimeError
 compile_time_constant_k_test/01: RuntimeError
@@ -48,7 +21,6 @@ compile_time_constant_k_test/02: RuntimeError
 compile_time_constant_k_test/03: RuntimeError
 compile_time_constant_o_test/01: RuntimeError
 compile_time_constant_o_test/02: RuntimeError
-compile_time_constant_p_test/01: Crash
 compile_time_constant_r_test/01: Crash
 compile_time_constant_r_test/02: Crash
 compile_time_constant_r_test/03: Crash
@@ -68,19 +40,16 @@ const_constructor_mixin3_test/01: MissingCompileTimeError
 const_constructor_mixin_test/01: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_constructor_super_test/01: MissingCompileTimeError
-const_constructor_super_test/02: Crash
 const_constructor_syntax_test/01: MissingCompileTimeError
 const_constructor_syntax_test/02: MissingCompileTimeError
 const_constructor_syntax_test/03: MissingCompileTimeError
-const_constructor_syntax_test/04: MissingCompileTimeError
 const_constructor_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: RuntimeError
 const_error_multiply_initialized_test/01: MissingCompileTimeError
 const_error_multiply_initialized_test/02: RuntimeError
 const_error_multiply_initialized_test/03: MissingCompileTimeError
 const_error_multiply_initialized_test/04: RuntimeError
-const_evaluation_test/01: CompileTimeError
-const_evaluation_test/none: CompileTimeError
+const_evaluation_test/01: RuntimeError
 const_factory_with_body_test/01: MissingCompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
@@ -88,13 +57,13 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_nested_test: RuntimeError
 const_optional_args_negative_test: Fail
-const_string_test: CompileTimeError
 const_switch2_test/01: MissingCompileTimeError
-const_syntax_test/none: CompileTimeError
+const_syntax_test/01: MissingCompileTimeError
+const_syntax_test/02: MissingCompileTimeError
+const_syntax_test/05: MissingCompileTimeError
+const_syntax_test/10: Crash
 const_types_test/06: CompileTimeError
 const_types_test/13: CompileTimeError
-const_types_test/16: MissingCompileTimeError
-const_types_test/17: MissingCompileTimeError
 const_types_test/23: MissingCompileTimeError
 const_types_test/24: MissingCompileTimeError
 const_types_test/25: MissingCompileTimeError
@@ -107,9 +76,6 @@ const_types_test/41: MissingCompileTimeError
 constant_expression_test/01: MissingCompileTimeError
 constant_expression_test/03: MissingCompileTimeError
 constant_locals_test/01: MissingCompileTimeError
-constructor10_test/00: Crash
-constructor10_test/01: Crash
-constructor10_test/02: Crash
 constructor_duplicate_final_test/01: MissingRuntimeError
 constructor_duplicate_final_test/02: MissingRuntimeError
 constructor_duplicate_initializers_test/03: MissingCompileTimeError
@@ -222,9 +188,7 @@ deferred_type_dependency_test/type_annotation: RuntimeError
 dynamic_prefix_core_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_syntax_test/06: MissingCompileTimeError
-enum_syntax_test/20: Crash
 enum_syntax_test/21: MissingCompileTimeError
-enum_syntax_test/22: Crash
 enum_syntax_test/30: MissingCompileTimeError
 evaluation_redirecting_constructor_test: RuntimeError
 export_ambiguous_main_negative_test: Crash
@@ -299,20 +263,10 @@ getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 getter_setter_in_lib_test: RuntimeError
-identical_const_test/01: CompileTimeError
-identical_const_test/02: CompileTimeError
-identical_const_test/03: CompileTimeError
-identical_const_test/04: CompileTimeError
-identical_const_test/05: CompileTimeError
-identical_const_test/06: CompileTimeError
-identical_const_test/07: CompileTimeError
-identical_const_test/08: CompileTimeError
-identical_const_test/none: CompileTimeError
 if_null_assignment_behavior_test/09: RuntimeError
 if_null_assignment_behavior_test/10: RuntimeError
 if_null_assignment_behavior_test/15: RuntimeError
 implicit_scope_test: Crash
-import_combinators_test: RuntimeError
 import_private_test/01: MissingCompileTimeError
 initializing_formal_capture_test: RuntimeError
 initializing_formal_final_test: RuntimeError
@@ -346,9 +300,6 @@ map_literal6_test: RuntimeError
 metadata_test: CompileTimeError
 method_name_test: CompileTimeError
 method_override_test: RuntimeError
-missing_const_constructor_test/02: MissingCompileTimeError
-missing_const_constructor_test/03: MissingCompileTimeError
-missing_part_of_tag_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -401,19 +352,12 @@ not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 2830
 not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301
 on_catch_malformed_type_test: RuntimeError
 parameter_initializer6_negative_test: Fail
-part2_test: RuntimeError
 private_access_test/05: RuntimeError
 private_access_test/06: RuntimeError
 private_super_constructor_test/01: MissingCompileTimeError
-proxy3_test/01: CompileTimeError
-proxy3_test/02: CompileTimeError
-proxy3_test/03: CompileTimeError
-proxy3_test/04: CompileTimeError
-proxy3_test/none: CompileTimeError
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_infinite_steps_test/02: Crash
 redirecting_factory_long_test: RuntimeError
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
@@ -434,12 +378,9 @@ regress_28217_test/none: MissingCompileTimeError
 regress_28278_test: RuntimeError  # Mirrors Issue
 runtime_type_function_test: RuntimeError
 scope_variable_test/01: MissingCompileTimeError
-script1_negative_test: Fail
-script2_negative_test: Fail
 setter4_test: CompileTimeError
 static_field3_test/03: CompileTimeError
 static_field3_test/04: CompileTimeError
-static_final_field2_test/02: MissingCompileTimeError
 static_parameter_test/01: MissingCompileTimeError
 static_parameter_test/02: MissingCompileTimeError
 static_parameter_test/03: MissingCompileTimeError
@@ -452,7 +393,6 @@ static_parameter_test/09: MissingCompileTimeError
 static_parameter_test/10: MissingCompileTimeError
 static_parameter_test/11: MissingCompileTimeError
 static_parameter_test/12: MissingCompileTimeError
-super_call3_test/02: Crash
 super_conditional_operator_test/01: MissingCompileTimeError
 super_conditional_operator_test/02: MissingCompileTimeError
 super_conditional_operator_test/03: MissingCompileTimeError
@@ -486,8 +426,6 @@ syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
-try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
-try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
 try_catch_syntax_test/05: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
@@ -527,6 +465,9 @@ language/regress_22728_test: Fail # Dartk Issue 28498
 # dartk: JIT failures
 [ $compiler == dartk ]
 const_locals_test: RuntimeError
+const_string_test: RuntimeError
+const_syntax_test/08: MissingCompileTimeError
+const_syntax_test/09: MissingCompileTimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
@@ -565,6 +506,8 @@ vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
+const_syntax_test/08: Crash
+const_syntax_test/09: Crash
 final_syntax_test/09: MissingCompileTimeError
 getter_declaration_negative_test: Crash
 getter_parameters_test/02: Crash

@@ -93,6 +93,28 @@ abstract class FileEditBuilder {
    */
   void addReplacement(
       int offset, int length, void buildEdit(EditBuilder builder));
+
+  /**
+   * Add an insertion of the given [text] at the given [offset]. The [offset] is
+   * relative to the original source. This is fully equivalent to
+   *
+   *     addInsertion(offset, (EditBuilder builder) {
+   *       builder.write(text);
+   *     });
+   */
+  void addSimpleInsertion(int offset, String text);
+
+  /**
+   * Add a replacement of the text starting at the given [offset] and continuing
+   * for the given [length]. The [offset] is relative to the original source.
+   * The original content will be replaced by the given [text]. This is fully
+   * equivalent to
+   *
+   *     addReplacement(offset, length, (EditBuilder builder) {
+   *       builder.write(text);
+   *     });
+   */
+  void addSimpleReplacement(int offset, int length, String text);
 }
 
 /**

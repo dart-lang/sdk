@@ -68,7 +68,7 @@ class Task {
   var action;
 }
 
-var queue = new List();
+var queue = new List<Task>();
 
 checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
   if (isBlacklisted(m.qualifiedName)) return;

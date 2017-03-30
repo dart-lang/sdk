@@ -7099,9 +7099,6 @@ final v = new C().f;
   }
 
   test_expr_functionExpression_asArgument() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = foo(5, () => 42);
 foo(a, b) {}
@@ -7109,16 +7106,11 @@ foo(a, b) {}
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
-          5,
           0,
           0,
-          0,
-          2,
           0
         ],
         referenceValidators: [
@@ -7128,9 +7120,6 @@ foo(a, b) {}
   }
 
   test_expr_functionExpression_asArgument_multiple() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = foo(5, () => 42, () => 43);
 foo(a, b, c) {}
@@ -7138,19 +7127,11 @@ foo(a, b, c) {}
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushLocalFunctionReference,
-          UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
-          5,
           0,
           0,
-          0,
-          1,
-          0,
-          3,
           0
         ],
         referenceValidators: [
@@ -7412,9 +7393,6 @@ class C<T> {
   }
 
   test_expr_invokeMethod_instance() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   int m(a, {b, c}) => 42;
@@ -7425,24 +7403,16 @@ final v = new C().m(1, b: 2, c: 3);
         isValidConst: false,
         operators: [
           UnlinkedExprOperation.invokeConstructor,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.invokeMethod,
         ],
         ints: [
           0,
           0,
-          1,
-          2,
-          3,
-          2,
-          1,
+          0,
+          0,
           0
         ],
         strings: [
-          'b',
-          'c',
           'm'
         ],
         referenceValidators: [
@@ -7504,15 +7474,11 @@ final v = a.b.c.m(10, 20);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.invokeMethodRef,
         ],
         ints: [
-          10,
-          20,
           0,
-          2,
+          0,
           0
         ],
         strings: [],
@@ -7577,17 +7543,14 @@ final v = f(u);
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedExprOperation.pushReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           0,
-          1,
+          0,
           0
         ],
         referenceValidators: [
-          (EntityRef r) => checkTypeRef(r, null, 'u',
-              expectedKind: ReferenceKind.topLevelPropertyAccessor),
           (EntityRef r) => checkTypeRef(r, null, 'f',
               expectedKind: ReferenceKind.topLevelFunction)
         ]);
@@ -7618,6 +7581,72 @@ final v = f<int, String>();
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'int'),
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'String')
         ]);
+  }
+
+  test_expr_makeTypedList() {
+    UnlinkedVariable variable =
+        serializeVariableText('var v = <int>[11, 22, 33];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_expr_makeTypedMap() {
+    UnlinkedVariable variable = serializeVariableText(
+        'var v = <int, String>{11: "aaa", 22: "bbb", 33: "ccc"};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedMap
+    ], ints: [
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum),
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'String',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_expr_makeUntypedList() {
+    UnlinkedVariable variable = serializeVariableText('var v = [11, 22, 33];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.makeUntypedList
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ]);
+  }
+
+  test_expr_makeUntypedMap() {
+    UnlinkedVariable variable =
+        serializeVariableText('var v = {11: "aaa", 22: "bbb", 33: "ccc"};');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.makeUntypedMap
+    ], ints: [
+      11,
+      22,
+      33,
+      3
+    ], strings: [
+      'aaa',
+      'bbb',
+      'ccc'
+    ]);
   }
 
   test_expr_super() {

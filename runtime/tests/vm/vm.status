@@ -296,3 +296,14 @@ cc/UseDartApi: Pass,Crash # Issue 28499
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
+
+[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+dart/data_uri_import_test/base64: CompileTimeError
+dart/data_uri_import_test/nocharset: CompileTimeError
+dart/data_uri_import_test/nomime: CompileTimeError
+dart/data_uri_import_test/percentencoded: CompileTimeError
+dart/data_uri_import_test/wrongmime: CompileTimeError
+dart/data_uri_spawn_test: RuntimeError
+dart/redirection_type_shuffling_test/00: Crash # Issue 29201
+dart/redirection_type_shuffling_test/none: Crash # Issue 29201
+dart/spawn_shutdown_test: Timeout

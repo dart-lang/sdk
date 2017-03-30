@@ -74,14 +74,9 @@ class TestCompiler extends apiimpl.CompilerImpl {
     return super.run(uri);
   }
 
-  Future onLibraryScanned(LibraryElement element, LibraryLoader loader) {
-    test('Compiler.onLibraryScanned');
-    return super.onLibraryScanned(element, loader);
-  }
-
-  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
-    test('Compiler.onLibrariesLoaded');
-    return super.onLibrariesLoaded(loadedLibraries);
+  LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
+    test('Compiler.processLoadedLibraries');
+    return super.processLoadedLibraries(loadedLibraries);
   }
 
   test(String marker) {
@@ -296,8 +291,7 @@ void main() {
   final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
-    'Compiler.onLibraryScanned': beforeRun,
-    'Compiler.onLibrariesLoaded': beforeRun,
+    'Compiler.processLoadedLibraries': beforeRun,
     'ScannerTask.scanElements': duringRun,
     'Compiler.withCurrentElement': duringRun,
     'Compiler.analyzeElement': duringRun,

@@ -441,7 +441,8 @@ class RetainingObject implements M.RetainingObject {
   RetainingObject(this.object);
 }
 
-abstract class ServiceObjectOwner extends ServiceObject {
+abstract class ServiceObjectOwner extends ServiceObject
+    implements M.ServiceObjectOwner {
   /// Creates an empty [ServiceObjectOwner].
   ServiceObjectOwner._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -449,6 +450,8 @@ abstract class ServiceObjectOwner extends ServiceObject {
   /// The result may come from the cache.  The result will not necessarily
   /// be [loaded].
   ServiceObject getFromMap(Map map);
+
+  Future<M.Object> invokeRpc(String method, Map params);
 }
 
 abstract class Location implements M.Location {
@@ -776,29 +779,28 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       return this;
     }
 
-    assert(type == 'Isolate');
     String id = map['id'];
-    if (!id.startsWith(_isolateIdPrefix)) {
-      // Currently the VM only supports upgrading Isolate ServiceObjects.
-      throw new UnimplementedError();
+    if ((id != null) && id.startsWith(_isolateIdPrefix)) {
+      // Check cache.
+      var isolate = _isolateCache[id];
+      if (isolate == null) {
+        // Add new isolate to the cache.
+        isolate = new ServiceObject._fromMap(this, map);
+        _isolateCache[id] = isolate;
+        _buildIsolateList();
+
+        // Eagerly load the isolate.
+        isolate.load().catchError((e, stack) {
+          Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
+        });
+      } else {
+        isolate.update(map);
+      }
+      return isolate;
     }
 
-    // Check cache.
-    var isolate = _isolateCache[id];
-    if (isolate == null) {
-      // Add new isolate to the cache.
-      isolate = new ServiceObject._fromMap(this, map);
-      _isolateCache[id] = isolate;
-      _buildIsolateList();
-
-      // Eagerly load the isolate.
-      isolate.load().catchError((e, stack) {
-        Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
-      });
-    } else {
-      isolate.update(map);
-    }
-    return isolate;
+    // Build the object from the map directly.
+    return new ServiceObject._fromMap(this, map);
   }
 
   // Note that this function does not reload the isolate if it found
@@ -833,7 +835,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     });
   }
 
-  Future<ServiceObject> invokeRpc(String method, Map params) {
+  Future<dynamic> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((Map response) {
       var obj = new ServiceObject._fromMap(this, response);
       if ((obj != null) && obj.canCache) {
@@ -1466,7 +1468,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return vm.invokeRpcNoUpgrade(method, params);
   }
 
-  Future<ServiceObject> invokeRpc(String method, Map params) {
+  Future<dynamic> invokeRpc(String method, Map params) {
     return invokeRpcNoUpgrade(method, params).then((Map response) {
       return getFromMap(response);
     });
@@ -3009,7 +3011,7 @@ class ServiceFunction extends HeapObject implements M.Function {
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
 
   void _update(Map map, bool mapIsRef) {
-    _upgradeCollection(map, isolate);
+    _upgradeCollection(map, owner);
     super._update(map, mapIsRef);
 
     name = map['name'];
@@ -4495,6 +4497,8 @@ class Frame extends ServiceObject implements M.Frame {
         return M.FrameKind.asyncCausal;
       case 'AsyncSuspensionMarker':
         return M.FrameKind.asyncSuspensionMarker;
+      case 'AsyncActivation':
+        return M.FrameKind.asyncActivation;
       default:
         throw new UnsupportedError('Unknown FrameKind: $frameKind');
     }

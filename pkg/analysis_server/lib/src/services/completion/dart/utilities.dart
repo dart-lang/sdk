@@ -71,26 +71,19 @@ void addDefaultArgDetails(
     }
   }
 
-  //TODO(pq): generalize and unify with _getDefaultValue
   if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
     if (element is ConstructorElement) {
-      ConstructorElement constructorElement = element;
-      ClassElement classElement = constructorElement.enclosingElement;
-      if (isFlutterWidget(classElement)) {
-        for (ParameterElement param in constructorElement.parameters) {
+      if (isFlutterWidget(element.enclosingElement)) {
+        for (ParameterElement param in element.parameters) {
           if (param.name == 'children') {
-            DartType type = param.type;
-            if (type is InterfaceType && isDartList(type)) {
-              InterfaceType interfaceType = type;
-              List<DartType> typeArguments = interfaceType.typeArguments;
-              if (typeArguments.length == 1) {
-                if (sb.isNotEmpty) {
-                  sb.write(', ');
-                }
-                offset = sb.length;
-                sb.write('children: <${typeArguments.first.name}>[]');
-              }
+            String defaultValue = getDefaultStringParameterValue(param);
+            if (sb.isNotEmpty) {
+              sb.write(', ');
             }
+            sb.write('children: ');
+            offset = sb.length;
+            sb.write(defaultValue);
+            ranges.addAll([offset, defaultValue.length]);
           }
         }
       }
@@ -182,6 +175,23 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     }
   }
   return suggestion;
+}
+
+String getDefaultStringParameterValue(ParameterElement param) {
+  DartType type = param.type;
+  if (type is InterfaceType && isDartList(type)) {
+    List<DartType> typeArguments = type.typeArguments;
+    StringBuffer sb = new StringBuffer();
+    if (typeArguments.length == 1) {
+      DartType typeArg = typeArguments.first;
+      if (!typeArg.isDynamic) {
+        sb.write('<${typeArg.name}>');
+      }
+      sb.write('[]');
+      return sb.toString();
+    }
+  }
+  return null;
 }
 
 bool isDartList(DartType type) {

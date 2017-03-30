@@ -534,6 +534,36 @@ main(List<String> items) {
     // no other validations than built into DeclarationResolver
   }
 
+  test_visitGenericTypeAlias_0() async {
+    String code = r'''
+typedef F<T> = Function<S>(List<S> list, Function<A>(A), T);
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_visitGenericTypeAlias_1() async {
+    String code = r'''
+typedef F = Function({int});
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_visitGenericTypeAlias_2() async {
+    String code = r'''
+typedef F = int;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   test_visitImportDirective_notExistingSource() async {
     String code = r'''
 import 'foo.dart';

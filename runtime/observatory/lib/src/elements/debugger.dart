@@ -452,7 +452,6 @@ class ReloadCommand extends DebuggerCommand {
       await debugger.refreshStack();
     } on S.ServerRpcException catch (e) {
       if (e.code == S.ServerRpcException.kIsolateReloadBarred ||
-          e.code == S.ServerRpcException.kIsolateReloadFailed ||
           e.code == S.ServerRpcException.kIsolateIsReloading) {
         debugger.console.printRed(e.data['details']);
       } else {

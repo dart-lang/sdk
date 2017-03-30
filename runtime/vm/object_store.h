@@ -432,11 +432,20 @@ class ObjectStore {
   RawFunction* simple_instance_of_function() const {
     return simple_instance_of_function_;
   }
+  void set_simple_instance_of_function(const Function& value) {
+    simple_instance_of_function_ = value.raw();
+  }
   RawFunction* simple_instance_of_true_function() const {
     return simple_instance_of_true_function_;
   }
+  void set_simple_instance_of_true_function(const Function& value) {
+    simple_instance_of_true_function_ = value.raw();
+  }
   RawFunction* simple_instance_of_false_function() const {
     return simple_instance_of_false_function_;
+  }
+  void set_simple_instance_of_false_function(const Function& value) {
+    simple_instance_of_false_function_ = value.raw();
   }
   RawFunction* async_clear_thread_stack_trace() const {
     return async_clear_thread_stack_trace_;
@@ -450,7 +459,24 @@ class ObjectStore {
   }
   void set_async_set_thread_stack_trace(const Function& func) {
     async_set_thread_stack_trace_ = func.raw();
-    ASSERT(async_set_thread_stack_trace_ != Object::null());
+  }
+  RawFunction* async_star_move_next_helper() const {
+    return async_star_move_next_helper_;
+  }
+  void set_async_star_move_next_helper(const Function& func) {
+    async_star_move_next_helper_ = func.raw();
+  }
+  RawFunction* complete_on_async_return() const {
+    return complete_on_async_return_;
+  }
+  void set_complete_on_async_return(const Function& func) {
+    complete_on_async_return_ = func.raw();
+  }
+  RawClass* async_star_stream_controller() const {
+    return async_star_stream_controller_;
+  }
+  void set_async_star_stream_controller(const Class& cls) {
+    async_star_stream_controller_ = cls.raw();
   }
 
   // Visit all object pointers.
@@ -556,6 +582,9 @@ class ObjectStore {
   V(RawFunction*, simple_instance_of_false_function_)                          \
   V(RawFunction*, async_clear_thread_stack_trace_)                             \
   V(RawFunction*, async_set_thread_stack_trace_)                               \
+  V(RawFunction*, async_star_move_next_helper_)                                \
+  V(RawFunction*, complete_on_async_return_)                                   \
+  V(RawClass*, async_star_stream_controller_)                                  \
   V(RawArray*, library_load_error_table_)                                      \
   V(RawArray*, unique_dynamic_targets_)                                        \
   V(RawGrowableObjectArray*, token_objects_)                                   \

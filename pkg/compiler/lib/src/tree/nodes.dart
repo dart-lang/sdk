@@ -16,7 +16,7 @@ import '../util/util.dart';
 import 'dartstring.dart';
 import 'prettyprint.dart';
 import 'unparser.dart';
-import 'package:front_end/src/fasta/parser.dart' show ErrorKind;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
 
 abstract class Visitor<R> {
   const Visitor();
@@ -3172,19 +3172,17 @@ class IsInterpolationVisitor extends Visitor<bool> {
 class ErrorNode extends Node
     implements FunctionExpression, VariableDefinitions, Typedef {
   final Token token;
-  final ErrorKind kind;
-  final Map arguments;
+  final FastaMessage message;
   final Identifier name;
   final NodeList definitions;
 
-  ErrorNode.internal(
-      this.token, this.kind, this.arguments, this.name, this.definitions);
+  ErrorNode.internal(this.token, this.message, this.name, this.definitions);
 
-  factory ErrorNode(Token token, ErrorKind kind, Map arguments) {
+  factory ErrorNode(Token token, FastaMessage message) {
     Identifier name = new Identifier(token);
     NodeList definitions =
         new NodeList(null, const Link<Node>().prepend(name), null, null);
-    return new ErrorNode.internal(token, kind, arguments, name, definitions);
+    return new ErrorNode.internal(token, message, name, definitions);
   }
 
   Token get beginToken => token;

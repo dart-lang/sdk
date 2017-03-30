@@ -1181,6 +1181,68 @@ const A a = const A();
     expect(value.toSymbolValue(), "void");
   }
 
+  test_getConstructor_withArgs() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
+class A {
+  final int i;
+  const A(this.i);
+}
+
+class C {
+  @A(5)
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    ConstructorInvocation invocation = result.value.getInvocation();
+    expect(invocation.constructor, isNotNull);
+    expect(invocation.positionalArguments, hasLength(1));
+    expect(invocation.positionalArguments.single.toIntValue(), 5);
+    expect(invocation.namedArguments, isEmpty);
+  }
+
+  test_getConstructor_withNamedArgs() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
+class A {
+  final int i;
+  const A({this.i});
+}
+
+class C {
+  @A(i: 5)
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    ConstructorInvocation invocation = result.value.getInvocation();
+    expect(invocation.constructor, isNotNull);
+    expect(invocation.positionalArguments, isEmpty);
+    expect(invocation.namedArguments, isNotEmpty);
+    expect(invocation.namedArguments['i'].toIntValue(), 5);
+  }
+
+  test_getConstructor_redirectingFactory() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
+class A {
+  factory const A() = B;
+}
+
+class B implements A {
+  const B();
+}
+
+class C {
+  @A()
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    expect(result.value.getInvocation().constructor.isFactory, isTrue);
+  }
+
   Map<String, DartObjectImpl> _assertFieldType(
       Map<String, DartObjectImpl> fields,
       String fieldName,

@@ -216,6 +216,14 @@ class HintCode extends ErrorCode {
       "Factory method '{0}' doesn't return a newly allocated object.");
 
   /**
+   * This hint is generated anywhere an @immutable annotation is associated with
+   * anything other than a class.
+   */
+  static const HintCode INVALID_IMMUTABLE_ANNOTATION = const HintCode(
+      'INVALID_IMMUTABLE_ANNOTATION',
+      "Only classes can be annotated as being immutable.");
+
+  /**
    * Generic Method DEP: number of type parameters must match.
    * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
    *
@@ -343,6 +351,15 @@ class HintCode extends ErrorCode {
       "This function declares a return type of '{0}', but doesn't end with a "
       "return statement.",
       "Try adding a return statement, or changing the return type to 'void'.");
+
+  /**
+   * Generate a hint for classes that inherit from classes annotated with
+   * `@immutable` but that are not immutable.
+   */
+  static const HintCode MUST_BE_IMMUTABLE = const HintCode(
+      'MUST_BE_IMMUTABLE',
+      "This class inherits from a class marked as @immutable, "
+      "and therefore should be immutable (all fields must be final).");
 
   /**
    * Generate a hint for methods that override methods annotated `@mustCallSuper`

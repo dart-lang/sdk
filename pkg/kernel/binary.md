@@ -213,7 +213,6 @@ type Field extends Member {
   UriReference fileUri;
   List<Expression> annotations;
   DartType type;
-  Option<InferredValue> inferredValue;
   Option<Expression> initializer;
 }
 
@@ -304,7 +303,6 @@ type FunctionNode {
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
   DartType returnType;
-  Option<InferredValue> inferredReturnValue;
   Option<Statement> body;
 }
 
@@ -660,6 +658,29 @@ type CheckLibraryIsLoaded extends Expression {
   DeferredImportReference import;
 }
 
+type VectorCreation extends Expression {
+  Byte tag = 102;
+  UInt length;
+}
+
+type VectorGet extends Expression {
+  Byte tag = 103;
+  Expression vectorExpression;
+  UInt index;
+}
+
+type VectorSet extends Expression {
+  Byte tag = 104;
+  Expression vectorExpression;
+  UInt index;
+  Expression value;
+}
+
+type VectorCopy extends Expression {
+  Byte tag = 105;
+  Expression vectorExpression;
+}
+
 abstract type Statement extends Node {}
 
 type InvalidStatement extends Statement {
@@ -826,7 +847,6 @@ type VariableDeclaration {
   // and is not necessarily unique.
   StringReference name;
   DartType type;
-  Option<InferredValue> inferredValue;
 
   // For statements and for-loops, this is the initial value.
   // For optional parameters, this is the default value (if given).
@@ -916,18 +936,14 @@ type TypeParameterType extends DartType {
   UInt index;
 }
 
+type VectorType extends DartType {
+  Byte tag = 88;
+}
+
 type TypeParameter {
   // Note: there is no tag on TypeParameter
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
-}
-
-/* enum BaseClassKind { None, Exact, Subclass, Subtype, } */
-
-type InferredValue {
-  ClassReference baseClass; // May be NullReference if kind = None.
-  Byte kind; // Index into BaseClassKind.
-  Byte valueBits; // See lib/type_propagation/type_propagation.dart
 }
 
 ```

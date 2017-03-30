@@ -26,48 +26,13 @@ namespace bin {
 
 class FileHandle {
  public:
-  explicit FileHandle(int fd)
-      : fd_(fd), real_fd_(-1), binary_(true), is_atty_(false) {}
+  explicit FileHandle(int fd) : fd_(fd) {}
   ~FileHandle() {}
   int fd() const { return fd_; }
   void set_fd(int fd) { fd_ = fd; }
 
-  int real_fd() const {
-    ASSERT(is_atty_);
-    return real_fd_;
-  }
-  void set_real_fd(int real_fd) {
-    ASSERT(is_atty_);
-    real_fd_ = real_fd;
-  }
-
-  bool binary() const { return binary_; }
-  void SetBinary(bool binary) {
-    ASSERT(fd_ >= 0);
-    if (binary) {
-      // Setting the mode to _O_TEXT is needed first to reset _write to allow
-      // an odd number of bytes, which setting to _O_BINARY alone doesn't
-      // accomplish.
-      if (binary != binary_) {
-        _setmode(fd_, _O_TEXT);
-      }
-      _setmode(fd_, _O_BINARY);
-    } else {
-      // Only allow non-binary modes if we're attached to a terminal.
-      ASSERT(_isatty(fd_));
-      _setmode(fd_, _O_WTEXT);
-    }
-    binary_ = binary;
-  }
-
-  bool is_atty() const { return is_atty_; }
-  void set_is_atty(bool is_atty) { is_atty_ = is_atty; }
-
  private:
   int fd_;
-  int real_fd_;
-  bool binary_;
-  bool is_atty_;
 
   DISALLOW_COPY_AND_ASSIGN(FileHandle);
 };
@@ -84,13 +49,7 @@ File::~File() {
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  int closing_fd;
-  if (handle_->is_atty()) {
-    close(handle_->fd());
-    closing_fd = handle_->real_fd();
-  } else {
-    closing_fd = handle_->fd();
-  }
+  int closing_fd = handle_->fd();
   if ((closing_fd == _fileno(stdout)) || (closing_fd == _fileno(stderr))) {
     int fd = _open("NUL", _O_WRONLY);
     ASSERT(fd >= 0);
@@ -173,15 +132,33 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
   int fd = handle_->fd();
   ASSERT(fd >= 0);
-  if (handle_->binary()) {
-    return _write(fd, buffer, num_bytes);
-  } else {
-    // If we've done _setmode(fd, _O_WTEXT) then _write() expects
-    // a buffer of wchar_t with an even unmber of bytes.
-    Utf8ToWideScope wide(reinterpret_cast<const char*>(buffer), num_bytes);
-    ASSERT((wide.size_in_bytes() % 2) == 0);
-    return _write(fd, wide.wide(), wide.size_in_bytes());
+  HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
+  DWORD written = 0;
+  BOOL result = WriteFile(handle, buffer, num_bytes, &written, NULL);
+  if (!result) {
+    return -1;
   }
+  DWORD mode;
+  int64_t bytes_written = written;
+  if (GetConsoleMode(handle, &mode)) {
+    // If `handle` is for a console, then `written` may refer to the number of
+    // characters printed to the screen rather than the number of bytes of the
+    // buffer that were actually consumed. To compute the number of bytes that
+    // were actually consumed, we convert the buffer to a wchar_t using the
+    // console's current code page, filling as many characters as were
+    // printed, and then convert that many characters back to the encoding for
+    // the code page, which gives the number of bytes of `buffer` used to
+    // generate the characters that were printed.
+    wchar_t* wide = new wchar_t[written];
+    int cp = GetConsoleOutputCP();
+    MultiByteToWideChar(cp, 0, reinterpret_cast<const char*>(buffer), -1, wide,
+                        written);
+    int buffer_len =
+        WideCharToMultiByte(cp, 0, wide, written, NULL, 0, NULL, NULL);
+    delete wide;
+    bytes_written = buffer_len;
+  }
+  return bytes_written;
 }
 
 
@@ -215,17 +192,6 @@ int64_t File::Position() {
 bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
   return _lseeki64(handle_->fd(), position, SEEK_SET) >= 0;
-}
-
-
-void File::SetTranslation(DartFileTranslation translation) {
-  ASSERT(handle_->fd() >= 0);
-  // Only allow setting the translation mode if we're attached to a terminal.
-  // TODO(zra): Is this restriction needed? Is it already handled correctly
-  // by _write()?
-  if (handle_->is_atty()) {
-    handle_->SetBinary(translation == kBinary);
-  }
 }
 
 
@@ -342,22 +308,8 @@ File* File::OpenStdio(int fd) {
     default:
       UNREACHABLE();
   }
-  FileHandle* handle;
-  if (_isatty(stdio_fd)) {
-    // We _dup these fds to avoid different Isoaltes racing on calls to
-    // _setmode() and _write() on the same file descriptor. That is, a call to
-    // _setmode() followed by a call to _write() on the same file descriptor is
-    // not atomic. When the corresponding Dart File object is closed, these
-    // dup'd fds will be closed.
-    int stdio_fd_dup = _dup(stdio_fd);
-    handle = new FileHandle(stdio_fd_dup);
-    handle->set_is_atty(true);
-    handle->set_real_fd(stdio_fd);
-  } else {
-    handle = new FileHandle(stdio_fd);
-  }
-  handle->SetBinary(true);
-  return new File(handle);
+  _setmode(stdio_fd, _O_BINARY);
+  return new File(new FileHandle(stdio_fd));
 }
 
 

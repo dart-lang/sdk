@@ -73,32 +73,6 @@ class ScannerTest_RoundTrip extends ScannerTest {
     // syntax.
     super.test_comment_generic_method_type_list();
   }
-
-  void test_pseudo_keywords() {
-    var pseudoAnalyzerKeywords = new Set<Keyword>.from([
-      Keyword.ABSTRACT,
-      Keyword.AS,
-      Keyword.COVARIANT,
-      Keyword.DEFERRED,
-      Keyword.DYNAMIC,
-      Keyword.EXPORT,
-      Keyword.EXTERNAL,
-      Keyword.FACTORY,
-      Keyword.GET,
-      Keyword.IMPLEMENTS,
-      Keyword.IMPORT,
-      Keyword.LIBRARY,
-      Keyword.OPERATOR,
-      Keyword.PART,
-      Keyword.SET,
-      Keyword.STATIC,
-      Keyword.TYPEDEF,
-    ]);
-    for (Keyword keyword in Keyword.values) {
-      expect(keyword.isPseudoKeyword, pseudoAnalyzerKeywords.contains(keyword),
-          reason: keyword.name);
-    }
-  }
 }
 
 class TestScanner extends analyzer.Scanner {

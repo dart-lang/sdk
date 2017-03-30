@@ -20,7 +20,7 @@
  */
 part of lazy_static6_test;
 
-final x = (t) => (u) => t + u;
+final x = (int t) => (int u) => t + u;
 
 main() {
   Expect.equals(499, x(498)(1));

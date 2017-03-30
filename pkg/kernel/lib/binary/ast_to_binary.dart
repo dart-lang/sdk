@@ -122,17 +122,6 @@ class BinaryPrinter extends Visitor {
     }
   }
 
-  void writeOptionalInferredValue(InferredValue node) {
-    if (node == null) {
-      writeByte(Tag.Nothing);
-    } else {
-      writeByte(Tag.Something);
-      writeClassReference(node.baseClass, allowNull: true);
-      writeByte(node.baseClassKind.index);
-      writeByte(node.valueBits);
-    }
-  }
-
   void writeLinkTable(Program program) {
     List<CanonicalName> list = <CanonicalName>[];
     void visitCanonicalName(CanonicalName node) {
@@ -376,7 +365,6 @@ class BinaryPrinter extends Visitor {
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeNode(node.type);
-    writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);
     _variableIndexer = null;
   }
@@ -426,7 +414,6 @@ class BinaryPrinter extends Visitor {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
-    writeOptionalInferredValue(node.inferredReturnValue);
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
@@ -741,6 +728,29 @@ class BinaryPrinter extends Visitor {
     writeDeferredImportReference(node.import);
   }
 
+  visitVectorCreation(VectorCreation node) {
+    writeByte(Tag.VectorCreation);
+    writeUInt30(node.length);
+  }
+
+  visitVectorGet(VectorGet node) {
+    writeByte(Tag.VectorGet);
+    writeNode(node.vectorExpression);
+    writeUInt30(node.index);
+  }
+
+  visitVectorSet(VectorSet node) {
+    writeByte(Tag.VectorSet);
+    writeNode(node.vectorExpression);
+    writeUInt30(node.index);
+    writeNode(node.value);
+  }
+
+  visitVectorCopy(VectorCopy node) {
+    writeByte(Tag.VectorCopy);
+    writeNode(node.vectorExpression);
+  }
+
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
@@ -894,7 +904,6 @@ class BinaryPrinter extends Visitor {
     writeByte(node.flags);
     writeStringReference(node.name ?? '');
     writeNode(node.type);
-    writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);
     // Declare the variable after its initializer. It is not in scope in its
     // own initializer.
@@ -986,6 +995,10 @@ class BinaryPrinter extends Visitor {
   visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
+  }
+
+  visitVectorType(VectorType node) {
+    writeByte(Tag.VectorType);
   }
 
   visitTypeParameter(TypeParameter node) {

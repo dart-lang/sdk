@@ -53,9 +53,6 @@ library kernel.ast;
 import 'visitor.dart';
 export 'visitor.dart';
 
-import 'type_propagation/type_propagation.dart';
-export 'type_propagation/type_propagation.dart';
-
 import 'canonical_name.dart' show CanonicalName;
 export 'canonical_name.dart' show CanonicalName;
 
@@ -732,7 +729,6 @@ abstract class Member extends NamedNode {
 /// but can be made explicit if needed.
 class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
-  InferredValue inferredValue; // May be null.
   int flags = 0;
   Expression initializer; // May be null.
 
@@ -741,7 +737,6 @@ class Field extends Member {
 
   Field(Name name,
       {this.type: const DynamicType(),
-      this.inferredValue,
       this.initializer,
       bool isFinal: false,
       bool isConst: false,
@@ -834,7 +829,6 @@ class Field extends Member {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     type?.accept(v);
-    inferredValue?.accept(v);
     name?.accept(v);
     initializer?.accept(v);
   }
@@ -1003,6 +997,7 @@ class Procedure extends Member {
   bool get isAccessor => isGetter || isSetter;
   bool get hasGetter => kind != ProcedureKind.Setter;
   bool get hasSetter => kind == ProcedureKind.Setter;
+  bool get isFactory => kind == ProcedureKind.Factory;
 
   accept(MemberVisitor v) => v.visitProcedure(this);
 
@@ -1246,7 +1241,6 @@ class FunctionNode extends TreeNode {
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
-  InferredValue inferredReturnValue; // May be null.
   DartType returnType; // Not null.
   Statement body;
 
@@ -1256,7 +1250,6 @@ class FunctionNode extends TreeNode {
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
       this.returnType: const DynamicType(),
-      this.inferredReturnValue,
       this.asyncMarker: AsyncMarker.Sync,
       this.dartAsyncMarker})
       : this.positionalParameters =
@@ -1301,7 +1294,6 @@ class FunctionNode extends TreeNode {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType?.accept(v);
-    inferredReturnValue?.accept(v);
     body?.accept(v);
   }
 
@@ -2750,6 +2742,119 @@ class CheckLibraryIsLoaded extends Expression {
   transformChildren(Transformer v) {}
 }
 
+/// Expression of the form `MakeVector(N)` where `N` is an integer representing
+/// the length of the vector.
+///
+/// For detailed comment about Vectors see [VectorType].
+class VectorCreation extends Expression {
+  int length;
+
+  VectorCreation(this.length);
+
+  accept(ExpressionVisitor v) => v.visitVectorCreation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorCreation(this, arg);
+
+  visitChildren(Visitor v) {}
+
+  transformChildren(Transformer v) {}
+
+  DartType getStaticType(TypeEnvironment types) {
+    return const VectorType();
+  }
+}
+
+/// Expression of the form `v[i]` where `v` is a vector expression, and `i` is
+/// an integer index.
+class VectorGet extends Expression {
+  Expression vectorExpression;
+  int index;
+
+  VectorGet(this.vectorExpression, this.index) {
+    vectorExpression?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitVectorGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorGet(this, arg);
+
+  visitChildren(Visitor v) {
+    vectorExpression.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (vectorExpression != null) {
+      vectorExpression = vectorExpression.accept(v);
+      vectorExpression?.parent = this;
+    }
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return const DynamicType();
+  }
+}
+
+/// Expression of the form `v[i] = x` where `v` is a vector expression, `i` is
+/// an integer index, and `x` is an arbitrary expression.
+class VectorSet extends Expression {
+  Expression vectorExpression;
+  int index;
+  Expression value;
+
+  VectorSet(this.vectorExpression, this.index, this.value) {
+    vectorExpression?.parent = this;
+    value?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitVectorSet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorSet(this, arg);
+
+  visitChildren(Visitor v) {
+    vectorExpression.accept(v);
+    value.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (vectorExpression != null) {
+      vectorExpression = vectorExpression.accept(v);
+      vectorExpression?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
+    }
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return value.getStaticType(types);
+  }
+}
+
+/// Expression of the form `CopyVector(v)` where `v` is a vector expression.
+class VectorCopy extends Expression {
+  Expression vectorExpression;
+
+  VectorCopy(this.vectorExpression) {
+    vectorExpression?.parent = this;
+  }
+
+  accept(ExpressionVisitor v) => v.visitVectorCopy(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVectorCopy(this, arg);
+
+  visitChildren(Visitor v) {
+    vectorExpression.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (vectorExpression != null) {
+      vectorExpression = vectorExpression.accept(v);
+      vectorExpression?.parent = this;
+    }
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return const VectorType();
+  }
+}
+
 // ------------------------------------------------------------------------
 //                              STATEMENTS
 // ------------------------------------------------------------------------
@@ -3353,7 +3458,6 @@ class VariableDeclaration extends Statement {
   String name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
-  InferredValue inferredValue; // May be null.
 
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
@@ -3364,7 +3468,6 @@ class VariableDeclaration extends Statement {
   VariableDeclaration(this.name,
       {this.initializer,
       this.type: const DynamicType(),
-      this.inferredValue,
       bool isFinal: false,
       bool isConst: false}) {
     assert(type != null);
@@ -3404,7 +3507,6 @@ class VariableDeclaration extends Statement {
 
   visitChildren(Visitor v) {
     type?.accept(v);
-    inferredValue?.accept(v);
     initializer?.accept(v);
   }
 
@@ -3650,6 +3752,36 @@ class InterfaceType extends DartType {
     }
     return hash;
   }
+}
+
+/// [VectorType] represents Vectors, a special kind of data that is not
+/// available for use by Dart programmers directly. It is used by Kernel
+/// transformations as efficient index-based storage.
+///
+/// * Vectors aren't user-visible. For example, they are not supposed to be
+/// exposed to Dart programs through variables or be visible in stack traces.
+///
+/// * Vectors have fixed length at runtime. The length is known at compile
+/// time, and [VectorCreation] AST node stores it in a field.
+///
+/// * Indexes for accessing and assigning Vector items are known at compile
+/// time. The corresponding [VectorGet] and [VectorSet] AST nodes store the
+/// index in a field.
+///
+/// * For efficiency considerations, bounds checks aren't performed for Vectors.
+/// If necessary, a transformer or verifier can do this checks at compile-time,
+/// after adding length field to [VectorType], to make sure that previous
+/// transformations didn't introduce any access errors.
+///
+/// * Access to Vectors is untyped.
+///
+/// * Vectors can be used by various transformations of Kernel programs.
+/// Currently they are used by Closure Conversion to represent closure contexts.
+class VectorType extends DartType {
+  const VectorType();
+
+  accept(DartTypeVisitor v) => v.visitVectorType(this);
+  visitChildren(Visitor v) {}
 }
 
 /// A possibly generic function type.

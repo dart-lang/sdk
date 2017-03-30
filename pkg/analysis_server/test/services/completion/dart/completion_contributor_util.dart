@@ -37,6 +37,7 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 }
 
 abstract class DartCompletionContributorTest extends AbstractContextTest {
+  static const String _UNCHECKED = '__UNCHECKED__';
   Index index;
   SearchEngineImpl searchEngine;
   String testFile = '/completionTest.dart';
@@ -119,7 +120,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       int elemOffset,
       String paramName,
       String paramType,
-      String defaultArgListString,
+      String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
@@ -157,7 +158,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     if (paramType != null) {
       expect(cs.parameterType, paramType);
     }
-    if (defaultArgListString != null) {
+    if (defaultArgListString != _UNCHECKED) {
       expect(cs.defaultArgumentListString, defaultArgListString);
     }
     if (defaultArgumentListTextRanges != null) {
@@ -210,12 +211,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
       int elemOffset,
-      String defaultArgListString}) {
+      String defaultArgListString: _UNCHECKED,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         relevance: relevance,
         importUri: importUri,
         elemOffset: elemOffset,
-        defaultArgListString: defaultArgListString);
+        defaultArgListString: defaultArgListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
@@ -272,7 +275,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       bool isDeprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
-      String defaultArgListString,
+      String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
@@ -368,7 +371,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
-      String defaultArgListString,
+      String defaultArgListString: _UNCHECKED,
       List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,

@@ -15,7 +15,6 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
-import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart' show Scope;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
@@ -168,7 +167,7 @@ Set<String> extractDirectiveUris(List<int> contents) {
 class DirectiveParser extends ClassMemberParser {
   DirectiveParser(listener) : super(listener);
 
-  static final _endToken = new SymbolToken(EOF_INFO, -1);
+  static final _endToken = new SymbolToken.eof(-1);
 
   Token parseClassOrNamedMixinApplication(Token token) => _endToken;
   Token parseEnum(Token token) => _endToken;

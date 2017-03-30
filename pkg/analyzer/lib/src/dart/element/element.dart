@@ -2465,6 +2465,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _FACTORY_VARIABLE_NAME = "factory";
 
   /**
+   * The name of the top-level variable used to mark a class and its subclasses
+   * as being immutable.
+   */
+  static String _IMMUTABLE_VARIABLE_NAME = "immutable";
+
+  /**
    * The name of the class used to JS annotate an element.
    */
   static String _JS_CLASS_NAME = "JS";
@@ -2513,12 +2519,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * required.
    */
   static String _REQUIRED_VARIABLE_NAME = "required";
-
-  /**
-   * The name of the top-level variable used to mark a member as intended to be
-   * overridden.
-   */
-  static String _VIRTUAL_VARIABLE_NAME = "virtual";
 
   /**
    * The element representing the field, variable, or constructor being used as
@@ -2584,6 +2584,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.library?.name == _META_LIB_NAME;
 
   @override
+  bool get isImmutable =>
+      element is PropertyAccessorElement &&
+      element.name == _IMMUTABLE_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
   bool get isJS =>
       element is ConstructorElement &&
       element.enclosingElement.name == _JS_CLASS_NAME &&
@@ -2621,18 +2627,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
-
-  /**
-   * Return `true` if this annotation marks the associated member as supporting
-   * overrides.
-   *
-   * This is currently used by fields in Strong Mode, as other members are
-   * already virtual-by-default.
-   */
-  bool get isVirtual =>
-      element is PropertyAccessorElement &&
-      element.name == _VIRTUAL_VARIABLE_NAME &&
-      element.library?.name == _META_LIB_NAME;
 
   /**
    * Get the library containing this annotation.
@@ -4261,14 +4255,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  bool get isVirtual {
-    for (ElementAnnotationImpl annotation in metadata) {
-      if (annotation.isVirtual) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool get isVirtual => true;
 
   @override
   ElementKind get kind => ElementKind.FIELD;
@@ -5172,10 +5159,11 @@ class GenericTypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters => function.parameters;
+  List<ParameterElement> get parameters =>
+      function?.parameters ?? const <ParameterElement>[];
 
   @override
-  DartType get returnType => function.returnType;
+  DartType get returnType => function?.returnType;
 
   @override
   FunctionType get type {
@@ -5227,11 +5215,13 @@ class GenericTypeAliasElementImpl extends ElementImpl
       buffer.write(">");
     }
     buffer.write(" = ");
-    (function as FunctionElementImpl).appendTo(buffer);
+    if (function != null) {
+      (function as ElementImpl).appendTo(buffer);
+    }
   }
 
   @override
-  FunctionTypeAlias computeNode() =>
+  GenericTypeAlias computeNode() =>
       getNodeMatching((node) => node is GenericTypeAlias);
 
   @override

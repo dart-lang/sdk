@@ -28,6 +28,11 @@ abstract class SecureSocket implements Socket {
    * decide (or let the user decide) whether to accept
    * the connection or not.  The handler should return true
    * to continue the [SecureSocket] connection.
+   *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negogiation with the
+   * server.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
    */
   static Future<SecureSocket> connect(host, int port,
       {SecurityContext context,
@@ -129,7 +134,11 @@ abstract class SecureSocket implements Socket {
   X509Certificate get peerCertificate;
 
   /**
-   * Get the protocol which was selected during protocol negotiation.
+   * The protocol which was selected during ALPN protocol negotiation.
+   *
+   * Returns null if one of the peers does not have support for ALPN, did not
+   * specify a list of supported ALPN protocols or there was no common
+   * protocol between client and server.
    */
   String get selectedProtocol;
 
@@ -174,6 +183,11 @@ abstract class RawSecureSocket implements RawSocket {
    * decide (or let the user decide) whether to accept
    * the connection or not.  The handler should return true
    * to continue the [RawSecureSocket] connection.
+   *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negogiation with the
+   * server.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [RawSecureSocket.selectedProtocol].
    */
   static Future<RawSecureSocket> connect(host, int port,
       {SecurityContext context,
@@ -300,7 +314,11 @@ abstract class RawSecureSocket implements RawSocket {
   X509Certificate get peerCertificate;
 
   /**
-   * Get the protocol which was selected during protocol negotiation.
+   * The protocol which was selected during protocol negotiation.
+   *
+   * Returns null if one of the peers does not have support for ALPN, did not
+   * specify a list of supported ALPN protocols or there was no common
+   * protocol between client and server.
    */
   String get selectedProtocol;
 }

@@ -7,6 +7,7 @@
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/log.h"
+#include "vm/malloc_hooks.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -863,12 +864,23 @@ class ProfileCodeTable : public ZoneAllocated {
 
 
 ProfileTrieNode::ProfileTrieNode(intptr_t table_index)
-    : table_index_(table_index), count_(0), children_(0), frame_id_(-1) {
+    : table_index_(table_index),
+      count_(0),
+      exclusive_allocations_(0),
+      inclusive_allocations_(0),
+      children_(0),
+      frame_id_(-1) {
   ASSERT(table_index_ >= 0);
 }
 
 
 ProfileTrieNode::~ProfileTrieNode() {}
+
+
+void ProfileTrieNode::Tick(ProcessedSample* sample, bool exclusive) {
+  count_++;
+  IncrementAllocation(sample->native_allocation_size_bytes(), exclusive);
+}
 
 
 void ProfileTrieNode::SortChildren() {
@@ -904,6 +916,10 @@ class ProfileCodeTrieNode : public ProfileTrieNode {
     // Write number of children.
     intptr_t child_count = NumChildren();
     array->AddValue(child_count);
+    // Write inclusive allocations.
+    array->AddValue64(inclusive_allocations_);
+    // Write exclusive allocations.
+    array->AddValue64(exclusive_allocations_);
     // Recurse.
     for (intptr_t i = 0; i < child_count; i++) {
       children_[i]->PrintToJSONArray(array);
@@ -965,6 +981,10 @@ class ProfileFunctionTrieNode : public ProfileTrieNode {
     array->AddValue(table_index());
     // Write count.
     array->AddValue(count());
+    // Write inclusive allocations.
+    array->AddValue64(inclusive_allocations_);
+    // Write exclusive allocations.
+    array->AddValue64(exclusive_allocations_);
     // Write number of code objects.
     intptr_t code_count = code_objects_.length();
     array->AddValue(code_count);
@@ -1101,6 +1121,7 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
            TokenPosition* token_position) {
     const intptr_t offset = OffsetForPC(pc, code, sample, frame_index);
     CacheEntry* cache_entry = &cache_[NextFreeIndex()];
+    cache_entry->Reset();
     cache_entry->pc = pc;
     cache_entry->offset = offset;
     code.GetInlinedFunctionsAtInstruction(
@@ -1151,6 +1172,8 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
     void Reset() {
       pc = 0;
       offset = 0;
+      inlined_functions.Clear();
+      inlined_token_positions.Clear();
     }
     uword pc;
     intptr_t offset;
@@ -1323,7 +1346,7 @@ class ProfileBuilder : public ValueObject {
         code->Tick(pc, IsExecutingFrame(sample, frame_index), sample_index);
       }
 
-      TickExitFrame(sample->vm_tag(), sample_index);
+      TickExitFrame(sample->vm_tag(), sample_index, sample);
     }
     SanitizeMinMaxTimes();
   }
@@ -1409,16 +1432,17 @@ class ProfileBuilder : public ValueObject {
 
       // Tick the root.
       ProfileCodeTrieNode* current = root;
-      current->Tick();
+      current->Tick(sample);
 
       // VM & User tags.
-      current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
+      current =
+          AppendTags(sample->vm_tag(), sample->user_tag(), current, sample);
 
       ResetKind();
 
       // Truncated tag.
       if (sample->truncated()) {
-        current = AppendTruncatedTag(current);
+        current = AppendTruncatedTag(current, sample);
       }
 
       // Walk the sampled PCs.
@@ -1433,13 +1457,13 @@ class ProfileBuilder : public ValueObject {
             GetProfileCode(sample->At(frame_index), sample->timestamp());
         ASSERT(profile_code->code_table_index() == index);
         code ^= profile_code->code();
-        current = AppendKind(code, current);
+        current = AppendKind(code, current, sample);
         current = current->GetChild(index);
-        current->Tick();
+        current->Tick(sample, (frame_index == 0));
       }
 
       if (!sample->first_frame_executing()) {
-        current = AppendExitFrame(sample->vm_tag(), current);
+        current = AppendExitFrame(sample->vm_tag(), current, sample);
       }
     }
   }
@@ -1453,15 +1477,15 @@ class ProfileBuilder : public ValueObject {
 
       // Tick the root.
       ProfileCodeTrieNode* current = root;
-      current->Tick();
-
+      current->Tick(sample);
       // VM & User tags.
-      current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
+      current =
+          AppendTags(sample->vm_tag(), sample->user_tag(), current, sample);
 
       ResetKind();
 
       if (!sample->first_frame_executing()) {
-        current = AppendExitFrame(sample->vm_tag(), current);
+        current = AppendExitFrame(sample->vm_tag(), current, sample);
       }
 
       // Walk the sampled PCs.
@@ -1478,13 +1502,13 @@ class ProfileBuilder : public ValueObject {
         code ^= profile_code->code();
         current = current->GetChild(index);
         if (ShouldTickNode(sample, frame_index)) {
-          current->Tick();
+          current->Tick(sample, (frame_index == 0));
         }
-        current = AppendKind(code, current);
+        current = AppendKind(code, current, sample);
       }
       // Truncated tag.
       if (sample->truncated()) {
-        current = AppendTruncatedTag(current);
+        current = AppendTruncatedTag(current, sample);
       }
     }
   }
@@ -1515,14 +1539,14 @@ class ProfileBuilder : public ValueObject {
 
       // Tick the root.
       ProfileFunctionTrieNode* current = root;
-      current->Tick();
-
+      current->Tick(sample);
       // VM & User tags.
-      current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
+      current =
+          AppendTags(sample->vm_tag(), sample->user_tag(), current, sample);
 
       // Truncated tag.
       if (sample->truncated()) {
-        current = AppendTruncatedTag(current);
+        current = AppendTruncatedTag(current, sample);
       }
 
       // Walk the sampled PCs.
@@ -1533,7 +1557,7 @@ class ProfileBuilder : public ValueObject {
       }
 
       if (!sample->first_frame_executing()) {
-        current = AppendExitFrame(sample->vm_tag(), current);
+        current = AppendExitFrame(sample->vm_tag(), current, sample);
       }
 
       sample->set_timeline_trie(current);
@@ -1550,15 +1574,15 @@ class ProfileBuilder : public ValueObject {
 
       // Tick the root.
       ProfileFunctionTrieNode* current = root;
-      current->Tick();
-
+      current->Tick(sample);
       // VM & User tags.
-      current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
+      current =
+          AppendTags(sample->vm_tag(), sample->user_tag(), current, sample);
 
       ResetKind();
 
       if (!sample->first_frame_executing()) {
-        current = AppendExitFrame(sample->vm_tag(), current);
+        current = AppendExitFrame(sample->vm_tag(), current, sample);
       }
 
       // Walk the sampled PCs.
@@ -1572,8 +1596,8 @@ class ProfileBuilder : public ValueObject {
 
       // Truncated tag.
       if (sample->truncated()) {
-        current = AppendTruncatedTag(current);
-        InclusiveTickTruncatedTag();
+        current = AppendTruncatedTag(current, sample);
+        InclusiveTickTruncatedTag(sample);
       }
     }
   }
@@ -1611,14 +1635,25 @@ class ProfileBuilder : public ValueObject {
         (inlined_functions->length() <= 1)) {
       // No inlined functions.
       if (inclusive_tree_) {
-        current = AppendKind(code, current);
+        current = AppendKind(code, current, sample);
       }
       current = ProcessFunction(current, sample_index, sample, frame_index,
                                 function, token_position, code_index);
       if (!inclusive_tree_) {
-        current = AppendKind(code, current);
+        current = AppendKind(code, current, sample);
       }
       return current;
+    }
+
+    if (!code.is_optimized()) {
+      OS::PrintErr("Code that should be optimized is not. Please file a bug\n");
+      OS::PrintErr("Code object: %s\n", code.ToCString());
+      OS::PrintErr("Inlined functions length: %" Pd "\n",
+                   inlined_functions->length());
+      for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+        OS::PrintErr("IF[%" Pd "] = %s\n", i,
+                     (*inlined_functions)[i]->ToFullyQualifiedCString());
+      }
     }
 
     ASSERT(code.is_optimized());
@@ -1631,19 +1666,19 @@ class ProfileBuilder : public ValueObject {
         TokenPosition inlined_token_position = (*inlined_token_positions)[i];
         const bool inliner = i == 0;
         if (inliner) {
-          current = AppendKind(code, current);
+          current = AppendKind(code, current, sample);
         }
         current = ProcessInlinedFunction(current, sample_index, sample,
                                          frame_index, inlined_function,
                                          inlined_token_position, code_index);
         if (inliner) {
-          current = AppendKind(kInlineStart, current);
+          current = AppendKind(kInlineStart, current, sample);
         }
       }
-      current = AppendKind(kInlineFinish, current);
+      current = AppendKind(kInlineFinish, current, sample);
     } else {
       // Append the inlined children.
-      current = AppendKind(kInlineFinish, current);
+      current = AppendKind(kInlineFinish, current, sample);
       for (intptr_t i = inlined_functions->length() - 1; i >= 0; i--) {
         const Function* inlined_function = (*inlined_functions)[i];
         ASSERT(inlined_function != NULL);
@@ -1651,13 +1686,13 @@ class ProfileBuilder : public ValueObject {
         TokenPosition inlined_token_position = (*inlined_token_positions)[i];
         const bool inliner = i == 0;
         if (inliner) {
-          current = AppendKind(kInlineStart, current);
+          current = AppendKind(kInlineStart, current, sample);
         }
         current = ProcessInlinedFunction(current, sample_index, sample,
                                          frame_index + i, inlined_function,
                                          inlined_token_position, code_index);
         if (inliner) {
-          current = AppendKind(code, current);
+          current = AppendKind(code, current, sample);
         }
       }
     }
@@ -1712,14 +1747,14 @@ class ProfileBuilder : public ValueObject {
     function->AddProfileCode(code_index);
     current = current->GetChild(function->table_index());
     if (ShouldTickNode(sample, frame_index)) {
-      current->Tick();
+      current->Tick(sample, (frame_index == 0));
     }
     current->AddCodeObjectIndex(code_index);
     return current;
   }
 
   // Tick the truncated tag's inclusive tick count.
-  void InclusiveTickTruncatedTag() {
+  void InclusiveTickTruncatedTag(ProcessedSample* sample) {
     ProfileCodeTable* tag_table = profile_->tag_code_;
     intptr_t index = tag_table->FindCodeIndexForPC(VMTag::kTruncatedTagId);
     ASSERT(index >= 0);
@@ -1736,49 +1771,54 @@ class ProfileBuilder : public ValueObject {
 
   // ProfileCodeTrieNode
   ProfileCodeTrieNode* AppendUserTag(uword user_tag,
-                                     ProfileCodeTrieNode* current) {
+                                     ProfileCodeTrieNode* current,
+                                     ProcessedSample* sample) {
     intptr_t user_tag_index = GetProfileCodeTagIndex(user_tag);
     if (user_tag_index >= 0) {
       current = current->GetChild(user_tag_index);
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
-  ProfileCodeTrieNode* AppendTruncatedTag(ProfileCodeTrieNode* current) {
+  ProfileCodeTrieNode* AppendTruncatedTag(ProfileCodeTrieNode* current,
+                                          ProcessedSample* sample) {
     intptr_t truncated_tag_index =
         GetProfileCodeTagIndex(VMTag::kTruncatedTagId);
     ASSERT(truncated_tag_index >= 0);
     current = current->GetChild(truncated_tag_index);
-    current->Tick();
+    current->Tick(sample);
     return current;
   }
 
-  ProfileCodeTrieNode* AppendVMTag(uword vm_tag, ProfileCodeTrieNode* current) {
+  ProfileCodeTrieNode* AppendVMTag(uword vm_tag,
+                                   ProfileCodeTrieNode* current,
+                                   ProcessedSample* sample) {
     if (VMTag::IsNativeEntryTag(vm_tag)) {
       // Insert a dummy kNativeTagId node.
       intptr_t tag_index = GetProfileCodeTagIndex(VMTag::kNativeTagId);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     } else if (VMTag::IsRuntimeEntryTag(vm_tag)) {
       // Insert a dummy kRuntimeTagId node.
       intptr_t tag_index = GetProfileCodeTagIndex(VMTag::kRuntimeTagId);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     } else {
       intptr_t tag_index = GetProfileCodeTagIndex(vm_tag);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
   ProfileCodeTrieNode* AppendSpecificNativeRuntimeEntryVMTag(
       uword vm_tag,
-      ProfileCodeTrieNode* current) {
+      ProfileCodeTrieNode* current,
+      ProcessedSample* sample) {
     // Only Native and Runtime entries have a second VM tag.
     if (!VMTag::IsNativeEntryTag(vm_tag) && !VMTag::IsRuntimeEntryTag(vm_tag)) {
       return current;
@@ -1786,7 +1826,7 @@ class ProfileBuilder : public ValueObject {
     intptr_t tag_index = GetProfileCodeTagIndex(vm_tag);
     current = current->GetChild(tag_index);
     // Give the tag a tick.
-    current->Tick();
+    current->Tick(sample);
     return current;
   }
 
@@ -1811,7 +1851,8 @@ class ProfileBuilder : public ValueObject {
   }
 
   ProfileCodeTrieNode* AppendKind(ProfileInfoKind kind,
-                                  ProfileCodeTrieNode* current) {
+                                  ProfileCodeTrieNode* current,
+                                  ProcessedSample* sample) {
     if (!TagsEnabled(ProfilerService::kCodeTransitionTagsBit)) {
       // Only emit if debug tags are requested.
       return current;
@@ -1821,30 +1862,32 @@ class ProfileBuilder : public ValueObject {
       intptr_t tag_index = GetProfileCodeTagIndex(ProfileInfoKindToVMTag(kind));
       ASSERT(tag_index >= 0);
       current = current->GetChild(tag_index);
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
   ProfileCodeTrieNode* AppendKind(const Code& code,
-                                  ProfileCodeTrieNode* current) {
+                                  ProfileCodeTrieNode* current,
+                                  ProcessedSample* sample) {
     if (code.IsNull()) {
-      return AppendKind(kNone, current);
+      return AppendKind(kNone, current, sample);
     } else if (code.is_optimized()) {
-      return AppendKind(kOptimized, current);
+      return AppendKind(kOptimized, current, sample);
     } else {
-      return AppendKind(kUnoptimized, current);
+      return AppendKind(kUnoptimized, current, sample);
     }
   }
 
   ProfileCodeTrieNode* AppendVMTags(uword vm_tag,
-                                    ProfileCodeTrieNode* current) {
-    current = AppendVMTag(vm_tag, current);
-    current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current);
+                                    ProfileCodeTrieNode* current,
+                                    ProcessedSample* sample) {
+    current = AppendVMTag(vm_tag, current, sample);
+    current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current, sample);
     return current;
   }
 
-  void TickExitFrame(uword vm_tag, intptr_t serial) {
+  void TickExitFrame(uword vm_tag, intptr_t serial, ProcessedSample* sample) {
     if (FLAG_profile_vm) {
       return;
     }
@@ -1873,7 +1916,8 @@ class ProfileBuilder : public ValueObject {
   }
 
   ProfileCodeTrieNode* AppendExitFrame(uword vm_tag,
-                                       ProfileCodeTrieNode* current) {
+                                       ProfileCodeTrieNode* current,
+                                       ProcessedSample* sample) {
     if (FLAG_profile_vm) {
       return current;
     }
@@ -1883,19 +1927,20 @@ class ProfileBuilder : public ValueObject {
     }
 
     if (VMTag::IsNativeEntryTag(vm_tag) || VMTag::IsRuntimeEntryTag(vm_tag)) {
-      current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current);
+      current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current, sample);
     } else {
       intptr_t tag_index = GetProfileCodeTagIndex(vm_tag);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
   ProfileCodeTrieNode* AppendTags(uword vm_tag,
                                   uword user_tag,
-                                  ProfileCodeTrieNode* current) {
+                                  ProfileCodeTrieNode* current,
+                                  ProcessedSample* sample) {
     if (FLAG_profile_vm) {
       // None.
       if (tag_order() == Profile::kNoTags) {
@@ -1904,36 +1949,37 @@ class ProfileBuilder : public ValueObject {
       // User first.
       if ((tag_order() == Profile::kUserVM) ||
           (tag_order() == Profile::kUser)) {
-        current = AppendUserTag(user_tag, current);
+        current = AppendUserTag(user_tag, current, sample);
         // Only user.
         if (tag_order() == Profile::kUser) {
           return current;
         }
-        return AppendVMTags(vm_tag, current);
+        return AppendVMTags(vm_tag, current, sample);
       }
       // VM first.
       ASSERT((tag_order() == Profile::kVMUser) ||
              (tag_order() == Profile::kVM));
-      current = AppendVMTags(vm_tag, current);
+      current = AppendVMTags(vm_tag, current, sample);
       // Only VM.
       if (tag_order() == Profile::kVM) {
         return current;
       }
-      return AppendUserTag(user_tag, current);
+      return AppendUserTag(user_tag, current, sample);
     }
 
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
 
-    return AppendUserTag(user_tag, current);
+    return AppendUserTag(user_tag, current, sample);
   }
 
   // ProfileFunctionTrieNode
   void ResetKind() { info_kind_ = kNone; }
 
   ProfileFunctionTrieNode* AppendKind(ProfileInfoKind kind,
-                                      ProfileFunctionTrieNode* current) {
+                                      ProfileFunctionTrieNode* current,
+                                      ProcessedSample* sample) {
     if (!TagsEnabled(ProfilerService::kCodeTransitionTagsBit)) {
       // Only emit if debug tags are requested.
       return current;
@@ -1944,68 +1990,72 @@ class ProfileBuilder : public ValueObject {
           GetProfileFunctionTagIndex(ProfileInfoKindToVMTag(kind));
       ASSERT(tag_index >= 0);
       current = current->GetChild(tag_index);
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
   ProfileFunctionTrieNode* AppendKind(const Code& code,
-                                      ProfileFunctionTrieNode* current) {
+                                      ProfileFunctionTrieNode* current,
+                                      ProcessedSample* sample) {
     if (code.IsNull()) {
-      return AppendKind(kNone, current);
+      return AppendKind(kNone, current, sample);
     } else if (code.is_optimized()) {
-      return AppendKind(kOptimized, current);
+      return AppendKind(kOptimized, current, sample);
     } else {
-      return AppendKind(kUnoptimized, current);
+      return AppendKind(kUnoptimized, current, sample);
     }
   }
 
   ProfileFunctionTrieNode* AppendUserTag(uword user_tag,
-                                         ProfileFunctionTrieNode* current) {
+                                         ProfileFunctionTrieNode* current,
+                                         ProcessedSample* sample) {
     intptr_t user_tag_index = GetProfileFunctionTagIndex(user_tag);
     if (user_tag_index >= 0) {
       current = current->GetChild(user_tag_index);
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
-  ProfileFunctionTrieNode* AppendTruncatedTag(
-      ProfileFunctionTrieNode* current) {
+  ProfileFunctionTrieNode* AppendTruncatedTag(ProfileFunctionTrieNode* current,
+                                              ProcessedSample* sample) {
     intptr_t truncated_tag_index =
         GetProfileFunctionTagIndex(VMTag::kTruncatedTagId);
     ASSERT(truncated_tag_index >= 0);
     current = current->GetChild(truncated_tag_index);
-    current->Tick();
+    current->Tick(sample);
     return current;
   }
 
   ProfileFunctionTrieNode* AppendVMTag(uword vm_tag,
-                                       ProfileFunctionTrieNode* current) {
+                                       ProfileFunctionTrieNode* current,
+                                       ProcessedSample* sample) {
     if (VMTag::IsNativeEntryTag(vm_tag)) {
       // Insert a dummy kNativeTagId node.
       intptr_t tag_index = GetProfileFunctionTagIndex(VMTag::kNativeTagId);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     } else if (VMTag::IsRuntimeEntryTag(vm_tag)) {
       // Insert a dummy kRuntimeTagId node.
       intptr_t tag_index = GetProfileFunctionTagIndex(VMTag::kRuntimeTagId);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     } else {
       intptr_t tag_index = GetProfileFunctionTagIndex(vm_tag);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
   ProfileFunctionTrieNode* AppendSpecificNativeRuntimeEntryVMTag(
       uword vm_tag,
-      ProfileFunctionTrieNode* current) {
+      ProfileFunctionTrieNode* current,
+      ProcessedSample* sample) {
     // Only Native and Runtime entries have a second VM tag.
     if (!VMTag::IsNativeEntryTag(vm_tag) && !VMTag::IsRuntimeEntryTag(vm_tag)) {
       return current;
@@ -2013,19 +2063,21 @@ class ProfileBuilder : public ValueObject {
     intptr_t tag_index = GetProfileFunctionTagIndex(vm_tag);
     current = current->GetChild(tag_index);
     // Give the tag a tick.
-    current->Tick();
+    current->Tick(sample);
     return current;
   }
 
   ProfileFunctionTrieNode* AppendVMTags(uword vm_tag,
-                                        ProfileFunctionTrieNode* current) {
-    current = AppendVMTag(vm_tag, current);
-    current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current);
+                                        ProfileFunctionTrieNode* current,
+                                        ProcessedSample* sample) {
+    current = AppendVMTag(vm_tag, current, sample);
+    current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current, sample);
     return current;
   }
 
   ProfileFunctionTrieNode* AppendExitFrame(uword vm_tag,
-                                           ProfileFunctionTrieNode* current) {
+                                           ProfileFunctionTrieNode* current,
+                                           ProcessedSample* sample) {
     if (FLAG_profile_vm) {
       return current;
     }
@@ -2034,19 +2086,20 @@ class ProfileBuilder : public ValueObject {
       return current;
     }
     if (VMTag::IsNativeEntryTag(vm_tag) || VMTag::IsRuntimeEntryTag(vm_tag)) {
-      current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current);
+      current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current, sample);
     } else {
       intptr_t tag_index = GetProfileFunctionTagIndex(vm_tag);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
-      current->Tick();
+      current->Tick(sample);
     }
     return current;
   }
 
   ProfileFunctionTrieNode* AppendTags(uword vm_tag,
                                       uword user_tag,
-                                      ProfileFunctionTrieNode* current) {
+                                      ProfileFunctionTrieNode* current,
+                                      ProcessedSample* sample) {
     if (FLAG_profile_vm) {
       // None.
       if (tag_order() == Profile::kNoTags) {
@@ -2055,29 +2108,29 @@ class ProfileBuilder : public ValueObject {
       // User first.
       if ((tag_order() == Profile::kUserVM) ||
           (tag_order() == Profile::kUser)) {
-        current = AppendUserTag(user_tag, current);
+        current = AppendUserTag(user_tag, current, sample);
         // Only user.
         if (tag_order() == Profile::kUser) {
           return current;
         }
-        return AppendVMTags(vm_tag, current);
+        return AppendVMTags(vm_tag, current, sample);
       }
       // VM first.
       ASSERT((tag_order() == Profile::kVMUser) ||
              (tag_order() == Profile::kVM));
-      current = AppendVMTags(vm_tag, current);
+      current = AppendVMTags(vm_tag, current, sample);
       // Only VM.
       if (tag_order() == Profile::kVM) {
         return current;
       }
-      return AppendUserTag(user_tag, current);
+      return AppendUserTag(user_tag, current, sample);
     }
 
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
 
-    return AppendUserTag(user_tag, current);
+    return AppendUserTag(user_tag, current, sample);
   }
 
   intptr_t GetProfileCodeTagIndex(uword tag) {
@@ -2560,6 +2613,22 @@ intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
 }
 
 
+intptr_t ProfileTrieWalker::CurrentInclusiveAllocations() {
+  if (current_ == NULL) {
+    return -1;
+  }
+  return current_->inclusive_allocations();
+}
+
+
+intptr_t ProfileTrieWalker::CurrentExclusiveAllocations() {
+  if (current_ == NULL) {
+    return -1;
+  }
+  return current_->exclusive_allocations();
+}
+
+
 const char* ProfileTrieWalker::CurrentToken() {
   if (current_ == NULL) {
     return NULL;
@@ -2725,21 +2794,6 @@ class ClassAllocationSampleFilter : public SampleFilter {
 };
 
 
-class NativeAllocationSampleFilter : public SampleFilter {
- public:
-  NativeAllocationSampleFilter(intptr_t thread_task_mask,
-                               int64_t time_origin_micros,
-                               int64_t time_extent_micros)
-      : SampleFilter(ILLEGAL_PORT,
-                     thread_task_mask,
-                     time_origin_micros,
-                     time_extent_micros) {}
-  bool FilterSample(Sample* sample) {
-    return sample->is_native_allocation_sample();
-  }
-};
-
-
 void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                           Profile::TagOrder tag_order,
                                           const Class& cls,
@@ -2760,11 +2814,7 @@ void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
                                                 int64_t time_origin_micros,
                                                 int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
-  const intptr_t thread_task_mask = Thread::kMutatorTask |
-                                    Thread::kCompilerTask |
-                                    Thread::kSweeperTask | Thread::kMarkerTask;
-  NativeAllocationSampleFilter filter(thread_task_mask, time_origin_micros,
-                                      time_extent_micros);
+  NativeAllocationSampleFilter filter(time_origin_micros, time_extent_micros);
   const bool as_timeline = false;
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
 }

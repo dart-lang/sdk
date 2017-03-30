@@ -30,7 +30,9 @@ void main() {
         compiler.registerSource(
             reexportingLibraryUri, REEXPORTING_LIBRARY_SOURCE);
         return compiler.libraryLoader.loadLibrary(exportingLibraryUri);
-      }).then((exportingLibrary) {
+      }).then((loadedLibraries) {
+        compiler.processLoadedLibraries(loadedLibraries);
+        var exportingLibrary = loadedLibraries.rootLibrary;
         Expect.isTrue(exportingLibrary.exportsHandled);
         var foo = exportingLibrary.findExported('foo');
         Expect.isNotNull(foo);
@@ -38,8 +40,9 @@ void main() {
 
         // Load reexporting library when exports are handled on the exporting library.
         return compiler.libraryLoader.loadLibrary(reexportingLibraryUri);
-      }).then((reexportingLibrary) {
-        var foo = reexportingLibrary.findExported('foo');
+      }).then((loadedLibraries) {
+        compiler.processLoadedLibraries(loadedLibraries);
+        var foo = loadedLibraries.rootLibrary.findExported('foo');
         Expect.isNotNull(foo);
         Expect.isTrue(foo.isField);
       }));

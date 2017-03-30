@@ -4,7 +4,9 @@
 
 library fasta.stack_listener;
 
-import '../parser.dart' show ErrorKind, Listener;
+import '../fasta_codes.dart' show FastaMessage;
+
+import '../parser.dart' show Listener;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -52,6 +54,7 @@ enum NullValue {
 abstract class StackListener extends Listener {
   final Stack stack = new Stack();
 
+  @override
   Uri get uri;
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
@@ -238,14 +241,14 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
-    super.handleRecoverableError(token, kind, arguments);
-    debugEvent("Error: ${recoverableErrors.last}");
+  void handleRecoverableError(Token token, FastaMessage message) {
+    debugEvent("Error: ${message.message}");
+    super.handleRecoverableError(token, message);
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    throw inputError(uri, token.charOffset, "$kind $arguments");
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    throw inputError(uri, token.charOffset, message.message);
   }
 
   void nit(String message, [int charOffset = -1]) {

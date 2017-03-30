@@ -64,7 +64,8 @@ class TestContext extends ChainContext {
               updateExpectations: updateExpectations),
           const WriteDill(),
           const ReadDill(),
-          const Run(),
+          // TODO(29143): uncomment this when Vectors are added to VM.
+          //const Run(),
         ];
 
   Future<DartLoader> createLoader() async {
@@ -124,7 +125,9 @@ Future<TestContext> createContext(
 
   Uri packages = Uri.base.resolve(".packages");
   bool strongMode = false;
-  bool updateExpectations = environment["updateExpectations"] == "true";
+  bool updateExpectations = const String.fromEnvironment("updateExpectations",
+          defaultValue: "false") ==
+      "true";
   return new TestContext(sdk, vm, packages, strongMode,
       createDartSdk(sdk, strongMode: strongMode), updateExpectations);
 }

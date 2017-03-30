@@ -826,6 +826,12 @@ abstract class ElementAnnotation
   bool get isFactory;
 
   /**
+   * Return `true` if this annotation marks the associated class and its
+   * subclasses as being immutable.
+   */
+  bool get isImmutable;
+
+  /**
    * Return `true` if this annotation marks the associated element with the `JS`
    * annotation.
    */
@@ -1277,11 +1283,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 }
 
 /**
- * The pseudo-declaration that defines a generic function type.
- */
-abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
-
-/**
  * A function type alias (`typedef`).
  *
  * Clients may not extend, implement or mix-in this class.
@@ -1325,6 +1326,11 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
   @override
   FunctionType get type;
 }
+
+/**
+ * The pseudo-declaration that defines a generic function type.
+ */
+abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 
 /**
  * A combinator that causes some of the names in a namespace to be hidden when

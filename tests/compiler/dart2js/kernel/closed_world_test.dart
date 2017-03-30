@@ -9,15 +9,28 @@ library dart2js.kernel.closed_world_test;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/js_backend/backend_helpers.dart';
+import 'package:compiler/src/js_backend/backend_impact.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
-import 'package:compiler/src/js_backend/type_variable_handler.dart';
+import 'package:compiler/src/js_backend/custom_elements_analysis.dart';
+import 'package:compiler/src/js_backend/native_data.dart';
+import 'package:compiler/src/js_backend/interceptor_data.dart';
+import 'package:compiler/src/js_backend/lookup_map_analysis.dart';
+import 'package:compiler/src/js_backend/mirrors_analysis.dart';
+import 'package:compiler/src/js_backend/mirrors_data.dart';
+import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/js_backend/resolution_listener.dart';
+import 'package:compiler/src/js_backend/type_variable_handler.dart';
+import 'package:compiler/src/native/enqueue.dart';
+import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/options.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
@@ -126,14 +139,13 @@ main(List<String> args) {
 EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
   JavaScriptBackend backend = compiler.backend;
   return new ResolutionEnqueuerListener(
-      backend.kernelTask,
       compiler.options,
       compiler.elementEnvironment,
       compiler.commonElements,
       backend.helpers,
       backend.impacts,
       backend.backendClasses,
-      backend.nativeBaseData,
+      backend.nativeBasicData,
       backend.interceptorDataBuilder,
       backend.backendUsageBuilder,
       backend.rtiNeedBuilder,
@@ -141,10 +153,57 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       backend.noSuchMethodRegistry,
       backend.customElementsResolutionAnalysis,
       backend.lookupMapResolutionAnalysis,
-      backend.mirrorsAnalysis,
+      backend.mirrorsResolutionAnalysis,
       new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
           backend.impacts, backend.backendUsageBuilder),
-      backend.nativeResolutionEnqueuer);
+      backend.nativeResolutionEnqueuer,
+      backend.kernelTask);
+}
+
+EnqueuerListener createKernelResolutionEnqueuerListener(
+    CompilerOptions options, KernelWorldBuilder worldBuilder) {
+  ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
+  CommonElements commonElements = worldBuilder.commonElements;
+  BackendHelpers helpers =
+      new BackendHelpers(elementEnvironment, commonElements);
+  BackendImpacts impacts = new BackendImpacts(options, commonElements, helpers);
+
+  // TODO(johnniwinther): Create Kernel based implementations for these:
+  NativeBasicData nativeBasicData;
+  RuntimeTypesNeedBuilder rtiNeedBuilder;
+  MirrorsDataBuilder mirrorsDataBuilder;
+  NoSuchMethodRegistry noSuchMethodRegistry;
+  CustomElementsResolutionAnalysis customElementsResolutionAnalysis;
+  LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
+  MirrorsResolutionAnalysis mirrorsResolutionAnalysis;
+  NativeResolutionEnqueuer nativeResolutionEnqueuer;
+
+  InterceptorDataBuilder interceptorDataBuilder =
+      new InterceptorDataBuilderImpl(
+          nativeBasicData, helpers, elementEnvironment, commonElements);
+  BackendUsageBuilder backendUsageBuilder =
+      new BackendUsageBuilderImpl(commonElements, helpers);
+
+  return new ResolutionEnqueuerListener(
+      options,
+      elementEnvironment,
+      commonElements,
+      helpers,
+      impacts,
+      new JavaScriptBackendClasses(
+          elementEnvironment, helpers, nativeBasicData),
+      nativeBasicData,
+      interceptorDataBuilder,
+      backendUsageBuilder,
+      rtiNeedBuilder,
+      mirrorsDataBuilder,
+      noSuchMethodRegistry,
+      customElementsResolutionAnalysis,
+      lookupMapResolutionAnalysis,
+      mirrorsResolutionAnalysis,
+      new TypeVariableResolutionAnalysis(
+          elementEnvironment, impacts, backendUsageBuilder),
+      nativeResolutionEnqueuer);
 }
 
 ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {

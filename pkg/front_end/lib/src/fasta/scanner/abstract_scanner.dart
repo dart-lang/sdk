@@ -11,7 +11,7 @@ import 'dart:typed_data' show Uint16List, Uint32List;
 import '../scanner.dart'
     show ErrorToken, Scanner, buildUnexpectedCharacterToken;
 
-import 'error_token.dart' show UnmatchedToken, UnterminatedToken;
+import 'error_token.dart' show UnterminatedToken;
 
 import 'keyword.dart' show KeywordState, Keyword;
 
@@ -42,7 +42,7 @@ abstract class AbstractScanner implements Scanner {
    * is not exposed to clients of the scanner, which are expected to invoke
    * [firstToken] to access the token stream.
    */
-  final Token tokens = new SymbolToken(EOF_INFO, -1);
+  final Token tokens = new SymbolToken.eof(-1);
 
   /**
    * A pointer to the last scanned token.
@@ -1115,57 +1115,6 @@ abstract class AbstractScanner implements Scanner {
     } else {
       return -1;
     }
-  }
-
-  void unmatchedBeginGroup(BeginGroupToken begin) {
-    // We want to ensure that unmatched BeginGroupTokens are reported as
-    // errors.  However, the diet parser assumes that groups are well-balanced
-    // and will never look at the endGroup token.  This is a nice property that
-    // allows us to skip quickly over correct code. By inserting an additional
-    // synthetic token in the stream, we can keep ignoring endGroup tokens.
-    //
-    // [begin] --next--> [tail]
-    // [begin] --endG--> [synthetic] --next--> [next] --next--> [tail]
-    //
-    // This allows the diet parser to skip from [begin] via endGroup to
-    // [synthetic] and ignore the [synthetic] token (assuming it's correct),
-    // then the error will be reported when parsing the [next] token.
-    //
-    // For example, tokenize("{[1};") produces:
-    //
-    // SymbolToken({) --endGroup-----+
-    //      |                        |
-    //     next                      |
-    //      v                        |
-    // SymbolToken([) --endGroup--+  |
-    //      |                     |  |
-    //     next                   |  |
-    //      v                     |  |
-    // StringToken(1)             |  |
-    //      |                     v  |
-    //     next       SymbolToken(]) | <- Synthetic token.
-    //      |                     |  |
-    //      |                   next |
-    //      v                     |  |
-    // UnmatchedToken([)<---------+  |
-    //      |                        |
-    //     next                      |
-    //      v                        |
-    // SymbolToken(})<---------------+
-    //      |
-    //     next
-    //      v
-    // SymbolToken(;)
-    //      |
-    //     next
-    //      v
-    //     EOF
-    Token synthetic =
-        new SymbolToken(closeBraceInfoFor(begin), begin.charOffset);
-    UnmatchedToken next = new UnmatchedToken(begin);
-    begin.endGroup = synthetic;
-    synthetic.next = next;
-    appendErrorToken(next);
   }
 }
 

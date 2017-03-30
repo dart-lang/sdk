@@ -357,7 +357,8 @@ class FileState {
 
     if (USE_FASTA_PARSER) {
       try {
-        fasta.ScannerResult scanResult = fasta.scan(_contentBytes);
+        fasta.ScannerResult scanResult =
+            fasta.scan(_contentBytes, includeComments: true);
 
         var astBuilder = new fasta.AstBuilder(
             new ErrorReporter(errorListener, source),

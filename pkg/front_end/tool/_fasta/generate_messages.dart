@@ -8,25 +8,12 @@ import 'dart:isolate';
 
 import 'package:yaml/yaml.dart' show loadYaml;
 
-import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
-
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 main(List<String> arguments) async {
   var port = new ReceivePort();
   Uri messagesFile = Platform.script.resolve("../../messages.yaml");
   Map yaml = loadYaml(await new File.fromUri(messagesFile).readAsStringSync());
-  Set<String> names =
-      new Set<String>.from(yaml.keys.map((String s) => "ErrorKind.$s"));
-  Set<String> kinds =
-      new Set<String>.from(ErrorKind.values.map((kind) => "$kind"));
-  Set<String> difference = kinds.difference(names);
-  if (difference.isNotEmpty) {
-    Uri errorKindFile = await Isolate.resolvePackageUri(
-        Uri.parse('package:front_end/src/fasta/parser/error_kind.dart'));
-    throw "Mismatch between '${errorKindFile.toFilePath()}' and"
-        " '${messagesFile.toFilePath()}': ${difference.join(' ')}.";
-  }
   StringBuffer sb = new StringBuffer();
 
   sb.writeln("""
@@ -39,11 +26,7 @@ main(List<String> arguments) async {
 // Instead modify 'pkg/front_end/messages.yaml' and run
 // 'pkg/front_end/tool/_fasta/generate_messages.dart' to update.
 
-library fasta.problems;
-
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
-
-import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
+part of fasta.codes;
 """);
 
   yaml.forEach((String name, description) {
@@ -51,13 +34,14 @@ import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
       description = yaml[description];
     }
     Map map = description;
-    sb.writeln(compileTemplate(name, map['template'], map['tip']));
+    sb.writeln(compileTemplate(name, map['template'], map['tip'],
+        map['analyzerCode'], map['dart2jsCode']));
   });
 
   String dartfmtedText = new DartFormatter().format("$sb");
 
   Uri problemsFile = await Isolate.resolvePackageUri(
-      Uri.parse('package:front_end/src/fasta/problems.dart'));
+      Uri.parse('package:front_end/src/fasta/fasta_codes_generated.dart'));
   await new File.fromUri(problemsFile)
       .writeAsString(dartfmtedText, flush: true);
   port.close();
@@ -65,38 +49,41 @@ import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
 
 final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
 
-String compileTemplate(String name, String template, String tip) {
+String compileTemplate(String name, String template, String tip,
+    String analyzerCode, String dart2jsCode) {
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
+  parameters.add("Uri uri");
+  parameters.add("int charOffset");
   for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
     switch (match[0]) {
       case "#character":
         parameters.add("String character");
-        arguments.add("'character': character,");
+        arguments.add("'character': character");
         break;
 
       case "#unicode":
         parameters.add("int codePoint");
         conversions.add("String unicode = "
             "\"(U+\${codePoint.toRadixString(16).padLeft(4, '0')})\";");
-        arguments.add("'codePoint': codePoint,");
+        arguments.add("'codePoint': codePoint");
         break;
 
       case "#name":
         parameters.add("String name");
-        arguments.add("'name': name,");
+        arguments.add("'name': name");
         break;
 
       case "#lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
-        arguments.add("'token': token,");
+        arguments.add("'token': token");
         break;
 
       case "#string":
         parameters.add("String string");
-        arguments.add("'string': string,");
+        arguments.add("'string': string");
         break;
 
       default:
@@ -105,23 +92,48 @@ String compileTemplate(String name, String template, String tip) {
   }
 
   String interpolate(String name, String text) {
-    if (text == null) return "";
-    return "  '$name': "
-        "\"${text.replaceAll(r'$', r'\$').replaceAll('#', '\$')}\",";
+    return "$name: "
+        "\"${text.replaceAll(r'$', r'\$').replaceAll('#', '\$')}\"";
   }
 
+  List<String> codeArguments = <String>[];
+  if (template != null) {
+    codeArguments.add('template: r"$template"');
+  }
+  if (tip != null) {
+    codeArguments.add('tip: r"$tip"');
+  }
+  if (analyzerCode != null) {
+    codeArguments.add('analyzerCode: "$analyzerCode"');
+  }
+  if (dart2jsCode != null) {
+    codeArguments.add('dart2jsCode: "$dart2jsCode"');
+  }
+
+  codeArguments.add("format: _format$name");
+
+  List<String> messageArguments = <String>[];
+  messageArguments.add(interpolate("message", template));
+  if (tip != null) {
+    messageArguments.add(interpolate("tip", tip));
+  }
+  messageArguments.add("arguments: { ${arguments.join(', ')} }");
+
   return """
-problem$name(${parameters.join(', ')}) {
-  // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_$name> code$name =
+    const FastaCode<_$name>(${codeArguments.join(', ')});
+
+typedef FastaMessage _$name(${parameters.join(', ')});
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _format$name(${parameters.join(', ')}) {
   ${conversions.join('\n  ')}
-  return {
-  ${interpolate('message', template)}
-  ${interpolate('tip', tip)}
-    'code': ErrorKind.$name,
-    'arguments': {
-      ${arguments.join('\n      ')}
-    },
-  };
+  return new FastaMessage(
+     uri,
+     charOffset,
+     code$name,
+     ${messageArguments.join(', ')});
 }
 """;
 }

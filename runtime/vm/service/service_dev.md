@@ -2259,6 +2259,7 @@ enum FrameKind {
   Regular,
   AsyncCausal,
   AsyncSuspensionMarker,
+  AsyncActivation
 }
 ```
 

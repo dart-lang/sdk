@@ -1,44 +1,43 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:mock" as mock;
 
 class Closure#main#function extends core::Object implements core::Function {
   field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field mock::Context context;
-  constructor •(final mock::Context context) → dynamic
+  field Vector context;
+  constructor •(final Vector context) → dynamic
     : self::Closure#main#function::context = context
     ;
   method call() → dynamic {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final mock::Context #contextParameter = this.{self::Closure#main#function::context};
-    return let final dynamic #t1 = #contextParameter.parent in let final dynamic #t2 = 0 in let final dynamic #t3 = #contextParameter.[](0) in let final dynamic #t4 = #t1.[]=(#t2, #t3) in #t3;
+    final Vector #contextParameter = this.{self::Closure#main#function::context};
+    return #contextParameter[0][1] = #contextParameter[1];
   }
 }
 class Closure#main#function#1 extends core::Object implements core::Function {
   field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field mock::Context context;
-  constructor •(final mock::Context context) → dynamic
+  field Vector context;
+  constructor •(final Vector context) → dynamic
     : self::Closure#main#function#1::context = context
     ;
   method call() → dynamic {
     "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final mock::Context #contextParameter = this.{self::Closure#main#function#1::context};
-    if(!#contextParameter.parent.[](0).==(self::max.-(1)))
-      throw "last: ${#contextParameter.parent.[](0)} != ${self::max.-(1)}";
+    final Vector #contextParameter = this.{self::Closure#main#function#1::context};
+    if(!(#contextParameter[0][1]).==(self::max.-(1)))
+      throw "last: ${#contextParameter[0][1]} != ${self::max.-(1)}";
   }
 }
 static const field core::int max = 100;
 static method main() → dynamic {
   dynamic closures = <dynamic>[];
   dynamic closures2 = <dynamic>[];
-  final mock::Context #context = new mock::Context::•(1);
-  #context.[]=(0, null);
+  final Vector #context = MakeVector(2);
+  #context[1] = null;
   {
-    mock::Context #context = new mock::Context::•(1);
-    #context.parent = #context;
-    #context.[]=(0, 0);
-    for (; #context.[](0).<(self::max); #context = #context.copy(), #context.[]=(0, #context.[](0).+(1))) {
+    Vector #context = MakeVector(2);
+    #context[0] = #context;
+    #context[1] = 0;
+    for (; (#context[1]).<(self::max); #context = CopyVector(#context), #context[1] = (#context[1]).+(1)) {
       closures.add(new self::Closure#main#function::•(#context));
       closures2.add(new self::Closure#main#function#1::•(#context));
     }

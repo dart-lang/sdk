@@ -43,22 +43,6 @@ class PrefixBuilder extends Builder {
     }
   }
 
-  Builder combineAmbiguousImport(
-      String name, Builder other, LibraryBuilder library) {
-    if (other is PrefixBuilder) {
-      /// Handles the case where the same prefix is used for different imports.
-      other.exports.forEach((String name, Builder member) {
-        Builder existing = exports[name];
-        if (existing != null) {
-          member = existing.combineAmbiguousImport(name, member, library);
-        }
-        exports[name] = member;
-      });
-      return this;
-    }
-    return super.combineAmbiguousImport(name, other, library);
-  }
-
   @override
   String get fullNameForErrors => name;
 }

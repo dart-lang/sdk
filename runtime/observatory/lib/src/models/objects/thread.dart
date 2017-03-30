@@ -20,6 +20,8 @@ abstract class Thread {
   /// The task type associated with the thread.
   ThreadKind get kind;
 
+  String get kindString;
+
   /// The maximum amount of zone memory in bytes allocated by a thread at a
   /// given time throughout the entire life of the thread.
   int get zoneHighWatermark;

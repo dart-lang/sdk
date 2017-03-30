@@ -27,6 +27,7 @@
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "platform/globals.h"
+#include "platform/growable_array.h"
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
 #if !defined(DART_PRECOMPILER)
@@ -60,6 +61,7 @@ enum SnapshotKind {
   kAppJIT,
 };
 static SnapshotKind gen_snapshot_kind = kNone;
+static const char* snapshot_deps_filename = NULL;
 
 static bool use_dart_frontend = false;
 
@@ -372,6 +374,13 @@ static bool ProcessSnapshotKindOption(const char* kind,
 }
 
 
+static bool ProcessSnapshotDepsFilenameOption(const char* filename,
+                                              CommandLineOptions* vm_options) {
+  snapshot_deps_filename = filename;
+  return true;
+}
+
+
 static bool ProcessEnableVmServiceOption(const char* option_value,
                                          CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
@@ -553,6 +562,7 @@ static struct {
     {"--observe", ProcessObserveOption},
     {"--snapshot=", ProcessSnapshotFilenameOption},
     {"--snapshot-kind=", ProcessSnapshotKindOption},
+    {"--snapshot-depfile=", ProcessSnapshotDepsFilenameOption},
     {"--use-blobs", ProcessUseBlobsOption},
     {"--save-feedback=", ProcessSaveFeedbackOption},
     {"--load-feedback=", ProcessLoadFeedbackOption},
@@ -688,7 +698,8 @@ static int ParseArguments(int argc,
     Log::PrintErr("Empty package file name specified.\n");
     return -1;
   }
-  if ((gen_snapshot_kind != kNone) && (snapshot_filename == NULL)) {
+  if (((gen_snapshot_kind != kNone) || (snapshot_deps_filename != NULL)) &&
+      (snapshot_filename == NULL)) {
     Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
     return -1;
   }
@@ -782,7 +793,6 @@ static void SnapshotOnExitHook(int64_t exit_code) {
     Snapshot::GenerateAppJIT(snapshot_filename);
   }
 }
-
 
 // Returns newly created Isolate on success, NULL on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
@@ -880,6 +890,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
+  if (is_main_isolate && (snapshot_deps_filename != NULL)) {
+    isolate_data->set_dependencies(new MallocGrowableArray<char*>());
+  }
   // If the script is a Kernel binary, then we will try to bootstrap from the
   // script.
   Dart_Isolate isolate =
@@ -1256,6 +1269,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       Log::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
+    Process::ClearAllSignalHandlers();
     EventHandler::Stop();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
@@ -1309,15 +1323,16 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
           {"dart:_builtin", "::", "_getMainClosure"},
           {"dart:_builtin", "::", "_getPrintClosure"},
           {"dart:_builtin", "::", "_getUriBaseClosure"},
+          {"dart:_builtin", "::", "_libraryFilePath"},
           {"dart:_builtin", "::", "_resolveInWorkingDirectory"},
-          {"dart:_builtin", "::", "_setWorkingDirectory"},
           {"dart:_builtin", "::", "_setPackageRoot"},
           {"dart:_builtin", "::", "_setPackagesMap"},
-          {"dart:_builtin", "::", "_libraryFilePath"},
-          {"dart:io", "::", "_makeUint8ListView"},
-          {"dart:io", "::", "_makeDatagram"},
-          {"dart:io", "::", "_setupHooks"},
+          {"dart:_builtin", "::", "_setWorkingDirectory"},
+          {"dart:async", "::", "_setScheduleImmediateClosure"},
           {"dart:io", "::", "_getWatchSignalInternal"},
+          {"dart:io", "::", "_makeDatagram"},
+          {"dart:io", "::", "_makeUint8ListView"},
+          {"dart:io", "::", "_setupHooks"},
           {"dart:io", "CertificateException", "CertificateException."},
           {"dart:io", "Directory", "Directory."},
           {"dart:io", "File", "File."},
@@ -1327,17 +1342,20 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
           {"dart:io", "OSError", "OSError."},
           {"dart:io", "TlsException", "TlsException."},
           {"dart:io", "X509Certificate", "X509Certificate._"},
-          {"dart:io", "_ExternalBuffer", "set:data"},
-          {"dart:io", "_ExternalBuffer", "get:start"},
-          {"dart:io", "_ExternalBuffer", "set:start"},
           {"dart:io", "_ExternalBuffer", "get:end"},
+          {"dart:io", "_ExternalBuffer", "get:start"},
+          {"dart:io", "_ExternalBuffer", "set:data"},
           {"dart:io", "_ExternalBuffer", "set:end"},
+          {"dart:io", "_ExternalBuffer", "set:start"},
           {"dart:io", "_Platform", "set:_nativeScript"},
           {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
           {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
-          {"dart:io", "_SecureFilterImpl", "get:buffers"},
           {"dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE"},
           {"dart:io", "_SecureFilterImpl", "get:SIZE"},
+          {"dart:io", "_SecureFilterImpl", "get:buffers"},
+          {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
+          {"dart:isolate", "::", "_setupHooks"},
+          {"dart:isolate", "::", "_startMainIsolate"},
           {"dart:vmservice_io", "::", "main"},
           {NULL, NULL, NULL}  // Must be terminated with NULL entries.
       };
@@ -1419,7 +1437,38 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
   }
 
+  if (snapshot_deps_filename != NULL) {
+    IsolateData* isolate_data =
+        reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
+    ASSERT(isolate_data != NULL);
+    MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
+    ASSERT(dependencies != NULL);
+    File* file = File::Open(snapshot_deps_filename, File::kWriteTruncate);
+    if (file == NULL) {
+      ErrorExit(kErrorExitCode,
+                "Error: Unable to open snapshot depfile: %s\n\n",
+                snapshot_deps_filename);
+    }
+    bool success = true;
+    success &= file->Print("%s: ", snapshot_filename);
+    for (intptr_t i = 0; i < dependencies->length(); i++) {
+      char* dep = dependencies->At(i);
+      success &= file->Print("%s ", dep);
+      free(dep);
+    }
+    success &= file->Print("\n");
+    if (!success) {
+      ErrorExit(kErrorExitCode,
+                "Error: Unable to write snapshot depfile: %s\n\n",
+                snapshot_deps_filename);
+    }
+    file->Release();
+    isolate_data->set_dependencies(NULL);
+    delete dependencies;
+  }
+
   Dart_ExitScope();
+
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
 
@@ -1643,6 +1692,7 @@ void main(int argc, char** argv) {
     Log::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
+  Process::ClearAllSignalHandlers();
   EventHandler::Stop();
 
   delete app_snapshot;

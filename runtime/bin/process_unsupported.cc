@@ -19,6 +19,7 @@ Process::ExitHook Process::exit_hook_ = NULL;
 
 void Process::TerminateExitCodeHandler() {}
 
+void Process::ClearAllSignalHandlers() {}
 
 void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_ThrowException(

@@ -1256,6 +1256,22 @@ import 'dart:math';
         unorderedEquals(['dart:async', 'dart:math', 'dart:core']));
   }
 
+  @failingTest
+  test_getResult_invalidUri_metadata() async {
+    String content = r'''
+@foo
+import '';
+
+@foo
+export '';
+
+@foo
+part '';
+''';
+    addTestFile(content);
+    await driver.getResult(testFile);
+  }
+
   test_getResult_mix_fileAndPackageUris() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');

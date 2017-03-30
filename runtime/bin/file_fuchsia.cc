@@ -133,11 +133,6 @@ bool File::SetPosition(int64_t position) {
 }
 
 
-// There is no difference between binary and text translation modes on this
-// platform, so this operation is a no-op.
-void File::SetTranslation(DartFileTranslation translation) {}
-
-
 bool File::Truncate(int64_t length) {
   ASSERT(handle_->fd() >= 0);
   return NO_RETRY_EXPECTED(ftruncate(handle_->fd(), length) != -1);

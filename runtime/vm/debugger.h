@@ -336,6 +336,7 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObject(JSONObject* jsobj, bool full = false);
 
   RawObject* GetAsyncAwaiter();
+  RawObject* GetCausalStack();
 
   bool HandlesException(const Instance& exc_obj);
 
@@ -343,7 +344,7 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObjectRegular(JSONObject* jsobj, bool full);
   void PrintToJSONObjectAsyncCausal(JSONObject* jsobj, bool full);
   void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj, bool full);
-
+  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj, bool full);
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
@@ -368,6 +369,8 @@ class ActivationFrame : public ZoneAllocated {
         return "AsyncCausal";
       case kAsyncSuspensionMarker:
         return "AsyncSuspensionMarker";
+      case kAsyncActivation:
+        return "AsyncActivation";
       default:
         UNREACHABLE();
         return "";
@@ -454,6 +457,8 @@ class Debugger {
   void NotifyIsolateCreated();
   void Shutdown();
 
+  void OnIsolateRunnable();
+
   void NotifyCompilation(const Function& func);
   void NotifyDoneLoading();
 
@@ -484,11 +489,18 @@ class Debugger {
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
+  void MaybeAsyncStepInto(const Closure& async_op);
+  void AsyncStepInto(const Closure& async_op);
+
+  void Continue();
+
   bool SetResumeAction(ResumeAction action,
                        intptr_t frame_index = 1,
                        const char** error = NULL);
 
   bool IsStepping() const { return resume_action_ != kContinue; }
+
+  bool IsSingleStepping() const { return resume_action_ == kStepInto; }
 
   bool IsPaused() const { return pause_event_ != NULL; }
 
@@ -532,6 +544,9 @@ class Debugger {
 
   DebuggerStackTrace* AsyncCausalStackTrace();
   DebuggerStackTrace* CurrentAsyncCausalStackTrace();
+
+  DebuggerStackTrace* AwaiterStackTrace();
+  DebuggerStackTrace* CurrentAwaiterStackTrace();
 
   // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
   // Frames corresponding to invisible functions are omitted. It is not valid
@@ -685,7 +700,8 @@ class Debugger {
                              bool skip_next_step = false);
 
   void CacheStackTraces(DebuggerStackTrace* stack_trace,
-                        DebuggerStackTrace* async_causal_stack_trace);
+                        DebuggerStackTrace* async_causal_stack_trace,
+                        DebuggerStackTrace* awaiter_stack_trace);
   void ClearCachedStackTraces();
 
 
@@ -731,6 +747,7 @@ class Debugger {
   // Current stack trace. Valid only while IsPaused().
   DebuggerStackTrace* stack_trace_;
   DebuggerStackTrace* async_causal_stack_trace_;
+  DebuggerStackTrace* awaiter_stack_trace_;
 
   // When stepping through code, only pause the program if the top
   // frame corresponds to this fp value, or if the top frame is

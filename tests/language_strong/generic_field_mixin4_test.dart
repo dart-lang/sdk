@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 
 class M<T> {
-  var field = () {
+  bool field = () {
     try {
       throw 0;
     } on T catch (e) {

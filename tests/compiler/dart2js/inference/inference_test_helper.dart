@@ -48,8 +48,7 @@ checkCode(String annotatedCode, CheckMemberFunction checkMember,
         computeSpannable(compiler.elementEnvironment, mainUri, id),
         'expected:${expected},actual:null');
   });
-  Expect.isTrue(expectedMap.isEmpty,
-      "Ids not found: $expectedMap.");
+  Expect.isTrue(expectedMap.isEmpty, "Ids not found: $expectedMap.");
 }
 
 void checkMemberAstTypeMasks(

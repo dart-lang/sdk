@@ -743,7 +743,8 @@ build() => new Container(
     assertSuggest('children: ',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: '<Widget>[]');
+        defaultArgListString: 'children: <Widget>[]',
+        defaultArgumentListTextRanges: [10, 10]);
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
@@ -767,7 +768,7 @@ build() => new Container(
     assertSuggest('children: ',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: '[]');
+        defaultArgListString: 'children: []');
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {

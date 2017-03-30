@@ -98,14 +98,13 @@ class BazelPackageUriResolver extends UriResolver {
       if (root != null && context.isWithin(root, path)) {
         String relative = context.relative(path, from: root);
         List<String> components = context.split(relative);
-        if (components.length >= 1 && components[0] == 'third_party') {
-          if (components.length > 4 &&
-              components[1] == 'dart' &&
-              components[3] == 'lib') {
-            String packageName = components[2];
-            String pathInLib = components.skip(4).join('/');
-            return Uri.parse('package:$packageName/$pathInLib');
-          }
+        if (components.length > 4 &&
+            components[0] == 'third_party' &&
+            components[1] == 'dart' &&
+            components[3] == 'lib') {
+          String packageName = components[2];
+          String pathInLib = components.skip(4).join('/');
+          return Uri.parse('package:$packageName/$pathInLib');
         } else {
           for (int i = 2; i < components.length - 1; i++) {
             String component = components[i];

@@ -72,7 +72,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 26;
+  static const int DATA_VERSION = 28;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -1104,8 +1104,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         // errors were written.
         throw new StateError('No ErrorCode for $errorName in $file');
       }
-      return new AnalysisError.forValues(file.source, error.offset,
-          error.length, errorCode, error.message, error.correction);
+      return new AnalysisError.forValues(
+          file.source,
+          error.offset,
+          error.length,
+          errorCode,
+          error.message,
+          error.correction.isEmpty ? null : error.correction);
     }).toList();
   }
 

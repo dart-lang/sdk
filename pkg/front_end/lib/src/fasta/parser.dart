@@ -16,8 +16,6 @@ export 'parser/parser.dart' show Parser, optional;
 
 export 'parser/listener.dart' show Listener, ParserError;
 
-export 'parser/error_kind.dart' show ErrorKind;
-
 export 'parser/top_level_parser.dart' show TopLevelParser;
 
 export 'parser/class_member_parser.dart' show ClassMemberParser;

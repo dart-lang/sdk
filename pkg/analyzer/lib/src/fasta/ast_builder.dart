@@ -15,6 +15,8 @@ import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, Token;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show FastaMessage, codeExpectedExpression;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -30,7 +32,6 @@ import 'element_store.dart'
         ElementStore,
         KernelClassElement;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:front_end/src/fasta/parser/error_kind.dart';
 import 'token_utils.dart' show toAnalyzerToken, toAnalyzerCommentToken;
 
 class AstBuilder extends ScopeListener {
@@ -902,6 +903,65 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(endToken)));
   }
 
+  @override
+  void endSwitchBlock(int caseCount, Token leftBracket, Token rightBracket) {
+    debugEvent("SwitchBlock");
+    List<List<SwitchMember>> membersList = popList(caseCount);
+    exitBreakTarget();
+    exitLocalScope();
+    List<SwitchMember> members =
+        membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
+    push(leftBracket);
+    push(members);
+    push(rightBracket);
+  }
+
+  @override
+  void handleSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
+    debugEvent("SwitchCase");
+    List<Statement> statements = popList(statementCount);
+    List<SwitchMember> members = popList(expressionCount) ?? [];
+    List<Label> labels = popList(labelCount);
+    if (defaultKeyword != null) {
+      members.add(ast.switchDefault(
+          <Label>[], defaultKeyword, defaultKeyword.next, <Statement>[]));
+    }
+    members.last.statements.addAll(statements);
+    members.first.labels.addAll(labels);
+    push(members);
+  }
+
+  @override
+  void handleCaseMatch(Token caseKeyword, Token colon) {
+    debugEvent("CaseMatch");
+    Expression expression = pop();
+    push(ast.switchCase(
+        <Label>[], caseKeyword, expression, colon, <Statement>[]));
+  }
+
+  @override
+  void endSwitchStatement(Token switchKeyword, Token endToken) {
+    debugEvent("SwitchStatement");
+    Token rightBracket = pop();
+    List<SwitchMember> members = pop();
+    Token leftBracket = pop();
+    ParenthesizedExpression expression = pop();
+    push(ast.switchStatement(
+        switchKeyword,
+        expression.leftParenthesis,
+        expression.expression,
+        expression.rightParenthesis,
+        leftBracket,
+        members,
+        rightBracket));
+  }
+
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     debugEvent("CatchBlock");
     Block body = pop();
@@ -944,6 +1004,13 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(finallyKeyword), finallyBlock));
   }
 
+  @override
+  void handleLabel(Token colon) {
+    debugEvent("Label");
+    SimpleIdentifier name = pop();
+    push(ast.label(name, colon));
+  }
+
   void handleNoExpression(Token token) {
     debugEvent("NoExpression");
     push(NullValue.Expression);
@@ -980,8 +1047,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    if (kind == ErrorKind.ExpectedExpression) {
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    if (message.code == codeExpectedExpression) {
       String lexeme = token.lexeme;
       if (identical('async', lexeme) || identical('yield', lexeme)) {
         errorReporter?.reportErrorForOffset(
@@ -992,7 +1059,7 @@ class AstBuilder extends ScopeListener {
         return token;
       }
     }
-    return super.handleUnrecoverableError(token, kind, arguments);
+    return super.handleUnrecoverableError(token, message);
   }
 
   void handleUnaryPrefixExpression(Token token) {
@@ -1054,14 +1121,19 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endCompilationUnit(int count, Token token) {
+  void beginCompilationUnit(Token token) {
+    push(token);
+  }
+
+  @override
+  void endCompilationUnit(int count, Token endToken) {
     debugEvent("CompilationUnit");
-    analyzer.Token beginToken = null; // TODO(paulberry)
+    List<Object> elements = popList(count);
+    Token beginToken = pop();
+
     ScriptTag scriptTag = null;
     var directives = <Directive>[];
     var declarations = <CompilationUnitMember>[];
-    analyzer.Token endToken = null; // TODO(paulberry)
-    List<Object> elements = popList(count);
     if (elements != null) {
       for (AstNode node in elements) {
         if (node is ScriptTag) {
@@ -1076,6 +1148,7 @@ class AstBuilder extends ScopeListener {
         }
       }
     }
+
     push(ast.compilationUnit(
         beginToken, scriptTag, directives, declarations, endToken));
   }
@@ -1303,6 +1376,14 @@ class AstBuilder extends ScopeListener {
         withClause,
         implementsClause,
         toAnalyzerToken(endToken)));
+  }
+
+  @override
+  void endLabeledStatement(int labelCount) {
+    debugEvent("LabeledStatement");
+    Statement statement = pop();
+    List<Label> labels = popList(labelCount);
+    push(ast.labeledStatement(labels, statement));
   }
 
   @override

@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 class Foo {
   var closures = {
-    'a': (x, y) => x + y
+    'a': (int x, int y) => x + y
   };
 }
 

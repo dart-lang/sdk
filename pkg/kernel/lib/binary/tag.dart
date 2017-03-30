@@ -88,6 +88,7 @@ class Tag {
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
 
+  static const int VectorType = 88;
   static const int BottomType = 89;
   static const int InvalidType = 90;
   static const int DynamicType = 91;
@@ -101,6 +102,11 @@ class Tag {
   static const int NullReference = 99;
   static const int ClassReference = 100;
   static const int MemberReference = 101;
+
+  static const int VectorCreation = 102;
+  static const int VectorGet = 103;
+  static const int VectorSet = 104;
+  static const int VectorCopy = 105;
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000

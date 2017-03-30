@@ -745,6 +745,13 @@ class BackendHelpers {
         commonElements.objectClass, Identifiers.noSuchMethod_);
   }
 
+  bool isDefaultNoSuchMethodImplementation(FunctionEntity element) {
+    ClassEntity classElement = element.enclosingClass;
+    return classElement == commonElements.objectClass ||
+        classElement == jsInterceptorClass ||
+        classElement == jsNullClass;
+  }
+
   ClassEntity get constantMapClass =>
       _findHelperClass(JavaScriptMapConstant.DART_CLASS);
   ClassEntity get constantStringMapClass =>

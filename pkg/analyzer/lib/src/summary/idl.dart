@@ -1140,6 +1140,12 @@ enum ReferenceKind {
  */
 abstract class TopLevelInferenceError extends base.SummaryClass {
   /**
+   * The [kind] specific arguments.
+   */
+  @Id(2)
+  List<String> get arguments;
+
+  /**
    * The kind of the error.
    */
   @Id(1)
@@ -2191,6 +2197,11 @@ enum UnlinkedExprOperation {
    * from [UnlinkedExpr.references], and push the resulting value back onto the
    * stack.
    *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
+   *
    * Note that for an invocation of the form `const a.b(...)` (where no type
    * arguments are specified), it is impossible to tell from the unresolved AST
    * alone whether `a` is a class name and `b` is a constructor name, or `a` is
@@ -2434,6 +2445,11 @@ enum UnlinkedExprOperation {
    * aforementioned method or function.  Push the result of the invocation onto
    * the stack.
    *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
+   *
    * In general `a.b` cannot not be distinguished between: `a` is a prefix and
    * `b` is a top-level function; or `a` is an object and `b` is the name of a
    * method.  This operation should be used for a sequence of identifiers
@@ -2454,6 +2470,11 @@ enum UnlinkedExprOperation {
    * arguments from [UnlinkedExpr.references] and use them as generic type
    * arguments for the aforementioned method.  Push the result of the
    * invocation onto the stack.
+   *
+   * Arguments are skipped, and `0` are specified as the numbers of arguments
+   * on the stack, if the expression is not a constant. We store expression of
+   * variable initializers to perform top-level inference, and arguments are
+   * never used to infer types.
    *
    * This operation should be used for invocation of a method invocation
    * where `target` is known to be an object instance.

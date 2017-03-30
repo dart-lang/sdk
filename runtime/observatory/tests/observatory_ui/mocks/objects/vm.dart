@@ -21,6 +21,13 @@ class VMMock implements M.VM {
   final int maxRSS;
   final DateTime startTime;
   final Iterable<M.IsolateRef> isolates;
+  final int nativeZoneMemoryUsage = 0;
+  final int heapAllocatedMemoryUsage = 0;
+  final int heapAllocationCount = 0;
+
+  Future<dynamic> invokeRpc(String method, Map params) {
+    return null;
+  }
 
   const VMMock(
       {this.name: 'vm-name',

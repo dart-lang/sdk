@@ -554,7 +554,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //         ...
       //       }
       //     } finally {
-      //       :for-iterator.cancel();
+      //       await :for-iterator.cancel();
       //     }
       //   }
       var iteratorVariable = new VariableDeclaration(':for-iterator',
@@ -579,10 +579,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var tryBody = new WhileStatement(condition, whileBody);
 
       // iterator.cancel();
-      var tryFinalizer = new ExpressionStatement(new MethodInvocation(
-          new VariableGet(iteratorVariable),
-          new Name('cancel'),
-          new Arguments(<Expression>[])));
+      var tryFinalizer = new ExpressionStatement(new AwaitExpression(
+          new MethodInvocation(new VariableGet(iteratorVariable),
+              new Name('cancel'), new Arguments(<Expression>[]))));
 
       var tryFinally = new TryFinally(tryBody, tryFinalizer);
 

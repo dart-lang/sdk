@@ -456,7 +456,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
     element.type = new FunctionTypeImpl.forTypedef(element);
-    element.function = node.functionType.type.element;
+    element.function = node.functionType?.type?.element;
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();
@@ -1446,7 +1446,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     if (normalParameter is SimpleFormalParameterImpl) {
       normalParameter.element = parameter;
     }
-    parameterName.staticElement = parameter;
+    parameterName?.staticElement = parameter;
     normalParameter.accept(this);
     return null;
   }

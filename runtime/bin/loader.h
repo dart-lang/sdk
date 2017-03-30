@@ -108,6 +108,9 @@ class Loader {
   /// Blocks the caller until the loader is finished.
   void BlockUntilComplete(ProcessResult process_result);
 
+  /// Saves a script dependency when applicable.
+  static void AddDependencyLocked(Loader* loader, const char* resolved_uri);
+
   /// Returns false if |result| is an error and the loader should quit.
   static bool ProcessResultLocked(Loader* loader, IOResult* result);
 

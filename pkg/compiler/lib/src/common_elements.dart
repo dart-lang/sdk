@@ -6,6 +6,7 @@
 library dart2js.type_system;
 
 import 'common.dart';
+import 'common/names.dart' show Uris;
 import 'elements/types.dart';
 import 'elements/entities.dart';
 
@@ -208,7 +209,7 @@ abstract class CommonElements {
 
 /// Interface for accessing libraries, classes and members.
 ///
-/// The environment makes private and injected members directly available and
+/// The _env makes private and injected members directly available and
 /// should therefore not be used to determine scopes.
 abstract class ElementEnvironment {
   /// Returns the main library for the compilation.
@@ -241,9 +242,38 @@ abstract class ElementEnvironment {
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false});
 
+  /// Calls [f] for each class member declared or inherited in [cls] together
+  /// with the class that declared the member.
+  ///
+  /// TODO(johnniwinther): This should not include static members of
+  /// superclasses.
+  void forEachClassMember(
+      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member));
+
+  /// Returns the declared superclass of [cls].
+  ///
+  /// Unnamed mixin applications are skipped, for instance for these classes
+  ///
+  ///     class S {}
+  ///     class M {}
+  ///     class C extends S with M {}
+  ///
+  /// the result of `getSuperClass(C)` is `S` and not the unnamed mixin
+  /// application typically named `S+M`.
+  ClassEntity getSuperClass(ClassEntity cls);
+
+  /// Calls [f] for each class that is mixed into [cls] or one of its
+  /// superclasses.
+  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin));
+
   /// Create the instantiation of [cls] with the given [typeArguments].
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments);
+
+  /// Returns the `dynamic` type.
+  // TODO(johnniwinther): Remove this when `ResolutionDynamicType` is no longer
+  // needed.
+  DartType get dynamicType;
 
   /// Returns the 'raw type' of [cls]. That is, the instantiation of [cls]
   /// where all types arguments are `dynamic`.
@@ -254,41 +284,63 @@ abstract class ElementEnvironment {
   InterfaceType getThisType(ClassEntity cls);
 }
 
-abstract class CommonElementsMixin implements CommonElements {
-  ElementEnvironment get environment;
+class CommonElementsImpl implements CommonElements {
+  final ElementEnvironment _env;
+
+  CommonElementsImpl(this._env);
 
   ClassEntity findClass(LibraryEntity library, String name,
       {bool required: true}) {
-    return environment.lookupClass(library, name, required: required);
+    if (library == null) return null;
+    return _env.lookupClass(library, name, required: required);
   }
 
   MemberEntity findLibraryMember(LibraryEntity library, String name,
       {bool setter: false, bool required: true}) {
-    return environment.lookupLibraryMember(library, name,
+    if (library == null) return null;
+    return _env.lookupLibraryMember(library, name,
         setter: setter, required: required);
   }
 
   MemberEntity findClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: true}) {
-    return environment.lookupClassMember(cls, name,
+    return _env.lookupClassMember(cls, name,
         setter: setter, required: required);
   }
 
   ConstructorEntity findConstructor(ClassEntity cls, String name,
       {bool required: true}) {
-    return environment.lookupConstructor(cls, name, required: required);
+    return _env.lookupConstructor(cls, name, required: required);
   }
+
+  DartType get dynamicType => _env.dynamicType;
 
   /// Return the raw type of [cls].
   InterfaceType getRawType(ClassEntity cls) {
-    return environment.getRawType(cls);
+    return _env.getRawType(cls);
   }
 
   /// Create the instantiation of [cls] with the given [typeArguments].
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments) {
-    return environment.createInterfaceType(cls, typeArguments);
+    return _env.createInterfaceType(cls, typeArguments);
   }
+
+  LibraryEntity _coreLibrary;
+  LibraryEntity get coreLibrary =>
+      _coreLibrary ??= _env.lookupLibrary(Uris.dart_core, required: true);
+
+  LibraryEntity _typedDataLibrary;
+  LibraryEntity get typedDataLibrary =>
+      _typedDataLibrary ??= _env.lookupLibrary(Uris.dart__native_typed_data);
+
+  LibraryEntity _mirrorsLibrary;
+  LibraryEntity get mirrorsLibrary =>
+      _mirrorsLibrary ??= _env.lookupLibrary(Uris.dart_mirrors);
+
+  LibraryEntity _asyncLibrary;
+  LibraryEntity get asyncLibrary =>
+      _asyncLibrary ??= _env.lookupLibrary(Uris.dart_async);
 
   // From dart:core
 

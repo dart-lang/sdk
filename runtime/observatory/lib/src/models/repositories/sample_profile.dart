@@ -8,6 +8,8 @@ enum SampleProfileTag { userVM, userOnly, vmUser, vmOnly, none }
 
 enum SampleProfileLoadingStatus { disabled, fetching, loading, loaded }
 
+enum SampleProfileType { cpu, memory }
+
 bool isSampleProcessRunning(SampleProfileLoadingStatus status) {
   switch (status) {
     case SampleProfileLoadingStatus.fetching:
@@ -40,5 +42,10 @@ abstract class ClassSampleProfileRepository {
 abstract class IsolateSampleProfileRepository {
   Stream<SampleProfileLoadingProgressEvent> get(
       IsolateRef isolate, SampleProfileTag tag,
+      {bool clear: false, bool forceFetch: false});
+}
+
+abstract class NativeMemorySampleProfileRepository {
+  Stream<SampleProfileLoadingProgressEvent> get(VM vm, SampleProfileTag tag,
       {bool clear: false, bool forceFetch: false});
 }

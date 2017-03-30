@@ -5379,7 +5379,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // name should start with '_'
     SimpleIdentifier name = parameter.identifier;
-    if (name.isSynthetic || !StringUtilities.startsWithChar(name.name, 0x5F)) {
+    if (name == null ||
+        name.isSynthetic ||
+        !StringUtilities.startsWithChar(name.name, 0x5F)) {
       return;
     }
 

@@ -21,6 +21,8 @@ final _isolateSampleProfileRepository = new IsolateSampleProfileRepository();
 final _libraryRepository = new LibraryRepository();
 final _megamorphicCacheRepository = new MegamorphicCacheRepository();
 final _metricRepository = new MetricRepository();
+final _nativeMemorySampleProfileRepository =
+    new NativeMemorySampleProfileRepository();
 final _objectPoolRepository = new ObjectPoolRepository();
 final _objectRepository = new ObjectRepository();
 final _objectstoreRepository = new ObjectStoreRepository();
@@ -183,6 +185,24 @@ class FlagsPage extends SimplePage {
     element = new FlagListElement(
         app.vm, app.events, new FlagsRepository(app.vm), app.notifications,
         queue: app.queue);
+  }
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+  }
+}
+
+class NativeMemoryProfilerPage extends SimplePage {
+  NativeMemoryProfilerPage(app)
+      : super('native-memory-profile', 'native-memory-profile', app);
+  @override
+  onInstall() {
+    if (element == null) {
+      element = new NativeMemoryProfileElement(app.vm, app.events,
+          app.notifications, _nativeMemorySampleProfileRepository,
+          queue: app.queue);
+    }
+    assert(element != null);
   }
 
   void _visit(Uri uri) {

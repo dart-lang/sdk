@@ -4,6 +4,7 @@
 library kernel.interpreter;
 
 import '../ast.dart';
+import '../ast.dart' as ast show Class;
 
 class NotImplemented {
   String message;
@@ -15,7 +16,8 @@ class NotImplemented {
 
 class Interpreter {
   Program program;
-  Evaluator evaluator = new Evaluator();
+  StatementExecuter visitor = new StatementExecuter();
+  Environment env = new Environment.empty();
 
   Interpreter(this.program);
 
@@ -23,26 +25,7 @@ class Interpreter {
     assert(program.libraries.isEmpty);
     Procedure mainMethod = program.mainMethod;
     Statement statementBlock = mainMethod.function.body;
-    // Executes only ExpressionStatements and VariableDeclarations in the top
-    // BlockStatement.
-    if (statementBlock is Block) {
-      var env = new Environment.empty();
-
-      for (Statement s in statementBlock.statements) {
-        if (s is ExpressionStatement) {
-          evaluator.eval(s.expression, env);
-        } else if (s is VariableDeclaration) {
-          var value = evaluator.eval(s.initializer ?? new NullLiteral(), env);
-          env.expand(s, value);
-        } else {
-          throw new NotImplemented('Evaluation for statement type '
-              '${s.runtimeType} is not implemented.');
-        }
-      }
-    } else {
-      throw new NotImplemented('Evaluation for statement type '
-          '${statementBlock.runtimeType} is not implemented.');
-    }
+    visitor.exec(statementBlock, env);
   }
 }
 
@@ -119,6 +102,33 @@ class Evaluator extends ExpressionVisitor1<Value> {
     return env.assign(node.variable, eval(node.value, env));
   }
 
+  Value visitPropertyGet(PropertyGet node, env) {
+    Value receiver = eval(node.receiver, env);
+    return receiver.class_.lookupGetter(node.name)(receiver);
+  }
+
+  Value visitPropertySet(PropertySet node, env) {
+    Value receiver = eval(node.receiver, env);
+    Value value = eval(node.value, env);
+    receiver.class_.lookupSetter(node.name)(receiver, value);
+    return value;
+  }
+
+  Value visitDirectPropertyGet(DirectPropertyGet node, env) {
+    Value receiver = eval(node.receiver, env);
+    return receiver.class_.getProperty(receiver, node.target);
+  }
+
+  Value visitDirectPropertySet(DirectPropertySet node, env) {
+    Value receiver = eval(node.receiver, env);
+    Value value = eval(node.value, env);
+    receiver.class_.setProperty(receiver, node.target, value);
+    return value;
+  }
+
+  Value visitStaticGet(StaticGet node, env) => defaultExpression(node, env);
+  Value visitStaticSet(StaticSet node, env) => defaultExpression(node, env);
+
   Value visitStaticInvocation(StaticInvocation node, env) {
     if ('print' == node.name.toString()) {
       // Special evaluation of print.
@@ -137,14 +147,26 @@ class Evaluator extends ExpressionVisitor1<Value> {
     var receiver = eval(node.receiver, env);
     if (node.arguments.positional.isNotEmpty) {
       var argValue = eval(node.arguments.positional.first, env);
-      return receiver.invokeMethod(node.name.name, argValue);
+      return receiver.invokeMethod(node.name, argValue);
     } else {
-      return receiver.invokeMethod(node.name.name);
+      return receiver.invokeMethod(node.name);
     }
   }
 
-  Value visitConstructorInvocation(ConstructorInvocation node, env) =>
-      defaultExpression(node, env);
+  Value visitConstructorInvocation(ConstructorInvocation node, env) {
+    Class class_ = new Class(node.target.enclosingClass.reference);
+
+    Environment emptyEnv = new Environment.empty();
+    // Currently we don't support initializers.
+    // TODO: Modify to respect dart semantics for initialization.
+    //  1. Init fields and eval initializers, repeat the same with super.
+    //  2. Eval the Function body of the constructor.
+    List<Value> fields = class_.instanceFields
+        .map((Field f) => eval(f.initializer ?? new NullLiteral(), emptyEnv))
+        .toList(growable: false);
+
+    return new ObjectValue(class_, fields);
+  }
 
   Value visitNot(Not node, env) {
     Value operand = eval(node.operand, env).toBoolean();
@@ -201,38 +223,151 @@ class Evaluator extends ExpressionVisitor1<Value> {
   }
 }
 
-// TODO(zhivkag): Change misleading name.
-// This is representation of a class in the interpreter, not a declaration.
-class ClassDeclaration {
-  static final Map<Reference, ClassDeclaration> _classes =
-      <Reference, ClassDeclaration>{};
+/// Executes statements.
+class StatementExecuter extends StatementVisitor1 {
+  Evaluator evaluator = new Evaluator();
 
-  Class currentClass;
-  ClassDeclaration superClass;
-  // The initializers of static fields are evaluated the first time the field
-  // is accessed.
-  List<Value> staticFields = <Value>[];
-  List<Procedure> getters = <Procedure>[];
-  List<Procedure> setters = <Procedure>[];
-  List<Procedure> methods = <Procedure>[];
+  exec(Statement statement, env) => statement.accept1(this, env);
+  eval(Expression expression, env) => evaluator.eval(expression, env);
 
-  factory ClassDeclaration(Reference classRef) {
-    if (_classes.containsKey(classRef)) {
-      return _classes[classRef];
-    }
-    _classes[classRef] = new ClassDeclaration._internal(classRef.asClass);
-    return _classes[classRef];
+  defaultStatement(Statement node, env) {
+    throw notImplemented(
+        m: "Execution is not implemented for statement:\n$node ");
   }
 
-  ClassDeclaration._internal(this.currentClass) {
-    if (currentClass.superclass != null) {
-      superClass = new ClassDeclaration(currentClass.superclass.reference);
+  visitInvalidStatement(InvalidStatement node, env) {
+    throw "Invalid statement at ${node.location}";
+  }
+
+  visitExpressionStatement(ExpressionStatement node, env) {
+    return eval(node.expression, env);
+  }
+
+  visitBlock(Block node, env) {
+    Environment blockEnv = new Environment(env);
+    for (Statement s in node.statements) {
+      exec(s, blockEnv);
     }
-    // TODO: Populate getters, setters and methods.
+  }
+
+  visitEmptyStatement(EmptyStatement node, env) {}
+
+  visitIfStatement(IfStatement node, env) {
+    Value condition = eval(node.condition, env).toBoolean();
+    if (identical(Value.trueInstance, condition)) {
+      exec(node.then, env);
+    } else {
+      exec(node.otherwise, env);
+    }
+  }
+
+  visitVariableDeclaration(VariableDeclaration node, env) {
+    Value value = node.initializer != null
+        ? eval(node.initializer, env)
+        : Value.nullInstance;
+    env.expand(node, value);
+  }
+}
+
+typedef Value Getter(Value receiver);
+typedef void Setter(Value receiver, Value value);
+
+// TODO(zhivkag): Change misleading name.
+// This is representation of a class in the interpreter, not a declaration.
+class Class {
+  static final Map<Reference, Class> _classes = <Reference, Class>{};
+
+  Class superclass;
+  List<Field> instanceFields = <Field>[];
+  List<Field> staticFields = <Field>[];
+  // Implicit getters and setters for instance Fields.
+  Map<Name, Getter> getters = <Name, Getter>{};
+  Map<Name, Setter> setters = <Name, Setter>{};
+  // The initializers of static fields are evaluated the first time the field
+  // is accessed.
+  List<Value> staticFieldValues = <Value>[];
+
+  List<Procedure> methods = <Procedure>[];
+
+  int get instanceSize => instanceFields.length;
+
+  factory Class(Reference classRef) {
+    return _classes.putIfAbsent(
+        classRef, () => new Class._internal(classRef.asClass));
+  }
+
+  Class._internal(ast.Class currentClass) {
+    if (currentClass.superclass != null) {
+      superclass = new Class(currentClass.superclass.reference);
+    }
+
+    _populateInstanceFields(currentClass);
+    // TODO: Populate methods.
+  }
+
+  Getter lookupGetter(Name name) {
+    Getter getter = getters[name];
+    if (getter != null) return getter;
+    if (superclass != null) return superclass.lookupGetter(name);
+    return (Value receiver) => notImplemented(obj: name);
+  }
+
+  Setter lookupSetter(Name name) {
+    Setter setter = setters[name];
+    if (setter != null) return setter;
+    if (superclass != null) return lookupSetter(name);
+    return (Value receiver, Value value) => notImplemented(obj: name);
+  }
+
+  Value getProperty(ObjectValue object, Member member) {
+    if (member is Field) {
+      int index = instanceFields.indexOf(member);
+      // TODO: throw NoSuchMethodError instead.
+      if (index < 0) return notImplemented(m: 'NoSuchMethod: ${member}');
+      return object.fields[index];
+    }
+    return notImplemented(obj: member);
+  }
+
+  Value setProperty(ObjectValue object, Member member, Value value) {
+    if (member is Field) {
+      int index = instanceFields.indexOf(member);
+      // TODO: throw NoSuchMethodError instead.
+      if (index < 0) return notImplemented(m: 'NoSuchMethod: ${member}');
+      object.fields[index] = value;
+      return Value.nullInstance;
+    }
+    return notImplemented(obj: member);
+  }
+
+  /// Populates instance variables and the corresponding implicit getters and
+  /// setters for the current class and its superclass recursively.
+  _populateInstanceFields(ast.Class class_) {
+    if (class_.superclass != null) {
+      _populateInstanceFields(class_.superclass);
+    }
+
+    for (Field f in class_.fields) {
+      if (f.isStatic) continue;
+      instanceFields.add(f);
+      assert(f.hasImplicitGetter);
+
+      int currentFieldIndex = instanceFields.length - 1;
+
+      // Shadowing an inherited getter with the same name.
+      getters[f.name] = (Value receiver) => receiver.fields[currentFieldIndex];
+      if (f.hasImplicitSetter) {
+        // Shadowing an inherited setter with the same name.
+        setters[f.name] = (Value receiver, Value value) =>
+            receiver.fields[currentFieldIndex] = value;
+      }
+    }
   }
 }
 
 abstract class Value {
+  Class get class_;
+  List<Value> get fields;
   Object get value;
 
   static final NullValue nullInstance = const NullValue();
@@ -250,26 +385,29 @@ abstract class Value {
   BoolValue equals(Value other) =>
       value == other.value ? Value.trueInstance : Value.falseInstance;
 
-  Value invokeMethod(String name, [Value arg]) {
+  Value invokeMethod(Name name, [Value arg]) {
     throw notImplemented(obj: name);
   }
 }
 
 class ObjectValue extends Value {
+  Class class_;
   List<Value> fields;
-  ClassDeclaration classDeclaration;
-
   Object get value => this;
 
-  ObjectValue(Constructor constructor, Environment env) {
-    // TODO: Init fields and eval initializers, repeat the same with super.
-    // TODO: Eval the Function body of the constructor, with env expanded with
-    // {VariableDeclaration("this") => this}
-    notImplemented(obj: constructor.name);
-  }
+  ObjectValue(this.class_, this.fields);
 }
 
-class StringValue extends Value {
+abstract class LiteralValue extends Value {
+  Class get class_ =>
+      notImplemented(m: "Loading class for literal is not implemented.");
+  List<Value> get fields =>
+      notImplemented(m: "Literal value does not have fields");
+
+  const LiteralValue();
+}
+
+class StringValue extends LiteralValue {
   final String value;
 
   static final operators = <String, Function>{
@@ -279,18 +417,18 @@ class StringValue extends Value {
 
   StringValue(this.value);
 
-  Value invokeMethod(String name, [Value arg]) {
-    if (!operators.containsKey(name)) {
+  Value invokeMethod(Name name, [Value arg]) {
+    if (!operators.containsKey(name.name)) {
       return notImplemented(obj: name);
     }
-    return operators[name](this, arg);
+    return operators[name.name](this, arg);
   }
 
   // Operators
   Value operator [](Value index) => new StringValue(value[index.value]);
 }
 
-abstract class NumValue extends Value {
+abstract class NumValue extends LiteralValue {
   num get value;
 
   NumValue();
@@ -313,10 +451,10 @@ abstract class NumValue extends Value {
     'unary-': (NumValue v1) => -v1,
   };
 
-  Value invokeMethod(String name, [Value arg]) {
-    if (!operators.containsKey(name)) return notImplemented(obj: name);
-    if (arg == null) return operators[name](this);
-    return operators[name](this, arg);
+  Value invokeMethod(Name name, [Value arg]) {
+    if (!operators.containsKey(name.name)) return notImplemented(obj: name);
+    if (arg == null) return operators[name.name](this);
+    return operators[name.name](this, arg);
   }
 
   // Operators
@@ -344,13 +482,13 @@ class DoubleValue extends NumValue {
   DoubleValue(this.value);
 }
 
-class BoolValue extends Value {
+class BoolValue extends LiteralValue {
   final bool value;
 
   const BoolValue(this.value);
 }
 
-class NullValue extends Value {
+class NullValue extends LiteralValue {
   Object get value => null;
 
   const NullValue();

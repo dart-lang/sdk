@@ -11,7 +11,6 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
-import 'package:kernel/transformations/infer_values.dart' as infer_values;
 import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
@@ -78,9 +77,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   switch (options['transformation']) {
     case 'continuation':
       program = cont.transformProgram(program);
-      break;
-    case 'infervalues':
-      program = infer_values.transformProgram(program);
       break;
     case 'resolve-mixins':
       program = mix.transformProgram(program);

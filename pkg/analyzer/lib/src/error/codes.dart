@@ -4951,6 +4951,50 @@ class StrongModeCode extends ErrorCode {
       "Type parameter bound types must be instantiated.",
       "Try adding type arguments.");
 
+  static const StrongModeCode TOP_LEVEL_CYCLE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'TOP_LEVEL_CYCLE',
+      "The type of '{0}' can't be inferred because it depends on itself through the cycle: {1}.",
+      "Try adding an explicit type to one or more of the variables in the cycle in order to break the cycle.");
+
+  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_BLOCK =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'TOP_LEVEL_FUNCTION_LITERAL_BLOCK',
+          "The type of the function literal can't be inferred because the literal has a block as its body.",
+          "Try adding an explicit type to the variable.");
+
+  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_PARAMETER =
+      const StrongModeCode(
+          ErrorType.COMPILE_TIME_ERROR,
+          'TOP_LEVEL_FUNCTION_LITERAL_PARAMETER',
+          "The type of '{0}' can't be inferred because the parameter '{1}' does not have an explicit type.",
+          "Try adding an explicit type to the parameter '{1}', or add an explicit type for '{0}'.");
+
+  static const StrongModeCode TOP_LEVEL_IDENTIFIER_NO_TYPE = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'TOP_LEVEL_IDENTIFIER_NO_TYPE',
+      "The type of '{0}' can't be inferred because the type of '{1}' couldn't be inferred.",
+      "Try adding an explicit type to either the variable '{0}' or the variable '{1}'.");
+
+  static const StrongModeCode TOP_LEVEL_INSTANCE_GETTER = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'TOP_LEVEL_INSTANCE_GETTER',
+      "The type of '{0}' can't be inferred because of the use of the instance getter '{1}'.",
+      "Try removing the use of the instance getter {1}, or add an explicit type for '{0}'.");
+
+  static const StrongModeCode TOP_LEVEL_TYPE_ARGUMENTS = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'TOP_LEVEL_TYPE_ARGUMENTS',
+      "The type of '{0}' can't be inferred because type arguments were not given for '{1}'.",
+      "Try adding type arguments for '{1}', or add an explicit type for '{0}'.");
+
+  static const StrongModeCode TOP_LEVEL_UNSUPPORTED = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'TOP_LEVEL_UNSUPPORTED',
+      "The type of '{0}' can't be inferred because {1} expressions aren't supported.",
+      "Try adding an explicit type for '{0}'.");
+
   static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE = const StrongModeCode(
       ErrorType.STATIC_WARNING,
       'UNSAFE_BLOCK_CLOSURE_INFERENCE',

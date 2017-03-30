@@ -617,22 +617,6 @@ abstract class _RandomAccessFileOps {
   length();
   flush();
   lock(int lock, int start, int end);
-  setTranslation(int translation);
-}
-
-/**
- * The translation mode of a File.
- *
- * Whether the data written to a file should be interpreted as text
- * or binary data. This distinction is only meaningful on platforms that
- * recognize a difference, in particular on Windows.
- */
-enum _FileTranslation {
-  /// Data should be interpreted as text.
-  text,
-
-  /// Data should be interpreted as binary data.
-  binary,
 }
 
 class _RandomAccessFile implements RandomAccessFile {
@@ -646,12 +630,9 @@ class _RandomAccessFile implements RandomAccessFile {
   _FileResourceInfo _resourceInfo;
   _RandomAccessFileOps _ops;
 
-  _FileTranslation _translation;
-
   _RandomAccessFile(int pointer, this.path) {
     _ops = new _RandomAccessFileOps(pointer);
     _resourceInfo = new _FileResourceInfo(this);
-    _translation = _FileTranslation.binary;
     _maybeConnectHandler();
   }
 
@@ -1049,15 +1030,6 @@ class _RandomAccessFile implements RandomAccessFile {
     var result = _ops.lock(LOCK_UNLOCK, start, end);
     if (result is OSError) {
       throw new FileSystemException('unlock failed', path, result);
-    }
-  }
-
-  _FileTranslation get translation => _translation;
-
-  void set translation(_FileTranslation translation) {
-    if (_translation != translation) {
-      _ops.setTranslation(translation.index);
-      _translation = translation;
     }
   }
 

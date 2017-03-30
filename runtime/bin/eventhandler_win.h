@@ -14,6 +14,7 @@
 #include <ws2tcpip.h>
 
 #include "bin/builtin.h"
+#include "bin/reference_counting.h"
 #include "bin/thread.h"
 
 namespace dart {
@@ -70,15 +71,15 @@ class OverlappedBuffer {
   int GetRemainingLength();
   bool IsEmpty() { return GetRemainingLength() == 0; }
 
-  Operation operation() { return operation_; }
-  SOCKET client() { return client_; }
+  Operation operation() const { return operation_; }
+  SOCKET client() const { return client_; }
   char* GetBufferStart() { return reinterpret_cast<char*>(&buffer_data_); }
-  int GetBufferSize() { return buflen_; }
-  struct sockaddr* from() {
+  int GetBufferSize() const { return buflen_; }
+  struct sockaddr* from() const {
     return from_;
   }
-  socklen_t* from_len_addr() { return from_len_addr_; }
-  socklen_t from_len() { return from_ == NULL ? 0 : *from_len_addr_; }
+  socklen_t* from_len_addr() const { return from_len_addr_; }
+  socklen_t from_len() const { return from_ == NULL ? 0 : *from_len_addr_; }
 
   // Returns the address of the OVERLAPPED structure with all fields
   // initialized to zero.
@@ -159,7 +160,7 @@ class OverlappedBuffer {
 
 // Abstract super class for holding information on listen and connected
 // sockets.
-class Handle : public DescriptorInfoBase {
+class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
  public:
   enum Type {
     kFile,
@@ -169,8 +170,6 @@ class Handle : public DescriptorInfoBase {
     kListenSocket,
     kDatagramSocket
   };
-
-  virtual ~Handle();
 
   // Socket interface exposing normal socket operations.
   intptr_t Available();
@@ -239,6 +238,14 @@ class Handle : public DescriptorInfoBase {
   DWORD last_error() { return last_error_; }
   void set_last_error(DWORD last_error) { last_error_ = last_error; }
 
+  void set_completion_port(HANDLE completion_port) {
+    completion_port_ = completion_port;
+  }
+
+  void set_event_handler(EventHandlerImplementation* event_handler) {
+    event_handler_ = event_handler;
+  }
+
  protected:
   // For access to monitor_;
   friend class EventHandlerImplementation;
@@ -252,6 +259,7 @@ class Handle : public DescriptorInfoBase {
   };
 
   explicit Handle(intptr_t handle);
+  virtual ~Handle();
 
   virtual void HandleIssueError();
 
@@ -280,6 +288,7 @@ class Handle : public DescriptorInfoBase {
 
   int flags_;
 
+  friend class ReferenceCounted<Handle>;
   DISALLOW_COPY_AND_ASSIGN(Handle);
 };
 
@@ -468,6 +477,10 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
 
   void mark_closed() { closed_ = true; }
 
+#if defined(DEBUG)
+  static intptr_t disconnecting() { return disconnecting_; }
+#endif
+
  private:
   bool LoadDisconnectEx();
 
@@ -475,6 +488,10 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   ClientSocket* next_;
   bool connected_;
   bool closed_;
+
+#if defined(DEBUG)
+  static intptr_t disconnecting_;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(ClientSocket);
 };
@@ -533,11 +550,14 @@ class EventHandlerImplementation {
                      OverlappedBuffer* buffer);
   void HandleIOCompletion(DWORD bytes, ULONG_PTR key, OVERLAPPED* overlapped);
 
+  void HandleCompletionOrInterrupt(BOOL ok,
+                                   DWORD bytes,
+                                   ULONG_PTR key,
+                                   OVERLAPPED* overlapped);
+
   HANDLE completion_port() { return completion_port_; }
 
  private:
-  ClientSocket* client_sockets_head_;
-
   Monitor* startup_monitor_;
   ThreadId handler_thread_id_;
   HANDLE handler_thread_handle_;

@@ -5,7 +5,6 @@
 library dart2js.common.codegen;
 
 import '../common.dart';
-import '../constants/values.dart' show ConstantValue;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart'
@@ -16,6 +15,7 @@ import '../elements/elements.dart'
         LocalFunctionElement,
         MemberElement,
         ResolvedAst;
+import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
@@ -33,8 +33,8 @@ class CodegenImpact extends WorldImpact {
 
   Iterable<String> get constSymbols => const <String>[];
 
-  Iterable<Set<ClassElement>> get specializedGetInterceptors {
-    return const <Set<ClassElement>>[];
+  Iterable<Set<ClassEntity>> get specializedGetInterceptors {
+    return const <Set<ClassEntity>>[];
   }
 
   bool get usesInterceptor => false;
@@ -46,7 +46,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Setlet<Pair<ResolutionDartType, ResolutionDartType>>
       _typeVariableBoundsSubtypeChecks;
   Setlet<String> _constSymbols;
-  List<Set<ClassElement>> _specializedGetInterceptors;
+  List<Set<ClassEntity>> _specializedGetInterceptors;
   bool _usesInterceptor = false;
   Setlet<FunctionElement> _asyncMarkers;
 
@@ -86,17 +86,17 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     return _constSymbols != null ? _constSymbols : const <String>[];
   }
 
-  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+  void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
     if (_specializedGetInterceptors == null) {
-      _specializedGetInterceptors = <Set<ClassElement>>[];
+      _specializedGetInterceptors = <Set<ClassEntity>>[];
     }
     _specializedGetInterceptors.add(classes);
   }
 
-  Iterable<Set<ClassElement>> get specializedGetInterceptors {
+  Iterable<Set<ClassEntity>> get specializedGetInterceptors {
     return _specializedGetInterceptors != null
         ? _specializedGetInterceptors
-        : const <Set<ClassElement>>[];
+        : const <Set<ClassEntity>>[];
   }
 
   void registerUseInterceptor() {
@@ -165,7 +165,7 @@ class CodegenRegistry {
     worldImpact.registerConstSymbol(name);
   }
 
-  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+  void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
     worldImpact.registerSpecializedGetInterceptor(classes);
   }
 

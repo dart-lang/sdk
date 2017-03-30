@@ -4,9 +4,10 @@
 
 library fasta.body_builder;
 
-import '../parser/parser.dart' show FormalParameterType, optional;
+import '../fasta_codes.dart'
+    show FastaMessage, codeExpectedButGot, codeExpectedFunctionBody;
 
-import '../parser/error_kind.dart' show ErrorKind;
+import '../parser/parser.dart' show FormalParameterType, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -19,6 +20,9 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/frontend/accessors.dart'
+    show buildIsNull, makeBinary, makeLet;
 
 import '../parser/dart_vm_native.dart' show skipNativeClause;
 
@@ -34,9 +38,7 @@ import '../builder/scope.dart' show ProblemBuilder, Scope;
 
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
 
-import 'builder_accessors.dart';
-
-import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
+import 'fasta_accessors.dart';
 
 import '../quote.dart'
     show
@@ -154,7 +156,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return throwNoSuchMethodError(
           node.name.name, new Arguments.empty(), node.fileOffset,
           isGetter: true);
-    } else if (node is BuilderAccessor) {
+    } else if (node is FastaAccessor) {
       return node.buildSimpleRead();
     } else if (node is TypeVariableBuilder) {
       TypeParameterType type = node.buildTypesWithBuiltArguments(library, null);
@@ -184,7 +186,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Expression toEffect(Object node) {
-    if (node is BuilderAccessor) return node.buildForEffect();
+    if (node is FastaAccessor) return node.buildForEffect();
     return toValue(node);
   }
 
@@ -388,7 +390,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Initializer initializer;
     if (node is Initializer) {
       initializer = node;
-    } else if (node is BuilderAccessor) {
+    } else if (node is FastaAccessor) {
       initializer = node.buildFieldInitializer(fieldInitializers);
     } else if (node is ConstructorInvocation) {
       initializer = new SuperInitializer(node.target, node.arguments);
@@ -487,7 +489,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleParenthesizedExpression(BeginGroupToken token) {
     debugEvent("ParenthesizedExpression");
-    push(popForValue());
+    push(new ParenthesizedExpression(
+        this, popForValue(), token.endGroup.charOffset));
   }
 
   @override
@@ -517,8 +520,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   finishSend(Object receiver, Arguments arguments, int charOffset) {
-    if (receiver is BuilderAccessor) {
-      if (constantExpressionRequired) {
+    bool isIdentical(Object receiver) {
+      return receiver is StaticAccessor &&
+          receiver.readTarget ==
+              coreTypes.tryGetTopLevelMember("dart:core", null, "identical");
+    }
+
+    if (receiver is FastaAccessor) {
+      if (constantExpressionRequired && !isIdentical(receiver)) {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
       return receiver.doInvocation(charOffset, arguments);
@@ -591,7 +600,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Not an operator: '$operator'.", token.charOffset);
     } else {
       Expression result =
-          makeBinary(a, new Name(operator), null, b, token.charOffset);
+          makeBinary(a, new Name(operator), null, b, offset: token.charOffset);
       if (isSuper) {
         result = toSuperMethodInvocation(result);
       }
@@ -799,7 +808,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           new StaticAccessor.fromBuilder(this, builder, charOffset, setter);
       if (constantExpressionRequired) {
         Member readTarget = accessor.readTarget;
-        if (!(readTarget is Field && readTarget.isConst)) {
+        if (!(readTarget is Field && readTarget.isConst ||
+            // Static tear-offs are also compile time constants.
+            readTarget is Procedure)) {
           addCompileTimeError(charOffset, "Not a constant expression.");
         }
       }
@@ -970,7 +981,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
-    push(NullValue.FieldInitializer);
+    if (constantExpressionRequired) {
+      addCompileTimeError(
+          token.charOffset, "const field must have initializer.");
+      // Creating a null value to prevent the Dart VM from crashing.
+      push(new NullLiteral()..fileOffset = token.charOffset);
+    } else {
+      push(NullValue.FieldInitializer);
+    }
   }
 
   @override
@@ -1027,7 +1045,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (accessor is TypeDeclarationBuilder) {
       push(wrapInvalid(new TypeLiteral(
           accessor.buildTypesWithBuiltArguments(library, null))));
-    } else if (accessor is! BuilderAccessor) {
+    } else if (accessor is! FastaAccessor) {
       push(buildCompileTimeError("Can't assign to this.", token.charOffset));
     } else {
       push(new DelayedAssignment(
@@ -1072,7 +1090,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List<VariableDeclaration> variables = <VariableDeclaration>[];
     dynamic variableOrExpression = pop();
     Statement begin;
-    if (variableOrExpression is BuilderAccessor) {
+    if (variableOrExpression is FastaAccessor) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
@@ -1284,7 +1302,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (name is Identifier) {
       name = name.name;
     }
-    if (name is BuilderAccessor) {
+    if (name is FastaAccessor) {
       warning("'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
     } else if (name is UnresolvedIdentifier) {
@@ -1377,7 +1395,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     Identifier name = pop();
     DartType type = pop();
-    pop(); // Modifiers.
+    int modifiers = Modifier.validate(pop());
+    if (inCatchClause) {
+      modifiers |= finalMask;
+    }
+    bool isConst = (modifiers & constMask) != 0;
+    bool isFinal = (modifiers & finalMask) != 0;
     ignore(Unhandled.Metadata);
     VariableDeclaration variable;
     if (!inCatchClause && functionNestingLevel == 0) {
@@ -1401,7 +1424,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
         type = field.target.type ?? const DynamicType();
         variable = new VariableDeclaration(name.name,
-            type: type, initializer: name.initializer);
+            type: type,
+            initializer: name.initializer,
+            isFinal: isFinal,
+            isConst: isConst)..fileOffset = name.fileOffset;
       } else {
         addCompileTimeError(
             name.fileOffset, "'${name.name}' isn't a field in this class.");
@@ -1409,7 +1435,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     variable ??= new VariableDeclaration(name.name,
         type: type ?? const DynamicType(),
-        initializer: name.initializer)..fileOffset = name.fileOffset;
+        initializer: name.initializer,
+        isFinal: isFinal,
+        isConst: isConst)..fileOffset = name.fileOffset;
     push(variable);
   }
 
@@ -1549,7 +1577,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(this, receiver.charOffset, index,
+      push(new SuperIndexAccessor(this, receiver.offset, index,
           lookupSuperMember(indexGetName), lookupSuperMember(indexSetName)));
     } else {
       push(IndexAccessor.make(this, openCurlyBracket.charOffset,
@@ -1570,7 +1598,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (receiver is ThisAccessor && receiver.isSuper) {
         push(toSuperMethodInvocation(buildMethodInvocation(
-            new ThisExpression()..fileOffset = receiver.charOffset,
+            new ThisExpression()..fileOffset = receiver.offset,
             new Name(operator),
             new Arguments.empty(),
             token.charOffset)));
@@ -1591,9 +1619,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
     var accessor = pop();
-    if (accessor is BuilderAccessor) {
-      push(accessor.buildPrefixIncrement(
-          incrementOperator(token), token.charOffset));
+    if (accessor is FastaAccessor) {
+      push(accessor.buildPrefixIncrement(incrementOperator(token),
+          offset: token.charOffset));
     } else {
       push(wrapInvalid(toValue(accessor)));
     }
@@ -1603,7 +1631,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
     var accessor = pop();
-    if (accessor is BuilderAccessor) {
+    if (accessor is FastaAccessor) {
       push(new DelayedPostfixIncrement(
           this, token.charOffset, accessor, incrementOperator(token), null));
     } else {
@@ -1672,6 +1700,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isConst: false, int charOffset: -1}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
+      assert(!target.enclosingClass.isAbstract);
       typeParameters = target.enclosingClass.typeParameters;
     }
     if (!checkArguments(target.function, arguments, typeParameters)) {
@@ -1745,52 +1774,59 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
-    constantExpressionRequired = pop();
-
-    if (arguments == null) {
-      push(buildCompileTimeError("No arguments.", nameToken.charOffset));
-      return;
-    }
-
-    if (typeArguments != null) {
-      assert(arguments.types.isEmpty);
-      arguments.types.addAll(typeArguments);
-    }
-
-    String errorName;
-    if (type is ClassBuilder) {
-      Builder b = type.findConstructorOrFactory(name);
-      Member target;
-      if (b == null) {
-        // Not found. Reported below.
-      } else if (b.isConstructor) {
-        if (type.isAbstract) {
-          // TODO(ahe): Generate abstract instantiation error.
-        } else {
-          target = b.target;
-        }
-      } else if (b.isFactory) {
-        target = getRedirectionTarget(b.target);
-        if (target == null) {
-          push(buildCompileTimeError(
-              "Cyclic definition of factory '${name}'.", nameToken.charOffset));
-          return;
-        }
-      }
-      if (target is Constructor ||
-          (target is Procedure && target.kind == ProcedureKind.Factory)) {
-        push(buildStaticInvocation(target, arguments,
-            isConst: optional("const", token),
-            charOffset: nameToken.charOffset));
+    bool savedConstantExpressionRequired = pop();
+    () {
+      if (arguments == null) {
+        push(buildCompileTimeError("No arguments.", nameToken.charOffset));
         return;
-      } else {
-        errorName = debugName(type.name, name);
       }
-    } else {
-      errorName = debugName(getNodeName(type), name);
-    }
-    errorName ??= name;
-    push(throwNoSuchMethodError(errorName, arguments, nameToken.charOffset));
+
+      if (typeArguments != null) {
+        assert(arguments.types.isEmpty);
+        arguments.types.addAll(typeArguments);
+      }
+
+      String errorName;
+      if (type is ClassBuilder) {
+        Builder b = type.findConstructorOrFactory(name);
+        Member target;
+        if (b == null) {
+          // Not found. Reported below.
+        } else if (b.isConstructor) {
+          if (type.isAbstract) {
+            push(evaluateArgumentsBefore(
+                arguments,
+                buildAbstractClassInstantiationError(
+                    type.name, nameToken.charOffset)));
+            return;
+          } else {
+            target = b.target;
+          }
+        } else if (b.isFactory) {
+          target = getRedirectionTarget(b.target);
+          if (target == null) {
+            push(buildCompileTimeError(
+                "Cyclic definition of factory '${name}'.",
+                nameToken.charOffset));
+            return;
+          }
+        }
+        if (target is Constructor ||
+            (target is Procedure && target.kind == ProcedureKind.Factory)) {
+          push(buildStaticInvocation(target, arguments,
+              isConst: optional("const", token),
+              charOffset: nameToken.charOffset));
+          return;
+        } else {
+          errorName = debugName(type.name, name);
+        }
+      } else {
+        errorName = debugName(getNodeName(type), name);
+      }
+      errorName ??= name;
+      push(throwNoSuchMethodError(errorName, arguments, nameToken.charOffset));
+    }();
+    constantExpressionRequired = savedConstantExpressionRequired;
   }
 
   @override
@@ -1973,7 +2009,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable;
     if (lvalue is VariableDeclaration) {
       variable = lvalue;
-    } else if (lvalue is BuilderAccessor) {
+    } else if (lvalue is FastaAccessor) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
       ///
       ///     for (lvalue in expression) body
@@ -2308,29 +2344,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
+  void handleRecoverableError(Token token, FastaMessage message) {
     bool silent = hasParserError;
-    super.handleRecoverableError(token, kind, arguments);
-    addCompileTimeError(recoverableErrors.last.beginOffset,
-        '${recoverableErrors.last.kind} $arguments',
-        silent: silent);
+    super.handleRecoverableError(token, message);
+    addCompileTimeError(message.charOffset, message.message, silent: silent);
   }
 
   @override
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    if (isDartLibrary && kind == ErrorKind.ExpectedFunctionBody) {
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    if (isDartLibrary && message.code == codeExpectedFunctionBody) {
       Token recover = skipNativeClause(token);
       if (recover != null) return recover;
-    } else if (kind == ErrorKind.UnexpectedToken) {
-      String expected = arguments["expected"];
+    } else if (message.code == codeExpectedButGot) {
+      String expected = message.arguments["string"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
-        arguments.putIfAbsent("actual", () => token.lexeme);
-        handleRecoverableError(token, ErrorKind.ExpectedButGot, arguments);
+        handleRecoverableError(token, message);
         return newSyntheticToken(token);
       }
     }
-    return super.handleUnrecoverableError(token, kind, arguments);
+    return super.handleUnrecoverableError(token, message);
   }
 
   @override
@@ -2339,8 +2372,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String message = formatUnexpected(uri, charOffset, error);
     Builder constructor = library.loader.getCompileTimeError();
     return new Throw(buildStaticInvocation(constructor.target,
-        new Arguments(<Expression>[new StringLiteral(message)]),
-        isConst: false)); // TODO(ahe): Make this const.
+        new Arguments(<Expression>[new StringLiteral(message)])));
+  }
+
+  Expression buildAbstractClassInstantiationError(String className,
+      [int charOffset = -1]) {
+    warning("The class '$className' is abstract and can't be instantiated.",
+        charOffset);
+    Builder constructor = library.loader.getAbstractClassInstantiationError();
+    return new Throw(buildStaticInvocation(constructor.target,
+        new Arguments(<Expression>[new StringLiteral(className)])));
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {
@@ -2392,6 +2433,22 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       super.warning(message, charOffset);
     }
+  }
+
+  Expression evaluateArgumentsBefore(
+      Arguments arguments, Expression expression) {
+    if (arguments == null) return expression;
+    List<Expression> expressions =
+        new List<Expression>.from(arguments.positional);
+    for (NamedExpression named in arguments.named) {
+      expressions.add(named.value);
+    }
+    for (Expression argument in expressions.reversed) {
+      expression = new Let(
+          new VariableDeclaration.forValue(argument, isFinal: true),
+          expression);
+    }
+    return expression;
   }
 
   @override
@@ -2474,14 +2531,30 @@ class CascadeReceiver extends Let {
   }
 }
 
-abstract class ContextAccessor extends BuilderAccessor {
+abstract class ContextAccessor extends FastaAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
+  final FastaAccessor accessor;
 
-  final BuilderAccessor accessor;
+  final int offset;
 
-  ContextAccessor(this.helper, this.charOffset, this.accessor);
+  ContextAccessor(this.helper, this.offset, this.accessor);
+
+  @override
+  Expression get builtBinary => internalError("Unsupported operation.");
+
+  @override
+  void set builtBinary(Expression expression) {
+    internalError("Unsupported operation.");
+  }
+
+  @override
+  Expression get builtGetter => internalError("Unsupported operation.");
+
+  @override
+  void set builtGetter(Expression expression) {
+    internalError("Unsupported operation.");
+  }
 
   String get plainNameForRead => internalError("Unsupported operation.");
 
@@ -2502,19 +2575,24 @@ abstract class ContextAccessor extends BuilderAccessor {
     return makeInvalidWrite(value);
   }
 
-  Expression buildCompoundAssignment(
-      Name binaryOperator, Expression value, int charOffset,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return makeInvalidWrite(value);
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator, int charOffset,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return makeInvalidWrite(null);
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator, int charOffset,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return makeInvalidWrite(null);
   }
 
@@ -2522,7 +2600,7 @@ abstract class ContextAccessor extends BuilderAccessor {
 
   Expression makeInvalidWrite(Expression value) {
     return helper.buildCompileTimeError(
-        "Can't be used as left-hand side of assignment.", charOffset);
+        "Can't be used as left-hand side of assignment.", offset);
   }
 }
 
@@ -2532,7 +2610,7 @@ class DelayedAssignment extends ContextAccessor {
   final String assignmentOperator;
 
   DelayedAssignment(BuilderHelper helper, int charOffset,
-      BuilderAccessor accessor, this.value, this.assignmentOperator)
+      FastaAccessor accessor, this.value, this.assignmentOperator)
       : super(helper, charOffset, accessor);
 
   Expression buildSimpleRead() {
@@ -2547,41 +2625,41 @@ class DelayedAssignment extends ContextAccessor {
     if (identical("=", assignmentOperator)) {
       return accessor.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(plusName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(plusName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("-=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(minusName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(minusName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("*=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(multiplyName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(multiplyName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("%=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(percentName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(percentName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("&=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(ampersandName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(ampersandName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(divisionName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(divisionName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("<<=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(leftShiftName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(leftShiftName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(rightShiftName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(rightShiftName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
       return accessor.buildNullAwareAssignment(value, const DynamicType(),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(caretName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(caretName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("|=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(barName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(barName, value,
+          offset: offset, voidContext: voidContext);
     } else if (identical("~/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(mustacheName, value, charOffset,
-          voidContext: voidContext);
+      return accessor.buildCompoundAssignment(mustacheName, value,
+          offset: offset, voidContext: voidContext);
     } else {
       return internalError("Unhandled: $assignmentOperator");
     }
@@ -2609,18 +2687,18 @@ class DelayedPostfixIncrement extends ContextAccessor {
 
   final Procedure interfaceTarget;
 
-  DelayedPostfixIncrement(BuilderHelper helper, int charOffset,
-      BuilderAccessor accessor, this.binaryOperator, this.interfaceTarget)
-      : super(helper, charOffset, accessor);
+  DelayedPostfixIncrement(BuilderHelper helper, int offset,
+      FastaAccessor accessor, this.binaryOperator, this.interfaceTarget)
+      : super(helper, offset, accessor);
 
   Expression buildSimpleRead() {
-    return accessor.buildPostfixIncrement(binaryOperator, charOffset,
-        voidContext: false, interfaceTarget: interfaceTarget);
+    return accessor.buildPostfixIncrement(binaryOperator,
+        offset: offset, voidContext: false, interfaceTarget: interfaceTarget);
   }
 
   Expression buildForEffect() {
-    return accessor.buildPostfixIncrement(binaryOperator, charOffset,
-        voidContext: true, interfaceTarget: interfaceTarget);
+    return accessor.buildPostfixIncrement(binaryOperator,
+        offset: offset, voidContext: true, interfaceTarget: interfaceTarget);
   }
 }
 
@@ -2847,7 +2925,7 @@ String getNodeName(Object node) {
     return node.name;
   } else if (node is ThisAccessor) {
     return node.isSuper ? "super" : "this";
-  } else if (node is BuilderAccessor) {
+  } else if (node is FastaAccessor) {
     return node.plainNameForRead;
   } else {
     return internalError("Unhandled: ${node.runtimeType}");

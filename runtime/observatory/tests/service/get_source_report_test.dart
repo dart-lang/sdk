@@ -63,7 +63,7 @@ hasStoppedAtBreakpoint,
 
   var expectedRange = {
     'scriptIndex': 0,
-    'startPos': ifKernel(489, 39),
+    'startPos': ifKernel(501, 39),
     'endPos': ifKernel(633, 88),
     'compiled': true,
     'coverage': {

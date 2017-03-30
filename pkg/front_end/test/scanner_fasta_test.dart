@@ -190,6 +190,38 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
   @override
   @failingTest
+  void test_incomplete_string_interpolation() {
+    // TODO(danrubel): fix ToAnalyzerTokenStreamConverter_WithListener
+    // to handle synthetic closers in token stream
+    super.test_incomplete_string_interpolation();
+  }
+
+  @override
+  void test_mismatched_opener_in_interpolation() {
+    // When openers and closers are mismatched,
+    // fasta favors considering the opener to be mismatched
+    // and inserts synthetic closers as needed.
+    // r'"${({(}}"' is parsed as r'"${({()})}"'
+    // where both ')' are synthetic
+    var stringStart = _scan(r'"${({(}}"');
+    var interpolationStart = stringStart.next as BeginToken;
+    var openParen1 = interpolationStart.next as BeginToken;
+    var openBrace = openParen1.next as BeginToken;
+    var openParen2 = openBrace.next as BeginToken;
+    var closeParen2 = openParen2.next;
+    var closeBrace = closeParen2.next;
+    var closeParen1 = closeBrace.next;
+    var interpolationEnd = closeParen1.next;
+    var stringEnd = interpolationEnd.next;
+    expect(stringEnd.next.type, TokenType.EOF);
+    expect(interpolationStart.endToken, same(interpolationEnd));
+    expect(openParen1.endToken, same(closeParen1));
+    expect(openBrace.endToken, same(closeBrace));
+    expect(openParen2.endToken, same(closeParen2));
+  }
+
+  @override
+  @failingTest
   void test_string_multi_unterminated() {
     // TODO(paulberry,ahe): bad error recovery.
     super.test_string_multi_unterminated();
@@ -256,6 +288,31 @@ class ScannerTest_Fasta extends ScannerTestBase {
   void test_string_simple_unterminated_interpolation_identifier() {
     // TODO(paulberry,ahe): bad error recovery.
     super.test_string_simple_unterminated_interpolation_identifier();
+  }
+
+  @override
+  void test_unmatched_openers() {
+    var openBrace = _scan('{[(') as BeginToken;
+    var openBracket = openBrace.next as BeginToken;
+    var openParen = openBracket.next as BeginToken;
+    var closeParen = openParen.next;
+    var closeBracket = closeParen.next;
+    var closeBrace = closeBracket.next;
+    expect(closeBrace.next.type, TokenType.EOF);
+    expect(openBrace.endToken, same(closeBrace));
+    expect(openBracket.endToken, same(closeBracket));
+    expect(openParen.endToken, same(closeParen));
+  }
+
+  Token _scan(String source,
+      {bool genericMethodComments: false,
+      bool lazyAssignmentOperators: false}) {
+    ErrorListener listener = new ErrorListener();
+    Token token = scanWithListener(source, listener,
+        genericMethodComments: genericMethodComments,
+        lazyAssignmentOperators: lazyAssignmentOperators);
+    listener.assertNoErrors();
+    return token;
   }
 }
 

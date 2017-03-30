@@ -52,7 +52,7 @@ rasta/export: Fail
 rasta/external_factory_redirection: Crash
 rasta/foo: Fail
 rasta/for_loop: Fail
-rasta/generic_factory: VerificationError
+rasta/generic_factory: Fail # Compile-time error destroys program.
 rasta/issue_000001: Crash
 rasta/issue_000002: Crash
 rasta/issue_000004: Crash
@@ -100,7 +100,7 @@ rasta/super_mixin: Crash
 rasta/super_operator: Crash
 rasta/supports_reflection: Crash
 rasta/switch_execution_case_t02: Crash
-rasta/switch_fall_through: Crash
+rasta/switch_fall_through: Fail
 rasta/this_invoke: Crash
 rasta/try_label: Crash
 rasta/type_literals: Crash

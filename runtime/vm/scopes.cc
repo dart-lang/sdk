@@ -276,6 +276,10 @@ static bool IsFilteredIdentifier(const String& str) {
     // Keep :await_jump_var for asynchronous debugging.
     return false;
   }
+  if (str.raw() == Symbols::AsyncStackTraceVar().raw()) {
+    // Keep :async_stack_trace for asynchronous debugging.
+    return false;
+  }
   return str.CharAt(0) == ':';
 }
 

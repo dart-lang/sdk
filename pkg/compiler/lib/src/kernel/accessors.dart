@@ -21,7 +21,7 @@ class TopLevelStaticAccessor extends ir_accessors.StaticAccessor {
 
   TopLevelStaticAccessor(
       this.builder, this.name, ir.Member readTarget, ir.Member writeTarget)
-      : super(readTarget, writeTarget);
+      : super(readTarget, writeTarget, ir.TreeNode.noOffset);
 
   @override
   makeInvalidRead() {
@@ -53,7 +53,7 @@ class ClassStaticAccessor extends ir_accessors.StaticAccessor {
 
   ClassStaticAccessor(
       this.builder, this.name, ir.Member readTarget, ir.Member writeTarget)
-      : super(readTarget, writeTarget);
+      : super(readTarget, writeTarget, ir.TreeNode.noOffset);
 
   @override
   makeInvalidRead() {
@@ -79,7 +79,7 @@ class SuperPropertyAccessor extends ir_accessors.SuperPropertyAccessor {
 
   SuperPropertyAccessor(
       this.builder, ir.Name name, ir.Member getter, ir.Member setter)
-      : super(name, getter, setter);
+      : super(name, getter, setter, ir.TreeNode.noOffset);
 
   @override
   makeInvalidRead() {
@@ -101,7 +101,7 @@ class SuperIndexAccessor extends ir_accessors.SuperIndexAccessor {
 
   SuperIndexAccessor(
       this.builder, ir.Expression index, ir.Member getter, ir.Member setter)
-      : super(index, getter, setter);
+      : super(index, getter, setter, ir.TreeNode.noOffset);
 
   @override
   makeInvalidRead() {

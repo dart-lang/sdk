@@ -4,11 +4,12 @@
 
 library fasta.parser.listener;
 
+import '../fasta_codes.dart' show FastaMessage;
+
 import '../scanner/token.dart' show BeginGroupToken, SymbolToken, Token;
 
 import '../util/link.dart' show Link;
 
-import 'error_kind.dart' show ErrorKind;
 import 'package:front_end/src/fasta/scanner/precedence.dart' show RECOVERY_INFO;
 import 'parser.dart' show FormalParameterType;
 
@@ -27,6 +28,8 @@ import 'identifier_context.dart' show IdentifierContext;
 /// event.
 class Listener {
   final List<ParserError> recoverableErrors = <ParserError>[];
+
+  Uri get uri => null;
 
   void logEvent(String name) {}
 
@@ -1006,14 +1009,13 @@ class Listener {
   /// `null`. In the latter case, the parser simply skips to EOF which will
   /// often result in additional parser errors as the parser returns from its
   /// recursive state.
-  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    throw new ParserError.fromTokens(token, token, kind, arguments);
+  Token handleUnrecoverableError(Token token, FastaMessage message) {
+    throw new ParserError.fromTokens(token, token, message);
   }
 
   /// The parser noticed a syntax error, but was able to recover from it.
-  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
-    recoverableErrors
-        .add(new ParserError.fromTokens(token, token, kind, arguments));
+  void handleRecoverableError(Token token, FastaMessage message) {
+    recoverableErrors.add(new ParserError.fromTokens(token, token, message));
   }
 
   void handleScript(Token token) {
@@ -1036,14 +1038,12 @@ class ParserError {
   /// Character offset from the beginning of file where this error ends.
   final int endOffset;
 
-  final ErrorKind kind;
+  final FastaMessage message;
 
-  final Map arguments;
+  ParserError(this.beginOffset, this.endOffset, this.message);
 
-  ParserError(this.beginOffset, this.endOffset, this.kind, this.arguments);
+  ParserError.fromTokens(Token begin, Token end, FastaMessage message)
+      : this(begin.charOffset, end.charOffset + end.charCount, message);
 
-  ParserError.fromTokens(Token begin, Token end, ErrorKind kind, Map arguments)
-      : this(begin.charOffset, end.charOffset + end.charCount, kind, arguments);
-
-  String toString() => "@${beginOffset}: $kind $arguments";
+  String toString() => "@${beginOffset}: ${message.message}\n${message.tip}";
 }

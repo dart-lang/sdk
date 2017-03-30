@@ -73,6 +73,18 @@ void _asyncStarListenHelper(var object, var awaiter) {
   object._awaiter = awaiter;
 }
 
+void _asyncStarMoveNextHelper(var stream) {
+  if (stream is! _StreamImpl) {
+    return;
+  }
+  // stream is a _StreamImpl.
+  if (stream._generator == null) {
+    // No generator registered, this isn't an async* Stream.
+    return;
+  }
+  _moveNextDebuggerStepCheck(stream._generator);
+}
+
 // _AsyncStarStreamController is used by the compiler to implement
 // async* generator functions.
 class _AsyncStarStreamController {
@@ -230,12 +242,20 @@ class _StreamImpl<T> {
   Function _generator;
 }
 
+void _completeOnAsyncReturn(Object completer, Object value) {
+  completer.complete(value);
+}
+
 /// Returns a [StackTrace] object containing the synchronous prefix for this
 /// asynchronous method.
-Object _asyncStackTraceHelper() native "StackTrace_asyncStackTraceHelper";
+Object _asyncStackTraceHelper(Function async_op)
+    native "StackTrace_asyncStackTraceHelper";
 
 void _clearAsyncThreadStackTrace()
     native "StackTrace_clearAsyncThreadStackTrace";
 
 void _setAsyncThreadStackTrace(StackTrace stackTrace)
     native "StackTrace_setAsyncThreadStackTrace";
+
+void _moveNextDebuggerStepCheck(Function async_op)
+    native "AsyncStarMoveNext_debuggerStepCheck";

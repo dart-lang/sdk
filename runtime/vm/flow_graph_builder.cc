@@ -1170,9 +1170,14 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     arguments->Add(PushArgument(rcv_value));
     Value* returned_value = Bind(BuildLoadExprTemp(node->token_pos()));
     arguments->Add(PushArgument(returned_value));
-    InstanceCallInstr* call = new (Z) InstanceCallInstr(
-        node->token_pos(), Symbols::CompleterComplete(), Token::kILLEGAL,
-        arguments, Object::null_array(), 1, owner()->ic_data_array());
+    // Call a helper function to complete the completer. The debugger
+    // uses the helper function to know when to step-out.
+    const Function& complete_on_async_return = Function::ZoneHandle(
+        Z, isolate()->object_store()->complete_on_async_return());
+    ASSERT(!complete_on_async_return.IsNull());
+    StaticCallInstr* call = new (Z) StaticCallInstr(
+        node->token_pos().ToSynthetic(), complete_on_async_return,
+        Object::null_array(), arguments, owner()->ic_data_array());
     Do(call);
 
     // Rebind the return value for the actual return call to be null.

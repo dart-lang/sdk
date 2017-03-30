@@ -110,6 +110,8 @@ testListenCloseListenClose(String host) async {
   await client.close();
   await client.drain();
 
+  // Close the second server socket.
+  await socket2.close();
   asyncEnd();
 }
 

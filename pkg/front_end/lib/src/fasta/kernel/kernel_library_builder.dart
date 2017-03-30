@@ -23,12 +23,14 @@ import '../util/relativize.dart' show relativizeUri;
 
 import 'kernel_builder.dart'
     show
+        AccessErrorBuilder,
         Builder,
         BuiltinTypeBuilder,
         ClassBuilder,
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
         FunctionTypeAliasBuilder,
+        InvalidTypeBuilder,
         KernelConstructorBuilder,
         KernelEnumBuilder,
         KernelFieldBuilder,
@@ -248,11 +250,11 @@ class KernelLibraryBuilder
   }
 
   void addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants, int charOffset, int charEndOffset) {
+      List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(
-            metadata, name, constants, this, charOffset, charEndOffset),
+        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
+            charOffset, charEndOffset),
         charOffset);
   }
 
@@ -325,14 +327,97 @@ class KernelLibraryBuilder
     return library;
   }
 
+  @override
   Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other, int charOffset) {
+      String name, Builder builder, Builder other, int charOffset,
+      {bool isExport: false, bool isImport: false}) {
+    if (builder == other) return builder;
+    if (builder is InvalidTypeBuilder) return builder;
+    if (other is InvalidTypeBuilder) return other;
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
+      builder = error.builder;
+    }
+    if (other is AccessErrorBuilder) {
+      AccessErrorBuilder error = other;
+      other = error.builder;
+    }
+    bool isLocal = false;
+    Builder preferred;
+    Uri uri;
+    Uri otherUri;
+    Uri preferredUri;
+    Uri hiddenUri;
+    if (members[name] == builder) {
+      isLocal = true;
+      preferred = builder;
+      hiddenUri = other.computeLibraryUri();
+    } else {
+      uri = builder.computeLibraryUri();
+      otherUri = other.computeLibraryUri();
+      if (otherUri?.scheme == "dart" && uri?.scheme != "dart") {
+        preferred = builder;
+        preferredUri = uri;
+        hiddenUri = otherUri;
+      } else if (uri?.scheme == "dart" && otherUri?.scheme != "dart") {
+        preferred = other;
+        preferredUri = otherUri;
+        hiddenUri = uri;
+      }
+    }
+    if (preferred != null) {
+      if (isLocal) {
+        if (isExport) {
+          addNit(charOffset,
+              "Local definition of '$name' hides export from '${hiddenUri}'.");
+        } else {
+          addNit(charOffset,
+              "Local definition of '$name' hides import from '${hiddenUri}'.");
+        }
+      } else {
+        if (isExport) {
+          addNit(
+              charOffset,
+              "Export of '$name' (from '${preferredUri}') hides export from "
+              "'${hiddenUri}'.");
+        } else {
+          addNit(
+              charOffset,
+              "Import of '$name' (from '${preferredUri}') hides import from "
+              "'${hiddenUri}'.");
+        }
+      }
+      return preferred;
+    }
     if (builder.next == null && other.next == null) {
       if (builder.isGetter && other.isSetter) {
         return new MixedAccessor(builder, other, this);
       } else if (builder.isSetter && other.isGetter) {
         return new MixedAccessor(other, builder, this);
       }
+      if (isImport && builder is PrefixBuilder && other is PrefixBuilder) {
+        // Handles the case where the same prefix is used for different
+        // imports.
+        PrefixBuilder prefix = builder;
+        other.exports.forEach((String name, Builder member) {
+          Builder existing = exports[name];
+          if (existing != null) {
+            if (existing != member) {
+              member = buildAmbiguousBuilder(name, existing, member, charOffset,
+                  isExport: isExport, isImport: isImport);
+            }
+          }
+          prefix.exports[name] = member;
+        });
+        return builder;
+      }
+    }
+    if (isExport) {
+      addNit(charOffset,
+          "'$name' is exported from both '${uri}' and '${otherUri}'.");
+    } else {
+      addNit(charOffset,
+          "'$name' is imported from both '${uri}' and '${otherUri}'.");
     }
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }

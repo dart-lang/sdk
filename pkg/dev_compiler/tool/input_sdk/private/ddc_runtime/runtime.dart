@@ -64,7 +64,10 @@ final global_ = JS(
         window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
       }
       if (typeof FontFaceSet == "undefined") {
-        window.FontFaceSet = document.fonts.__proto__.constructor;
+        // CSS Font Loading is not supported on Edge.
+        if (typeof document.fonts != "undefined") {
+          window.FontFaceSet = document.fonts.__proto__.constructor;
+        }
       }
       if (typeof MemoryInfo == "undefined") {
         if (typeof window.performance.memory != "undefined") {

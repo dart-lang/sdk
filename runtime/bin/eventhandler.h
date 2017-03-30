@@ -647,6 +647,8 @@ class EventHandler {
 
   static EventHandlerImplementation* delegate();
 
+  static void SendFromNative(intptr_t id, Dart_Port port, int64_t data);
+
  private:
   friend class EventHandlerImplementation;
   EventHandlerImplementation delegate_;

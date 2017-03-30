@@ -65,12 +65,33 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   dart.fn(sunflower.draw, VoidTovoid());
   circle.Circle = class Circle extends core.Object {
+    get x() {
+      return this[x$];
+    }
+    set x(value) {
+      super.x = value;
+    }
+    get y() {
+      return this[y$];
+    }
+    set y(value) {
+      super.y = value;
+    }
+    get radius() {
+      return this[radius$];
+    }
+    set radius(value) {
+      super.radius = value;
+    }
     new(x, y, radius) {
-      this.x = x;
-      this.y = y;
-      this.radius = radius;
+      this[x$] = x;
+      this[y$] = y;
+      this[radius$] = radius;
     }
   };
+  const x$ = Symbol("Circle.x");
+  const y$ = Symbol("Circle.y");
+  const radius$ = Symbol("Circle.radius");
   dart.setSignature(circle.Circle, {
     fields: () => ({
       x: core.num,
@@ -80,7 +101,13 @@ define(['dart_sdk'], function(dart_sdk) {
   });
   painter.CirclePainter = class CirclePainter extends core.Object {
     new() {
-      this.color = painter.ORANGE;
+      this[color] = painter.ORANGE;
+    }
+    get color() {
+      return this[color];
+    }
+    set color(value) {
+      this[color] = value;
     }
     draw(context) {
       context.beginPath();
@@ -93,6 +120,7 @@ define(['dart_sdk'], function(dart_sdk) {
       context.stroke();
     }
   };
+  const color = Symbol("CirclePainter.color");
   painter.CirclePainter[dart.implements] = () => [circle.Circle];
   dart.setSignature(painter.CirclePainter, {
     fields: () => ({color: core.String}),

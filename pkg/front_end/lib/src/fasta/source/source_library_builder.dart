@@ -12,8 +12,6 @@ import '../errors.dart' show inputError, internalError;
 
 import '../export.dart' show Export;
 
-import '../messages.dart' show warning;
-
 import '../import.dart' show Import;
 
 import 'source_loader.dart' show SourceLoader;
@@ -184,10 +182,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name, int charOffset);
 
   void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
-      List<String> names) {
-    for (String name in names) {
-      // TODO(ahe): Get charOffset of name.
-      addField(metadata, modifiers, type, name, -1);
+      List<Object> namesAndOffsets) {
+    for (int i = 0; i < namesAndOffsets.length; i += 2) {
+      String name = namesAndOffsets[i];
+      int charOffset = namesAndOffsets[i + 1];
+      addField(metadata, modifiers, type, name, charOffset);
     }
   }
 
@@ -207,7 +206,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       {bool isTopLevel});
 
   void addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants, int charOffset, int charEndOffset);
+      List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
@@ -272,7 +271,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         Builder other = existing.exports.putIfAbsent(name, () => builder);
         if (other != builder) {
           existing.exports[name] =
-              other.combineAmbiguousImport(name, builder, this);
+              buildAmbiguousBuilder(name, other, builder, charOffset);
         }
       });
       return existing;
@@ -338,11 +337,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void includeParts() {
+    Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
       if (part == this) {
         addCompileTimeError(-1, "A file can't be a part of itself.");
-      } else {
+      } else if (seenParts.add(part.fileUri)) {
         includePart(part);
+      } else {
+        addCompileTimeError(
+            -1, "Can't use '${part.fileUri}' as a part more than once.");
       }
     }
   }
@@ -350,21 +353,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void includePart(SourceLibraryBuilder<T, R> part) {
     if (name != null) {
       if (!part.isPart) {
-        warning(
-            part.fileUri,
+        addCompileTimeError(
             -1,
-            "Has no 'part of' declaration but is used as "
-            "a part by ${name} ($uri).");
+            "Can't use ${part.fileUri} as a part, because it has no 'part of'"
+            " declaration.");
         parts.remove(part);
         return;
       }
       if (part.partOfName != name && part.partOfUri != uri) {
         String partName = part.partOfName ?? "${part.partOfUri}";
         String myName = name == null ? "'$uri'" : "'${name}' ($uri)";
-        warning(part.fileUri, -1,
-            "Is part of '$partName' but is used as a part by $myName.");
-        parts.remove(part);
-        return;
+        addWarning(
+            -1,
+            "Using '${part.fileUri}' as part of '$myName' but it's 'part of'"
+            " declaration says '$partName'.");
+        // The part is still included.
       }
     }
     part.members.forEach((String name, Builder builder) {
@@ -382,7 +385,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void buildInitialScopes() {
     members.forEach(addToExportScope);
-    members.forEach(addToScope);
+    members.forEach((String name, Builder member) {
+      addToScope(name, member, member.charOffset, false);
+    });
   }
 
   void addImportsToScope() {
@@ -394,29 +399,37 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exports.forEach(addToScope);
+      loader.coreLibrary.exports.forEach((String name, Builder member) {
+        addToScope(name, member, -1, true);
+      });
     }
   }
 
-  void addToScope(String name, Builder member) {
+  @override
+  void addToScope(String name, Builder member, int charOffset, bool isImport) {
     Builder existing = scope.lookup(name, member.charOffset, fileUri);
     if (existing != null) {
       if (existing != member) {
-        scope.local[name] = existing.combineAmbiguousImport(name, member, this);
+        scope.local[name] = buildAmbiguousBuilder(
+            name, existing, member, charOffset,
+            isImport: isImport);
       }
-      // TODO(ahe): handle duplicated names.
     } else {
       scope.local[name] = member;
     }
   }
 
+  /// Returns true if the export scope was modified.
   bool addToExportScope(String name, Builder member) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Builder existing = exports[name];
+    if (existing == member) return false;
     if (existing != null) {
-      // TODO(ahe): handle duplicated names.
-      return false;
+      Builder result =
+          buildAmbiguousBuilder(name, existing, member, -1, isExport: true);
+      exports[name] = result;
+      return result != existing;
     } else {
       exports[name] = member;
     }

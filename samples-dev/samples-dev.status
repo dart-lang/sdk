@@ -8,10 +8,6 @@ swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
 [ $runtime == safari ]
 swarm/test/swarm_test: Pass, Fail # Issue 14523
 
-[ $runtime == opera ]
-swarm/test/swarm_ui_lib/touch/touch_test: Fail
-swarm/test/swarm_test: Fail
-
 [ $runtime == vm ]
 swarm: Skip
 

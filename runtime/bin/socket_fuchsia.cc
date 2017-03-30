@@ -72,6 +72,15 @@ bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
 }
 
 
+Socket::Socket(intptr_t fd)
+    : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {}
+
+
+void Socket::SetClosedFd() {
+  fd_ = kClosedFd;
+}
+
+
 bool Socket::Initialize() {
   // Nothing to do on Fuchsia.
   return true;

@@ -11,6 +11,9 @@ import 'builder.dart'
 
 abstract class FormalParameterBuilder<T extends TypeBuilder>
     extends ModifierBuilder {
+  @override
+  final int charOffset;
+
   final List<MetadataBuilder> metadata;
 
   final int modifiers;
@@ -25,7 +28,7 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
   FormalParameterType kind = FormalParameterType.REQUIRED;
 
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
-      this.hasThis, LibraryBuilder compilationUnit, int charOffset)
+      this.hasThis, LibraryBuilder compilationUnit, this.charOffset)
       : super(compilationUnit, charOffset);
 
   bool get isRequired => kind.isRequired;

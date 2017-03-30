@@ -124,8 +124,10 @@ class ObjectPointerVisitor;
   V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
   V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
+  V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
   V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
   V(AsyncErrorWrapperHelper, "_asyncErrorWrapperHelper")                       \
+  V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AsyncStackTraceHelper, "_asyncStackTraceHelper")                           \
   V(AsyncAwaitHelper, "_awaitHelper")                                          \
   V(Await, "await")                                                            \
@@ -356,7 +358,7 @@ class ObjectPointerVisitor;
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
-  V(DartNativeWrappersLibName, "dart.nativewrappers")                          \
+  V(DartNativeWrappersLibName, "nativewrappers")                               \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
   V(DartDeveloper, "dart:developer")                                           \

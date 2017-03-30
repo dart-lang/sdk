@@ -9,5 +9,6 @@
     'deferred_load_patch.dart',
     'schedule_microtask_patch.dart',
     'timer_patch.dart',
+    'async.cc',
   ],
 }

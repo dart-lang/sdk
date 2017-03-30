@@ -6,6 +6,8 @@ library front_end.src.fasta.names;
 
 import 'package:kernel/ast.dart' show Name;
 
+export 'package:kernel/frontend/accessors.dart' show indexGetName, indexSetName;
+
 final Name callName = new Name("call");
 
 final Name plusName = new Name("+");
@@ -29,7 +31,3 @@ final Name caretName = new Name("^");
 final Name barName = new Name("|");
 
 final Name mustacheName = new Name("~/");
-
-final Name indexGetName = new Name("[]");
-
-final Name indexSetName = new Name("[]=");

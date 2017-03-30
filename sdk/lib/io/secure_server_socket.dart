@@ -53,6 +53,11 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
    *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negogiation with
+   * clients.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
+   *
    * The optional argument [shared] specifies whether additional
    * SecureServerSocket objects can bind to the same combination of `address`,
    * `port` and `v6Only`.  If `shared` is `true` and more `SecureServerSocket`s
@@ -176,6 +181,11 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * need to specify both.  To check whether a client certificate was received,
    * check SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
+   *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negogiation with
+   * clients.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [RawSecureSocket.selectedProtocol].
    *
    * The optional argument [shared] specifies whether additional
    * RawSecureServerSocket objects can bind to the same combination of

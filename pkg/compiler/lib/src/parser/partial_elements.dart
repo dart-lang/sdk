@@ -451,7 +451,7 @@ Node parse(ParsingContext parsing, ElementX element, PartialElement partial,
         doParse(new Parser(listener));
       } on ParserError catch (e) {
         partial.hasParseError = true;
-        return new ErrorNode(element.position, e.kind, e.arguments);
+        return new ErrorNode(element.position, e.message);
       }
       Node node = listener.popNode();
       assert(listener.nodes.isEmpty);

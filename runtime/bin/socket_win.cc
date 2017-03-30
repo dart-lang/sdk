@@ -46,6 +46,22 @@ bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
 }
 
 
+Socket::Socket(intptr_t fd) : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {
+  ASSERT(fd_ != kClosedFd);
+  Handle* handle = reinterpret_cast<Handle*>(fd_);
+  ASSERT(handle != NULL);
+}
+
+
+void Socket::SetClosedFd() {
+  ASSERT(fd_ != kClosedFd);
+  Handle* handle = reinterpret_cast<Handle*>(fd_);
+  ASSERT(handle != NULL);
+  handle->Release();
+  fd_ = kClosedFd;
+}
+
+
 static Mutex* init_mutex = new Mutex();
 static bool socket_initialized = false;
 
@@ -165,7 +181,7 @@ static intptr_t Connect(intptr_t fd,
   if (status != NO_ERROR) {
     int rc = WSAGetLastError();
     handle->mark_closed();  // Destructor asserts that socket is marked closed.
-    delete handle;
+    handle->Release();
     closesocket(s);
     SetLastError(rc);
     return -1;
@@ -196,11 +212,12 @@ static intptr_t Connect(intptr_t fd,
     rc = WSAGetLastError();
     // Cleanup in case of error.
     OverlappedBuffer::DisposeBuffer(overlapped);
+    handle->Release();
   } else {
     rc = WSAGetLastError();
   }
   handle->Close();
-  delete handle;
+  handle->Release();
   SetLastError(rc);
   return -1;
 }
@@ -497,7 +514,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     intptr_t new_s = CreateBindListen(addr, backlog, v6_only);
     DWORD rc = WSAGetLastError();
     closesocket(s);
-    delete listen_socket;
+    listen_socket->Release();
     SetLastError(rc);
     return new_s;
   }
@@ -506,7 +523,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
-    delete listen_socket;
+    listen_socket->Release();
     SetLastError(rc);
     return -1;
   }
@@ -526,7 +543,7 @@ bool ServerSocket::StartAccept(intptr_t fd) {
       if (!listen_socket->HasPendingAccept()) {
         // Delete socket now, if there are no pending accepts. Otherwise,
         // the event-handler will take care of deleting it.
-        delete listen_socket;
+        listen_socket->Release();
       }
       SetLastError(rc);
       return false;

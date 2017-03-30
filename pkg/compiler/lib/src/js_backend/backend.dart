@@ -46,7 +46,7 @@ import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/task.dart';
-import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
+import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
@@ -355,11 +355,6 @@ class JavaScriptBackend {
    */
   final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
 
-  /**
-   * A set of members that are called from subclasses via `super`.
-   */
-  final Set<MethodElement> aliasedSuperMembers = new Setlet<MethodElement>();
-
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
@@ -387,11 +382,11 @@ class JavaScriptBackend {
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsResolutionAnalysis customElementsResolutionAnalysis;
+  CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsCodegenAnalysis customElementsCodegenAnalysis;
+  CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
   /// Resolution support for tree-shaking entries of `LookupMap`.
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
@@ -405,8 +400,11 @@ class JavaScriptBackend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
-  /// Resolution and codegen support for computing reflectable elements.
-  MirrorsAnalysis mirrorsAnalysis;
+  /// Resolution support for computing reflectable elements.
+  MirrorsResolutionAnalysis _mirrorsResolutionAnalysis;
+
+  /// Codegen support for computing reflectable elements.
+  MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
 
   /// Builds kernel representation for the program.
   KernelTask kernelTask;
@@ -429,10 +427,10 @@ class JavaScriptBackend {
   JavaScriptBackendSerialization serialization;
 
   NativeDataImpl _nativeData;
-  final NativeBasicDataImpl _nativeBaseData = new NativeBasicDataImpl();
-  NativeBasicData get nativeBaseData => _nativeBaseData;
+  final NativeBasicDataBuilderImpl _nativeBasicDataBuilder =
+      new NativeBasicDataBuilderImpl();
+  NativeBasicDataImpl _nativeBasicData;
   NativeData get nativeData => _nativeData;
-  NativeBasicDataBuilder get nativeBaseDataBuilder => _nativeBaseData;
   NativeDataBuilder get nativeDataBuilder => _nativeData;
   final NativeDataResolver _nativeDataResolver;
   InterceptorDataBuilder _interceptorDataBuilder;
@@ -443,6 +441,8 @@ class JavaScriptBackend {
   MirrorsDataImpl _mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
 
+  final SuperMemberData superMemberData = new SuperMemberData();
+
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
@@ -450,7 +450,7 @@ class JavaScriptBackend {
   BackendImpacts impacts;
 
   /// Common classes used by the backend.
-  BackendClasses backendClasses;
+  BackendClasses _backendClasses;
 
   /// Backend access to the front-end.
   final JSFrontendAccess frontend;
@@ -498,66 +498,31 @@ class JavaScriptBackend {
         frontend = new JSFrontendAccess(compiler),
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
-    _nativeData = new NativeDataImpl(nativeBaseData);
     _target = new JavaScriptBackendTarget(this);
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     impacts = new BackendImpacts(compiler.options, commonElements, helpers);
-    backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, helpers, nativeBaseData);
     _mirrorsData = new MirrorsDataImpl(
         compiler, compiler.options, commonElements, helpers, constants);
-    _backendUsageBuilder = new BackendUsageBuilderImpl(
-        compiler.elementEnvironment, commonElements, helpers);
+    _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements, helpers);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
-    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(compiler);
-    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
-        compiler, emitter, _nativeResolutionEnqueuer);
 
     _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
         compiler.elementEnvironment, impacts, backendUsageBuilder);
-    customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
-        compiler.resolution,
-        constantSystem,
-        commonElements,
-        backendClasses,
-        helpers,
-        nativeBaseData,
-        backendUsageBuilder);
-    customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        compiler.resolution,
-        constantSystem,
-        commonElements,
-        backendClasses,
-        helpers,
-        nativeBaseData);
     jsInteropAnalysis = new JsInteropAnalysis(this);
-    mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
+    _mirrorsResolutionAnalysis =
+        new MirrorsResolutionAnalysisImpl(this, compiler.resolution);
     lookupMapResolutionAnalysis =
         new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
 
-    noSuchMethodRegistry = new NoSuchMethodRegistry(this);
+    noSuchMethodRegistry =
+        new NoSuchMethodRegistry(helpers, new NoSuchMethodResolverImpl());
     kernelTask = new KernelTask(compiler);
-    impactTransformer = new JavaScriptImpactTransformer(
-        compiler.options,
-        compiler.resolution,
-        compiler.elementEnvironment,
-        commonElements,
-        impacts,
-        nativeBaseData,
-        nativeResolutionEnqueuer,
-        backendUsageBuilder,
-        mirrorsDataBuilder,
-        customElementsResolutionAnalysis,
-        rtiNeedBuilder);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
-    serialization =
-        new JavaScriptBackendSerialization(nativeBaseData, nativeData);
-    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeBaseData, helpers, commonElements, compiler.resolution);
+    serialization = new JavaScriptBackendSerialization(this);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -571,6 +536,39 @@ class JavaScriptBackend {
   Resolution get resolution => compiler.resolution;
 
   Target get target => _target;
+
+  /// Resolution support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsResolutionAnalysis get customElementsResolutionAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _customElementsResolutionAnalysis != null,
+        message: "CustomElementsResolutionAnalysis has not been created yet."));
+    return _customElementsResolutionAnalysis;
+  }
+
+  /// Codegen support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, _customElementsCodegenAnalysis != null,
+        message: "CustomElementsCodegenAnalysis has not been created yet."));
+    return _customElementsCodegenAnalysis;
+  }
+
+  /// Common classes used by the backend.
+  BackendClasses get backendClasses {
+    assert(invariant(NO_LOCATION_SPANNABLE, _backendClasses != null,
+        message: "BackendClasses has not been created yet."));
+    return _backendClasses;
+  }
+
+  NativeBasicData get nativeBasicData {
+    assert(invariant(NO_LOCATION_SPANNABLE, _nativeBasicData != null,
+        message: "NativeBasicData has not been computed yet."));
+    return _nativeBasicData;
+  }
+
+  NativeBasicDataBuilder get nativeBasicDataBuilder => _nativeBasicDataBuilder;
 
   /// Resolution analysis for tracking reflective access to type variables.
   TypeVariableResolutionAnalysis get typeVariableResolutionAnalysis {
@@ -591,6 +589,17 @@ class JavaScriptBackend {
   MirrorsData get mirrorsData => _mirrorsData;
 
   MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
+
+  /// Resolution support for computing reflectable elements.
+  MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
+      _mirrorsResolutionAnalysis;
+
+  /// Codegen support for computing reflectable elements.
+  MirrorsCodegenAnalysis get mirrorsCodegenAnalysis {
+    assert(invariant(NO_LOCATION_SPANNABLE, _mirrorsCodegenAnalysis != null,
+        message: "MirrorsCodegenAnalysis has not been created yet."));
+    return _mirrorsCodegenAnalysis;
+  }
 
   /// Codegen support for tree-shaking entries of `LookupMap`.
   LookupMapAnalysis get lookupMapAnalysis {
@@ -669,10 +678,6 @@ class JavaScriptBackend {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  bool isDefaultNoSuchMethod(MethodElement element) {
-    return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
-  }
-
   MethodElement resolveExternalFunction(MethodElement element) {
     if (isForeign(element)) {
       return element;
@@ -731,31 +736,6 @@ class JavaScriptBackend {
         !mirrorsData.invokedReflectively(method);
   }
 
-  /**
-   * Record that [method] is called from a subclass via `super`.
-   */
-  bool maybeRegisterAliasedSuperMember(
-      MemberElement member, Selector selector) {
-    if (!canUseAliasedSuperMember(member, selector)) {
-      // Invoking a super getter isn't supported, this would require changes to
-      // compact field descriptors in the emitter.
-      return false;
-    }
-    aliasedSuperMembers.add(member);
-    return true;
-  }
-
-  bool canUseAliasedSuperMember(Element member, Selector selector) {
-    return !selector.isGetter;
-  }
-
-  /**
-   * Returns `true` if [member] is called from a subclass via `super`.
-   */
-  bool isAliasedSuperMember(FunctionElement member) {
-    return aliasedSuperMembers.contains(member);
-  }
-
   /// Maps compile-time classes to their runtime class.  The runtime class is
   /// always a superclass or the class itself.
   ClassElement getRuntimeClass(ClassElement class_) {
@@ -802,7 +782,7 @@ class JavaScriptBackend {
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    _backendUsage = _backendUsageBuilder.close();
+    _backendUsage = backendUsageBuilder.close();
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         compiler.enqueuer.resolution.worldBuilder,
         closedWorld,
@@ -811,23 +791,14 @@ class JavaScriptBackend {
         helpers,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
-    _interceptorData =
-        _interceptorDataBuilder.onResolutionComplete(closedWorld);
+    _interceptorData = interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
         new OneShotInterceptorData(interceptorData, helpers);
-    mirrorsAnalysis.onResolutionComplete();
+    mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
-  void onTypeInferenceComplete() {
-    noSuchMethodRegistry.onTypeInferenceComplete();
-  }
-
-  /// Register a runtime type variable bound tests between [typeArgument] and
-  /// [bound].
-  void registerTypeVariableBoundsSubtypeCheck(
-      ResolutionDartType typeArgument, ResolutionDartType bound) {
-    rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
-        typeArgument, bound);
+  void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
+    noSuchMethodRegistry.onTypeInferenceComplete(results);
   }
 
   /// Returns the [WorldImpact] of enabling deferred loading.
@@ -840,12 +811,11 @@ class JavaScriptBackend {
   native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
     if (element.name == BackendHelpers.JS) {
-      return _nativeResolutionEnqueuer.resolveJsCall(node, resolver);
+      return _nativeDataResolver.resolveJsCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
-      return _nativeResolutionEnqueuer.resolveJsEmbeddedGlobalCall(
-          node, resolver);
+      return _nativeDataResolver.resolveJsEmbeddedGlobalCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_BUILTIN) {
-      return _nativeResolutionEnqueuer.resolveJsBuiltinCall(node, resolver);
+      return _nativeDataResolver.resolveJsBuiltinCall(node, resolver);
     } else if (element.name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
@@ -869,11 +839,39 @@ class JavaScriptBackend {
     return null;
   }
 
-  bool isComplexNoSuchMethod(FunctionElement element) =>
-      noSuchMethodRegistry.isComplex(element);
-
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
+    _nativeBasicData =
+        nativeBasicDataBuilder.close(compiler.elementEnvironment);
+    _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
+        compiler,
+        new NativeClassResolverImpl(
+            compiler.resolution, reporter, helpers, nativeBasicData));
+    _nativeData = new NativeDataImpl(nativeBasicData);
+    _backendClasses = new JavaScriptBackendClasses(
+        compiler.elementEnvironment, helpers, nativeBasicData);
+    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
+        compiler.resolution,
+        constantSystem,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeBasicData,
+        backendUsageBuilder);
+    impactTransformer = new JavaScriptImpactTransformer(
+        compiler.options,
+        compiler.resolution,
+        compiler.elementEnvironment,
+        commonElements,
+        impacts,
+        nativeBasicData,
+        nativeResolutionEnqueuer,
+        backendUsageBuilder,
+        mirrorsDataBuilder,
+        customElementsResolutionAnalysis,
+        rtiNeedBuilder);
+    _interceptorDataBuilder = new InterceptorDataBuilderImpl(
+        nativeBasicData, helpers, compiler.elementEnvironment, commonElements);
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -882,24 +880,24 @@ class JavaScriptBackend {
             ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
         new ResolutionEnqueuerListener(
-            kernelTask,
             compiler.options,
             compiler.elementEnvironment,
             commonElements,
             helpers,
             impacts,
             backendClasses,
-            nativeBaseData,
-            _interceptorDataBuilder,
-            _backendUsageBuilder,
-            _rtiNeedBuilder,
+            nativeBasicData,
+            interceptorDataBuilder,
+            backendUsageBuilder,
+            rtiNeedBuilder,
             mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
             lookupMapResolutionAnalysis,
-            mirrorsAnalysis,
+            mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
-            _nativeResolutionEnqueuer),
+            nativeResolutionEnqueuer,
+            kernelTask),
         new ElementResolutionWorldBuilder(
             this, compiler.resolution, const OpenWorldStrategy()),
         new ResolutionWorkItemBuilder(compiler.resolution));
@@ -919,12 +917,22 @@ class JavaScriptBackend {
         helpers,
         backendClasses,
         lookupMapResolutionAnalysis);
+    _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
+    _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
+        compiler.resolution,
+        constantSystem,
+        commonElements,
+        backendClasses,
+        helpers,
+        nativeBasicData);
+    _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
+        compiler, emitter, _nativeResolutionEnqueuer);
     return new CodegenEnqueuer(
         task,
         compiler.options,
         const TreeShakingEnqueuerStrategy(),
         new CodegenWorldBuilderImpl(
-            nativeBaseData, closedWorld, constants, const TypeMaskStrategy()),
+            nativeBasicData, closedWorld, constants, const TypeMaskStrategy()),
         new CodegenWorkItemBuilder(this, compiler.options),
         new CodegenEnqueuerListener(
             compiler.elementEnvironment,
@@ -937,8 +945,8 @@ class JavaScriptBackend {
             customElementsCodegenAnalysis,
             typeVariableCodegenAnalysis,
             lookupMapAnalysis,
-            mirrorsAnalysis,
-            _nativeCodegenEnqueuer));
+            mirrorsCodegenAnalysis,
+            nativeCodegenEnqueuer));
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -1017,11 +1025,11 @@ class JavaScriptBackend {
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   ClassElement defaultSuperclass(ClassElement element) {
-    if (nativeBaseData.isJsInteropClass(element)) {
+    if (nativeBasicData.isJsInteropClass(element)) {
       return helpers.jsJavaScriptObjectClass;
     }
     // Native classes inherit from Interceptor.
-    return nativeBaseData.isNativeClass(element)
+    return nativeBasicData.isNativeClass(element)
         ? helpers.jsInterceptorClass
         : commonElements.objectClass;
   }
@@ -1044,11 +1052,11 @@ class JavaScriptBackend {
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
-    noSuchMethodRegistry.emitDiagnostic();
+    noSuchMethodRegistry.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
-    if (totalMethodCount != mirrorsAnalysis.preMirrorsMethodCount) {
+    if (totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
       int mirrorCount =
-          totalMethodCount - mirrorsAnalysis.preMirrorsMethodCount;
+          totalMethodCount - mirrorsCodegenAnalysis.preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
       DiagnosticMessage hint =
           reporter.createMessage(compiler.mainApp, MessageKind.MIRROR_BLOAT, {
@@ -1097,29 +1105,17 @@ class JavaScriptBackend {
   }
 
   /// This method is called immediately after the [library] and its parts have
-  /// been scanned.
-  Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
+  /// been loaded.
+  void setAnnotations(LibraryElement library) {
     if (!compiler.serialization.isDeserialized(library)) {
       if (canLibraryUseNative(library)) {
         library.forEachLocalMember((Element element) {
           if (element.isClass) {
-            checkNativeAnnotation(compiler, element, nativeBaseDataBuilder);
+            checkNativeAnnotation(compiler, element, nativeBasicDataBuilder);
           }
         });
       }
-      checkJsInteropClassAnnotations(compiler, library, nativeBaseDataBuilder);
-    }
-    if (library.isPlatformLibrary &&
-        // Don't patch library currently disallowed.
-        !library.isSynthesized &&
-        !library.isPatched &&
-        // Don't patch deserialized libraries.
-        !compiler.serialization.isDeserialized(library)) {
-      // Apply patch, if any.
-      Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
-      if (patchUri != null) {
-        return compiler.patchParser.patchLibrary(loader, patchUri, library);
-      }
+      checkJsInteropClassAnnotations(compiler, library, nativeBasicDataBuilder);
     }
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
@@ -1127,30 +1123,25 @@ class JavaScriptBackend {
     } else if (uri == LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP) {
       lookupMapResolutionAnalysis.init(library);
     }
-    annotations.onLibraryScanned(library);
-    return new Future.value();
+    annotations.onLibraryLoaded(library);
   }
 
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
-  Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
-    if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
-      return new Future.value();
+  void onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
+      helpers.onLibrariesLoaded(loadedLibraries);
+
+      // These methods are overwritten with generated versions.
+      inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
+          insideLoop: true);
+
+      specialOperatorEqClasses
+        ..add(commonElements.objectClass)
+        ..add(helpers.jsInterceptorClass)
+        ..add(helpers.jsNullClass);
     }
-
-    helpers.onLibrariesLoaded(loadedLibraries);
-
-    // These methods are overwritten with generated versions.
-    inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
-        insideLoop: true);
-
-    specialOperatorEqClasses
-      ..add(commonElements.objectClass)
-      ..add(helpers.jsInterceptorClass)
-      ..add(helpers.jsNullClass);
-
-    return new Future.value();
   }
 
   jsAst.Call generateIsJsIndexableCall(
@@ -1397,31 +1388,6 @@ class JavaScriptBackend {
     return rewriter.rewrite(code);
   }
 
-  /// The locations of js patch-files relative to the sdk-descriptors.
-  static const _patchLocations = const <String, String>{
-    "async": "_internal/js_runtime/lib/async_patch.dart",
-    "collection": "_internal/js_runtime/lib/collection_patch.dart",
-    "convert": "_internal/js_runtime/lib/convert_patch.dart",
-    "core": "_internal/js_runtime/lib/core_patch.dart",
-    "developer": "_internal/js_runtime/lib/developer_patch.dart",
-    "io": "_internal/js_runtime/lib/io_patch.dart",
-    "isolate": "_internal/js_runtime/lib/isolate_patch.dart",
-    "math": "_internal/js_runtime/lib/math_patch.dart",
-    "mirrors": "_internal/js_runtime/lib/mirrors_patch.dart",
-    "typed_data": "_internal/js_runtime/lib/typed_data_patch.dart",
-    "_internal": "_internal/js_runtime/lib/internal_patch.dart"
-  };
-
-  /// Returns the location of the patch-file associated with [libraryName]
-  /// resolved from [plaformConfigUri].
-  ///
-  /// Returns null if there is none.
-  Uri resolvePatchUri(String libraryName, Uri platformConfigUri) {
-    String patchLocation = _patchLocations[libraryName];
-    if (patchLocation == null) return null;
-    return platformConfigUri.resolve(patchLocation);
-  }
-
   /// Creates an impact strategy to use for compilation.
   ImpactStrategy createImpactStrategy(
       {bool supportDeferredLoad: true,
@@ -1595,7 +1561,7 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isDefaultNoSuchMethod(MethodElement element) {
-    return _backend.isDefaultNoSuchMethod(element);
+    return _backend.helpers.isDefaultNoSuchMethodImplementation(element);
   }
 
   @override
@@ -1605,8 +1571,33 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isNativeClass(ClassEntity element) =>
-      _backend.nativeBaseData.isNativeClass(element);
+      _backend.nativeBasicData.isNativeClass(element);
 
   @override
   bool isForeign(Element element) => _backend.isForeign(element);
+}
+
+class SuperMemberData {
+  /// A set of member that are called from subclasses via `super`.
+  final Set<MemberEntity> _aliasedSuperMembers = new Setlet<MemberEntity>();
+
+  /// Record that [member] is called from a subclass via `super`.
+  bool maybeRegisterAliasedSuperMember(MemberEntity member, Selector selector) {
+    if (!canUseAliasedSuperMember(member, selector)) {
+      // Invoking a super getter isn't supported, this would require changes to
+      // compact field descriptors in the emitter.
+      return false;
+    }
+    _aliasedSuperMembers.add(member);
+    return true;
+  }
+
+  bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
+    return !selector.isGetter;
+  }
+
+  /// Returns `true` if [member] is called from a subclass via `super`.
+  bool isAliasedSuperMember(MemberEntity member) {
+    return _aliasedSuperMembers.contains(member);
+  }
 }

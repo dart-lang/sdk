@@ -134,7 +134,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   void render() {
     final uptime = new DateTime.now().difference(_isolate.startTime);
     final libraries = _isolate.libraries.toList();
-    final List<Thread> threads = _isolate.threads;
+    final List<M.Thread> threads = _isolate.threads;
     children = [
       navBar([
         new NavTopMenuElement(queue: _r.queue),
@@ -362,7 +362,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     ];
   }
 
-  DivElement _populateThreadInfo(Thread t) {
+  DivElement _populateThreadInfo(M.Thread t) {
     int index = 0;
     return new DivElement()
       ..classes = ['indent']

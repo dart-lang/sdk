@@ -5690,67 +5690,6 @@ class Required {
 class FixProcessorTest_Driver extends FixProcessorTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_AsExpression() {
-    return super.test_importLibrarySdk_withClass_AsExpression();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_invocationTarget() {
-    return super.test_importLibrarySdk_withClass_invocationTarget();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_IsExpression() {
-    return super.test_importLibrarySdk_withClass_IsExpression();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_itemOfList() {
-    return super.test_importLibrarySdk_withClass_itemOfList();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_itemOfList_inAnnotation() {
-    return super.test_importLibrarySdk_withClass_itemOfList_inAnnotation();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeAnnotation() {
-    return super.test_importLibrarySdk_withClass_typeAnnotation();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier() {
-    return super
-        .test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeArgument() {
-    return super.test_importLibrarySdk_withClass_typeArgument();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable() {
-    return super.test_importLibrarySdk_withTopLevelVariable();
-  }
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable_annotation() {
-    return super.test_importLibrarySdk_withTopLevelVariable_annotation();
-  }
 }
 
 @reflectiveTest

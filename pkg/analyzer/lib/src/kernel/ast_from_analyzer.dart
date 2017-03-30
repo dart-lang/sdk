@@ -1417,7 +1417,7 @@ class ExpressionBuilder
     if (result is Accessor) {
       return result;
     } else {
-      return new ReadOnlyAccessor(result);
+      return new ReadOnlyAccessor(result, ast.TreeNode.noOffset);
     }
   }
 
@@ -1727,7 +1727,8 @@ class ExpressionBuilder
         if (function == function.library.loadLibraryFunction) {
           return scope.unsupportedFeature('Deferred loading');
         }
-        return new VariableAccessor(scope.getVariableReference(function));
+        return new VariableAccessor(
+            scope.getVariableReference(function), null, ast.TreeNode.noOffset);
 
       case ElementKind.LOCAL_VARIABLE:
       case ElementKind.PARAMETER:
@@ -1735,7 +1736,8 @@ class ExpressionBuilder
         var type = identical(node.staticType, variable.type)
             ? null
             : scope.buildType(node.staticType);
-        return new VariableAccessor(scope.getVariableReference(element), type);
+        return new VariableAccessor(
+            scope.getVariableReference(element), type, ast.TreeNode.noOffset);
 
       case ElementKind.IMPORT:
       case ElementKind.LIBRARY:
@@ -1769,7 +1771,8 @@ class ExpressionBuilder
       return new SuperIndexAccessor(
           build(node.index),
           scope.resolveConcreteIndexGet(element, auxiliary),
-          scope.resolveConcreteIndexSet(element, auxiliary));
+          scope.resolveConcreteIndexSet(element, auxiliary),
+          ast.TreeNode.noOffset);
     } else {
       return IndexAccessor.make(
           build(node.target),
@@ -2089,7 +2092,8 @@ class ExpressionBuilder
       return new SuperPropertyAccessor(
           scope.buildName(node.propertyName),
           scope.resolveConcreteGet(element, auxiliary),
-          scope.resolveConcreteSet(element, auxiliary));
+          scope.resolveConcreteSet(element, auxiliary),
+          ast.TreeNode.noOffset);
     } else if (target is Identifier && target.staticElement is ClassElement) {
       // Note that this case also covers null-aware static access on a class,
       // which is equivalent to a regular static access.
@@ -2100,7 +2104,8 @@ class ExpressionBuilder
           scope.buildName(node.propertyName),
           getter,
           setter,
-          scope.buildType(node.staticType));
+          scope.buildType(node.staticType),
+          ast.TreeNode.noOffset);
     } else {
       return PropertyAccessor.make(
           build(target), scope.buildName(node.propertyName), getter, setter);
@@ -3004,7 +3009,7 @@ class _StaticAccessor extends StaticAccessor {
 
   _StaticAccessor(
       this.scope, this.name, ast.Member readTarget, ast.Member writeTarget)
-      : super(readTarget, writeTarget);
+      : super(readTarget, writeTarget, ast.TreeNode.noOffset);
 
   @override
   makeInvalidRead() {

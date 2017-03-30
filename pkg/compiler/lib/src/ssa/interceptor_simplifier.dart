@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common/backend_api.dart' show BackendClasses;
-import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../js_backend/backend.dart';
+import '../js_backend/backend_helpers.dart';
+import '../js_backend/interceptor_data.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
@@ -38,13 +38,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
   final ClosedWorld closedWorld;
-  final Compiler compiler;
+  final BackendHelpers helpers;
+  final InterceptorData interceptorData;
   final ClassEntity enclosingClass;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.compiler, this.closedWorld, this.enclosingClass);
-
-  JavaScriptBackend get backend => compiler.backend;
+  SsaSimplifyInterceptors(this.closedWorld, this.helpers, this.interceptorData,
+      this.enclosingClass);
 
   BackendClasses get backendClasses => closedWorld.backendClasses;
 
@@ -108,8 +108,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
     // a class extending `Interceptor` then it can be called directly.
-    return new TypeMask.nonNullSubclass(
-            backend.helpers.jsInterceptorClass, closedWorld)
+    return new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
         .isDisjoint(receiver.instructionType, closedWorld);
   }
 
@@ -224,8 +223,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         dominator.isCallOnInterceptor(closedWorld) &&
         node == dominator.receiver &&
         useCount(dominator, node) == 1) {
-      interceptedClasses = backend.interceptorData
-          .getInterceptedClassesOn(dominator.selector.name);
+      interceptedClasses =
+          interceptorData.getInterceptedClassesOn(dominator.selector.name);
 
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
@@ -235,8 +234,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
-          Set<ClassEntity> intercepted = backend.interceptorData
-              .getInterceptedClassesOn(user.selector.name);
+          Set<ClassEntity> intercepted =
+              interceptorData.getInterceptedClassesOn(user.selector.name);
           if (intercepted.contains(backendClasses.intClass)) {
             // TODO(johnniwinther): Use type argument when all uses of
             // intercepted classes expect entities instead of elements.
@@ -250,7 +249,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
             required.add(backendClasses.doubleClass);
           }
         }
-        // Don't modify the result of [backend.getInterceptedClassesOn].
+        // Don't modify the result of [interceptorData.getInterceptedClassesOn].
         if (required != null) {
           interceptedClasses = interceptedClasses.union(required);
         }
@@ -264,18 +263,18 @@ class SsaSimplifyInterceptors extends HBaseVisitor
             user.isCallOnInterceptor(closedWorld) &&
             node == user.receiver &&
             useCount(user, node) == 1) {
-          interceptedClasses.addAll(backend.interceptorData
-              .getInterceptedClassesOn(user.selector.name));
+          interceptedClasses.addAll(
+              interceptorData.getInterceptedClassesOn(user.selector.name));
         } else if (user is HInvokeSuper &&
             user.isCallOnInterceptor(closedWorld) &&
             node == user.receiver &&
             useCount(user, node) == 1) {
-          interceptedClasses.addAll(backend.interceptorData
-              .getInterceptedClassesOn(user.selector.name));
+          interceptedClasses.addAll(
+              interceptorData.getInterceptedClassesOn(user.selector.name));
         } else {
           // Use a most general interceptor for other instructions, example,
           // is-checks and escaping interceptors.
-          interceptedClasses.addAll(backend.interceptorData.interceptedClasses);
+          interceptedClasses.addAll(interceptorData.interceptedClasses);
           break;
         }
       }
@@ -352,8 +351,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // See if we can rewrite the is-check to use 'instanceof', i.e. rewrite
       // "getInterceptor(x).$isT" to "x instanceof T".
       if (node == user.interceptor) {
-        if (backend.interceptorData
-            .mayGenerateInstanceofCheck(user.typeExpression)) {
+        if (interceptorData.mayGenerateInstanceofCheck(user.typeExpression)) {
           HInstruction instanceofCheck = new HIs.instanceOf(
               user.typeExpression, user.expression, user.instructionType);
           instanceofCheck.sourceInformation = user.sourceInformation;

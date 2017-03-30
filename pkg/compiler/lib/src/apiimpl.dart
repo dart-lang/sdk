@@ -19,6 +19,7 @@ import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'elements/elements.dart' as elements;
 import 'environment.dart';
+import 'library_loader.dart';
 import 'io/source_file.dart';
 import 'options.dart' show CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
@@ -354,7 +355,8 @@ class CompilerImpl extends Compiler {
   }
 
   Uri resolvePatchUri(String libraryName) {
-    return backend.resolvePatchUri(libraryName, options.platformConfigUri);
+    return LibraryLoaderTask.resolvePatchUri(
+        libraryName, options.platformConfigUri);
   }
 }
 

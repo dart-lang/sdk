@@ -114,25 +114,27 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Compute the inferred type for the given property accessor [element]. The
-   * returned value is never `null`, but might be an error, and/or have the
-   * `null` type.
+   * Compute the inferred type for the given property [accessor]. The returned
+   * value is never `null`, but might be an error, and/or have the `null` type.
    */
   _FieldOverrideInferenceResult _computeFieldOverrideType(
-      ExecutableElement element) {
-    String name = element.displayName;
+      PropertyAccessorElement accessor) {
+    String name = accessor.displayName;
 
     var overriddenElements = <ExecutableElement>[];
     overriddenElements.addAll(
-        inheritanceManager.lookupOverrides(element.enclosingElement, name));
-    overriddenElements.addAll(
-        inheritanceManager.lookupOverrides(element.enclosingElement, '$name='));
+        inheritanceManager.lookupOverrides(accessor.enclosingElement, name));
+    if (overriddenElements.isEmpty || !accessor.variable.isFinal) {
+      List<ExecutableElement> overriddenSetters = inheritanceManager
+          .lookupOverrides(accessor.enclosingElement, '$name=');
+      overriddenElements.addAll(overriddenSetters);
+    }
 
     bool isCovariant = false;
     DartType impliedType;
     for (ExecutableElement overriddenElement in overriddenElements) {
       FunctionType overriddenType =
-          _toOverriddenFunctionType(element, overriddenElement);
+          _toOverriddenFunctionType(accessor, overriddenElement);
       if (overriddenType == null) {
         return new _FieldOverrideInferenceResult(false, null, true);
       }
@@ -601,6 +603,65 @@ class _IsValidForTypeInferenceVisitor extends RecursiveAstVisitor {
   @override
   void visitCascadeExpression(CascadeExpression node) {
     node.target.accept(this);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    FunctionBody body = node.body;
+    if (body is ExpressionFunctionBody) {
+      body.accept(this);
+    } else {
+      isValid = false;
+    }
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    node.function?.accept(this);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    isValid = false;
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorElement constructor = node.staticElement;
+    if (constructor != null) {
+      ClassElement clazz = constructor?.enclosingElement;
+      if (clazz.typeParameters.isNotEmpty &&
+          node.constructorName.type.typeArguments == null) {
+        isValid = false;
+        return;
+      }
+    }
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitListLiteral(node);
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    Element element = node.methodName.staticElement;
+    if (element is ExecutableElement) {
+      if (element.type.typeFormals.isNotEmpty && node.typeArguments == null) {
+        isValid = false;
+        return;
+      }
+    }
+    node.target?.accept(this);
   }
 
   @override

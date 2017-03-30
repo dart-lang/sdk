@@ -33,31 +33,53 @@ class RefCntReleaseScope;
 template <class Derived>
 class ReferenceCounted {
  public:
-  ReferenceCounted() : ref_count_(1) {}
+  ReferenceCounted() : ref_count_(1) {
+#if defined(DEBUG)
+    AtomicOperations::FetchAndIncrement(&instances_);
+#endif  // defined(DEBUG)
+  }
 
-  ~ReferenceCounted() { ASSERT(ref_count_ == 0); }
+  virtual ~ReferenceCounted() {
+    ASSERT(ref_count_ == 0);
+#if defined(DEBUG)
+    AtomicOperations::FetchAndDecrement(&instances_);
+#endif  // defined(DEBUG)
+  }
 
   void Retain() {
-    uintptr_t old = AtomicOperations::FetchAndIncrement(&ref_count_);
+    intptr_t old = AtomicOperations::FetchAndIncrement(&ref_count_);
     ASSERT(old > 0);
   }
 
   void Release() {
-    uintptr_t old = AtomicOperations::FetchAndDecrement(&ref_count_);
+    intptr_t old = AtomicOperations::FetchAndDecrement(&ref_count_);
     ASSERT(old > 0);
     if (old == 1) {
       delete static_cast<Derived*>(this);
     }
   }
 
+#if defined(DEBUG)
+  static intptr_t instances() { return instances_; }
+#endif  // defined(DEBUG)
+
  private:
-  uintptr_t ref_count_;
+#if defined(DEBUG)
+  static intptr_t instances_;
+#endif  // defined(DEBUG)
+
+  intptr_t ref_count_;
 
   // These are used only in the ASSERT below in RefCntReleaseScope.
-  uintptr_t ref_count() const { return ref_count_; }
+  intptr_t ref_count() const { return ref_count_; }
   friend class RefCntReleaseScope<Derived>;
   DISALLOW_COPY_AND_ASSIGN(ReferenceCounted);
 };
+
+#if defined(DEBUG)
+template <class Derived>
+intptr_t ReferenceCounted<Derived>::instances_ = 0;
+#endif
 
 // Creates a scope at the end of which a reference counted object is
 // Released. This is useful for reference counted objects recieved by the IO

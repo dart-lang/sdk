@@ -427,3 +427,33 @@ io/socket_info_ipv6_test: SkipByDesign
 [ $builder_tag == asan && $arch == x64 ]
 io/process_detached_test: Pass, Slow
 io/named_pipe_script_test: RuntimeError
+
+[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+assert_test: RuntimeError
+io/compile_all_test: Crash
+io/directory_chdir_test: DartkCrash
+io/directory_test: DartkCrash
+io/directory_uri_test: DartkCrash
+io/file_absolute_path_test: DartkCrash
+io/file_uri_test: DartkCrash
+io/http_cookie_test: RuntimeError
+io/http_proxy_advanced_test: RuntimeError
+io/link_async_test: DartkCrash
+io/link_test: DartkCrash
+io/link_uri_test: DartkCrash
+io/platform_test: DartkCrash
+io/resolve_symbolic_links_test: DartkCrash
+io/skipping_dart2js_compilations_test: DartkCrash
+io/socket_many_connections_test: RuntimeError
+io/test_harness_analyzer_test: DartkCrash
+io/test_runner_test: DartkCrash
+io/uri_platform_test: DartkCrash
+map_insert_remove_oom_test: Crash
+package/package1_test: CompileTimeError
+package/package_test: CompileTimeError
+package/scenarios/invalid/invalid_package_name_test: DartkCrash
+package/scenarios/invalid/invalid_utf8_test: DartkCrash
+package/scenarios/invalid/non_existent_packages_file_test: DartkCrash
+package/scenarios/invalid/same_package_twice_test: DartkCrash
+package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
+verbose_gc_to_bmu_test: RuntimeError

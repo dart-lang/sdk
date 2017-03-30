@@ -9,11 +9,13 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/analysis/base.dart';
+import '../task/strong/strong_test_helper.dart';
 import 'element_text.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelInferenceTest);
+    defineReflectiveTests(TopLevelInferenceErrorsTest);
 //    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
@@ -22,6 +24,341 @@ main() {
 class ApplyCheckElementTextReplacements {
   test_applyReplacements() {
     applyCheckElementTextReplacements();
+  }
+}
+
+@reflectiveTest
+class TopLevelInferenceErrorsTest extends AbstractStrongTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_initializer_additive() async {
+    await _assertErrorOnlyLeft(['+', '-']);
+  }
+
+  test_initializer_assign() async {
+    var content = r'''
+var a = 1;
+var t1 = /*error:TOP_LEVEL_UNSUPPORTED*/a += 1;
+var t2 = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 2);
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_binary_onlyLeft() async {
+    var content = r'''
+var a = 1;
+var t = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1) + (a = 2);
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_bitwise() async {
+    await _assertErrorOnlyLeft(['&', '|', '^']);
+  }
+
+  test_initializer_boolean() async {
+    var content = r'''
+var a = 1;
+var t1 = ((a = 1) == 0) || ((a = 2) == 0);
+var t2 = ((a = 1) == 0) && ((a = 2) == 0);
+var t3 = !((a = 1) == 0);
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_cascade() async {
+    var content = r'''
+var a = 0;
+var t = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1)..isEven;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_classField_instance_instanceCreation() async {
+    var content = r'''
+class A<T> {}
+class B {
+  var t1 = new A<int>();
+  var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
+           /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
+}
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_classField_static_instanceCreation() async {
+    var content = r'''
+class A<T> {}
+class B {
+  static var t1 = 1;
+  static var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
+                  /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
+}
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_conditional() async {
+    var content = r'''
+var a = 1;
+var b = true;
+var t = b ?
+          (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1) :
+          (/*error:TOP_LEVEL_UNSUPPORTED*/a = 2);
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_dependencyCycle() async {
+    var content = r'''
+var a = /*error:TOP_LEVEL_CYCLE*/b;
+var b = /*error:TOP_LEVEL_CYCLE*/a;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_equality() async {
+    var content = r'''
+var a = 1;
+var t1 = ((a = 1) == 0) == ((a = 2) == 0);
+var t2 = ((a = 1) == 0) != ((a = 2) == 0);
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_functionLiteral_blockBody() async {
+    var content = r'''
+var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
+        /*info:INFERRED_TYPE_CLOSURE*/
+        (int p) {};
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_functionLiteral_expressionBody() async {
+    var content = r'''
+var a = 0;
+var t = (int p) => (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1);
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_functionLiteral_parameters_withoutType() async {
+    var content = r'''
+var t = (int a,
+         /*error:TOP_LEVEL_FUNCTION_LITERAL_PARAMETER*/b,
+         int c,
+         /*error:TOP_LEVEL_FUNCTION_LITERAL_PARAMETER*/d) => 0;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_hasTypeAnnotation() async {
+    var content = r'''
+var a = 1;
+int t = (a = 1);
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_identifier() async {
+    var content = r'''
+int top_function() => 0;
+var top_variable = 0;
+int get top_getter => 0;
+class A {
+  static var static_field = 0;
+  static int get static_getter => 0;
+  static int static_method() => 0;
+  int instance_method() => 0;
+}
+var t1 = top_function;
+var t2 = top_variable;
+var t3 = top_getter;
+var t4 = A.static_field;
+var t5 = A.static_getter;
+var t6 = A.static_method;
+var t7 = new A().instance_method;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_identifier_error() async {
+    var content = r'''
+var a = 0;
+var b = (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1);
+var c = /*error:TOP_LEVEL_IDENTIFIER_NO_TYPE*/b;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_ifNull() async {
+    var content = r'''
+var a = 1;
+var t = /*error:TOP_LEVEL_UNSUPPORTED*/a ?? 2;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_instanceCreation_withoutTypeParameters() async {
+    var content = r'''
+class A {}
+var t = new A();
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_instanceCreation_withTypeParameters() async {
+    var content = r'''
+class A<T> {}
+var t1 = new A<int>();
+var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new
+         /*error:TOP_LEVEL_TYPE_ARGUMENTS*/A();
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_instanceGetter() async {
+    var content = r'''
+class A {
+  int f = 1;
+}
+var a = new A()./*error:TOP_LEVEL_INSTANCE_GETTER*/f;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_methodInvocation_function() async {
+    var content = r'''
+int f1() => null;
+T f2<T>() => null;
+var t1 = f1();
+var t2 = /*error:TOP_LEVEL_TYPE_ARGUMENTS*/f2();
+var t3 = f2<int>();
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_methodInvocation_method() async {
+    var content = r'''
+class A {
+  int m1() => null;
+  T m2<T>() => null;
+}
+var a = new A();
+var t1 = a.m1();
+var t2 = a./*error:TOP_LEVEL_TYPE_ARGUMENTS*/m2();
+var t3 = a.m2<int>();
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_multiplicative() async {
+    await _assertErrorOnlyLeft(['*', '/', '%', '~/']);
+  }
+
+  test_initializer_postfixIncDec() async {
+    var content = r'''
+var a = 1;
+var t1 = a++;
+var t2 = a--;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_prefixIncDec() async {
+    var content = r'''
+var a = 1;
+var t1 = ++a;
+var t2 = --a;
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_relational() async {
+    await _assertErrorOnlyLeft(['>', '>=', '<', '<=']);
+  }
+
+  test_initializer_shift() async {
+    await _assertErrorOnlyLeft(['<<', '>>']);
+  }
+
+  test_initializer_typedList() async {
+    var content = r'''
+var a = 1;
+var t = <int>[a = 1];
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_typedMap() async {
+    var content = r'''
+var a = 1;
+var t = <int, int>{(a = 1) : (a = 2)};
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_untypedList() async {
+    var content = r'''
+var a = 1;
+var t = /*info:INFERRED_TYPE_LITERAL*/[
+            /*error:TOP_LEVEL_UNSUPPORTED*/a = 1,
+            2, 3];
+''';
+    await checkFile(content);
+  }
+
+  test_initializer_untypedMap() async {
+    var content = r'''
+var a = 1;
+var t = /*info:INFERRED_TYPE_LITERAL*/{
+            (/*error:TOP_LEVEL_UNSUPPORTED*/a = 1) :
+            (/*error:TOP_LEVEL_UNSUPPORTED*/a = 2)};
+''';
+    await checkFile(content);
+  }
+
+  test_override_conflictFieldType() async {
+    var content = r'''
+abstract class A {
+  int aaa;
+}
+abstract class B {
+  String aaa;
+}
+class C implements A, B {
+  /*error:INVALID_METHOD_OVERRIDE*/var aaa;
+}
+''';
+    await checkFile(content);
+  }
+
+  @failingTest
+  test_override_conflictParameterType_method() async {
+    var content = r'''
+abstract class A {
+  void mmm(int a);
+}
+abstract class B {
+  void mmm(String a);
+}
+class C implements A, B {
+  void mmm(/*error:TOP_LEVEL_INFERENCE_ERROR*/a) {}
+}
+''';
+    await checkFile(content);
+  }
+
+  Future<Null> _assertErrorOnlyLeft(List<String> operators) async {
+    var err = '/*error:TOP_LEVEL_UNSUPPORTED*/';
+    String code = 'var a = 1;\n';
+    for (var i = 0; i < operators.length; i++) {
+      String operator = operators[i];
+      code += 'var t$i = (${err}a = 1) $operator (a = 2);\n';
+    }
+    await checkFile(code);
   }
 }
 
@@ -136,6 +473,19 @@ var V = true ? 1 : 2.3;
         library,
         r'''
 num V;
+''');
+  }
+
+  test_initializer_equality() async {
+    var library = await _encodeDecodeLibrary(r'''
+var vEq = 1 == 2;
+var vNotEq = 1 != 2;
+''');
+    checkElementText(
+        library,
+        r'''
+bool vEq;
+bool vNotEq;
 ''');
   }
 
@@ -930,6 +1280,22 @@ int vFloorDivide;
 ''');
   }
 
+  @failingTest
+  test_initializer_onlyLeft() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = 1;
+var vEq = a == ((a = 2) == 0);
+var vNotEq = a != ((a = 2) == 0);
+''');
+    checkElementText(
+        library,
+        r'''
+int a;
+bool vEq;
+bool vNotEq;
+''');
+  }
+
   test_initializer_parenthesized() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = (42);
@@ -1073,60 +1439,6 @@ class A {
 class A {
   int f;
   A([int this.f]);
-}
-''');
-  }
-
-  test_instanceField_fromAccessors_multiple_different() async {
-    var library = await _encodeDecodeLibrary(r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(String _);
-}
-class C implements A, B {
-  var x;
-}
-''');
-    checkElementText(
-        library,
-        r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(String _);
-}
-class C implements A, B {
-  dynamic x/*error: overrideConflictFieldType*/;
-}
-''');
-  }
-
-  test_instanceField_fromAccessors_multiple_same() async {
-    var library = await _encodeDecodeLibrary(r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(int _);
-}
-class C implements A, B {
-  var x;
-}
-''');
-    checkElementText(
-        library,
-        r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  void set x(int _);
-}
-class C implements A, B {
-  int x;
 }
 ''');
   }
@@ -1427,7 +1739,103 @@ class C implements A, B {
 ''');
   }
 
-  test_instanceField_fromGetterSetter_field() async {
+  test_instanceField_fromGetterSetter_different_field() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+  int get y;
+}
+abstract class B {
+  void set x(String _);
+  void set y(String _);
+}
+class C implements A, B {
+  var x;
+  final y;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int get x;
+  int get y;
+}
+abstract class B {
+  void set x(String _);
+  void set y(String _);
+}
+class C implements A, B {
+  dynamic x/*error: overrideConflictFieldType*/;
+  final int y;
+}
+''');
+  }
+
+  test_instanceField_fromGetterSetter_different_getter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  get x => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  synthetic final int x;
+  int get x;
+}
+abstract class B {
+  synthetic String x;
+  void set x(String _);
+}
+class C implements A, B {
+  synthetic final int x;
+  int get x {}
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromGetterSetter_different_setter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int get x;
+}
+abstract class B {
+  void set x(String _);
+}
+class C implements A, B {
+  set x(_);
+}
+''');
+    // TODO(scheglov) test for inference failure error
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  synthetic final int x;
+  int get x;
+}
+abstract class B {
+  synthetic String x;
+  void set x(String _);
+}
+class C implements A, B {
+  synthetic dynamic x;
+  void set x(dynamic _);
+}
+''',
+        withSyntheticFields: true);
+  }
+
+  test_instanceField_fromGetterSetter_same_field() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
   int get x;
@@ -1454,7 +1862,7 @@ class C implements A, B {
 ''');
   }
 
-  test_instanceField_fromGetterSetter_getter() async {
+  test_instanceField_fromGetterSetter_same_getter() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
   int get x;
@@ -1485,13 +1893,13 @@ class C implements A, B {
         withSyntheticFields: true);
   }
 
-  test_instanceField_fromGetterSetter_setter() async {
+  test_instanceField_fromGetterSetter_same_setter() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A {
   int get x;
 }
 abstract class B {
-  void set x(String _);
+  void set x(int _);
 }
 class C implements A, B {
   set x(_);
@@ -1505,12 +1913,12 @@ abstract class A {
   int get x;
 }
 abstract class B {
-  synthetic String x;
-  void set x(String _);
+  synthetic int x;
+  void set x(int _);
 }
 class C implements A, B {
-  synthetic dynamic x;
-  void set x(dynamic _);
+  synthetic int x;
+  void set x(int _);
 }
 ''',
         withSyntheticFields: true);

@@ -37,6 +37,7 @@ vars = {
   "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
   # Revisions of /third_party/* dependencies.
+  "angular_analyzer_plugin_tag": "@v0.0.5",
   "args_tag": "@0.13.7",
   "async_tag": "@1.13.0",
   "barback-0.13.0_rev": "@34853",
@@ -57,7 +58,7 @@ vars = {
   "csslib_tag" : "@0.13.3+1",
   "dart2js_info_tag" : "@0.5.3+1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@1.0.0",
+  "dart_style_tag": "@1.0.2+1",
   "dartdoc_tag" : "@v0.9.12",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.1",
@@ -174,6 +175,9 @@ deps = {
       Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
       Var("gperftools_revision"),
 
+  Var("dart_root") + "/third_party/pkg/angular_analyzer_plugin":
+      (Var("github_mirror") % "angular_analyzer_plugin") +
+      Var("angular_analyzer_plugin_tag"),
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async":

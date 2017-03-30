@@ -28,7 +28,7 @@
     "karma-requirejs": "^0.2.2",
     "karma-safari-launcher": "^1.0.0",
     "mocha": "^2.2.4",
-    "requirejs": "^2.1.17",
+    "requirejs": "^2.3.3",
     "webdriver-manager": "8.0.0"
   }
 }

@@ -133,16 +133,6 @@ class BinaryBuilder {
     return string.isEmpty ? null : string;
   }
 
-  InferredValue readOptionalInferredValue() {
-    if (readAndCheckOptionTag()) {
-      Reference baseClass = readClassReference(allowNull: true);
-      BaseClassKind baseClassKind = BaseClassKind.values[readByte()];
-      int valueBits = readByte();
-      return new InferredValue.byReference(baseClass, baseClassKind, valueBits);
-    }
-    return null;
-  }
-
   bool readAndCheckOptionTag() {
     int tag = readByte();
     if (tag == Tag.Nothing) {
@@ -453,7 +443,6 @@ class BinaryBuilder {
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
     var type = readDartType();
-    var inferredValue = readOptionalInferredValue();
     var initializer = readExpressionOption();
     int transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
@@ -465,7 +454,6 @@ class BinaryBuilder {
       node.fileUri = fileUri;
       node.annotations = annotations;
       node.type = type;
-      node.inferredValue = inferredValue;
       node.initializer = initializer;
       node.initializer?.parent = node;
       node.transformerFlags = transformerFlags;
@@ -582,7 +570,6 @@ class BinaryBuilder {
     var positional = readAndPushVariableDeclarationList();
     var named = readAndPushVariableDeclarationList();
     var returnType = readDartType();
-    var inferredReturnValue = readOptionalInferredValue();
     int oldLabelStackBase = labelStackBase;
     labelStackBase = labelStack.length;
     var body = readStatementOption();
@@ -595,7 +582,6 @@ class BinaryBuilder {
         positionalParameters: positional,
         namedParameters: named,
         returnType: returnType,
-        inferredReturnValue: inferredReturnValue,
         asyncMarker: asyncMarker,
         dartAsyncMarker: dartAsyncMarker)
       ..fileOffset = offset
@@ -827,6 +813,21 @@ class BinaryBuilder {
         var body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
+      case Tag.VectorCreation:
+        var length = readUInt();
+        return new VectorCreation(length);
+      case Tag.VectorGet:
+        var vectorExpression = readExpression();
+        var index = readUInt();
+        return new VectorGet(vectorExpression, index);
+      case Tag.VectorSet:
+        var vectorExpression = readExpression();
+        var index = readUInt();
+        var value = readExpression();
+        return new VectorSet(vectorExpression, index, value);
+      case Tag.VectorCopy:
+        var vectorExpression = readExpression();
+        return new VectorCopy(vectorExpression);
       default:
         throw fail('Invalid expression tag: $tag');
     }
@@ -1010,6 +1011,8 @@ class BinaryBuilder {
   DartType readDartType() {
     int tag = readByte();
     switch (tag) {
+      case Tag.VectorType:
+        return const VectorType();
       case Tag.BottomType:
         return const BottomType();
       case Tag.InvalidType:
@@ -1110,7 +1113,6 @@ class BinaryBuilder {
     int flags = readByte();
     return new VariableDeclaration(readStringOrNullIfEmpty(),
         type: readDartType(),
-        inferredValue: readOptionalInferredValue(),
         initializer: readExpressionOption(),
         isFinal: flags & 0x1 != 0,
         isConst: flags & 0x2 != 0)

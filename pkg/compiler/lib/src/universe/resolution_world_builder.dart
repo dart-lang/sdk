@@ -442,7 +442,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
     Instantiation kind = Instantiation.UNINSTANTIATED;
-    bool isNative = _backend.nativeBaseData.isNativeClass(cls);
+    bool isNative = _backend.nativeBasicData.isNativeClass(cls);
     if (!cls.isAbstract ||
         // We can't use the closed-world assumption with native abstract
         // classes; a native abstract class may have non-abstract subclasses
@@ -750,7 +750,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
     _instanceMemberUsage.putIfAbsent(member, () {
-      bool isNative = _backend.nativeBaseData.isNativeClass(cls);
+      bool isNative = _backend.nativeBasicData.isNativeClass(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);

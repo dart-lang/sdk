@@ -64,6 +64,7 @@ evaluate_activation_test/scope: RuntimeError # Issue 27806
 get_object_rpc_test: RuntimeError # Issue 27806
 get_source_report_test: RuntimeError # Issue 27806
 set_name_rpc_test: RuntimeError # Issue 27806
+pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout # Issue 29178
 
 debugger_location_second_test: Skip # Issue 28180
 
@@ -98,6 +99,9 @@ step_through_getter_test: RuntimeError
 [ $system == windows ]
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
+
+[ $system != linux && ($arch != x64 || $arch != ia32) ]
+get_native_allocation_samples_test: Skip # Unsupported.
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]

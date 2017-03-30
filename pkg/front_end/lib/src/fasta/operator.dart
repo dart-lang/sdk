@@ -99,3 +99,34 @@ String operatorToString(Operator operator) {
   }
   return null;
 }
+
+int operatorRequiredArgumentCount(Operator operator) {
+  switch (operator) {
+    case Operator.bitwiseNot:
+    case Operator.unaryMinus:
+      return 0;
+
+    case Operator.add:
+    case Operator.bitwiseAnd:
+    case Operator.bitwiseOr:
+    case Operator.bitwiseXor:
+    case Operator.divide:
+    case Operator.equals:
+    case Operator.greaterThan:
+    case Operator.greaterThanEquals:
+    case Operator.indexGet:
+    case Operator.leftShift:
+    case Operator.lessThan:
+    case Operator.lessThanEquals:
+    case Operator.modulo:
+    case Operator.multiply:
+    case Operator.rightShift:
+    case Operator.subtract:
+    case Operator.truncatingDivide:
+      return 1;
+
+    case Operator.indexSet:
+      return 2;
+  }
+  return -1;
+}

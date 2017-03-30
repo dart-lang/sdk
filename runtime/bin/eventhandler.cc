@@ -112,18 +112,16 @@ EventHandlerImplementation* EventHandler::delegate() {
 }
 
 
+void EventHandler::SendFromNative(intptr_t id, Dart_Port port, int64_t data) {
+  event_handler->SendData(id, port, data);
+}
+
+
 /*
  * Send data to the EventHandler thread to register for a given instance
  * args[0] a ReceivePort args[1] with a notification event args[2].
  */
 void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
-  Dart_Handle sender = Dart_GetNativeArgument(args, 0);
-  intptr_t id;
-  if (Dart_IsNull(sender)) {
-    id = kTimerId;
-  } else {
-    id = Socket::GetSocketIdNativeField(sender);
-  }
   // Get the id out of the send port. If the handle is not a send port
   // we will get an error and propagate that out.
   Dart_Handle handle = Dart_GetNativeArgument(args, 1);
@@ -132,6 +130,17 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   if (Dart_IsError(handle)) {
     Dart_PropagateError(handle);
     UNREACHABLE();
+  }
+  Dart_Handle sender = Dart_GetNativeArgument(args, 0);
+  intptr_t id;
+  if (Dart_IsNull(sender)) {
+    id = kTimerId;
+  } else {
+    Socket* socket = Socket::GetSocketIdNativeField(sender);
+    ASSERT(dart_port != ILLEGAL_PORT);
+    socket->set_port(dart_port);
+    socket->Retain();  // inc refcount before sending to the eventhandler.
+    id = reinterpret_cast<intptr_t>(socket);
   }
   int64_t data = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   event_handler->SendData(id, dart_port, data);

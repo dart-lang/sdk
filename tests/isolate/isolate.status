@@ -249,3 +249,15 @@ deferred_in_isolate_test: Crash # Requires deferred libraries
 deferred_in_isolate2_test: Crash # Requires deferred libraries
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
+
+[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+compile_time_error_test/01: MissingCompileTimeError
+deferred_in_isolate2_test: Timeout
+deferred_in_isolate_test: RuntimeError
+issue_21398_parent_isolate2_test/01: Timeout
+message3_test/int32x4: Crash
+message_test: RuntimeError
+ping_pause_test: Timeout
+spawn_function_custom_class_test: Timeout
+spawn_uri_exported_main_test: Crash
+spawn_uri_nested_vm_test: Pass, Timeout

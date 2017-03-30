@@ -53,7 +53,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
   final LookupMapResolutionAnalysis _lookupMapResolutionAnalysis;
-  final MirrorsAnalysis _mirrorsAnalysis;
+  final MirrorsResolutionAnalysis _mirrorsAnalysis;
   final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
@@ -62,7 +62,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   bool _isLoadLibraryFunctionResolved = false;
 
   ResolutionEnqueuerListener(
-      this._kernelTask,
       this._options,
       this._elementEnvironment,
       this._commonElements,
@@ -79,7 +78,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._lookupMapResolutionAnalysis,
       this._mirrorsAnalysis,
       this._typeVariableResolutionAnalysis,
-      this._nativeEnqueuer);
+      this._nativeEnqueuer,
+      [this._kernelTask]);
 
   void _registerBackendImpact(
       WorldImpactBuilder builder, BackendImpact impact) {
@@ -214,7 +214,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     if (!enqueuer.queueIsEmpty) return false;
 
     if (_options.useKernel) {
-      _kernelTask.buildKernelIr();
+      _kernelTask?.buildKernelIr();
     }
 
     _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);

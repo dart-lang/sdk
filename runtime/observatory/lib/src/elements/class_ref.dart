@@ -24,7 +24,6 @@ class ClassRefElement extends HtmlElement implements Renderable {
 
   factory ClassRefElement(M.IsolateRef isolate, M.ClassRef cls,
       {RenderingQueue queue}) {
-    assert(isolate != null);
     assert(cls != null);
     ClassRefElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
@@ -50,8 +49,10 @@ class ClassRefElement extends HtmlElement implements Renderable {
 
   void render() {
     children = [
-      new AnchorElement(href: Uris.inspect(_isolate, object: _class))
-        ..text = _class.name
+      new AnchorElement(
+          href: (_isolate == null)
+              ? null
+              : Uris.inspect(_isolate, object: _class))..text = _class.name
     ];
   }
 }

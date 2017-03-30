@@ -701,7 +701,7 @@ class ProgramBuilder {
     bool canBeReflected = _methodCanBeReflected(element);
     bool canBeApplied = _methodCanBeApplied(element);
 
-    js.Name aliasName = backend.isAliasedSuperMember(element)
+    js.Name aliasName = backend.superMemberData.isAliasedSuperMember(element)
         ? namer.aliasedSuperMemberPropertyName(element)
         : null;
 
@@ -831,7 +831,7 @@ class ProgramBuilder {
     Iterable<js.Name> names =
         backend.oneShotInterceptorData.specializedGetInterceptorNames;
     return names.map((js.Name name) {
-      Set<ClassElement> classes =
+      Set<ClassEntity> classes =
           backend.oneShotInterceptorData.getSpecializedGetInterceptorsFor(name);
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
       return new StaticStubMethod(name, holder, code);

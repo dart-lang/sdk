@@ -21,6 +21,8 @@ import 'package:compiler/src/diagnostics/messages.dart'
 
 import 'package:compiler/src/elements/elements.dart' show LibraryElement;
 
+import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
+
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 
 import 'package:compiler/src/old_to_new_api.dart'
@@ -71,7 +73,7 @@ main() async {
     }
   }
 
-  checkLibrary(LibraryElement library) {
+  checkLibraries(LoadedLibraries libraries) {
     Expect.equals(1, actualMessageCount);
   }
 
@@ -86,9 +88,9 @@ main() async {
   // TODO(het): Find cleaner way to do this
   compiler.resolvedUriTranslator.sdkLibraries['m_o_c_k_1'] = mock1LibraryUri;
   compiler.resolvedUriTranslator.sdkLibraries['m_o_c_k_2'] = mock2LibraryUri;
-  var library =
+  var libraries =
       await compiler.libraryLoader.loadLibrary(Uri.parse("dart:m_o_c_k_1"));
-  await checkLibrary(library);
+  await checkLibraries(libraries);
   asyncSuccess(null);
 }
 
