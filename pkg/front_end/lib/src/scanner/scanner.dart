@@ -202,7 +202,7 @@ abstract class Scanner {
    * Initialize a newly created scanner to scan characters from the given
    * character [_reader].
    */
-  Scanner(this._reader) {
+  Scanner.create(this._reader) {
     _tokens = new Token(TokenType.EOF, -1);
     _tokens.setNext(_tokens);
     _tail = _tokens;

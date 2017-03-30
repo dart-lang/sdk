@@ -76,7 +76,7 @@ class ScannerTest_RoundTrip extends ScannerTest {
 }
 
 class TestScanner extends analyzer.Scanner {
-  TestScanner(analyzer.CharacterReader reader) : super(reader);
+  TestScanner(analyzer.CharacterReader reader) : super.create(reader);
 
   @override
   void reportError(

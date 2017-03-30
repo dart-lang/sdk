@@ -9,7 +9,13 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/fasta/scanner.dart' as fasta;
+import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
+    show fastaSupportsGenericMethodComments;
+import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
+import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/scanner.dart' as fe;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:front_end/src/scanner/scanner.dart' show KeywordState;
@@ -37,18 +43,134 @@ class Scanner extends fe.Scanner {
   final AnalysisErrorListener _errorListener;
 
   /**
+   * A flag indicating whether the [Scanner] factory method
+   * will return a fasta based scanner or an analyzer based scanner.
+   */
+  static bool useFasta = false;
+
+  /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [reader] will be used to read the characters
    * in the source. The given [_errorListener] will be informed of any errors
    * that are found.
    */
-  Scanner(this.source, CharacterReader reader, this._errorListener)
-      : super(reader);
+  factory Scanner(Source source, CharacterReader reader,
+          AnalysisErrorListener errorListener) =>
+      useFasta
+          ? new _Scanner2(source, reader.getContents(), errorListener)
+          : new Scanner._(source, reader, errorListener);
+
+  Scanner._(this.source, CharacterReader reader, this._errorListener)
+      : super.create(reader);
 
   @override
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object> arguments) {
     _errorListener
         .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+  }
+}
+
+/**
+ * Replacement scanner based on fasta.
+ */
+class _Scanner2 implements Scanner {
+  @override
+  final Source source;
+
+  /**
+   * The text to be scanned.
+   */
+  final String _contents;
+
+  /**
+   * The error listener that will be informed of any errors that are found
+   * during the scan.
+   */
+  final AnalysisErrorListener _errorListener;
+
+  /**
+   * The flag specifying whether documentation comments should be parsed.
+   */
+  bool _preserveComments = true;
+
+  @override
+  List<int> lineStarts;
+
+  @override
+  Token firstToken;
+
+  @override
+  bool scanGenericMethodComments = false;
+
+  @override
+  bool scanLazyAssignmentOperators = false;
+
+  _Scanner2(this.source, this._contents, this._errorListener);
+
+  @override
+  void appendToken(Token token) {
+    throw 'unsupported operation';
+  }
+
+  @override
+  int bigSwitch(int next) {
+    throw 'unsupported operation';
+  }
+
+  @override
+  bool get hasUnmatchedGroups {
+    throw 'unsupported operation';
+  }
+
+  @override
+  void recordStartOfLine() {
+    throw 'unsupported operation';
+  }
+
+  @override
+  void reportError(
+      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    _errorListener
+        .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+  }
+
+  @override
+  void setSourceStart(int line, int column) {
+    throw 'unsupported operation';
+  }
+
+  @override
+  Token get tail {
+    throw 'unsupported operation';
+  }
+
+  @override
+  Token tokenize() {
+    // Note: Fasta always supports lazy assignment operators (`&&=` and `||=`),
+    // so we can ignore the `scanLazyAssignmentOperators` flag.
+    if (scanGenericMethodComments && !fastaSupportsGenericMethodComments) {
+      // Fasta doesn't support generic method comments.
+      // TODO(danrubel): remove this once fasts support has been added.
+      throw 'No generic method comment support in Fasta';
+    }
+    fasta.ScannerResult result =
+        fasta.scanString(_contents, includeComments: _preserveComments);
+    // fasta pretends there is an additional line at EOF
+    lineStarts = result.lineStarts.sublist(0, result.lineStarts.length - 1);
+    fasta.Token token = result.tokens;
+    // The default recovery strategy used by scanString
+    // places all error tokens at the head of the stream.
+    while (token.info == fasta.BAD_INPUT_INFO) {
+      translateErrorToken(token, reportError);
+      token = token.next;
+    }
+    firstToken = token;
+    return firstToken;
+  }
+
+  @override
+  set preserveComments(bool preserveComments) {
+    this._preserveComments = preserveComments;
   }
 }

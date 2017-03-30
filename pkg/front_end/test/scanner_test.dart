@@ -1516,7 +1516,7 @@ class TokenTypeTest {
 class _TestScanner extends Scanner {
   final ErrorListener listener;
 
-  _TestScanner(CharacterReader reader, [this.listener]) : super(reader);
+  _TestScanner(CharacterReader reader, [this.listener]) : super.create(reader);
 
   @override
   void reportError(

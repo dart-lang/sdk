@@ -20,6 +20,11 @@ class CharacterRangeReader extends CharacterReader {
   final CharacterReader baseReader;
 
   /**
+   * The first character to be read.
+   */
+  final int startIndex;
+
+  /**
    * The last character to be read.
    */
   final int endIndex;
@@ -28,7 +33,7 @@ class CharacterRangeReader extends CharacterReader {
    * Initialize a newly created reader to read the characters from the given
    * [baseReader] between the [startIndex] inclusive to [endIndex] exclusive.
    */
-  CharacterRangeReader(this.baseReader, int startIndex, this.endIndex) {
+  CharacterRangeReader(this.baseReader, this.startIndex, this.endIndex) {
     baseReader.offset = startIndex - 1;
   }
 
@@ -47,6 +52,10 @@ class CharacterRangeReader extends CharacterReader {
     }
     return baseReader.advance();
   }
+
+  @override
+  String getContents() =>
+      baseReader.getContents().substring(startIndex, endIndex);
 
   @override
   String getString(int start, int endDelta) =>

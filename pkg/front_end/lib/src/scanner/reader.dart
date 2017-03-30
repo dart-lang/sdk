@@ -28,6 +28,11 @@ abstract class CharacterReader {
   int advance();
 
   /**
+   * Return the source to be scanned.
+   */
+  String getContents();
+
+  /**
    * Return the substring of the source code between the [start] offset and the
    * modified current position. The current position is modified by adding the
    * [endDelta], which is the number of characters after the current location to
@@ -88,6 +93,9 @@ class CharSequenceReader implements CharacterReader {
   }
 
   @override
+  String getContents() => _sequence;
+
+  @override
   String getString(int start, int endDelta) =>
       _sequence.substring(start, _charOffset + endDelta);
 
@@ -126,6 +134,9 @@ class SubSequenceReader extends CharSequenceReader {
   void set offset(int offset) {
     super.offset = offset - _offsetDelta;
   }
+
+  @override
+  String getContents() => super.getContents().substring(_offsetDelta);
 
   @override
   String getString(int start, int endDelta) =>

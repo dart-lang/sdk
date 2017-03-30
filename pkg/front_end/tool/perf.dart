@@ -361,7 +361,7 @@ class _UnlinkedSummaries {
 }
 
 class _Scanner extends Scanner {
-  _Scanner(String contents) : super(new CharSequenceReader(contents)) {
+  _Scanner(String contents) : super.create(new CharSequenceReader(contents)) {
     preserveComments = false;
   }
 
