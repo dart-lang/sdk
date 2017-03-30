@@ -252,8 +252,8 @@ class _Platform {
   }
 
   @patch
-  static _ansiSupported() {
-    throw new UnsupportedError("Platform._ansiSupported");
+  static String _localeName() {
+    throw new UnsupportedError("Platform._localeName");
   }
 }
 
