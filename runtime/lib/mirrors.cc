@@ -95,14 +95,7 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
-  if (!func.HasCode()) {
-    const Error& error =
-        Error::Handle(zone, Compiler::CompileFunction(thread, func));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-  }
+  func.EnsureHasCode();
 }
 
 static RawInstance* CreateParameterMirrorList(const Function& func,

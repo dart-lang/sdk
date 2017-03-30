@@ -96,10 +96,10 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ASSERT(thread->IsMutatorThread());
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
   if (!function.HasCode()) {
-    const Error& error =
-        Error::Handle(zone, Compiler::CompileFunction(thread, function));
-    if (!error.IsNull()) {
-      return error.raw();
+    const Object& result =
+        Object::Handle(zone, Compiler::CompileFunction(thread, function));
+    if (result.IsError()) {
+      return Error::Cast(result).raw();
     }
   }
 // Now Call the invoke stub which will invoke the dart function.

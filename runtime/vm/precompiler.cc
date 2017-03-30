@@ -2946,7 +2946,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   if (optimized()) {
     // Installs code while at safepoint.
     ASSERT(thread()->IsMutatorThread());
-    function.InstallOptimizedCode(code, /* is_osr = */ false);
+    function.InstallOptimizedCode(code);
   } else {  // not optimized.
     function.set_unoptimized_code(code);
     function.AttachCode(code);

@@ -657,14 +657,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       zone, caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
-  if (!target_function.HasCode()) {
-    const Error& error =
-        Error::Handle(zone, Compiler::CompileFunction(thread, target_function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
-  const Code& target_code = Code::Handle(zone, target_function.CurrentCode());
+  const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
   ASSERT(target_code.raw() !=
@@ -940,13 +933,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   // IC data for static call is prepopulated with the statically known target.
   ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
-  if (!target.HasCode()) {
-    const Error& error =
-        Error::Handle(Compiler::CompileFunction(thread, target));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
+  target.EnsureHasCode();
   ASSERT(!target.IsNull() && target.HasCode());
   ic_data.AddReceiverCheck(arg.GetClassId(), target, 1);
   if (FLAG_trace_ic) {
@@ -972,14 +959,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   // IC data for static call is prepopulated with the statically known target.
   ASSERT(!ic_data.NumberOfChecksIs(0));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
-  if (!target.HasCode()) {
-    const Error& error =
-        Error::Handle(Compiler::CompileFunction(thread, target));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
-  ASSERT(!target.IsNull() && target.HasCode());
+  target.EnsureHasCode();
   GrowableArray<intptr_t> cids(2);
   cids.Add(arg0.GetClassId());
   cids.Add(arg1.GetClassId());
@@ -1321,13 +1301,8 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
       // the monomorphic case hides an live instance selector from the
       // treeshaker.
 
-      if (!target_function.HasCode()) {
-        const Error& error =
-            Error::Handle(Compiler::CompileFunction(thread, target_function));
-        if (!error.IsNull()) {
-          Exceptions::PropagateError(error);
-        }
-      }
+      const Code& target_code =
+          Code::Handle(zone, target_function.EnsureHasCode());
 
       DartFrameIterator iterator;
       StackFrame* miss_function_frame = iterator.NextFrame();
@@ -1336,8 +1311,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
       ASSERT(caller_frame->IsDartFrame());
       const Code& caller_code =
           Code::Handle(zone, caller_frame->LookupDartCode());
-      const Code& target_code =
-          Code::Handle(zone, target_function.CurrentCode());
       const Smi& expected_cid =
           Smi::Handle(zone, Smi::New(receiver.GetClassId()));
 
@@ -1706,28 +1679,20 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
                 function.usage_counter());
     }
 
-    const Code& original_code = Code::Handle(function.CurrentCode());
     // Since the code is referenced from the frame and the ZoneHandle,
     // it cannot have been removed from the function.
-    ASSERT(!original_code.IsNull());
-    const Error& error = Error::Handle(
+    const Object& result = Object::Handle(
         Compiler::CompileOptimizedFunction(thread, function, osr_id));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
+    if (result.IsError()) {
+      Exceptions::PropagateError(Error::Cast(result));
     }
 
-    const Code& optimized_code = Code::Handle(function.CurrentCode());
-    // The current code will not be changed in the case that the compiler
-    // bailed out during OSR compilation.
-    if (optimized_code.raw() != original_code.raw()) {
-      // The OSR code does not work for calling the function, so restore the
-      // unoptimized code.  Patch the stack frame to return into the OSR
-      // code.
+    if (!result.IsNull()) {
+      const Code& code = Code::Cast(result);
       uword optimized_entry =
-          Instructions::UncheckedEntryPoint(optimized_code.instructions());
-      function.AttachCode(original_code);
+          Instructions::UncheckedEntryPoint(code.instructions());
       frame->set_pc(optimized_entry);
-      frame->set_pc_marker(optimized_code.raw());
+      frame->set_pc_marker(code.raw());
     }
   }
 }
@@ -1800,13 +1765,11 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
                   function.ToFullyQualifiedCString());
       }
     }
-    const Error& error = Error::Handle(
+    const Object& result = Object::Handle(
         zone, Compiler::CompileOptimizedFunction(thread, function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
+    if (result.IsError()) {
+      Exceptions::PropagateError(Error::Cast(result));
     }
-    const Code& optimized_code = Code::Handle(zone, function.CurrentCode());
-    ASSERT(!optimized_code.IsNull());
   }
   arguments.SetReturn(function);
 #else
@@ -1835,17 +1798,9 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       zone, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
-  if (!target_function.HasCode()) {
-    const Error& error =
-        Error::Handle(zone, Compiler::CompileFunction(thread, target_function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
-  ASSERT(target_function.HasCode());
 
   const Code& current_target_code =
-      Code::Handle(zone, target_function.CurrentCode());
+      Code::Handle(zone, target_function.EnsureHasCode());
   CodePatcher::PatchStaticCallAt(frame->pc(), caller_code, current_target_code);
   caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
   if (FLAG_trace_patching) {

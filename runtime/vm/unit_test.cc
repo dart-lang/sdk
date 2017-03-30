@@ -472,9 +472,9 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
-  const Error& error =
-      Error::Handle(Compiler::CompileFunction(thread, function));
-  return error.IsNull();
+  const Object& result =
+      Object::Handle(Compiler::CompileFunction(thread, function));
+  return result.IsCode();
 }
 
 

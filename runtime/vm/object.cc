@@ -5288,11 +5288,11 @@ bool Function::HasBreakpoint() const {
 }
 
 
-void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
+void Function::InstallOptimizedCode(const Code& code) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // We may not have previous code if FLAG_precompile is set.
   // Hot-reload may have already disabled the current code.
-  if (!is_osr && HasCode() && !Code::Handle(CurrentCode()).IsDisabled()) {
+  if (HasCode() && !Code::Handle(CurrentCode()).IsDisabled()) {
     Code::Handle(CurrentCode()).DisableDartCode();
   }
   AttachCode(code);
@@ -7325,6 +7325,23 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     }
   }
   return true;
+}
+
+
+RawCode* Function::EnsureHasCode() const {
+  if (HasCode()) return CurrentCode();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Object& result =
+      Object::Handle(zone, Compiler::CompileFunction(thread, *this));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  // Compiling in unoptimized mode should never fail if there are no errors.
+  ASSERT(HasCode());
+  ASSERT(unoptimized_code() == result.raw());
+  return CurrentCode();
 }
 
 
@@ -11776,21 +11793,22 @@ RawError* Library::CompileAll() {
   // Inner functions get added to the closures array. As part of compilation
   // more closures can be added to the end of the array. Compile all the
   // closures until we have reached the end of the "worklist".
+  Object& result = Object::Handle(zone);
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       zone, Isolate::Current()->object_store()->closure_functions());
   Function& func = Function::Handle(zone);
   for (int i = 0; i < closures.Length(); i++) {
     func ^= closures.At(i);
     if (!func.HasCode()) {
-      error = Compiler::CompileFunction(thread, func);
-      if (!error.IsNull()) {
-        return error.raw();
+      result = Compiler::CompileFunction(thread, func);
+      if (result.IsError()) {
+        return Error::Cast(result).raw();
       }
       func.ClearICDataArray();
       func.ClearCode();
     }
   }
-  return error.raw();
+  return Error::null();
 }
 
 

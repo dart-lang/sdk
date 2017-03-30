@@ -2293,13 +2293,19 @@ class Function : public Object {
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
-  void InstallOptimizedCode(const Code& code, bool is_osr) const;
+  void InstallOptimizedCode(const Code& code) const;
   void AttachCode(const Code& value) const;
   void SetInstructions(const Code& value) const;
   void ClearCode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
+
+  // Ensures that the function has code. If there is no code it compiles the
+  // unoptimized version of the code.  If the code contains errors, it calls
+  // Exceptions::PropagateError and does not return.  Normally returns the
+  // current code, whether it is optimized or unoptimized.
+  RawCode* EnsureHasCode() const;
 
   // Disables optimized code and switches to unoptimized code (or the lazy
   // compilation stub).
