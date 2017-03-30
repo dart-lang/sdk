@@ -38,8 +38,8 @@ Future<Null> test_code() async {
       locked = true; // LINE_B
     } on FileSystemException {
       if (!printed) {
-        printTrace('Print path: ${_lock.path}');
-        printStatus('Just another line...');
+        print('Print path: ${_lock.path}');
+        print('Just another line...');
         printed = true;
       }
       await new Future<Null>.delayed(const Duration(milliseconds: 50));
