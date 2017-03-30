@@ -1329,8 +1329,24 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
 
 /**
  * The pseudo-declaration that defines a generic function type.
+ *
+ * Clients may not extend, implement, or mix-in this class.
  */
 abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
+
+/**
+ * A [FunctionTypeAliasElement] whose returned function type has a [type]
+ * parameter.
+ *
+ * Clients may not extend, implement, or mix-in this class.
+ */
+abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {
+  /**
+   * Return the generic function type element representing the generic function
+   * type on the right side of the equals.
+   */
+  GenericFunctionTypeElement get function;
+}
 
 /**
  * A combinator that causes some of the names in a namespace to be hidden when
