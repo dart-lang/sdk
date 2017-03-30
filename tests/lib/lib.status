@@ -644,3 +644,7 @@ mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 mirrors/variable_is_const_test/none: RuntimeError
 profiler/metrics_num_test: CompileTimeError
+
+[ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
+async/stream_type_test: Crash
+mirrors/variable_is_const_test/01: Crash

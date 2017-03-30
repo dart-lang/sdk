@@ -423,7 +423,6 @@ LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
-Language/Classes/Constructors/Constant_Constructors/syntax_t03: Crash
 Language/Classes/Instance_Variables/constant_t01: Crash
 Language/Expressions/Lists/constant_list_t01: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
