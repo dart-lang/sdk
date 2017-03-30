@@ -250,11 +250,6 @@ class _Platform {
   static String _version() {
     throw new UnsupportedError("Platform._version");
   }
-
-  @patch
-  static String _localeName() {
-    throw new UnsupportedError("Platform._localeName");
-  }
 }
 
 @patch

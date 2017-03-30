@@ -91,7 +91,6 @@ namespace bin {
   V(Platform_Environment, 0)                                                   \
   V(Platform_ExecutableArguments, 0)                                           \
   V(Platform_GetVersion, 0)                                                    \
-  V(Platform_LocaleName, 0)                                                    \
   V(Process_Start, 11)                                                         \
   V(Process_Wait, 5)                                                           \
   V(Process_KillPid, 2)                                                        \

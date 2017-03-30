@@ -25,9 +25,6 @@ class _Platform {
   static String _version() native "Platform_GetVersion";
 
   @patch
-  static String _localeName() native "Platform_LocaleName";
-
-  @patch
   static String _packageRoot() => VMLibraryHooks.packageRootString;
   @patch
   static String _packageConfig() => VMLibraryHooks.packageConfigString;

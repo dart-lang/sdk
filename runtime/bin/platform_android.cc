@@ -57,11 +57,6 @@ const char* Platform::LibraryExtension() {
 }
 
 
-const char* Platform::LocaleName() {
-  return getenv("LANG");
-}
-
-
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }

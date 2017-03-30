@@ -4,9 +4,6 @@
 
 ### Core library changes
 
-* `dart:io`
-  * Added `Platform.localeName`.
-
 ### Dart VM
 
 ### Strong Mode

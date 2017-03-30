@@ -71,7 +71,6 @@ class Platform {
   static final _operatingSystem = _Platform.operatingSystem;
   static final _localHostname = _Platform.localHostname;
   static final _version = _Platform.version;
-  static final _localeName = _Platform.localeName;
 
   /**
    * Get the number of processors of the machine.
@@ -83,11 +82,6 @@ class Platform {
    * components in file paths.
    */
   static String get pathSeparator => _pathSeparator;
-
-  /**
-   * Get the name of the current locale.
-   */
-  static String get localeName => _localeName;
 
   /**
    * Get a string (`linux`, `macos`, `windows`, `android`, or `ios`)
