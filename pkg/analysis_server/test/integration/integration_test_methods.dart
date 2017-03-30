@@ -1445,6 +1445,45 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Get the changes required to convert the partial statement at the given
+   * location into a syntactically valid statement. If the current statement is
+   * already valid the change will insert a newline plus appropriate
+   * indentation at the end of the line containing the offset. If a change that
+   * makes the statement valid cannot be determined (perhaps because it has not
+   * yet been implemented) the statement will be considered already valid and
+   * the appropriate change returned.
+   *
+   * Parameters
+   *
+   * file (FilePath)
+   *
+   *   The file containing the statement to be completed.
+   *
+   * offset (int)
+   *
+   *   The offset used to identify the statement to be completed.
+   *
+   * Returns
+   *
+   * change (SourceChange)
+   *
+   *   The change to be applied in order to complete the statement.
+   *
+   * whitespaceOnly (bool)
+   *
+   *   Will be true if the change contains nothing but whitespace characters,
+   *   or is empty.
+   */
+  Future<EditGetStatementCompletionResult> sendEditGetStatementCompletion(
+      String file, int offset) async {
+    var params = new EditGetStatementCompletionParams(file, offset).toJson();
+    var result = await server.send("edit.getStatementCompletion", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new EditGetStatementCompletionResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Sort all of the directives, unit and class members of the given Dart file.
    *
    * If a request is made for a file that does not exist, does not belong to an
