@@ -7,6 +7,8 @@
 
 #include "bin/platform.h"
 
+#include <CoreFoundation/CoreFoundation.h>
+
 #if !HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif                    // !HOST_OS_IOS
@@ -95,6 +97,59 @@ const char* Platform::LibraryPrefix() {
 
 const char* Platform::LibraryExtension() {
   return "dylib";
+}
+
+
+static const char* GetLocaleName() {
+  CFLocaleRef locale = CFLocaleCopyCurrent();
+  CFStringRef locale_string = CFLocaleGetIdentifier(locale);
+  CFIndex len = CFStringGetLength(locale_string);
+  CFIndex max_len =
+      CFStringGetMaximumSizeForEncoding(len, kCFStringEncodingUTF8) + 1;
+  char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(max_len));
+  ASSERT(result != NULL);
+  bool success =
+      CFStringGetCString(locale_string, result, max_len, kCFStringEncodingUTF8);
+  CFRelease(locale);
+  if (!success) {
+    return NULL;
+  }
+  return result;
+}
+
+
+static const char* GetPreferredLanguageName() {
+  CFArrayRef languages = CFLocaleCopyPreferredLanguages();
+  CFIndex languages_length = CFArrayGetCount(languages);
+  if (languages_length < 1) {
+    CFRelease(languages);
+    return NULL;
+  }
+  CFTypeRef item =
+      reinterpret_cast<CFTypeRef>(CFArrayGetValueAtIndex(languages, 0));
+  CFTypeID item_type = CFGetTypeID(item);
+  ASSERT(item_type == CFStringGetTypeID());
+  CFStringRef language = reinterpret_cast<CFStringRef>(item);
+  CFIndex len = CFStringGetLength(language);
+  CFIndex max_len =
+      CFStringGetMaximumSizeForEncoding(len, kCFStringEncodingUTF8) + 1;
+  char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(max_len));
+  ASSERT(result != NULL);
+  bool success =
+      CFStringGetCString(language, result, max_len, kCFStringEncodingUTF8);
+  CFRelease(languages);
+  if (!success) {
+    return NULL;
+  }
+  return result;
+}
+
+
+const char* Platform::LocaleName() {
+  // First see if there is a preferred language. If not, return the
+  // current locale name.
+  const char* preferred_langauge = GetPreferredLanguageName();
+  return (preferred_langauge != NULL) ? preferred_langauge : GetLocaleName();
 }
 
 
