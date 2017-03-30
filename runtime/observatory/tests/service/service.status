@@ -17,6 +17,9 @@ async_scope_test: Pass, Slow
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Not yet triaged.
 
+[ $compiler == dartk ]
+async_generator_breakpoint_test: Pass, Crash # Issue 29145
+
 # Kernel version of tests
 [ $compiler != dartk ]
 ###

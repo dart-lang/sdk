@@ -8,33 +8,42 @@ import 'service_test_common.dart';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
-const int LINE_A = 28, LINE_B = 33;
+const int LINE_A = 19, LINE_B = 38;
 
-class VMServiceClient {
-  VMServiceClient(this.x);
-  close() => new Future.microtask(() => print("close"));
-  var x;
+var _lock;
+var _lockEnabled = true;
+
+String flutterRoot = "abc";
+
+foo(a, b, c, d) {
+  return new A(); // LINE_A
 }
 
-collect() async {
-  var uri = "abc";
-  var vmService;
-  await new Future.microtask(() async {
+class A {
+  Future lock() => new Future.microtask(() => print("lock"));
+  String path = "path";
+}
+
+class FileSystemException {}
+
+Future<Null> test_code() async {
+  if (!_lockEnabled) return null;
+  assert(_lock == null);
+  _lock = foo(flutterRoot, 'bin', 'cache', 'lockfile');
+  bool locked = false;
+  bool printed = false;
+  while (!locked) {
     try {
-      vmService = new VMServiceClient(uri);
-      await new Future.microtask(() => throw new TimeoutException("here"));
-    } on dynamic {
-      vmService.close();
-      rethrow; // LINE_A
+      await _lock.lock();
+      locked = true; // LINE_B
+    } on FileSystemException {
+      if (!printed) {
+        printTrace('Print path: ${_lock.path}');
+        printStatus('Just another line...');
+        printed = true;
+      }
+      await new Future<Null>.delayed(const Duration(milliseconds: 50));
     }
-  });
-}
-
-test_code() async {
-  try {
-    await collect();
-  } on TimeoutException {
-    print("ok");
   }
 }
 
@@ -63,15 +72,16 @@ Future<Isolate> stepThroughProgram(Isolate isolate) async {
 var tests = [
   hasPausedAtStart,
   markDartColonLibrariesDebuggable,
-  setBreakpointAtLine(LINE_B),
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
   setBreakpointAtLine(LINE_A),
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  stepOut,
-  stoppedAtLine(LINE_B),
-  resumeIsolate
+  setBreakpointAtLine(LINE_B),
+  resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stepInto,
+  stepInto,
+  stepInto,
+  resumeIsolate,
 ];
 
 main(args) => runIsolateTestsSynchronous(args, tests,

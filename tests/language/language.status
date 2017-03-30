@@ -43,6 +43,9 @@ cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
+# Skipped temporarily until fixed
+vm/regress_29145_test: Skip # Issue 29145
+
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020

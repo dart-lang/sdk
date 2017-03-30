@@ -605,6 +605,8 @@ class Debugger {
   // Callback to the debugger to continue frame rewind, post-deoptimization.
   void RewindPostDeopt();
 
+  static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
+
  private:
   RawError* PauseRequest(ServiceEvent::EventKind kind);
 
@@ -679,7 +681,6 @@ class Debugger {
                                Array* deopt_frame);
   static DebuggerStackTrace* CollectStackTrace();
   static DebuggerStackTrace* CollectAsyncCausalStackTrace();
-  static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }

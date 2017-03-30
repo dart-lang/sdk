@@ -6637,7 +6637,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode* body) {
   current_block_->statements->Add(new (Z) InstanceCallNode(
       try_end_pos, new (Z) LoadLocalNode(TokenPosition::kNoSource, controller),
       Symbols::AddError(), args));
-  ReturnNode* return_node = new (Z) ReturnNode(TokenPosition::kNoSource);
+  ReturnNode* return_node = new (Z) ReturnNode(try_end_pos);
   AddNodeForFinallyInlining(return_node);
   current_block_->statements->Add(return_node);
   AstNode* catch_block = CloseBlock();
@@ -6787,7 +6787,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block,
       func_end_pos,
       new (Z) LoadLocalNode(TokenPosition::kNoSource, async_completer),
       Symbols::CompleterCompleteError(), completer_args));
-  ReturnNode* return_node = new (Z) ReturnNode(TokenPosition::kNoSource);
+  ReturnNode* return_node = new (Z) ReturnNode(func_end_pos);
   // Behavior like a continuation return, i.e,. don't call a completer.
   return_node->set_return_type(ReturnNode::kContinuation);
   current_block_->statements->Add(return_node);
@@ -9365,7 +9365,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
     ArgumentListNode* no_args =
         new (Z) ArgumentListNode(TokenPosition::kNoSource);
     current_block_->statements->Add(new (Z) InstanceCallNode(
-        TokenPosition::kNoSource,
+        ST(await_for_pos),
         new (Z) LoadLocalNode(TokenPosition::kNoSource, iterator_var),
         Symbols::Cancel(), no_args));
     finally_clause = CloseBlock();

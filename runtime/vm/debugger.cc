@@ -687,7 +687,7 @@ intptr_t ActivationFrame::ContextLevel() {
     }
     ASSERT(!pc_desc_.IsNull());
     TokenPosition innermost_begin_pos = TokenPosition::kMinSource;
-    TokenPosition activation_token_pos = TokenPos();
+    TokenPosition activation_token_pos = TokenPos().FromSynthetic();
     ASSERT(activation_token_pos.IsReal());
     GetVarDescriptors();
     intptr_t var_desc_len = var_descriptors_.Length();
@@ -758,7 +758,10 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
   ASSERT(!future_field.IsNull());
   Instance& future = Instance::Handle();
   future ^= Instance::Cast(completer).GetField(future_field);
-  ASSERT(!future.IsNull());
+  if (future.IsNull()) {
+    // The completer object may not be fully initialized yet.
+    return Object::null();
+  }
   const Class& future_cls = Class::Handle(future.clazz());
   ASSERT(!future_cls.IsNull());
   const Field& awaiter_field = Field::Handle(
@@ -1431,8 +1434,7 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 
 
 void DebuggerStackTrace::AddMarker(ActivationFrame::Kind marker) {
-  ASSERT((marker >= ActivationFrame::kAsyncSuspensionMarker) &&
-         (marker <= ActivationFrame::kAsyncSuspensionMarker));
+  ASSERT(marker == ActivationFrame::kAsyncSuspensionMarker);
   trace_.Add(new ActivationFrame(marker));
 }
 

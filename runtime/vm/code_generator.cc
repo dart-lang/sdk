@@ -1631,6 +1631,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
         frame->VariableAt(v, &var_name, &unused, &unused, &unused, &var_value);
       }
     }
+    if (FLAG_stress_async_stacks) {
+      Debugger::CollectAwaiterReturnStackTrace();
+    }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
 
