@@ -2499,22 +2499,6 @@ class C {
     verify([source]);
   }
 
-  test_strongMode_downCastCompositeNoHint() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strongMode = true;
-    options.strongModeHints = false;
-    resetWith(options: options);
-    Source source = addSource(r'''
-main() {
-  List dynamicList = [ ];
-  List<int> list = dynamicList;
-  print(list);
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_strongMode_downCastCompositeHint() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
@@ -2528,6 +2512,22 @@ main() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.DOWN_CAST_COMPOSITE]);
+    verify([source]);
+  }
+
+  test_strongMode_downCastCompositeNoHint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    options.strongModeHints = false;
+    resetWith(options: options);
+    Source source = addSource(r'''
+main() {
+  List dynamicList = [ ];
+  List<int> list = dynamicList;
+  print(list);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2551,6 +2551,20 @@ main() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.DOWN_CAST_COMPOSITE]);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class A {
+  int get g => 0;
+}
+var a = new A();
+var b = a.g;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
