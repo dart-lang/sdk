@@ -2855,6 +2855,49 @@ class VectorCopy extends Expression {
   }
 }
 
+/// Expression of the form `MakeClosure(f, c, t)` where `f` is a name of a
+/// closed top-level function, `c` is a Vector representing closure context, and
+/// `t` is the type of the resulting closure.
+class ClosureCreation extends Expression {
+  Reference topLevelFunctionReference;
+  Expression contextVector;
+  FunctionType functionType;
+
+  ClosureCreation(Member topLevelFunction, Expression contextVector,
+      FunctionType functionType)
+      : this.byReference(
+            getMemberReference(topLevelFunction), contextVector, functionType);
+
+  ClosureCreation.byReference(
+      this.topLevelFunctionReference, this.contextVector, this.functionType) {
+    contextVector?.parent = this;
+  }
+
+  Procedure get topLevelFunction => topLevelFunctionReference?.asProcedure;
+
+  void set topLevelFunction(Member topLevelFunction) {
+    topLevelFunctionReference = getMemberReference(topLevelFunction);
+  }
+
+  accept(ExpressionVisitor v) => v.visitClosureCreation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitClosureCreation(this, arg);
+
+  visitChildren(Visitor v) {
+    contextVector?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (contextVector != null) {
+      contextVector = contextVector.accept(v);
+      contextVector?.parent = this;
+    }
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return functionType;
+  }
+}
+
 // ------------------------------------------------------------------------
 //                              STATEMENTS
 // ------------------------------------------------------------------------

@@ -751,6 +751,13 @@ class BinaryPrinter extends Visitor {
     writeNode(node.vectorExpression);
   }
 
+  visitClosureCreation(ClosureCreation node) {
+    writeByte(Tag.ClosureCreation);
+    writeReference(node.topLevelFunctionReference);
+    writeNode(node.contextVector);
+    writeNode(node.functionType);
+  }
+
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);

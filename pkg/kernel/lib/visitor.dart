@@ -58,6 +58,7 @@ abstract class ExpressionVisitor<R> {
   R visitVectorGet(VectorGet node) => defaultExpression(node);
   R visitVectorSet(VectorSet node) => defaultExpression(node);
   R visitVectorCopy(VectorCopy node) => defaultExpression(node);
+  R visitClosureCreation(ClosureCreation node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -169,6 +170,7 @@ class TreeVisitor<R>
   R visitVectorGet(VectorGet node) => defaultExpression(node);
   R visitVectorSet(VectorSet node) => defaultExpression(node);
   R visitVectorCopy(VectorCopy node) => defaultExpression(node);
+  R visitClosureCreation(ClosureCreation node) => defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
@@ -392,6 +394,8 @@ abstract class ExpressionVisitor1<R> {
   R visitVectorGet(VectorGet node, arg) => defaultExpression(node, arg);
   R visitVectorSet(VectorSet node, arg) => defaultExpression(node, arg);
   R visitVectorCopy(VectorCopy node, arg) => defaultExpression(node, arg);
+  R visitClosureCreation(ClosureCreation node, arg) =>
+      defaultExpression(node, arg);
 }
 
 abstract class StatementVisitor1<R> {

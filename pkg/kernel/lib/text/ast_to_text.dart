@@ -1021,6 +1021,18 @@ class Printer extends Visitor<Null> {
     writeSymbol(')');
   }
 
+  visitClosureCreation(ClosureCreation node) {
+    writeWord('MakeClosure');
+    writeSymbol('<');
+    writeNode(node.functionType);
+    writeSymbol('>');
+    writeSymbol('(');
+    writeMemberReference(node.topLevelFunction);
+    writeComma();
+    writeExpression(node.contextVector);
+    writeSymbol(')');
+  }
+
   visitDeferredImport(DeferredImport node) {
     write('import "');
     write('${node.importedLibrary.importUri}');

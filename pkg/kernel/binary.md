@@ -681,6 +681,13 @@ type VectorCopy extends Expression {
   Expression vectorExpression;
 }
 
+type ClosureCreation extends Expression {
+  Byte tag = 106;
+  MemberReference topLevelFunctionReference;
+  Expression contextVector;
+  FunctionType functionType;
+}
+
 abstract type Statement extends Node {}
 
 type InvalidStatement extends Statement {

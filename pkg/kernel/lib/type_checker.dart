@@ -690,6 +690,11 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitVectorCreation(VectorCreation node) {
+    return const VectorType();
+  }
+
+  @override
   DartType visitVectorGet(VectorGet node) {
     var type = visitExpression(node.vectorExpression);
     if (type is! VectorType) {
@@ -726,8 +731,15 @@ class TypeCheckingVisitor
   }
 
   @override
-  DartType visitVectorCreation(VectorCreation node) {
-    return const VectorType();
+  visitClosureCreation(ClosureCreation node) {
+    var contextType = visitExpression(node.contextVector);
+    if (contextType is! VectorType) {
+      fail(
+          node.contextVector,
+          "The second child of 'ClosureConversion' node is supposed to be a "
+          "Vector, but $contextType found.");
+    }
+    return node.functionType;
   }
 
   @override

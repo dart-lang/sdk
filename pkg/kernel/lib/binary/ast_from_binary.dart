@@ -828,6 +828,12 @@ class BinaryBuilder {
       case Tag.VectorCopy:
         var vectorExpression = readExpression();
         return new VectorCopy(vectorExpression);
+      case Tag.ClosureCreation:
+        var topLevelFunctionReference = readMemberReference();
+        var contextVector = readExpression();
+        var functionType = readDartType();
+        return new ClosureCreation.byReference(
+            topLevelFunctionReference, contextVector, functionType);
       default:
         throw fail('Invalid expression tag: $tag');
     }
