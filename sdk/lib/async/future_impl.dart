@@ -207,13 +207,17 @@ class _Future<T> implements Future<T> {
   // This constructor is used by async/await.
   _Future();
 
-  /// Valid types for value: `T` or `Future<T>`.
-  _Future.immediate(value) {
-    _asyncComplete(value);
+  _Future.immediate(FutureOr<T> result) {
+    _asyncComplete(result);
   }
 
   _Future.immediateError(var error, [StackTrace stackTrace]) {
     _asyncCompleteError(error, stackTrace);
+  }
+
+  /** Creates a future that is already completed with the value. */
+  _Future.value(T value) {
+    _setValue(value);
   }
 
   bool get _mayComplete => _state == _INCOMPLETE;
@@ -496,23 +500,7 @@ class _Future<T> implements Future<T> {
     // it.
 
     if (value is Future<T>) {
-      if (value is _Future<T>) {
-        if (value._hasError) {
-          // Case 1 from above. Delay completion to enable the user to register
-          // callbacks.
-          _setPendingComplete();
-          _zone.scheduleMicrotask(() {
-            _chainCoreFuture(value, this);
-          });
-        } else {
-          _chainCoreFuture(value, this);
-        }
-      } else {
-        // Case 2 from above. Chain the future immediately.
-        // Note that we are still completing asynchronously (through
-        // _chainForeignFuture).
-        _chainForeignFuture(value, this);
-      }
+      _chainFuture(value);
       return;
     }
     T typedValue = value as Object/*=T*/;
@@ -521,6 +509,23 @@ class _Future<T> implements Future<T> {
     _zone.scheduleMicrotask(() {
       _completeWithValue(typedValue);
     });
+  }
+
+  void _chainFuture(Future<T> value) {
+    if (value is _Future<T>) {
+      if (value._hasError) {
+        // Delay completion to allow the user to register callbacks.
+        _setPendingComplete();
+        _zone.scheduleMicrotask(() {
+          _chainCoreFuture(value, this);
+        });
+      } else {
+        _chainCoreFuture(value, this);
+      }
+      return;
+    }
+    // Just listen on the foreign future. This guarantees an async delay.
+    _chainForeignFuture(value, this);
   }
 
   void _asyncCompleteError(error, StackTrace stackTrace) {

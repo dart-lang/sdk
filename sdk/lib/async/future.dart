@@ -37,7 +37,7 @@ part of dart.async;
 /// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>> is equivalent to
 /// `Future<Object>`.
 abstract class FutureOr<T> {
-  // Private constructor, so that it is not subclassable, mixable, or
+  // Private generative constructor, so that it is not subclassable, mixable, or
   // instantiable.
   FutureOr._() {
     throw new UnsupportedError("FutureOr can't be instantiated");
@@ -151,7 +151,7 @@ abstract class Future<T> {
    * If a non-future value is returned, the returned future is completed
    * with that value.
    */
-  factory Future(computation()) {
+  factory Future(FutureOr<T> computation()) {
     _Future<T> result = new _Future<T>();
     Timer.run(() {
       try {
@@ -177,7 +177,7 @@ abstract class Future<T> {
    * If calling [computation] returns a non-future value,
    * the returned future is completed with that value.
    */
-  factory Future.microtask(computation()) {
+  factory Future.microtask(FutureOr<T> computation()) {
     _Future<T> result = new _Future<T>();
     scheduleMicrotask(() {
       try {
@@ -190,38 +190,51 @@ abstract class Future<T> {
   }
 
   /**
-   * Creates a future containing the result of immediately calling
+   * Returns a future containing the result of immediately calling
    * [computation].
    *
    * If calling [computation] throws, the returned future is completed with the
    * error.
    *
-   * If calling [computation] returns a [Future], completion of
-   * the created future will wait until the returned future completes,
-   * and will then complete with the same result.
+   * If calling [computation] returns a `Future<T>`, that future is returned.
    *
    * If calling [computation] returns a non-future value,
-   * the returned future is completed with that value.
+   * a future is returned which has been completed with that value.
    */
-  factory Future.sync(computation()) {
+  factory Future.sync(FutureOr<T> computation()) {
     try {
       var result = computation();
-      return new Future<T>.value(result);
+      if (result is Future<T>) {
+        return result;
+      } else if (result is Future) {
+        // TODO(lrn): Remove this case for Dart 2.0.
+        return new _Future<T>.immediate(result);
+      } else {
+        return new _Future<T>.value(result);
+      }
     } catch (error, stackTrace) {
-      return new Future<T>.error(error, stackTrace);
+      var future = new _Future<T>();
+      AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+      if (replacement != null) {
+        future._asyncCompleteError(
+            _nonNullError(replacement.error), replacement.stackTrace);
+      } else {
+        future._asyncCompleteError(error, stackTrace);
+      }
+      return future;
     }
   }
 
   /**
    * A future whose value is available in the next event-loop iteration.
    *
-   * If [value] is not a [Future], using this constructor is equivalent
-   * to [:new Future<T>.sync(() => value):].
+   * If [result] is not a [Future], using this constructor is equivalent
+   * to `new Future<T>.sync(() => result)`.
    *
-   * Use [Completer] to create a Future and complete it later.
+   * Use [Completer] to create a future and complete it later.
    */
-  factory Future.value([value]) {
-    return new _Future<T>.immediate(value);
+  factory Future.value([FutureOr<T> result]) {
+    return new _Future<T>.immediate(result);
   }
 
   /**
@@ -422,7 +435,7 @@ abstract class Future<T> {
    * If [f] returns a non-[Future], iteration continues immediately. Otherwise
    * it waits for the returned [Future] to complete.
    */
-  static Future forEach<T>(Iterable<T> input, dynamic f(T element)) {
+  static Future forEach<T>(Iterable<T> input, FutureOr f(T element)) {
     var iterator = input.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
@@ -437,13 +450,12 @@ abstract class Future<T> {
    * value `true` or a [Future] which completes with the value `true`.
    *
    * If a call to [f] returns `false` or a [Future] that completes to `false`,
-   * iteration ends and the future returned by [doWhile] is completed.
+   * iteration ends and the future returned by [doWhile] is completed with
+   * a `null` value.
    *
-   * If a future returned by [f] completes with an error, iteration ends and
-   * the future returned by [doWhile] completes with the same error.
-   *
-   * The [f] function must return either a `bool` value or a [Future] completing
-   * with a `bool` value.
+   * If a call to [f] throws or a future returned by [f] completes with
+   * an error, iteration ends and the future returned by [doWhile]
+   * completes with the same error.
    */
   static Future doWhile(FutureOr<bool> f()) {
     _Future doneSignal = new _Future();
@@ -609,7 +621,7 @@ abstract class Future<T> {
    *       });
    *     }
    */
-  Future<T> whenComplete(dynamic action());
+  Future<T> whenComplete(FutureOr action());
 
   /**
    * Creates a [Stream] containing the result of this future.
