@@ -1066,9 +1066,7 @@ void FlowGraphCompiler::CompileGraph() {
         if (function.IsClosureFunction()) {
           __ sw(CTX, Address(FP, (slot_base - i) * kWordSize));
         } else {
-          const Context& empty_context = Context::ZoneHandle(
-              zone(), isolate()->object_store()->empty_context());
-          __ LoadObject(V1, empty_context);
+          __ LoadObject(V1, Object::empty_context());
           __ sw(V1, Address(FP, (slot_base - i) * kWordSize));
         }
       } else {

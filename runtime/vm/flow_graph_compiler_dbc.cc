@@ -412,8 +412,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
     __ LoadField(reg, closure_reg, Closure::context_offset() / kWordSize);
   } else if (has_optional_params && !is_optimizing()) {
-    __ LoadConstant(context_index,
-                    Object::Handle(isolate()->object_store()->empty_context()));
+    __ LoadConstant(context_index, Object::empty_context());
   }
 }
 

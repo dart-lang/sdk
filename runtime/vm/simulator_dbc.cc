@@ -1249,7 +1249,7 @@ RawObject* Simulator::Call(const Code& code,
   RawBool* true_value = Bool::True().raw();
   RawBool* false_value = Bool::False().raw();
   RawObject* null_value = Object::null();
-  RawObject* empty_context = thread->isolate()->object_store()->empty_context();
+  RawObject* empty_context = Object::empty_context().raw();
 
 #if defined(DEBUG)
   Function& function_h = Function::Handle();

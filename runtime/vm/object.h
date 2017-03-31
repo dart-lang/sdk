@@ -374,6 +374,11 @@ class Object {
     return *zero_array_;
   }
 
+  static const Context& empty_context() {
+    ASSERT(empty_context_ != NULL);
+    return *empty_context_;
+  }
+
   static const ContextScope& empty_context_scope() {
     ASSERT(empty_context_scope_ != NULL);
     return *empty_context_scope_;
@@ -785,6 +790,7 @@ class Object {
   static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
+  static Context* empty_context_;
   static ContextScope* empty_context_scope_;
   static ObjectPool* empty_object_pool_;
   static PcDescriptors* empty_descriptors_;
@@ -5110,6 +5116,7 @@ class Context : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Context, Object);
   friend class Class;
+  friend class Object;
 };
 
 

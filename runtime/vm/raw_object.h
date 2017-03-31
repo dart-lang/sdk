@@ -1438,6 +1438,7 @@ class RawContext : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->data()[num_vars - 1]);
   }
 
+  friend class Object;
   friend class SnapshotReader;
 };
 

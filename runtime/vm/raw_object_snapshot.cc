@@ -1462,7 +1462,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   Context& context = Context::ZoneHandle(reader->zone());
   reader->AddBackRef(object_id, &context, kIsDeserialized);
   if (num_vars == 0) {
-    context ^= reader->object_store()->empty_context();
+    context ^= Object::empty_context().raw();
   } else {
     context ^= Context::New(num_vars);
 

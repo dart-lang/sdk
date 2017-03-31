@@ -1043,9 +1043,7 @@ void FlowGraphCompiler::CompileGraph() {
         if (function.IsClosureFunction()) {
           __ StoreToOffset(CTX, FP, (slot_base - i) * kWordSize);
         } else {
-          const Context& empty_context = Context::ZoneHandle(
-              zone(), isolate()->object_store()->empty_context());
-          __ LoadObject(R1, empty_context);
+          __ LoadObject(R1, Object::empty_context());
           __ StoreToOffset(R1, FP, (slot_base - i) * kWordSize);
         }
       } else {

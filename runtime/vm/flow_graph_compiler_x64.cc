@@ -1046,10 +1046,8 @@ void FlowGraphCompiler::CompileGraph() {
         if (function.IsClosureFunction()) {
           __ movq(Address(RBP, (slot_base - i) * kWordSize), CTX);
         } else {
-          const Context& empty_context = Context::ZoneHandle(
-              zone(), isolate()->object_store()->empty_context());
           __ StoreObject(Address(RBP, (slot_base - i) * kWordSize),
-                         empty_context);
+                         Object::empty_context());
         }
       } else {
         ASSERT(num_locals > 1);

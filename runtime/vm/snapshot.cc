@@ -1127,6 +1127,7 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
                         Object::extractor_parameter_types().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterNames,
                         Object::extractor_parameter_names().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyContextObject, Object::empty_context().raw());
   READ_VM_SINGLETON_OBJ(kEmptyContextScopeObject,
                         Object::empty_context_scope().raw());
   READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().raw());
@@ -1369,6 +1370,7 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
                          kExtractorParameterTypes);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().raw(),
                          kExtractorParameterNames);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_context().raw(), kEmptyContextObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().raw(),
                          kEmptyContextScopeObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().raw(), kEmptyObjectPool);

@@ -341,9 +341,6 @@ class ObjectStore {
 
   RawGrowableObjectArray* error_listeners() const { return error_listeners_; }
 
-  RawContext* empty_context() const { return empty_context_; }
-  void set_empty_context(const Context& value) { empty_context_ = value.raw(); }
-
   RawInstance* stack_overflow() const { return stack_overflow_; }
   void set_stack_overflow(const Instance& value) {
     stack_overflow_ = value.raw();
@@ -569,7 +566,6 @@ class ObjectStore {
   V(RawGrowableObjectArray*, resume_capabilities_)                             \
   V(RawGrowableObjectArray*, exit_listeners_)                                  \
   V(RawGrowableObjectArray*, error_listeners_)                                 \
-  V(RawContext*, empty_context_)                                               \
   V(RawInstance*, stack_overflow_)                                             \
   V(RawInstance*, out_of_memory_)                                              \
   V(RawUnhandledException*, preallocated_unhandled_exception_)                 \

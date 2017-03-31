@@ -975,8 +975,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // Add global constants to the initial definitions.
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
-  constant_empty_context_ =
-      GetConstant(Context::Handle(isolate()->object_store()->empty_context()));
+  constant_empty_context_ = GetConstant(Object::empty_context());
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {

@@ -1049,9 +1049,8 @@ void FlowGraphCompiler::CompileGraph() {
         if (function.IsClosureFunction()) {
           __ movl(Address(EBP, (slot_base - i) * kWordSize), CTX);
         } else {
-          const Immediate& raw_empty_context =
-              Immediate(reinterpret_cast<intptr_t>(
-                  isolate()->object_store()->empty_context()));
+          const Immediate& raw_empty_context = Immediate(
+              reinterpret_cast<intptr_t>(Object::empty_context().raw()));
           __ movl(Address(EBP, (slot_base - i) * kWordSize), raw_empty_context);
         }
       } else {

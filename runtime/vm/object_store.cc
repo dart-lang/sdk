@@ -83,7 +83,6 @@ ObjectStore::ObjectStore()
       resume_capabilities_(GrowableObjectArray::null()),
       exit_listeners_(GrowableObjectArray::null()),
       error_listeners_(GrowableObjectArray::null()),
-      empty_context_(Context::null()),
       stack_overflow_(Instance::null()),
       out_of_memory_(Instance::null()),
       preallocated_unhandled_exception_(UnhandledException::null()),
