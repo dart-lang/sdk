@@ -1047,7 +1047,13 @@ class CodeChecker extends RecursiveAstVisitor {
     var severity =
         (processor != null) ? processor.severity : errorCode.errorSeverity;
 
-    if (severity == ErrorSeverity.ERROR) _failure = true;
+    if (severity == ErrorSeverity.ERROR) {
+      _failure = true;
+    }
+    if (errorCode.type == ErrorType.HINT &&
+        errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
+      severity = ErrorSeverity.ERROR;
+    }
     if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
       int begin = node is AnnotatedNode
           ? node.firstTokenAfterCommentAndMetadata.offset
