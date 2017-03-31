@@ -652,7 +652,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
 
-    var cc, shared;
+    var cc, shared, ld_flags;
     if (isAndroid) {
       var ndk = "third_party/android_tools/ndk";
       var triple;
@@ -675,6 +675,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     } else if (Platform.isMacOS) {
       cc = 'clang';
       shared = '-dynamiclib';
+      // Tell Mac linker to give up generating eh_frame from dwarf.
+      ld_flags = '-Wl,-no_compact_unwind';
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
@@ -701,13 +703,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     }
 
     var exec = cc;
-    var args = (cc_flags != null) ? [ shared, cc_flags ] : [ shared ];
-    args.addAll([
-      '-nostdlib',
-      '-o',
-      '$tempDir/out.aotsnapshot',
-      '$tempDir/out.S'
-    ]);
+    var args = [];
+    if (cc_flags != null) args.add(cc_flags);
+    if (ld_flags != null) args.add(ld_flags);
+    args.add(shared);
+    args.add('-nostdlib');
+    args.add('-o');
+    args.add('$tempDir/out.aotsnapshot');
+    args.add('$tempDir/out.S');
 
     return commandBuilder.getCompilationCommand('assemble', tempDir, !useSdk,
         bootstrapDependencies(buildDir), exec, args, environmentOverrides);
