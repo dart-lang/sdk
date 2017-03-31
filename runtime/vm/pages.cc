@@ -1256,12 +1256,13 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
           min = local_grow_heap + 1;
         }
       }
+      local_grow_heap = (max + min) / 2;
       grow_heap_ = local_grow_heap;
       ASSERT(grow_heap_ >= 0);
       // If we are going to grow by heap_grow_max_ then ensure that we
       // will be growing the heap at least by the growth ratio heuristics.
-      if ((grow_heap_ == heap_growth_max_) && (grow_ratio > grow_heap_)) {
-        grow_heap_ = grow_ratio;
+      if (grow_heap_ >= heap_growth_max_) {
+        grow_heap_ = Utils::Maximum(grow_ratio, grow_heap_);
       }
     }
   } else {
