@@ -312,7 +312,7 @@ class NoSuchMethodError {
                   .writeln("The $type_str '$memberName' was called on null.");
             }
           } else {
-            if (_receiver is Function) {
+            if (_receiver is _Closure) {
               msg_buf.writeln("Closure call with mismatched arguments: "
                   "function '$memberName'");
             } else if (_receiver is _Type && memberName == "call") {

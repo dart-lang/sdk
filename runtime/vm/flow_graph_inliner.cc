@@ -1262,6 +1262,13 @@ class CallSiteInliner : public ValueObject {
         TRACE_INLINING(THR_Print("     Bailout: non-closure operator\n"));
         continue;
       }
+
+      if (call->ArgumentCount() > target.NumParameters() ||
+          call->ArgumentCount() < target.num_fixed_parameters()) {
+        TRACE_INLINING(THR_Print("     Bailout: wrong parameter count\n"));
+        continue;
+      }
+
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
