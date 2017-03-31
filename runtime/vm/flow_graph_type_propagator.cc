@@ -350,7 +350,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   } else if ((call != NULL) &&
              call->MatchesCoreName(Symbols::_simpleInstanceOf()) &&
              comparison->InputAt(1)->BindsToConstant() &&
-             (comparison->InputAt(1)->BoundConstant().IsBool())) {
+             comparison->InputAt(1)->BoundConstant().IsBool()) {
     ASSERT(call->ArgumentAt(1)->IsConstant());
     if (comparison->InputAt(1)->BoundConstant().raw() == Bool::False().raw()) {
       negated = !negated;
@@ -367,8 +367,24 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
           true_successor, call->ArgumentAt(0),
           CompileType::FromAbstractType(Type::Cast(type), is_nullable));
     }
+  } else if (comparison->InputAt(0)->BindsToConstant() &&
+             comparison->InputAt(0)->BoundConstant().IsNull()) {
+    // Handle for expr != null.
+    BlockEntryInstr* true_successor =
+        negated ? instr->true_successor() : instr->false_successor();
+    redef = flow_graph_->EnsureRedefinition(
+        true_successor, comparison->InputAt(1)->definition(),
+        comparison->InputAt(1)->Type()->CopyNonNullable());
+
+  } else if (comparison->InputAt(1)->BindsToConstant() &&
+             comparison->InputAt(1)->BoundConstant().IsNull()) {
+    // Handle for null != expr.
+    BlockEntryInstr* true_successor =
+        negated ? instr->true_successor() : instr->false_successor();
+    redef = flow_graph_->EnsureRedefinition(
+        true_successor, comparison->InputAt(0)->definition(),
+        comparison->InputAt(0)->Type()->CopyNonNullable());
   }
-  // TODO(fschneider): Add propagation for null-comparisons.
   // TODO(fschneider): Add propagation for generic is-tests.
 
   // Grow types array if a new redefinition was inserted.
@@ -550,7 +566,7 @@ CompileType CompileType::Bool() {
 
 
 CompileType CompileType::Int() {
-  return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNonNullable);
+  return FromAbstractType(Type::ZoneHandle(Type::Int64Type()), kNonNullable);
 }
 
 
@@ -771,16 +787,18 @@ CompileType RedefinitionInstr::ComputeType() const {
     // than the type of its input. If yes, return it. Otherwise, fall back
     // to the input's type.
 
-    // If either type has a concrete cid, stick with it.
-    if (value()->Type()->ToCid() != kDynamicCid) {
-      return *value()->Type();
-    }
-    if (constrained_type_->ToCid() != kDynamicCid) {
-      return *constrained_type_;
-    }
     // If either type is non-nullable, the resulting type is non-nullable.
     const bool is_nullable =
         value()->Type()->is_nullable() && constrained_type_->is_nullable();
+
+    // If either type has a concrete cid, stick with it.
+    if (value()->Type()->ToNullableCid() != kDynamicCid) {
+      return CompileType::CreateNullable(is_nullable, value()->Type()->ToCid());
+    }
+    if (constrained_type_->ToNullableCid() != kDynamicCid) {
+      return CompileType::CreateNullable(is_nullable,
+                                         constrained_type_->ToCid());
+    }
     if (value()->Type()->IsMoreSpecificThan(
             *constrained_type_->ToAbstractType())) {
       return is_nullable ? *value()->Type()

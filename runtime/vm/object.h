@@ -5812,6 +5812,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'int' type.
   bool IsIntType() const;
 
+  // Check if this type represents the '_int64' type.
+  bool IsInt64Type() const;
+
   // Check if this type represents the 'double' type.
   bool IsDoubleType() const;
 
@@ -5965,6 +5968,9 @@ class Type : public AbstractType {
 
   // The 'int' type.
   static RawType* IntType();
+
+  // The '_int64' type.
+  static RawType* Int64Type();
 
   // The 'Smi' type.
   static RawType* SmiType();

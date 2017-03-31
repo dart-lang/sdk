@@ -1609,6 +1609,15 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     object_store->set_int_type(type);
 
     cls = Class::New<Instance>(kIllegalCid);
+    RegisterPrivateClass(cls, Symbols::Int64(), core_lib);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_int64_type(type);
+
+    cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Double(), core_lib);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
@@ -16443,6 +16452,12 @@ bool AbstractType::IsIntType() const {
 }
 
 
+bool AbstractType::IsInt64Type() const {
+  return !IsFunctionType() && HasResolvedTypeClass() &&
+         (type_class() == Type::Handle(Type::Int64Type()).type_class());
+}
+
+
 bool AbstractType::IsDoubleType() const {
   return !IsFunctionType() && HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Double()).type_class());
@@ -16685,6 +16700,11 @@ RawType* Type::BoolType() {
 
 RawType* Type::IntType() {
   return Isolate::Current()->object_store()->int_type();
+}
+
+
+RawType* Type::Int64Type() {
+  return Isolate::Current()->object_store()->int64_type();
 }
 
 
