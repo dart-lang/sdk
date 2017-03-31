@@ -51,12 +51,12 @@ main() async {
 
   Future wrappedProvider(Uri uri) {
     if (uri == mock1LibraryUri) {
-      return provider.readStringFromUri(Uri.parse('memory:mock1.dart'));
+      return provider.readUtf8BytesFromUri(Uri.parse('memory:mock1.dart'));
     }
     if (uri == mock2LibraryUri) {
-      return provider.readStringFromUri(Uri.parse('memory:mock2.dart'));
+      return provider.readUtf8BytesFromUri(Uri.parse('memory:mock2.dart'));
     }
-    return provider.readStringFromUri(uri);
+    return provider.readUtf8BytesFromUri(uri);
   }
 
   String expectedMessage = MessageTemplate

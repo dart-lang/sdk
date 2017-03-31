@@ -15,7 +15,7 @@ import 'package:compiler/compiler_new.dart'
         Diagnostic,
         PackagesDiscoveryProvider;
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
-import 'package:compiler/src/elements/elements.dart' show LibraryElement;
+import 'package:compiler/src/elements/entities.dart' show LibraryEntity;
 import 'package:compiler/src/enqueue.dart' show ResolutionEnqueuer;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
@@ -62,8 +62,11 @@ CompilerDiagnostics createCompilerDiagnostics(
 Expando<MemorySourceFileProvider> expando =
     new Expando<MemorySourceFileProvider>();
 
+/// memorySourceFiles can contain a map of string filename to string file
+/// contents or string file name to binary file contents (hence the `dynamic`
+/// type for the second parameter).
 Future<CompilationResult> runCompiler(
-    {Map<String, String> memorySourceFiles: const <String, String>{},
+    {Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     Uri entryPoint,
     List<Uri> entryPoints,
     List<Uri> resolutionInputs,
@@ -102,7 +105,7 @@ Future<CompilationResult> runCompiler(
 CompilerImpl compilerFor(
     {Uri entryPoint,
     List<Uri> resolutionInputs,
-    Map<String, String> memorySourceFiles: const <String, String>{},
+    Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     CompilerDiagnostics diagnosticHandler,
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
@@ -226,7 +229,7 @@ class MemoryLoadedLibraries implements LoadedLibraries {
   getLibrary(Uri uri) => copiedLibraries[uri];
 
   @override
-  LibraryElement get rootLibrary => copiedLibraries.values.first;
+  LibraryEntity get rootLibrary => copiedLibraries.values.first;
 }
 
 DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,

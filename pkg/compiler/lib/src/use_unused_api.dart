@@ -257,7 +257,6 @@ usedByTests() {
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(null).copy(null);
-  sourceFileProvider.readStringFromUri(null);
 }
 
 useElements(
