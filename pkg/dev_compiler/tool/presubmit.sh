@@ -5,5 +5,4 @@ $DIR/build_sdk.sh
 $DIR/test.sh
 $DIR/browser_test.sh
 $DIR/analyze.sh
-$DIR/format.sh
 echo "*** Presubmit finished"
