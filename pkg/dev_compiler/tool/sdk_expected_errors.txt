@@ -1,3 +1,4 @@
+[error] A value of type 'Future<Null>' can't be assigned to a variable of type '_Future'. (dart:async/future.dart, line 138, col 38)
 [error] Couldn't infer type parameter 'T'.
 
 Tried to infer '_ControllerEventSinkWrapper<dynamic>' for 'T' which doesn't work:
