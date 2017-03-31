@@ -90,6 +90,9 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, int_type_);
   }
 
+  RawType* int64_type() const { return int64_type_; }
+  void set_int64_type(const Type& value) { int64_type_ = value.raw(); }
+
   RawClass* integer_implementation_class() const {
     return integer_implementation_class_;
   }
@@ -508,6 +511,7 @@ class ObjectStore {
   V(RawType*, number_type_)                                                    \
   V(RawType*, int_type_)                                                       \
   V(RawClass*, integer_implementation_class_)                                  \
+  V(RawType*, int64_type_)                                                     \
   V(RawClass*, smi_class_)                                                     \
   V(RawType*, smi_type_)                                                       \
   V(RawClass*, mint_class_)                                                    \
