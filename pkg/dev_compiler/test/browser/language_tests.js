@@ -860,7 +860,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   test('run all dart unittests', function(done) { // 'function' to allow `this.timeout`
     // Use the whitelist for all unittests - there may be an error in the framework
     // itself.
-    dart_sdk.dart.ignoreWhitelistedErrors(whitelist);
+    dart_sdk.dart.ignoreWhitelistedErrors(true);
     if (unittest_tests.length == 0) return done();
 
     // TODO(vsm): We're using an old deprecated version of unittest.
@@ -889,6 +889,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         // Restore the Mocha onerror handler in case future tests need to run.
         window.onerror = mochaOnError;
         this.enableTimeouts(true);
+        dart_sdk.dart.ignoreWhitelistedErrors(false);
 
         let numErrors = countMatches(output, /\d\s+ERROR/g);
         let numFails = countMatches(output, /\d\s+FAIL/g);

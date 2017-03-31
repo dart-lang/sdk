@@ -10,6 +10,35 @@ define(['dart_sdk'], function(dart_sdk) {
   const dart = dart_sdk.dart;
   const dartx = dart.dartx;
 
+  dart.trapRuntimeErrors(false);
+
+  suite('ignore', () => {
+    "use strict";
+
+    let FutureOr = async.FutureOr$;
+    let Future = async.Future$;
+    let List = core.List$;
+
+    setup(() => {
+      dart_sdk.dart.ignoreWhitelistedErrors(false);
+    });
+
+    teardown(() => {
+      dart_sdk.dart.ignoreWhitelistedErrors(false);
+    });
+
+    test('FutureOr', () => {
+      let f = Future(dart.dynamic).value(42);
+      let l = [1, 2, 3];
+
+      assert.throws(() => { dart.as(f, FutureOr(core.int)); });
+      assert.throws(() => { dart.as(l, FutureOr(List(core.int)))});
+
+      dart_sdk.dart.ignoreWhitelistedErrors(true);
+      assert.equal(f, dart.as(f, FutureOr(core.int)));
+      assert.equal(l, dart.as(l, FutureOr(List(core.int))));
+    });
+  });
 
   suite('generic', () => {
     "use strict";
