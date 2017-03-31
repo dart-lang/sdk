@@ -117,6 +117,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'covariant_subtyping_tearoff3_test': fail,
       'covariant_subtyping_unsafe_call2_test': fail,
       'covariant_subtyping_unsafe_call3_test': fail,
+      'custom_await_stack_trace_test': fail,
       'cyclic_type2_test': fail,
       'cyclic_type_test_00_multi': fail,
       'cyclic_type_test_01_multi': fail,
@@ -207,6 +208,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'instanceof_optimized_test': fail,
       'integer_division_by_zero_test': fail,
       'issue_22780_test_01_multi': fail,
+      'issue23244_test': fail,
       'lazy_static3_test': fail,
       'least_upper_bound_expansive_test_none_multi': fail,
       'left_shift_test': fail,
@@ -234,6 +236,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'reg_exp_test': whitelist,
       'regress_16640_test': fail,
       'regress_18535_test': fail,
+      'regress_22445_test': fail,
       'regress_22666_test': fail,
       'regress_22777_test': flaky,
       'setter_no_getter_test_01_multi': fail,
@@ -828,7 +831,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         var result;
         try {
           var result = mainLibrary.main();
-          if (result && !(result instanceof dart_sdk.async.Future)) {
+          if (result && !(dart_sdk.async.Future.is(result))) {
             result = null;
           }
         } catch (e) {
@@ -845,7 +848,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
           if (!result) {
             finish();
           } else {
-            result.then(dart_sdk.dart.dynamic)(() => finish());
+            result.then(dart_sdk.dart.dynamic)(() => finish(),
+              { onError: (e) => finish(e) });
           }
         }
       });
