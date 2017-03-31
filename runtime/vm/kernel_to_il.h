@@ -835,6 +835,8 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   Fragment TranslateInitializers(Class* kernel_class,
                                  List<Initializer>* initialiers);
+  Fragment TranslateFieldInitializer(CanonicalName* canonical_name,
+                                     Expression* init);
 
   Fragment TranslateStatement(Statement* statement);
   Fragment TranslateCondition(Expression* expression, bool* negate);

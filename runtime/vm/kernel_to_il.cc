@@ -4109,6 +4109,23 @@ JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry() {
 }
 
 
+Fragment FlowGraphBuilder::TranslateFieldInitializer(
+    CanonicalName* canonical_name,
+    Expression* init) {
+  dart::Field& field =
+      dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
+  if (init->IsNullLiteral()) {
+    field.RecordStore(Object::null_object());
+    return Fragment();
+  }
+  Fragment instructions;
+  instructions += LoadLocal(scopes_->this_variable);
+  instructions += TranslateExpression(init);
+  instructions += StoreInstanceFieldGuarded(field, true);
+  return instructions;
+}
+
+
 Fragment FlowGraphBuilder::TranslateInitializers(
     Class* kernel_class,
     List<Initializer>* initializers) {
@@ -4122,13 +4139,9 @@ Fragment FlowGraphBuilder::TranslateInitializers(
     Field* kernel_field = kernel_class->fields()[i];
     Expression* init = kernel_field->initializer();
     if (!kernel_field->IsStatic() && init != NULL) {
-      dart::Field& field = dart::Field::ZoneHandle(
-          Z, H.LookupFieldByKernelField(kernel_field->canonical_name()));
-
       EnterScope(kernel_field);
-      instructions += LoadLocal(scopes_->this_variable);
-      instructions += TranslateExpression(init);
-      instructions += StoreInstanceFieldGuarded(field, true);
+      instructions +=
+          TranslateFieldInitializer(kernel_field->canonical_name(), init);
       ExitScope(kernel_field);
     }
   }
@@ -4143,12 +4156,7 @@ Fragment FlowGraphBuilder::TranslateInitializers(
     Initializer* initializer = (*initializers)[i];
     if (initializer->IsFieldInitializer()) {
       FieldInitializer* init = FieldInitializer::Cast(initializer);
-      dart::Field& field =
-          dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(init->field()));
-
-      instructions += LoadLocal(scopes_->this_variable);
-      instructions += TranslateExpression(init->value());
-      instructions += StoreInstanceFieldGuarded(field, true);
+      instructions += TranslateFieldInitializer(init->field(), init->value());
     } else if (initializer->IsSuperInitializer()) {
       SuperInitializer* init = SuperInitializer::Cast(initializer);
 
