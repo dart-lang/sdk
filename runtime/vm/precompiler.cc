@@ -3201,7 +3201,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         {
 #ifndef PRODUCT
           TimelineDurationScope tds2(thread(), compiler_timeline,
-                                     "CommonSubexpressionElinination");
+                                     "CommonSubexpressionElimination");
 #endif  // !PRODUCT
           if (FLAG_common_subexpression_elimination ||
               FLAG_loop_invariant_code_motion) {

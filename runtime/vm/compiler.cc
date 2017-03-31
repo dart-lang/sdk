@@ -838,7 +838,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         JitOptimizer optimizer(flow_graph);
 
-        optimizer.ApplyICData();
+        {
+          NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
+                                                   "ApplyICData"));
+          optimizer.ApplyICData();
+          thread()->CheckForSafepoint();
+        }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Optimize (a << b) & c patterns, merge operations.
@@ -869,6 +874,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          thread()->CheckForSafepoint();
         }
 
         // Propagate types and eliminate more type tests.
@@ -918,6 +924,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // propagation.
           ConstantPropagator::Optimize(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          thread()->CheckForSafepoint();
         }
 
         // Optimistically convert loop phis that have a single non-smi input
@@ -981,6 +988,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             DEBUG_ASSERT(flow_graph->VerifyUseLists());
           }
           flow_graph->RemoveRedefinitions();
+          thread()->CheckForSafepoint();
         }
 
         // Optimize (a << b) & c patterns, merge operations.
@@ -1060,6 +1068,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // TODO(fschneider): Support allocation sinking with try-catch.
           sinking = new AllocationSinking(flow_graph);
           sinking->Optimize();
+          thread()->CheckForSafepoint();
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -1109,6 +1118,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(*flow_graph);
           allocator.AllocateRegisters();
+          thread()->CheckForSafepoint();
         }
 
         if (reorder_blocks) {

@@ -849,6 +849,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate == Isolate::Current());
 
+  const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
+
   // Wait for pending tasks to complete and then account for the driver task.
   {
     MonitorLocker locker(tasks_lock());
@@ -857,12 +859,17 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     }
     set_tasks(1);
   }
+
+  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+
   // Ensure that all threads for this isolate are at a safepoint (either
   // stopped or in native code). We have guards around Newgen GC and oldgen GC
   // to ensure that if two threads are racing to collect at the same time the
   // loser skips collection and goes straight to allocation.
   {
     SafepointOperationScope safepoint_scope(thread);
+
+    const int64_t start = OS::GetCurrentMonotonicMicros();
 
     // Perform various cleanup that relies on no tasks interfering.
     isolate->class_table()->FreeOldTables();
@@ -881,8 +888,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       heap_->VerifyGC();
       OS::PrintErr(" done.\n");
     }
-
-    const int64_t start = OS::GetCurrentMonotonicMicros();
 
     // Make code pages writable.
     WriteProtectCode(false);
@@ -991,6 +996,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     page_space_controller_.EvaluateGarbageCollection(
         usage_before, GetCurrentUsage(), start, end);
 
+    heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
+    heap_->RecordTime(kSafePoint, start - pre_safe_point);
     heap_->RecordTime(kMarkObjects, mid1 - start);
     heap_->RecordTime(kResetFreeLists, mid2 - mid1);
     heap_->RecordTime(kSweepPages, mid3 - mid2);

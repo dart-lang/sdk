@@ -621,6 +621,7 @@ class CallSiteInliner : public ValueObject {
         ++inlining_recursion_depth_;
         inlined_recursive_call_ = false;
       }
+      thread()->CheckForSafepoint();
     }
 
     collected_call_sites_ = NULL;

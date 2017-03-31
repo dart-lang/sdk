@@ -517,6 +517,7 @@ void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
   heap_->RecordTime(kVisitIsolateRoots, middle - start);
   heap_->RecordTime(kIterateStoreBuffers, end - middle);
+  heap_->RecordTime(kDummyScavengeTime, 0);
 }
 
 
@@ -781,6 +782,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // will continue with its scavenge after waiting for the winner to complete.
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
+
+  int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+
   Thread* thread = Thread::Current();
   SafepointOperationScope safepoint_scope(thread);
 
@@ -790,6 +794,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
   PageSpace* page_space = heap_->old_space();
   NoSafepointScope no_safepoints;
+
+  int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
+  heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {

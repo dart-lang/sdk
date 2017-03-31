@@ -2402,6 +2402,9 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
 
   // Process children in the dominator tree recursively.
   intptr_t num_children = block->dominated_blocks().length();
+  if (num_children != 0) {
+    graph->thread()->CheckForSafepoint();
+  }
   for (intptr_t i = 0; i < num_children; ++i) {
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i < num_children - 1) {

@@ -78,9 +78,11 @@ class Timeline {
 Interval<int> parseVerboseGCLine(String line) {
   var fields = line.split(',');
   // Update this (and indices below, if needed) when logging format changes.
-  if (fields.length != 25) {
-    assert(line.startsWith('[    GC    |  space  | count | start | gc time') ||
-        line.startsWith('[ (isolate)| (reason)|       |  (s)  |   (ms) '));
+  if (fields.length < 10) {
+    // Ignore the lines that just specify column names, separated by '|'.
+    // We assume these have very few commas in them, so that fields.length
+    // is < 10.
+    assert(line.contains("|"));
     return new Interval<int>(0, 0);
   }
   var begin = (1e6 * double.parse(fields[2])).floor();
