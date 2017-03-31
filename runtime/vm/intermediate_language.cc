@@ -1231,14 +1231,14 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
-bool UnboxedIntConverterInstr::ComputeCanDeoptimize() const {
+bool UnboxedIntConverterInstr::CanDeoptimize() const {
   return (to() == kUnboxedInt32) && !is_truncating() &&
          !RangeUtils::Fits(value()->definition()->range(),
                            RangeBoundary::kRangeBoundaryInt32);
 }
 
 
-bool UnboxInt32Instr::ComputeCanDeoptimize() const {
+bool UnboxInt32Instr::CanDeoptimize() const {
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
     return (kSmiBits > 32) && !is_truncating() &&
@@ -1260,7 +1260,7 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
 }
 
 
-bool UnboxUint32Instr::ComputeCanDeoptimize() const {
+bool UnboxUint32Instr::CanDeoptimize() const {
   ASSERT(is_truncating());
   if ((value()->Type()->ToCid() == kSmiCid) ||
       (value()->Type()->ToCid() == kMintCid)) {
@@ -1272,7 +1272,7 @@ bool UnboxUint32Instr::ComputeCanDeoptimize() const {
 }
 
 
-bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
+bool BinaryInt32OpInstr::CanDeoptimize() const {
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
@@ -1296,7 +1296,7 @@ bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
 }
 
 
-bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
+bool BinarySmiOpInstr::CanDeoptimize() const {
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:

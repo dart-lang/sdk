@@ -226,7 +226,6 @@ class ObjectPointerVisitor;
   V(ColonStream, ":stream")                                                    \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
-  V(Int64, "_int64")                                                           \
   V(Double, "double")                                                          \
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \

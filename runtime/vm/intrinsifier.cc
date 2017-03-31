@@ -285,14 +285,7 @@ static intptr_t CidForRepresentation(Representation rep) {
 class BlockBuilder : public ValueObject {
  public:
   BlockBuilder(FlowGraph* flow_graph, TargetEntryInstr* entry)
-      : flow_graph_(flow_graph),
-        entry_(entry),
-        current_(entry),
-        empty_env_(new Environment(0,
-                                   0,
-                                   Thread::kNoDeoptId,
-                                   flow_graph->parsed_function(),
-                                   NULL)) {}
+      : flow_graph_(flow_graph), entry_(entry), current_(entry) {}
 
   Definition* AddToInitialDefinitions(Definition* def) {
     def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
@@ -302,17 +295,11 @@ class BlockBuilder : public ValueObject {
 
   Definition* AddDefinition(Definition* def) {
     def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-    AddInstruction(def);
+    current_ = current_->AppendInstruction(def);
     return def;
   }
 
   Instruction* AddInstruction(Instruction* instr) {
-    if (instr->ComputeCanDeoptimize()) {
-      // Since we use the presence of an environment to determine if an
-      // instructions can deoptimize, we need an empty enviroment for
-      // instructions that "deoptimize" to the intrinsic fall-through code.
-      instr->SetEnvironment(empty_env_);
-    }
     current_ = current_->AppendInstruction(instr);
     return instr;
   }
@@ -373,7 +360,6 @@ class BlockBuilder : public ValueObject {
   FlowGraph* flow_graph_;
   BlockEntryInstr* entry_;
   Instruction* current_;
-  Environment* empty_env_;
 };
 
 

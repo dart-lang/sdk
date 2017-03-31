@@ -25,7 +25,6 @@ ObjectStore::ObjectStore()
       number_type_(Type::null()),
       int_type_(Type::null()),
       integer_implementation_class_(Class::null()),
-      int64_type_(Type::null()),
       smi_class_(Class::null()),
       smi_type_(Type::null()),
       mint_class_(Class::null()),

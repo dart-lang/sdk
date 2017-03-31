@@ -1042,7 +1042,7 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     Value* use = it.CurrentValue();
     use->definition()->AddEnvUse(use);
   }
-  if (instr->ComputeCanDeoptimize()) {
+  if (instr->CanDeoptimize()) {
     instr->env()->set_deopt_id(instr->deopt_id());
   }
 }
@@ -2021,7 +2021,7 @@ void FlowGraph::EliminateEnvironments() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!current->ComputeCanDeoptimize() &&
+      if (!current->CanDeoptimize() &&
           (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
         // Instructions that can throw need an environment for optimized
         // try-catch.
