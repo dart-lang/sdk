@@ -241,6 +241,9 @@ package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Crash #
 package/scenarios/packages_option_only/packages_option_only_noimports_test: Crash # Issue 28645
 package/scenarios/packages_option_only/packages_option_only_test: Crash, CompileTimeError # Issue 28645
 
+[ $compiler == dartk && $mode == debug ]
+io/file_lock_test: Slow
+
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.
 io/test_runner_test: Skip  # Timeout.
