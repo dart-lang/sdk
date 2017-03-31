@@ -29,11 +29,6 @@ testMain() {
   doAsync(true);
 }
 
-asyncNext(Isolate isolate) async {
-  print('asyncNext');
-  return asyncStepOver(isolate);
-}
-
 var tests = [
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),

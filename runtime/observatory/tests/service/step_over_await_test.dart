@@ -16,7 +16,7 @@ import 'package:unittest/unittest.dart';
 const int LINE_A = 22;
 const int LINE_B = 24;
 
-// This tests the asyncStepOver command.
+// This tests the asyncNext command.
 asyncFunction() async {
   debugger();
   print('a'); // LINE_A
@@ -38,7 +38,8 @@ var tests = [
   (Isolate isolate) async {
     expect(M.isAtAsyncSuspension(isolate.pauseEvent), isTrue);
   },
-  asyncStepOver,
+  asyncNext,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   resumeIsolate,
 ];
