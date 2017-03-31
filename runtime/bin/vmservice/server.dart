@@ -296,6 +296,12 @@ class Server {
       return;
     }
 
+    if (assets == null) {
+      request.response.headers.contentType = ContentType.TEXT;
+      request.response.write("This VM was built without the Observatory UI.");
+      request.response.close();
+      return;
+    }
     Asset asset = assets[path];
     if (asset != null) {
       // Serving up a static asset (e.g. .css, .html, .png).
