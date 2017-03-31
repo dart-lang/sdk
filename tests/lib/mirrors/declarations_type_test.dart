@@ -6,6 +6,7 @@
 
 library test.declarations_type;
 
+@MirrorsUsed(targets: "test.declarations_type")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

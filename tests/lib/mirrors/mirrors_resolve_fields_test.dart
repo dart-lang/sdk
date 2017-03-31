@@ -5,7 +5,11 @@
 // Regression test for dart2js that used to not resolve instance
 // fields when a class is only instantiated through mirrors.
 
+library lib;
+
 import "package:expect/expect.dart";
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class A {

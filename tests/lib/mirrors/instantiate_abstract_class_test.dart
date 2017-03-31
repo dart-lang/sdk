@@ -4,6 +4,7 @@
 
 library test.instantiate_abstract_class;
 
+@MirrorsUsed(targets: const ["dart.core", AbstractClass])
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

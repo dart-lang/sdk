@@ -4,6 +4,7 @@
 
 library test.generic_bounded_by_type_parameter;
 
+@MirrorsUsed(targets: "test.generic_bounded_by_type_parameter")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

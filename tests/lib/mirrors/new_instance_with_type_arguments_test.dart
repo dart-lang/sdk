@@ -4,6 +4,7 @@
 
 library test.new_instance_with_type_arguments_test;
 
+@MirrorsUsed(targets: "test.new_instance_with_type_arguments_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

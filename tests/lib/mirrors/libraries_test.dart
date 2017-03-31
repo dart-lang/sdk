@@ -4,6 +4,7 @@
 
 library test.libraries_test;
 
+@MirrorsUsed(targets: "test.libraries_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

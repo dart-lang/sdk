@@ -5,6 +5,9 @@
 // Test a private field name doesn't match the equivalent private name from
 // another library.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

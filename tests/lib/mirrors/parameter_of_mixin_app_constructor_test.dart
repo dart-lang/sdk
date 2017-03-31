@@ -4,6 +4,7 @@
 
 library test.parameter_of_mixin_app_constructor;
 
+@MirrorsUsed(targets: "test.parameter_of_mixin_app_constructor")
 import 'dart:mirrors';
 import 'stringify.dart';
 

@@ -4,6 +4,7 @@
 
 library test.enums;
 
+@MirrorsUsed(targets: "test.enums")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 import 'stringify.dart';

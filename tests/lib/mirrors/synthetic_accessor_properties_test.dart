@@ -4,6 +4,7 @@
 
 library test.synthetic_accessor_properties;
 
+@MirrorsUsed(targets: "test.synthetic_accessor_properties")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

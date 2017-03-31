@@ -4,6 +4,7 @@
 
 library test.static_members;
 
+@MirrorsUsed(targets: "test.static_members")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

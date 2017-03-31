@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test uses the multi-test "ok" feature to create two positive tests from
-// one file. One of these tests fail on dart2js, but pass on the VM, or vice
-// versa.
-// TODO(ahe): When both implementations agree, remove the multi-test parts.
-
 library test.mixin_application_test;
 
+@MirrorsUsed(targets: "test.mixin_application_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

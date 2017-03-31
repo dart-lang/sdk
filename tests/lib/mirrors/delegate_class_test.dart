@@ -4,6 +4,7 @@
 
 library test.delegate_class;
 
+@MirrorsUsed(targets: "test.delegate_class")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

@@ -4,6 +4,7 @@
 
 library test.private_types;
 
+@MirrorsUsed(targets: "test.private_types")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

@@ -5,6 +5,9 @@
 // Regression test for Issue 16321.
 // (Type errors in metadata crashed the VM in checked mode).
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 class TypedBox {

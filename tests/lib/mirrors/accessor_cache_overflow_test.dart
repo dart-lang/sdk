@@ -8,6 +8,7 @@
 
 library test.hot_get_field;
 
+@MirrorsUsed(targets: "test.hot_get_field")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

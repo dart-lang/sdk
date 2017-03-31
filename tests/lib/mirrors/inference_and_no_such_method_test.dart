@@ -6,6 +6,9 @@
 // whose type may change at runtime due to an invocation through
 // [InstanceMirror.delegate].
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

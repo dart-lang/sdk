@@ -4,6 +4,7 @@
 
 library test.generic_mixin;
 
+@MirrorsUsed(targets: "test.generic_mixin")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

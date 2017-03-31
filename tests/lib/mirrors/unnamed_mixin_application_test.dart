@@ -5,6 +5,9 @@
 /// Test that the forwarding constructors of unnamed mixin applications are 
 /// included for reflection.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class S {

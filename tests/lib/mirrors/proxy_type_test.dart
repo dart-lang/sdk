@@ -4,6 +4,7 @@
 
 library test.proxy_type;
 
+@MirrorsUsed(targets: "test.proxy_type")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

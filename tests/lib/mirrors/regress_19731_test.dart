@@ -5,6 +5,7 @@
 @metadata
 library regress_19731;
 
+@MirrorsUsed(targets: "regress_19731")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

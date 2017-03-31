@@ -4,6 +4,7 @@
 
 library test.generics_substitution;
 
+@MirrorsUsed(targets: "test.generics_substitution")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

@@ -4,6 +4,7 @@
 
 library test.invoke_private_test;
 
+@MirrorsUsed(targets: "invoke_private_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

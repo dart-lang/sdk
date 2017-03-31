@@ -4,6 +4,7 @@
 
 library test.instance_members_with_override;
 
+@MirrorsUsed(targets: "test.instance_members_with_override")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

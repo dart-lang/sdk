@@ -5,6 +5,7 @@
 /// Test operators.
 library test.operator_test;
 
+@MirrorsUsed(targets: "test.operator_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

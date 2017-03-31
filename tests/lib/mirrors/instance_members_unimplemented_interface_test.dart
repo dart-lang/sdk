@@ -4,6 +4,7 @@
 
 library test.instance_members_unimplemented_interface;
 
+@MirrorsUsed(targets: "test.instance_members_unimplemented_interface")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
