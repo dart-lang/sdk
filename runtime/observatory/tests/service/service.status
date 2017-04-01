@@ -20,10 +20,6 @@ async_scope_test: Pass, Slow
 [ $system == windows ]
 async_generator_breakpoint_test: Skip # Issue 29145
 
-[ $compiler == dartk ]
-async_generator_breakpoint_test: Skip # Issue 29145
-async_single_step_exception_test: RuntimeError # Issue 29218
-
 # Kernel version of tests
 [ $compiler != dartk ]
 ###
