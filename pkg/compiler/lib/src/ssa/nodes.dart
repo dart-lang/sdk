@@ -3391,6 +3391,7 @@ class HTypeInfoExpression extends HInstruction {
 
   String toString() => 'HTypeInfoExpression($kindAsString, $dartType)';
 
+  // ignore: MISSING_RETURN
   String get kindAsString {
     switch (kind) {
       case TypeInfoExpressionKind.COMPLETE:

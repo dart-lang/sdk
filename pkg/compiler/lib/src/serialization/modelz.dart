@@ -2398,6 +2398,7 @@ class MetadataAnnotationZ implements MetadataAnnotation {
   @override
   MetadataAnnotation ensureResolved(Resolution resolution) {
     // Do nothing.
+    return this;
   }
 
   @override

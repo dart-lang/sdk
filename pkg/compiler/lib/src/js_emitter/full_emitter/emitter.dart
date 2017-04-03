@@ -33,8 +33,7 @@ import '../../elements/elements.dart'
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
-import '../../io/line_column_provider.dart'
-    show LineColumnCollector, LineColumnProvider;
+import '../../io/line_column_provider.dart' show LineColumnCollector;
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;

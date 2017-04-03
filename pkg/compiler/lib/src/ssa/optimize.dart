@@ -518,7 +518,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
           !node.isCallOnInterceptor(_closedWorld)) {
         HInstruction receiver = node.getDartReceiver(_closedWorld);
         TypeMask type = TypeMaskFactory.inferredTypeForMember(
-            field as Entity, _globalInferenceResults);
+            // ignore: UNNECESSARY_CAST
+            field as Entity,
+            _globalInferenceResults);
         HInstruction load = new HFieldGet(field, receiver, type);
         node.block.addBefore(node, load);
         Selector callSelector = new Selector.callClosureFrom(node.selector);
@@ -995,7 +997,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
           _nativeData.getNativeFieldLoadBehavior(field), _closedWorld);
     } else {
       type = TypeMaskFactory.inferredTypeForMember(
-          field as Entity, _globalInferenceResults);
+          // ignore: UNNECESSARY_CAST
+          field as Entity,
+          _globalInferenceResults);
     }
 
     return new HFieldGet(field, receiver, type, isAssignable: isAssignable);
@@ -2379,7 +2383,9 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       int argumentIndex = 0;
       compiler.codegenWorldBuilder.forEachInstanceField(instruction.element,
           (_, FieldEntity member) {
-        if (compiler.elementHasCompileTimeError(member as Entity)) return;
+        if (compiler.elementHasCompileTimeError(
+            // ignore: UNNECESSARY_CAST
+            member as Entity)) return;
         memorySet.registerFieldValue(
             member, instruction, instruction.inputs[argumentIndex++]);
       });

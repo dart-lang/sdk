@@ -28,10 +28,9 @@ import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
 import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
-import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show DynamicUse, StaticUse;
+import '../universe/use.dart' show DynamicUse;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -2895,11 +2894,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     return type is ir.InterfaceType &&
-        (type as ir.InterfaceType).typeArguments.any(
-            (ir.DartType typeArgType) =>
-                typeArgType is! ir.DynamicType &&
-                typeArgType is! ir.InvalidType &&
-                !isMethodTypeVariableType(type));
+        type.typeArguments.any((ir.DartType typeArgType) =>
+            typeArgType is! ir.DynamicType &&
+            typeArgType is! ir.InvalidType &&
+            !isMethodTypeVariableType(type));
   }
 
   @override

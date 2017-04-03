@@ -9,7 +9,6 @@ import '../elements/entities.dart' show Entity, Local;
 import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart';
 import '../resolution/tree_elements.dart';
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 import 'jump_handler.dart';

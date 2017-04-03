@@ -4,8 +4,6 @@
 
 library js_backend.backend;
 
-import 'dart:async' show Future;
-
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
 import '../common.dart';
@@ -986,6 +984,7 @@ class JavaScriptBackend {
       return const CodegenImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
+      // ignore: INVALID_ASSIGNMENT
       VariableElement variableElement = element;
       ConstantExpression constant = variableElement.constant;
       if (constant != null) {

@@ -638,7 +638,8 @@ class SsaBuilder extends ast.Visitor
   ClassElement get currentNonClosureClass {
     ClassElement cls = sourceElement.enclosingClass;
     if (cls != null && cls.isClosure) {
-      var closureClass = cls;
+      dynamic closureClass = cls;
+      // ignore: UNDEFINED_GETTER
       return closureClass.methodElement.enclosingClass;
     } else {
       return cls;

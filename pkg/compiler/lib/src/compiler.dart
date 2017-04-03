@@ -4,7 +4,7 @@
 
 library dart2js.compiler_base;
 
-import 'dart:async' show EventSink, Future;
+import 'dart:async' show Future;
 
 import '../compiler_new.dart' as api;
 import 'closure.dart' as closureMapping show ClosureTask;
@@ -39,8 +39,7 @@ import 'elements/resolution_types.dart'
         ResolutionDynamicType,
         ResolutionInterfaceType,
         Types;
-import 'enqueue.dart'
-    show DeferredAction, Enqueuer, EnqueueTask, ResolutionEnqueuer;
+import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
@@ -1786,7 +1785,7 @@ class _NoScriptLoader implements ScriptLoader {
   _NoScriptLoader(this.compiler);
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) {
-    compiler.reporter
+    throw compiler.reporter
         .internalError(spannable, "Script loading of '$uri' is not enabled.");
   }
 }

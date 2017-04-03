@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
-import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../types/types.dart';
@@ -92,7 +91,9 @@ class NoSuchMethodRegistry {
   /// that have a return type.
   void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
     otherImpls.forEach((FunctionEntity element) {
-      if (results.resultOfMember(element as MemberEntity).throwsAlways) {
+      if (results.resultOfMember(
+          // ignore: UNNECESSARY_CAST
+          element as MemberEntity).throwsAlways) {
         complexNoReturnImpls.add(element);
       } else {
         complexReturningImpls.add(element);

@@ -397,7 +397,9 @@ class ProgramBuilder {
                 if (returnType.isFunctionType) {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
-                    _compiler.types.isSubtype(returnType,
+                    _compiler.types.isSubtype(
+                        returnType,
+                        // ignore: UNNECESSARY_CAST
                         backend.commonElements.functionType as DartType)) {
                   if (returnType.isTypedef) {
                     ResolutionTypedefType typedef = returnType;

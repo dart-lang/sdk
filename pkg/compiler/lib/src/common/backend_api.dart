@@ -4,8 +4,6 @@
 
 library dart2js.backend_api;
 
-import '../common.dart';
-import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../elements/types.dart';

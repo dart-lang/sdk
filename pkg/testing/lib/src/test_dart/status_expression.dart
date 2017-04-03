@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library status_expression;
+library test_dart_copy.status_expression;
 
 /**
  * Parse and evaluate expressions in a .status file for Dart and V8.

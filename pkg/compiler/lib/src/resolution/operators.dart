@@ -53,6 +53,7 @@ class UnaryOperator {
     }
   }
 
+  // ignore: MISSING_RETURN
   static UnaryOperator fromKind(UnaryOperatorKind kind) {
     switch (kind) {
       case UnaryOperatorKind.NOT:
@@ -235,6 +236,7 @@ class BinaryOperator {
     }
   }
 
+  // ignore: MISSING_RETURN
   static BinaryOperator fromKind(BinaryOperatorKind kind) {
     switch (kind) {
       case BinaryOperatorKind.EQ:
@@ -432,6 +434,7 @@ class AssignmentOperator {
     }
   }
 
+  // ignore: MISSING_RETURN
   static AssignmentOperator fromKind(AssignmentOperatorKind kind) {
     switch (kind) {
       case AssignmentOperatorKind.ASSIGN:
@@ -496,6 +499,7 @@ class IncDecOperator {
     }
   }
 
+  // ignore: MISSING_RETURN
   static IncDecOperator fromKind(IncDecOperatorKind kind) {
     switch (kind) {
       case IncDecOperatorKind.INC:

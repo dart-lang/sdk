@@ -2203,6 +2203,7 @@ class ConstInvokeStructure<R, A> extends NewStructure<R, A> {
   @override
   NewStructureKind get kind => NewStructureKind.CONST_INVOKE;
 
+  // ignore: MISSING_RETURN
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
     switch (constantInvokeKind) {
       case ConstantInvokeKind.CONSTRUCTED:
@@ -2401,6 +2402,7 @@ class NonConstantVariableStructure<R, A> extends VariableStructure<R, A> {
       VariableKind kind, Node node, VariableElement variable)
       : super(kind, node, variable);
 
+  // ignore: MISSING_RETURN
   R dispatch(SemanticDeclarationVisitor<R, A> visitor,
       VariableDefinitions definitions, A arg) {
     switch (kind) {

@@ -4,7 +4,7 @@
 
 library dart2js.io.line_column;
 
-import 'code_output.dart';
+import 'code_output.dart' show CodeOutputListener;
 
 /// Interface for providing line/column information.
 abstract class LineColumnProvider {

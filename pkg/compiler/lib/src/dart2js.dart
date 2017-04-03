@@ -4,7 +4,7 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show EventSink, Future;
+import 'dart:async' show Future;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 

@@ -474,11 +474,12 @@ class InferrerEngine {
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    var visitor = compiler.options.kernelGlobalInference
+    dynamic visitor = compiler.options.kernelGlobalInference
         ? new KernelTypeGraphBuilder(element, resolvedAst, compiler, this)
         : new ElementGraphBuilder(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
+      // ignore: UNDEFINED_METHOD
       type = visitor.run();
     });
     addedInGraph++;

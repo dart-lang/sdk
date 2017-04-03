@@ -5,7 +5,6 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
-import 'common.dart';
 import 'common/names.dart' show Uris;
 import 'elements/types.dart';
 import 'elements/entities.dart';

@@ -1643,6 +1643,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   /// Handle a [Send] whose selector is an [Operator], like `a && b`, `a is T`,
   /// `a + b`, and `~a`.
+  // ignore: MISSING_RETURN
   ResolutionResult handleOperatorSend(Send node) {
     String operatorText = node.selector.asOperator().source;
     if (operatorText == 'is') {

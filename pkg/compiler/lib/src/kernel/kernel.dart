@@ -351,6 +351,7 @@ class Kernel {
     return result;
   }
 
+  // ignore: MISSING_RETURN
   ir.DartType typeToIr(ResolutionDartType type) {
     switch (type.kind) {
       case ResolutionTypeKind.FUNCTION:

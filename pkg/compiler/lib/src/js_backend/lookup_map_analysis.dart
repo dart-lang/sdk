@@ -23,7 +23,6 @@ import '../constants/values.dart'
 import '../elements/elements.dart' show ClassElement, FieldElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart' show ResolutionInterfaceType;
-import '../options.dart';
 import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;

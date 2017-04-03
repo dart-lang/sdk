@@ -36,8 +36,6 @@ import 'serialization/serialization.dart' show LibraryDeserializer;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 
-import 'package:front_end/src/fasta/scanner.dart' show Token;
-
 typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
     Iterable<LibraryElement> libraries);
 

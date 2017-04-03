@@ -353,6 +353,7 @@ class KernelVisitor extends Object
   }
 
   @override
+  // ignore: INVALID_METHOD_OVERRIDE_RETURN_TYPE
   ir.Expression visitIdentifier(Identifier node) {
     // TODO(ahe): Shouldn't have to override this method, but
     // [SemanticSendResolvedMixin.visitIdentifier] may return `null` on errors.
@@ -1806,6 +1807,7 @@ class KernelVisitor extends Object
     return buildLocalGet(element);
   }
 
+  // ignore: MISSING_RETURN
   ir.Expression buildCompound(
       Accessor accessor, CompoundRhs rhs, SendSet node) {
     ir.Name name = kernel.irName(rhs.operator.selectorName, currentElement);
@@ -2875,6 +2877,7 @@ class KernelVisitor extends Object
   }
 
   @override
+  // ignore: INVALID_METHOD_OVERRIDE_RETURN_TYPE
   ir.Node visitVariableDefinitions(VariableDefinitions definitions) {
     // TODO(ahe): This method is copied from [SemanticDeclarationResolvedMixin]
     // and modified. Perhaps we can find a way to avoid code duplication.

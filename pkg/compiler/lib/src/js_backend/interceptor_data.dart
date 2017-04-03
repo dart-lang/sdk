@@ -5,7 +5,6 @@
 library js_backend.interceptor_data;
 
 import '../common/names.dart' show Identifiers;
-import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart' show MemberElement;
 import '../elements/entities.dart';

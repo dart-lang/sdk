@@ -470,7 +470,8 @@ class Elements {
   static bool isInStaticContext(Element element) {
     if (isUnresolved(element)) return true;
     if (element.enclosingElement.isClosure) {
-      var closureClass = element.enclosingElement;
+      dynamic closureClass = element.enclosingElement;
+      // ignore: UNDEFINED_GETTER
       element = closureClass.methodElement;
     }
     Element outer = element.outermostEnclosingMemberOrTopLevel;

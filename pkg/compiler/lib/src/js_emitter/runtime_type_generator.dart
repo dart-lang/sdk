@@ -10,14 +10,9 @@ import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionFunctionType, ResolutionTypeVariableType;
+    show ResolutionDartType, ResolutionFunctionType;
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        FunctionElement,
-        MixinApplicationElement,
-        TypeVariableElement;
+    show ClassElement, Element, FunctionElement, MixinApplicationElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_backend.dart'
@@ -32,7 +27,6 @@ import '../js_backend/js_backend.dart'
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
-import 'model.dart';
 import 'type_test_registry.dart' show TypeTestRegistry;
 
 // Function signatures used in the generation of runtime type information.

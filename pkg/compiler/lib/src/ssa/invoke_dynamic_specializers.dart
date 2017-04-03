@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart' show Name;
 import '../elements/entities.dart';
-import '../js_backend/js_backend.dart';
 import '../js_backend/backend_helpers.dart';
 import '../options.dart';
 import '../types/types.dart';

@@ -15,12 +15,10 @@ import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
-import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../kernel/element_adapter.dart';
 import '../kernel/kernel.dart';
-import '../kernel/kernel_debug.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
@@ -376,9 +374,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   KernelJumpTarget getJumpTarget(ir.TreeNode node,
       {bool isContinueTarget: false}) {
     return _jumpTargets.putIfAbsent(node, () {
-      if (node is ir.LabeledStatement &&
-          _jumpTargets.containsKey((node as ir.LabeledStatement).body)) {
-        return _jumpTargets[(node as ir.LabeledStatement).body];
+      if (node is ir.LabeledStatement && _jumpTargets.containsKey(node.body)) {
+        return _jumpTargets[node.body];
       }
       return new KernelJumpTarget(node, this,
           makeContinueLabel: isContinueTarget);
@@ -426,6 +423,7 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   TypeMask get streamIteratorConstructorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
+          // ignore: UNNECESSARY_CAST
           _backend.helpers.streamIteratorConstructor as FunctionEntity,
           _globalInferenceResults);
 
@@ -611,11 +609,6 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
       ir.Class cls, List<ir.DartType> typeArguments) {
     return new ResolutionInterfaceType(
         getClass(cls), getDartTypes(typeArguments));
-  }
-
-  @override
-  InterfaceType getThisType(ir.Class cls) {
-    return getClass(cls).thisType;
   }
 
   MemberEntity getConstructorBodyEntity(ir.Constructor constructor) {

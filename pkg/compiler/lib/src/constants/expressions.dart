@@ -941,6 +941,7 @@ class BinaryConstantExpression extends ConstantExpression {
         left.apply(arguments), operator, right.apply(arguments));
   }
 
+  // ignore: MISSING_RETURN
   InterfaceType getKnownType(CommonElements commonElements) {
     DartType knownLeftType = left.getKnownType(commonElements);
     DartType knownRightType = right.getKnownType(commonElements);

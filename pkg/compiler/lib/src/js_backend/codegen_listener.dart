@@ -4,12 +4,10 @@
 
 library js_backend.backend.codegen_listener;
 
-import '../common.dart';
 import '../common/backend_api.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
-import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
@@ -23,11 +21,9 @@ import 'backend.dart';
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
-import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
-import 'mirrors_data.dart';
 import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
