@@ -28,6 +28,7 @@ class StreamingConstantEvaluator {
 
   Instance& EvaluateExpression();
 
+  void EvaluateStaticGet();
   void EvaluateSymbolLiteral();
   void EvaluateDoubleLiteral();
 
@@ -65,12 +66,20 @@ class StreamingFlowGraphBuilder {
                             &flow_graph_builder->type_translator_),
         string_table_offsets_(NULL),
         string_table_size_(-1),
-        string_table_entries_read_(0) {}
+        string_table_entries_read_(0),
+        canonical_names_(NULL),
+        canonical_names_size_(-1),
+        canonical_names_entries_read_(0),
+        canonical_names_next_offset_(-1) {}
 
   virtual ~StreamingFlowGraphBuilder() {
     delete reader_;
     if (string_table_offsets_ != NULL) {
       delete[] string_table_offsets_;
+    }
+    if (canonical_names_ != NULL) {
+      // At least for now we'll leak whatever's inside
+      delete[] canonical_names_;
     }
   }
 
@@ -78,6 +87,7 @@ class StreamingFlowGraphBuilder {
 
  private:
   intptr_t GetStringTableOffset(intptr_t index);
+  CanonicalName* GetCanonicalName(intptr_t index);
 
   intptr_t ReaderOffset();
   void SetOffset(intptr_t offset);
@@ -93,6 +103,7 @@ class StreamingFlowGraphBuilder {
 
   dart::String& DartSymbol(intptr_t str_index);
   dart::String& DartString(intptr_t str_index);
+  String* KernelString(intptr_t str_index);
 
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
@@ -101,8 +112,13 @@ class StreamingFlowGraphBuilder {
   Fragment ThrowNoSuchMethodError();
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
+  Fragment LoadStaticField();
+  Fragment StaticCall(TokenPosition position,
+                      const Function& target,
+                      intptr_t argument_count);
 
   Fragment BuildInvalidExpression();
+  Fragment BuildStaticGet();
   Fragment BuildSymbolLiteral();
   Fragment BuildThisExpression();
   Fragment BuildRethrow();
@@ -122,6 +138,10 @@ class StreamingFlowGraphBuilder {
   intptr_t* string_table_offsets_;
   intptr_t string_table_size_;
   intptr_t string_table_entries_read_;
+  CanonicalName** canonical_names_;
+  intptr_t canonical_names_size_;
+  intptr_t canonical_names_entries_read_;
+  intptr_t canonical_names_next_offset_;
 
   friend class StreamingConstantEvaluator;
 };

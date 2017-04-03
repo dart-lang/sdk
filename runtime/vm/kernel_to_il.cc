@@ -4664,36 +4664,7 @@ void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
 
 
 void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
-  CanonicalName* target = node->target();
-  if (target->IsField()) {
-    const dart::Field& field =
-        dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
-    if (field.is_const()) {
-      fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
-    } else {
-      const dart::Class& owner = dart::Class::Handle(Z, field.Owner());
-      const dart::String& getter_name = H.DartGetterName(target);
-      const Function& getter =
-          Function::ZoneHandle(Z, owner.LookupStaticFunction(getter_name));
-      if (getter.IsNull() || !field.has_initializer()) {
-        Fragment instructions = Constant(field);
-        fragment_ = instructions + LoadStaticField();
-      } else {
-        fragment_ = StaticCall(node->position(), getter, 0);
-      }
-    }
-  } else {
-    const Function& function =
-        Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
-
-    if (target->IsGetter()) {
-      fragment_ = StaticCall(node->position(), function, 0);
-    } else if (target->IsMethod()) {
-      fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
-    } else {
-      UNIMPLEMENTED();
-    }
-  }
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 

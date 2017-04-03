@@ -38,6 +38,9 @@ Instance& StreamingConstantEvaluator::EvaluateExpression() {
     uint8_t payload = 0;
     Tag tag = builder_->ReadTag(&payload);
     switch (tag) {
+      case kStaticGet:
+        EvaluateStaticGet();
+        break;
       case kSymbolLiteral:
         EvaluateSymbolLiteral();
         break;
@@ -53,6 +56,41 @@ Instance& StreamingConstantEvaluator::EvaluateExpression() {
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
+}
+
+void StreamingConstantEvaluator::EvaluateStaticGet() {
+  builder_->ReadPosition();
+  int canonical_name_index = builder_->ReadUInt();
+  CanonicalName* target = builder_->GetCanonicalName(canonical_name_index);
+
+  if (target->IsField()) {
+    const dart::Field& field =
+        dart::Field::Handle(Z, H.LookupFieldByKernelField(target));
+    if (field.StaticValue() == Object::sentinel().raw() ||
+        field.StaticValue() == Object::transition_sentinel().raw()) {
+      field.EvaluateInitializer();
+      result_ = field.StaticValue();
+      result_ = H.Canonicalize(result_);
+      field.SetStaticValue(result_, true);
+    } else {
+      result_ = field.StaticValue();
+    }
+  } else if (target->IsProcedure()) {
+    const Function& function =
+        Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
+
+    if (target->IsMethod()) {
+      Function& closure_function =
+          Function::ZoneHandle(Z, function.ImplicitClosureFunction());
+      closure_function.set_kernel_function(function.kernel_function());
+      result_ = closure_function.ImplicitStaticClosure();
+      result_ = H.Canonicalize(result_);
+    } else if (target->IsGetter()) {
+      UNIMPLEMENTED();
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
 }
 
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
@@ -192,8 +230,8 @@ Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
     //      return DirectPropertyGet::ReadFrom(reader_);
     //    case kDirectPropertySet:
     //      return DirectPropertySet::ReadFrom(reader_);
-    //    case kStaticGet:
-    //      return StaticGet::ReadFrom(reader_);
+    case kStaticGet:
+      return BuildStaticGet();
     //    case kStaticSet:
     //      return StaticSet::ReadFrom(reader_);
     //    case kMethodInvocation:
@@ -273,6 +311,8 @@ intptr_t StreamingFlowGraphBuilder::GetStringTableOffset(intptr_t index) {
   if (string_table_offsets_ != NULL && string_table_entries_read_ > index) {
     return string_table_offsets_[index];
   }
+
+  intptr_t saved_offset = ReaderOffset();
   if (string_table_offsets_ == NULL) {
     reader_->set_offset(4);  // Skip kMagicProgramFile - now at string table.
     string_table_size_ = ReadListLength();
@@ -292,7 +332,82 @@ intptr_t StreamingFlowGraphBuilder::GetStringTableOffset(intptr_t index) {
   string_table_offsets_[string_table_entries_read_] = ReaderOffset();
   ++string_table_entries_read_;
 
+  SetOffset(saved_offset);
   return string_table_offsets_[index];
+}
+
+CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
+  if (index == 0) return NULL;
+  --index;
+
+  if (canonical_names_ != NULL && canonical_names_entries_read_ > index) {
+    return canonical_names_[index];
+  }
+
+  intptr_t saved_offset = ReaderOffset();
+  if (canonical_names_ == NULL) {
+    // Find offset from where to read canonical names table.
+
+    // First skip the string table:
+    // Get first string to make sure we have the table size, get last string and
+    // read it to get past the string table.
+    // Note that this will also cache all string positions.
+    GetStringTableOffset(0);
+    SetOffset(GetStringTableOffset(string_table_size_ - 1));
+    uint32_t bytes = ReadUInt();
+    SkipBytes(bytes);
+
+    // Another string table (source URIs)
+    intptr_t list_length = ReadListLength();
+    for (intptr_t i = 0; i < list_length; ++i) {
+      uint32_t bytes = ReadUInt();
+      SkipBytes(bytes);
+    }
+
+    // Source code table
+    for (intptr_t i = 0; i < list_length; ++i) {
+      // Source code
+      intptr_t bytes = ReadUInt();
+      SkipBytes(bytes);
+
+      // Line starts table
+      intptr_t line_count = ReadUInt();
+      for (intptr_t j = 0; j < line_count; ++j) {
+        ReadUInt();
+      }
+    }
+
+    // Now at canonical names table.
+    canonical_names_size_ = ReadUInt();
+    canonical_names_ = new CanonicalName*[canonical_names_size_];
+    canonical_names_next_offset_ = ReaderOffset();
+  }
+
+  SetOffset(canonical_names_next_offset_);
+  for (; canonical_names_entries_read_ <= index;
+       ++canonical_names_entries_read_) {
+    intptr_t biased_parent_index = ReadUInt();
+    CanonicalName* parent;
+    if (biased_parent_index != 0) {
+      parent = canonical_names_[biased_parent_index - 1];
+    } else {
+      if (canonical_names_entries_read_ == 0) {
+        parent = CanonicalName::NewRoot();
+      } else {
+        parent = canonical_names_[0]->parent();
+      }
+    }
+    ASSERT(parent != NULL);
+    intptr_t name_index = ReadUInt();
+    String* name = KernelString(name_index);
+    CanonicalName* canonical_name = parent->AddChild(name);
+    canonical_names_[canonical_names_entries_read_] = canonical_name;
+  }
+
+  canonical_names_next_offset_ = ReaderOffset();
+
+  SetOffset(saved_offset);
+  return canonical_names_[index];
 }
 
 intptr_t StreamingFlowGraphBuilder::ReaderOffset() {
@@ -357,6 +472,17 @@ dart::String& StreamingFlowGraphBuilder::DartString(intptr_t str_index) {
   return H.DartString(data, bytes);
 }
 
+String* StreamingFlowGraphBuilder::KernelString(intptr_t str_index) {
+  intptr_t savedOffset = ReaderOffset();
+
+  SetOffset(GetStringTableOffset(str_index));
+  uint32_t bytes = ReadUInt();
+  const uint8_t* data = &reader_->buffer()[ReaderOffset()];
+
+  SetOffset(savedOffset);
+  return new String(data, bytes);
+}
+
 Fragment StreamingFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
   return flow_graph_builder_->DebugStepCheck(position);
 }
@@ -386,11 +512,62 @@ Fragment StreamingFlowGraphBuilder::IntConstant(int64_t value) {
   return flow_graph_builder_->IntConstant(value);
 }
 
+Fragment StreamingFlowGraphBuilder::LoadStaticField() {
+  return flow_graph_builder_->LoadStaticField();
+}
+
+Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
+                                               const Function& target,
+                                               intptr_t argument_count) {
+  return flow_graph_builder_->StaticCall(position, target, argument_count);
+}
+
 Fragment StreamingFlowGraphBuilder::BuildInvalidExpression() {
   // The frontend will take care of emitting normal errors (like
   // [NoSuchMethodError]s) and only emit [InvalidExpression]s in very special
   // situations (e.g. an invalid annotation).
   return ThrowNoSuchMethodError();
+}
+
+Fragment StreamingFlowGraphBuilder::BuildStaticGet() {
+  intptr_t saved_offset = ReaderOffset() - 1;  // Include the tag.
+  TokenPosition position = ReadPosition();
+  int canonical_name_index = ReadUInt();
+  CanonicalName* target = GetCanonicalName(canonical_name_index);
+
+  if (target->IsField()) {
+    const dart::Field& field =
+        dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
+    if (field.is_const()) {
+      SetOffset(saved_offset);  // EvaluateExpression needs the tag.
+      return Constant(constant_evaluator_.EvaluateExpression());
+    } else {
+      const dart::Class& owner = dart::Class::Handle(Z, field.Owner());
+      const dart::String& getter_name = H.DartGetterName(target);
+      const Function& getter =
+          Function::ZoneHandle(Z, owner.LookupStaticFunction(getter_name));
+      if (getter.IsNull() || !field.has_initializer()) {
+        Fragment instructions = Constant(field);
+        return instructions + LoadStaticField();
+      } else {
+        return StaticCall(position, getter, 0);
+      }
+    }
+  } else {
+    const Function& function =
+        Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
+
+    if (target->IsGetter()) {
+      return StaticCall(position, function, 0);
+    } else if (target->IsMethod()) {
+      SetOffset(saved_offset);  // EvaluateExpression needs the tag.
+      return Constant(constant_evaluator_.EvaluateExpression());
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
+
+  return Fragment();
 }
 
 Fragment StreamingFlowGraphBuilder::BuildSymbolLiteral() {
