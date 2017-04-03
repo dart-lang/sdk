@@ -46,6 +46,12 @@ class FooImpl extends Foo<LazyClass> {
   LazyClass get obj => new LazyClass(100);
 }
 
+class ExampleGenericClass<T> {
+  String add(T foo) {
+    return foo.toString();
+  }
+}
+
 main() {
   group('lazy property', () {
     test('simple', () {
@@ -109,6 +115,29 @@ baz.LazyClass = function LazyClass(a) {
       expect(<AnonClass>[] is! List<LazyClass>, isTrue);
       expect(<int>[] is! List<LazyClass>, isTrue);
       expect(<LazyClass>[] is List<LazyClass>, isTrue);
+
+      var listLazyClass = <LazyClass>[];
+      Object instanceLazyObject = l;
+      expect(() => listLazyClass.add(42 as dynamic), throws);
+      // Regression test for bug where this call failed.
+      listLazyClass.add(instanceLazyObject);
+      listLazyClass.add(null);
+
+      dynamic listLazyClassDynamic = listLazyClass;
+      expect(() => listLazyClassDynamic.add(42), throws);
+      // Regression test for bug where this call failed.
+      listLazyClassDynamic.add(instanceLazyObject);
+      listLazyClassDynamic.add(null);
+
+      var genericClass = new ExampleGenericClass<LazyClass>();
+      genericClass.add(instanceLazyObject);
+      expect(() => genericClass.add(42 as dynamic), throws);
+      genericClass.add(null);
+
+      dynamic genericClassDynamic = genericClass;
+      genericClassDynamic.add(instanceLazyObject);
+      expect(() => genericClassDynamic.add(42), throws);
+      genericClassDynamic.add(null);
     });
   });
 }

@@ -417,9 +417,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'custom_elements_23127_test': async_unittest,
       'custom_elements_test': async_unittest,
 
-      // TODO(jmesserly): investigate the change here; it is likely due to
-      // different reified types affecting the (gigantic) HTML literal
-      'debugger_test': fail, // firefox_fail
+      // Please do not mark this test as fail. If your change breaks this test,
+      // please look at the test for instructions on how to generate a new
+      // golden file.
+      'debugger_test': firefox_fail,
       'element_animate_test': 'unittest',
 
       // https://github.com/dart-lang/sdk/issues/27579.
