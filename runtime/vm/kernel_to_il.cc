@@ -1523,7 +1523,7 @@ bool ConstantEvaluator::GetCachedConstant(TreeNode* node, Instance* value) {
     return false;
   }
   KernelConstantsMap constants(script_.compile_time_constants());
-  *value ^= constants.GetOrNull(node, &is_present);
+  *value ^= constants.GetOrNull(node->kernel_offset(), &is_present);
   // Mutator compiler thread may add constants while background compiler
   // is running, and thus change the value of 'compile_time_constants';
   // do not assert that 'compile_time_constants' has not changed.
@@ -1555,7 +1555,7 @@ void ConstantEvaluator::CacheConstantValue(TreeNode* node,
     script_.set_compile_time_constants(array);
   }
   KernelConstantsMap constants(script_.compile_time_constants());
-  constants.InsertNewOrGetValue(node, value);
+  constants.InsertNewOrGetValue(node->kernel_offset(), value);
   script_.set_compile_time_constants(constants.Release());
 }
 

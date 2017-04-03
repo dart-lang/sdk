@@ -440,7 +440,7 @@ class TreeNode : public Node {
 
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
-  intptr_t kernel_offset() { return kernel_offset_; }
+  intptr_t kernel_offset() const { return kernel_offset_; }
 
  protected:
   TreeNode() : kernel_offset_(-1) {}
@@ -1346,6 +1346,8 @@ class StaticInvocation : public Expression {
  public:
   static StaticInvocation* ReadFrom(Reader* reader, bool is_const);
   ~StaticInvocation();
+
+  DEFINE_CASTING_OPERATIONS(StaticInvocation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);

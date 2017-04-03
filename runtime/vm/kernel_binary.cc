@@ -519,6 +519,7 @@ InvalidExpression* InvalidExpression::ReadFrom(Reader* reader) {
 VariableGet* VariableGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableGet* get = new VariableGet();
+  get->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   get->position_ = reader->ReadPosition();
   get->variable_ = reader->helper()->variables().Lookup(reader->ReadUInt());
   reader->ReadOptional<DartType>();  // Unused promoted type.
@@ -529,6 +530,7 @@ VariableGet* VariableGet::ReadFrom(Reader* reader) {
 VariableGet* VariableGet::ReadFrom(Reader* reader, uint8_t payload) {
   TRACE_READ_OFFSET();
   VariableGet* get = new VariableGet();
+  get->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   get->position_ = reader->ReadPosition();
   get->variable_ = reader->helper()->variables().Lookup(payload);
   return get;
@@ -538,6 +540,7 @@ VariableGet* VariableGet::ReadFrom(Reader* reader, uint8_t payload) {
 VariableSet* VariableSet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   VariableSet* set = new VariableSet();
+  set->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   set->position_ = reader->ReadPosition();
   set->variable_ = reader->helper()->variables().Lookup(reader->ReadUInt());
   set->expression_ = Expression::ReadFrom(reader);
@@ -548,6 +551,7 @@ VariableSet* VariableSet::ReadFrom(Reader* reader) {
 VariableSet* VariableSet::ReadFrom(Reader* reader, uint8_t payload) {
   TRACE_READ_OFFSET();
   VariableSet* set = new VariableSet();
+  set->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   set->variable_ = reader->helper()->variables().Lookup(payload);
   set->position_ = reader->ReadPosition();
   set->expression_ = Expression::ReadFrom(reader);
@@ -558,6 +562,7 @@ VariableSet* VariableSet::ReadFrom(Reader* reader, uint8_t payload) {
 PropertyGet* PropertyGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   PropertyGet* get = new PropertyGet();
+  get->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   get->position_ = reader->ReadPosition();
   get->receiver_ = Expression::ReadFrom(reader);
   get->name_ = Name::ReadFrom(reader);
@@ -569,6 +574,7 @@ PropertyGet* PropertyGet::ReadFrom(Reader* reader) {
 PropertySet* PropertySet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   PropertySet* set = new PropertySet();
+  set->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   set->position_ = reader->ReadPosition();
   set->receiver_ = Expression::ReadFrom(reader);
   set->name_ = Name::ReadFrom(reader);
@@ -581,6 +587,7 @@ PropertySet* PropertySet::ReadFrom(Reader* reader) {
 DirectPropertyGet* DirectPropertyGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectPropertyGet* get = new DirectPropertyGet();
+  get->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   get->position_ = reader->ReadPosition();
   get->receiver_ = Expression::ReadFrom(reader);
   get->target_reference_ = Reference::ReadMemberFrom(reader);
@@ -591,6 +598,7 @@ DirectPropertyGet* DirectPropertyGet::ReadFrom(Reader* reader) {
 DirectPropertySet* DirectPropertySet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectPropertySet* set = new DirectPropertySet();
+  set->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   set->position_ = reader->ReadPosition();
   set->receiver_ = Expression::ReadFrom(reader);
   set->target_reference_ = Reference::ReadMemberFrom(reader);
@@ -602,6 +610,7 @@ DirectPropertySet* DirectPropertySet::ReadFrom(Reader* reader) {
 StaticGet* StaticGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticGet* get = new StaticGet();
+  get->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   get->position_ = reader->ReadPosition();
   get->target_reference_ = Reference::ReadMemberFrom(reader);
   return get;
@@ -611,6 +620,7 @@ StaticGet* StaticGet::ReadFrom(Reader* reader) {
 StaticSet* StaticSet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticSet* set = new StaticSet();
+  set->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   set->position_ = reader->ReadPosition();
   set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->expression_ = Expression::ReadFrom(reader);
@@ -639,6 +649,7 @@ NamedExpression* NamedExpression::ReadFrom(Reader* reader) {
 MethodInvocation* MethodInvocation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   MethodInvocation* invocation = new MethodInvocation();
+  invocation->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   invocation->position_ = reader->ReadPosition();
   invocation->receiver_ = Expression::ReadFrom(reader);
   invocation->name_ = Name::ReadFrom(reader);
@@ -652,6 +663,7 @@ MethodInvocation* MethodInvocation::ReadFrom(Reader* reader) {
 DirectMethodInvocation* DirectMethodInvocation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectMethodInvocation* invocation = new DirectMethodInvocation();
+  invocation->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   invocation->receiver_ = Expression::ReadFrom(reader);
   invocation->target_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
@@ -662,6 +674,7 @@ DirectMethodInvocation* DirectMethodInvocation::ReadFrom(Reader* reader) {
 StaticInvocation* StaticInvocation::ReadFrom(Reader* reader, bool is_const) {
   TRACE_READ_OFFSET();
   StaticInvocation* invocation = new StaticInvocation();
+  invocation->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   invocation->is_const_ = is_const;
   invocation->position_ = reader->ReadPosition();
   invocation->procedure_reference_ = Reference::ReadMemberFrom(reader);
@@ -674,6 +687,7 @@ ConstructorInvocation* ConstructorInvocation::ReadFrom(Reader* reader,
                                                        bool is_const) {
   TRACE_READ_OFFSET();
   ConstructorInvocation* invocation = new ConstructorInvocation();
+  invocation->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   invocation->is_const_ = is_const;
   invocation->position_ = reader->ReadPosition();
   invocation->target_reference_ = Reference::ReadMemberFrom(reader);
@@ -685,6 +699,7 @@ ConstructorInvocation* ConstructorInvocation::ReadFrom(Reader* reader,
 Not* Not::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Not* n = new Not();
+  n->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   n->expression_ = Expression::ReadFrom(reader);
   return n;
 }
@@ -693,6 +708,7 @@ Not* Not::ReadFrom(Reader* reader) {
 LogicalExpression* LogicalExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   LogicalExpression* expr = new LogicalExpression();
+  expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   expr->left_ = Expression::ReadFrom(reader);
   expr->operator_ = static_cast<Operator>(reader->ReadByte());
   expr->right_ = Expression::ReadFrom(reader);
@@ -703,6 +719,7 @@ LogicalExpression* LogicalExpression::ReadFrom(Reader* reader) {
 ConditionalExpression* ConditionalExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   ConditionalExpression* expr = new ConditionalExpression();
+  expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   expr->condition_ = Expression::ReadFrom(reader);
   expr->then_ = Expression::ReadFrom(reader);
   expr->otherwise_ = Expression::ReadFrom(reader);
@@ -714,6 +731,7 @@ ConditionalExpression* ConditionalExpression::ReadFrom(Reader* reader) {
 StringConcatenation* StringConcatenation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StringConcatenation* concat = new StringConcatenation();
+  concat->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   concat->position_ = reader->ReadPosition();
   concat->expressions_.ReadFromStatic<Expression>(reader);
   return concat;
@@ -723,6 +741,7 @@ StringConcatenation* StringConcatenation::ReadFrom(Reader* reader) {
 IsExpression* IsExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   IsExpression* expr = new IsExpression();
+  expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   expr->position_ = reader->ReadPosition();
   expr->operand_ = Expression::ReadFrom(reader);
   expr->type_ = DartType::ReadFrom(reader);
@@ -733,6 +752,7 @@ IsExpression* IsExpression::ReadFrom(Reader* reader) {
 AsExpression* AsExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   AsExpression* expr = new AsExpression();
+  expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   expr->position_ = reader->ReadPosition();
   expr->operand_ = Expression::ReadFrom(reader);
   expr->type_ = DartType::ReadFrom(reader);
@@ -751,7 +771,10 @@ StringLiteral* StringLiteral::ReadFrom(Reader* reader) {
 
 BigintLiteral* BigintLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  return new BigintLiteral(Reference::ReadStringFrom(reader));
+  intptr_t offset = reader->offset() - 1;  // -1 to include tag byte.
+  BigintLiteral* lit = new BigintLiteral(Reference::ReadStringFrom(reader));
+  lit->kernel_offset_ = offset;
+  return lit;
 }
 
 
@@ -777,6 +800,7 @@ IntLiteral* IntLiteral::ReadFrom(Reader* reader, uint8_t payload) {
 DoubleLiteral* DoubleLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DoubleLiteral* literal = new DoubleLiteral();
+  literal->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   literal->value_ = Reference::ReadStringFrom(reader);
   return literal;
 }
@@ -802,6 +826,7 @@ NullLiteral* NullLiteral::ReadFrom(Reader* reader) {
 SymbolLiteral* SymbolLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   SymbolLiteral* lit = new SymbolLiteral();
+  lit->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   lit->value_ = Reference::ReadStringFrom(reader);
   return lit;
 }
@@ -810,6 +835,7 @@ SymbolLiteral* SymbolLiteral::ReadFrom(Reader* reader) {
 TypeLiteral* TypeLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   TypeLiteral* literal = new TypeLiteral();
+  literal->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   literal->type_ = DartType::ReadFrom(reader);
   return literal;
 }
@@ -835,6 +861,7 @@ Rethrow* Rethrow::ReadFrom(Reader* reader) {
 Throw* Throw::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Throw* t = new Throw();
+  t->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   t->position_ = reader->ReadPosition();
   t->expression_ = Expression::ReadFrom(reader);
   return t;
@@ -844,6 +871,7 @@ Throw* Throw::ReadFrom(Reader* reader) {
 ListLiteral* ListLiteral::ReadFrom(Reader* reader, bool is_const) {
   TRACE_READ_OFFSET();
   ListLiteral* literal = new ListLiteral();
+  literal->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   literal->is_const_ = is_const;
   literal->position_ = reader->ReadPosition();
   literal->type_ = DartType::ReadFrom(reader);
@@ -855,6 +883,7 @@ ListLiteral* ListLiteral::ReadFrom(Reader* reader, bool is_const) {
 MapLiteral* MapLiteral::ReadFrom(Reader* reader, bool is_const) {
   TRACE_READ_OFFSET();
   MapLiteral* literal = new MapLiteral();
+  literal->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   literal->is_const_ = is_const;
   literal->position_ = reader->ReadPosition();
   literal->key_type_ = DartType::ReadFrom(reader);
@@ -875,6 +904,7 @@ MapEntry* MapEntry::ReadFrom(Reader* reader) {
 AwaitExpression* AwaitExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   AwaitExpression* await = new AwaitExpression();
+  await->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   await->operand_ = Expression::ReadFrom(reader);
   return await;
 }

@@ -20,8 +20,6 @@ namespace kernel {
 
 class StreamingFlowGraphBuilder;
 
-// TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
-// should use [TokenPosition]s.
 class KernelConstMapKeyEqualsTraits {
  public:
   static const char* Name() { return "KernelConstMapKeyEqualsTraits"; }
@@ -32,25 +30,24 @@ class KernelConstMapKeyEqualsTraits {
     const Smi& key2 = Smi::Cast(b);
     return (key1.Value() == key2.Value());
   }
-  static bool IsMatch(const TreeNode* key1, const Object& b) {
+  static bool IsMatch(const intptr_t key1, const Object& b) {
     return KeyAsSmi(key1) == Smi::Cast(b).raw();
   }
   static uword Hash(const Object& obj) {
     const Smi& key = Smi::Cast(obj);
     return HashValue(key.Value());
   }
-  static uword Hash(const TreeNode* key) {
+  static uword Hash(const intptr_t key) {
     return HashValue(Smi::Value(KeyAsSmi(key)));
   }
-  static RawObject* NewKey(const TreeNode* key) { return KeyAsSmi(key); }
+  static RawObject* NewKey(const intptr_t key) { return KeyAsSmi(key); }
 
  private:
   static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
 
-  static RawSmi* KeyAsSmi(const TreeNode* key) {
-    // We exploit that all [TreeNode] objects will be aligned and therefore are
-    // already [Smi]s!
-    return reinterpret_cast<RawSmi*>(const_cast<TreeNode*>(key));
+  static RawSmi* KeyAsSmi(const intptr_t key) {
+    ASSERT(key >= 0);
+    return Smi::New(key);
   }
 };
 typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
@@ -551,9 +548,6 @@ class ConstantEvaluator : public ExpressionVisitor {
     return result_.raw() == Bool::True().raw();
   }
 
-  // TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
-  // should use [TokenPosition]s as well as the existing functionality in
-  // `Parser::CacheConstantValue`.
   bool GetCachedConstant(TreeNode* node, Instance* value);
   void CacheConstantValue(TreeNode* node, const Instance& value);
 
