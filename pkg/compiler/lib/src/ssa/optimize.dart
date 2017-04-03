@@ -2650,14 +2650,24 @@ class MemorySet {
 
     if (instruction.sideEffects.changesInstanceProperty() ||
         instruction.sideEffects.changesStaticProperty()) {
+      List<MemberEntity> fieldsToRemove;
+      List<HInstruction> receiversToRemove = <HInstruction>[];
       fieldValues.forEach((MemberEntity element, map) {
         if (isFinal(element)) return;
         map.forEach((receiver, value) {
           if (escapes(receiver)) {
-            map[receiver] = null;
+            receiversToRemove.add(receiver);
           }
         });
+        if (receiversToRemove.length == map.length) {
+          // Remove them all by removing the entire map.
+          (fieldsToRemove ??= <MemberEntity>[]).add(element);
+        } else {
+          receiversToRemove.forEach(map.remove);
+        }
+        receiversToRemove.clear();
       });
+      fieldsToRemove?.forEach(fieldValues.remove);
     }
 
     if (instruction.sideEffects.changesIndex()) {
