@@ -18,6 +18,8 @@
 namespace dart {
 namespace kernel {
 
+class StreamingFlowGraphBuilder;
+
 // TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
 // should use [TokenPosition]s.
 class KernelConstMapKeyEqualsTraits {
@@ -737,7 +739,6 @@ class ScopeBuilder : public RecursiveVisitor {
   intptr_t name_index_;
 };
 
-
 class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
  public:
   FlowGraphBuilder(TreeNode* node,
@@ -1069,15 +1070,47 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   DartTypeTranslator type_translator_;
   ConstantEvaluator constant_evaluator_;
 
+  StreamingFlowGraphBuilder* streaming_flow_graph_builder_;
+
   friend class BreakableBlock;
   friend class CatchBlock;
   friend class ConstantEvaluator;
   friend class DartTypeTranslator;
+  friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;
   friend class SwitchBlock;
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
 };
+
+
+class CatchBlock {
+ public:
+  CatchBlock(FlowGraphBuilder* builder,
+             LocalVariable* exception_var,
+             LocalVariable* stack_trace_var,
+             intptr_t catch_try_index)
+      : builder_(builder),
+        outer_(builder->catch_block_),
+        exception_var_(exception_var),
+        stack_trace_var_(stack_trace_var),
+        catch_try_index_(catch_try_index) {
+    builder_->catch_block_ = this;
+  }
+  ~CatchBlock() { builder_->catch_block_ = outer_; }
+
+  LocalVariable* exception_var() { return exception_var_; }
+  LocalVariable* stack_trace_var() { return stack_trace_var_; }
+  intptr_t catch_try_index() { return catch_try_index_; }
+
+ private:
+  FlowGraphBuilder* builder_;
+  CatchBlock* outer_;
+  LocalVariable* exception_var_;
+  LocalVariable* stack_trace_var_;
+  intptr_t catch_try_index_;
+};
+
 
 RawObject* EvaluateMetadata(TreeNode* const kernel_node);
 RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);

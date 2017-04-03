@@ -11,6 +11,7 @@
 #include "vm/compiler.h"
 #include "vm/intermediate_language.h"
 #include "vm/kernel_reader.h"
+#include "vm/kernel_binary_flowgraph.h"
 #include "vm/longjump.h"
 #include "vm/method_recognizer.h"
 #include "vm/object_store.h"
@@ -959,34 +960,6 @@ class TryCatchBlock {
   FlowGraphBuilder* builder_;
   TryCatchBlock* outer_;
   intptr_t try_index_;
-};
-
-
-class CatchBlock {
- public:
-  CatchBlock(FlowGraphBuilder* builder,
-             LocalVariable* exception_var,
-             LocalVariable* stack_trace_var,
-             intptr_t catch_try_index)
-      : builder_(builder),
-        outer_(builder->catch_block_),
-        exception_var_(exception_var),
-        stack_trace_var_(stack_trace_var),
-        catch_try_index_(catch_try_index) {
-    builder_->catch_block_ = this;
-  }
-  ~CatchBlock() { builder_->catch_block_ = outer_; }
-
-  LocalVariable* exception_var() { return exception_var_; }
-  LocalVariable* stack_trace_var() { return stack_trace_var_; }
-  intptr_t catch_try_index() { return catch_try_index_; }
-
- private:
-  FlowGraphBuilder* builder_;
-  CatchBlock* outer_;
-  LocalVariable* exception_var_;
-  LocalVariable* stack_trace_var_;
-  intptr_t catch_try_index_;
 };
 
 
@@ -1978,13 +1951,15 @@ FlowGraphBuilder::FlowGraphBuilder(
       type_translator_(&translation_helper_,
                        &active_class_,
                        /* finalize= */ true),
-      constant_evaluator_(this,
-                          zone_,
-                          &translation_helper_,
-                          &type_translator_) {}
+      constant_evaluator_(this, zone_, &translation_helper_, &type_translator_),
+      streaming_flow_graph_builder_(NULL) {}
 
 
-FlowGraphBuilder::~FlowGraphBuilder() {}
+FlowGraphBuilder::~FlowGraphBuilder() {
+  if (streaming_flow_graph_builder_ != NULL) {
+    delete streaming_flow_graph_builder_;
+  }
+}
 
 
 Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
@@ -3032,6 +3007,36 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   const dart::Function& function = parsed_function_->function();
 
   if (function.IsConstructorClosureFunction()) return NULL;
+
+  TreeNode* library_node = node_;
+  if (node_ != NULL) {
+    const dart::Function* parent = &function;
+    while (true) {
+      library_node = static_cast<kernel::TreeNode*>(parent->kernel_function());
+      while (library_node != NULL && !library_node->IsLibrary()) {
+        if (library_node->IsMember()) {
+          library_node = Member::Cast(library_node)->parent();
+        } else if (library_node->IsClass()) {
+          library_node = Class::Cast(library_node)->parent();
+          break;
+        } else {
+          library_node = NULL;
+          break;
+        }
+      }
+      if (library_node != NULL) break;
+      parent = &dart::Function::Handle(parent->parent_function());
+    }
+  }
+  if (streaming_flow_graph_builder_ != NULL) {
+    delete streaming_flow_graph_builder_;
+    streaming_flow_graph_builder_ = NULL;
+  }
+  if (library_node != NULL && library_node->IsLibrary()) {
+    Library* library = Library::Cast(library_node);
+    streaming_flow_graph_builder_ = new StreamingFlowGraphBuilder(
+        this, library->kernel_data(), library->kernel_data_size());
+  }
 
   dart::Class& klass =
       dart::Class::Handle(zone_, parsed_function_->function().Owner());
@@ -5362,17 +5367,7 @@ void FlowGraphBuilder::VisitThrow(Throw* node) {
 
 
 void FlowGraphBuilder::VisitRethrow(Rethrow* node) {
-  Fragment instructions;
-
-  instructions = DebugStepCheck(node->position()) + instructions;
-  instructions += LoadLocal(catch_block_->exception_var());
-  instructions += PushArgument();
-  instructions += LoadLocal(catch_block_->stack_trace_var());
-  instructions += PushArgument();
-  instructions +=
-      RethrowException(node->position(), catch_block_->catch_try_index());
-
-  fragment_ = instructions;
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 

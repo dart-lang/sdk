@@ -512,8 +512,11 @@ class Library : public LinkedNode {
     return true;
   }
 
+  const uint8_t* kernel_data() { return kernel_data_; }
+  intptr_t kernel_data_size() { return kernel_data_size_; }
+
  private:
-  Library() : name_(NULL) {}
+  Library() : name_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
 
   template <typename T>
   friend class List;
@@ -524,6 +527,8 @@ class Library : public LinkedNode {
   List<Class> classes_;
   List<Field> fields_;
   List<Procedure> procedures_;
+  const uint8_t* kernel_data_;
+  intptr_t kernel_data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(Library);
 };

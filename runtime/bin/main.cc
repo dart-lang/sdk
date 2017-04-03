@@ -885,7 +885,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   void* kernel_program = NULL;
   if (is_kernel) {
     kernel_program = Dart_ReadKernelBinary(kernel_file, kernel_length);
-    free(const_cast<uint8_t*>(kernel_file));
   }
 
   IsolateData* isolate_data =
