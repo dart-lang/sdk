@@ -2435,6 +2435,7 @@ and therefore will not contain a _type_ property.
 class Stack extends Response {
   Frame[] frames;
   Frame[] asyncCausalFrames [optional];
+  Frame[] awaiterFrames [optional];
   Message[] messages;
 }
 ```

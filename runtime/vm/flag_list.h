@@ -149,7 +149,7 @@
   C(causal_async_stacks, false, false, bool, true, "Improved async stacks")    \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  C(async_debugger_stepping, false, false, bool, true,                         \
+  C(async_debugger_stepping, false, false, bool, false,                        \
     "Debugger support for stepping in and out of async functions.")            \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \

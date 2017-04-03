@@ -108,7 +108,8 @@ void main(List<String> args) {
   var tmpdir = (tmp == null)
       ? Directory.systemTemp
           .createTempSync(outfile.replaceAll(path.separator, '__'))
-      : new Directory(tmp)..createSync();
+      : new Directory(tmp)
+    ..createSync();
   for (var module in orderedModules) {
     var file = tmpdir.path + path.separator + module + '.js';
     var command = template.toList()..addAll(['-o', file]);

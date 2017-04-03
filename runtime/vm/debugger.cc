@@ -906,6 +906,21 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
 }
 
 
+bool ActivationFrame::IsAsyncMachinery() const {
+  Isolate* isolate = Isolate::Current();
+  if (function_.raw() == isolate->object_store()->complete_on_async_return()) {
+    // We are completing an async function's completer.
+    return true;
+  }
+  if (function_.Owner() ==
+      isolate->object_store()->async_star_stream_controller()) {
+    // We are inside the async* stream controller code.
+    return true;
+  }
+  return false;
+}
+
+
 // Get the saved current context of this activation.
 const Context& ActivationFrame::GetSavedCurrentContext() {
   if (!ctx_.IsNull()) return ctx_;
@@ -1573,6 +1588,8 @@ Debugger::Debugger()
       async_causal_stack_trace_(NULL),
       awaiter_stack_trace_(NULL),
       stepping_fp_(0),
+      async_stepping_fp_(0),
+      top_frame_awaiter_(Object::null()),
       skip_next_step_(false),
       needs_breakpoint_cleanup_(false),
       synthetic_async_breakpoint_(NULL),
@@ -1955,7 +1972,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
-  if (!FLAG_causal_async_stacks) {
+  if (!FLAG_async_debugger_stepping) {
     return NULL;
   }
   // Causal async stacks are not supported in the AOT runtime.
@@ -3135,6 +3152,7 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     cbpt->VisitObjectPointers(visitor);
     cbpt = cbpt->next();
   }
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_frame_awaiter_));
 }
 
 
@@ -3198,15 +3216,60 @@ void Debugger::Pause(ServiceEvent* event) {
 
 
 void Debugger::EnterSingleStepMode() {
-  stepping_fp_ = 0;
+  ResetSteppingFramePointers();
   DeoptimizeWorld();
   isolate_->set_single_step(true);
 }
 
 
+void Debugger::ResetSteppingFramePointers() {
+  stepping_fp_ = 0;
+  async_stepping_fp_ = 0;
+}
+
+
+bool Debugger::SteppedForSyntheticAsyncBreakpoint() const {
+  return synthetic_async_breakpoint_ != NULL;
+}
+
+
+void Debugger::CleanupSyntheticAsyncBreakpoint() {
+  if (synthetic_async_breakpoint_ != NULL) {
+    RemoveBreakpoint(synthetic_async_breakpoint_->id());
+    synthetic_async_breakpoint_ = NULL;
+  }
+}
+
+
+void Debugger::RememberTopFrameAwaiter() {
+  if (!FLAG_async_debugger_stepping) {
+    return;
+  }
+  if (stack_trace_->Length() > 0) {
+    top_frame_awaiter_ = stack_trace_->FrameAt(0)->GetAsyncAwaiter();
+  } else {
+    top_frame_awaiter_ = Object::null();
+  }
+}
+
+
+void Debugger::SetAsyncSteppingFramePointer() {
+  if (!FLAG_async_debugger_stepping) {
+    return;
+  }
+  if (stack_trace_->FrameAt(0)->function().IsAsyncClosure() ||
+      stack_trace_->FrameAt(0)->function().IsAsyncGenClosure()) {
+    async_stepping_fp_ = stack_trace_->FrameAt(0)->fp();
+  } else {
+    async_stepping_fp_ = 0;
+  }
+}
+
+
 void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
                                      bool skip_next_step) {
-  stepping_fp_ = 0;
+  ResetSteppingFramePointers();
+  RememberTopFrameAwaiter();
   if (resume_action_ == kStepInto) {
     // When single stepping, we need to deoptimize because we might be
     // stepping into optimized code.  This happens in particular if
@@ -3216,6 +3279,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     DeoptimizeWorld();
     isolate_->set_single_step(true);
     skip_next_step_ = skip_next_step;
+    SetAsyncSteppingFramePointer();
     if (FLAG_verbose_debug) {
       OS::Print("HandleSteppingRequest- kStepInto\n");
     }
@@ -3225,6 +3289,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     skip_next_step_ = skip_next_step;
     ASSERT(stack_trace->Length() > 0);
     stepping_fp_ = stack_trace->FrameAt(0)->fp();
+    SetAsyncSteppingFramePointer();
     if (FLAG_verbose_debug) {
       OS::Print("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }
@@ -3531,7 +3596,7 @@ bool Debugger::IsDebuggable(const Function& func) {
 
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   resume_action_ = kContinue;
-  stepping_fp_ = 0;
+  ResetSteppingFramePointers();
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
@@ -3597,6 +3662,26 @@ RawError* Debugger::PauseStepping() {
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
 
+  if (FLAG_async_debugger_stepping) {
+    if ((async_stepping_fp_ != 0) && (top_frame_awaiter_ != Object::null())) {
+      // Check if the user has single stepped out of an async function with
+      // an awaiter. The first check handles the case of calling into the
+      // async machinery as we finish the async function. The second check
+      // handles the case of returning from an async function.
+      const bool exited_async_function =
+          (IsCalleeFrameOf(async_stepping_fp_, frame->fp()) &&
+           frame->IsAsyncMachinery()) ||
+          IsCalleeFrameOf(frame->fp(), async_stepping_fp_);
+      if (exited_async_function) {
+        // Step to the top frame awaiter.
+        const Object& async_op = Object::Handle(top_frame_awaiter_);
+        top_frame_awaiter_ = Object::null();
+        AsyncStepInto(Closure::Cast(async_op));
+        return Error::null();
+      }
+    }
+  }
+
   if (stepping_fp_ != 0) {
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
@@ -3608,7 +3693,7 @@ RawError* Debugger::PauseStepping() {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
       // and let the user set the "interesting" frame again.
-      stepping_fp_ = 0;
+      ResetSteppingFramePointers();
     }
   }
 
@@ -3635,14 +3720,10 @@ RawError* Debugger::PauseStepping() {
 
   CacheStackTraces(CollectStackTrace(), CollectAsyncCausalStackTrace(),
                    CollectAwaiterReturnStackTrace());
-  // If this step callback is part of stepping over an await statement,
-  // we saved the synthetic async breakpoint in PauseBreakpoint. We report
-  // that we are paused at that breakpoint and then delete it after continuing.
-  SignalPausedEvent(frame, synthetic_async_breakpoint_);
-  if (synthetic_async_breakpoint_ != NULL) {
-    RemoveBreakpoint(synthetic_async_breakpoint_->id());
-    synthetic_async_breakpoint_ = NULL;
+  if (SteppedForSyntheticAsyncBreakpoint()) {
+    CleanupSyntheticAsyncBreakpoint();
   }
+  SignalPausedEvent(frame, NULL);
   HandleSteppingRequest(stack_trace_);
   ClearCachedStackTraces();
 
@@ -4235,6 +4316,7 @@ void Debugger::AsyncStepInto(const Closure& async_op) {
 void Debugger::Continue() {
   SetResumeAction(kContinue);
   stepping_fp_ = 0;
+  async_stepping_fp_ = 0;
   isolate_->set_single_step(false);
 }
 
