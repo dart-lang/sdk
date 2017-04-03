@@ -242,7 +242,7 @@ package/scenarios/packages_option_only/packages_option_only_noimports_test: Cras
 package/scenarios/packages_option_only/packages_option_only_test: Crash, CompileTimeError # Issue 28645
 
 [ $compiler == dartk && $mode == debug ]
-io/file_lock_test: Slow
+io/file_lock_test: Slow, Pass
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.
