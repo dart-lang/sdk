@@ -37,7 +37,7 @@ var buffer = new StringBuffer()
 bool _hasInheritedMethod(MethodDeclaration node) =>
     DartTypeUtilities.lookUpInheritedMethod(node) != null;
 
-bool _isExpressionFunctionBody(AstNode node) => node is ExpressionFunctionBody;
+bool _isFunctionExpression(AstNode node) => node is FunctionExpression;
 
 bool _isReturnStatement(AstNode node) => node is ReturnStatement;
 
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor {
     if (body is BlockFunctionBody && body.block.statements.length > 1) {
       final returnStatements = DartTypeUtilities
           .traverseNodesInDFS(body.block,
-              excludeCriteria: _isExpressionFunctionBody)
+              excludeCriteria: _isFunctionExpression)
           .where(_isReturnStatement);
       if (returnStatements.isNotEmpty && returnStatements.every(_returnsThis)) {
         rule.reportLint(node.name);

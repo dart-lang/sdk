@@ -47,4 +47,26 @@ class B extends A{
     x++;
     return this;
   }
+
+  B badOne3() { // LINT
+    int a() {
+      return 1;
+    }
+    x = a();
+    return this;
+  }
+
+  B badOne4() { // LINT
+    int a() => 1;
+    x = a();
+    return this;
+  }
+
+  B badOne5() { // LINT
+    final a = () {
+      return 1;
+    };
+    x = a();
+    return this;
+  }
 }
