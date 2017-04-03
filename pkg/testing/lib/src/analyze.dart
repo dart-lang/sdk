@@ -116,6 +116,7 @@ Future<Null> analyzeUris(Uri analysisOptions, Uri packages, List<Uri> uris,
     "--packages=${packages.toFilePath()}",
     "--package-warnings",
     "--format=machine",
+    "--dart-sdk=${Uri.base.resolve('sdk/').toFilePath()}",
   ];
   if (analysisOptions != null) {
     arguments.add("--options=${analysisOptions.toFilePath()}");
