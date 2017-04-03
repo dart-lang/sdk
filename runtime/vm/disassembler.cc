@@ -301,17 +301,10 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 }
 
 
-void Disassembler::DisassembleCode(const Function& function, bool optimized) {
+void Disassembler::DisassembleCode(const Function& function,
+                                   const Code& code,
+                                   bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
-  const Code& code = Code::Handle(function.CurrentCode());
-  DisassembleCodeHelper(function_fullname, code, optimized);
-}
-
-
-void Disassembler::DisassembleCodeUnoptimized(const Function& function,
-                                              bool optimized) {
-  const char* function_fullname = function.ToFullyQualifiedCString();
-  const Code& code = Code::Handle(function.unoptimized_code());
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 

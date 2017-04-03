@@ -1246,7 +1246,8 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
 
   if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
       FlowGraphPrinter::ShouldPrint(parsed_function->function())) {
-    Disassembler::DisassembleCode(parsed_function->function(),
+    Code& code = Code::Handle(parsed_function->function().CurrentCode());
+    Disassembler::DisassembleCode(parsed_function->function(), code,
                                   /* optimized = */ true);
   }
   return parsed_function->function().raw();
@@ -3532,10 +3533,12 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
     }
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, optimized);
+      Code& code = Code::Handle(function.CurrentCode());
+      Disassembler::DisassembleCode(function, code, optimized);
     } else if (FLAG_disassemble_optimized && optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, true);
+      Code& code = Code::Handle(function.CurrentCode());
+      Disassembler::DisassembleCode(function, code, true);
     }
     return Error::null();
   } else {

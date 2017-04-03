@@ -134,9 +134,9 @@ class Disassembler : public AllStatic {
                                 Object** object,
                                 uword pc);
 
-  static void DisassembleCode(const Function& function, bool optimized);
-  static void DisassembleCodeUnoptimized(const Function& function,
-                                         bool optimized);
+  static void DisassembleCode(const Function& function,
+                              const Code& code,
+                              bool optimized);
 
  private:
   static void DisassembleCodeHelper(const char* function_fullname,

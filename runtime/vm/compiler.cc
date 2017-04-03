@@ -1349,10 +1349,10 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, optimized);
+      Disassembler::DisassembleCode(function, result, optimized);
     } else if (FLAG_disassemble_optimized && optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, true);
+      Disassembler::DisassembleCode(function, result, true);
     }
 
     return result.raw();
@@ -1559,7 +1559,8 @@ RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
     CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
     helper.Compile(&pipeline);
     if (FLAG_disassemble) {
-      Disassembler::DisassembleCode(parsed_function->function(), false);
+      Code& code = Code::Handle(parsed_function->function().CurrentCode());
+      Disassembler::DisassembleCode(parsed_function->function(), code, false);
     }
     return Error::null();
   } else {
