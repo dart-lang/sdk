@@ -297,6 +297,13 @@ class TranslationHelper {
   }
   dart::String& DartString(String* content, Heap::Space space);
 
+  dart::String& DartString(const uint8_t* utf8_array, intptr_t len) {
+    return DartString(utf8_array, len, allocation_space_);
+  }
+  dart::String& DartString(const uint8_t* utf8_array,
+                           intptr_t len,
+                           Heap::Space space);
+
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
   dart::String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;

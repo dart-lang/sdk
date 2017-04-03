@@ -9,14 +9,111 @@
 namespace dart {
 namespace kernel {
 
-#define Z (flow_graph_builder_->zone_)
-#define H (flow_graph_builder_->translation_helper_)
+#define Z (zone_)
+#define H (translation_helper_)
+
+StreamingConstantEvaluator::StreamingConstantEvaluator(
+    StreamingFlowGraphBuilder* builder,
+    Zone* zone,
+    TranslationHelper* h,
+    DartTypeTranslator* type_translator)
+    : builder_(builder),
+      isolate_(Isolate::Current()),
+      zone_(zone),
+      translation_helper_(*h),
+      // type_translator_(*type_translator),
+      script_(Script::Handle(
+          zone,
+          builder == NULL ? Script::null()
+                          : builder_->parsed_function()->function().script())),
+      result_(Instance::Handle(zone)) {}
+
+
+Instance& StreamingConstantEvaluator::EvaluateExpression() {
+  intptr_t offset = builder_->ReaderOffset();
+  if (!GetCachedConstant(offset, &result_)) {
+    uint8_t payload = 0;
+    Tag tag = builder_->ReadTag(&payload);
+    switch (tag) {
+      case kDoubleLiteral:
+        EvaluateDoubleLiteral();
+        break;
+      default:
+        UNREACHABLE();
+    }
+
+    CacheConstantValue(offset, result_);
+  }
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  return dart::Instance::ZoneHandle(Z, result_.raw());
+}
+
+void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
+  int str_index = builder_->ReadUInt();
+  result_ = dart::Double::New(builder_->DartString(str_index), Heap::kOld);
+  result_ = H.Canonicalize(result_);
+}
+
+bool StreamingConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
+                                                   Instance* value) {
+  if (builder_ == NULL) return false;
+
+  const Function& function = builder_->parsed_function()->function();
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+    // Don't cache constants in initializer expressions. They get
+    // evaluated only once.
+    return false;
+  }
+
+  bool is_present = false;
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
+    return false;
+  }
+  KernelConstantsMap constants(script_.compile_time_constants());
+  *value ^= constants.GetOrNull(kernel_offset, &is_present);
+  // Mutator compiler thread may add constants while background compiler
+  // is running, and thus change the value of 'compile_time_constants';
+  // do not assert that 'compile_time_constants' has not changed.
+  constants.Release();
+  if (FLAG_compiler_stats && is_present) {
+    H.thread()->compiler_stats()->num_const_cache_hits++;
+  }
+  return is_present;
+}
+
+
+void StreamingConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
+                                                    const Instance& value) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+
+  if (builder_ == NULL) return;
+
+  const Function& function = builder_->parsed_function()->function();
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+    // Don't cache constants in initializer expressions. They get
+    // evaluated only once.
+    return;
+  }
+  const intptr_t kInitialConstMapSize = 16;
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
+    const Array& array = Array::Handle(
+        HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
+    script_.set_compile_time_constants(array);
+  }
+  KernelConstantsMap constants(script_.compile_time_constants());
+  constants.InsertNewOrGetValue(kernel_offset, value);
+  script_.set_compile_time_constants(constants.Release());
+}
+
 
 Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
-  reader_->set_offset(kernel_offset);
+  SetOffset(kernel_offset);
 
   uint8_t payload = 0;
-  Tag tag = reader_->ReadTag(&payload);
+  Tag tag = ReadTag(&payload);
   switch (tag) {
     case kInvalidExpression:
       return BuildInvalidExpression();
@@ -98,8 +195,8 @@ Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
       return BuildIntLiteral(true);
     case kPositiveIntLiteral:
       return BuildIntLiteral(false);
-    //    case kDoubleLiteral:
-    //      return DoubleLiteral::ReadFrom(reader_);
+    case kDoubleLiteral:
+      return BuildDoubleLiteral();
     case kTrueLiteral:
       return BuildBoolLiteral(true);
     case kFalseLiteral:
@@ -121,7 +218,7 @@ intptr_t StreamingFlowGraphBuilder::GetStringTableOffset(intptr_t index) {
     reader_->set_offset(4);  // Skip kMagicProgramFile - now at string table.
     string_table_size_ = ReadListLength();
     string_table_offsets_ = new intptr_t[string_table_size_];
-    string_table_offsets_[0] = reader_->offset();
+    string_table_offsets_[0] = ReaderOffset();
     string_table_entries_read_ = 1;
   }
 
@@ -129,14 +226,26 @@ intptr_t StreamingFlowGraphBuilder::GetStringTableOffset(intptr_t index) {
   --string_table_entries_read_;
   reader_->set_offset(string_table_offsets_[string_table_entries_read_]);
   for (; string_table_entries_read_ < index; ++string_table_entries_read_) {
-    string_table_offsets_[string_table_entries_read_] = reader_->offset();
+    string_table_offsets_[string_table_entries_read_] = ReaderOffset();
     uint32_t bytes = ReadUInt();
-    reader_->set_offset(reader_->offset() + bytes);
+    SkipBytes(bytes);
   }
-  string_table_offsets_[string_table_entries_read_] = reader_->offset();
+  string_table_offsets_[string_table_entries_read_] = ReaderOffset();
   ++string_table_entries_read_;
 
   return string_table_offsets_[index];
+}
+
+intptr_t StreamingFlowGraphBuilder::ReaderOffset() {
+  return reader_->offset();
+}
+
+void StreamingFlowGraphBuilder::SetOffset(intptr_t offset) {
+  reader_->set_offset(offset);
+}
+
+void StreamingFlowGraphBuilder::SkipBytes(intptr_t bytes) {
+  reader_->set_offset(ReaderOffset() + bytes);
 }
 
 uint32_t StreamingFlowGraphBuilder::ReadUInt() {
@@ -151,12 +260,42 @@ TokenPosition StreamingFlowGraphBuilder::ReadPosition(bool record) {
   return reader_->ReadPosition(record);
 }
 
+Tag StreamingFlowGraphBuilder::ReadTag(uint8_t* payload) {
+  return reader_->ReadTag(payload);
+}
+
 CatchBlock* StreamingFlowGraphBuilder::catch_block() {
   return flow_graph_builder_->catch_block_;
 }
 
 ScopeBuildingResult* StreamingFlowGraphBuilder::scopes() {
   return flow_graph_builder_->scopes_;
+}
+
+ParsedFunction* StreamingFlowGraphBuilder::parsed_function() {
+  return flow_graph_builder_->parsed_function_;
+}
+
+dart::String& StreamingFlowGraphBuilder::DartSymbol(intptr_t str_index) {
+  intptr_t saved_offset = ReaderOffset();
+
+  SetOffset(GetStringTableOffset(str_index));
+  uint32_t bytes = ReadUInt();
+  const uint8_t* data = &reader_->buffer()[ReaderOffset()];
+
+  SetOffset(saved_offset);
+  return H.DartSymbol(data, bytes);
+}
+
+dart::String& StreamingFlowGraphBuilder::DartString(intptr_t str_index) {
+  intptr_t saved_offset = ReaderOffset();
+
+  SetOffset(GetStringTableOffset(str_index));
+  uint32_t bytes = ReadUInt();
+  const uint8_t* data = &reader_->buffer()[ReaderOffset()];
+
+  SetOffset(saved_offset);
+  return H.DartString(data, bytes);
 }
 
 Fragment StreamingFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
@@ -212,15 +351,8 @@ Fragment StreamingFlowGraphBuilder::BuildRethrow() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral() {
-  int str_index = ReadUInt();
-  intptr_t saved_offset = reader_->offset();
-
-  reader_->set_offset(GetStringTableOffset(str_index));
-  uint32_t bytes = ReadUInt();
-  const uint8_t* data = &reader_->buffer()[reader_->offset()];
-
-  reader_->set_offset(saved_offset);
-  return Constant(H.DartSymbol(data, bytes));
+  intptr_t str_index = ReadUInt();
+  return Constant(DartSymbol(str_index));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload) {
@@ -231,6 +363,11 @@ Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload) {
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(bool is_negative) {
   int64_t value = is_negative ? -static_cast<int64_t>(ReadUInt()) : ReadUInt();
   return IntConstant(value);
+}
+
+Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral() {
+  SkipBytes(-1);  // EvaluateExpression needs the tag.
+  return Constant(constant_evaluator_.EvaluateExpression());
 }
 
 Fragment StreamingFlowGraphBuilder::BuildBoolLiteral(bool value) {

@@ -1031,6 +1031,14 @@ dart::String& TranslationHelper::DartString(String* content,
 }
 
 
+dart::String& TranslationHelper::DartString(const uint8_t* utf8_array,
+                                            intptr_t len,
+                                            Heap::Space space) {
+  return dart::String::ZoneHandle(
+      Z, dart::String::FromUTF8(utf8_array, len, space));
+}
+
+
 const dart::String& TranslationHelper::DartSymbol(const char* content) const {
   return dart::String::ZoneHandle(Z, Symbols::New(thread_, content));
 }
@@ -4314,7 +4322,7 @@ void FlowGraphBuilder::VisitBigintLiteral(BigintLiteral* node) {
 
 
 void FlowGraphBuilder::VisitDoubleLiteral(DoubleLiteral* node) {
-  fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 
