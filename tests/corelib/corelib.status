@@ -28,7 +28,7 @@ symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm)]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == precompiler || $compiler == app_jit ]
@@ -178,7 +178,8 @@ regexp/*: Skip
 [ $runtime == d8 ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
+regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
 
 [ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer]
@@ -326,3 +327,35 @@ from_environment_const_type_undefined_test/04: MissingCompileTimeError
 from_environment_const_type_undefined_test/06: MissingCompileTimeError
 from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
+
+[ $runtime == flutter ]
+
+# No support for mirrors
+apply3_test: CompileTimeError
+
+# Possible bugs
+format_exception_test: RuntimeError # Flutter Issue 9111
+string_from_environment_test: Fail # Flutter Issue 9111
+string_from_environment2_test: Fail # Flutter Issue 9111
+bool_from_environment_test: Fail # Flutter Issue 9111
+int_from_environment_test: Fail # Flutter Issue 9111
+int_from_environment2_test: Fail # Flutter Issue 9111
+from_environment_const_type_test/none: Fail # Flutter Issue 9111
+from_environment_const_type_test/01: Fail # Flutter Issue 9111
+from_environment_const_type_test/05: Fail # Flutter Issue 9111
+from_environment_const_type_test/10: Fail # Flutter Issue 9111
+from_environment_const_type_test/15: Fail # Flutter Issue 9111
+from_environment_const_type_test/02: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/03: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/04: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/06: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/07: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/08: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/09: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/12: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/11: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/13: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/14: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111
+string_trimlr_test/02: RuntimeError # Flutter Issue 9111
+main_test: RuntimeError # Flutter Issue 9111
