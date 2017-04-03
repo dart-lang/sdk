@@ -11,18 +11,39 @@ class A {
     return this;
   }
 
-  int goodAddOne() { // OK
+  Object goodAddOne1() { // OK it is ok because it does not return an A type.
+    x++;
+    return this;
+  }
+
+  int goodAddOne2() { // OK
     x++;
     return this.x;
   }
   A getThing() { // OK
     return this;
   }
+
+  B doSomething() { // OK it is ok because it does not return an A type.
+    x++;
+    return this;
+  }
 }
 
 class B extends A{
   @override
-  badAddOne() { // OK It is ok because it is an inherited method.
+  A badAddOne() { // OK it is ok because it is an inherited method.
+    x++;
+    return this;
+  }
+
+  @override
+  B doSomething() { // OK it is ok because it is an inherited method.
+    x++;
+    return this;
+  }
+
+  B badAddOne2() { // LINT
     x++;
     return this;
   }
