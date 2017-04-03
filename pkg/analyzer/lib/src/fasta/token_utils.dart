@@ -236,7 +236,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     token = token.next;
     while (token != null) {
       tail.next = fromAnalyzerToken(token);
-      tail.next.previousToken = tail;
+      tail.next.previousToken = tail; // ignore: deprecated_member_use
       tail = tail.next;
       token = token.next;
     }
@@ -248,7 +248,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     token.precedingCommentTokens =
         translateComments(analyzerToken.precedingComments);
     tokenTail.next = token;
-    tokenTail.next.previousToken = tokenTail;
+    tokenTail.next.previousToken = tokenTail; // ignore: deprecated_member_use
     tokenTail = token;
     matchGroups(analyzerToken, token);
     return analyzerToken.next;
@@ -258,7 +258,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     // TODO(paulberry): join up begingroup/endgroup.
     if (analyzerToken.type == TokenType.EOF) {
       tokenTail.next = new SymbolToken.eof(analyzerToken.offset);
-      tokenTail.next.previousToken = tokenTail;
+      tokenTail.next.previousToken = tokenTail; // ignore: deprecated_member_use
       tokenTail.next.precedingCommentTokens =
           translateComments(analyzerToken.precedingComments);
       tokenTail.next.next = tokenTail.next;
