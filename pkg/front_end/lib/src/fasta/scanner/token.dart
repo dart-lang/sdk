@@ -463,6 +463,9 @@ class StringToken extends Token implements analyzer.StringToken {
 }
 
 class CommentToken extends StringToken implements analyzer.CommentToken {
+  @override
+  analyzer.TokenWithComment parent;
+
   /**
    * Creates a lazy comment token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
@@ -495,23 +498,14 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
       new CommentToken._(info, valueOrLazySubstring, charOffset);
 
   @override
-  analyzer.TokenWithComment get parent {
-    Token token = next;
-    while (token is CommentToken) {
-      token = token.next;
-    }
-    return token;
-  }
-
-  @override
-  void set parent(analyzer.TokenWithComment ignored) {
-    throw 'unsupported operation';
-  }
-
-  @override
   void remove() {
-    // TODO: implement remove
-    throw 'not implemented yet';
+    if (previous != null) {
+      previous.setNextWithoutSettingPrevious(next);
+      next?.previous = previous;
+    } else {
+      assert(parent.precedingComments == this);
+      parent.precedingComments = next as CommentToken;
+    }
   }
 }
 

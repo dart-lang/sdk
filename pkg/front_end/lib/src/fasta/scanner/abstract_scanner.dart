@@ -865,6 +865,9 @@ abstract class AbstractScanner implements Scanner {
     tail.next.previousToken = tail;
     tail = tail.next;
     if (comments != null) {
+      for (CommentToken c = comments; c != null; c = c.next) {
+        c.parent = tail;
+      }
       tail.precedingCommentTokens = comments;
       comments = null;
       commentsTail = null;
