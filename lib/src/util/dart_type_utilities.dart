@@ -78,6 +78,11 @@ class DartTypeUtilities {
       type.name == className &&
       type.element?.library?.name == library;
 
+  static Element lookUpInheritedMethod(MethodDeclaration node) =>
+      (node.parent as ClassDeclaration)
+          .element
+          .lookUpInheritedMethod(node.name.name, node.element.library);
+
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself, it excludes the nodes for which the exclusion
   /// predicate returns true, if not provided, all is included.
