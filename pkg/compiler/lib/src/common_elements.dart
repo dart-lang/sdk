@@ -282,6 +282,9 @@ abstract class ElementEnvironment {
   /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
   /// where the type arguments are the type variables of [cls].
   InterfaceType getThisType(ClassEntity cls);
+
+  /// Returns `true` if [a] is a subtype of [b].
+  bool isSubtype(DartType a, DartType b);
 }
 
 class CommonElementsImpl implements CommonElements {

@@ -10,6 +10,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
@@ -175,8 +176,9 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
   CustomElementsResolutionAnalysis customElementsResolutionAnalysis;
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
   MirrorsResolutionAnalysis mirrorsResolutionAnalysis;
-  NativeResolutionEnqueuer nativeResolutionEnqueuer;
 
+  BackendClasses backendClasses = new JavaScriptBackendClasses(
+      elementEnvironment, helpers, nativeBasicData);
   InterceptorDataBuilder interceptorDataBuilder =
       new InterceptorDataBuilderImpl(
           nativeBasicData, helpers, elementEnvironment, commonElements);
@@ -184,6 +186,15 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
       new BackendUsageBuilderImpl(commonElements, helpers);
   NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
       helpers, new KernelNoSuchMethodResolver(worldBuilder));
+  NativeResolutionEnqueuer nativeResolutionEnqueuer =
+      new NativeResolutionEnqueuer(
+          options,
+          elementEnvironment,
+          commonElements,
+          helpers,
+          backendClasses,
+          backendUsageBuilder,
+          new KernelNativeClassResolver(worldBuilder));
 
   return new ResolutionEnqueuerListener(
       options,
@@ -191,8 +202,7 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
       commonElements,
       helpers,
       impacts,
-      new JavaScriptBackendClasses(
-          elementEnvironment, helpers, nativeBasicData),
+      backendClasses,
       nativeBasicData,
       interceptorDataBuilder,
       backendUsageBuilder,

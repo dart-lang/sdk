@@ -1841,6 +1841,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isSubtype(ResolutionDartType a, ResolutionDartType b) {
+    return _compiler.types.isSubtype(a, b);
+  }
+
+  @override
   MemberElement lookupClassMember(ClassElement cls, String name,
       {bool setter: false, bool required: false}) {
     cls.ensureResolved(_resolution);

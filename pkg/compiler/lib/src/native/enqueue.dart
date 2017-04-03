@@ -4,18 +4,16 @@
 
 import '../common.dart';
 import '../common/backend_api.dart';
-import '../common/resolution.dart' show Resolution;
-import '../compiler.dart' show Compiler;
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
-import '../js_backend/js_backend.dart';
-import '../js_backend/native_data.dart' show NativeBasicData, NativeData;
+import '../js_backend/native_data.dart' show NativeData;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../options.dart';
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
@@ -30,7 +28,7 @@ class NativeEnqueuer {
   void onInstantiatedType(InterfaceType type) {}
 
   /// Initial entry point to native enqueuer.
-  WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) =>
+  WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) =>
       const WorldImpact();
 
   /// Registers the [nativeBehavior]. Adds the liveness of its instantiated
@@ -42,29 +40,29 @@ class NativeEnqueuer {
   bool get hasInstantiatedNativeClasses => false;
 
   /// Emits a summary information using the [log] function.
-  void logSummary(log(message)) {}
+  void logSummary(void log(String message)) {}
 }
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
-  final Set<ClassElement> _registeredClasses = new Set<ClassElement>();
-  final Set<ClassElement> _unusedClasses = new Set<ClassElement>();
+  final Set<ClassEntity> _registeredClasses = new Set<ClassEntity>();
+  final Set<ClassEntity> _unusedClasses = new Set<ClassEntity>();
 
   bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
 
-  final Compiler _compiler;
-  final bool enableLiveTypeAnalysis;
+  /// Log message reported if all native types are used.
+  String _allUsedMessage;
+
+  final CompilerOptions _options;
+  final ElementEnvironment _elementEnvironment;
+  final CommonElements _commonElements;
+  final BackendHelpers _helpers;
+  final BackendClasses _backendClasses;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
-  NativeEnqueuerBase(this._compiler, this.enableLiveTypeAnalysis);
+  NativeEnqueuerBase(this._options, this._elementEnvironment,
+      this._commonElements, this._helpers, this._backendClasses);
 
-  JavaScriptBackend get _backend => _compiler.backend;
-  BackendHelpers get _helpers => _backend.helpers;
-  Resolution get _resolution => _compiler.resolution;
-
-  DiagnosticReporter get _reporter => _compiler.reporter;
-  CommonElements get _commonElements => _compiler.commonElements;
-
-  BackendClasses get _backendClasses => _backend.backendClasses;
+  bool get enableLiveTypeAnalysis => _options.enableNativeLiveTypeAnalysis;
 
   void onInstantiatedType(InterfaceType type) {
     if (_unusedClasses.remove(type.element)) {
@@ -74,17 +72,16 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   /// Register [classes] as natively instantiated in [impactBuilder].
   void _registerTypeUses(
-      WorldImpactBuilder impactBuilder, Set<ClassElement> classes, cause) {
-    for (ClassElement cls in classes) {
+      WorldImpactBuilder impactBuilder, Set<ClassEntity> classes, cause) {
+    for (ClassEntity cls in classes) {
       if (!_unusedClasses.contains(cls)) {
         // No need to add [classElement] to [impactBuilder]: it has already been
         // instantiated and we don't track origins of native instantiations
         // precisely.
         continue;
       }
-      cls.ensureResolved(_resolution);
-      impactBuilder
-          .registerTypeUse(new TypeUse.nativeInstantiation(cls.rawType));
+      impactBuilder.registerTypeUse(
+          new TypeUse.nativeInstantiation(_elementEnvironment.getRawType(cls)));
     }
   }
 
@@ -95,12 +92,12 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void _processNativeBehavior(
       WorldImpactBuilder impactBuilder, NativeBehavior behavior, cause) {
-    void registerInstantiation(ResolutionInterfaceType type) {
+    void registerInstantiation(InterfaceType type) {
       impactBuilder.registerTypeUse(new TypeUse.nativeInstantiation(type));
     }
 
     int unusedBefore = _unusedClasses.length;
-    Set<ClassElement> matchingClasses = new Set<ClassElement>();
+    Set<ClassEntity> matchingClasses = new Set<ClassEntity>();
     for (var type in behavior.typesInstantiated) {
       if (type is SpecialType) {
         if (type == SpecialType.JsObject) {
@@ -108,7 +105,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         }
         continue;
       }
-      if (type is ResolutionInterfaceType) {
+      if (type is InterfaceType) {
         if (type == _commonElements.numType) {
           registerInstantiation(_commonElements.doubleType);
           registerInstantiation(_commonElements.intType);
@@ -117,7 +114,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
             type == _commonElements.stringType ||
             type == _commonElements.nullType ||
             type == _commonElements.boolType ||
-            type.asInstanceOf(_backendClasses.listClass) != null) {
+            _elementEnvironment.isSubtype(type,
+                _elementEnvironment.getRawType(_backendClasses.listClass))) {
           registerInstantiation(type);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type
@@ -128,15 +126,17 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         // TODO(johnniwinther,sra): Find and replace uses of `List` with the
         // actual implementation classes such as `JSArray` et al.
         matchingClasses
-            .addAll(_findUnusedClassesMatching((ClassElement nativeClass) {
-          ResolutionInterfaceType nativeType = nativeClass.thisType;
-          ResolutionInterfaceType specType = type.element.thisType;
-          return _compiler.types.isSubtype(nativeType, specType);
+            .addAll(_findUnusedClassesMatching((ClassEntity nativeClass) {
+          InterfaceType nativeType =
+              _elementEnvironment.getThisType(nativeClass);
+          InterfaceType specType =
+              _elementEnvironment.getThisType(type.element);
+          return _elementEnvironment.isSubtype(nativeType, specType);
         }));
       } else if (type.isDynamic) {
         matchingClasses.addAll(_unusedClasses);
       } else {
-        assert(type is ResolutionVoidType);
+        assert(type is VoidType);
       }
     }
     if (matchingClasses.isNotEmpty && _registeredClasses.isEmpty) {
@@ -147,18 +147,18 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     // Give an info so that library developers can compile with -v to find why
     // all the native classes are included.
     if (unusedBefore > 0 && unusedBefore == matchingClasses.length) {
-      _reporter.log('All native types marked as used due to $cause.');
+      _allUsedMessage ??= 'All native types marked as used due to $cause.';
     }
   }
 
-  Iterable<ClassElement> _findUnusedClassesMatching(
-      bool predicate(classElement)) {
+  Iterable<ClassEntity> _findUnusedClassesMatching(
+      bool predicate(ClassEntity classElement)) {
     return _unusedClasses.where(predicate);
   }
 
   void _registerBackendUse(FunctionEntity element) {}
 
-  Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
+  Iterable<ClassEntity> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
     void staticUse(FunctionEntity element) {
       impactBuilder.registerStaticUse(new StaticUse.implicitInvoke(element));
       _registerBackendUse(element);
@@ -171,8 +171,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     return _findNativeExceptions();
   }
 
-  Iterable<ClassElement> _findNativeExceptions() {
-    return _findUnusedClassesMatching((classElement) {
+  Iterable<ClassEntity> _findNativeExceptions() {
+    return _findUnusedClassesMatching((ClassEntity classElement) {
       // TODO(sra): Annotate exception classes in dart:html.
       String name = classElement.name;
       if (name.contains('Exception')) return true;
@@ -180,28 +180,41 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       return false;
     });
   }
+
+  void logSummary(void log(String message)) {
+    if (_allUsedMessage != null) {
+      log(_allUsedMessage);
+    }
+  }
 }
 
 class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   final NativeClassResolver _nativeClassResolver;
+  final BackendUsageBuilder _backendUsageBuilder;
 
   /// The set of all native classes.  Each native class is in [nativeClasses]
   /// and exactly one of [unusedClasses] and [registeredClasses].
-  final Set<ClassElement> _nativeClasses = new Set<ClassElement>();
+  final Set<ClassEntity> _nativeClasses = new Set<ClassEntity>();
 
-  NativeResolutionEnqueuer(Compiler compiler, this._nativeClassResolver)
-      : super(compiler, compiler.options.enableNativeLiveTypeAnalysis);
-
-  BackendUsageBuilder get _backendUsageBuilder => _backend.backendUsageBuilder;
+  NativeResolutionEnqueuer(
+      CompilerOptions options,
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      BackendHelpers helpers,
+      BackendClasses backendClasses,
+      this._backendUsageBuilder,
+      this._nativeClassResolver)
+      : super(options, elementEnvironment, commonElements, helpers,
+            backendClasses);
 
   void _registerBackendUse(FunctionEntity element) {
     _backendUsageBuilder.registerBackendFunctionUse(element);
     _backendUsageBuilder.registerGlobalFunctionDependency(element);
   }
 
-  WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) {
+  WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    Set<ClassElement> nativeClasses =
+    Set<ClassEntity> nativeClasses =
         _nativeClassResolver.computeNativeClasses(libraries);
     _nativeClasses.addAll(nativeClasses);
     _unusedClasses.addAll(nativeClasses);
@@ -211,7 +224,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     return impactBuilder;
   }
 
-  void logSummary(log(message)) {
+  void logSummary(void log(String message)) {
+    super.logSummary(log);
     log('Resolved ${_registeredClasses.length} native elements used, '
         '${_unusedClasses.length} native elements dead.');
   }
@@ -219,16 +233,22 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
 class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   final CodeEmitterTask _emitter;
-
-  final Set<ClassElement> _doneAddSubtypes = new Set<ClassElement>();
-
   final NativeResolutionEnqueuer _resolutionEnqueuer;
+  final NativeData _nativeData;
+
+  final Set<ClassEntity> _doneAddSubtypes = new Set<ClassEntity>();
 
   NativeCodegenEnqueuer(
-      Compiler compiler, this._emitter, this._resolutionEnqueuer)
-      : super(compiler, compiler.options.enableNativeLiveTypeAnalysis) {}
-
-  NativeData get _nativeData => _backend.nativeData;
+      CompilerOptions options,
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      BackendHelpers helpers,
+      BackendClasses backendClasses,
+      this._emitter,
+      this._resolutionEnqueuer,
+      this._nativeData)
+      : super(options, elementEnvironment, commonElements, helpers,
+            backendClasses);
 
   WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
@@ -240,8 +260,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     }
 
     // HACK HACK - add all the resolved classes.
-    Set<ClassElement> matchingClasses = new Set<ClassElement>();
-    for (final classElement in _resolutionEnqueuer._registeredClasses) {
+    Set<ClassEntity> matchingClasses = new Set<ClassEntity>();
+    for (ClassEntity classElement in _resolutionEnqueuer._registeredClasses) {
       if (_unusedClasses.contains(classElement)) {
         matchingClasses.add(classElement);
       }
@@ -254,10 +274,10 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   }
 
   void _registerTypeUses(
-      WorldImpactBuilder impactBuilder, Set<ClassElement> classes, cause) {
+      WorldImpactBuilder impactBuilder, Set<ClassEntity> classes, cause) {
     super._registerTypeUses(impactBuilder, classes, cause);
 
-    for (ClassElement classElement in classes) {
+    for (ClassEntity classElement in classes) {
       // Add the information that this class is a subtype of its supertypes. The
       // code emitter and the ssa builder use that information.
       _addSubtypes(classElement, _emitter.nativeEmitter);
@@ -293,7 +313,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     directSubtypes.add(cls);
   }
 
-  void logSummary(log(message)) {
+  void logSummary(void log(String message)) {
+    super.logSummary(log);
     log('Compiled ${_registeredClasses.length} native classes, '
         '${_unusedClasses.length} native classes omitted.');
   }

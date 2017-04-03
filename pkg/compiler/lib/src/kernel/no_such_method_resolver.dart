@@ -11,16 +11,19 @@ class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
 
   @override
   bool hasForwardingSyntax(KFunction method) {
-    return false;
+    throw new UnimplementedError(
+        "KernelNoSuchMethodResolver.hasForwardingSyntax");
   }
 
   @override
   bool hasThrowingSyntax(KFunction method) {
-    return false;
+    throw new UnimplementedError(
+        "KernelNoSuchMethodResolver.hasThrowingSyntax");
   }
 
   @override
   FunctionEntity getSuperNoSuchMethod(FunctionEntity method) {
-    return null;
+    throw new UnimplementedError(
+        "KernelNoSuchMethodResolver.getSuperNoSuchMethod");
   }
 }

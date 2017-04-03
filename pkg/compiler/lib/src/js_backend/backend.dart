@@ -843,13 +843,18 @@ class JavaScriptBackend {
       CompilerTask task, Compiler compiler) {
     _nativeBasicData =
         nativeBasicDataBuilder.close(compiler.elementEnvironment);
+    _backendClasses = new JavaScriptBackendClasses(
+        compiler.elementEnvironment, helpers, nativeBasicData);
     _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
-        compiler,
+        compiler.options,
+        compiler.elementEnvironment,
+        commonElements,
+        helpers,
+        backendClasses,
+        backendUsageBuilder,
         new NativeClassResolverImpl(
             compiler.resolution, reporter, helpers, nativeBasicData));
     _nativeData = new NativeDataImpl(nativeBasicData);
-    _backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, helpers, nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
         compiler.resolution,
         constantSystem,
@@ -865,7 +870,7 @@ class JavaScriptBackend {
         commonElements,
         impacts,
         nativeBasicData,
-        nativeResolutionEnqueuer,
+        _nativeResolutionEnqueuer,
         backendUsageBuilder,
         mirrorsDataBuilder,
         customElementsResolutionAnalysis,
@@ -896,7 +901,7 @@ class JavaScriptBackend {
             lookupMapResolutionAnalysis,
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
-            nativeResolutionEnqueuer,
+            _nativeResolutionEnqueuer,
             kernelTask),
         new ElementResolutionWorldBuilder(
             this, compiler.resolution, const OpenWorldStrategy()),
@@ -926,7 +931,14 @@ class JavaScriptBackend {
         helpers,
         nativeBasicData);
     _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
-        compiler, emitter, _nativeResolutionEnqueuer);
+        compiler.options,
+        compiler.elementEnvironment,
+        commonElements,
+        helpers,
+        backendClasses,
+        emitter,
+        _nativeResolutionEnqueuer,
+        nativeData);
     return new CodegenEnqueuer(
         task,
         compiler.options,
@@ -1019,6 +1031,8 @@ class JavaScriptBackend {
     return worldImpact;
   }
 
+  // TODO(johnniwinther): Remove this. It is now only used for testing.
+  @deprecated
   native.NativeEnqueuer get nativeResolutionEnqueuer =>
       _nativeResolutionEnqueuer;
 

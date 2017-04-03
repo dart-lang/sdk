@@ -23,9 +23,11 @@ import '../js_backend/backend_helpers.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
+import '../native/resolver.dart';
 import 'element_adapter.dart';
 import 'elements.dart';
 
+part 'native_class_resolver.dart';
 part 'no_such_method_resolver.dart';
 
 /// World builder used for creating elements and types corresponding to Kernel
@@ -547,6 +549,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments) {
     return new InterfaceType(cls, typeArguments);
+  }
+
+  @override
+  bool isSubtype(DartType a, DartType b) {
+    throw new UnimplementedError('KernelElementEnvironment.isSubtype');
   }
 
   @override
