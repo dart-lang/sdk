@@ -13,6 +13,9 @@
 
 ### Tool Changes
 
+* `pub build` will use a failing exit code if there are errors in any
+  transformer.
+
 ## 1.23.0
 
 ### Language
