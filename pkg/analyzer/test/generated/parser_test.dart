@@ -99,10 +99,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   CompilationUnit parseCompilationUnit(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
 
-  /// TODO(paulberry): merge with [parseCompilationUnit]
-  CompilationUnit parseCompilationUnitWithOptions(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
-
   ConditionalExpression parseConditionalExpression(String code);
 
   Expression parseConstExpression(String code);
@@ -1787,7 +1783,7 @@ class C {
   }
 
   void test_topLevelFunction_nestedGenericFunction() {
-    parseCompilationUnitWithOptions('''
+    parseCompilationUnit('''
 void f() {
   void g<T>() {
   }

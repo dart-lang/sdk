@@ -411,7 +411,60 @@ class AstBuilder extends ScopeListener {
 
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
-    push(popList(count));
+    List<Object> initializerObjects = popList(count) ?? const [];
+
+    var initializers = <ConstructorInitializer>[];
+    for (Object initializerObject in initializerObjects) {
+      if (initializerObject is FunctionExpressionInvocation) {
+        Expression function = initializerObject.function;
+        if (function is SuperExpression) {
+          initializers.add(ast.superConstructorInvocation(function.superKeyword,
+              null, null, initializerObject.argumentList));
+        } else {
+          initializers.add(ast.redirectingConstructorInvocation(
+              (function as ThisExpression).thisKeyword,
+              null,
+              null,
+              initializerObject.argumentList));
+        }
+      } else if (initializerObject is MethodInvocation) {
+        Expression target = initializerObject.target;
+        if (target is SuperExpression) {
+          initializers.add(ast.superConstructorInvocation(
+              target.superKeyword,
+              initializerObject.operator,
+              initializerObject.methodName,
+              initializerObject.argumentList));
+        } else {
+          initializers.add(ast.redirectingConstructorInvocation(
+              (target as ThisExpression).thisKeyword,
+              initializerObject.operator,
+              initializerObject.methodName,
+              initializerObject.argumentList));
+        }
+      } else if (initializerObject is AssignmentExpression) {
+        analyzer.Token thisKeyword;
+        analyzer.Token period;
+        SimpleIdentifier fieldName;
+        Expression left = initializerObject.leftHandSide;
+        if (left is PropertyAccess) {
+          var thisExpression = left.target as ThisExpression;
+          thisKeyword = thisExpression.thisKeyword;
+          period = left.operator;
+          fieldName = left.propertyName;
+        } else {
+          fieldName = left as SimpleIdentifier;
+        }
+        initializers.add(ast.constructorFieldInitializer(
+            thisKeyword,
+            period,
+            fieldName,
+            initializerObject.operator,
+            initializerObject.rightHandSide));
+      }
+    }
+
+    push(initializers);
   }
 
   void endVariableInitializer(Token assignmentOperator) {
@@ -1576,7 +1629,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Method");
     FunctionBody body = pop();
     ConstructorName redirectedConstructor = null; // TODO(paulberry)
-    List<Object> initializerObjects = pop() ?? const [];
+    List<ConstructorInitializer> initializers = pop() ?? const [];
     Token separator = null; // TODO(paulberry)
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop(); // TODO(paulberry)
@@ -1585,57 +1638,6 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-
-    var initializers = <ConstructorInitializer>[];
-    for (Object initializerObject in initializerObjects) {
-      if (initializerObject is FunctionExpressionInvocation) {
-        Expression function = initializerObject.function;
-        if (function is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(function.superKeyword,
-              null, null, initializerObject.argumentList));
-        } else {
-          initializers.add(ast.redirectingConstructorInvocation(
-              (function as ThisExpression).thisKeyword,
-              null,
-              null,
-              initializerObject.argumentList));
-        }
-      } else if (initializerObject is MethodInvocation) {
-        Expression target = initializerObject.target;
-        if (target is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(
-              target.superKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        } else {
-          initializers.add(ast.redirectingConstructorInvocation(
-              (target as ThisExpression).thisKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        }
-      } else if (initializerObject is AssignmentExpression) {
-        analyzer.Token thisKeyword;
-        analyzer.Token period;
-        SimpleIdentifier fieldName;
-        Expression left = initializerObject.leftHandSide;
-        if (left is PropertyAccess) {
-          var thisExpression = left.target as ThisExpression;
-          thisKeyword = thisExpression.thisKeyword;
-          period = left.operator;
-          fieldName = left.propertyName;
-        } else {
-          fieldName = left as SimpleIdentifier;
-        }
-        initializers.add(ast.constructorFieldInitializer(
-            thisKeyword,
-            period,
-            fieldName,
-            initializerObject.operator,
-            initializerObject.rightHandSide));
-      }
-    }
 
     void constructor(SimpleIdentifier returnType, analyzer.Token period,
         SimpleIdentifier name) {

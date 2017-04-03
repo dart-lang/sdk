@@ -94,20 +94,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry): Fasta doesn't support asserts in initializers
     super.test_parseConstructor_assert();
   }
-
-  @override
-  @failingTest
-  void test_parseConstructorFieldInitializer_qualified() {
-    // TODO(paulberry): Unhandled event: ThisExpression
-    super.test_parseConstructorFieldInitializer_qualified();
-  }
-
-  @override
-  @failingTest
-  void test_parseConstructorFieldInitializer_unqualified() {
-    // TODO(paulberry): Expected: an object with length of <1>
-    super.test_parseConstructorFieldInitializer_unqualified();
-  }
 }
 
 /**
@@ -149,15 +135,14 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_equalityExpression_normal() {
-    // TODO(paulberry,ahe): bad error recovery
+    // TODO(scheglov) error checking is not implemented
     super.test_equalityExpression_normal();
   }
 
   @override
   @failingTest
   void test_equalityExpression_super() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
+    // TODO(scheglov) error checking is not implemented
     super.test_equalityExpression_super();
   }
 
@@ -173,13 +158,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   void test_logicalOrExpression_precedence_nullableType() {
     // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
     super.test_logicalOrExpression_precedence_nullableType();
-  }
-
-  @override
-  @failingTest
-  void test_topLevelFunction_nestedGenericFunction() {
-    // TODO(paulberry): Implement parseCompilationUnitWithOptions
-    super.test_topLevelFunction_nestedGenericFunction();
   }
 }
 
