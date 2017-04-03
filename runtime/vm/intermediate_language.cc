@@ -3972,15 +3972,6 @@ void NativeCallInstr::SetupNative() {
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
-
-  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
-  set_is_bootstrap_native(is_bootstrap_native);
-
-  if (link_lazily() && !is_bootstrap_native) {
-    return;
-  }
-
   const int num_params =
       NativeArguments::ParameterCountForResolution(function());
   bool auto_setup_scope = true;
@@ -3994,6 +3985,9 @@ void NativeCallInstr::SetupNative() {
   }
   set_native_c_function(native_function);
   function().SetIsNativeAutoSetupScope(auto_setup_scope);
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
+  set_is_bootstrap_native(is_bootstrap_native);
 }
 
 #undef __
