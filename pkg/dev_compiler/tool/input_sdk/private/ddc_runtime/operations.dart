@@ -470,8 +470,16 @@ final _ignoreTypeFailure = JS(
       // TODO(vsm): Remove this hack ...
       // This is primarily due to the lack of generic methods,
       // but we need to triage all the types.
+    if ($_isFutureOr(type)) {
+      // Ignore if we would ignore either side of union.
+      let typeArg = $getGenericArgs(type)[0];
+      let typeFuture = ${getGenericClass(Future)}(typeArg);
+      return $_ignoreTypeFailure(actual, typeFuture) ||
+        $_ignoreTypeFailure(actual, typeArg);
+    }
+
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
-        !!$isSubtype(type, $FutureOr) && !!$isSubtype(actual, $Future) ||
+        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
         !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
         $isFunctionType(type) && $isFunctionType(actual) ||
         !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream) ||
