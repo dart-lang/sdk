@@ -509,7 +509,10 @@ Expression* Expression::ReadFrom(Reader* reader) {
 
 InvalidExpression* InvalidExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  return new InvalidExpression();
+  InvalidExpression* invalid_expression = new InvalidExpression();
+  invalid_expression->kernel_offset_ =
+      reader->offset() - 1;  // -1 to include tag byte.
+  return invalid_expression;
 }
 
 
@@ -739,7 +742,10 @@ AsExpression* AsExpression::ReadFrom(Reader* reader) {
 
 StringLiteral* StringLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  return new StringLiteral(Reference::ReadStringFrom(reader));
+  intptr_t offset = reader->offset() - 1;  // -1 to include tag byte.
+  StringLiteral* lit = new StringLiteral(Reference::ReadStringFrom(reader));
+  lit->kernel_offset_ = offset;
+  return lit;
 }
 
 
@@ -752,6 +758,7 @@ BigintLiteral* BigintLiteral::ReadFrom(Reader* reader) {
 IntLiteral* IntLiteral::ReadFrom(Reader* reader, bool is_negative) {
   TRACE_READ_OFFSET();
   IntLiteral* literal = new IntLiteral();
+  literal->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   literal->value_ = is_negative ? -static_cast<int64_t>(reader->ReadUInt())
                                 : reader->ReadUInt();
   return literal;
@@ -761,6 +768,7 @@ IntLiteral* IntLiteral::ReadFrom(Reader* reader, bool is_negative) {
 IntLiteral* IntLiteral::ReadFrom(Reader* reader, uint8_t payload) {
   TRACE_READ_OFFSET();
   IntLiteral* literal = new IntLiteral();
+  literal->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   literal->value_ = static_cast<int32_t>(payload) - SpecializedIntLiteralBias;
   return literal;
 }
@@ -777,6 +785,7 @@ DoubleLiteral* DoubleLiteral::ReadFrom(Reader* reader) {
 BoolLiteral* BoolLiteral::ReadFrom(Reader* reader, bool value) {
   TRACE_READ_OFFSET();
   BoolLiteral* lit = new BoolLiteral();
+  lit->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   lit->value_ = value;
   return lit;
 }
@@ -784,7 +793,9 @@ BoolLiteral* BoolLiteral::ReadFrom(Reader* reader, bool value) {
 
 NullLiteral* NullLiteral::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  return new NullLiteral();
+  NullLiteral* lit = new NullLiteral();
+  lit->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
+  return lit;
 }
 
 
@@ -806,7 +817,9 @@ TypeLiteral* TypeLiteral::ReadFrom(Reader* reader) {
 
 ThisExpression* ThisExpression::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  return new ThisExpression();
+  ThisExpression* this_expr = new ThisExpression();
+  this_expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
+  return this_expr;
 }
 
 

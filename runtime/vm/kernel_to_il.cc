@@ -1041,6 +1041,11 @@ dart::String& TranslationHelper::DartSymbol(String* content) const {
       Z, dart::Symbols::FromUTF8(thread_, content->buffer(), content->size()));
 }
 
+dart::String& TranslationHelper::DartSymbol(const uint8_t* utf8_array,
+                                            intptr_t len) const {
+  return dart::String::ZoneHandle(
+      Z, dart::Symbols::FromUTF8(thread_, utf8_array, len));
+}
 
 const dart::String& TranslationHelper::DartClassName(
     CanonicalName* kernel_class) {
@@ -4283,25 +4288,22 @@ ArgumentArray FlowGraphBuilder::GetArguments(int count) {
 
 
 void FlowGraphBuilder::VisitInvalidExpression(InvalidExpression* node) {
-  // The frontend will take care of emitting normal errors (like
-  // [NoSuchMethodError]s) and only emit [InvalidExpression]s in very special
-  // situations (e.g. an invalid annotation).
-  fragment_ = ThrowNoSuchMethodError();
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitNullLiteral(NullLiteral* node) {
-  fragment_ = Constant(Instance::ZoneHandle(Z, Instance::null()));
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitBoolLiteral(BoolLiteral* node) {
-  fragment_ = Constant(Bool::Get(node->value()));
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 
 void FlowGraphBuilder::VisitIntLiteral(IntLiteral* node) {
-  fragment_ = IntConstant(node->value());
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 
@@ -4317,7 +4319,7 @@ void FlowGraphBuilder::VisitDoubleLiteral(DoubleLiteral* node) {
 
 
 void FlowGraphBuilder::VisitStringLiteral(StringLiteral* node) {
-  fragment_ = Constant(H.DartSymbol(node->value()));
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 
@@ -5214,7 +5216,7 @@ void FlowGraphBuilder::VisitNot(Not* node) {
 
 
 void FlowGraphBuilder::VisitThisExpression(ThisExpression* node) {
-  fragment_ = LoadLocal(scopes_->this_variable);
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 

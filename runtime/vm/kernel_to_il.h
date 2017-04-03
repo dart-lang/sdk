@@ -302,6 +302,7 @@ class TranslationHelper {
 
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
+  dart::String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
 
   const dart::String& DartClassName(CanonicalName* kernel_class);
 
