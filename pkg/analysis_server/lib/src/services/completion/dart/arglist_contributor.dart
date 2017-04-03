@@ -286,19 +286,6 @@ class ArgListContributor extends DartCompletionContributor {
     }
   }
 
-  String _getDefaultValue(ParameterElement param, IdeOptions options) {
-    if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
-      Element element = param.enclosingElement;
-      if (element is ConstructorElement) {
-        if (isFlutterWidget(element.enclosingElement) &&
-            param.name == 'children') {
-          return getDefaultStringParameterValue(param);
-        }
-      }
-    }
-    return null;
-  }
-
   void _addSuggestions(Iterable<ParameterElement> parameters) {
     if (parameters == null || parameters.length == 0) {
       return;
@@ -320,6 +307,19 @@ class ArgListContributor extends DartCompletionContributor {
     } else if (_isInsertingToArgListWithSynthetic(request)) {
       _addDefaultParamSuggestions(parameters);
     }
+  }
+
+  String _getDefaultValue(ParameterElement param, IdeOptions options) {
+    if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
+      Element element = param.enclosingElement;
+      if (element is ConstructorElement) {
+        if (isFlutterWidget(element.enclosingElement) &&
+            param.name == 'children') {
+          return getDefaultStringParameterValue(param);
+        }
+      }
+    }
+    return null;
   }
 
   /**

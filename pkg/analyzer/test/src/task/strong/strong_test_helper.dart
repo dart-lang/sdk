@@ -308,7 +308,7 @@ class AbstractStrongTest {
           _resourceProvider,
           new MemoryByteStore(),
           fileContentOverlay,
-          'test',
+          null,
           sourceFactory,
           analysisOptions);
       scheduler.start();

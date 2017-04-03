@@ -4,12 +4,12 @@
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
-import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 
 /**
  * An object that watches the results produced by analysis drivers to identify
@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
  * associated with them, causes the plugin to be associated with the driver's
  * context root (which in turn might cause the plugin to be started).
  */
-class PluginWatcher {
+class PluginWatcher implements DriverWatcher {
   /**
    * The resource provider used to access the file system.
    */

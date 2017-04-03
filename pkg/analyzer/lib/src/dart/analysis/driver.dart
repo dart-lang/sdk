@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
@@ -81,11 +82,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   static int allowedNumberOfContextsToWrite = 10;
 
   /**
-   * The name of the driver, e.g. the name of the folder.
-   */
-  final String name;
-
-  /**
    * The scheduler that schedules analysis work in this, and possibly other
    * analysis drivers.
    */
@@ -139,6 +135,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * If `true`, then analysis should be done without using tasks model.
    */
   final bool analyzeWithoutTasks;
+
+  /**
+   * Information about the context root being analyzed by this driver.
+   */
+  final ContextRoot contextRoot;
 
   /**
    * The salt to mix into all hashes used as keys for serialized data.
@@ -209,6 +210,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _resultController = new StreamController<AnalysisResult>();
 
   /**
+   * The stream that will be written to when analysis results are produced.
+   */
+  Stream<AnalysisResult> _onResults;
+
+  /**
    * Resolution signatures of the most recently produced results for files.
    */
   final Map<String, String> _lastProducedSignatures = {};
@@ -248,7 +254,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this._resourceProvider,
       this._byteStore,
       this._contentOverlay,
-      this.name,
+      this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
       {PackageBundle sdkBundle,
@@ -256,6 +262,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle {
+    _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker(logger);
     _scheduler.add(this);
@@ -299,6 +306,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * not been processed yet, it might be missing.
    */
   Set<String> get knownFiles => _fileTracker.fsState.knownFilePaths;
+
+  /**
+   * Return the path of the folder at the root of the context.
+   */
+  String get name => contextRoot?.root ?? '';
 
   /**
    * Return the number of files scheduled for analysis.
@@ -351,7 +363,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Results might be produced even for files that have never been added
    * using [addFile], for example when [getResult] was called for a file.
    */
-  Stream<AnalysisResult> get results => _resultController.stream;
+  Stream<AnalysisResult> get results => _onResults;
 
   /**
    * Return the search support for the driver.
@@ -1239,8 +1251,24 @@ class AnalysisDriver implements AnalysisDriverGeneric {
  * scheduler is used)
  */
 abstract class AnalysisDriverGeneric {
+  /**
+   * Information about the context root being analyzed by this driver.
+   */
+  ContextRoot get contextRoot;
+
+  /**
+   * Return `true` if the driver has a file to analyze.
+   */
   bool get hasFilesToAnalyze;
+
+  /**
+   * Return the priority of work that the driver needs to perform.
+   */
   AnalysisDriverPriority get workPriority;
+
+  /**
+   * Perform a single chunk of work and produce [results].
+   */
   Future<Null> performWork();
 }
 
@@ -1278,13 +1306,19 @@ class AnalysisDriverScheduler {
   static const int _NUMBER_OF_EVENT_QUEUE_PUMPINGS = 128;
 
   final PerformanceLog _logger;
+
+  /**
+   * The object used to watch as analysis drivers are created and deleted.
+   */
+  final DriverWatcher driverWatcher;
+
   final List<AnalysisDriverGeneric> _drivers = [];
   final Monitor _hasWork = new Monitor();
   final StatusSupport _statusSupport = new StatusSupport();
 
   bool _started = false;
 
-  AnalysisDriverScheduler(this._logger);
+  AnalysisDriverScheduler(this._logger, {this.driverWatcher});
 
   /**
    * Return `true` if we are currently analyzing code.
@@ -1314,6 +1348,7 @@ class AnalysisDriverScheduler {
   void add(AnalysisDriverGeneric driver) {
     _drivers.add(driver);
     _hasWork.notify();
+    driverWatcher?.addedDriver(driver, driver.contextRoot);
   }
 
   /**
@@ -1350,6 +1385,7 @@ class AnalysisDriverScheduler {
    * asked to perform any new work.
    */
   void _remove(AnalysisDriverGeneric driver) {
+    driverWatcher?.removedDriver(driver);
     _drivers.remove(driver);
     _hasWork.notify();
   }
@@ -1522,6 +1558,24 @@ class AnalysisResult {
       this.unit,
       this.errors,
       this._index);
+}
+
+/**
+ * An object that watches for the creation and removal of analysis drivers.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class DriverWatcher {
+  /**
+   * The context manager has just added the given analysis [driver]. This method
+   * must be called before the driver has been allowed to perform any analysis.
+   */
+  void addedDriver(AnalysisDriver driver, ContextRoot contextRoot);
+
+  /**
+   * The context manager has just removed the given analysis [driver].
+   */
+  void removedDriver(AnalysisDriver driver);
 }
 
 /**

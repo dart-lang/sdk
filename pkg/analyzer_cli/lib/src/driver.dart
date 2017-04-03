@@ -586,7 +586,7 @@ class Driver implements CommandLineStarter {
           resourceProvider,
           analysisDriverMemoryByteStore,
           new FileContentOverlay(),
-          'test',
+          null,
           context.sourceFactory,
           context.analysisOptions);
       analysisDriver.results.listen((_) {});

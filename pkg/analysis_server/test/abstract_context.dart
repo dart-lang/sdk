@@ -165,7 +165,7 @@ class Required {
           provider,
           new MemoryByteStore(),
           _fileContentOverlay,
-          'test',
+          null,
           sourceFactory,
           new AnalysisOptionsImpl());
       scheduler.start();

@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -2706,9 +2707,12 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
       : currentDriver.sourceFactory;
 
   @override
-  AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options) {
+  AnalysisDriver addAnalysisDriver(
+      Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
     String path = folder.path;
     expect(currentContextRoots, isNot(contains(path)));
+    expect(contextRoot, isNotNull);
+    expect(contextRoot.root, path);
     currentContextTimestamps[path] = now;
 
     ContextBuilder builder =
@@ -2724,7 +2728,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
         resourceProvider,
         new MemoryByteStore(),
         new FileContentOverlay(),
-        path,
+        contextRoot,
         sourceFactory,
         analysisOptions);
     driverMap[path] = currentDriver;

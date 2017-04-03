@@ -7,6 +7,7 @@ library analyzer.src.context.context_builder;
 import 'dart:collection';
 import 'dart:core';
 
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -157,7 +158,8 @@ class ContextBuilder {
    * Return an analysis driver that is configured correctly to analyze code in
    * the directory with the given [path].
    */
-  AnalysisDriver buildDriver(String path) {
+  AnalysisDriver buildDriver(ContextRoot contextRoot) {
+    String path = contextRoot.root;
     AnalysisOptions options = getAnalysisOptions(path);
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
@@ -167,7 +169,7 @@ class ContextBuilder {
         resourceProvider,
         byteStore,
         fileContentOverlay,
-        path,
+        contextRoot,
         sf,
         options);
     // temporary plugin support:

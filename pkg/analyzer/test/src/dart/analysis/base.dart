@@ -113,7 +113,7 @@ class BaseAnalysisDriverTest {
         provider,
         byteStore,
         contentOverlay,
-        'test',
+        null,
         new SourceFactory([
           new DartUriResolver(sdk),
           generatedUriResolver,
