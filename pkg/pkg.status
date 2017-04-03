@@ -38,6 +38,8 @@ front_end/test/fasta/kompile_test: Pass, Slow
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
 
+front_end/test/fasta/analyze_test: Pass, Slow
+
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
