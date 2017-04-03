@@ -10,7 +10,7 @@ import 'dart:convert' show LineSplitter, UTF8;
 
 import 'dart:io' show File, Process;
 
-import '../testing.dart' show dartSdk;
+import '../testing.dart' show startDart;
 
 import 'log.dart' show isVerbose;
 
@@ -107,10 +107,10 @@ Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
 Future<Null> analyzeUris(Uri analysisOptions, Uri packages, List<Uri> uris,
     List<RegExp> exclude) async {
   if (uris.isEmpty) return;
-  const String analyzerPath = "bin/dartanalyzer";
-  Uri analyzer = dartSdk.resolve(analyzerPath);
+  const String analyzerPath = "pkg/analyzer_cli/bin/analyzer.dart";
+  Uri analyzer = Uri.base.resolve(analyzerPath);
   if (!await new File.fromUri(analyzer).exists()) {
-    throw "Couldn't find '$analyzerPath' in '${dartSdk.toFilePath()}'";
+    throw "Couldn't find '$analyzerPath' in '${Uri.base.toFilePath()}'";
   }
   List<String> arguments = <String>[
     "--packages=${packages.toFilePath()}",
@@ -127,7 +127,7 @@ Future<Null> analyzeUris(Uri analysisOptions, Uri packages, List<Uri> uris,
     print("Running dartanalyzer.");
   }
   Stopwatch sw = new Stopwatch()..start();
-  Process process = await Process.start(analyzer.toFilePath(), arguments);
+  Process process = await startDart(analyzer, arguments);
   process.stdin.close();
   Future stdoutFuture = parseAnalyzerOutput(process.stdout).toList();
   Future stderrFuture = parseAnalyzerOutput(process.stderr).toList();
