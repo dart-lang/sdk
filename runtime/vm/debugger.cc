@@ -1972,7 +1972,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
-  if (!FLAG_async_debugger_stepping) {
+  if (!FLAG_causal_async_stacks) {
     return NULL;
   }
   // Causal async stacks are not supported in the AOT runtime.
