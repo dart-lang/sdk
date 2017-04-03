@@ -1693,7 +1693,6 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     // Under lazy compilation initializer has not yet been created, so create
     // it now, but don't bother remembering it because it won't be used again.
     ASSERT(!field.HasPrecompiledInitializer());
-    Function& initializer = Function::Handle(thread->zone());
     {
 #if !defined(PRODUCT)
       VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
@@ -1721,22 +1720,21 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       // Non-optimized code generator.
       DartCompilationPipeline pipeline;
       CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
-      helper.Compile(&pipeline);
-      initializer = parsed_function->function().raw();
-      Code::Handle(initializer.unoptimized_code())
-          .set_var_descriptors(Object::empty_var_descriptors());
+      const Code& code = Code::Handle(helper.Compile(&pipeline));
+      if (!code.IsNull()) {
+        const Function& initializer = parsed_function->function();
+        code.set_var_descriptors(Object::empty_var_descriptors());
+        // Invoke the function to evaluate the expression.
+        return DartEntry::InvokeFunction(initializer, Object::empty_array());
+      }
     }
-    // Invoke the function to evaluate the expression.
-    return DartEntry::InvokeFunction(initializer, Object::empty_array());
-  } else {
-    Thread* const thread = Thread::Current();
-    StackZone zone(thread);
-    const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
-    thread->clear_sticky_error();
-    return error.raw();
   }
-  UNREACHABLE();
-  return Object::null();
+
+  Thread* const thread = Thread::Current();
+  StackZone zone(thread);
+  const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
+  thread->clear_sticky_error();
+  return error.raw();
 }
 
 
@@ -1799,21 +1797,19 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Non-optimized code generator.
     DartCompilationPipeline pipeline;
     CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
-    helper.Compile(&pipeline);
-    Code::Handle(func.unoptimized_code())
-        .set_var_descriptors(Object::empty_var_descriptors());
-
-    const Object& result = PassiveObject::Handle(
-        DartEntry::InvokeFunction(func, Object::empty_array()));
-    return result.raw();
-  } else {
-    Thread* const thread = Thread::Current();
-    const Object& result = PassiveObject::Handle(thread->sticky_error());
-    thread->clear_sticky_error();
-    return result.raw();
+    const Code& code = Code::Handle(helper.Compile(&pipeline));
+    if (!code.IsNull()) {
+      code.set_var_descriptors(Object::empty_var_descriptors());
+      const Object& result = PassiveObject::Handle(
+          DartEntry::InvokeFunction(func, Object::empty_array()));
+      return result.raw();
+    }
   }
-  UNREACHABLE();
-  return Object::null();
+
+  Thread* const thread = Thread::Current();
+  const Object& result = PassiveObject::Handle(thread->sticky_error());
+  thread->clear_sticky_error();
+  return result.raw();
 }
 
 

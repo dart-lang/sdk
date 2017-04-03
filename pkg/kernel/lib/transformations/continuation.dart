@@ -794,6 +794,10 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         }
       }
     }
+    // In an "Future<FooBar> foo() async {}" function the body can either return
+    // a "FooBar" or a "Future<FooBar>" => a "FutureOr<FooBar>".
+    returnType =
+        new InterfaceType(helper.futureOrClass, <DartType>[returnType]);
     var completerTypeArguments = <DartType>[returnType];
     var completerType =
         new InterfaceType(helper.completerClass, completerTypeArguments);
@@ -871,6 +875,7 @@ class HelperNodes {
   final Library coreLibrary;
   final Class iteratorClass;
   final Class futureClass;
+  final Class futureOrClass;
   final Class completerClass;
   final Procedure printProcedure;
   final Procedure completerConstructor;
@@ -888,6 +893,7 @@ class HelperNodes {
       this.coreLibrary,
       this.iteratorClass,
       this.futureClass,
+      this.futureOrClass,
       this.completerClass,
       this.printProcedure,
       this.completerConstructor,
@@ -907,6 +913,7 @@ class HelperNodes {
         coreTypes.getLibrary('dart:core'),
         coreTypes.getClass('dart:core', 'Iterator'),
         coreTypes.getClass('dart:async', 'Future'),
+        coreTypes.getClass('dart:async', 'FutureOr'),
         coreTypes.getClass('dart:async', 'Completer'),
         coreTypes.getTopLevelMember('dart:core', 'print'),
         coreTypes.getMember('dart:async', 'Completer', 'sync'),

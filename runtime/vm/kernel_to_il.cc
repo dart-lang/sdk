@@ -4956,9 +4956,8 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
   // Check for malbounded-ness of type.
   if (I->type_checks()) {
     List<DartType>& kernel_type_arguments = node->arguments()->types();
-    const TypeArguments& type_arguments = T.TranslateInstantiatedTypeArguments(
-        klass, kernel_type_arguments.raw_array(),
-        kernel_type_arguments.length());
+    const TypeArguments& type_arguments = T.TranslateTypeArguments(
+        kernel_type_arguments.raw_array(), kernel_type_arguments.length());
 
     AbstractType& type = AbstractType::Handle(
         Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
@@ -6434,33 +6433,37 @@ RawObject* BuildParameterDescriptor(TreeNode* const kernel_node) {
     ConstantEvaluator constant_evaluator(/* flow_graph_builder = */ NULL, Z,
                                          &translation_helper, &type_translator);
 
-
-    intptr_t param_count = function_node->positional_parameters().length() +
-                           function_node->named_parameters().length();
+    const intptr_t positional_count =
+        function_node->positional_parameters().length();
+    const intptr_t param_count =
+        positional_count + function_node->named_parameters().length();
     const Array& param_descriptor = Array::Handle(
         Array::New(param_count * Parser::kParameterEntrySize, Heap::kOld));
     for (intptr_t i = 0; i < param_count; ++i) {
+      const intptr_t entry_start = i * Parser::kParameterEntrySize;
+
       VariableDeclaration* variable;
-      if (i < function_node->positional_parameters().length()) {
+      if (i < positional_count) {
         variable = function_node->positional_parameters()[i];
       } else {
-        variable = function_node->named_parameters()[i];
+        variable = function_node->named_parameters()[i - positional_count];
       }
 
       param_descriptor.SetAt(
-          i + Parser::kParameterIsFinalOffset,
+          entry_start + Parser::kParameterIsFinalOffset,
           variable->IsFinal() ? Bool::True() : Bool::False());
 
       if (variable->initializer() != NULL) {
         param_descriptor.SetAt(
-            i + Parser::kParameterDefaultValueOffset,
+            entry_start + Parser::kParameterDefaultValueOffset,
             constant_evaluator.EvaluateExpression(variable->initializer()));
       } else {
-        param_descriptor.SetAt(i + Parser::kParameterDefaultValueOffset,
-                               Object::null_instance());
+        param_descriptor.SetAt(
+            entry_start + Parser::kParameterDefaultValueOffset,
+            Object::null_instance());
       }
 
-      param_descriptor.SetAt(i + Parser::kParameterMetadataOffset,
+      param_descriptor.SetAt(entry_start + Parser::kParameterMetadataOffset,
                              /* Issue(28434): Missing parameter metadata. */
                              Object::null_instance());
     }

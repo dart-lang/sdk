@@ -498,7 +498,6 @@ mirrors/generic_type_mirror_test: RuntimeError
 mirrors/hierarchy_invariants_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
-mirrors/immutable_collections_test: RuntimeError
 mirrors/inherited_metadata_test: RuntimeError
 mirrors/inherit_field_test: RuntimeError
 mirrors/initializing_formals_test/03: RuntimeError
@@ -590,14 +589,11 @@ mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError
 mirrors/mixin_test: RuntimeError
 mirrors/new_instance_with_type_arguments_test: RuntimeError
-mirrors/operator_test: RuntimeError
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_is_const_test/01: MissingCompileTimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
-mirrors/parameter_test/01: RuntimeError
-mirrors/parameter_test/none: RuntimeError
 mirrors/private_class_field_test: RuntimeError
 mirrors/private_symbol_mangling_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
@@ -648,3 +644,11 @@ profiler/metrics_num_test: CompileTimeError
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 async/stream_type_test: Crash
 mirrors/variable_is_const_test/01: Crash
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+mirrors/invocation_fuzz_test/smi: Fail
+mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
+mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
+mirrors/reflected_type_generics_test/02: Pass
+mirrors/regress_16321_test/01: MissingCompileTimeError

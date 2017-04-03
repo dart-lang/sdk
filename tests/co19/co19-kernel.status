@@ -102,18 +102,13 @@ Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
-Language/Expressions/Constants/bitwise_operators_t05: Crash
 Language/Expressions/Constants/bitwise_operators_t06: Crash
 Language/Expressions/Constants/constant_constructor_t03: MissingCompileTimeError
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
-Language/Expressions/Constants/exception_t01: Crash
-Language/Expressions/Constants/exception_t02: Crash
-Language/Expressions/Constants/exception_t03: Crash
 Language/Expressions/Constants/exception_t04: MissingCompileTimeError
-Language/Expressions/Constants/identical_t02: Crash
 Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError
 Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
@@ -122,8 +117,6 @@ Language/Expressions/Constants/literal_string_t05: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
-Language/Expressions/Constants/math_operators_t02: Crash
-Language/Expressions/Constants/math_operators_t03: Crash
 Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t10: MissingCompileTimeError
@@ -152,7 +145,6 @@ Language/Expressions/Instance_Creation/Const/constant_constructor_name_t02: Miss
 Language/Expressions/Instance_Creation/Const/constant_constructor_same_name_as_class_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/deferred_type_t01: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/deferred_type_t02: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/exception_t01: Crash
 Language/Expressions/Instance_Creation/New/evaluation_t06: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
@@ -483,3 +475,36 @@ Language/Overview/Scoping/hiding_declaration_t12: Crash
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
+Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t01: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t02: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t03: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t04: RuntimeError
+Language/Expressions/Constants/exception_t04: Pass
+Language/Expressions/Constants/logical_expression_t02: Pass
+Language/Expressions/Constants/logical_expression_t04: Pass
+Language/Expressions/Constants/ternary_operator_t02: Pass
+Language/Generics/malformed_t02: RuntimeError
+Language/Statements/Return/runtime_type_t04: RuntimeError
+Language/Statements/Switch/execution_t01: RuntimeError
+Language/Statements/Switch/type_t01: RuntimeError
+Language/Types/Dynamic_Type_System/malbounded_type_error_t01: RuntimeError
+Language/Types/Parameterized_Types/malbounded_t06: RuntimeError
+LibTest/collection/DoubleLinkedQueue/forEach_A01_t03: RuntimeError
+LibTest/collection/DoubleLinkedQueue/forEachEntry_A01_t03: RuntimeError
+LibTest/collection/HashMap/HashMap_class_A01_t01: RuntimeError
+LibTest/collection/LinkedHashMap/LinkedHashMap_class_A01_t01: RuntimeError
+LibTest/collection/MapBase/MapBase_class_A01_t01: RuntimeError
+LibTest/collection/MapMixin/MapMixin_class_A01_t01: RuntimeError
+LibTest/collection/Maps/putIfAbsent_A01_t07: RuntimeError
+LibTest/collection/Maps/putIfAbsent_A01_t08: RuntimeError
+LibTest/collection/MapView/MapView_class_A01_t01: RuntimeError
+LibTest/collection/SplayTreeMap/inherited_tests_A01_t01: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t06: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t07: RuntimeError
