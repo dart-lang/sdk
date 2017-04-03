@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -29,19 +30,12 @@ abstract class DartChangeBuilder extends ChangeBuilder {
  */
 abstract class DartEditBuilder extends EditBuilder {
   /**
-   * The group-id used for the name of a declaration.
+   * The edits in this builder will be inside the class with the given
+   * [element].
+   *
+   * TODO(brianwilkerson) Remove this method.
    */
-  static const String NAME_GROUP_ID = 'NAME';
-
-  /**
-   * The group-id used for the return type of a function, getter or method.
-   */
-  static const String RETURN_TYPE_GROUP_ID = 'RETURN_TYPE';
-
-  /**
-   * The group-id used for the name of the superclass in a class declaration.
-   */
-  static const String SUPERCLASS_GROUP_ID = 'SUPERCLASS';
+  void set targetClassElement(ClassElement element);
 
   /**
    * Write the code for a declaration of a class with the given [name]. If a
@@ -64,6 +58,25 @@ abstract class DartEditBuilder extends EditBuilder {
       String nameGroupName,
       DartType superclass,
       String superclassGroupName});
+
+  /**
+   * Write the code for a constructor declaration in the class with the given
+   * [className]. If [isConst] is `true`, then the constructor will be marked
+   * as being a `const` constructor. If a [constructorName] is provided, then
+   * the constructor will have the given name. If both a constructor name and a
+   * [constructorNameGroupName] is provided, then the name of the constructor
+   * will be included in the linked edit group with that name. If an
+   * [argumentList] is provided then the constructor will have parameters that
+   * match the given arguments. If no argument list is given, but a list of
+   * [fieldNames] is provided, then field formal parameters will be created for
+   * each of the field names.
+   */
+  void writeConstructorDeclaration(String className,
+      {ArgumentList argumentList,
+      SimpleIdentifier constructorName,
+      String constructorNameGroupName,
+      List<String> fieldNames,
+      bool isConst: false});
 
   /**
    * Write the code for a declaration of a field with the given [name]. If an
@@ -202,6 +215,18 @@ abstract class DartEditBuilder extends EditBuilder {
       {bool addSupertypeProposals: false,
       String groupName,
       bool required: false});
+
+  /**
+   * Write the code to declare the given [typeParameter]. The enclosing angle
+   * brackets are not automatically written.
+   */
+  void writeTypeParameter(TypeParameterElement typeParameter);
+
+  /**
+   * Write the code to declare the given list of [typeParameters]. The enclosing
+   * angle brackets are automatically written.
+   */
+  void writeTypeParameters(List<TypeParameterElement> typeParameters);
 }
 
 /**
@@ -224,6 +249,11 @@ abstract class DartFileEditBuilder extends FileEditBuilder {
    */
   void convertFunctionFromSyncToAsync(
       FunctionBody body, TypeProvider typeProvider);
+
+  /**
+   * Arrange to have imports added for each of the given [libraries].
+   */
+  void importLibraries(Iterable<Source> libraries);
 
   /**
    * Optionally create an edit to replace the given [typeAnnotation] with the

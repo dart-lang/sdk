@@ -46,11 +46,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
   Future<Null> addFileEdit(String path, int fileStamp,
       void buildFileEdit(FileEditBuilder builder)) async {
     FileEditBuilderImpl builder = await createFileEditBuilder(path, fileStamp);
-    try {
-      buildFileEdit(builder);
-    } finally {
-      _change.addFileEdit(builder.fileEdit);
-    }
+    buildFileEdit(builder);
+    _change.addFileEdit(builder.fileEdit);
+    builder.finalize();
   }
 
   /**
@@ -199,7 +197,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addLinkedPosition(int offset, int length, String groupName) {
     LinkedEditGroup group = changeBuilder.getLinkedEditGroup(groupName);
-    Position position = new Position(fileEdit.file, offset);
+    Position position =
+        new Position(fileEdit.file, offset + _deltaToOffset(offset));
     group.addPosition(position, length);
   }
 
@@ -236,6 +235,29 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   EditBuilderImpl createEditBuilder(int offset, int length) {
     return new EditBuilderImpl(this, offset, length);
+  }
+
+  /**
+   * Finalize the source file edit that is being built.
+   */
+  void finalize() {
+    // Nothing to do.
+  }
+
+  /**
+   * Return the current delta caused by edits that will be applied before the
+   * given [offset]. In other words, if all of the edits that have so far been
+   * added were to be applied, then the text at the given `offset` before the
+   * edits will be at `offset + deltaToOffset(offset)` after the edits.
+   */
+  int _deltaToOffset(int targetOffset) {
+    int offset = 0;
+    for (var edit in fileEdit.edits) {
+      if (edit.offset <= targetOffset) {
+        offset += edit.replacement.length - edit.length;
+      }
+    }
+    return offset;
   }
 }
 
