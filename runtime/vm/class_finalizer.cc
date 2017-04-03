@@ -927,6 +927,17 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                 String::Handle(super_type_arg.Name()).ToCString(),
                 ref_type.ToCString(), arguments.ToCString());
           }
+          // In the typical case of an F-bounded type, the instantiation of the
+          // super_type_arg from arguments is a fixpoint. Take the shortcut.
+          // Example: class B<T>; class D<T> extends B<D<T>>;
+          // While finalizing D<T>, the super type arg D<T> (a typeref) gets
+          // instantiated from vector [T], yielding itself.
+          //
+          if (super_type_arg.IsTypeRef() && super_type_arg.IsBeingFinalized() &&
+              (super_type_arg.arguments() == arguments.raw())) {
+            arguments.SetTypeAt(i, super_type_arg);
+            continue;
+          }
           Error& error = Error::Handle();
           super_type_arg = super_type_arg.InstantiateFrom(
               arguments, &error, instantiation_trail, NULL, Heap::kOld);
@@ -940,21 +951,18 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
               *bound_error = error.raw();
             }
           }
-          if (!super_type_arg.IsFinalized() &&
-              !super_type_arg.IsBeingFinalized()) {
+          if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
-            if (super_type_arg.IsTypeRef()) {
-              super_type_arg = TypeRef::Cast(super_type_arg).type();
-            }
-            Type::Cast(super_type_arg).SetIsBeingFinalized();
-            pending_types->Add(super_type_arg);
-            const Class& cls = Class::Handle(super_type_arg.type_class());
+            ASSERT(super_type_arg.IsTypeRef());
+            AbstractType& ref_super_type_arg =
+                AbstractType::Handle(TypeRef::Cast(super_type_arg).type());
+            ref_super_type_arg.SetIsFinalized();
+            const Class& cls = Class::Handle(ref_super_type_arg.type_class());
             FinalizeTypeArguments(
-                cls, TypeArguments::Handle(super_type_arg.arguments()),
+                cls, TypeArguments::Handle(ref_super_type_arg.arguments()),
                 cls.NumTypeArguments() - cls.NumTypeParameters(), bound_error,
                 pending_types, instantiation_trail);
-            Type::Cast(super_type_arg).SetIsFinalized();
           }
         }
       }

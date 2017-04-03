@@ -16957,11 +16957,6 @@ RawAbstractType* Type::InstantiateFrom(
   if (IsMalformed()) {
     return raw();
   }
-  // Instantiating this type with its own type arguments as instantiator can
-  // occur during finalization and bounds checking. Return the type unchanged.
-  if (arguments() == instantiator_type_arguments.raw()) {
-    return raw();
-  }
   // Note that the type class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time or
   // finalizing the type argument vector of a recursive type.
@@ -16991,6 +16986,9 @@ RawAbstractType* Type::InstantiateFrom(
     instantiated_type.SetIsFinalized();
   } else {
     instantiated_type.SetIsResolved();
+    if (IsBeingFinalized()) {
+      instantiated_type.SetIsBeingFinalized();
+    }
   }
   // Canonicalization is not part of instantiation.
   return instantiated_type.raw();
