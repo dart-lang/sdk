@@ -167,11 +167,18 @@ class ToAnalyzerTokenStreamConverter {
 
 /// Converts a single Fasta comment token to an analyzer comment token.
 analyzer.CommentToken toAnalyzerCommentToken(Token token) {
-  // TODO(paulberry,ahe): It would be nice if the scanner gave us an
-  // easier way to distinguish between the two types of comment.
-  var type = token.lexeme.startsWith('/*')
-      ? TokenType.MULTI_LINE_COMMENT
-      : TokenType.SINGLE_LINE_COMMENT;
+  TokenType type;
+  if (token.type == GENERIC_METHOD_TYPE_ASSIGN) {
+    type = TokenType.GENERIC_METHOD_TYPE_ASSIGN;
+  } else if (token.type == GENERIC_METHOD_TYPE_LIST) {
+    type = TokenType.GENERIC_METHOD_TYPE_LIST;
+  } else {
+    // TODO(paulberry,ahe): It would be nice if the scanner gave us an
+    // easier way to distinguish between the two types of comment.
+    type = token.lexeme.startsWith('/*')
+        ? TokenType.MULTI_LINE_COMMENT
+        : TokenType.SINGLE_LINE_COMMENT;
+  }
   return new analyzer.CommentToken(type, token.lexeme, token.charOffset);
 }
 
@@ -731,10 +738,10 @@ TokenType getTokenType(Token token) {
       return TokenType.BACKSLASH;
     case PERIOD_PERIOD_PERIOD_TOKEN:
       return TokenType.PERIOD_PERIOD_PERIOD;
-    // case GENERIC_METHOD_TYPE_LIST_TOKEN:
-    //   return TokenType.GENERIC_METHOD_TYPE_LIST;
-    // case GENERIC_METHOD_TYPE_ASSIGN_TOKEN:
-    //   return TokenType.GENERIC_METHOD_TYPE_ASSIGN;
+    case GENERIC_METHOD_TYPE_LIST_TOKEN:
+      return TokenType.GENERIC_METHOD_TYPE_LIST;
+    case GENERIC_METHOD_TYPE_ASSIGN_TOKEN:
+      return TokenType.GENERIC_METHOD_TYPE_ASSIGN;
     default:
       return internalError("Unhandled token ${token.info}");
   }

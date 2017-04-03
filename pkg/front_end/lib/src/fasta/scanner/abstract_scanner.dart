@@ -17,7 +17,8 @@ import 'keyword.dart' show KeywordState, Keyword;
 
 import 'precedence.dart';
 
-import 'token.dart' show BeginGroupToken, CommentToken, SymbolToken, Token;
+import 'token.dart'
+    show BeginGroupToken, CommentToken, DartDocToken, SymbolToken, Token;
 
 import 'token_constants.dart';
 
@@ -25,6 +26,12 @@ import 'characters.dart';
 
 abstract class AbstractScanner implements Scanner {
   final bool includeComments;
+
+  /**
+   * A flag indicating whether to parse generic method comments, of the form
+   * `/*=T*/` and `/*<T>*/`.  The flag [includeComments] must be set to `true`.
+   */
+  bool scanGenericMethodComments = false;
 
   /**
    * The string offset for the next token that will be created.
@@ -185,14 +192,34 @@ abstract class AbstractScanner implements Scanner {
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendGtGt(PrecedenceInfo info);
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendComment(start, PrecedenceInfo info, bool asciiOnly);
-
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendDartDoc(start, PrecedenceInfo info, bool asciiOnly);
-
   /// Append [token] to the token stream.
   void appendErrorToken(ErrorToken token);
+
+  /**
+   * Returns a new comment from the scan offset [start] to the current
+   * [scanOffset] plus the [extraOffset]. For example, if the current
+   * scanOffset is 10, then [appendSubstringToken(5, -1)] will append the
+   * substring string [5,9).
+   *
+   * Note that [extraOffset] can only be used if the covered character(s) are
+   * known to be ASCII.
+   */
+  CommentToken createCommentToken(
+      PrecedenceInfo info, int start, bool asciiOnly,
+      [int extraOffset = 0]);
+
+  /**
+   * Returns a new dartdoc from the scan offset [start] to the current
+   * [scanOffset] plus the [extraOffset]. For example, if the current
+   * scanOffset is 10, then [appendSubstringToken(5, -1)] will append the
+   * substring string [5,9).
+   *
+   * Note that [extraOffset] can only be used if the covered character(s) are
+   * known to be ASCII.
+   */
+  DartDocToken createDartDocToken(
+      PrecedenceInfo info, int start, bool asciiOnly,
+      [int extraOffset = 0]);
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   void discardOpenLt();
@@ -796,6 +823,63 @@ abstract class AbstractScanner implements Scanner {
       }
     }
     return next;
+  }
+
+  void appendComment(int start, PrecedenceInfo info, bool asciiOnly) {
+    if (!includeComments) return;
+    CommentToken newComment = createCommentToken(info, start, asciiOnly);
+    if (scanGenericMethodComments) {
+      String value = newComment.lexeme;
+      int length = value.length;
+      if (length > 5 &&
+          value.codeUnitAt(0) == $SLASH &&
+          value.codeUnitAt(1) == $STAR &&
+          value.codeUnitAt(2) == $EQ) {
+        newComment = new CommentToken.fromString(
+            GENERIC_METHOD_TYPE_ASSIGN, value, start);
+      } else if (length > 6 &&
+          value.codeUnitAt(0) == $SLASH &&
+          value.codeUnitAt(1) == $STAR &&
+          value.codeUnitAt(2) == $LT &&
+          value.codeUnitAt(length - 1) == $SLASH &&
+          value.codeUnitAt(length - 2) == $STAR &&
+          value.codeUnitAt(length - 3) == $GT) {
+        newComment =
+            new CommentToken.fromString(GENERIC_METHOD_TYPE_LIST, value, start);
+      }
+    }
+    _appendToCommentStream(newComment);
+  }
+
+  void appendDartDoc(int start, PrecedenceInfo info, bool asciiOnly) {
+    if (!includeComments) return;
+    Token newComment = createDartDocToken(info, start, asciiOnly);
+    _appendToCommentStream(newComment);
+  }
+
+  /**
+   * Append the given token to the [tail] of the current stream of tokens.
+   */
+  void appendToken(Token token) {
+    tail.next = token;
+    tail.next.previousToken = tail;
+    tail = tail.next;
+    if (comments != null) {
+      tail.precedingCommentTokens = comments;
+      comments = null;
+      commentsTail = null;
+    }
+  }
+
+  void _appendToCommentStream(Token newComment) {
+    if (comments == null) {
+      comments = newComment;
+      commentsTail = comments;
+    } else {
+      commentsTail.next = newComment;
+      commentsTail.next.previousToken = commentsTail;
+      commentsTail = commentsTail.next;
+    }
   }
 
   int tokenizeRawStringKeywordOrIdentifier(int next) {

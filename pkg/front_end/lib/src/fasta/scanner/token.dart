@@ -474,6 +474,12 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
             canonicalize: canonicalize);
 
   /**
+   * Creates a non-lazy comment token.
+   */
+  CommentToken.fromString(PrecedenceInfo info, String lexeme, int charOffset)
+      : super.fromString(info, lexeme, charOffset);
+
+  /**
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */

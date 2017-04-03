@@ -13,8 +13,6 @@ import 'precedence.dart' show PrecedenceInfo;
 import 'token.dart'
     show
         BeginGroupToken,
-        CommentToken,
-        DartDocToken,
         KeywordToken,
         StringToken,
         SymbolToken,
@@ -46,20 +44,6 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * ends. This field is set when scanning the end group token.
    */
   Link<BeginGroupToken> groupingStack = const Link<BeginGroupToken>();
-
-  /**
-   * Append the given token to the [tail] of the current stream of tokens.
-   */
-  void appendToken(Token token) {
-    tail.next = token;
-    tail.next.previousToken = tail;
-    tail = tail.next;
-    if (comments != null) {
-      tail.precedingCommentTokens = comments;
-      comments = null;
-      commentsTail = null;
-    }
-  }
 
   /**
    * Appends a fixed token whose kind and content is determined by [info].
@@ -231,29 +215,6 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     }
   }
 
-  void appendComment(start, PrecedenceInfo info, bool asciiOnly) {
-    if (!includeComments) return;
-    Token newComment = createCommentToken(info, start, asciiOnly);
-    _appendToCommentStream(newComment);
-  }
-
-  void appendDartDoc(start, PrecedenceInfo info, bool asciiOnly) {
-    if (!includeComments) return;
-    Token newComment = createDartDocToken(info, start, asciiOnly);
-    _appendToCommentStream(newComment);
-  }
-
-  void _appendToCommentStream(Token newComment) {
-    if (comments == null) {
-      comments = newComment;
-      commentsTail = comments;
-    } else {
-      commentsTail.next = newComment;
-      commentsTail.next.previousToken = commentsTail;
-      commentsTail = commentsTail.next;
-    }
-  }
-
   void appendErrorToken(ErrorToken token) {
     hasErrors = true;
     appendToken(token);
@@ -274,32 +235,6 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * known to be ASCII.
    */
   StringToken createSubstringToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
-      [int extraOffset = 0]);
-
-  /**
-   * Returns a new comment from the scan offset [start] to the current
-   * [scanOffset] plus the [extraOffset]. For example, if the current
-   * scanOffset is 10, then [appendSubstringToken(5, -1)] will append the
-   * substring string [5,9).
-   *
-   * Note that [extraOffset] can only be used if the covered character(s) are
-   * known to be ASCII.
-   */
-  CommentToken createCommentToken(
-      PrecedenceInfo info, int start, bool asciiOnly,
-      [int extraOffset = 0]);
-
-  /**
-   * Returns a new dartdoc from the scan offset [start] to the current
-   * [scanOffset] plus the [extraOffset]. For example, if the current
-   * scanOffset is 10, then [appendSubstringToken(5, -1)] will append the
-   * substring string [5,9).
-   *
-   * Note that [extraOffset] can only be used if the covered character(s) are
-   * known to be ASCII.
-   */
-  DartDocToken createDartDocToken(
       PrecedenceInfo info, int start, bool asciiOnly,
       [int extraOffset = 0]);
 

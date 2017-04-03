@@ -1036,10 +1036,10 @@ abstract class TokenType {
   static const TokenType PERIOD_PERIOD_PERIOD = fasta.PERIOD_PERIOD_PERIOD_INFO;
 
   static const TokenType GENERIC_METHOD_TYPE_LIST =
-      const fasta.PrecedenceInfo(null, 'GENERIC_METHOD_TYPE_LIST', 0, -1);
+      fasta.GENERIC_METHOD_TYPE_LIST;
 
   static const TokenType GENERIC_METHOD_TYPE_ASSIGN =
-      const fasta.PrecedenceInfo(null, 'GENERIC_METHOD_TYPE_ASSIGN', 0, -1);
+      fasta.GENERIC_METHOD_TYPE_ASSIGN;
 
   /**
    * The name of the token type.
