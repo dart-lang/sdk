@@ -27,9 +27,16 @@ class StreamingConstantEvaluator {
   virtual ~StreamingConstantEvaluator() {}
 
   Instance& EvaluateExpression();
+
+  void EvaluateSymbolLiteral();
   void EvaluateDoubleLiteral();
 
  private:
+  RawObject* EvaluateConstConstructorCall(const dart::Class& type_class,
+                                          const TypeArguments& type_arguments,
+                                          const Function& constructor,
+                                          const Object& argument);
+
   bool GetCachedConstant(intptr_t kernel_offset, Instance* value);
   void CacheConstantValue(intptr_t kernel_offset, const Instance& value);
 
@@ -96,8 +103,10 @@ class StreamingFlowGraphBuilder {
   Fragment IntConstant(int64_t value);
 
   Fragment BuildInvalidExpression();
+  Fragment BuildSymbolLiteral();
   Fragment BuildThisExpression();
   Fragment BuildRethrow();
+  Fragment BuildBigIntLiteral();
   Fragment BuildStringLiteral();
   Fragment BuildIntLiteral(uint8_t payload);
   Fragment BuildIntLiteral(bool is_negative);

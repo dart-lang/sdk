@@ -4316,8 +4316,7 @@ void FlowGraphBuilder::VisitIntLiteral(IntLiteral* node) {
 
 
 void FlowGraphBuilder::VisitBigintLiteral(BigintLiteral* node) {
-  const dart::String& value = H.DartString(node->value());
-  fragment_ = Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 
@@ -4332,7 +4331,7 @@ void FlowGraphBuilder::VisitStringLiteral(StringLiteral* node) {
 
 
 void FlowGraphBuilder::VisitSymbolLiteral(SymbolLiteral* node) {
-  fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
+  fragment_ = streaming_flow_graph_builder_->BuildAt(node->kernel_offset());
 }
 
 

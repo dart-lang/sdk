@@ -4,6 +4,8 @@
 
 #include "vm/kernel_binary_flowgraph.h"
 
+#include "vm/object_store.h"
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
@@ -11,6 +13,7 @@ namespace kernel {
 
 #define Z (zone_)
 #define H (translation_helper_)
+#define I Isolate::Current()
 
 StreamingConstantEvaluator::StreamingConstantEvaluator(
     StreamingFlowGraphBuilder* builder,
@@ -35,6 +38,9 @@ Instance& StreamingConstantEvaluator::EvaluateExpression() {
     uint8_t payload = 0;
     Tag tag = builder_->ReadTag(&payload);
     switch (tag) {
+      case kSymbolLiteral:
+        EvaluateSymbolLiteral();
+        break;
       case kDoubleLiteral:
         EvaluateDoubleLiteral();
         break;
@@ -49,10 +55,63 @@ Instance& StreamingConstantEvaluator::EvaluateExpression() {
   return dart::Instance::ZoneHandle(Z, result_.raw());
 }
 
+void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
+  int str_index = builder_->ReadUInt();
+  const dart::String& symbol_value = builder_->DartSymbol(str_index);
+
+  const dart::Class& symbol_class =
+      dart::Class::ZoneHandle(Z, I->object_store()->symbol_class());
+  ASSERT(!symbol_class.IsNull());
+  const dart::Function& symbol_constructor = Function::ZoneHandle(
+      Z, symbol_class.LookupConstructor(Symbols::SymbolCtor()));
+  ASSERT(!symbol_constructor.IsNull());
+  result_ ^= EvaluateConstConstructorCall(
+      symbol_class, TypeArguments::Handle(Z), symbol_constructor, symbol_value);
+}
+
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
   int str_index = builder_->ReadUInt();
   result_ = dart::Double::New(builder_->DartString(str_index), Heap::kOld);
   result_ = H.Canonicalize(result_);
+}
+
+RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
+    const dart::Class& type_class,
+    const TypeArguments& type_arguments,
+    const Function& constructor,
+    const Object& argument) {
+  // Factories have one extra argument: the type arguments.
+  // Constructors have 1 extra arguments: receiver.
+  const int kNumArgs = 1;
+  const int kNumExtraArgs = 1;
+  const int num_arguments = kNumArgs + kNumExtraArgs;
+  const Array& arg_values =
+      Array::Handle(Z, Array::New(num_arguments, Heap::kOld));
+  Instance& instance = Instance::Handle(Z);
+  if (!constructor.IsFactory()) {
+    instance = Instance::New(type_class, Heap::kOld);
+    if (!type_arguments.IsNull()) {
+      ASSERT(type_arguments.IsInstantiated());
+      instance.SetTypeArguments(
+          TypeArguments::Handle(Z, type_arguments.Canonicalize()));
+    }
+    arg_values.SetAt(0, instance);
+  } else {
+    // Prepend type_arguments to list of arguments to factory.
+    ASSERT(type_arguments.IsZoneHandle());
+    arg_values.SetAt(0, type_arguments);
+  }
+  arg_values.SetAt((0 + kNumExtraArgs), argument);
+  const Array& args_descriptor = Array::Handle(
+      Z, ArgumentsDescriptor::New(num_arguments, Object::empty_array()));
+  const Object& result = Object::Handle(
+      Z, DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
+  ASSERT(!result.IsError());
+  if (constructor.IsFactory()) {
+    // The factory method returns the allocated object.
+    instance ^= result.raw();
+  }
+  return H.Canonicalize(instance);
 }
 
 bool StreamingConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
@@ -161,8 +220,8 @@ Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
     //      return IsExpression::ReadFrom(reader_);
     //    case kAsExpression:
     //      return AsExpression::ReadFrom(reader_);
-    //    case kSymbolLiteral:
-    //      return SymbolLiteral::ReadFrom(reader_);
+    case kSymbolLiteral:
+      return BuildSymbolLiteral();
     //    case kTypeLiteral:
     //      return TypeLiteral::ReadFrom(reader_);
     case kThisExpression:
@@ -185,8 +244,8 @@ Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
     //      return FunctionExpression::ReadFrom(reader_);
     //    case kLet:
     //      return Let::ReadFrom(reader_);
-    //    case kBigIntLiteral:
-    //      return BigintLiteral::ReadFrom(reader_);
+    case kBigIntLiteral:
+      return BuildBigIntLiteral();
     case kStringLiteral:
       return BuildStringLiteral();
     case kSpecialIntLiteral:
@@ -334,6 +393,11 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression() {
   return ThrowNoSuchMethodError();
 }
 
+Fragment StreamingFlowGraphBuilder::BuildSymbolLiteral() {
+  SkipBytes(-1);  // EvaluateExpression needs the tag.
+  return Constant(constant_evaluator_.EvaluateExpression());
+}
+
 Fragment StreamingFlowGraphBuilder::BuildThisExpression() {
   return LoadLocal(scopes()->this_variable);
 }
@@ -348,6 +412,11 @@ Fragment StreamingFlowGraphBuilder::BuildRethrow() {
   instructions += RethrowException(position, catch_block()->catch_try_index());
 
   return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral() {
+  const dart::String& value = DartString(ReadUInt());
+  return Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral() {
