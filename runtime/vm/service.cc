@@ -3265,6 +3265,9 @@ static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
       Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+#if defined(DEBUG)
+  Isolate::Current()->heap()->CollectAllGarbage();
+#endif
   ProfilerService::PrintNativeAllocationJSON(js, tag_order, time_origin_micros,
                                              time_extent_micros);
   return true;
@@ -3319,6 +3322,25 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
   isolate->class_table()->AllocationProfilePrintJSON(js);
   return true;
 }
+
+
+static const MethodParameter* collect_all_garbage_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER, NULL,
+};
+
+#if defined(DEBUG)
+static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  isolate->heap()->CollectAllGarbage();
+  PrintSuccess(js);
+  return true;
+}
+#else
+static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
+  PrintSuccess(js);
+  return true;
+}
+#endif  // defined(DEBUG)
 
 
 static const MethodParameter* get_heap_map_params[] = {
@@ -4170,6 +4192,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_vm_name_params },
   { "_setVMTimelineFlags", SetVMTimelineFlags,
     set_vm_timeline_flags_params },
+  { "_collectAllGarbage", CollectAllGarbage,
+    collect_all_garbage_params },
 };
 // clang-format on
 
