@@ -264,8 +264,8 @@ class SsaBuilder extends ast.Visitor
   /// Note: this helper is used selectively. When we know that we are in a
   /// context were we don't expect to see a constructor body element, we
   /// directly fetch the data from the global inference results.
-  GlobalTypeInferenceElementResult _resultOf(AstElement element) =>
-      inferenceResults.resultOf(
+  GlobalTypeInferenceElementResult _resultOf(MemberElement element) =>
+      inferenceResults.resultOfMember(
           element is ConstructorBodyElementX ? element.constructor : element);
 
   /// Build the graph for [target].
@@ -462,7 +462,7 @@ class SsaBuilder extends ast.Visitor
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!function.isGenerativeConstructorBody) {
-        if (inferenceResults.resultOf(function).throwsAlways) {
+        if (inferenceResults.resultOfMember(function).throwsAlways) {
           isReachable = false;
           return false;
         }
@@ -596,7 +596,7 @@ class SsaBuilder extends ast.Visitor
   bool isFunctionCalledOnce(MethodElement element) {
     // ConstructorBodyElements are not in the type inference graph.
     if (element is ConstructorBodyElement) return false;
-    return inferenceResults.resultOf(element).isCalledOnce;
+    return inferenceResults.resultOfMember(element).isCalledOnce;
   }
 
   bool isCalledOnce(MethodElement element) {
@@ -968,7 +968,7 @@ class SsaBuilder extends ast.Visitor
       ResolvedAst oldResolvedAst = resolvedAst;
       resolvedAst = callee.resolvedAst;
       final oldElementInferenceResults = elementInferenceResults;
-      elementInferenceResults = inferenceResults.resultOf(callee);
+      elementInferenceResults = inferenceResults.resultOfMember(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
@@ -1143,7 +1143,7 @@ class SsaBuilder extends ast.Visitor
           ResolvedAst savedResolvedAst = resolvedAst;
           resolvedAst = fieldResolvedAst;
           final oldElementInferenceResults = elementInferenceResults;
-          elementInferenceResults = inferenceResults.resultOf(member);
+          elementInferenceResults = inferenceResults.resultOfMember(member);
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
@@ -2096,7 +2096,7 @@ class SsaBuilder extends ast.Visitor
     // handler in the case of lists, because the constant handler
     // does not look at elements in the list.
     TypeMask type =
-        TypeMaskFactory.inferredTypeForElement(field, globalInferenceResults);
+        TypeMaskFactory.inferredTypeForMember(field, globalInferenceResults);
     if (!type.containsAll(closedWorld) && !instruction.isConstantNull()) {
       // TODO(13429): The inferrer should know that an element
       // cannot be null.
@@ -2124,14 +2124,14 @@ class SsaBuilder extends ast.Visitor
         // creating an [HStatic].
         HInstruction instruction = new HStatic(
             field,
-            TypeMaskFactory.inferredTypeForElement(
+            TypeMaskFactory.inferredTypeForMember(
                 field, globalInferenceResults))
           ..sourceInformation = sourceInformation;
         push(instruction);
       }
     } else {
       HInstruction instruction = new HLazyStatic(field,
-          TypeMaskFactory.inferredTypeForElement(field, globalInferenceResults))
+          TypeMaskFactory.inferredTypeForMember(field, globalInferenceResults))
         ..sourceInformation = sourceInformation;
       push(instruction);
     }
@@ -4161,7 +4161,7 @@ class SsaBuilder extends ast.Visitor
     inputs.addAll(arguments);
     TypeMask type;
     if (!element.isGetter && selector.isGetter) {
-      type = TypeMaskFactory.inferredTypeForElement(
+      type = TypeMaskFactory.inferredTypeForMember(
           element, globalInferenceResults);
     } else if (element.isFunction) {
       type = TypeMaskFactory.inferredReturnTypeForElement(

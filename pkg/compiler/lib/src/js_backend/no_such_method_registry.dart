@@ -6,6 +6,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../common_elements.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../types/types.dart';
 import '../tree/tree.dart';
 import 'backend_helpers.dart';
@@ -49,25 +50,25 @@ import 'backend_helpers.dart';
  */
 class NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
-  final Set<MethodElement> defaultImpls = new Set<MethodElement>();
+  final Set<FunctionEntity> defaultImpls = new Set<FunctionEntity>();
 
   /// The implementations that fall into category B, described above.
-  final Set<MethodElement> throwingImpls = new Set<MethodElement>();
+  final Set<FunctionEntity> throwingImpls = new Set<FunctionEntity>();
 
   /// The implementations that fall into category C, described above.
-  final Set<MethodElement> notApplicableImpls = new Set<MethodElement>();
+  final Set<FunctionEntity> notApplicableImpls = new Set<FunctionEntity>();
 
   /// The implementations that fall into category D, described above.
-  final Set<MethodElement> otherImpls = new Set<MethodElement>();
+  final Set<FunctionEntity> otherImpls = new Set<FunctionEntity>();
 
   /// The implementations that fall into category D1
-  final Set<MethodElement> complexNoReturnImpls = new Set<MethodElement>();
+  final Set<FunctionEntity> complexNoReturnImpls = new Set<FunctionEntity>();
 
   /// The implementations that fall into category D2
-  final Set<MethodElement> complexReturningImpls = new Set<MethodElement>();
+  final Set<FunctionEntity> complexReturningImpls = new Set<FunctionEntity>();
 
   /// The implementations that have not yet been categorized.
-  final Set<MethodElement> _uncategorizedImpls = new Set<MethodElement>();
+  final Set<FunctionEntity> _uncategorizedImpls = new Set<FunctionEntity>();
 
   final BackendHelpers _helpers;
   final NoSuchMethodResolver _resolver;
@@ -77,7 +78,7 @@ class NoSuchMethodRegistry {
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
 
-  void registerNoSuchMethod(MethodElement noSuchMethodElement) {
+  void registerNoSuchMethod(FunctionEntity noSuchMethodElement) {
     _uncategorizedImpls.add(noSuchMethodElement);
   }
 
@@ -90,8 +91,8 @@ class NoSuchMethodRegistry {
   /// subcategories: D1, those that have no return type, and D2, those
   /// that have a return type.
   void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
-    otherImpls.forEach((MethodElement element) {
-      if (results.resultOf(element).throwsAlways) {
+    otherImpls.forEach((FunctionEntity element) {
+      if (results.resultOfMember(element as MemberEntity).throwsAlways) {
         complexNoReturnImpls.add(element);
       } else {
         complexReturningImpls.add(element);
@@ -121,12 +122,12 @@ class NoSuchMethodRegistry {
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
   /// category D, as described above.
-  bool isComplex(MethodElement element) {
+  bool isComplex(FunctionEntity element) {
     assert(element.name == Identifiers.noSuchMethod_);
     return otherImpls.contains(element);
   }
 
-  NsmCategory _categorizeImpl(MethodElement element) {
+  NsmCategory _categorizeImpl(FunctionEntity element) {
     assert(element.name == Identifiers.noSuchMethod_);
     if (defaultImpls.contains(element)) {
       return NsmCategory.DEFAULT;
@@ -150,8 +151,7 @@ class NoSuchMethodRegistry {
     } else if (_resolver.hasForwardingSyntax(element)) {
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
-      Element superCall =
-          element.enclosingClass.lookupSuperByName(Names.noSuchMethod_);
+      FunctionEntity superCall = _resolver.getSuperNoSuchMethod(element);
       NsmCategory category = _categorizeImpl(superCall);
       switch (category) {
         case NsmCategory.DEFAULT:
@@ -194,13 +194,16 @@ abstract class NoSuchMethodResolver {
   ///
   ///     noSuchMethod(i) => super.noSuchMethod(i);
   ///
-  bool hasForwardingSyntax(MethodElement method);
+  bool hasForwardingSyntax(FunctionEntity method);
 
   /// Computes whether [method] is of the form
   ///
   ///     noSuchMethod(i) => throw new Error();
   ///
-  bool hasThrowingSyntax(MethodElement method);
+  bool hasThrowingSyntax(FunctionEntity method);
+
+  /// Returns the `noSuchMethod` that [method] overrides.
+  FunctionEntity getSuperNoSuchMethod(FunctionEntity method);
 }
 
 /// AST-based implementation of [NoSuchMethodResolver].
@@ -278,5 +281,9 @@ class NoSuchMethodResolverImpl implements NoSuchMethodResolver {
       }
     }
     return false;
+  }
+
+  MethodElement getSuperNoSuchMethod(MethodElement method) {
+    return method.enclosingClass.lookupSuperByName(Names.noSuchMethod_);
   }
 }

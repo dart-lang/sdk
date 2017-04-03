@@ -854,7 +854,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
     return targets.any((Element e) {
-      return e is FunctionElement &&
+      return e is MethodElement &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
           inferrer.backend.noSuchMethodRegistry.isComplex(e);

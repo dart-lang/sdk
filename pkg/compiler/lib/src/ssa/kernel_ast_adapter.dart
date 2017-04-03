@@ -138,14 +138,14 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   Compiler get _compiler => _backend.compiler;
   TreeElements get elements => _resolvedAst.elements;
   DiagnosticReporter get reporter => _compiler.reporter;
-  Element get _target => _resolvedAst.element;
+  MemberElement get _target => _resolvedAst.element;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
       _compiler.globalInference.results;
 
-  GlobalTypeInferenceElementResult _resultOf(Element e) =>
+  GlobalTypeInferenceElementResult _resultOf(MemberElement e) =>
       _globalInferenceResults
-          .resultOf(e is ConstructorBodyElementX ? e.constructor : e);
+          .resultOfMember(e is ConstructorBodyElementX ? e.constructor : e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
@@ -308,8 +308,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   }
 
   TypeMask inferredTypeOf(ir.Member node) {
-    return TypeMaskFactory.inferredTypeForElement(
-        getElement(node), _globalInferenceResults);
+    return TypeMaskFactory.inferredTypeForMember(
+        getMember(node), _globalInferenceResults);
   }
 
   TypeMask selectorTypeOf(Selector selector, TypeMask mask) {

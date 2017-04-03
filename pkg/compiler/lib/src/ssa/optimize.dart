@@ -517,7 +517,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (!_nativeData.isNativeMember(field) &&
           !node.isCallOnInterceptor(_closedWorld)) {
         HInstruction receiver = node.getDartReceiver(_closedWorld);
-        TypeMask type = TypeMaskFactory.inferredTypeForElement(
+        TypeMask type = TypeMaskFactory.inferredTypeForMember(
             field as Entity, _globalInferenceResults);
         HInstruction load = new HFieldGet(field, receiver, type);
         node.block.addBefore(node, load);
@@ -994,7 +994,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       type = TypeMaskFactory.fromNativeBehavior(
           _nativeData.getNativeFieldLoadBehavior(field), _closedWorld);
     } else {
-      type = TypeMaskFactory.inferredTypeForElement(
+      type = TypeMaskFactory.inferredTypeForMember(
           field as Entity, _globalInferenceResults);
     }
 

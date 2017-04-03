@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library dart2js.kernel.world_builder;
+
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -19,9 +21,12 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/constant_system_javascript.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
 import 'element_adapter.dart';
 import 'elements.dart';
+
+part 'no_such_method_resolver.dart';
 
 /// World builder used for creating elements and types corresponding to Kernel
 /// IR nodes.

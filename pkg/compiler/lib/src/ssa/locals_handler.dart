@@ -209,7 +209,7 @@ class LocalsHandler {
         }
         HInstruction parameter = builder.addParameter(
             parameterElement,
-            TypeMaskFactory.inferredTypeForElement(
+            TypeMaskFactory.inferredTypeForParameter(
                 parameterElement, _globalInferenceResults));
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
@@ -647,7 +647,7 @@ class LocalsHandler {
 
   TypeMask getTypeOfCapturedVariable(FieldElement element) {
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
-      return TypeMaskFactory.inferredTypeForElement(
+      return TypeMaskFactory.inferredTypeForMember(
           element, _globalInferenceResults);
     });
   }

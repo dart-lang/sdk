@@ -194,9 +194,22 @@ class GlobalTypeInferenceResults {
   final Compiler _compiler;
   final Map<Element, GlobalTypeInferenceElementResult> _elementResults = {};
 
+  GlobalTypeInferenceElementResult resultOfMember(MemberElement element) {
+    return _resultOf(element);
+  }
+
+  GlobalTypeInferenceElementResult resultOfParameter(ParameterElement element) {
+    return _resultOf(element);
+  }
+
+  @deprecated
+  GlobalTypeInferenceElementResult resultOfElement(AstElement element) {
+    return _resultOf(element);
+  }
+
   // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
   // error to query for results that don't exist.
-  GlobalTypeInferenceElementResult resultOf(AstElement element) {
+  GlobalTypeInferenceElementResult _resultOf(AstElement element) {
     assert(invariant(element, !element.isGenerativeConstructorBody,
         message: "unexpected input: ConstructorBodyElements are created"
             " after global type inference, no data is avaiable for them."));

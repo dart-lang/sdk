@@ -172,7 +172,6 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
   NativeBasicData nativeBasicData;
   RuntimeTypesNeedBuilder rtiNeedBuilder;
   MirrorsDataBuilder mirrorsDataBuilder;
-  NoSuchMethodRegistry noSuchMethodRegistry;
   CustomElementsResolutionAnalysis customElementsResolutionAnalysis;
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis;
   MirrorsResolutionAnalysis mirrorsResolutionAnalysis;
@@ -183,6 +182,8 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
           nativeBasicData, helpers, elementEnvironment, commonElements);
   BackendUsageBuilder backendUsageBuilder =
       new BackendUsageBuilderImpl(commonElements, helpers);
+  NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
+      helpers, new KernelNoSuchMethodResolver(worldBuilder));
 
   return new ResolutionEnqueuerListener(
       options,

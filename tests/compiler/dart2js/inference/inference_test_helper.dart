@@ -107,7 +107,7 @@ class TypeMaskChecker extends Visitor with AstEnumeratorMixin {
 
   TypeMaskChecker(
       this.reporter, this.expectedMap, this.resolvedAst, this.results)
-      : result = results.resultOf(resolvedAst.element);
+      : result = results.resultOfMember(resolvedAst.element as MemberElement);
 
   TreeElements get elements => resolvedAst.elements;
 
@@ -121,7 +121,8 @@ class TypeMaskChecker extends Visitor with AstEnumeratorMixin {
 
   void checkElement(AstElement element) {
     ElementId id = computeElementId(element);
-    GlobalTypeInferenceElementResult elementResult = results.resultOf(element);
+    GlobalTypeInferenceElementResult elementResult =
+        results.resultOfElement(element);
     TypeMask value =
         element.isFunction ? elementResult.returnType : elementResult.type;
     String expected = annotationForId(id);
