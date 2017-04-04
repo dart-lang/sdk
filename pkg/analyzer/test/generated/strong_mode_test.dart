@@ -1074,6 +1074,47 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     _isFutureOfNull(invoke.staticType);
   }
 
+  test_generic_partial() async {
+    // Test that upward and downward type inference handles partial
+    // type schemas correctly.  Downwards inference in a partial context
+    // (e.g. Map<String, ?>) should still allow upwards inference to fill
+    // in the missing information.
+    String code = r'''
+class A<T> {
+  A(T x);
+  A.fromA(A<T> a) {}
+  A.fromMap(Map<String, T> m) {}
+  A.fromList(List<T> m) {}
+  A.fromT(T t) {}
+  A.fromB(B<T, String> a) {}
+}
+
+class B<S, T> {
+  B(S s);
+}
+
+void test() {
+    var a0 = new A.fromA(new A(3));
+    var a1 = new A.fromMap({'hello' : 3});
+    var a2 = new A.fromList([3]);
+    var a3 = new A.fromT(3);
+    var a4 = new A.fromB(new B(3));
+}
+   ''';
+    CompilationUnit unit = await resolveSource(code);
+    Element elementA = AstFinder.getClass(unit, "A").element;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
+    DartType check(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      Expression init = decl.initializer;
+      _isInstantiationOf(_hasElement(elementA))([_isInt])(init.staticType);
+    }
+
+    for (var i = 0; i < 5; i++) check(i);
+  }
+
   test_inferConstructor_unknownTypeLowerBound() async {
     Source source = addSource(r'''
         class C<T> {
