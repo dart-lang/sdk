@@ -46,6 +46,17 @@ class Scope {
     return new Scope.nested(this, isModifiable: isModifiable);
   }
 
+  /// Create a special scope for use by labeled staments. This scope doesn't
+  /// introduce a new scope for local variables, only for labels. This deals
+  /// with corner cases like this:
+  ///
+  ///     L: var x;
+  ///     x = 42;
+  ///     print("The answer is $x.");
+  Scope createNestedLabelScope() {
+    return new Scope(local, setters, parent, isModifiable: true);
+  }
+
   Builder lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
     Builder builder = local[name];

@@ -2035,7 +2035,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
     List<Label> labels = popList(labelCount);
-    enterLocalScope();
+    enterLocalScope(scope.createNestedLabelScope());
     LabelTarget target =
         new LabelTarget(member, functionNestingLevel, token.charOffset);
     for (Label label in labels) {
