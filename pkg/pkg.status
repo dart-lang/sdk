@@ -40,6 +40,10 @@ kernel/testcases/*: Skip
 
 front_end/test/fasta/analyze_test: Pass, Slow
 
+[ $checked ]
+front_end/test/scanner_replacement_test: RuntimeError
+
+
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
