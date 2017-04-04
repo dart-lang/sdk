@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_BIN_SOCKET_BASE_FUCHSIA_H_
-#define RUNTIME_BIN_SOCKET_BASE_FUCHSIA_H_
+#ifndef RUNTIME_BIN_SOCKET_FUCHSIA_H_
+#define RUNTIME_BIN_SOCKET_FUCHSIA_H_
 
-#if !defined(RUNTIME_BIN_SOCKET_BASE_H_)
-#error Do not include socket_base_fuchsia.h directly. Use socket_base.h.
+#if !defined(RUNTIME_BIN_SOCKET_H_)
+#error Do not include socket_fuchsia.h directly. Use socket.h.
 #endif
 
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/socket.h>
 
-#endif  // RUNTIME_BIN_SOCKET_BASE_FUCHSIA_H_
+#endif  // RUNTIME_BIN_SOCKET_FUCHSIA_H_

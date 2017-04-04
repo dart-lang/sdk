@@ -15,6 +15,17 @@ bool short_socket_read = false;
 
 bool short_socket_write = false;
 
+void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
+}
+
+
+void FUNCTION_NAME(NetworkInterface_ListSupported)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
+}
+
 
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_ThrowException(
@@ -23,6 +34,12 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
+}
+
+
+void FUNCTION_NAME(Socket_IsBindError)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
 }
