@@ -661,6 +661,12 @@ class FastaParserTestCase extends Object
     return _parseExpression(code);
   }
 
+  @override
+  VariableDeclarationList parseVariableDeclarationList(String code) {
+    var statement = parseStatement('$code;') as VariableDeclarationStatement;
+    return statement.variables;
+  }
+
   Expression _parseExpression(String code) {
     var statement = parseStatement('$code;') as ExpressionStatement;
     return statement.expression;
@@ -940,6 +946,36 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseTryStatement_on_catch_finally() {
     super.test_parseTryStatement_on_catch_finally();
+  }
+
+  @override
+  @failingTest
+  void test_parseVariableDeclarationListAfterMetadata_const_typeComment() {
+    super.test_parseVariableDeclarationListAfterMetadata_const_typeComment();
+  }
+
+  @override
+  @failingTest
+  void test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment() {
+    super.test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment();
+  }
+
+  @override
+  @failingTest
+  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
+    super.test_parseVariableDeclarationListAfterMetadata_final_typeComment();
+  }
+
+  @override
+  @failingTest
+  void test_parseVariableDeclarationListAfterMetadata_type_typeComment() {
+    super.test_parseVariableDeclarationListAfterMetadata_type_typeComment();
+  }
+
+  @override
+  @failingTest
+  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
+    super.test_parseVariableDeclarationListAfterMetadata_var_typeComment();
   }
 }
 

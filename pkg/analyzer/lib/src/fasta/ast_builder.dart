@@ -530,9 +530,11 @@ class AstBuilder extends ScopeListener {
     debugEvent("VariablesDeclaration");
     List<VariableDeclaration> variables = popList(count);
     TypeAnnotation type = pop();
-    pop(); // TODO(paulberry): Modifiers.
+    _Modifiers modifiers = pop();
+    Token keyword = modifiers?.finalConstOrVarKeyword;
     push(ast.variableDeclarationStatement(
-        ast.variableDeclarationList(null, null, null, type, variables),
+        ast.variableDeclarationList(
+            null, null, toAnalyzerToken(keyword), type, variables),
         toAnalyzerToken(endToken)));
   }
 

@@ -196,6 +196,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseThrowExpressionWithoutCascade(String code);
 
   PrefixExpression parseUnaryExpression(String code);
+
+  VariableDeclarationList parseVariableDeclarationList(String source);
 }
 
 /**
@@ -8118,14 +8120,6 @@ class ParserTestCase extends EngineTestCase
   Directive parseFullDirective() =>
       parser.parseDirective(parser.parseCommentAndMetadata());
 
-  /**
-   * Parses a variable declaration list (equivalent to a variable declaration
-   * statement, but without the final comma).
-   */
-  VariableDeclarationList parseFullVariableDeclarationList() =>
-      parser.parseVariableDeclarationListAfterMetadata(
-          parser.parseCommentAndMetadata());
-
   @override
   FunctionExpression parseFunctionExpression(String code) {
     createParser(code);
@@ -8325,6 +8319,13 @@ class ParserTestCase extends EngineTestCase
   PrefixExpression parseUnaryExpression(String code) {
     createParser(code);
     return parser.parseUnaryExpression();
+  }
+
+  @override
+  VariableDeclarationList parseVariableDeclarationList(String code) {
+    createParser(code);
+    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+    return parser.parseVariableDeclarationListAfterMetadata(commentAndMetadata);
   }
 
   @override
@@ -11734,138 +11735,6 @@ void''');
     expect(declaration.initializer, isNull);
   }
 
-  void test_parseVariableDeclarationListAfterMetadata_const_noType() {
-    createParser('const a');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNotNull);
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_const_type() {
-    createParser('const A a');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNotNull);
-    expect(declarationList.type, isNotNull);
-    expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_final_noType() {
-    createParser('final a');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNotNull);
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_final_type() {
-    createParser('final A a');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNotNull);
-    expect(declarationList.type, isNotNull);
-    expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
-    enableGenericMethodComments = true;
-    createParser('final/*=T*/ x');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.isFinal, true);
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
-    createParser('A a, b, c');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNull);
-    expect(declarationList.type, isNotNull);
-    expect(declarationList.variables, hasLength(3));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_type_single() {
-    createParser('A a');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNull);
-    expect(declarationList.type, isNotNull);
-    expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
-    createParser('var a, b, c');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNotNull);
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(3));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_var_single() {
-    createParser('var a');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNotNull);
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
-    enableGenericMethodComments = true;
-    createParser('var/*=T*/ x');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.keyword, isNull);
-  }
-
-  void test_parseVariableDeclarationListAfterType_type() {
-    createParser('T a');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword, isNull);
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterType_var() {
-    createParser('var a, b, c');
-    VariableDeclarationList declarationList =
-        parseFullVariableDeclarationList();
-    expectNotNullIfNoErrors(declarationList);
-    listener.assertNoErrors();
-    expect(declarationList.keyword.lexeme, 'var');
-    expect(declarationList.type, isNull);
-    expect(declarationList.variables, hasLength(3));
-  }
-
   void test_parseWithClause_multiple() {
     createParser('with A, B, C');
     WithClause clause = parser.parseWithClause();
@@ -12919,6 +12788,110 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(clause.body, isNotNull);
     expect(statement.finallyKeyword, isNotNull);
     expect(statement.finallyBlock, isNotNull);
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_const_noType() {
+    var declarationList = parseVariableDeclarationList('const a');
+    assertNoErrors();
+    expect(declarationList.keyword.lexeme, 'const');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_const_type() {
+    var declarationList = parseVariableDeclarationList('const A a');
+    assertNoErrors();
+    expect(declarationList.keyword.lexeme, 'const');
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_const_typeComment() {
+    enableGenericMethodComments = true;
+    var declarationList = parseVariableDeclarationList('const/*=T*/ a');
+    assertNoErrors();
+    expect((declarationList.type as TypeName).name.name, 'T');
+    expect(declarationList.isConst, true);
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment() {
+    enableGenericMethodComments = true;
+    var declarationList = parseVariableDeclarationList('dynamic/*=T*/ a');
+    assertNoErrors();
+    expect((declarationList.type as TypeName).name.name, 'T');
+    expect(declarationList.keyword, isNull);
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_final_noType() {
+    var declarationList = parseVariableDeclarationList('final a');
+    assertNoErrors();
+    expect(declarationList.keyword, isNotNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_final_type() {
+    var declarationList = parseVariableDeclarationList('final A a');
+    assertNoErrors();
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
+    enableGenericMethodComments = true;
+    var declarationList = parseVariableDeclarationList('final/*=T*/ a');
+    assertNoErrors();
+    expect((declarationList.type as TypeName).name.name, 'T');
+    expect(declarationList.isFinal, true);
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
+    var declarationList = parseVariableDeclarationList('A a, b, c');
+    assertNoErrors();
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(3));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_type_single() {
+    var declarationList = parseVariableDeclarationList('A a');
+    assertNoErrors();
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_type_typeComment() {
+    enableGenericMethodComments = true;
+    var declarationList = parseVariableDeclarationList('int/*=T*/ a');
+    assertNoErrors();
+    expect((declarationList.type as TypeName).name.name, 'T');
+    expect(declarationList.keyword, isNull);
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
+    var declarationList = parseVariableDeclarationList('var a, b, c');
+    assertNoErrors();
+    expect(declarationList.keyword.lexeme, 'var');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(3));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_var_single() {
+    var declarationList = parseVariableDeclarationList('var a');
+    assertNoErrors();
+    expect(declarationList.keyword.lexeme, 'var');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
+    enableGenericMethodComments = true;
+    var declarationList = parseVariableDeclarationList('var/*=T*/ a');
+    assertNoErrors();
+    expect((declarationList.type as TypeName).name.name, 'T');
+    expect(declarationList.keyword, isNull);
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_multiple() {
