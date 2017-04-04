@@ -48,7 +48,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       _constantToInfo[constant] = info;
       result.constants.add(info);
     });
-    compiler.libraryLoader.libraries.forEach(visit);
+    (compiler.libraryLoader.libraries as Iterable<LibraryElement>)
+        .forEach(visit);
   }
 
   Info visit(Element e, [_]) => e.accept(this, null);

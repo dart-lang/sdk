@@ -16,6 +16,7 @@ import 'elements/elements.dart'
         ImportElement,
         ExportElement,
         LibraryElement;
+import 'elements/entities.dart' show LibraryEntity;
 import 'elements/modelx.dart'
     show
         CompilationUnitElementX,
@@ -29,12 +30,16 @@ import 'elements/modelx.dart'
         SyntheticImportElement;
 import 'enqueue.dart' show DeferredAction;
 import 'environment.dart';
+import 'kernel/world_builder.dart' show KernelWorldBuilder;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolved_uri_translator.dart';
 import 'script.dart';
 import 'serialization/serialization.dart' show LibraryDeserializer;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
+
+import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
     Iterable<LibraryElement> libraries);
@@ -137,18 +142,32 @@ typedef Uri PatchResolverFunction(String dartLibraryPath);
  */
 abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
   factory LibraryLoaderTask(
-      ResolvedUriTranslator uriTranslator,
-      ScriptLoader scriptLoader,
-      ElementScanner scriptScanner,
-      LibraryDeserializer deserializer,
-      PatchResolverFunction patchResolverFunc,
-      PatchParserTask patchParser,
-      Environment environment,
-      DiagnosticReporter reporter,
-      Measurer measurer) = _LibraryLoaderTask;
+          bool loadFromDillFile,
+          ResolvedUriTranslator uriTranslator,
+          ScriptLoader scriptLoader,
+          ElementScanner scriptScanner,
+          LibraryDeserializer deserializer,
+          PatchResolverFunction patchResolverFunc,
+          PatchParserTask patchParser,
+          Environment environment,
+          DiagnosticReporter reporter,
+          Measurer measurer) =>
+      loadFromDillFile
+          ? new _DillLibraryLoaderTask(
+              uriTranslator, scriptLoader, reporter, measurer)
+          : new _LibraryLoaderTask(
+              uriTranslator,
+              scriptLoader,
+              scriptScanner,
+              deserializer,
+              patchResolverFunc,
+              patchParser,
+              environment,
+              reporter,
+              measurer);
 
   /// Returns all libraries that have been loaded.
-  Iterable<LibraryElement> get libraries;
+  Iterable<LibraryEntity> get libraries;
 
   /// Loads the library specified by the [resolvedUri] and returns the
   /// [LoadedLibraries] that were loaded to load the specified uri. The
@@ -218,7 +237,7 @@ abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
 // TODO(johnniwinther): Use this to integrate deserialized libraries better.
 abstract class LibraryProvider {
   /// Looks up the library with the [canonicalUri].
-  LibraryElement lookupLibrary(Uri canonicalUri);
+  LibraryEntity lookupLibrary(Uri canonicalUri);
 }
 
 /// Handle for creating synthesized/patch libraries during library loading.
@@ -372,9 +391,9 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   final Map<String, LibraryElement> libraryNames =
       new Map<String, LibraryElement>();
 
-  Iterable<LibraryElement> get libraries => libraryCanonicalUriMap.values;
+  Iterable<LibraryEntity> get libraries => libraryCanonicalUriMap.values;
 
-  LibraryElement lookupLibrary(Uri canonicalUri) {
+  LibraryEntity lookupLibrary(Uri canonicalUri) {
     return libraryCanonicalUriMap[canonicalUri];
   }
 
@@ -472,7 +491,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       return reporter.withCurrentElement(library, () {
         return measure(() {
           handler.computeExports();
-          return new _LoadedLibraries(library, handler.newLibraries, this);
+          return new _LoadedLibraries(library, handler.newLibraries);
         });
       });
     });
@@ -808,6 +827,89 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     Iterable<DeferredAction> actions = _deferredActions.toList();
     _deferredActions.clear();
     return actions;
+  }
+}
+
+/// A task for loading a pre-processed .dill file into memory rather than
+/// parsing Dart source. Use of this task only makes sense when used in
+/// conjunction with --use-kernel.
+class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
+  final DiagnosticReporter reporter;
+
+  final ResolvedUriTranslator uriTranslator;
+
+  /// Loads the contents of a script file (a .dart file). Used when loading
+  /// libraries from source.
+  final ScriptLoader scriptLoader;
+
+  /// Holds the mapping of Kernel IR to KElements that is constructed as a
+  /// result of loading a program.
+  KernelWorldBuilder _worldBuilder;
+
+  List<LibraryEntity> _allLoadedLibraries;
+
+  _DillLibraryLoaderTask(
+      this.uriTranslator, this.scriptLoader, this.reporter, Measurer measurer)
+      : _allLoadedLibraries = new List<LibraryEntity>(),
+        super(measurer);
+
+  /// Loads an entire Kernel [Program] from a file on disk (note, not just a
+  /// library, so this name is actuall a bit of a misnomer).
+  // TODO(efortuna): Rename this once the Element library loader class goes
+  // away.
+  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
+      {bool skipFileWithPartOfTag: false}) {
+    assert(resolvedUri.pathSegments.last.endsWith('.dill'));
+    Uri readableUri = uriTranslator.translate(null, resolvedUri, null);
+    return measure(() async {
+      Script script = await scriptLoader.readScript(readableUri, null);
+      ir.Program program = new ir.Program();
+      // Hack because the existing file has a terminating 0 and the
+      // BinaryBuilder doesn't expect that.
+      var bytes = new List<int>.from(script.file.slowUtf8ZeroTerminatedBytes());
+      bytes.removeLast();
+      new BinaryBuilder(bytes).readProgram(program);
+      return measure(() {
+        _worldBuilder = new KernelWorldBuilder(reporter, program);
+        program.libraries.forEach((ir.Library library) => _allLoadedLibraries
+            .add(_worldBuilder.lookupLibrary(library.importUri)));
+        // TODO(efortuna): Handle `prgram.mainMethod == null` gracefully.
+        return new _LoadedLibrariesAdapter(
+            _worldBuilder
+                .lookupLibrary(program.mainMethod.enclosingLibrary.importUri),
+            _allLoadedLibraries,
+            _worldBuilder);
+      });
+    });
+  }
+
+  KernelWorldBuilder get worldBuilder => _worldBuilder;
+
+  void reset({bool reuseLibrary(LibraryElement library)}) {
+    throw new UnimplementedError('_DillLibraryLoaderTask.reset');
+  }
+
+  Future resetAsync(Future<bool> reuseLibrary(LibraryElement library)) {
+    throw new UnimplementedError('_DillLibraryLoaderTask.resetAsync');
+  }
+
+  Iterable<LibraryEntity> get libraries => _allLoadedLibraries;
+
+  LibraryEntity lookupLibrary(Uri canonicalUri) {
+    return _worldBuilder?.lookupLibrary(canonicalUri);
+  }
+
+  Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries) {
+    throw new UnimplementedError('_DillLibraryLoaderTask.reuseLibraries');
+  }
+
+  void registerDeferredAction(DeferredAction action) {
+    throw new UnimplementedError(
+        '_DillLibraryLoaderTask.registerDeferredAction');
+  }
+
+  Iterable<DeferredAction> pullDeferredActions() {
+    throw new UnimplementedError('_DillLibraryLoaderTask.pullDeferredActions');
   }
 }
 
@@ -1382,16 +1484,16 @@ class LibraryDependencyHandler implements LibraryLoader {
 abstract class LoadedLibraries {
   /// The accesss the library object created corresponding to the library
   /// passed to [LibraryLoader.loadLibrary].
-  LibraryElement get rootLibrary;
+  LibraryEntity get rootLibrary;
 
   /// Returns `true` if a library with canonical [uri] was loaded in this bulk.
   bool containsLibrary(Uri uri);
 
   /// Returns the library with canonical [uri] that was loaded in this bulk.
-  LibraryElement getLibrary(Uri uri);
+  LibraryEntity getLibrary(Uri uri);
 
   /// Applies all libraries in this bulk to [f].
-  void forEachLibrary(f(LibraryElement library));
+  void forEachLibrary(f(LibraryEntity library));
 
   /// Applies all imports chains of [uri] in this bulk to [callback].
   ///
@@ -1406,12 +1508,11 @@ abstract class LoadedLibraries {
 }
 
 class _LoadedLibraries implements LoadedLibraries {
-  final _LibraryLoaderTask task;
   final LibraryElement rootLibrary;
   final Map<Uri, LibraryElement> loadedLibraries = <Uri, LibraryElement>{};
   final List<LibraryElement> _newLibraries;
 
-  _LoadedLibraries(this.rootLibrary, this._newLibraries, this.task) {
+  _LoadedLibraries(this.rootLibrary, this._newLibraries) {
     _newLibraries.forEach((LibraryElement loadedLibrary) {
       loadedLibraries[loadedLibrary.canonicalUri] = loadedLibrary;
     });
@@ -1499,6 +1600,32 @@ class _LoadedLibraries implements LoadedLibraries {
     }
 
     computeSuffixes(rootLibrary, const Link<Uri>());
+  }
+
+  String toString() => 'root=$rootLibrary,libraries=${_newLibraries}';
+}
+
+/// Adapter class to mimic the behavior of LoadedLibraries for Kernel element
+/// behavior. Ultimately we'll just access worldBuilder instead.
+class _LoadedLibrariesAdapter implements LoadedLibraries {
+  final LibraryEntity rootLibrary;
+  final List<LibraryEntity> _newLibraries;
+  final KernelWorldBuilder worldBuilder;
+
+  _LoadedLibrariesAdapter(
+      this.rootLibrary, this._newLibraries, this.worldBuilder) {
+    assert(rootLibrary != null);
+  }
+
+  bool containsLibrary(Uri uri) => getLibrary(uri) != null;
+
+  LibraryEntity getLibrary(Uri uri) => worldBuilder.lookupLibrary(uri);
+
+  void forEachLibrary(f(LibraryEntity library)) => _newLibraries.forEach(f);
+
+  void forEachImportChain(Uri uri,
+      {bool callback(Link<Uri> importChainReversed)}) {
+    // Currently a no-op. This seems wrong.
   }
 
   String toString() => 'root=$rootLibrary,libraries=${_newLibraries}';

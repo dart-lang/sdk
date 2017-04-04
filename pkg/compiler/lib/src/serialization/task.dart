@@ -11,6 +11,7 @@ import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
+import '../elements/entities.dart' show Entity;
 import '../universe/world_impact.dart' show WorldImpact;
 import 'json_serializer.dart';
 import 'serialization.dart';
@@ -24,7 +25,7 @@ abstract class LibraryDeserializer {
   Future<LibraryElement> readLibrary(Uri uri);
 
   /// Returns `true` if [element] has been deserialized.
-  bool isDeserialized(Element element);
+  bool isDeserialized(Entity element);
 }
 
 /// Task that supports deserialization of elements.
@@ -58,7 +59,7 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   }
 
   /// Returns `true` if [element] has been deserialized.
-  bool isDeserialized(Element element) {
+  bool isDeserialized(Entity element) {
     return deserializer != null && deserializer.isDeserialized(element);
   }
 
@@ -153,7 +154,7 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
 /// elements.
 abstract class DeserializerSystem {
   Future<LibraryElement> readLibrary(Uri resolvedUri);
-  bool isDeserialized(Element element);
+  bool isDeserialized(Entity element);
   bool hasResolvedAst(ExecutableElement element);
   ResolvedAst getResolvedAst(ExecutableElement element);
   bool hasResolutionImpact(Element element);
