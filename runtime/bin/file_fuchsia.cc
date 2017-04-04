@@ -541,10 +541,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    Utils::StrError(errno, error_message, kBufferSize);
-    FATAL2("Failed stat on file descriptor %d: %s", fd, error_message);
+    return kOther;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
