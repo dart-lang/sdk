@@ -315,7 +315,7 @@ class Class {
   Setter lookupSetter(Name name) {
     Setter setter = setters[name];
     if (setter != null) return setter;
-    if (superclass != null) return lookupSetter(name);
+    if (superclass != null) return superclass.lookupSetter(name);
     return (Value receiver, Value value) => notImplemented(obj: name);
   }
 
