@@ -210,8 +210,6 @@ symbol_conflict_test: RuntimeError # Issue 23857
 [ $compiler == dart2js ]
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
-type_variable_conflict2_test/01: RuntimeError # Issue 19725
-
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301

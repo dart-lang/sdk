@@ -7,6 +7,7 @@
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
+type_variable_conflict2_test/01: RuntimeError # Issue 19725
 
 # These test entries will be valid for vm/dartium (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
