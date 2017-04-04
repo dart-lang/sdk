@@ -264,18 +264,25 @@ class SymbolToken extends Token {
     return eof;
   }
 
+  @override
   String get lexeme => info.value;
 
+  @override
   String get stringValue => info.value;
 
+  @override
   bool isIdentifier() => false;
 
-  String toString() => "SymbolToken(${info == EOF_INFO ? '-eof-' : lexeme})";
+  @override
+  String toString() => "SymbolToken(${isEof ? '-eof-' : lexeme})";
 
+  @override
   bool get isEof => info == EOF_INFO;
 
   @override
-  Token copyWithoutComments() => new SymbolToken(info, charOffset);
+  Token copyWithoutComments() => isEof
+      ? new SymbolToken.eof(charOffset)
+      : new SymbolToken(info, charOffset);
 }
 
 /**
@@ -293,6 +300,11 @@ class SyntheticSymbolToken extends SymbolToken {
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  Token copyWithoutComments() => isEof
+      ? new SymbolToken.eof(charOffset)
+      : new SyntheticSymbolToken(info, charOffset);
 }
 
 /**
@@ -301,7 +313,8 @@ class SyntheticSymbolToken extends SymbolToken {
  * The [endGroup] token points to the matching closing bracked in case
  * it can be identified during scanning.
  */
-class BeginGroupToken extends SymbolToken implements analyzer.BeginToken {
+class BeginGroupToken extends SymbolToken
+    implements analyzer.BeginTokenWithComment {
   Token endGroup;
 
   BeginGroupToken(PrecedenceInfo info, int charOffset)
@@ -314,12 +327,15 @@ class BeginGroupToken extends SymbolToken implements analyzer.BeginToken {
   void set endToken(analyzer.Token token) {
     endGroup = token;
   }
+
+  @override
+  Token copyWithoutComments() => new BeginGroupToken(info, charOffset);
 }
 
 /**
  * A keyword token.
  */
-class KeywordToken extends Token {
+class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
   final Keyword keyword;
 
   KeywordToken(this.keyword, int charOffset) : super(charOffset);
@@ -343,7 +359,7 @@ class KeywordToken extends Token {
 
   @override
   // Analyzer considers pseudo-keywords to have a different value
-  Object value() => isPseudo ? lexeme : keyword;
+  Keyword value() => isPseudo ? lexeme : keyword;
 
   @override
   // Analyzer considers pseudo-keywords to be identifiers
@@ -351,11 +367,32 @@ class KeywordToken extends Token {
 }
 
 /**
+ * A synthetic keyword token.
+ */
+class SyntheticKeywordToken extends KeywordToken
+    implements analyzer.SyntheticKeywordToken {
+  /**
+   * Initialize a newly created token to represent the given [keyword] at the
+   * given [offset].
+   */
+  SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copyWithoutComments() => new SyntheticKeywordToken(keyword, offset);
+}
+
+/**
  * A String-valued token. Represents identifiers, string literals,
  * number literals, comments, and error tokens, using the corresponding
  * precedence info.
  */
-class StringToken extends Token implements analyzer.StringToken {
+class StringToken extends Token implements analyzer.StringTokenWithComment {
   /**
    * The length threshold above which substring tokens are computed lazily.
    *
@@ -460,6 +497,25 @@ class StringToken extends Token implements analyzer.StringToken {
 
   @override
   String value() => lexeme;
+}
+
+/**
+ * A String-valued token that does not exist in the original source.
+ */
+class SyntheticStringToken extends StringToken
+    implements analyzer.SyntheticStringToken {
+  SyntheticStringToken(PrecedenceInfo info, String value, int offset)
+      : super._(info, value, offset);
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copyWithoutComments() =>
+      new SyntheticStringToken(info, valueOrLazySubstring, offset);
 }
 
 class CommentToken extends StringToken implements analyzer.CommentToken {

@@ -600,6 +600,38 @@ class StringTokenWithComment extends StringToken implements TokenWithComment {
 }
 
 /**
+ * A synthetic keyword token.
+ */
+class SyntheticKeywordToken extends KeywordToken {
+  /**
+   * Initialize a newly created token to represent the given [keyword] at the
+   * given [offset].
+   */
+  SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copy() => new SyntheticKeywordToken(keyword, offset);
+}
+
+/**
+ * A token whose value is independent of it's type.
+ */
+class SyntheticStringToken extends StringToken {
+  /**
+   * Initialize a newly created token to represent a token of the given [type]
+   * with the given [value] at the given [offset].
+   */
+  SyntheticStringToken(TokenType type, String value, int offset)
+      : super(type, value, offset);
+
+  @override
+  bool get isSynthetic => true;
+}
+
+/**
  * A token that was scanned from the input. Each token knows which tokens
  * precede and follow it, acting as a link in a doubly linked list of tokens.
  *

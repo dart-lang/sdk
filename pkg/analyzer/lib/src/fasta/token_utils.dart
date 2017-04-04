@@ -154,7 +154,7 @@ class ToAnalyzerTokenStreamConverter {
       _beginTokenStack.removeLast();
       _endTokenStack.removeLast();
     }
-    // Synthetic end tokens use the same offset as the begin token.
+    // Synthetic end tokens have a length of zero.
     if (translatedToken is analyzer.BeginToken &&
         token is BeginGroupToken &&
         token.endGroup != null &&

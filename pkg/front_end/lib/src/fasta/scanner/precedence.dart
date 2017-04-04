@@ -18,7 +18,7 @@ class PrecedenceInfo implements TokenType {
   const PrecedenceInfo(this.value, this.name, this.precedence, this.kind,
       {this.isOperator: false, this.isUserDefinableOperator: false});
 
-  toString() => 'PrecedenceInfo($value, $precedence, $kind)';
+  toString() => 'PrecedenceInfo($value, $name, $precedence, $kind)';
 
   static const List<PrecedenceInfo> all = const <PrecedenceInfo>[
     BACKPING_INFO,

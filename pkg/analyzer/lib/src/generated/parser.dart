@@ -1565,7 +1565,7 @@ class Parser {
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_GET);
       _currentToken = _injectToken(
-          new Parser_SyntheticKeywordToken(Keyword.GET, _currentToken.offset));
+          new SyntheticKeywordToken(Keyword.GET, _currentToken.offset));
       return parseGetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, type);
     }
@@ -5801,8 +5801,8 @@ class Parser {
   /**
    * Return a synthetic token representing the given [keyword].
    */
-  Token _createSyntheticKeyword(Keyword keyword) => _injectToken(
-      new Parser_SyntheticKeywordToken(keyword, _currentToken.offset));
+  Token _createSyntheticKeyword(Keyword keyword) =>
+      _injectToken(new SyntheticKeywordToken(keyword, _currentToken.offset));
 
   /**
    * Return a synthetic token with the given [type].
@@ -8504,22 +8504,4 @@ class Parser {
       _reportErrorForToken(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword);
     }
   }
-}
-
-/**
- * A synthetic keyword token.
- */
-class Parser_SyntheticKeywordToken extends KeywordToken {
-  /**
-   * Initialize a newly created token to represent the given [keyword] at the
-   * given [offset].
-   */
-  Parser_SyntheticKeywordToken(Keyword keyword, int offset)
-      : super(keyword, offset);
-
-  @override
-  int get length => 0;
-
-  @override
-  Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
 }
