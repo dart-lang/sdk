@@ -3834,8 +3834,7 @@ class Parser {
 
   /// Scans the given [code], and returns the tokens, otherwise returns `null`.
   Token _scanGenericMethodComment(String code, int offset) {
-    // TODO(scheglov) Let StringScanner to specify the string offset.
-    var scanner = new StringScanner(' ' * offset + code);
+    var scanner = new SubStringScanner(offset, code);
     Token firstToken = scanner.tokenize();
     if (scanner.hasErrors) {
       return null;
