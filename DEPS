@@ -37,7 +37,7 @@ vars = {
   "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
   # Revisions of /third_party/* dependencies.
-  "angular_analyzer_plugin_tag": "@v0.0.6",
+  "angular_analyzer_plugin_tag": "@v0.0.7",
   "args_tag": "@0.13.7",
   "async_tag": "@1.13.0",
   "barback-0.13.0_rev": "@34853",
