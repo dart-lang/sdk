@@ -273,7 +273,7 @@ void ObjectStore::InitKnownObjects() {
                                       function_name, 2, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
-  if (FLAG_async_debugger_stepping) {
+  if (FLAG_async_debugger) {
     // Disable debugging and inlining the _CompleteOnAsyncReturn function.
     function.set_is_debuggable(false);
     function.set_is_inlinable(false);
@@ -284,7 +284,7 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!cls.IsNull());
   set_async_star_stream_controller(cls);
 
-  if (FLAG_async_debugger_stepping) {
+  if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
     // _AsyncStarStreamController class.
     const Array& functions = Array::Handle(cls.functions());
