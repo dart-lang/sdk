@@ -104,7 +104,7 @@ constructor_duplicate_final_test/01: Fail # Issue 13363
 constructor_duplicate_final_test/02: Fail # Issue 13363
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
-bad_constructor_test/05: CompileTimeError # Issue 13669
+bad_constructor_test/05: CompileTimeError # Issue 13639
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
