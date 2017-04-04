@@ -8019,20 +8019,6 @@ class ParserTestCase extends EngineTestCase
     return unit;
   }
 
-  /**
-   * Parse the given [source] as a compilation unit. Throw an exception if the
-   * source could not be parsed, if the compilation errors in the source do not
-   * match those that are expected, or if the result would have been `null`.
-   */
-  CompilationUnit parseCompilationUnitWithOptions(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    createParser(source);
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    listener.assertErrorsWithCodes(errorCodes);
-    return unit;
-  }
-
   @override
   ConditionalExpression parseConditionalExpression(String code) {
     createParser(code);

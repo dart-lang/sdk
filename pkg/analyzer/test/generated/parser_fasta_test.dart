@@ -422,13 +422,6 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  CompilationUnit parseCompilationUnitWithOptions(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    // TODO(paulberry): implement parseCompilationUnitWithOptions
-    throw new UnimplementedError();
-  }
-
-  @override
   ConditionalExpression parseConditionalExpression(String code) {
     return _parseExpression(code);
   }
