@@ -46,29 +46,37 @@ type List<T> {
   UInt length;
   T[length] items;
 }
+```
 
-type String {
-  List<Byte> utf8Bytes;
-}
+A string table consists of an array of end offsets and a payload array of
+strings encoded as UTF-8.  The array of end offsets maps a string index to the
+offset of the _next_ string in the table or the offset of the end of the array
+for the last string.  These offsets are relative to the string payload array.
+Thus, string number 0 consists of the UTF-8 encoded string stretching from
+offset 0 (inclusive) to endOffset[0] (exclusive); and string number N for N > 0
+consists of the UTF-8 encoded string stretching from offset endOffset[N-1]
+(inclusive) to endOffset[N] (exclusive).
 
+``` scala
 type StringTable {
-  List<String> strings;
+  List<UInt> endOffsets;
+  Byte[endOffsets.last] utf8Bytes;
 }
 
 type StringReference {
-  UInt index; // Index into the StringTable strings.
+  UInt index; // Index into the Program's .strings.
 }
 
 type Source {
-  String source;
+  List<Byte> utf8Bytes;
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<Uint> lineStarts;
 }
 
 type UriSource {
-  List<String> uris;
-  Source[uris.length] source;
+  StringTable uris;
+  Source[uris.endOffsets.length] source;
 }
 
 type UriReference {

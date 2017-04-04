@@ -30,8 +30,8 @@ class BinaryBuilder {
   final String filename;
   final List<int> _bytes;
   int _byteIndex = 0;
-  List<String> _stringTable;
-  List<String> _sourceUriTable;
+  final List<String> _stringTable = <String>[];
+  final List<String> _sourceUriTable = <String>[];
   List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
   Library _currentLibrary;
@@ -82,8 +82,7 @@ class BinaryBuilder {
     return bytes;
   }
 
-  String readStringEntry() {
-    int numBytes = readUInt();
+  String readStringEntry(int numBytes) {
     // Utf8Decoder will skip leading BOM characters, but we must preserve them.
     // Collect leading BOMs before passing the bytes onto Utf8Decoder.
     int numByteOrderMarks = 0;
@@ -104,24 +103,24 @@ class BinaryBuilder {
     return string;
   }
 
-  void readStringTable() {
+  void readStringTable(List<String> table) {
+    // Read the table of end offsets.
     int length = readUInt();
-    _stringTable = new List<String>(length);
+    List<int> endOffsets = new List<int>(length);
     for (int i = 0; i < length; ++i) {
-      _stringTable[i] = readStringEntry();
+      endOffsets[i] = readUInt();
+    }
+    // Read the UTF-8 encoded strings.
+    table.length = length;
+    int startOffset = 0;
+    for (int i = 0; i < length; ++i) {
+      table[i] = readStringEntry(endOffsets[i] - startOffset);
+      startOffset = endOffsets[i];
     }
   }
 
   String readUriReference() {
     return _sourceUriTable[readUInt()];
-  }
-
-  void readSourceUriTable() {
-    int length = readUInt();
-    _sourceUriTable = new List<String>(length);
-    for (int i = 0; i < length; ++i) {
-      _sourceUriTable[i] = readStringEntry();
-    }
   }
 
   String readStringReference() {
@@ -250,7 +249,7 @@ class BinaryBuilder {
       throw fail('This is not a binary dart file. '
           'Magic number was: ${magic.toRadixString(16)}');
     }
-    readStringTable();
+    readStringTable(_stringTable);
     Map<String, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
     readLinkTable(program.root);
@@ -264,7 +263,7 @@ class BinaryBuilder {
   }
 
   Map<String, Source> readUriToSource() {
-    readSourceUriTable();
+    readStringTable(_sourceUriTable);
     int length = _sourceUriTable.length;
     Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {

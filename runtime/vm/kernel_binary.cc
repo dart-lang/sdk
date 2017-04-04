@@ -132,12 +132,33 @@ String* String::ReadFrom(Reader* reader) {
 
 String* String::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
-  uint32_t bytes = reader->ReadUInt();
-  return new String(reader->Consume(bytes), bytes);
+  intptr_t size = reader->ReadUInt();
+  return ReadRaw(reader, size);
 }
 
+
+String* String::ReadRaw(Reader* reader, intptr_t size) {
+  return new String(reader->Consume(size), size);
+}
+
+
 void StringTable::ReadFrom(Reader* reader) {
-  strings_.ReadFromStatic<StringImpl>(reader);
+  TRACE_READ_OFFSET();
+  // Read the table of end offsets.
+  intptr_t length = reader->ReadUInt();
+  int* end_offsets = new int[length];
+  for (intptr_t i = 0; i < length; ++i) {
+    end_offsets[i] = reader->ReadUInt();
+  }
+  // Read the UTF-8 encoded strings.
+  strings_.EnsureInitialized(length);
+  intptr_t start_offset = 0;
+  for (intptr_t i = 0; i < length; ++i) {
+    ASSERT(strings_[i] == NULL);
+    strings_[i] = String::ReadRaw(reader, end_offsets[i] - start_offset);
+    start_offset = end_offsets[i];
+  }
+  delete[] end_offsets;
 }
 
 

@@ -51,6 +51,7 @@ class StreamingConstantEvaluator {
   Instance& result_;
 };
 
+
 class StreamingFlowGraphBuilder {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
@@ -64,9 +65,8 @@ class StreamingFlowGraphBuilder {
                             flow_graph_builder->zone_,
                             &flow_graph_builder->translation_helper_,
                             &flow_graph_builder->type_translator_),
-        string_table_offsets_(NULL),
-        string_table_size_(-1),
-        string_table_entries_read_(0),
+        string_offset_count_(0),
+        string_offsets_(NULL),
         canonical_names_(NULL),
         canonical_names_size_(-1),
         canonical_names_entries_read_(0),
@@ -74,19 +74,15 @@ class StreamingFlowGraphBuilder {
 
   virtual ~StreamingFlowGraphBuilder() {
     delete reader_;
-    if (string_table_offsets_ != NULL) {
-      delete[] string_table_offsets_;
-    }
-    if (canonical_names_ != NULL) {
-      // At least for now we'll leak whatever's inside
-      delete[] canonical_names_;
-    }
+    delete[] string_offsets_;
+    // The canonical names themselves are not (yet) deallocated.
+    delete[] canonical_names_;
   }
 
   Fragment BuildAt(intptr_t kernel_offset);
 
  private:
-  intptr_t GetStringTableOffset(intptr_t index);
+  intptr_t GetStringOffset(intptr_t index);
   CanonicalName* GetCanonicalName(intptr_t index);
 
   intptr_t ReaderOffset();
@@ -135,9 +131,20 @@ class StreamingFlowGraphBuilder {
   Zone* zone_;
   kernel::Reader* reader_;
   StreamingConstantEvaluator constant_evaluator_;
-  intptr_t* string_table_offsets_;
-  intptr_t string_table_size_;
-  intptr_t string_table_entries_read_;
+
+  // We build a table that gives us the start and end offsets of all the strings
+  // in the binary.
+  //
+  // The number of string offsets.  Note that this is one more than the number
+  // of strings in the binary.
+  intptr_t string_offset_count_;
+
+  // An array of offsets of size string_table_size_ + 1, in order to include the
+  // end offset of the last string.  The string with index N consists of the
+  // UTF-8 encoded bytes stretching from string_table_offsets_[N] (enclusive) to
+  // string_table_offsets_[N+1] (exclusive).
+  intptr_t* string_offsets_;
+
   CanonicalName** canonical_names_;
   intptr_t canonical_names_size_;
   intptr_t canonical_names_entries_read_;
@@ -145,6 +152,7 @@ class StreamingFlowGraphBuilder {
 
   friend class StreamingConstantEvaluator;
 };
+
 
 }  // namespace kernel
 }  // namespace dart

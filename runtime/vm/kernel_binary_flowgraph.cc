@@ -307,33 +307,28 @@ Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
   return Fragment();
 }
 
-intptr_t StreamingFlowGraphBuilder::GetStringTableOffset(intptr_t index) {
-  if (string_table_offsets_ != NULL && string_table_entries_read_ > index) {
-    return string_table_offsets_[index];
-  }
+intptr_t StreamingFlowGraphBuilder::GetStringOffset(intptr_t index) {
+  if (string_offsets_ == NULL) {
+    intptr_t saved_offset = ReaderOffset();
+    reader_->set_offset(4);  // Skip kMagicProgramFile to the string table.
+    string_offset_count_ = ReadListLength() + 1;
+    string_offsets_ = new intptr_t[string_offset_count_];
 
-  intptr_t saved_offset = ReaderOffset();
-  if (string_table_offsets_ == NULL) {
-    reader_->set_offset(4);  // Skip kMagicProgramFile - now at string table.
-    string_table_size_ = ReadListLength();
-    string_table_offsets_ = new intptr_t[string_table_size_];
-    string_table_offsets_[0] = ReaderOffset();
-    string_table_entries_read_ = 1;
-  }
+    // Build a table of the 0-based string start and end offsets.
+    string_offsets_[0] = 0;
+    for (intptr_t i = 1; i < string_offset_count_; ++i) {
+      string_offsets_[i] = ReadUInt();
+    }
+    // And adjust the offsets now that we know the start offset of the first
+    // string relative to the start of the binary.
+    intptr_t base = ReaderOffset();
+    for (intptr_t i = 0; i < string_offset_count_; ++i) {
+      string_offsets_[i] += base;
+    }
 
-  ASSERT(string_table_size_ > index);
-  --string_table_entries_read_;
-  reader_->set_offset(string_table_offsets_[string_table_entries_read_]);
-  for (; string_table_entries_read_ < index; ++string_table_entries_read_) {
-    string_table_offsets_[string_table_entries_read_] = ReaderOffset();
-    uint32_t bytes = ReadUInt();
-    SkipBytes(bytes);
+    SetOffset(saved_offset);
   }
-  string_table_offsets_[string_table_entries_read_] = ReaderOffset();
-  ++string_table_entries_read_;
-
-  SetOffset(saved_offset);
-  return string_table_offsets_[index];
+  return string_offsets_[index];
 }
 
 CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
@@ -348,21 +343,21 @@ CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
   if (canonical_names_ == NULL) {
     // Find offset from where to read canonical names table.
 
-    // First skip the string table:
-    // Get first string to make sure we have the table size, get last string and
-    // read it to get past the string table.
-    // Note that this will also cache all string positions.
-    GetStringTableOffset(0);
-    SetOffset(GetStringTableOffset(string_table_size_ - 1));
-    uint32_t bytes = ReadUInt();
-    SkipBytes(bytes);
-
-    // Another string table (source URIs)
-    intptr_t list_length = ReadListLength();
-    for (intptr_t i = 0; i < list_length; ++i) {
-      uint32_t bytes = ReadUInt();
-      SkipBytes(bytes);
+    // First skip the string table.  The last offset is the end offset of the
+    // last string.
+    if (string_offsets_ == NULL) {
+      // Ensure that the length and all the offsets are available.
+      GetStringOffset(0);
     }
+    SetOffset(GetStringOffset(string_offset_count_ - 1));
+
+    // There is another string table for the source URIs.  Skip it as well.
+    intptr_t list_length = ReadListLength();
+    intptr_t end_offset = 0;
+    for (intptr_t i = 0; i < list_length; ++i) {
+      end_offset = ReadUInt();
+    }
+    SkipBytes(end_offset);
 
     // Source code table
     for (intptr_t i = 0; i < list_length; ++i) {
@@ -450,37 +445,22 @@ ParsedFunction* StreamingFlowGraphBuilder::parsed_function() {
   return flow_graph_builder_->parsed_function_;
 }
 
-dart::String& StreamingFlowGraphBuilder::DartSymbol(intptr_t str_index) {
-  intptr_t saved_offset = ReaderOffset();
-
-  SetOffset(GetStringTableOffset(str_index));
-  uint32_t bytes = ReadUInt();
-  const uint8_t* data = &reader_->buffer()[ReaderOffset()];
-
-  SetOffset(saved_offset);
-  return H.DartSymbol(data, bytes);
+dart::String& StreamingFlowGraphBuilder::DartSymbol(intptr_t index) {
+  intptr_t start = GetStringOffset(index);
+  intptr_t end = GetStringOffset(index + 1);
+  return H.DartSymbol(reader_->buffer() + start, end - start);
 }
 
-dart::String& StreamingFlowGraphBuilder::DartString(intptr_t str_index) {
-  intptr_t saved_offset = ReaderOffset();
-
-  SetOffset(GetStringTableOffset(str_index));
-  uint32_t bytes = ReadUInt();
-  const uint8_t* data = &reader_->buffer()[ReaderOffset()];
-
-  SetOffset(saved_offset);
-  return H.DartString(data, bytes);
+dart::String& StreamingFlowGraphBuilder::DartString(intptr_t index) {
+  intptr_t start = GetStringOffset(index);
+  intptr_t end = GetStringOffset(index + 1);
+  return H.DartString(reader_->buffer() + start, end - start);
 }
 
-String* StreamingFlowGraphBuilder::KernelString(intptr_t str_index) {
-  intptr_t savedOffset = ReaderOffset();
-
-  SetOffset(GetStringTableOffset(str_index));
-  uint32_t bytes = ReadUInt();
-  const uint8_t* data = &reader_->buffer()[ReaderOffset()];
-
-  SetOffset(savedOffset);
-  return new String(data, bytes);
+String* StreamingFlowGraphBuilder::KernelString(intptr_t index) {
+  intptr_t start = GetStringOffset(index);
+  intptr_t end = GetStringOffset(index + 1);
+  return new String(reader_->buffer() + start, end - start);
 }
 
 Fragment StreamingFlowGraphBuilder::DebugStepCheck(TokenPosition position) {

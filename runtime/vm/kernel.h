@@ -257,8 +257,15 @@ class Tuple {
 
 class String {
  public:
+  // Read a string reference, which is an index into the string table.
   static String* ReadFrom(Reader* reader);
+
+  // Read a string implementation, which is a size followed by a UTF-8
+  // encoded string.
   static String* ReadFromImpl(Reader* reader);
+
+  // Read a string implementation given its size.
+  static String* ReadRaw(Reader* reader, intptr_t size);
 
   String(const uint8_t* utf8, int length) {
     buffer_ = new uint8_t[length];
