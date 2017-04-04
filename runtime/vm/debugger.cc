@@ -3242,7 +3242,7 @@ void Debugger::CleanupSyntheticAsyncBreakpoint() {
 
 
 void Debugger::RememberTopFrameAwaiter() {
-  if (!FLAG_async_debugger_stepping) {
+  if (!FLAG_async_debugger) {
     return;
   }
   if (stack_trace_->Length() > 0) {
@@ -3254,7 +3254,7 @@ void Debugger::RememberTopFrameAwaiter() {
 
 
 void Debugger::SetAsyncSteppingFramePointer() {
-  if (!FLAG_async_debugger_stepping) {
+  if (!FLAG_async_debugger) {
     return;
   }
   if (stack_trace_->FrameAt(0)->function().IsAsyncClosure() ||
@@ -3294,7 +3294,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
       OS::Print("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
-    if (FLAG_async_debugger_stepping) {
+    if (FLAG_async_debugger) {
       if (stack_trace->FrameAt(0)->function().IsAsyncClosure() ||
           stack_trace->FrameAt(0)->function().IsAsyncGenClosure()) {
         // Request to step out of an async/async* closure.
@@ -3662,7 +3662,7 @@ RawError* Debugger::PauseStepping() {
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
 
-  if (FLAG_async_debugger_stepping) {
+  if (FLAG_async_debugger) {
     if ((async_stepping_fp_ != 0) && (top_frame_awaiter_ != Object::null())) {
       // Check if the user has single stepped out of an async function with
       // an awaiter. The first check handles the case of calling into the
@@ -4299,7 +4299,7 @@ Breakpoint* Debugger::GetBreakpointById(intptr_t id) {
 
 
 void Debugger::MaybeAsyncStepInto(const Closure& async_op) {
-  if (FLAG_async_debugger_stepping && IsSingleStepping()) {
+  if (FLAG_async_debugger && IsSingleStepping()) {
     // We are single stepping, set a breakpoint on the closure activation
     // and resume execution so we can hit the breakpoint.
     AsyncStepInto(async_op);
