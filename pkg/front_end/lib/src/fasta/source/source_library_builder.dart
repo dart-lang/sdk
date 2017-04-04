@@ -455,6 +455,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return typeCount;
   }
 
+  @override
   int resolveConstructors(_) {
     int count = 0;
     forEach((String name, Builder member) {

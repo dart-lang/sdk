@@ -107,7 +107,8 @@ abstract class KernelClassBuilder
     }
   }
 
-  int resolveConstructors(KernelLibraryBuilder library) {
+  @override
+  int resolveConstructors(LibraryBuilder library) {
     int count = super.resolveConstructors(library);
     if (count != 0) {
       // Copy keys to avoid concurrent modification error.
@@ -162,9 +163,8 @@ abstract class KernelClassBuilder
       ListLiteral literal = new ListLiteral(<Expression>[]);
       Name name = new Name("_redirecting#", library.library);
       Field field = new Field(name,
-          isStatic: true,
-          initializer: literal,
-          fileUri: cls.fileUri)..fileOffset = cls.fileOffset;
+          isStatic: true, initializer: literal, fileUri: cls.fileUri)
+        ..fileOffset = cls.fileOffset;
       cls.addMember(field);
       return new DillMemberBuilder(field, this);
     });

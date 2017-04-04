@@ -88,7 +88,7 @@ abstract class Builder {
 
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
-  int resolveConstructors(covariant Builder parent) => 0;
+  int resolveConstructors(LibraryBuilder parent) => 0;
 
   Builder get parent => null;
 

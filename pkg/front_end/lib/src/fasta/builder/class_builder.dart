@@ -60,6 +60,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     return library.partOfLibrary ?? library;
   }
 
+  @override
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
     Scope scope = computeInstanceScope(library.scope);
