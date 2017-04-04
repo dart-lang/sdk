@@ -864,11 +864,12 @@ class ScopeProxy implements Scope {
 
   @override
   Scope createNestedScope({bool isModifiable: true}) {
-    return new Scope(<String, Builder>{}, this, isModifiable: isModifiable);
+    return new Scope.nested(this, isModifiable: isModifiable);
   }
 
   @override
-  Builder lookup(String name, int charOffset, Uri fileUri) =>
+  Builder lookup(String name, int charOffset, Uri fileUri,
+          {bool isInstanceScope: true}) =>
       _locals.putIfAbsent(name, () => new BuilderProxy());
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -72,7 +72,7 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
         local[formal.name] = formal;
       }
     }
-    return new Scope(local, parent, isModifiable: false);
+    return new Scope(local, null, parent, isModifiable: false);
   }
 
   /// This scope doesn't correspond to any scope specified in the Dart
@@ -84,6 +84,6 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
     for (TypeVariableBuilder variable in typeVariables) {
       local[variable.name] = variable;
     }
-    return new Scope(local, parent, isModifiable: false);
+    return new Scope(local, null, parent, isModifiable: false);
   }
 }

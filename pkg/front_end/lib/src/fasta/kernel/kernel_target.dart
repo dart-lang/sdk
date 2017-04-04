@@ -175,7 +175,7 @@ class KernelTarget extends TargetImplementation {
   List<ClassBuilder> collectAllClasses() {
     List<ClassBuilder> result = <ClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.members.forEach((String name, Builder member) {
+      library.forEach((String name, Builder member) {
         if (member is KernelClassBuilder) {
           result.add(member);
         }
@@ -191,7 +191,7 @@ class KernelTarget extends TargetImplementation {
   List<SourceClassBuilder> collectAllSourceClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.members.forEach((String name, Builder member) {
+      library.forEach((String name, Builder member) {
         if (member is SourceClassBuilder) {
           result.add(member);
         }
@@ -230,7 +230,7 @@ class KernelTarget extends TargetImplementation {
       await loader.buildOutlines();
       loader.coreLibrary
           .becomeCoreLibrary(const DynamicType(), const VoidType());
-      dynamicType.bind(loader.coreLibrary.members["dynamic"]);
+      dynamicType.bind(loader.coreLibrary["dynamic"]);
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
@@ -357,7 +357,7 @@ class KernelTarget extends TargetImplementation {
     uriToSource[""] = new Source(<int>[0], const <int>[]);
     Program program = new Program(libraries, uriToSource);
     if (loader.first != null) {
-      Builder builder = loader.first.members["main"];
+      Builder builder = loader.first.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
         program.mainMethod = builder.procedure;
       }
@@ -390,7 +390,7 @@ class KernelTarget extends TargetImplementation {
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.members.forEach((String name, Builder builder) {
+      library.forEach((String name, Builder builder) {
         if (builder is SourceClassBuilder) {
           Class cls = builder.target;
           if (cls != objectClass) {
@@ -415,9 +415,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed default constructors");
   }
 
-  KernelClassBuilder get objectClassBuilder {
-    return loader.coreLibrary.exports["Object"];
-  }
+  KernelClassBuilder get objectClassBuilder => loader.coreLibrary["Object"];
 
   Class get objectClass => objectClassBuilder.cls;
 

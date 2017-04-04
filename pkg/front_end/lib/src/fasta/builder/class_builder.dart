@@ -11,6 +11,7 @@ import 'builder.dart'
         Builder,
         ConstructorReferenceBuilder,
         LibraryBuilder,
+        MemberBuilder,
         MetadataBuilder,
         MixinApplicationBuilder,
         NamedTypeBuilder,
@@ -74,9 +75,9 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       for (TypeVariableBuilder t in typeVariables) {
         local[t.name] = t;
       }
-      parent = new Scope(local, parent, isModifiable: false);
+      parent = new Scope(local, null, parent, isModifiable: false);
     }
-    return new Scope(membersInScope, parent, isModifiable: false);
+    return new Scope(membersInScope, null, parent, isModifiable: false);
   }
 
   /// Used to lookup a static member of this class.
@@ -123,7 +124,9 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     }
   }
 
-  Builder findConstructorOrFactory(String name);
+  Builder findConstructorOrFactory(String name, int charOffset, Uri uri) {
+    return constructors[name];
+  }
 
   /// Returns a map which maps the type variables of [superclass] to their
   /// respective values as defined by the superclass clause of this class (and
@@ -186,6 +189,17 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       }
     }
     return substitutionMap;
+  }
+
+  void forEach(void f(String name, MemberBuilder builder)) {
+    members.forEach(f);
+  }
+
+  /// Don't use for scope lookup. Only use when an element is known to exist
+  /// (and isn't a setter).
+  MemberBuilder operator [](String name) {
+    // TODO(ahe): Rename this to getLocalMember.
+    return members[name] ?? internalError("Not found: '$name'.");
   }
 
   void addCompileTimeError(int charOffset, String message) {

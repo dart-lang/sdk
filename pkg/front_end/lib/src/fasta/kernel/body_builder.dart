@@ -309,9 +309,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         String name = identifier.name;
         FieldBuilder field;
         if (classBuilder != null) {
-          field = classBuilder.members[name];
+          field = classBuilder[name];
         } else {
-          field = library.members[name];
+          field = library[name];
         }
         if (field.next != null) {
           // TODO(ahe): This can happen, for example, if a final field is
@@ -352,7 +352,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     final member = this.member;
     if (member is KernelConstructorBuilder) {
       Constructor constructor = member.constructor;
-      classBuilder.members.forEach((String name, Builder builder) {
+      classBuilder.forEach((String name, Builder builder) {
         if (builder is KernelFieldBuilder && builder.isInstanceMember) {
           // TODO(ahe): Compute initializers (as in `field = initializer`).
           fieldInitializers[name] = new FieldInitializer(builder.field, null)
@@ -1788,7 +1788,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       String errorName;
       if (type is ClassBuilder) {
-        Builder b = type.findConstructorOrFactory(name);
+        Builder b = type.findConstructorOrFactory(name, token.charOffset, uri);
         Member target;
         if (b == null) {
           // Not found. Reported below.
@@ -2887,7 +2887,7 @@ class FormalParameters {
             new KernelVariableBuilder(parameter, builder, builder.fileUri);
       }
     }
-    return new Scope(local, parent, isModifiable: false);
+    return new Scope(local, null, parent, isModifiable: false);
   }
 }
 

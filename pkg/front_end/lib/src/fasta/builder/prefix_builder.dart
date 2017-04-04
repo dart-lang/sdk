@@ -25,6 +25,10 @@ class PrefixBuilder extends Builder {
       : parent = parent,
         super(parent, charOffset, parent.fileUri);
 
+  Builder lookup(String name, int charOffset, Uri fileUri) {
+    return exports[name];
+  }
+
   Member findTopLevelMember(String name) {
     // TODO(ahe): Move this to KernelPrefixBuilder.
     Builder builder = exports[name];

@@ -12,6 +12,9 @@ class Scope {
   /// Names declared in this scope.
   final Map<String, Builder> local;
 
+  /// Setters declared in this scope.
+  final Map<String, Builder> setters;
+
   /// The scope that this scope is nested within, or `null` if this is the top
   /// level scope.
   final Scope parent;
@@ -24,13 +27,27 @@ class Scope {
 
   Map<String, Builder> forwardDeclaredLabels;
 
-  Scope(this.local, this.parent, {this.isModifiable: true});
+  Scope(this.local, Map<String, Builder> setters, this.parent,
+      {this.isModifiable: true})
+      : setters = setters ?? const <String, Builder>{};
+
+  Scope.top({bool isModifiable: false})
+      : this(<String, Builder>{}, <String, Builder>{}, null,
+            isModifiable: isModifiable);
+
+  Scope.immutable()
+      : this(const <String, Builder>{}, const <String, Builder>{}, null,
+            isModifiable: false);
+
+  Scope.nested(Scope parent, {bool isModifiable: true})
+      : this(<String, Builder>{}, null, parent, isModifiable: isModifiable);
 
   Scope createNestedScope({bool isModifiable: true}) {
-    return new Scope(<String, Builder>{}, this, isModifiable: isModifiable);
+    return new Scope.nested(this, isModifiable: isModifiable);
   }
 
-  Builder lookup(String name, int charOffset, Uri fileUri) {
+  Builder lookup(String name, int charOffset, Uri fileUri,
+      {bool isInstanceScope: true}) {
     Builder builder = local[name];
     if (builder != null) {
       if (builder.next != null) {
@@ -44,7 +61,8 @@ class Scope {
     }
   }
 
-  Builder lookupSetter(String name, int charOffset, Uri fileUri) {
+  Builder lookupSetter(String name, int charOffset, Uri fileUri,
+      {bool isInstanceScope: true}) {
     Builder builder = local[name];
     if (builder != null) {
       if (builder.next != null) {
@@ -130,6 +148,10 @@ class Scope {
     } else {
       internalError("Can't extend an unmodifiable scope.");
     }
+  }
+
+  void forEach(f(String name, Builder member)) {
+    local.forEach(f);
   }
 }
 

@@ -42,6 +42,7 @@ Class initializeClass(
 class SourceClassBuilder extends KernelClassBuilder {
   final Class cls;
 
+  @override
   final Map<String, Builder> constructors;
 
   final Map<String, Builder> membersInScope;
@@ -118,8 +119,6 @@ class SourceClassBuilder extends KernelClassBuilder {
     cls.procedures.sort(compareProcedures);
     return cls;
   }
-
-  Builder findConstructorOrFactory(String name) => constructors[name];
 
   void addSyntheticConstructor(Constructor constructor) {
     String name = constructor.name.name;

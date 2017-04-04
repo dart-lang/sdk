@@ -200,7 +200,7 @@ class SourceLoader<L> extends Loader<L> {
     builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
-      library.members.forEach((String name, Builder member) {
+      library.forEach((String name, Builder member) {
         while (member != null) {
           members.add(member);
           member = member.next;

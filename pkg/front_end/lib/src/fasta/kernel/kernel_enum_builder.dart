@@ -193,9 +193,9 @@ class KernelEnumBuilder extends SourceClassBuilder
     }
     toStringMap.keyType = intType.build(libraryBuilder);
     toStringMap.valueType = stringType.build(libraryBuilder);
-    KernelFieldBuilder indexFieldBuilder = members["index"];
+    KernelFieldBuilder indexFieldBuilder = this["index"];
     Field indexField = indexFieldBuilder.build(libraryBuilder);
-    KernelProcedureBuilder toStringBuilder = members["toString"];
+    KernelProcedureBuilder toStringBuilder = this["toString"];
     toStringBuilder.body = new ReturnStatement(new MethodInvocation(
         toStringMap,
         indexGetName,
@@ -205,14 +205,14 @@ class KernelEnumBuilder extends SourceClassBuilder
     List<Expression> values = <Expression>[];
     for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
       String name = constantNamesAndOffsets[i];
-      KernelFieldBuilder builder = members[name];
+      KernelFieldBuilder builder = this[name];
       values.add(new StaticGet(builder.build(libraryBuilder)));
     }
-    KernelFieldBuilder valuesBuilder = members["values"];
+    KernelFieldBuilder valuesBuilder = this["values"];
     valuesBuilder.build(libraryBuilder);
     valuesBuilder.initializer =
         new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
-    KernelConstructorBuilder constructorBuilder = members[""];
+    KernelConstructorBuilder constructorBuilder = this[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(
         0,
@@ -222,7 +222,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     int index = 0;
     for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
       String constant = constantNamesAndOffsets[i];
-      KernelFieldBuilder field = members[constant];
+      KernelFieldBuilder field = this[constant];
       field.build(libraryBuilder);
       Arguments arguments =
           new Arguments(<Expression>[new IntLiteral(index++)]);
@@ -232,5 +232,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     return super.build(libraryBuilder);
   }
 
-  Builder findConstructorOrFactory(String name) => null;
+  @override
+  Builder findConstructorOrFactory(String name, int charOffset, Uri uri) {
+    return null;
+  }
 }

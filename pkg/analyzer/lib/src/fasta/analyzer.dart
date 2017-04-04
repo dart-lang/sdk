@@ -25,7 +25,7 @@ export 'element_store.dart' show ElementStore;
 TreeNode toKernel(
     AstNode node, ElementStore store, Library library, Scope scope) {
   ExpressionScope expressionScope = new ExpressionScope(store, library);
-  scope.local.forEach((String name, Builder builder) {
+  scope.forEach((String name, Builder builder) {
     if (builder is KernelFormalParameterBuilder) {
       LocalElement local = store[builder];
       assert(local != null);

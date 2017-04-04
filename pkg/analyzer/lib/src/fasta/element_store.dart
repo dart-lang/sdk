@@ -75,7 +75,7 @@ class ElementStoreImplementation implements ElementStore {
       KernelLibraryElement element = new KernelLibraryElement(unit);
       elements[library] = element;
       unit.library = element;
-      library.members.forEach((String name, Builder builder) {
+      library.forEach((String name, Builder builder) {
         do {
           if (builder is ClassBuilder) {
             elements[builder] = new KernelClassElement(builder);
@@ -105,12 +105,9 @@ class ElementStoreImplementation implements ElementStore {
   Constructor getCoreClassConstructorReference(String className,
       {String constructorName, String library}) {
     assert(library == null);
-    KernelClassBuilder cls = coreLibrary.members[className];
-    Constructor constructor = constructorName == null
-        ? cls.cls.constructors.first
-        : cls.cls.constructors
-            .firstWhere((Constructor c) => c.name.name == constructorName);
-    return constructor;
+    return coreLibrary
+        .getConstructor(className, constructorName: constructorName)
+        .target;
   }
 
   Library getLibraryReference(LibraryElement element) {

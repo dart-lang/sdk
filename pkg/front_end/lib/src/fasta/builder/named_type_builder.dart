@@ -41,7 +41,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
       String last = name.substring(name.lastIndexOf(".") + 1);
       var prefix = scope.lookup(first, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
-        member = prefix.exports[last];
+        member = prefix.lookup(last, charOffset, fileUri);
       }
       if (member is TypeDeclarationBuilder) {
         builder = member;

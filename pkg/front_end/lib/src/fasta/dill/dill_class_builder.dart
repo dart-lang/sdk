@@ -21,6 +21,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 class DillClassBuilder extends KernelClassBuilder {
   final Class cls;
 
+  @override
   final Map<String, Builder> constructors = <String, Builder>{};
 
   DillClassBuilder(Class cls, DillLibraryBuilder parent)
@@ -49,8 +50,6 @@ class DillClassBuilder extends KernelClassBuilder {
   bool get isMixinApplication => cls.isMixinApplication;
 
   KernelTypeBuilder get mixedInType => internalError("Not implemented.");
-
-  Builder findConstructorOrFactory(String name) => constructors[name];
 }
 
 int computeModifiers(Class cls) {

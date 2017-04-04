@@ -50,7 +50,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final Map<String, Builder> exports = <String, Builder>{};
 
-  final Scope scope = new Scope(<String, Builder>{}, null, isModifiable: false);
+  final Scope scope = new Scope.top();
 
   final Uri fileUri;
 
@@ -303,7 +303,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   R build() {
     assert(implementationBuilders.isEmpty);
-    members.forEach((String name, Builder builder) {
+    forEach((String name, Builder builder) {
       do {
         buildBuilder(builder);
         builder = builder.next;
@@ -369,7 +369,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         // The part is still included.
       }
     }
-    part.members.forEach((String name, Builder builder) {
+    part.forEach((String name, Builder builder) {
       if (builder.next != null) {
         assert(builder.next.next == null);
         addBuilder(name, builder.next, builder.next.charOffset);
@@ -383,8 +383,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void buildInitialScopes() {
-    members.forEach(addToExportScope);
-    members.forEach((String name, Builder member) {
+    forEach(addToExportScope);
+    forEach((String name, Builder member) {
       addToScope(name, member, member.charOffset, false);
     });
   }
@@ -440,7 +440,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     for (T t in types) {
       t.resolveIn(scope);
     }
-    members.forEach((String name, Builder member) {
+    forEach((String name, Builder member) {
       typeCount += member.resolveTypes(this);
     });
     return typeCount;
@@ -448,7 +448,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   int resolveConstructors(_) {
     int count = 0;
-    members.forEach((String name, Builder member) {
+    forEach((String name, Builder member) {
       count += member.resolveConstructors(this);
     });
     return count;

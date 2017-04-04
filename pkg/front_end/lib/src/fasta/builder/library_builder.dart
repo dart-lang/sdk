@@ -108,7 +108,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      Builder constructor = cls.findConstructorOrFactory(constructorName);
+      Builder constructor =
+          cls.findConstructorOrFactory(constructorName, -1, null);
       if (constructor == null) {
         // Fall-through to internal error below.
       } else if (constructor.isConstructor) {
@@ -129,5 +130,19 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     addBuilder("dynamic",
         new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
     addBuilder("void", new VoidTypeBuilder<T, dynamic>(voidType, this, -1), -1);
+  }
+
+  void forEach(void f(String name, Builder builder)) {
+    members.forEach(f);
+  }
+
+  /// Don't use for scope lookup. Only use when an element is known to exist
+  /// (and not a setter).
+  Builder operator [](String name) {
+    return members[name] ?? internalError("Not found: '$name'.");
+  }
+
+  Builder lookup(String name, int charOffset, Uri fileUri) {
+    return members[name];
   }
 }
