@@ -29,8 +29,6 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../builder/builder.dart';
 
-import '../builder/scope.dart' show Scope;
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../kernel/kernel_library_builder.dart' show isConstructorName;

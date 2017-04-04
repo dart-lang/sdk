@@ -15,7 +15,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
-import 'package:front_end/src/fasta/source/scope_listener.dart' show Scope;
+import 'package:front_end/src/fasta/scope.dart' show Scope;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/translate_uri.dart';

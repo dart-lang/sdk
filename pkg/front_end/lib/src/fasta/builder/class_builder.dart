@@ -18,7 +18,7 @@ import 'builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
-import 'scope.dart' show AccessErrorBuilder, AmbiguousBuilder, Scope;
+import '../scope.dart' show AccessErrorBuilder, AmbiguousBuilder, Scope;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {

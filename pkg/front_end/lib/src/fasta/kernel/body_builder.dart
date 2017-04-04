@@ -34,7 +34,7 @@ import '../errors.dart' show formatUnexpected, internalError;
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
 
-import '../builder/scope.dart' show ProblemBuilder, Scope;
+import '../scope.dart' show ProblemBuilder;
 
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
 

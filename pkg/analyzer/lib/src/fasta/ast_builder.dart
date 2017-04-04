@@ -18,12 +18,12 @@ import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show FastaMessage, codeExpectedExpression;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show Builder, KernelLibraryBuilder, ProcedureBuilder;
+    show Builder, KernelLibraryBuilder, ProcedureBuilder, Scope;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
-    show JumpTargetKind, NullValue, Scope, ScopeListener;
+    show JumpTargetKind, NullValue, ScopeListener;
 import 'analyzer.dart' show toKernel;
 import 'element_store.dart'
     show

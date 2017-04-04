@@ -10,7 +10,6 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/fasta/element_store.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/builder/scope.dart';
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart'

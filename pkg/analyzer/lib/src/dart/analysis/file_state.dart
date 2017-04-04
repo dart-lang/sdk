@@ -32,7 +32,6 @@ import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
 import 'package:analyzer/src/fasta/element_store.dart' as fasta;
 import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
-import 'package:front_end/src/fasta/builder/scope.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:meta/meta.dart';

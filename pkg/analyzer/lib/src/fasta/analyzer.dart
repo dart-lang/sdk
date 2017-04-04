@@ -13,10 +13,8 @@ import 'package:analyzer/src/kernel/ast_from_analyzer.dart'
 
 import 'package:kernel/ast.dart' show Library, TreeNode;
 
-import 'package:front_end/src/fasta/builder/scope.dart' show Scope;
-
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show Builder, KernelFormalParameterBuilder;
+    show Builder, KernelFormalParameterBuilder, Scope;
 
 import 'element_store.dart' show ElementStore;
 

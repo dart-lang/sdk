@@ -4,13 +4,12 @@
 
 library fasta.named_type_builder;
 
-import 'scope.dart' show Scope;
-
 import 'builder.dart'
     show
         Builder,
         InvalidTypeBuilder,
         PrefixBuilder,
+        Scope,
         TypeBuilder,
         TypeDeclarationBuilder;
 

@@ -13,7 +13,7 @@ import 'package:kernel/ast.dart';
 
 import '../errors.dart' show internalError;
 
-import '../builder/scope.dart' show AccessErrorBuilder, ProblemBuilder;
+import '../scope.dart' show AccessErrorBuilder, ProblemBuilder;
 
 import 'package:kernel/frontend/accessors.dart' as kernel
     show

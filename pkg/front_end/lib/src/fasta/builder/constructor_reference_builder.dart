@@ -4,11 +4,10 @@
 
 library fasta.constructor_reference_builder;
 
-import 'builder.dart' show PrefixBuilder, ClassBuilder, Builder, TypeBuilder;
+import 'builder.dart'
+    show Builder, ClassBuilder, PrefixBuilder, Scope, TypeBuilder;
 
 import '../messages.dart' show warning;
-
-import 'scope.dart' show Scope;
 
 class ConstructorReferenceBuilder extends Builder {
   final String name;

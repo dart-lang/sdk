@@ -16,10 +16,9 @@ import 'builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        Scope,
         TypeBuilder,
         TypeVariableBuilder;
-
-import 'scope.dart' show Scope;
 
 abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   final List<MetadataBuilder> metadata;

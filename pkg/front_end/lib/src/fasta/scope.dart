@@ -4,9 +4,9 @@
 
 library fasta.scope;
 
-import 'builder.dart' show Builder, MixedAccessor;
+import 'builder/builder.dart' show Builder, MixedAccessor;
 
-import '../errors.dart' show internalError;
+import 'errors.dart' show internalError;
 
 class Scope {
   /// Names declared in this scope.

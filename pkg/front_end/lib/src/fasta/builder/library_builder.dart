@@ -21,10 +21,9 @@ import 'builder.dart'
         Builder,
         DynamicTypeBuilder,
         ClassBuilder,
+        Scope,
         TypeBuilder,
         VoidTypeBuilder;
-
-import 'scope.dart' show Scope;
 
 abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   final List<Export> exporters = <Export>[];

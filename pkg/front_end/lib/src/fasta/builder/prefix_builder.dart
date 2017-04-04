@@ -4,15 +4,15 @@
 
 library fasta.prefix_builder;
 
-import 'builder.dart' show Builder, LibraryBuilder, MemberBuilder;
-
-import '../messages.dart' show warning;
-
 import 'package:kernel/ast.dart' show Member;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../errors.dart' show internalError;
+
+import '../messages.dart' show warning;
+
+import 'builder.dart' show Builder, LibraryBuilder, MemberBuilder;
 
 class PrefixBuilder extends Builder {
   final String name;

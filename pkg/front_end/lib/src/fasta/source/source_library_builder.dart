@@ -16,8 +16,6 @@ import '../import.dart' show Import;
 
 import 'source_loader.dart' show SourceLoader;
 
-import '../builder/scope.dart' show Scope;
-
 import '../builder/builder.dart'
     show
         Builder,
@@ -30,6 +28,7 @@ import '../builder/builder.dart'
         MetadataBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        Scope,
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder,
