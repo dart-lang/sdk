@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_BIN_SOCKET_WIN_H_
-#define RUNTIME_BIN_SOCKET_WIN_H_
+#ifndef RUNTIME_BIN_SOCKET_BASE_WIN_H_
+#define RUNTIME_BIN_SOCKET_BASE_WIN_H_
 
-#if !defined(RUNTIME_BIN_SOCKET_H_)
-#error Do not include socket_win.h directly. Use socket.h.
+#if !defined(RUNTIME_BIN_SOCKET_BASE_H_)
+#error Do not include socket_base_win.h directly. Use socket_base.h.
 #endif
 
 #include <iphlpapi.h>
@@ -14,4 +14,4 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#endif  // RUNTIME_BIN_SOCKET_WIN_H_
+#endif  // RUNTIME_BIN_SOCKET_BASE_WIN_H_
