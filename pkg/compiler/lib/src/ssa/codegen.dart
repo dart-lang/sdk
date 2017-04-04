@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' as math;
+import 'dart:collection' show Queue;
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
@@ -205,6 +206,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // The subgraph is used to delimit traversal for some constructions, e.g.,
   // if branches.
   SubGraph subGraph;
+
+  // Pending blocks than need to be visited as part of current subgraph.
+  Queue<HBasicBlock> blockQueue;
 
   SsaCodeGenerator(
       this._options,
@@ -419,15 +423,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitGraph(HGraph graph) {
     preGenerateMethod(graph);
     currentGraph = graph;
-    subGraph = new SubGraph(graph.entry, graph.exit);
-    visitBasicBlock(graph.entry);
+    visitSubGraph(new SubGraph(graph.entry, graph.exit));
     handleDelayedVariableDeclarations(graph.sourceInformation);
   }
 
   void visitSubGraph(SubGraph newSubGraph) {
     SubGraph oldSubGraph = subGraph;
+    Queue<HBasicBlock> oldBlockQueue = blockQueue;
     subGraph = newSubGraph;
-    visitBasicBlock(subGraph.start);
+    blockQueue = new Queue<HBasicBlock>();
+    enterSubGraph(subGraph.start);
+    blockQueue = oldBlockQueue;
     subGraph = oldSubGraph;
   }
 
@@ -1201,27 +1207,40 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentBlockInformation = info;
     bool success = info.accept(this);
     currentBlockInformation = oldBlockInformation;
+
     if (success) {
       HBasicBlock continuation = block.continuation;
       if (continuation != null) {
-        visitBasicBlock(continuation);
+        continueSubGraph(continuation);
       }
     }
     return success;
   }
 
-  void visitBasicBlock(HBasicBlock node) {
-    if (!node.isLive) return;
+  void enterSubGraph(HBasicBlock node) {
+    assert(blockQueue.isEmpty);
+    assert(node != null);
+    continueSubGraph(node);
+    while (blockQueue.isNotEmpty) {
+      node = blockQueue.removeFirst();
+      assert(node.isLive);
+      assert(subGraph.contains(node));
 
-    // Abort traversal if we are leaving the currently active sub-graph.
-    if (!subGraph.contains(node)) return;
+      // If this node has block-structure based information attached,
+      // try using that to traverse from here.
+      if (node.blockFlow != null && handleBlockFlow(node.blockFlow)) {
+        continue;
+      }
 
-    // If this node has block-structure based information attached,
-    // try using that to traverse from here.
-    if (node.blockFlow != null && handleBlockFlow(node.blockFlow)) {
-      return;
+      iterateBasicBlock(node);
     }
-    iterateBasicBlock(node);
+  }
+
+  void continueSubGraph(HBasicBlock node) {
+    if (!node.isLive) return;
+    // Don't follow edges out of the current sub-graph.
+    if (!subGraph.contains(node)) return;
+    blockQueue.add(node);
   }
 
   void emitAssignment(String destination, String source) {
@@ -1484,7 +1503,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           node, 'node.block != currentGraph.entry');
     }
     assert(dominated[0] == block.successors[0]);
-    visitBasicBlock(dominated[0]);
+    continueSubGraph(dominated.first);
   }
 
   visitLoopBranch(HLoopBranch node) {
@@ -1563,7 +1582,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // of the catch and finally. Here, we continue visiting the try
     // body by visiting the block that contains the user-level control
     // flow instruction.
-    visitBasicBlock(node.bodyTrySuccessor);
+    continueSubGraph(node.bodyTrySuccessor);
   }
 
   visitTry(HTry node) {
@@ -1587,7 +1606,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return false;
     }
     if (!atUseSite) define(phi);
-    visitBasicBlock(node.joinBlock);
+    continueSubGraph(node.joinBlock);
     return true;
   }
 
@@ -1645,7 +1664,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
       // instead.
-      visitBasicBlock(joinBlock);
+      continueSubGraph(joinBlock);
     }
 
     // Visit all the dominated blocks that are not part of the then or else
@@ -1654,7 +1673,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // (e.g., return/throw/break) there can be any number of these.
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
     for (int i = 2; i < dominated.length; i++) {
-      visitBasicBlock(dominated[i]);
+      continueSubGraph(dominated[i]);
     }
   }
 
