@@ -3520,9 +3520,11 @@ abstract class LibraryElementForLink<
       ];
       int numParts = definingUnit.parts.length;
       for (int i = 0; i < numParts; i++) {
-        // TODO(paulberry): make sure we handle the case where
-        // resolveRelativeUri fails.
         String partRelativeUriStr = definingUnit.publicNamespace.parts[i];
+
+        if (partRelativeUriStr.isEmpty) {
+          continue;
+        }
 
         Uri partRelativeUri;
         try {

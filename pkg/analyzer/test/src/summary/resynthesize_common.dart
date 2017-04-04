@@ -10102,6 +10102,29 @@ class C {
     }
   }
 
+  test_invalidUri_part_emptyUri() {
+    allowMissingFiles = true;
+    var library = checkLibrary(r'''
+part '';
+class B extends A {}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+class B {
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+class B {
+}
+''');
+    }
+  }
+
   test_invalidUris() {
     allowMissingFiles = true;
     var library = checkLibrary(r'''
