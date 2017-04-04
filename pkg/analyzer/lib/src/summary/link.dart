@@ -4885,9 +4885,12 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           refPtr++;
           break;
         case UnlinkedExprOperation.invokeMethodRef:
-          // TODO(paulberry): if this reference refers to a variable, should it
-          // be considered a type inference dependency?
-          refPtr++;
+          EntityRef ref = unlinkedConst.references[refPtr++];
+          TypeInferenceNode dependency =
+              compilationUnit.resolveRef(ref.reference).asTypeInferenceNode;
+          if (dependency != null) {
+            dependencies.add(dependency);
+          }
           intPtr += 2;
           int numTypeArguments = unlinkedConst.ints[intPtr++];
           refPtr += numTypeArguments;

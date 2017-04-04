@@ -801,6 +801,30 @@ dynamic h/*error: instanceGetter*/;
 ''');
   }
 
+  test_initializer_error_methodInvocation_cycle_topLevel() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = b.foo();
+var b = a.foo();
+''');
+    checkElementText(
+        library,
+        r'''
+dynamic a/*error: dependencyCycle*/;
+dynamic b/*error: dependencyCycle*/;
+''');
+  }
+
+  test_initializer_error_methodInvocation_cycle_topLevel_self() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = a.foo();
+''');
+    checkElementText(
+        library,
+        r'''
+dynamic a/*error: dependencyCycle*/;
+''');
+  }
+
   test_initializer_error_referenceToFieldOfStaticField() async {
     var library = await _encodeDecodeLibrary(r'''
 class C {
