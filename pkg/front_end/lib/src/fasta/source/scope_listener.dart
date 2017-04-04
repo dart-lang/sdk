@@ -25,7 +25,8 @@ abstract class ScopeListener<J> extends UnhandledListener {
 
   J continueTarget;
 
-  ScopeListener(this.scope);
+  ScopeListener(Scope scope)
+      : scope = scope ?? new Scope(const {}, null, isModifiable: false);
 
   J createJumpTarget(JumpTargetKind kind, int charOffset);
 

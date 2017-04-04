@@ -15,7 +15,6 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
-import 'package:front_end/src/fasta/scope.dart' show Scope;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/translate_uri.dart';
@@ -225,15 +224,10 @@ parseFull(Uri uri, List<int> source) {
   parser.parseUnit(tokens);
 }
 
-class _EmptyScope extends Scope {
-  _EmptyScope() : super({}, null);
-}
-
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri)
-      : super(null, null, null, null, new _EmptyScope(), uri);
+  _PartialAstBuilder(Uri uri) : super(null, null, null, null, null, uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override

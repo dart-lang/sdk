@@ -364,7 +364,7 @@ class FileState {
             null,
             null,
             new _FastaElementStoreProxy(),
-            new _FastaEmptyScope(),
+            null,
             uri);
         var parser = new fasta.Parser(astBuilder);
         parser.parseUnit(scanResult.tokens);
@@ -799,10 +799,6 @@ class _FastaElementStoreProxy implements fasta.ElementStore {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FastaEmptyScope extends fasta.Scope {
-  _FastaEmptyScope() : super({}, null);
 }
 
 class _FastaInterfaceTypeProxy implements fasta.KernelInterfaceType {
