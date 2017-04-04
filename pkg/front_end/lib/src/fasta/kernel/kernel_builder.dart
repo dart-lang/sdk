@@ -106,3 +106,9 @@ dynamic memberError(Member member, Object error, [int charOffset]) {
   name = (cls == null ? "" : "${cls.name}::") + name;
   return inputError(uri, charOffset, "Error in $name: $error");
 }
+
+int compareProcedures(Procedure a, Procedure b) {
+  int i = a.fileUri.compareTo(b.fileUri);
+  if (i != 0) return i;
+  return a.fileOffset.compareTo(b.fileOffset);
+}

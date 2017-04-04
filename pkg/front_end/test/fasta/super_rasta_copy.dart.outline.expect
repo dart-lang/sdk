@@ -14,9 +14,9 @@ class A extends core::Object {
     ;
   set g(dynamic _) → dynamic
     ;
-  set h(dynamic _) → dynamic
-    ;
   get h() → dynamic
+    ;
+  set h(dynamic _) → dynamic
     ;
   get i() → dynamic
     ;

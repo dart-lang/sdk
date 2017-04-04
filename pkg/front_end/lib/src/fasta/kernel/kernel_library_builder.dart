@@ -51,7 +51,8 @@ import 'kernel_builder.dart'
         PrefixBuilder,
         ProcedureBuilder,
         TypeBuilder,
-        TypeVariableBuilder;
+        TypeVariableBuilder,
+        compareProcedures;
 
 class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
@@ -324,6 +325,7 @@ class KernelLibraryBuilder
   Library build() {
     super.build();
     library.name = name;
+    library.procedures.sort(compareProcedures);
     return library;
   }
 

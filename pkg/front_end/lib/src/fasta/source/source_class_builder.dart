@@ -22,7 +22,8 @@ import '../kernel/kernel_builder.dart'
         LibraryBuilder,
         MetadataBuilder,
         ProcedureBuilder,
-        TypeVariableBuilder;
+        TypeVariableBuilder,
+        compareProcedures;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
@@ -113,6 +114,8 @@ class SourceClassBuilder extends KernelClassBuilder {
         }
       }
     }
+
+    cls.procedures.sort(compareProcedures);
     return cls;
   }
 
