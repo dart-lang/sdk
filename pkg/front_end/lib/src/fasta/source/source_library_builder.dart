@@ -70,6 +70,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// for example, [addClass] is called.
   DeclarationBuilder<T> currentDeclaration;
 
+  bool canAddImplementationBuilders = false;
+
   SourceLibraryBuilder(this.loader, Uri fileUri)
       : fileUri = fileUri,
         super(fileUri) {
@@ -303,6 +305,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   R build() {
     assert(implementationBuilders.isEmpty);
+    canAddImplementationBuilders = true;
     forEach((String name, Builder builder) {
       do {
         buildBuilder(builder);
@@ -316,10 +319,16 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       addBuilder(name, builder, charOffset);
       buildBuilder(builder);
     }
+    canAddImplementationBuilders = false;
     return null;
   }
 
+  /// Used to add implementation builder during the call to [build] above.
+  /// Currently, only anonymous mixins are using implementation builders (see
+  /// [KernelMixinApplicationBuilder]
+  /// (../kernel/kernel_mixin_application_builder.dart)).
   void addImplementationBuilder(String name, Builder builder, int charOffset) {
+    assert(canAddImplementationBuilders, "$uri");
     implementationBuilders.add([name, builder, charOffset]);
   }
 
