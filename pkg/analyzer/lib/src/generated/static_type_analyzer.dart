@@ -199,7 +199,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
   ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
-
     List<DartType> elementTypes;
     List<ParameterElement> parameters;
     if (downwards) {
@@ -229,7 +228,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     var ts = _typeSystem as StrongTypeSystemImpl;
     ParameterizedType inferred = ts.inferGenericFunctionOrType(
         _typeProvider.mapType, parameters, elementTypes, contextType,
-        errorReporter: _resolver.errorReporter, errorNode: node);
+        downwards: downwards,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
     return inferred;
   }
 
