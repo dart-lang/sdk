@@ -1556,8 +1556,8 @@ class UnresolvedClass : public Object {
 
 // Classification of type genericity according to type parameter owners.
 enum Genericity {
-  kAny,              // Consider type params of class and functions.
-  kClass,            // Consider type params of class only.
+  kAny,              // Consider type params of current class and functions.
+  kCurrentClass,     // Consider type params of current class only.
   kFunctions,        // Consider type params of current and parent functions.
   kCurrentFunction,  // Consider type params of current function only.
   kParentFunctions   // Consider type params of parent functions only.

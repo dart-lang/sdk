@@ -1227,7 +1227,7 @@ void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
   }
   const TokenPosition token_pos = node->token_pos();
   Value* instantiator_type_arguments = NULL;
-  if (type.IsInstantiated(kClass)) {
+  if (type.IsInstantiated(kCurrentClass)) {
     instantiator_type_arguments = BuildNullValue(token_pos);
   } else {
     instantiator_type_arguments = BuildInstantiatorTypeArguments(token_pos);
@@ -1421,7 +1421,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 PushArgumentInstr* EffectGraphVisitor::PushInstantiatorTypeArguments(
     const AbstractType& type,
     TokenPosition token_pos) {
-  if (type.IsInstantiated(kClass)) {
+  if (type.IsInstantiated(kCurrentClass)) {
     return PushArgument(BuildNullValue(token_pos));
   } else {
     Value* instantiator_type_args = BuildInstantiatorTypeArguments(token_pos);
@@ -1457,7 +1457,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
   // Build the type check computation.
   Value* instantiator_type_arguments = NULL;
   Value* function_type_arguments = NULL;
-  if (dst_type.IsInstantiated(kClass)) {
+  if (dst_type.IsInstantiated(kCurrentClass)) {
     instantiator_type_arguments = BuildNullValue(token_pos);
   } else {
     instantiator_type_arguments = BuildInstantiatorTypeArguments(token_pos);

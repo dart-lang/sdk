@@ -17797,7 +17797,7 @@ bool TypeParameter::IsInstantiated(Genericity genericity,
   switch (genericity) {
     case kAny:
       return false;
-    case kClass:
+    case kCurrentClass:
       return IsFunctionTypeParameter();
     case kFunctions:
       return IsClassTypeParameter();
