@@ -50,6 +50,7 @@
 #include <winsock2.h>
 #include <Rpc.h>
 #include <shellapi.h>
+#include <VersionHelpers.h>
 #endif  // defined(_WIN32)
 
 #if !defined(_WIN32)

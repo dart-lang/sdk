@@ -310,6 +310,22 @@ class FileHandle : public DescriptorInfoSingleMixin<Handle> {
 
 class StdHandle : public FileHandle {
  public:
+  static StdHandle* Stdin(HANDLE handle);
+
+  virtual void DoClose();
+  virtual intptr_t Write(const void* buffer, intptr_t num_bytes);
+
+  void WriteSyncCompleteAsync();
+  void RunWriteLoop();
+
+#if defined(DEBUG)
+  static StdHandle* StdinPtr() { return stdin_; }
+#endif
+
+ private:
+  static Mutex* stdin_mutex_;
+  static StdHandle* stdin_;
+
   explicit StdHandle(HANDLE handle)
       : FileHandle(handle),
         thread_id_(Thread::kInvalidThreadId),
@@ -320,13 +336,6 @@ class StdHandle : public FileHandle {
     type_ = kStd;
   }
 
-  virtual void DoClose();
-  virtual intptr_t Write(const void* buffer, intptr_t num_bytes);
-
-  void WriteSyncCompleteAsync();
-  void RunWriteLoop();
-
- private:
   ThreadId thread_id_;
   HANDLE thread_handle_;
   intptr_t thread_wrote_;

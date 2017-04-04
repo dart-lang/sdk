@@ -156,7 +156,15 @@ void Handle::Close() {
     // If the handle uses synchronous I/O (e.g. stdin), cancel any pending
     // operation before closing the handle, so the read thread is not blocked.
     BOOL result = CancelIoEx(handle_, NULL);
-    ASSERT(result || (GetLastError() == ERROR_NOT_FOUND));
+// The Dart code 'stdin.listen(() {}).cancel()' causes this assert to be
+// triggered on Windows 7, but not on Windows 10.
+#if defined(DEBUG)
+    if (IsWindows10OrGreater()) {
+      ASSERT(result || (GetLastError() == ERROR_NOT_FOUND));
+    }
+#else
+    USE(result);
+#endif
   }
   if (!IsClosing()) {
     // Close the socket and set the closing state. This close method can be
@@ -753,6 +761,18 @@ intptr_t Handle::SendTo(const void* buffer,
 }
 
 
+Mutex* StdHandle::stdin_mutex_ = new Mutex();
+StdHandle* StdHandle::stdin_ = NULL;
+
+StdHandle* StdHandle::Stdin(HANDLE handle) {
+  MutexLocker ml(stdin_mutex_);
+  if (stdin_ == NULL) {
+    stdin_ = new StdHandle(handle);
+  }
+  return stdin_;
+}
+
+
 static void WriteFileThread(uword args) {
   StdHandle* handle = reinterpret_cast<StdHandle*>(args);
   handle->RunWriteLoop();
@@ -845,19 +865,24 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
 
 
 void StdHandle::DoClose() {
-  MonitorLocker ml(monitor_);
-  if (write_thread_exists_) {
-    write_thread_running_ = false;
-    ml.Notify();
-    while (write_thread_exists_) {
-      ml.Wait(Monitor::kNoTimeout);
+  {
+    MonitorLocker ml(monitor_);
+    if (write_thread_exists_) {
+      write_thread_running_ = false;
+      ml.Notify();
+      while (write_thread_exists_) {
+        ml.Wait(Monitor::kNoTimeout);
+      }
+      // Join the thread.
+      DWORD res = WaitForSingleObject(thread_handle_, INFINITE);
+      CloseHandle(thread_handle_);
+      ASSERT(res == WAIT_OBJECT_0);
     }
-    // Join the thread.
-    DWORD res = WaitForSingleObject(thread_handle_, INFINITE);
-    CloseHandle(thread_handle_);
-    ASSERT(res == WAIT_OBJECT_0);
+    Handle::DoClose();
   }
-  Handle::DoClose();
+  MutexLocker ml(stdin_mutex_);
+  stdin_->Release();
+  StdHandle::stdin_ = NULL;
 }
 
 
@@ -1512,7 +1537,6 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     }
     handler_impl->HandleCompletionOrInterrupt(ok, bytes, key, overlapped);
   }
-#endif
 
   // The eventhandler thread is going down so there should be no more live
   // Handles or Sockets.
@@ -1520,9 +1544,13 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   //     ReferenceCounted<Handle>::instances() == 0;
   // However, we cannot at the moment. See the TODO on:
   //     ClientSocket::IssueDisconnect()
+  // Furthermore, if the Dart program references stdin, but does not
+  // explicitly close it, then the StdHandle for it will be leaked to here.
+  const intptr_t stdin_leaked = (StdHandle::StdinPtr() == NULL) ? 0 : 1;
   DEBUG_ASSERT(ReferenceCounted<Handle>::instances() ==
-               ClientSocket::disconnecting());
+               ClientSocket::disconnecting() + stdin_leaked);
   DEBUG_ASSERT(ReferenceCounted<Socket>::instances() == 0);
+#endif  // defined(DEBUG)
   handler->NotifyShutdownDone();
 }
 

@@ -578,10 +578,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat64 buf;
   int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
   if (result == -1) {
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    FATAL2("Failed stat on file descriptor %d: %s", fd,
-           Utils::StrError(errno, error_buf, kBufferSize));
+    return kOther;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;

@@ -161,12 +161,16 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       &process_stdin, &process_stderr, &pid, &exit_event, &os_error_message);
   if (error_code == 0) {
     if (mode != kDetached) {
-      Socket::SetSocketIdNativeField(stdin_handle, process_stdin, false);
-      Socket::SetSocketIdNativeField(stdout_handle, process_stdout, false);
-      Socket::SetSocketIdNativeField(stderr_handle, process_stderr, false);
+      Socket::SetSocketIdNativeField(stdin_handle, process_stdin,
+                                     Socket::kFinalizerNormal);
+      Socket::SetSocketIdNativeField(stdout_handle, process_stdout,
+                                     Socket::kFinalizerNormal);
+      Socket::SetSocketIdNativeField(stderr_handle, process_stderr,
+                                     Socket::kFinalizerNormal);
     }
     if (mode == kNormal) {
-      Socket::SetSocketIdNativeField(exit_handle, exit_event, false);
+      Socket::SetSocketIdNativeField(exit_handle, exit_event,
+                                     Socket::kFinalizerNormal);
     }
     Process::SetProcessIdNativeField(process, pid);
   } else {
