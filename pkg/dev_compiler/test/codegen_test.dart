@@ -156,9 +156,13 @@ main(List<String> arguments) {
         compiler = new ModuleCompiler(analyzerOptions);
       }
       JSModuleFile module = null;
+      var exception, stackTrace;
       try {
         module = compiler.compile(unit, options);
-      } catch (e) {}
+      } catch (e, st) {
+        exception = e;
+        stackTrace = st;
+      }
 
       bool expectedCompileTimeError =
           contents.contains(': compile-time error\n');
@@ -167,7 +171,8 @@ main(List<String> arguments) {
 
       if (module == null) {
         expect(crashing, isTrue,
-            reason: "test $name crashes during compilation.");
+            reason: "test $name crashes during compilation.\n"
+                "$exception\n$stackTrace");
       } else if (module.isValid) {
         _writeModule(
             path.join(codegenOutputDir, name),

@@ -115,12 +115,18 @@ closure.Foo$ = dart.generic(T => {
   return Foo;
 });
 closure.Foo = Foo();
-/** @final {string} */
-closure.Foo.some_static_constant = "abc";
-/** @final {string} */
-closure.Foo.some_static_final = "abc";
-/** @type {string} */
-closure.Foo.some_static_var = "abc";
+dart.defineLazy(closure.Foo, {
+  get some_static_constant() {
+    return "abc";
+  },
+  get some_static_final() {
+    return "abc";
+  },
+  get some_static_var() {
+    return "abc";
+  },
+  set some_static_var(_) {}
+});
 closure.Bar = class Bar extends core.Object {};
 closure.Baz = class Baz extends dart.mixin(closure.Foo$(core.int), closure.Bar) {
   new(i: number) {
@@ -137,12 +143,16 @@ dart.defineLazy(closure, {
       return;
     }, VoidToNull());
   },
-  set closure(_) {}
+  set closure(_) {},
+  get some_top_level_constant() {
+    return "abc";
+  },
+  get some_top_level_final() {
+    return "abc";
+  },
+  get some_top_level_var() {
+    return "abc";
+  },
+  set some_top_level_var(_) {}
 });
-/** @final {string} */
-closure.some_top_level_constant = "abc";
-/** @final {string} */
-closure.some_top_level_final = "abc";
-/** @type {string} */
-closure.some_top_level_var = "abc";
 dart.trackLibraries("closure", {"closure.dart": closure}, null);

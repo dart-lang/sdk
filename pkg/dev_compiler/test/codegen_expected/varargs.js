@@ -21,7 +21,11 @@ define(['dart_sdk'], function(dart_sdk) {
     new() {
     }
   };
-  src__varargs.rest = dart.const(new src__varargs._Rest());
+  dart.defineLazy(src__varargs, {
+    get rest() {
+      return dart.const(new src__varargs._Rest());
+    }
+  });
   src__varargs.spread = function(args) {
     dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
   };

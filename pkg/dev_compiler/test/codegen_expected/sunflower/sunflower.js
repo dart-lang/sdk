@@ -11,11 +11,23 @@ define(['dart_sdk'], function(dart_sdk) {
   let StringToElement = () => (StringToElement = dart.constFn(dart.definiteFunctionType(html.Element, [core.String])))();
   let EventTovoid = () => (EventTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.Event])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
-  sunflower.SEED_RADIUS = 2;
-  sunflower.SCALE_FACTOR = 4;
-  sunflower.MAX_D = 300;
-  sunflower.centerX = sunflower.MAX_D / 2;
-  sunflower.centerY = sunflower.centerX;
+  dart.defineLazy(sunflower, {
+    get SEED_RADIUS() {
+      return 2;
+    },
+    get SCALE_FACTOR() {
+      return 4;
+    },
+    get MAX_D() {
+      return 300;
+    },
+    get centerX() {
+      return sunflower.MAX_D / 2;
+    },
+    get centerY() {
+      return sunflower.centerX;
+    }
+  });
   sunflower.querySelector = function(selector) {
     return html.document.querySelector(selector);
   };
@@ -23,29 +35,24 @@ define(['dart_sdk'], function(dart_sdk) {
   dart.defineLazy(sunflower, {
     get canvas() {
       return html.CanvasElement.as(sunflower.querySelector("#canvas"));
-    }
-  });
-  dart.defineLazy(sunflower, {
+    },
     get context() {
       return html.CanvasRenderingContext2D.as(sunflower.canvas[dartx.getContext]('2d'));
-    }
-  });
-  dart.defineLazy(sunflower, {
+    },
     get slider() {
       return html.InputElement.as(sunflower.querySelector("#slider"));
-    }
-  });
-  dart.defineLazy(sunflower, {
+    },
     get notes() {
       return sunflower.querySelector("#notes");
-    }
-  });
-  dart.defineLazy(sunflower, {
+    },
     get PHI() {
       return (dart.notNull(math.sqrt(5)) + 1) / 2;
-    }
+    },
+    get seeds() {
+      return 0;
+    },
+    set seeds(_) {}
   });
-  sunflower.seeds = 0;
   sunflower.main = function() {
     sunflower.slider[dartx.addEventListener]('change', dart.fn(e => sunflower.draw(), EventTovoid()));
     sunflower.draw();
@@ -133,10 +140,20 @@ define(['dart_sdk'], function(dart_sdk) {
       if (color != null) this.color = color;
     }
   };
-  painter.ORANGE = "orange";
-  painter.RED = "red";
-  painter.BLUE = "blue";
-  painter.TAU = math.PI * 2;
+  dart.defineLazy(painter, {
+    get ORANGE() {
+      return "orange";
+    },
+    get RED() {
+      return "red";
+    },
+    get BLUE() {
+      return "blue";
+    },
+    get TAU() {
+      return math.PI * 2;
+    }
+  });
   painter.querySelector = function(selector) {
     return html.document.querySelector(selector);
   };
@@ -144,9 +161,7 @@ define(['dart_sdk'], function(dart_sdk) {
   dart.defineLazy(painter, {
     get canvas() {
       return html.CanvasElement.as(painter.querySelector("#canvas"));
-    }
-  });
-  dart.defineLazy(painter, {
+    },
     get context() {
       return html.CanvasRenderingContext2D.as(painter.canvas[dartx.getContext]('2d'));
     }

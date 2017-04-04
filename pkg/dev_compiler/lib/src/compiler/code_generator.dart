@@ -41,7 +41,6 @@ import '../js_ast/js_ast.dart' show js;
 import 'ast_builder.dart' show AstBuilder;
 import 'compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
-import 'element_loader.dart' show ElementLoader;
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
 import 'js_metalet.dart' as JS;
@@ -71,6 +70,10 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<LibraryElement, JS.TemporaryId>();
+
+  /// The list of dart:_runtime SDK functions; these are assumed by other code
+  /// in the SDK to be generated before anything else.
+  final _internalSdkFunctions = <JS.ModuleItem>[];
 
   /// The list of output module items, in the order they need to be emitted in.
   final _moduleItems = <JS.ModuleItem>[];
@@ -105,8 +108,6 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   final _hasDeferredSupertype = new HashSet<ClassElement>();
 
-  final _eagerTopLevelFields = new HashSet<Element>.identity();
-
   /// The  type provider from the current Analysis [context].
   final TypeProvider types;
 
@@ -134,9 +135,24 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// The current function body being compiled.
   FunctionBody _currentFunction;
 
-  /// Helper class for emitting elements in the proper order to allow
-  /// JS to load the module.
-  ElementLoader _loader;
+  HashMap<TypeDefiningElement, AstNode> _declarationNodes;
+
+  /// The stack of currently emitting elements, if generating top-level code
+  /// for them. This is not used when inside method bodies, because order does
+  /// not matter for those.
+  final _topLevelElements = <TypeDefiningElement>[];
+
+  /// The current element being loaded.
+  /// We can use this to determine if we're loading top-level code or not:
+  ///
+  ///     _currentElements.last == _topLevelElements.last
+  //
+  // TODO(jmesserly): ideally we'd only track types here, in other words,
+  // TypeDefiningElement. However we still rely on this for [currentLibrary] so
+  // we need something to be pushed always.
+  final _currentElements = <Element>[];
+
+  final _deferredProperties = new HashMap<PropertyAccessorElement, JS.Method>();
 
   BuildUnit _buildUnit;
 
@@ -182,7 +198,9 @@ class CodeGenerator extends GeneralizingAstVisitor
             _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
         dartJSLibrary = _getLibrary(c, 'dart:js');
 
-  LibraryElement get currentLibrary => _loader.currentElement.library;
+  Element get currentElement => _currentElements.last;
+
+  LibraryElement get currentLibrary => currentElement.library;
 
   /// The main entry point to JavaScript code generation.
   ///
@@ -285,19 +303,17 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
     }
 
-    // Collect all Element -> Node mappings, in case we need to forward declare
-    // any nodes.
-    var nodes = new HashMap<Element, AstNode>.identity();
-    var sdkBootstrappingFns = new List<FunctionElement>();
+    // Collect all class/type Element -> Node mappings
+    // in case we need to forward declare any classes.
+    _declarationNodes = new HashMap<TypeDefiningElement, AstNode>.identity();
     for (var unit in compilationUnits) {
-      if (isSdkInternalRuntime(
-          resolutionMap.elementDeclaredByCompilationUnit(unit).library)) {
-        sdkBootstrappingFns.addAll(
-            resolutionMap.elementDeclaredByCompilationUnit(unit).functions);
+      for (var declaration in unit.declarations) {
+        var element = declaration.element;
+        if (element is TypeDefiningElement) {
+          _declarationNodes[element] = declaration;
+        }
       }
-      _collectElements(unit, nodes);
     }
-    _loader = new ElementLoader(nodes);
     if (compilationUnits.isNotEmpty) {
       _constants = new ConstFieldVisitor(context,
           dummySource: resolutionMap
@@ -308,15 +324,16 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(dartCoreLibrary);
 
-    // Emit SDK bootstrapping functions first, if any.
-    sdkBootstrappingFns.forEach(_emitDeclaration);
-
     // Visit each compilation unit and emit its code.
     //
     // NOTE: declarations are not necessarily emitted in this order.
     // Order will be changed as needed so the resulting code can execute.
     // This is done by forward declaring items.
-    compilationUnits.forEach(_finishDeclarationsInUnit);
+    compilationUnits.forEach(_emitCompilationUnit);
+    assert(_deferredProperties.isEmpty);
+
+    // Visit directives (for exports)
+    compilationUnits.forEach(_emitExportDirectives);
 
     // Declare imports
     _finishImports(items);
@@ -324,6 +341,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Discharge the type table cache variables and
     // hoisted definitions.
     items.addAll(_typeTable.discharge());
+    items.addAll(_internalSdkFunctions);
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
@@ -432,7 +450,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (var item in items) {
       if (item is JS.Block && !item.isScope) {
         _copyAndFlattenBlocks(result, item.statements);
-      } else {
+      } else if (item != null) {
         result.add(item);
       }
     }
@@ -485,21 +503,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     });
   }
 
-  /// Collect toplevel elements and nodes we need to emit, and returns
-  /// an ordered map of these.
-  static void _collectElements(
-      CompilationUnit unit, Map<Element, AstNode> map) {
-    for (var declaration in unit.declarations) {
-      if (declaration is TopLevelVariableDeclaration) {
-        for (var field in declaration.variables.variables) {
-          map[field.element] = field;
-        }
-      } else {
-        map[declaration.element] = declaration;
-      }
-    }
-  }
-
   /// Called to emit all top-level declarations.
   ///
   /// During the course of emitting one item, we may emit another. For example
@@ -508,40 +511,112 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// Because D depends on B, we'll emit B first if needed. However C is not
   /// used by top-level JavaScript code, so we can ignore that dependency.
-  void _emitDeclaration(Element e) {
-    var item = _loader.emitDeclaration(e, (AstNode node) {
-      // TODO(jmesserly): this is not really the right place for this.
-      // Ideally we do this per function body.
-      //
-      // We'll need to be consistent about when we're generating functions, and
-      // only run this on the outermost function, and not any closures.
-      inferNullableTypes(node);
-      return _visit(node) as JS.Node;
-    });
+  void _emitTypeDeclaration(TypeDefiningElement e) {
+    var node = _declarationNodes.remove(e);
+    if (node == null) return null; // not from this module or already loaded.
 
-    if (item != null) _moduleItems.add(item);
+    _currentElements.add(e);
+
+    // TODO(jmesserly): this is not really the right place for this.
+    // Ideally we do this per function body.
+    //
+    // We'll need to be consistent about when we're generating functions, and
+    // only run this on the outermost function, and not any closures.
+    inferNullableTypes(node);
+
+    _moduleItems.add(_visit(node));
+
+    var last = _currentElements.removeLast();
+    assert(identical(e, last));
   }
 
-  void _declareBeforeUse(Element e) {
-    _loader.declareBeforeUse(e, _emitDeclaration);
+  /// Start generating top-level code for the element [e].
+  ///
+  /// Subsequent [emitDeclaration] calls will cause those elements to be
+  /// generated before this one, until [finishTopLevel] is called.
+  void _startTopLevelCodeForClass(TypeDefiningElement e) {
+    assert(identical(e, currentElement));
+    _topLevelElements.add(e);
   }
 
-  void _finishDeclarationsInUnit(CompilationUnit unit) {
+  /// Finishes the top-level code for the element [e].
+  void _finishTopLevelCodeForClass(TypeDefiningElement e) {
+    var last = _topLevelElements.removeLast();
+    assert(identical(e, last));
+  }
+
+  /// To emit top-level module items, we sometimes need to reorder them.
+  ///
+  /// This function takes care of that, and also detects cases where reordering
+  /// failed, and we need to resort to lazy loading, by marking the element as
+  /// lazy. All elements need to be aware of this possibility and generate code
+  /// accordingly.
+  ///
+  /// If we are not emitting top-level code, this does nothing, because all
+  /// declarations are assumed to be available before we start execution.
+  /// See [startTopLevel].
+  void _declareBeforeUse(TypeDefiningElement e) {
+    if (e == null) return;
+
+    var topLevel = _topLevelElements;
+    if (topLevel.isNotEmpty && identical(currentElement, topLevel.last)) {
+      // If the item is from our library, try to emit it now.
+      _emitTypeDeclaration(e);
+    }
+  }
+
+  void _emitCompilationUnit(CompilationUnit unit) {
     // NOTE: this method isn't the right place to initialize
     // per-compilation-unit state. Declarations can be visited out of order,
     // this is only to catch things that haven't been emitted yet.
     //
-    // See _emitDeclaration.
+    // See _emitTypeDeclaration.
+    var library = unit.element.library;
+    bool internalSdk = isSdkInternalRuntime(library);
+    _currentElements.add(library);
+
+    List<VariableDeclaration> fields;
     for (var declaration in unit.declarations) {
+      if (declaration is TopLevelVariableDeclaration) {
+        inferNullableTypes(declaration);
+        if (internalSdk && declaration.variables.isFinal) {
+          _emitInternalSdkFields(declaration.variables.variables);
+        } else {
+          (fields ??= []).addAll(declaration.variables.variables);
+        }
+        continue;
+      }
+
+      if (fields != null) {
+        _emitTopLevelFields(fields);
+        fields = null;
+      }
+
       var element = declaration.element;
-      if (element != null) {
-        _emitDeclaration(element);
+      if (element is TypeDefiningElement) {
+        _emitTypeDeclaration(element);
+        continue;
+      }
+
+      inferNullableTypes(declaration);
+      var item = _visit(declaration);
+      if (internalSdk && element is FunctionElement) {
+        _internalSdkFunctions.add(item);
       } else {
-        declaration.accept(this);
+        _moduleItems.add(item);
       }
     }
+
+    if (fields != null) _emitTopLevelFields(fields);
+
+    _currentElements.removeLast();
+  }
+
+  void _emitExportDirectives(CompilationUnit unit) {
     for (var directive in unit.directives) {
+      _currentElements.add(directive.element);
       directive.accept(this);
+      _currentElements.removeLast();
     }
   }
 
@@ -575,48 +650,21 @@ class CodeGenerator extends GeneralizingAstVisitor
     var exportedNames =
         new NamespaceBuilder().createExportNamespaceForDirective(element);
 
-    var libraryName = emitLibraryName(currentLibrary);
-
-    // TODO(jmesserly): we could collect all of the names for bulk re-export,
-    // but this is easier to implement for now.
-    void emitExport(Element export, {String suffix: ''}) {
-      var name = _emitTopLevelName(export, suffix: suffix);
-
-      if (export is TypeDefiningElement ||
-          export is FunctionElement ||
-          _eagerTopLevelFields.contains(export)) {
-        // classes, typedefs, functions, and eager init fields can be assigned
-        // directly.
-        // TODO(jmesserly): we don't know about eager init fields from other
-        // modules we import, so we will never go down this code path for them.
-        _moduleItems
-            .add(js.statement('#.# = #;', [libraryName, name.selector, name]));
-      }
-    }
-
-    // We only need to export main as it is the only method party of the
+    // We only need to export main as it is the only method part of the
     // publicly exposed JS API for a library.
     // TODO(jacobr): add a library level annotation indicating that all
     // contents of a library need to be exposed to JS.
     // https://github.com/dart-lang/sdk/issues/26368
-
     var export = exportedNames.get('main');
 
-    if (export == null) return;
-    if (export is PropertyAccessorElement) {
-      export = (export as PropertyAccessorElement).variable;
-    }
+    if (export is FunctionElement) {
+      // Don't allow redefining names from this library.
+      if (currentNames.containsKey(export.name)) return;
 
-    // Don't allow redefining names from this library.
-    if (currentNames.containsKey(export.name)) return;
-
-    if (export.isSynthetic && export is PropertyInducingElement) {
-      _emitDeclaration(export.getter);
-      _emitDeclaration(export.setter);
-    } else {
-      _emitDeclaration(export);
+      var name = _emitTopLevelName(export);
+      _moduleItems.add(js.statement(
+          '#.# = #;', [emitLibraryName(currentLibrary), name.selector, name]));
     }
-    emitExport(export);
   }
 
   @override
@@ -1313,7 +1361,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var type = element.type;
     if (type.isObject) return null;
 
-    _loader.startTopLevel(element);
+    _startTopLevelCodeForClass(element);
 
     // List of "direct" supertypes (supertype + mixins)
     var basetypes = [type.superclass]..addAll(type.mixins);
@@ -1336,7 +1384,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         ? baseclasses.first
         : _callHelper('mixin(#)', [baseclasses]);
 
-    _loader.finishTopLevel(element);
+    _finishTopLevelCodeForClass(element);
 
     return heritage;
   }
@@ -1792,17 +1840,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// otherwise define them as lazy properties.
   void _emitStaticFields(List<FieldDeclaration> staticFields,
       ClassElement classElem, List<JS.Statement> body) {
-    var lazyStatics = <VariableDeclaration>[];
-    for (FieldDeclaration member in staticFields) {
-      for (VariableDeclaration field in member.fields.variables) {
-        JS.Statement eagerField = _emitConstantStaticField(classElem, field);
-        if (eagerField != null) {
-          body.add(eagerField);
-        } else {
-          lazyStatics.add(field);
-        }
-      }
-    }
+    var lazyStatics = staticFields.expand((f) => f.fields.variables).toList();
     if (lazyStatics.isNotEmpty) {
       body.add(_emitLazyFields(classElem, lazyStatics));
     }
@@ -2133,12 +2171,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           new JS.Method(name, fun, isStatic: true), node, node.element);
     }
 
-    // For const constructors we need to ensure default values are
-    // available for use by top-level constant initializers.
-    ClassDeclaration cls = node.parent;
-    if (node.constKeyword != null) _loader.startTopLevel(cls.element);
     var params = visitFormalParameterList(node.parameters);
-    if (node.constKeyword != null) _loader.finishTopLevel(cls.element);
 
     // Factory constructors are essentially static methods.
     if (node.factoryKeyword != null) {
@@ -2187,9 +2220,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // nice to do them first.
     // Also for const constructors we need to ensure default values are
     // available for use by top-level constant initializers.
-    if (node.constKeyword != null) _loader.startTopLevel(cls.element);
     var init = _emitArgumentInitializers(node, constructor: true);
-    if (node.constKeyword != null) _loader.finishTopLevel(cls.element);
     if (init != null) body.add(init);
 
     // Redirecting constructors: these are not allowed to have initializers,
@@ -2297,9 +2328,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       List<FieldDeclaration> fieldDecls,
       Map<FieldElement, JS.TemporaryId> virtualFields,
       [ConstructorDeclaration ctor]) {
-    bool isConst = ctor != null && ctor.constKeyword != null;
-    if (isConst) _loader.startTopLevel(cls.element);
-
     // Run field initializers if they can have side-effects.
     var fields = new Map<FieldElement, JS.Expression>();
     var unsetFields = new Map<FieldElement, VariableDeclaration>();
@@ -2351,7 +2379,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       body.add(js.statement('this.# = #;', [access, initialValue]));
     });
 
-    if (isConst) _loader.finishTopLevel(cls.element);
     return _statement(body);
   }
 
@@ -2520,25 +2547,24 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     if (_externalOrNative(node)) return null;
 
-    // If we have a getter/setter pair, they need to be defined together.
-    if (node.isGetter) {
+    if (node.isGetter || node.isSetter) {
       PropertyAccessorElement element = node.element;
-      var props = <JS.Method>[_emitTopLevelProperty(node)];
-      var setter = element.correspondingSetter;
-      if (setter != null) {
-        props.add(_loader.emitDeclaration(
-            setter, (node) => _emitTopLevelProperty(node)));
-      }
-      return _callHelperStatement('copyProperties(#, { # });',
-          [emitLibraryName(currentLibrary), props]);
-    }
-    if (node.isSetter) {
-      PropertyAccessorElement element = node.element;
-      var props = <JS.Method>[_emitTopLevelProperty(node)];
-      var getter = element.correspondingGetter;
-      if (getter != null) {
-        props.add(_loader.emitDeclaration(
-            getter, (node) => _emitTopLevelProperty(node)));
+      var pairAccessor = node.isGetter
+          ? element.correspondingSetter
+          : element.correspondingGetter;
+
+      var jsCode = _emitTopLevelProperty(node);
+      var props = <JS.Method>[jsCode];
+      if (pairAccessor != null) {
+        // If we have a getter/setter pair, they need to be defined together.
+        // If this is the first one, save the generated code for later.
+        // If this is the second one, get the saved code and emit both.
+        var pairCode = _deferredProperties.remove(pairAccessor);
+        if (pairCode == null) {
+          _deferredProperties[element] = jsCode;
+          return null;
+        }
+        props.add(pairCode);
       }
       return _callHelperStatement('copyProperties(#, { # });',
           [emitLibraryName(currentLibrary), props]);
@@ -2631,7 +2657,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (type is ParameterizedType && !type.typeArguments.every(_typeIsLoaded)) {
       return false;
     }
-    return _loader.isLoaded(type.element);
+    return !_declarationNodes.containsKey(type.element);
   }
 
   JS.Expression _emitFunctionTagged(JS.Expression fn, DartType type,
@@ -2852,10 +2878,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     var element = accessor;
     if (accessor is PropertyAccessorElement) element = accessor.variable;
 
-    _declareBeforeUse(element);
-
     // type literal
     if (element is TypeDefiningElement) {
+      _declareBeforeUse(element);
+
       var typeName = _emitType(fillDynamicTypeArgs(element.type));
 
       // If the type is a type literal expression in Dart code, wrap the raw
@@ -3157,7 +3183,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     var element = type.element;
-    _declareBeforeUse(element);
+    if (element is TypeDefiningElement) {
+      _declareBeforeUse(element);
+    }
 
     var interop = _emitJSInterop(element);
     // Type parameters don't matter as JS interop types cannot be reified.
@@ -3391,7 +3419,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     var element = accessor;
     if (accessor is PropertyAccessorElement) element = accessor.variable;
 
-    _declareBeforeUse(element);
+    if (element is TypeDefiningElement) {
+      _declareBeforeUse(element);
+    }
 
     if (element is LocalVariableElement || element is ParameterElement) {
       return _emitSetLocal(node, element, rhs);
@@ -4010,11 +4040,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     return new JS.Yield(_visit(node.expression));
   }
 
+  /// This is not used--we emit top-level fields as we are emitting the
+  /// compilation unit, see [_emitCompilationUnit].
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    for (var variable in node.variables.variables) {
-      _emitDeclaration(variable.element);
-    }
+    assert(false);
   }
 
   /// This is not used--we emit fields as we are emitting the class,
@@ -4050,9 +4080,9 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     if (node.element is PropertyInducingElement) {
-      // Static and instance fields are handled elsewhere.
-      assert(node.element is TopLevelVariableElement);
-      return _emitTopLevelField(node);
+      // All fields are handled elsewhere.
+      assert(false);
+      return null;
     }
 
     var name = new JS.Identifier(node.name.name,
@@ -4061,87 +4091,21 @@ class CodeGenerator extends GeneralizingAstVisitor
     return new JS.VariableInitialization(name, _visitInitializer(node));
   }
 
-  /// Try to emit a constant static field.
-  ///
-  /// If the field's initializer does not cause side effects, and if all of
-  /// dependencies are safe to refer to while we are initializing the class,
-  /// then we can initialize it eagerly:
-  ///
-  ///     // Baz must be const constructor, and the name "Baz" must be defined
-  ///     // by this point.
-  ///     Foo.bar = dart.const(new Baz(42));
-  ///
-  /// Otherwise, we'll need to generate a lazy-static field. That ensures
-  /// correct visible behavior, as well as avoiding referencing something that
-  /// isn't defined yet (because it is defined later in the module).
-  JS.Statement _emitConstantStaticField(
-      ClassElement classElem, VariableDeclaration field) {
-    PropertyInducingElement element = field.element;
-    assert(element.isStatic);
-
-    _loader.startCheckingReferences();
-    JS.Expression jsInit = _visitInitializer(field);
-    bool isLoaded = _loader.finishCheckingReferences();
-
-    bool eagerInit =
-        isLoaded && (field.isConst || _constants.isFieldInitConstant(field));
-
-    var fieldName = field.name.name;
-    if (eagerInit &&
-        !JS.invalidStaticFieldName(fieldName) &&
-        !_classProperties.staticFieldOverrides.contains(element)) {
-      return annotate(
-          js.statement('#.# = #;', [
-            _emitTopLevelName(classElem),
-            _emitMemberName(fieldName, isStatic: true),
-            jsInit
-          ]),
-          field,
-          field.element);
-    }
-
-    // This means it should be treated as a lazy field.
-    // TODO(jmesserly): we're throwing away the initializer expression,
-    // which will force us to regenerate it.
-    return null;
+  /// Emits a list of top-level field.
+  void _emitTopLevelFields(List<VariableDeclaration> fields) {
+    _moduleItems.add(_emitLazyFields(currentLibrary, fields));
   }
 
-  /// Emits a top-level field.
-  JS.ModuleItem _emitTopLevelField(VariableDeclaration field) {
-    TopLevelVariableElement element = field.element;
-    assert(element.isStatic);
-
-    bool eagerInit;
-    JS.Expression jsInit;
-    if (field.isConst || _constants.isFieldInitConstant(field)) {
-      // If the field is constant, try and generate it at the top level.
-      _loader.startTopLevel(element);
-      jsInit = _visitInitializer(field);
-      _loader.finishTopLevel(element);
-      eagerInit = _loader.isLoaded(element);
-    } else {
-      // TODO(jmesserly): we're visiting the initializer here, and again
-      // later on when we emit lazy fields. That seems busted.
-      jsInit = _visitInitializer(field);
-      eagerInit = false;
-    }
-
-    // Treat dart:runtime stuff as safe to eagerly evaluate.
-    // TODO(jmesserly): it'd be nice to avoid this special case.
-    var isJSTopLevel = field.isFinal && isSdkInternalRuntime(element.library);
-    if (eagerInit || isJSTopLevel) {
-      // Remember that we emitted it this way, so re-export can take advantage
-      // of this fact.
-      _eagerTopLevelFields.add(element);
-
-      return annotate(
-          js.statement('# = #;', [_emitTopLevelName(element), jsInit]),
+  /// Treat dart:_runtime fields as safe to eagerly evaluate.
+  // TODO(jmesserly): it'd be nice to avoid this special case.
+  void _emitInternalSdkFields(List<VariableDeclaration> fields) {
+    for (var field in fields) {
+      _moduleItems.add(annotate(
+          js.statement('# = #;',
+              [_emitTopLevelName(field.element), _visitInitializer(field)]),
           field,
-          element);
+          field.element));
     }
-
-    assert(element.library == currentLibrary);
-    return _emitLazyFields(element.library, [field]);
   }
 
   JS.Expression _visitInitializer(VariableDeclaration node) {
@@ -4157,6 +4121,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (var node in fields) {
       var name = node.name.name;
       var element = node.element;
+      assert(element.getAncestor((e) => identical(e, target)) != null,
+          "target is $target but enclosing element is ${element.enclosingElement}");
       var access = _emitMemberName(name, isStatic: true);
       methods.add(annotate(
           new JS.Method(
@@ -5934,7 +5900,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   bool _inWhitelistCode(AstNode node, {isCall: false}) {
     if (!options.useAngular2Whitelist) return false;
-    var path = _loader.currentElement.source.fullName;
+    var path = currentElement.source.fullName;
     var filename = path.split("/").last;
     if (_uncheckedWhitelist.containsKey(filename)) {
       var whitelisted = _uncheckedWhitelist[filename];

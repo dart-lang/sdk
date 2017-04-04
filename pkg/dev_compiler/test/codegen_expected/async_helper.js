@@ -10,10 +10,23 @@ define(['dart_sdk'], function(dart_sdk) {
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();
   let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic])))();
   let FnTovoid = () => (FnTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [VoidTodynamic()])))();
-  async_helper._initialized = false;
+  dart.defineLazy(async_helper, {
+    get _initialized() {
+      return false;
+    },
+    set _initialized(_) {}
+  });
   async_helper._Action0 = dart.typedef('_Action0', () => dart.functionType(dart.void, []));
-  async_helper._onAsyncEnd = null;
-  async_helper._asyncLevel = 0;
+  dart.defineLazy(async_helper, {
+    get _onAsyncEnd() {
+      return null;
+    },
+    set _onAsyncEnd(_) {},
+    get _asyncLevel() {
+      return 0;
+    },
+    set _asyncLevel(_) {}
+  });
   async_helper._buildException = function(msg) {
     return core.Exception.new(dart.str`Fatal: ${msg}. This is most likely a bug in your test.`);
   };
