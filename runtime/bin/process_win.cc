@@ -959,7 +959,7 @@ BOOL WINAPI SignalHandler(DWORD signal) {
   while (handler != NULL) {
     if (handler->signal() == signal) {
       int value = 0;
-      BaseSocket::Write(handler->fd(), &value, 1);
+      SocketBase::Write(handler->fd(), &value, 1);
       handled = true;
     }
     handler = handler->next();
