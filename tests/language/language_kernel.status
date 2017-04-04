@@ -9,7 +9,6 @@ body_less_constructor_wrong_arg_negative_test: Crash
 built_in_identifier_test/01: CompileTimeError
 call_nonexistent_static_test/01: CompileTimeError
 call_nonexistent_static_test/04: CompileTimeError
-call_nonexistent_static_test/06: CompileTimeError
 cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
 cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
@@ -94,7 +93,6 @@ covariant_test/39: MissingCompileTimeError
 covariant_test/46: MissingCompileTimeError
 covariant_test/46b: MissingCompileTimeError
 covariant_test/59: MissingCompileTimeError
-crash_6725_test/01: CompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_type_test/00: RuntimeError
 cyclic_type_test/01: RuntimeError

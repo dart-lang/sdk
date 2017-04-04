@@ -145,18 +145,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression toValue(Object node) {
-    if (node is UnresolvedIdentifier) {
-      if (isDartLibrary &&
-          node.name.name == "main" &&
-          library.uri.path == "_builtin" &&
-          member?.name == "_getMainClosure") {
-        // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
-        return new NullLiteral()..fileOffset = node.fileOffset;
-      }
-      return throwNoSuchMethodError(
-          node.name.name, new Arguments.empty(), node.fileOffset,
-          isGetter: true);
-    } else if (node is FastaAccessor) {
+    if (node is FastaAccessor) {
       return node.buildSimpleRead();
     } else if (node is TypeVariableBuilder) {
       TypeParameterType type = node.buildTypesWithBuiltArguments(library, null);
@@ -531,9 +520,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
       return receiver.doInvocation(charOffset, arguments);
-    } else if (receiver is UnresolvedIdentifier) {
-      return throwNoSuchMethodError(
-          receiver.name.name, arguments, receiver.fileOffset);
     } else {
       return buildMethodInvocation(
           toValue(receiver), callName, arguments, charOffset);
@@ -761,11 +747,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           addCompileTimeError(charOffset, "Not a constant expression.");
         }
         return new ThisPropertyAccessor(this, charOffset, n, null, null);
+      } else if (isDartLibrary &&
+          name == "main" &&
+          library.uri.path == "_builtin" &&
+          member?.name == "_getMainClosure") {
+        // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
+        return new NullLiteral()..fileOffset = charOffset;
       } else {
-        if (constantExpressionRequired) {
-          addCompileTimeError(charOffset, "Not a constant expression.");
-        }
-        return new UnresolvedIdentifier(n)..fileOffset = charOffset;
+        return new UnresolvedAccessor(this, n, charOffset);
       }
     } else if (builder.isTypeDeclaration) {
       if (constantExpressionRequired && builder.isTypeVariable) {
@@ -1304,9 +1293,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (name is FastaAccessor) {
       warning("'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
-      push(const DynamicType());
-    } else if (name is UnresolvedIdentifier) {
-      warning("'${name.name}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
     } else if (name is TypeVariableBuilder) {
       if (constantExpressionRequired) {
@@ -2458,15 +2444,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 }
 
 // TODO(ahe): Shouldn't need to be an expression.
-class UnresolvedIdentifier extends InvalidExpression {
-  final Name name;
-
-  UnresolvedIdentifier(this.name);
-
-  String toString() => "unresolved-identifier($name)";
-}
-
-// TODO(ahe): Shouldn't need to be an expression.
 class Identifier extends InvalidExpression {
   final String name;
 
@@ -2917,8 +2894,6 @@ String debugName(String className, String name, [String prefix]) {
 String getNodeName(Object node) {
   if (node is Identifier) {
     return node.name;
-  } else if (node is UnresolvedIdentifier) {
-    return node.name.name;
   } else if (node is TypeDeclarationBuilder) {
     return node.name;
   } else if (node is PrefixBuilder) {
