@@ -402,8 +402,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     // Try converting the instruction to a builtin instruction.
-    HInstruction instruction = node.specializer.tryConvertToBuiltin(
-        node, _globalInferenceResults, _options, _helpers, _closedWorld);
+    HInstruction instruction = node.specializer.tryConvertToBuiltin(node,
+        _graph, _globalInferenceResults, _options, _helpers, _closedWorld);
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;
@@ -1166,7 +1166,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
             selector,
             input.instructionType, // receiver mask.
             inputs,
-            toStringType)..sourceInformation = node.sourceInformation;
+            toStringType)
+          ..sourceInformation = node.sourceInformation;
         return result;
       }
       return null;

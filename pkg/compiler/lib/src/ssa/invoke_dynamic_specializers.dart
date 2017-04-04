@@ -36,6 +36,7 @@ class InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -91,6 +92,7 @@ class InvokeDynamicSpecializer {
           if (name == 'trim') return const TrimSpecializer();
         } else if (argumentCount == 1) {
           if (name == 'codeUnitAt') return const CodeUnitAtSpecializer();
+          if (name == 'compareTo') return const CompareToSpecializer();
           if (name == 'remainder') return const RemainderSpecializer();
           if (name == 'substring') return const SubstringSpecializer();
           if (name == 'contains') return const PatternMatchSpecializer();
@@ -115,6 +117,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -137,6 +140,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -180,6 +184,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -217,6 +222,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -262,6 +268,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -605,6 +612,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -696,6 +704,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -751,6 +760,7 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -929,6 +939,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -950,6 +961,7 @@ class EqualsSpecializer extends RelationalSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -1048,6 +1060,7 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -1069,11 +1082,42 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
   }
 }
 
+class CompareToSpecializer extends InvokeDynamicSpecializer {
+  const CompareToSpecializer();
+
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction,
+      HGraph graph,
+      GlobalTypeInferenceResults results,
+      CompilerOptions options,
+      BackendHelpers helpers,
+      ClosedWorld closedWorld) {
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+    // `compareTo` has no side-effect (other than throwing) and can be GVN'ed
+    // for some known types.
+    if (receiver.isStringOrNull(closedWorld) ||
+        receiver.isNumberOrNull(closedWorld)) {
+      // Replace `a.compareTo(a)` with `0`, but only if receiver and argument
+      // are such that no exceptions can be thrown.
+      HInstruction argument = instruction.inputs.last;
+      if ((receiver.isNumber(closedWorld) && argument.isNumber(closedWorld)) ||
+          (receiver.isString(closedWorld) && argument.isString(closedWorld))) {
+        if (identical(receiver.nonCheck(), argument.nonCheck())) {
+          return graph.addConstantInt(0, closedWorld);
+        }
+      }
+      clearAllSideEffects(instruction);
+    }
+    return null;
+  }
+}
+
 class IdempotentStringOperationSpecializer extends InvokeDynamicSpecializer {
   const IdempotentStringOperationSpecializer();
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -1101,6 +1145,7 @@ class PatternMatchSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
@@ -1126,6 +1171,7 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(
       HInvokeDynamic instruction,
+      HGraph graph,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       BackendHelpers helpers,
