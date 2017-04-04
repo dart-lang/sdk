@@ -21,8 +21,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/frontend/accessors.dart'
-    show buildIsNull, makeBinary, makeLet;
+import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
 
 import '../parser/dart_vm_native.dart' show skipNativeClause;
 
@@ -957,7 +956,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         initializer: initializer,
         type: currentLocalVariableType ?? const DynamicType(),
         isFinal: isFinal,
-        isConst: isConst)..fileEqualsOffset = equalsCharOffset);
+        isConst: isConst)
+      ..fileEqualsOffset = equalsCharOffset);
   }
 
   @override
@@ -1413,7 +1413,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             type: type,
             initializer: name.initializer,
             isFinal: isFinal,
-            isConst: isConst)..fileOffset = name.fileOffset;
+            isConst: isConst)
+          ..fileOffset = name.fileOffset;
       } else {
         addCompileTimeError(
             name.fileOffset, "'${name.name}' isn't a field in this class.");
@@ -1423,7 +1424,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         type: type ?? const DynamicType(),
         initializer: name.initializer,
         isFinal: isFinal,
-        isConst: isConst)..fileOffset = name.fileOffset;
+        isConst: isConst)
+      ..fileOffset = name.fileOffset;
     push(variable);
   }
 
@@ -2016,7 +2018,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Expected lvalue, but got ${lvalue}", forToken.next.next.charOffset));
     }
     Statement result = new ForInStatement(variable, expression, body,
-        isAsync: awaitToken != null)..fileOffset = body.fileOffset;
+        isAsync: awaitToken != null)
+      ..fileOffset = body.fileOffset;
     if (breakTarget.hasUsers) {
       result = new LabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -2174,7 +2177,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       expressionOffsets.add(expression.fileOffset);
     }
     push(new SwitchCase(expressions, expressionOffsets, block,
-        isDefault: defaultKeyword != null)..fileOffset = firstToken.charOffset);
+        isDefault: defaultKeyword != null)
+      ..fileOffset = firstToken.charOffset);
     push(labels);
   }
 

@@ -6,7 +6,7 @@ library front_end.src.fasta.names;
 
 import 'package:kernel/ast.dart' show Name;
 
-export 'package:kernel/frontend/accessors.dart' show indexGetName, indexSetName;
+export 'kernel/frontend_accessors.dart' show indexGetName, indexSetName;
 
 final Name callName = new Name("call");
 

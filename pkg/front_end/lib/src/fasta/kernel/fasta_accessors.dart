@@ -4,10 +4,9 @@
 
 library fasta.fasta_accessors;
 
-export 'package:kernel/frontend/accessors.dart' show wrapInvalid;
+export 'frontend_accessors.dart' show wrapInvalid;
 
-import 'package:kernel/frontend/accessors.dart'
-    show Accessor, buildIsNull, makeLet;
+import 'frontend_accessors.dart' show Accessor, buildIsNull, makeLet;
 
 import 'package:kernel/ast.dart';
 
@@ -15,7 +14,7 @@ import '../errors.dart' show internalError;
 
 import '../scope.dart' show AccessErrorBuilder, ProblemBuilder;
 
-import 'package:kernel/frontend/accessors.dart' as kernel
+import 'frontend_accessors.dart' as kernel
     show
         IndexAccessor,
         NullAwarePropertyAccessor,
