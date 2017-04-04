@@ -22,6 +22,8 @@ main() {
         expect(options.buildAnalysisOutput, isNull);
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
+        expect(options.buildSummaryOnlyDiet, isFalse);
+        expect(options.buildSummaryOnlyUnlinked, isFalse);
         expect(options.buildSummaryOutput, isNull);
         expect(options.buildSummaryOutputSemantic, isNull);
         expect(options.buildSuppressExitCode, isFalse);
@@ -304,6 +306,32 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     ]);
     expect(options.buildMode, isTrue);
     expect(options.buildSummaryOnly, isTrue);
+  }
+
+  test_buildSummaryOnlyDiet() {
+    _parse([
+      '--build-mode',
+      '--build-summary-output=/path/to/aaa.sum',
+      '--build-summary-only',
+      '--build-summary-only-diet',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isTrue);
+    expect(options.buildSummaryOnly, isTrue);
+    expect(options.buildSummaryOnlyDiet, isTrue);
+  }
+
+  test_buildSummaryOnlyUnlinked() {
+    _parse([
+      '--build-mode',
+      '--build-summary-output=/path/to/aaa.sum',
+      '--build-summary-only',
+      '--build-summary-only-unlinked',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isTrue);
+    expect(options.buildSummaryOnly, isTrue);
+    expect(options.buildSummaryOnlyUnlinked, isTrue);
   }
 
   test_buildSummaryOutput() {

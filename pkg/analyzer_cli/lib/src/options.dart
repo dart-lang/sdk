@@ -55,6 +55,10 @@ class CommandLineOptions {
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
 
+  /// Whether to only produce unlinked summaries instead of linked summaries.
+  /// Must be used in combination with `buildSummaryOnly`.
+  final bool buildSummaryOnlyUnlinked;
+
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
 
@@ -155,6 +159,7 @@ class CommandLineOptions {
         buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
+        buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
         buildSummaryOutput = args['build-summary-output'],
         buildSummaryOutputSemantic = args['build-summary-output-semantic'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
@@ -261,6 +266,20 @@ class CommandLineOptions {
       printAndFail('The option --build-summary-only-diet can be used only '
           'together with --build-summary-only.');
       return null; // Only reachable in testing.
+    }
+
+    if (options.buildSummaryOnlyUnlinked) {
+      if (!options.buildSummaryOnly) {
+        printAndFail(
+            'The option --build-summary-only-unlinked can be used only '
+            'together with --build-summary-only.');
+        return null; // Only reachable in testing.
+      }
+      if (options.buildSummaryInputs.isNotEmpty) {
+        printAndFail('No summaries should be provided in combination with '
+            '--build-summary-only-unlinked, they aren\'t needed.');
+        return null; // Only reachable in testing.
+      }
     }
 
     return options;
@@ -381,6 +400,11 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('build-summary-only-diet',
           help: 'Diet parse function bodies.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('build-summary-only-unlinked',
+          help: 'Only output the unlinked summary.',
           defaultsTo: false,
           negatable: false,
           hide: hide)

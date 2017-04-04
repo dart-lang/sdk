@@ -199,9 +199,17 @@ class BuildMode {
     // Write summary.
     assembler = new PackageBundleAssembler();
     if (_shouldOutputSummary) {
-      _serializeAstBasedSummary(explicitSources);
+      if (options.buildSummaryOnlyUnlinked) {
+        for (var src in explicitSources) {
+          // Note: This adds the unit to the assembler if it needed to be
+          // computed, so we don't need to explicitly do that.
+          _unlinkedUnitForUri('${src.uri}');
+        }
+      } else {
+        _serializeAstBasedSummary(explicitSources);
+        assembler.recordDependencies(summaryDataStore);
+      }
       // Write the whole package bundle.
-      assembler.recordDependencies(summaryDataStore);
       PackageBundleBuilder bundle = assembler.assemble();
       if (options.buildSummaryOutput != null) {
         io.File file = new io.File(options.buildSummaryOutput);
@@ -350,37 +358,44 @@ class BuildMode {
     LinkedLibrary _getDependency(String absoluteUri) =>
         summaryDataStore.linkedMap[absoluteUri];
 
-    UnlinkedUnit _getUnit(String absoluteUri) {
-      // Maybe an input package contains the source.
-      {
-        UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[absoluteUri];
-        if (unlinkedUnit != null) {
-          return unlinkedUnit;
-        }
-      }
-      // Parse the source and serialize its AST.
-      Uri uri = Uri.parse(absoluteUri);
-      Source source = context.sourceFactory.forUri2(uri);
-      if (!source.exists()) {
-        // TODO(paulberry): we should report a warning/error because DDC
-        // compilations are unlikely to work.
-        return null;
-      }
-      return uriToUnit.putIfAbsent(uri, () {
-        CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
-        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-        assembler.addUnlinkedUnit(source, unlinkedUnit);
-        return unlinkedUnit;
-      });
-    }
-
     Map<String, LinkedLibraryBuilder> linkResult = link(
         sourceUris,
         _getDependency,
-        _getUnit,
+        _unlinkedUnitForUri,
         context.declaredVariables.get,
         options.strongMode);
     linkResult.forEach(assembler.addLinkedLibrary);
+  }
+
+  /**
+   * Returns the [UnlinkedUnit] for [absoluteUri], either by computing it or
+   * using the stored one in [uriToUnit].
+   *
+   * If the [UnlinkedUnit] needed to be computed, it will also be added to the
+   * [assembler].
+   */
+  UnlinkedUnit _unlinkedUnitForUri(String absoluteUri) {
+    // Maybe an input package contains the source.
+    {
+      UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[absoluteUri];
+      if (unlinkedUnit != null) {
+        return unlinkedUnit;
+      }
+    }
+    // Parse the source and serialize its AST.
+    Uri uri = Uri.parse(absoluteUri);
+    Source source = context.sourceFactory.forUri2(uri);
+    if (!source.exists()) {
+      // TODO(paulberry): we should report a warning/error because DDC
+      // compilations are unlikely to work.
+      return null;
+    }
+    return uriToUnit.putIfAbsent(uri, () {
+      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+      UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+      assembler.addUnlinkedUnit(source, unlinkedUnit);
+      return unlinkedUnit;
+    });
   }
 }
 
