@@ -92,7 +92,7 @@ def _CheckDartFormat(input_api, output_api):
     return [output_api.PresubmitError(
         'File output does not match dartfmt.\n'
         'Fix these issues with:\n'
-        'dartfmt -w \\\n%s' % ' \\\n'.join(unformatted_files))]
+        '%s -w \\\n%s' % (prebuilt_dartfmt, ' \\\n'.join(unformatted_files)))]
 
   return []
 
