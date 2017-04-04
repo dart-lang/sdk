@@ -463,7 +463,6 @@ package/scenarios/invalid/invalid_utf8_test: DartkCrash
 package/scenarios/invalid/non_existent_packages_file_test: DartkCrash
 package/scenarios/invalid/same_package_twice_test: DartkCrash
 package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
-verbose_gc_to_bmu_test: RuntimeError
 
 [ $runtime == flutter ]
 io/raw_datagram_socket_test: Crash # Flutter Issue 9115
