@@ -727,38 +727,24 @@ class StandardTestSuite extends TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  Map<String, String> localPackageDirectories;
+  forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) async {
+    await updateDartium();
+    doTest = onTest;
+    testExpectations = await readExpectations();
 
-  void forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) {
-    discoverPackagesInRepository().then((Map packageDirectories) {
-      localPackageDirectories = packageDirectories;
-      return updateDartium();
-    }).then((_) {
-      doTest = onTest;
-
-      return readExpectations();
-    }).then((expectations) {
-      testExpectations = expectations;
-
-      // Checked if we have already found and generated the tests for
-      // this suite.
-      if (!testCache.containsKey(suiteName)) {
-        cachedTests = testCache[suiteName] = [];
-        return enqueueTests();
-      } else {
-        // We rely on enqueueing completing asynchronously.
-        return asynchronously(() {
-          for (var info in testCache[suiteName]) {
-            enqueueTestCaseFromTestInformation(info);
-          }
-        });
+    // Check if we have already found and generated the tests for this suite.
+    if (!testCache.containsKey(suiteName)) {
+      cachedTests = testCache[suiteName] = [];
+      await enqueueTests();
+    } else {
+      for (var info in testCache[suiteName]) {
+        enqueueTestCaseFromTestInformation(info);
       }
-    }).then((_) {
-      testExpectations = null;
-      cachedTests = null;
-      doTest = null;
-      if (onDone != null) onDone();
-    });
+    }
+    testExpectations = null;
+    cachedTests = null;
+    doTest = null;
+    if (onDone != null) onDone();
   }
 
   /**
