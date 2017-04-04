@@ -52,7 +52,6 @@ final subpackageRules = {
   ]),
   'lib/src/fasta/builder': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
-    'lib/src/fasta/dill',
     'lib/src/fasta/parser',
     'lib/src/fasta/source',
     'lib/src/fasta/util',
