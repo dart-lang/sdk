@@ -269,9 +269,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'multiline_newline_test_none_multi': fail,
       'no_main_test_01_multi': fail,
 
-      // https://github.com/dart-lang/sdk/issues/26123
-      'bad_raw_string_negative_test': fail,
-
       // https://github.com/dart-lang/sdk/issues/26124
       'prefix10_negative_test': fail,
 

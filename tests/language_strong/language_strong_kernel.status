@@ -23,7 +23,6 @@ asyncstar_throw_in_catch_test: Timeout
 asyncstar_yield_test: Timeout
 asyncstar_yieldstar_test: Timeout
 await_in_cascade_test: RuntimeError
-bad_raw_string_negative_test: Fail
 bool_test: RuntimeError # Throws CastError instead of TypeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
