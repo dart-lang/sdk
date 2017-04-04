@@ -10,8 +10,6 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
-    show fastaSupportsGenericMethodComments;
 import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/scanner.dart' as fe;

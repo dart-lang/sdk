@@ -358,7 +358,9 @@ class KeywordToken extends SimpleToken {
   Token copy() => new KeywordToken(keyword, offset);
 
   @override
-  Keyword value() => keyword;
+  // Changed return type from Keyword to Object because
+  // fasta considers pseudo-keywords to be keywords rather than identifiers
+  Object value() => keyword;
 }
 
 /**

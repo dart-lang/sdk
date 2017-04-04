@@ -359,7 +359,7 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
 
   @override
   // Analyzer considers pseudo-keywords to have a different value
-  Keyword value() => isPseudo ? lexeme : keyword;
+  Object value() => isPseudo ? lexeme : keyword;
 
   @override
   // Analyzer considers pseudo-keywords to be identifiers
