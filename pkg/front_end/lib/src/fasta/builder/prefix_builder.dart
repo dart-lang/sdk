@@ -4,15 +4,7 @@
 
 library fasta.prefix_builder;
 
-import 'package:kernel/ast.dart' show Member;
-
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
-
-import '../errors.dart' show internalError;
-
-import '../messages.dart' show warning;
-
-import 'builder.dart' show Builder, LibraryBuilder, MemberBuilder;
+import 'builder.dart' show Builder, LibraryBuilder;
 
 class PrefixBuilder extends Builder {
   final String name;
@@ -27,24 +19,6 @@ class PrefixBuilder extends Builder {
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
     return exports[name];
-  }
-
-  Member findTopLevelMember(String name) {
-    // TODO(ahe): Move this to KernelPrefixBuilder.
-    Builder builder = exports[name];
-    if (builder == null) {
-      warning(
-          parent.fileUri, -1, "'${this.name}' has no member named '$name'.");
-    }
-    if (builder is DillMemberBuilder) {
-      return builder.member.isInstanceMember
-          ? internalError("Unexpected instance member in export scope")
-          : builder.member;
-    } else if (builder is MemberBuilder) {
-      return builder.target;
-    } else {
-      return null;
-    }
   }
 
   @override
