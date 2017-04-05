@@ -19,6 +19,7 @@ import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
 import 'package:linter/src/rules/avoid_returning_null.dart';
 import 'package:linter/src/rules/avoid_returning_this.dart';
 import 'package:linter/src/rules/avoid_slow_async_io.dart';
+import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/cancel_subscriptions.dart';
@@ -93,6 +94,7 @@ void registerLintRules() {
     ..register(new AlwaysSpecifyTypes())
     ..register(new AnnotateOverrides())
     ..register(new AvoidAnnotatingWithDynamic())
+    ..register(new AvoidTypesOnClosureParameters())
     ..register(new AvoidAs())
     ..register(new AvoidCatchesWithoutOnClauses())
     ..register(new AvoidClassesWithOnlyStaticMembers())
