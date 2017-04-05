@@ -17,7 +17,6 @@ class NotImplemented {
 class Interpreter {
   Program program;
   StatementExecuter visitor = new StatementExecuter();
-  Environment env = new Environment.empty();
 
   Interpreter(this.program);
 
@@ -25,17 +24,9 @@ class Interpreter {
     assert(program.libraries.isEmpty);
     Procedure mainMethod = program.mainMethod;
     Statement statementBlock = mainMethod.function.body;
-    visitor.exec(statementBlock, env);
+    Continuation cont = new Continuation(statementBlock, new State.initial());
+    visitor.trampolinedExecution(cont);
   }
-}
-
-class InvalidExpressionError {
-  InvalidExpression expression;
-
-  InvalidExpressionError(this.expression);
-
-  String toString() =>
-      'Invalid expression at ${expression.location.toString()}';
 }
 
 class Binding {
@@ -82,6 +73,7 @@ class Environment {
   }
 }
 
+/// Evaluate expressions.
 class Evaluator extends ExpressionVisitor1<Value> {
   Value eval(Expression expr, Environment env) => expr.accept1(this, env);
 
@@ -91,7 +83,7 @@ class Evaluator extends ExpressionVisitor1<Value> {
   }
 
   Value visitInvalidExpression1(InvalidExpression node, env) {
-    throw new InvalidExpressionError(node);
+    throw 'Invalid expression at ${node.location.toString()}';
   }
 
   Value visitVariableGet(VariableGet node, env) {
@@ -223,57 +215,160 @@ class Evaluator extends ExpressionVisitor1<Value> {
   }
 }
 
+/// Represents a state which consists of current environment, continuation to be
+/// applied and the current label.
+class State {
+  final Environment environment;
+  final Label labels;
+  final Continuation continuation;
+
+  State(this.environment, this.labels, this.continuation);
+  State.initial() : this(new Environment.empty(), null, null);
+
+  State withEnvironment(Environment env) {
+    return new State(env, labels, continuation);
+  }
+
+  State withBreak(Statement stmt) {
+    return new State(
+        environment, new Label(stmt, continuation, labels), continuation);
+  }
+
+  State withContinuation(Continuation cont) {
+    return new State(environment, labels, cont);
+  }
+
+  Label lookupLabel(LabeledStatement s) {
+    assert(labels != null);
+    return labels.lookupLabel(s);
+  }
+}
+
+/// Represent the continuation for execution of statement.
+class Continuation {
+  final Statement statement;
+  final State state;
+
+  Continuation(this.statement, this.state);
+}
+
+/// Represents a labeled statement, the corresponding continuation and the
+/// enclosing label.
+class Label {
+  final LabeledStatement statement;
+  final Continuation continuation;
+  final Label enclosingLabel;
+
+  Label(this.statement, this.continuation, this.enclosingLabel);
+
+  Label lookupLabel(LabeledStatement s) {
+    if (identical(s, statement)) return this;
+    assert(enclosingLabel != null);
+    return enclosingLabel.lookupLabel(s);
+  }
+}
+
 /// Executes statements.
-class StatementExecuter extends StatementVisitor1 {
+///
+/// Execution of a statement completes in one of the following ways:
+/// - it completes normally, in which case the execution proceeds to applying
+/// the next continuation
+/// - it breaks with a label, in which case the corresponding continuation is
+/// returned and applied
+/// - it returns with or without value, TBD
+/// - it throws, TBD
+class StatementExecuter extends StatementVisitor1<Continuation> {
   Evaluator evaluator = new Evaluator();
 
-  exec(Statement statement, env) => statement.accept1(this, env);
-  eval(Expression expression, env) => evaluator.eval(expression, env);
+  void trampolinedExecution(Continuation continuation) {
+    while (continuation != null) {
+      continuation = exec(continuation.statement, continuation.state);
+    }
+  }
 
-  defaultStatement(Statement node, env) {
+  Continuation exec(Statement statement, state) =>
+      statement.accept1(this, state);
+  Value eval(Expression expression, env) => evaluator.eval(expression, env);
+
+  Continuation defaultStatement(Statement node, state) {
     throw notImplemented(
         m: "Execution is not implemented for statement:\n$node ");
   }
 
-  visitInvalidStatement(InvalidStatement node, env) {
+  Continuation visitInvalidStatement(InvalidStatement node, state) {
     throw "Invalid statement at ${node.location}";
   }
 
-  visitExpressionStatement(ExpressionStatement node, env) {
-    return eval(node.expression, env);
+  Continuation visitExpressionStatement(ExpressionStatement node, state) {
+    eval(node.expression, state.environment);
+    return state.continuation;
   }
 
-  visitBlock(Block node, env) {
-    Environment blockEnv = new Environment(env);
-    for (Statement s in node.statements) {
-      exec(s, blockEnv);
+  Continuation visitBlock(Block node, state) {
+    if (node.statements.isEmpty) {
+      return state.continuation;
     }
-  }
-
-  visitEmptyStatement(EmptyStatement node, env) {}
-
-  visitIfStatement(IfStatement node, env) {
-    Value condition = eval(node.condition, env).toBoolean();
-    if (identical(Value.trueInstance, condition)) {
-      exec(node.then, env);
-    } else {
-      exec(node.otherwise, env);
+    State blockState =
+        state.withEnvironment(new Environment(state.environment));
+    Continuation cont = state.continuation;
+    for (Statement s in node.statements.reversed) {
+      cont = new Continuation(s, blockState.withContinuation(cont));
     }
+    return cont;
   }
 
-  visitVariableDeclaration(VariableDeclaration node, env) {
+  Continuation visitEmptyStatement(EmptyStatement node, state) {
+    return state.continuation;
+  }
+
+  Continuation visitIfStatement(IfStatement node, state) {
+    Value cond = eval(node.condition, state.environment).toBoolean();
+    if (identical(Value.trueInstance, cond)) {
+      return new Continuation(node.then, state);
+    } else if (node.otherwise != null) {
+      return new Continuation(node.otherwise, state);
+    }
+    return state.continuation;
+  }
+
+  Continuation visitLabeledStatement(LabeledStatement node, state) {
+    return new Continuation(node.body, state.withBreak(node));
+  }
+
+  Continuation visitBreakStatement(BreakStatement node, state) {
+    return state.lookupLabel(node.target).continuation;
+  }
+
+  Continuation visitWhileStatement(WhileStatement node, state) {
+    Value cond = eval(node.condition, state.environment).toBoolean();
+    if (identical(Value.trueInstance, cond)) {
+      // Add continuation for the While statement to the linked list.
+      Continuation cont = new Continuation(node, state);
+      // Continuation for the body of the loop.
+      return new Continuation(node.body, state.withContinuation(cont));
+    }
+    return state.continuation;
+  }
+
+  Continuation visitDoStatement(DoStatement node, state) {
+    WhileStatement whileStatement =
+        new WhileStatement(node.condition, node.body);
+    Continuation cont = new Continuation(whileStatement, state);
+    return new Continuation(node.body, state.withContinuation(cont));
+  }
+
+  Continuation visitVariableDeclaration(VariableDeclaration node, state) {
     Value value = node.initializer != null
-        ? eval(node.initializer, env)
+        ? eval(node.initializer, state.environment)
         : Value.nullInstance;
-    env.expand(node, value);
+    state.environment.expand(node, value);
+    return state.continuation;
   }
 }
 
 typedef Value Getter(Value receiver);
 typedef void Setter(Value receiver, Value value);
 
-// TODO(zhivkag): Change misleading name.
-// This is representation of a class in the interpreter, not a declaration.
 class Class {
   static final Map<Reference, Class> _classes = <Reference, Class>{};
 
