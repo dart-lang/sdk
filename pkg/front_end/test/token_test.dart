@@ -181,7 +181,7 @@ class Foo {
     ]);
     for (Keyword keyword in _allKeywords) {
       var isBuiltIn = builtInKeywords.contains(keyword);
-      expect(keyword.isPseudoKeyword, isBuiltIn, reason: keyword.name);
+      expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
       expect((keyword as fasta.Keyword).isBuiltIn, isBuiltIn,
           reason: keyword.name);
     }

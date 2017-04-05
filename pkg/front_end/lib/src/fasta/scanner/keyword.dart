@@ -15,7 +15,7 @@ import 'precedence.dart' show AS_INFO, IS_INFO, KEYWORD_INFO;
 /**
  * A keyword in the Dart programming language.
  */
-class Keyword implements analyzer.Keyword {
+class Keyword extends analyzer.Keyword {
   static const ASSERT = const Keyword("assert");
   static const BREAK = const Keyword("break");
   static const CASE = const Keyword("case");
@@ -152,11 +152,6 @@ class Keyword implements analyzer.Keyword {
     YIELD,
   ];
 
-  final String syntax;
-  final bool isPseudo;
-  final bool isBuiltIn;
-  final PrecedenceInfo info;
-
   static Map<String, Keyword> _keywords;
   static Map<String, Keyword> get keywords {
     if (_keywords == null) {
@@ -165,8 +160,11 @@ class Keyword implements analyzer.Keyword {
     return _keywords;
   }
 
-  const Keyword(this.syntax,
-      {this.isPseudo: false, this.isBuiltIn: false, this.info: KEYWORD_INFO});
+  const Keyword(String syntax,
+      {bool isPseudo: false,
+      bool isBuiltIn: false,
+      PrecedenceInfo info: KEYWORD_INFO})
+      : super(syntax, info: info, isBuiltIn: isBuiltIn, isPseudo: isPseudo);
 
   static Map<String, Keyword> computeKeywordMap() {
     Map<String, Keyword> result = new Map<String, Keyword>();
@@ -175,19 +173,6 @@ class Keyword implements analyzer.Keyword {
     }
     return result;
   }
-
-  String toString() => syntax;
-
-  /// The term "pseudo-keyword" doesn't exist in the spec, and
-  /// Analyzer and Fasta have different notions of what it means.
-  /// Analyzer's notion of "pseudo-keyword" corresponds with Fasta's
-  /// notion of "built-in keyword".
-  /// Use [isBuiltIn] instead.
-  @override
-  bool get isPseudoKeyword => isBuiltIn;
-
-  @override
-  String get name => syntax.toUpperCase();
 }
 
 /**

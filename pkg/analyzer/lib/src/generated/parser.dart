@@ -3989,8 +3989,7 @@ class Parser {
         }
       }
       return parseBlock();
-    } else if (type == TokenType.KEYWORD &&
-        !_currentToken.keyword.isPseudoKeyword) {
+    } else if (type == TokenType.KEYWORD && !_currentToken.keyword.isBuiltIn) {
       Keyword keyword = _currentToken.keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this
       // if-then sequence to optimize performance
@@ -7994,7 +7993,7 @@ class Parser {
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
-      token.keyword?.isPseudoKeyword ?? false;
+      token.keyword?.isBuiltIn ?? false;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].

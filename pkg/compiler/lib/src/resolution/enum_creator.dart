@@ -58,7 +58,7 @@ class AstBuilder {
     Keyword keyword = Keyword.keywords[text];
     Token token;
     if (keyword != null) {
-      token = new KeywordToken(Keyword.keywords[text], charOffset);
+      token = new KeywordToken(keyword, charOffset);
     } else {
       token = stringToken(text);
     }

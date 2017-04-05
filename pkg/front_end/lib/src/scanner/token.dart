@@ -308,21 +308,47 @@ abstract class Keyword {
    */
   static final Map<String, Keyword> keywords = _createKeywordMap();
 
+  final fasta.PrecedenceInfo info;
+
   /**
-   * The name of the keyword type.
+   * A flag indicating whether the keyword is "built-in" identifier.
    */
-  String get name;
+  final bool isBuiltIn;
+
+  /**
+   * A flag indicating whether the keyword can be used as an identifier
+   * in some situations.
+   */
+  final bool isPseudo;
 
   /**
    * The lexeme for the keyword.
    */
-  String get syntax;
+  final String syntax;
 
   /**
-   * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords
-   * can be used as identifiers.
+   * Initialize a newly created keyword.
    */
-  bool get isPseudoKeyword;
+  const Keyword(this.syntax,
+      {this.isBuiltIn: false,
+      this.isPseudo: false,
+      this.info: fasta.KEYWORD_INFO});
+
+  /**
+   * A flag indicating whether the keyword is "built-in" identifier.
+   * This method exists for backward compatibility and will be removed.
+   * Use [isBuiltIn] instead.
+   */
+  @deprecated
+  bool get isPseudoKeyword => isBuiltIn; // TODO (danrubel): remove this
+
+  /**
+   * The name of the keyword type.
+   */
+  String get name => syntax.toUpperCase();
+
+  @override
+  String toString() => name;
 
   /**
    * Create a table mapping the lexemes of keywords to the corresponding keyword
