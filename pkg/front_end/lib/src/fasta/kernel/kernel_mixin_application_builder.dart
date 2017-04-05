@@ -8,22 +8,23 @@ import 'package:kernel/ast.dart' show InterfaceType, Supertype, setParents;
 
 import '../modifier.dart' show abstractMask;
 
+import '../source/source_class_builder.dart' show SourceClassBuilder;
+
+import '../util/relativize.dart' show relativizeUri;
+
 import 'kernel_builder.dart'
     show
-        Builder,
         ConstructorReferenceBuilder,
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
+        MemberBuilder,
         MixinApplicationBuilder,
+        Scope,
         TypeBuilder,
         TypeVariableBuilder;
-
-import '../util/relativize.dart' show relativizeUri;
-
-import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 class KernelMixinApplicationBuilder
     extends MixinApplicationBuilder<KernelTypeBuilder>
@@ -93,7 +94,10 @@ class KernelMixinApplicationBuilder
           newTypeVariables,
           supertype,
           null,
-          <String, Builder>{},
+          new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
+              library.scope.withTypeVariables(newTypeVariables),
+              isModifiable: false),
+          new Scope(<String, MemberBuilder>{}, null, null, isModifiable: false),
           library,
           <ConstructorReferenceBuilder>[],
           charOffset,
@@ -109,6 +113,7 @@ class KernelMixinApplicationBuilder
       return cls;
     });
     return new KernelNamedTypeBuilder(
-        name, typeArguments, charOffset, library.fileUri)..builder = cls;
+        name, typeArguments, charOffset, library.fileUri)
+      ..builder = cls;
   }
 }

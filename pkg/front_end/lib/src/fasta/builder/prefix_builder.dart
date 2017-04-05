@@ -4,21 +4,21 @@
 
 library fasta.prefix_builder;
 
-import 'builder.dart' show Builder, LibraryBuilder;
+import 'builder.dart' show Builder, LibraryBuilder, Scope;
 
 class PrefixBuilder extends Builder {
   final String name;
 
-  final Map<String, Builder> exports;
+  final Scope exports = new Scope.top();
 
   final LibraryBuilder parent;
 
-  PrefixBuilder(this.name, this.exports, LibraryBuilder parent, int charOffset)
+  PrefixBuilder(this.name, LibraryBuilder parent, int charOffset)
       : parent = parent,
         super(parent, charOffset, parent.fileUri);
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
-    return exports[name];
+    return exports.lookup(name, charOffset, fileUri);
   }
 
   @override

@@ -21,7 +21,7 @@ import '../kernel/kernel_builder.dart'
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
-        ProcedureBuilder,
+        Scope,
         TypeVariableBuilder,
         compareProcedures;
 
@@ -42,11 +42,6 @@ Class initializeClass(
 class SourceClassBuilder extends KernelClassBuilder {
   final Class cls;
 
-  @override
-  final Map<String, Builder> constructors;
-
-  final Map<String, Builder> membersInScope;
-
   final List<ConstructorReferenceBuilder> constructorReferences;
 
   final KernelTypeBuilder mixedInType;
@@ -58,17 +53,16 @@ class SourceClassBuilder extends KernelClassBuilder {
       List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
-      Map<String, Builder> members,
+      Scope scope,
+      Scope constructors,
       LibraryBuilder parent,
       this.constructorReferences,
       int charOffset,
       [Class cls,
       this.mixedInType])
       : cls = initializeClass(cls, name, parent, charOffset),
-        membersInScope = computeMembersInScope(members),
-        constructors = computeConstructors(members),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            members, parent, charOffset);
+            scope, constructors, parent, charOffset);
 
   int resolveTypes(LibraryBuilder library) {
     int count = 0;
@@ -83,24 +77,23 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 
   Class build(KernelLibraryBuilder library) {
-    void buildBuilder(Builder builder) {
-      if (builder is KernelFieldBuilder) {
-        // TODO(ahe): It would be nice to have a common interface for the build
-        // method to avoid duplicating these two cases.
-        cls.addMember(builder.build(library));
-      } else if (builder is KernelFunctionBuilder) {
-        cls.addMember(builder.build(library));
-      } else {
-        internalError("Unhandled builder: ${builder.runtimeType}");
-      }
-    }
-
-    members.forEach((String name, Builder builder) {
+    void buildBuilders(String name, Builder builder) {
       do {
-        buildBuilder(builder);
+        if (builder is KernelFieldBuilder) {
+          // TODO(ahe): It would be nice to have a common interface for the
+          // build method to avoid duplicating these two cases.
+          cls.addMember(builder.build(library));
+        } else if (builder is KernelFunctionBuilder) {
+          cls.addMember(builder.build(library));
+        } else {
+          internalError("Unhandled builder: ${builder.runtimeType}");
+        }
         builder = builder.next;
       } while (builder != null);
-    });
+    }
+
+    scope.forEach(buildBuilders);
+    constructors.forEach(buildBuilders);
     cls.supertype = supertype?.buildSupertype(library);
     cls.mixedInType = mixedInType?.buildSupertype(library);
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
@@ -116,6 +109,32 @@ class SourceClassBuilder extends KernelClassBuilder {
       }
     }
 
+    constructors.forEach((String name, Builder constructor) {
+      Builder member = scopeBuilder[name];
+      if (member == null) return;
+      // TODO(ahe): charOffset is missing.
+      addCompileTimeError(
+          constructor.charOffset, "Conflicts with member '${name}'.");
+      if (constructor.isFactory) {
+        addCompileTimeError(member.charOffset,
+            "Conflicts with factory '${this.name}.${name}'.");
+      } else {
+        addCompileTimeError(member.charOffset,
+            "Conflicts with constructor '${this.name}.${name}'.");
+      }
+    });
+
+    scope.setters.forEach((String name, Builder setter) {
+      Builder member = scopeBuilder[name];
+      if (member == null || !member.isField || member.isFinal) return;
+      // TODO(ahe): charOffset is missing.
+      var report = member.isInstanceMember != setter.isInstanceMember
+          ? addWarning
+          : addCompileTimeError;
+      report(setter.charOffset, "Conflicts with member '${name}'.");
+      report(member.charOffset, "Conflicts with setter '${name}'.");
+    });
+
     cls.procedures.sort(compareProcedures);
     return cls;
   }
@@ -125,29 +144,7 @@ class SourceClassBuilder extends KernelClassBuilder {
     cls.constructors.add(constructor);
     constructor.parent = cls;
     DillMemberBuilder memberBuilder = new DillMemberBuilder(constructor, this);
-    memberBuilder.next = constructors[name];
-    constructors[name] = memberBuilder;
+    memberBuilder.next = constructorScopeBuilder[name];
+    constructorScopeBuilder.addMember(name, memberBuilder);
   }
-}
-
-Map<String, Builder> computeMembersInScope(Map<String, Builder> members) {
-  Map<String, Builder> membersInScope = <String, Builder>{};
-  members.forEach((String name, Builder builder) {
-    if (builder is ProcedureBuilder) {
-      if (builder.isConstructor || builder.isFactory) return;
-    }
-    membersInScope[name] = builder;
-  });
-  return membersInScope;
-}
-
-Map<String, Builder> computeConstructors(Map<String, Builder> members) {
-  Map<String, Builder> constructors = <String, Builder>{};
-  members.forEach((String name, Builder builder) {
-    if (builder is ProcedureBuilder &&
-        (builder.isConstructor || builder.isFactory)) {
-      constructors[name] = builder;
-    }
-  });
-  return constructors;
 }

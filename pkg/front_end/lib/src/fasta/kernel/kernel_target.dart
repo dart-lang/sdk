@@ -428,7 +428,7 @@ class KernelTarget extends TargetImplementation {
       // to add a default constructor to complete error recovery.
       return;
     }
-    if (builder.constructors.isNotEmpty) return;
+    if (builder.constructors.local.isNotEmpty) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](

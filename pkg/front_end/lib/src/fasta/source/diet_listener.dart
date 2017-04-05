@@ -31,8 +31,6 @@ import '../builder/builder.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import '../kernel/kernel_library_builder.dart' show isConstructorName;
-
 class DietListener extends StackListener {
   final SourceLibraryBuilder library;
 
@@ -420,7 +418,7 @@ class DietListener extends StackListener {
     assert(currentClass == null);
     currentClass = lookupBuilder(token, null, name);
     assert(memberScope == library.scope);
-    memberScope = currentClass.computeInstanceScope(memberScope);
+    memberScope = currentClass.scope;
   }
 
   @override
@@ -516,37 +514,33 @@ class DietListener extends StackListener {
   }
 
   Builder lookupBuilder(Token token, Token getOrSet, String name) {
+    // TODO(ahe): Can I move this to Scope or ScopeBuilder?
     Builder builder;
     if (currentClass != null) {
-      builder = currentClass.members[name];
-      if (builder == null && isConstructorName(name, currentClass.name)) {
-        int index = name.indexOf(".");
-        name = index == -1 ? "" : name.substring(index + 1);
-        builder = currentClass.members[name];
+      if (getOrSet != null && optional("set", getOrSet)) {
+        builder = currentClass.scope.setters[name];
+      } else {
+        builder = currentClass.scope.local[name];
       }
+      if (builder == null) {
+        if (name == currentClass.name) {
+          name = "";
+        } else {
+          int index = name.indexOf(".");
+          name = name.substring(index + 1);
+        }
+        builder = currentClass.constructors.local[name];
+      }
+    } else if (getOrSet != null && optional("set", getOrSet)) {
+      builder = library.scope.setters[name];
     } else {
-      builder = library.members[name];
+      builder = library.scopeBuilder[name];
     }
     if (builder == null) {
       return internalError("Builder not found: $name", uri, token.charOffset);
     }
     if (builder.next != null) {
-      Builder getterBuilder;
-      Builder setterBuilder;
-      Builder current = builder;
-      while (current != null) {
-        if (current.isGetter && getterBuilder == null) {
-          getterBuilder = current;
-        } else if (current.isSetter && setterBuilder == null) {
-          setterBuilder = current;
-        } else {
-          return inputError(uri, token.charOffset, "Duplicated name: $name");
-        }
-        current = current.next;
-      }
-      assert(getOrSet != null);
-      if (optional("get", getOrSet)) return getterBuilder;
-      if (optional("set", getOrSet)) return setterBuilder;
+      return inputError(uri, token.charOffset, "Duplicated name: $name");
     }
     return builder;
   }

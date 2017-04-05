@@ -46,9 +46,7 @@ export 'prefix_builder.dart' show PrefixBuilder;
 
 export 'invalid_type_builder.dart' show InvalidTypeBuilder;
 
-export 'mixed_accessor.dart' show MixedAccessor;
-
-export '../scope.dart' show AccessErrorBuilder, Scope;
+export '../scope.dart' show AccessErrorBuilder, Scope, ScopeBuilder;
 
 export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
 

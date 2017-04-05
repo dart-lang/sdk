@@ -12,7 +12,7 @@ import 'package:kernel/ast.dart';
 
 import '../errors.dart' show internalError;
 
-import '../scope.dart' show AccessErrorBuilder, ProblemBuilder;
+import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
 import 'frontend_accessors.dart' as kernel
     show
@@ -43,7 +43,7 @@ abstract class BuilderHelper {
 
   Member lookupSuperMember(Name name, {bool isSetter: false});
 
-  builderToFirstExpression(Builder builder, String name, int offset);
+  scopeLookup(Scope scope, String name, int offset, {bool isQualified: false});
 
   finishSend(Object receiver, Arguments arguments, int offset);
 
@@ -431,8 +431,8 @@ class SendAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
-      receiver = helper.builderToFirstExpression(
-          prefix.exports[name.name], "${prefix.name}.${name.name}", offset);
+      receiver = helper.scopeLookup(prefix.exports, name.name, offset,
+          isQualified: true);
       return helper.finishSend(receiver, arguments, offset);
     }
     Expression result;
@@ -517,8 +517,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
-      return helper.builderToFirstExpression(
-          prefix.exports[name.name], name.name, offset);
+      return helper.scopeLookup(prefix.exports, name.name, offset,
+          isQualified: true);
     }
     if (receiver is KernelClassBuilder) {
       Builder builder = receiver.findStaticBuilder(name.name, offset, uri);

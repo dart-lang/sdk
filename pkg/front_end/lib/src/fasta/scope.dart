@@ -4,21 +4,25 @@
 
 library fasta.scope;
 
-import 'builder/builder.dart' show Builder, MixedAccessor;
+import 'builder/builder.dart' show Builder, TypeVariableBuilder;
 
 import 'errors.dart' show internalError;
 
-class Scope {
+class MutableScope {
   /// Names declared in this scope.
-  final Map<String, Builder> local;
+  Map<String, Builder> local;
 
   /// Setters declared in this scope.
-  final Map<String, Builder> setters;
+  Map<String, Builder> setters;
 
   /// The scope that this scope is nested within, or `null` if this is the top
   /// level scope.
-  final Scope parent;
+  Scope parent;
 
+  MutableScope(this.local, this.setters, this.parent);
+}
+
+class Scope extends MutableScope {
   /// Indicates whether an attempt to declare new names in this scope should
   /// succeed.
   final bool isModifiable;
@@ -27,9 +31,9 @@ class Scope {
 
   Map<String, Builder> forwardDeclaredLabels;
 
-  Scope(this.local, Map<String, Builder> setters, this.parent,
+  Scope(Map<String, Builder> local, Map<String, Builder> setters, Scope parent,
       {this.isModifiable: true})
-      : setters = setters ?? const <String, Builder>{};
+      : super(local, setters = setters ?? const <String, Builder>{}, parent);
 
   Scope.top({bool isModifiable: false})
       : this(<String, Builder>{}, <String, Builder>{}, null,
@@ -42,8 +46,36 @@ class Scope {
   Scope.nested(Scope parent, {bool isModifiable: true})
       : this(<String, Builder>{}, null, parent, isModifiable: isModifiable);
 
+  /// Don't use this. Use [becomePartOf] instead.
+  void set local(_) => internalError("Unsupported operation.");
+
+  /// Don't use this. Use [becomePartOf] instead.
+  void set setters(_) => internalError("Unsupported operation.");
+
+  /// Don't use this. Use [becomePartOf] instead.
+  void set parent(_) => internalError("Unsupported operation.");
+
+  /// This scope becomes equivalent to [scope]. This is used for parts to
+  /// become part of their library's scope.
+  void becomePartOf(Scope scope) {
+    assert(parent.parent == null);
+    assert(scope.parent.parent == null);
+    super.local = scope.local;
+    super.setters = scope.setters;
+    super.parent = scope.parent;
+  }
+
   Scope createNestedScope({bool isModifiable: true}) {
     return new Scope.nested(this, isModifiable: isModifiable);
+  }
+
+  Scope withTypeVariables(List<TypeVariableBuilder> typeVariables) {
+    if (typeVariables == null) return this;
+    Scope newScope = new Scope.nested(this, isModifiable: false);
+    for (TypeVariableBuilder t in typeVariables) {
+      newScope.local[t.name] = t;
+    }
+    return newScope;
   }
 
   /// Create a special scope for use by labeled staments. This scope doesn't
@@ -57,66 +89,49 @@ class Scope {
     return new Scope(local, setters, parent, isModifiable: true);
   }
 
+  Builder lookupIn(String name, int charOffset, Uri fileUri,
+      Map<String, Builder> map, bool isInstanceScope) {
+    Builder builder = map[name];
+    if (builder == null) return null;
+    if (builder.next != null) {
+      return new AmbiguousBuilder(name, builder, charOffset, fileUri);
+    } else if (!isInstanceScope && builder.isInstanceMember) {
+      return null;
+    } else {
+      return builder;
+    }
+  }
+
   Builder lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
-    Builder builder = local[name];
-    if (builder != null) {
-      if (builder.next != null) {
-        return lookupAmbiguous(name, builder, false, charOffset, fileUri);
-      }
-      return builder.isSetter
-          ? new AccessErrorBuilder(name, builder, charOffset, fileUri)
-          : builder;
-    } else {
-      return parent?.lookup(name, charOffset, fileUri);
+    Builder builder =
+        lookupIn(name, charOffset, fileUri, local, isInstanceScope);
+    if (builder != null) return builder;
+    builder = lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
+    if (builder != null && !builder.hasProblem) {
+      return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
+    if (!isInstanceScope) {
+      // For static lookup, do not seach the parent scope.
+      return builder;
+    }
+    return builder ?? parent?.lookup(name, charOffset, fileUri);
   }
 
   Builder lookupSetter(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
-    Builder builder = local[name];
-    if (builder != null) {
-      if (builder.next != null) {
-        return lookupAmbiguous(name, builder, true, charOffset, fileUri);
-      }
-      if (builder.isField) {
-        if (builder.isFinal) {
-          return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-        } else {
-          return builder;
-        }
-      } else if (builder.isSetter) {
-        return builder;
-      } else {
-        return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-      }
-    } else {
-      return parent?.lookupSetter(name, charOffset, fileUri);
+    Builder builder =
+        lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
+    if (builder != null) return builder;
+    builder = lookupIn(name, charOffset, fileUri, local, isInstanceScope);
+    if (builder != null && !builder.hasProblem) {
+      return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
-  }
-
-  Builder lookupAmbiguous(
-      String name, Builder builder, bool setter, int charOffset, Uri fileUri) {
-    assert(builder.next != null);
-    if (builder is MixedAccessor) {
-      return setter ? builder.setter : builder.getter;
+    if (!isInstanceScope) {
+      // For static lookup, do not seach the parent scope.
+      return builder;
     }
-    Builder setterBuilder;
-    Builder getterBuilder;
-    Builder current = builder;
-    while (current != null) {
-      if (current.isGetter && getterBuilder == null) {
-        getterBuilder = current;
-      } else if (current.isSetter && setterBuilder == null) {
-        setterBuilder = current;
-      } else {
-        return new AmbiguousBuilder(name, builder, charOffset, fileUri);
-      }
-      current = current.next;
-    }
-    assert(getterBuilder != null);
-    assert(setterBuilder != null);
-    return setter ? setterBuilder : getterBuilder;
+    return builder ?? parent?.lookupSetter(name, charOffset, fileUri);
   }
 
   bool hasLocalLabel(String name) => labels != null && labels.containsKey(name);
@@ -161,8 +176,28 @@ class Scope {
     }
   }
 
+  void merge(Scope scope,
+      buildAmbiguousBuilder(String name, Builder existing, Builder member)) {
+    Map<String, Builder> map = local;
+
+    void mergeMember(String name, Builder member) {
+      Builder existing = map[name];
+      if (existing != null) {
+        if (existing != member) {
+          member = buildAmbiguousBuilder(name, existing, member);
+        }
+      }
+      map[name] = member;
+    }
+
+    scope.local.forEach(mergeMember);
+    map = setters;
+    scope.setters.forEach(mergeMember);
+  }
+
   void forEach(f(String name, Builder member)) {
     local.forEach(f);
+    setters.forEach(f);
   }
 
   String get debugString {
@@ -186,6 +221,22 @@ class Scope {
     });
     return nestingLevel;
   }
+}
+
+class ScopeBuilder {
+  final Scope scope;
+
+  ScopeBuilder(this.scope);
+
+  void addMember(String name, Builder builder) {
+    scope.local[name] = builder;
+  }
+
+  void addSetter(String name, Builder builder) {
+    scope.setters[name] = builder;
+  }
+
+  Builder operator [](String name) => scope.local[name];
 }
 
 abstract class ProblemBuilder extends Builder {

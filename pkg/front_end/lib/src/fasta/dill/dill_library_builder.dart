@@ -20,7 +20,12 @@ import 'package:kernel/ast.dart'
 import '../errors.dart' show internalError;
 
 import '../kernel/kernel_builder.dart'
-    show Builder, KernelInvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;
+    show
+        Builder,
+        KernelInvalidTypeBuilder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        Scope;
 
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -33,20 +38,12 @@ import 'dill_loader.dart' show DillLoader;
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Uri uri;
 
-  final Map<String, Builder> members = <String, Builder>{};
-
-  // TODO(ahe): Some export information needs to be serialized.
-  final Map<String, Builder> exports = <String, Builder>{};
-
   final DillLoader loader;
 
   Library library;
 
-  DillLibraryBuilder(Uri uri, this.loader)
-      : uri = uri,
-        super(uri);
-
-  get scope => internalError("Scope not supported");
+  DillLibraryBuilder(this.uri, this.loader)
+      : super(uri, new Scope.top(), new Scope.top());
 
   Uri get fileUri => uri;
 
@@ -81,8 +78,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   void addMember(Member member) {
     String name = member.name.name;
     if (name == "_exports#") {
+      // TODO(ahe): Add this to exportScope.
       // This is a hack / work around for storing exports in dill files. See
-      // [compile_platform.dart](../compile_platform.dart).
+      // [compile_platform_dartk.dart](../analyzer/compile_platform_dartk.dart).
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
@@ -90,9 +88,18 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   Builder addBuilder(String name, Builder builder, int charOffset) {
     if (name == null || name.isEmpty) return null;
-    members[name] = builder;
+    bool isSetter = builder.isSetter;
+    if (isSetter) {
+      scopeBuilder.addSetter(name, builder);
+    } else {
+      scopeBuilder.addMember(name, builder);
+    }
     if (!name.startsWith("_")) {
-      exports[name] = builder;
+      if (isSetter) {
+        exportScopeBuilder.addSetter(name, builder);
+      } else {
+        exportScopeBuilder.addMember(name, builder);
+      }
     }
     return builder;
   }

@@ -4,13 +4,12 @@
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart'
-    show Class, Constructor, Member, Procedure, ProcedureKind;
+import 'package:kernel/ast.dart' show Class, Member;
 
 import '../errors.dart' show internalError;
 
 import '../kernel/kernel_builder.dart'
-    show Builder, KernelClassBuilder, KernelTypeBuilder;
+    show MemberBuilder, KernelClassBuilder, KernelTypeBuilder, Scope;
 
 import '../modifier.dart' show abstractMask;
 
@@ -21,27 +20,31 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 class DillClassBuilder extends KernelClassBuilder {
   final Class cls;
 
-  @override
-  final Map<String, Builder> constructors = <String, Builder>{};
-
   DillClassBuilder(Class cls, DillLibraryBuilder parent)
       : cls = cls,
-        super(null, computeModifiers(cls), cls.name, null, null, null,
-            <String, Builder>{}, parent, cls.fileOffset);
+        super(
+            null,
+            computeModifiers(cls),
+            cls.name,
+            null,
+            null,
+            null,
+            new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
+                parent.scope, isModifiable: false),
+            new Scope(<String, MemberBuilder>{}, null, null,
+                isModifiable: false),
+            parent,
+            cls.fileOffset);
 
   void addMember(Member member) {
     DillMemberBuilder builder = new DillMemberBuilder(member, this);
     String name = member.name.name;
-    if (member is Constructor ||
-        (member is Procedure && member.kind == ProcedureKind.Factory)) {
-      constructors[name] = builder;
+    if (builder.isConstructor || builder.isFactory) {
+      constructorScopeBuilder.addMember(name, builder);
+    } else if (builder.isSetter) {
+      scopeBuilder.addSetter(name, builder);
     } else {
-      DillMemberBuilder existing = members[name];
-      if (existing == null) {
-        members[name] = builder;
-      } else {
-        existing.next = builder;
-      }
+      scopeBuilder.addMember(name, builder);
     }
   }
 

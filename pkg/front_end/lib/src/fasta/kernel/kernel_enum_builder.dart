@@ -32,7 +32,9 @@ import '../errors.dart' show inputError;
 
 import '../modifier.dart' show constMask, finalMask, staticMask;
 
-import "../source/source_class_builder.dart" show SourceClassBuilder;
+import '../names.dart' show indexGetName;
+
+import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'kernel_builder.dart'
     show
@@ -48,9 +50,8 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
-        MetadataBuilder;
-
-import '../names.dart' show indexGetName;
+        MetadataBuilder,
+        Scope;
 
 class KernelEnumBuilder extends SourceClassBuilder
     implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
@@ -65,7 +66,8 @@ class KernelEnumBuilder extends SourceClassBuilder
   KernelEnumBuilder.internal(
       List<MetadataBuilder> metadata,
       String name,
-      Map<String, Builder> members,
+      Scope scope,
+      Scope constructors,
       Class cls,
       this.constantNamesAndOffsets,
       this.toStringMap,
@@ -73,8 +75,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.stringType,
       LibraryBuilder parent,
       int charOffset)
-      : super(metadata, 0, name, null, null, null, members, parent, null,
-            charOffset, cls);
+      : super(metadata, 0, name, null, null, null, scope, constructors, parent,
+            null, charOffset, cls);
 
   factory KernelEnumBuilder(
       List<MetadataBuilder> metadata,
@@ -91,7 +93,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     KernelTypeBuilder stringType = parent.addType(
         new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri));
     Class cls = new Class(name: name);
-    Map<String, Builder> members = <String, Builder>{};
+    Map<String, MemberBuilder> members = <String, MemberBuilder>{};
+    Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     KernelNamedTypeBuilder selfType =
         new KernelNamedTypeBuilder(name, null, charOffset, parent.fileUri);
     KernelTypeBuilder listType = parent.addType(new KernelNamedTypeBuilder(
@@ -123,7 +126,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         charOffset,
         charOffset,
         charEndOffset);
-    members[""] = constructorBuilder;
+    constructors[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
     KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
@@ -162,7 +165,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
         metadata,
         name,
-        members,
+        new Scope(members, null, parent.scope, isModifiable: false),
+        new Scope(constructors, null, null, isModifiable: false),
         cls,
         constantNamesAndOffsets,
         toStringMap,
@@ -171,10 +175,13 @@ class KernelEnumBuilder extends SourceClassBuilder
         parent,
         charOffset);
     // TODO(sigmund): dynamic should be `covariant MemberBuilder`.
-    members.forEach((String name, dynamic b) {
+    void setParent(String name, dynamic b) {
       MemberBuilder builder = b;
       builder.parent = enumBuilder;
-    });
+    }
+
+    members.forEach(setParent);
+    constructors.forEach(setParent);
     selfType.builder = enumBuilder;
     return enumBuilder;
   }
@@ -212,7 +219,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     valuesBuilder.build(libraryBuilder);
     valuesBuilder.initializer =
         new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
-    KernelConstructorBuilder constructorBuilder = this[""];
+    KernelConstructorBuilder constructorBuilder = constructorScopeBuilder[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(
         0,

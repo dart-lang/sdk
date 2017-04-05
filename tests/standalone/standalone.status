@@ -438,23 +438,27 @@ io/named_pipe_script_test: RuntimeError
 [ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
 assert_test: RuntimeError
 io/compile_all_test: Crash
-io/directory_chdir_test: DartkCrash
-io/directory_test: DartkCrash
-io/directory_uri_test: DartkCrash
-io/file_absolute_path_test: DartkCrash
-io/file_uri_test: DartkCrash
+io/directory_chdir_test: RuntimeError
+io/directory_test: RuntimeError
+io/directory_uri_test: RuntimeError
+io/file_absolute_path_test: RuntimeError
+io/file_uri_test: RuntimeError
 io/http_cookie_test: RuntimeError
 io/http_proxy_advanced_test: RuntimeError
-io/link_async_test: DartkCrash
-io/link_test: DartkCrash
-io/link_uri_test: DartkCrash
-io/platform_test: DartkCrash
-io/resolve_symbolic_links_test: DartkCrash
-io/skipping_dart2js_compilations_test: DartkCrash
+io/http_proxy_test: Skip # Flaky.
+io/http_reuse_server_port_test: Skip # Flaky.
+io/http_server_close_response_after_error_test: Skip # Flaky
+io/link_async_test: RuntimeError
+io/link_test: RuntimeError
+io/link_uri_test: RuntimeError
+io/platform_test: RuntimeError
+io/raw_datagram_socket_test: Skip # Flaky.
+io/resolve_symbolic_links_test: RuntimeError
+io/skipping_dart2js_compilations_test: Pass
 io/socket_many_connections_test: RuntimeError
-io/test_harness_analyzer_test: DartkCrash
-io/test_runner_test: DartkCrash
-io/uri_platform_test: DartkCrash
+io/test_harness_analyzer_test: Pass
+io/test_runner_test: Pass
+io/uri_platform_test: RuntimeError
 map_insert_remove_oom_test: Crash
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError
@@ -463,9 +467,6 @@ package/scenarios/invalid/invalid_utf8_test: DartkCrash
 package/scenarios/invalid/non_existent_packages_file_test: DartkCrash
 package/scenarios/invalid/same_package_twice_test: DartkCrash
 package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
-io/http_proxy_test: Skip # Flaky.
-io/http_reuse_server_port_test: Skip # Flaky.
-io/raw_datagram_socket_test: Skip # Flaky.
 
 [ $runtime == flutter ]
 io/raw_datagram_socket_test: Crash # Flutter Issue 9115

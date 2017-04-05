@@ -22,34 +22,39 @@ import 'builder.dart'
         DynamicTypeBuilder,
         ClassBuilder,
         Scope,
+        ScopeBuilder,
         TypeBuilder,
         VoidTypeBuilder;
 
 abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
+  final Scope scope;
+
+  final Scope exports;
+
+  final ScopeBuilder scopeBuilder;
+
+  final ScopeBuilder exportScopeBuilder;
+
   final List<Export> exporters = <Export>[];
 
   final List<InputError> compileTimeErrors = <InputError>[];
 
+  final Uri fileUri;
+
+  final String relativeFileUri;
+
   LibraryBuilder partOfLibrary;
+
+  LibraryBuilder(Uri fileUri, this.scope, this.exports)
+      : fileUri = fileUri,
+        relativeFileUri = relativizeUri(fileUri),
+        scopeBuilder = new ScopeBuilder(scope),
+        exportScopeBuilder = new ScopeBuilder(exports),
+        super(null, -1, fileUri);
 
   Loader get loader;
 
   Uri get uri;
-
-  final Uri fileUri;
-  final String relativeFileUri;
-
-  Map<String, Builder> get members;
-
-  // TODO(ahe): Move this to SourceLibraryBuilder.
-  Scope get scope;
-
-  Map<String, Builder> get exports;
-
-  LibraryBuilder(Uri fileUri)
-      : fileUri = fileUri,
-        relativeFileUri = relativizeUri(fileUri),
-        super(null, -1, fileUri);
 
   Builder addBuilder(String name, Builder builder, int charOffset);
 
@@ -104,7 +109,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   Builder getConstructor(String className,
       {String constructorName, bool isPrivate: false}) {
     constructorName ??= "";
-    Builder cls = (isPrivate ? members : exports)[className];
+    Builder cls = (isPrivate ? scope : exports).lookup(className, -1, null);
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
@@ -133,16 +138,16 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   }
 
   void forEach(void f(String name, Builder builder)) {
-    members.forEach(f);
+    scope.forEach(f);
   }
 
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and not a setter).
   Builder operator [](String name) {
-    return members[name] ?? internalError("Not found: '$name'.");
+    return scope.local[name] ?? internalError("Not found: '$name'.");
   }
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
-    return members[name];
+    return scope.lookup(name, charOffset, fileUri);
   }
 }

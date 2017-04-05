@@ -38,18 +38,13 @@ Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06
 Language/Classes/Constructors/Generative_Constructors/syntax_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/syntax_t04: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/syntax_t05: MissingCompileTimeError
-Language/Classes/Getters/static_getter_t02: CompileTimeError
 Language/Classes/Getters/syntax_t02: MissingCompileTimeError
 Language/Classes/Getters/syntax_t03: MissingCompileTimeError
 Language/Classes/Getters/syntax_t04: MissingCompileTimeError
 Language/Classes/Getters/syntax_t05: MissingCompileTimeError
 Language/Classes/Getters/syntax_t07: MissingCompileTimeError
 Language/Classes/Instance_Methods/Operators/syntax_t04: MissingCompileTimeError
-Language/Classes/Instance_Methods/same_name_setter_t01: CompileTimeError
 Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
-Language/Classes/Setters/name_t01: CompileTimeError
-Language/Classes/Setters/name_t02: CompileTimeError
-Language/Classes/Setters/name_t07: CompileTimeError
 Language/Classes/Setters/parameter_t01: MissingCompileTimeError
 Language/Classes/Setters/parameter_t02: MissingCompileTimeError
 Language/Classes/Setters/parameter_t03: MissingCompileTimeError
@@ -58,7 +53,6 @@ Language/Classes/Setters/parameter_t06: MissingCompileTimeError
 Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
-Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t04: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
@@ -214,7 +208,6 @@ Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Kerne
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass # OK
-Language/Libraries_and_Scripts/Imports/namespace_changes_t27: CompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t02/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t05: RuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
@@ -233,7 +226,6 @@ Language/Libraries_and_Scripts/Scripts/syntax_t08: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t10: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t14: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
-Language/Libraries_and_Scripts/Scripts/top_level_main_t02: Crash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError

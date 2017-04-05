@@ -719,8 +719,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           this.scope.parent == enclosingScope);
       // This deals with this kind of initializer: `C(a) : a = a;`
       Scope scope = inInitializer ? enclosingScope : this.scope;
-      Builder builder = scope.lookup(name, token.charOffset, uri);
-      push(builderToFirstExpression(builder, name, token.charOffset));
+      push(scopeLookup(scope, name, token.charOffset));
       return;
     } else if (context.inDeclaration) {
       if (context == IdentifierContext.topLevelVariableDeclaration ||
@@ -735,12 +734,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new Identifier(name)..fileOffset = token.charOffset);
   }
 
+  /// Look up [name] in [scope] using [charOffset] to report any
+  /// problems. [isQualified] should be true if [name] is a qualified access
+  /// (which implies that it shouldn't be turned into a [ThisPropertyAccessor]
+  /// if the name doesn't resolve in the scope).
   @override
-  builderToFirstExpression(Builder builder, String name, int charOffset,
-      {bool isPrefix: false}) {
+  scopeLookup(Scope scope, String name, int charOffset,
+      {bool isQualified: false}) {
+    Builder builder = scope.lookup(name, charOffset, uri);
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       Name n = new Name(name, library.library);
-      if (!isPrefix && isInstanceContext) {
+      if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantExpressionRequired) {
           addCompileTimeError(charOffset, "Not a constant expression.");
@@ -776,12 +780,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new StaticAccessor(this, charOffset, builder.target, null);
     } else if (builder is PrefixBuilder) {
       return builder;
-    } else if (builder is MixedAccessor) {
-      if (constantExpressionRequired && !builder.getter.target.isConst) {
-        addCompileTimeError(charOffset, "Not a constant expression.");
-      }
-      return new StaticAccessor(
-          this, charOffset, builder.getter.target, builder.setter.target);
     } else {
       if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
       Builder setter;
@@ -1278,9 +1276,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         builder = scope.lookup(prefix, beginToken.charOffset, uri);
       }
       if (builder is PrefixBuilder) {
-        name = builderToFirstExpression(
-            builder.exports[suffix], suffix, beginToken.charOffset,
-            isPrefix: true);
+        name = scopeLookup(builder.exports, suffix, beginToken.charOffset,
+            isQualified: true);
       } else {
         push(const DynamicType());
         addCompileTimeError(beginToken.charOffset,
@@ -1658,9 +1655,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       var prefix = type[0];
       identifier = type[1];
       if (prefix is PrefixBuilder) {
-        // TODO(ahe): Handle privacy in prefix.exports.
-        type = builderToFirstExpression(
-            prefix.exports[identifier.name], identifier.name, start.charOffset);
+        type = scopeLookup(prefix.exports, identifier.name, start.charOffset,
+            isQualified: true);
         identifier = null;
       } else if (prefix is ClassBuilder) {
         type = prefix;
