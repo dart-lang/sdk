@@ -164,6 +164,28 @@ class Scope {
   void forEach(f(String name, Builder member)) {
     local.forEach(f);
   }
+
+  String get debugString {
+    StringBuffer buffer = new StringBuffer();
+    int nestingLevel = writeOn(buffer);
+    for (int i = nestingLevel; i >= 0; i--) {
+      buffer.writeln("${'  ' * i}}");
+    }
+    return "$buffer";
+  }
+
+  int writeOn(StringSink sink) {
+    int nestingLevel = (parent?.writeOn(sink) ?? -1) + 1;
+    String indent = "  " * nestingLevel;
+    sink.writeln("$indent{");
+    local.forEach((String name, Builder member) {
+      sink.writeln("$indent  $name");
+    });
+    setters.forEach((String name, Builder member) {
+      sink.writeln("$indent  $name=");
+    });
+    return nestingLevel;
+  }
 }
 
 abstract class ProblemBuilder extends Builder {
