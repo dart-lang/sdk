@@ -1198,9 +1198,8 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseConstructorFieldInitializer_qualified() {
-    createParser('this.a = b');
-    ConstructorFieldInitializer initializer =
-        parser.parseConstructorFieldInitializer(true);
+    var initializer = parseConstructorInitializer('this.a = b')
+        as ConstructorFieldInitializer;
     expect(initializer, isNotNull);
     assertNoErrors();
     expect(initializer.equals, isNotNull);
@@ -1211,9 +1210,8 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseConstructorFieldInitializer_unqualified() {
-    createParser('a = b');
-    ConstructorFieldInitializer initializer =
-        parser.parseConstructorFieldInitializer(false);
+    var initializer =
+        parseConstructorInitializer('a = b') as ConstructorFieldInitializer;
     expect(initializer, isNotNull);
     assertNoErrors();
     expect(initializer.equals, isNotNull);

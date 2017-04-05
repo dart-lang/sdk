@@ -54,13 +54,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
   @override
   @failingTest
-  void test_parseClassMember_constructor_withInitializers() {
-    // TODO(paulberry): 'this' can't be used here.
-    super.test_parseClassMember_constructor_withInitializers();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_method_generic_comment_returnType() {
     // TODO(paulberry): Fasta doesn't support generic comment syntax
     super.test_parseClassMember_method_generic_comment_returnType();
@@ -830,16 +823,6 @@ class ParserProxy implements analyzer.Parser {
   @override
   CompilationUnit parseCompilationUnit2() {
     return _run((parser) => parser.parseUnit) as CompilationUnit;
-  }
-
-  @override
-  ConstructorFieldInitializer parseConstructorFieldInitializer(bool hasThis) {
-    // Fasta's parser doesn't need the [hasThis] hint, so we ignore it.
-    var colon = new fasta.SymbolToken(fasta.COLON_INFO, 0);
-    colon.next = _currentFastaToken;
-    _currentFastaToken = colon;
-    var initializers = _run((parser) => parser.parseInitializers) as List;
-    return initializers[0] as ConstructorFieldInitializer;
   }
 
   /**

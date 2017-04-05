@@ -406,12 +406,15 @@ class AstBuilder extends ScopeListener {
 
   void handleNoInitializers() {
     debugEvent("NoInitializers");
+    push(NullValue.ConstructorInitializerSeparator);
     push(NullValue.ConstructorInitializers);
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
     List<Object> initializerObjects = popList(count) ?? const [];
+
+    push(beginToken);
 
     var initializers = <ConstructorInitializer>[];
     for (Object initializerObject in initializerObjects) {
@@ -1569,6 +1572,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Function");
     FunctionBody body = pop();
     pop(); // constructor initializers
+    pop(); // separator before constructor initializers
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     // TODO(scheglov) It is an error if "getOrSet" is not null.
@@ -1634,11 +1638,11 @@ class AstBuilder extends ScopeListener {
     FunctionBody body = pop();
     ConstructorName redirectedConstructor = null; // TODO(paulberry)
     List<ConstructorInitializer> initializers = pop() ?? const [];
-    Token separator = null; // TODO(paulberry)
+    Token separator = pop();
     FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop(); // TODO(paulberry)
+    TypeParameterList typeParameters = pop();
     var name = pop();
-    TypeAnnotation returnType = pop(); // TODO(paulberry)
+    TypeAnnotation returnType = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
