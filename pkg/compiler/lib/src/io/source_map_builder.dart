@@ -63,7 +63,7 @@ class SourceMapBuilder {
               sourceLocationMap.putIfAbsent(location.sourceUri,
                   () => new LineColumnMap<SourceMapEntry>());
           sourceLineColumnMap.add(
-              location.line, location.column, sourceMapEntry);
+              location.line - 1, location.column - 1, sourceMapEntry);
         }
       }
     });
@@ -157,8 +157,8 @@ class SourceMapBuilder {
       Uri sourceUri = sourceLocation.sourceUri;
       if (sourceUri != null) {
         sourceUriIndexEncoder.encode(output, uriMap[sourceUri]);
-        sourceLineEncoder.encode(output, sourceLocation.line);
-        sourceColumnEncoder.encode(output, sourceLocation.column);
+        sourceLineEncoder.encode(output, sourceLocation.line - 1);
+        sourceColumnEncoder.encode(output, sourceLocation.column - 1);
       }
 
       String sourceName = sourceLocation.sourceName;

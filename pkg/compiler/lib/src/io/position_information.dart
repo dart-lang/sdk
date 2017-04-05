@@ -69,12 +69,12 @@ class PositionSourceInformation extends SourceInformation {
     sb.write('$uriText:');
     // Use 1-based line/column info to match usual dart tool output.
     if (startPosition != null) {
-      sb.write('[${startPosition.line + 1},'
-          '${startPosition.column + 1}]');
+      sb.write('[${startPosition.line},'
+          '${startPosition.column}]');
     }
     if (closingPosition != null) {
-      sb.write('-[${closingPosition.line + 1},'
-          '${closingPosition.column + 1}]');
+      sb.write('-[${closingPosition.line},'
+          '${closingPosition.column}]');
     }
     return sb.toString();
   }

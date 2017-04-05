@@ -503,8 +503,8 @@ class CodePointComputer extends TraceListener {
         return sourceLocation.shortText;
       }
       return sourceFile.kernelSource
-          .getTextLine(sourceLocation.line + 1)
-          .substring(sourceLocation.column)
+          .getTextLine(sourceLocation.line)
+          .substring(sourceLocation.column - 1)
           .trim();
     }
 

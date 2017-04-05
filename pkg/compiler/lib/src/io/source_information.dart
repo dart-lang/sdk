@@ -163,10 +163,10 @@ abstract class SourceLocation {
   /// The character offset of the this source location into the source file.
   int get offset;
 
-  /// The 0-based line number of the [offset].
+  /// The 1-based line number of the [offset].
   int get line;
 
-  /// The 0-base column number of the [offset] with its line.
+  /// The 1-based column number of the [offset] with its line.
   int get column;
 
   /// The name associated with this source location, if any.
@@ -189,15 +189,9 @@ abstract class SourceLocation {
         sourceName == other.sourceName;
   }
 
-  String get shortText {
-    // Use 1-based line/column info to match usual dart tool output.
-    return '${sourceUri.pathSegments.last}:[${line + 1},${column + 1}]';
-  }
+  String get shortText => '${sourceUri.pathSegments.last}:[$line,$column]';
 
-  String toString() {
-    // Use 1-based line/column info to match usual dart tool output.
-    return '${sourceUri}:[${line + 1},${column + 1}]';
-  }
+  String toString() => '${sourceUri}:[${line},${column}]';
 }
 
 /// A location in a source file.
@@ -217,17 +211,11 @@ abstract class AbstractSourceLocation extends SourceLocation {
   /// The character offset of the this source location into the source file.
   int get offset;
 
-  /// The 0-based line number of the [offset].
-  int get line {
-    _location ??= _sourceFile.getLocation(offset);
-    return _location.line - 1;
-  }
+  /// The 1-based line number of the [offset].
+  int get line => (_location ??= _sourceFile.getLocation(offset)).line;
 
-  /// The 0-base column number of the [offset] with its line.
-  int get column {
-    _location ??= _sourceFile.getLocation(offset);
-    return _location.column - 1;
-  }
+  /// The 1-based column number of the [offset] with its line.
+  int get column => (_location ??= _sourceFile.getLocation(offset)).column;
 
   /// The name associated with this source location, if any.
   String get sourceName;
@@ -235,15 +223,9 @@ abstract class AbstractSourceLocation extends SourceLocation {
   /// `true` if the offset within the length of the source file.
   bool get isValid => offset < _sourceFile.length;
 
-  String get shortText {
-    // Use 1-based line/column info to match usual dart tool output.
-    return '${sourceUri.pathSegments.last}:[${line + 1},${column + 1}]';
-  }
+  String get shortText => '${sourceUri.pathSegments.last}:[$line,$column]';
 
-  String toString() {
-    // Use 1-based line/column info to match usual dart tool output.
-    return '${sourceUri}:[${line + 1},${column + 1}]';
-  }
+  String toString() => '${sourceUri}:[$line,$column]';
 }
 
 class OffsetSourceLocation extends AbstractSourceLocation {
@@ -253,13 +235,9 @@ class OffsetSourceLocation extends AbstractSourceLocation {
   OffsetSourceLocation(SourceFile sourceFile, this.offset, this.sourceName)
       : super(sourceFile);
 
-  String get shortText {
-    return '${super.shortText}:$sourceName';
-  }
+  String get shortText => '${super.shortText}:$sourceName';
 
-  String toString() {
-    return '${super.toString()}:$sourceName';
-  }
+  String toString() => '${super.toString()}:$sourceName';
 }
 
 /// Compute the source map name for [element].

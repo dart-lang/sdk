@@ -487,7 +487,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
     Map<int, List<SourceLocation>> uriMap =
         sourceLocationMap.putIfAbsent(sourceLocation.sourceUri, () => {});
     List<SourceLocation> lineList =
-        uriMap.putIfAbsent(sourceLocation.line, () => []);
+        uriMap.putIfAbsent(sourceLocation.line - 1, () => []);
     lineList.add(sourceLocation);
   });
   sourceLocationMap.forEach((Uri uri, Map<int, List<SourceLocation>> uriMap) {
@@ -552,10 +552,10 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
       for (int i = 0; i < locations.length; i++) {
         SourceLocation sourceLocation = locations[i];
         int index = collection.getIndex(sourceLocation);
-        int start = sourceLocation.column;
+        int start = sourceLocation.column - 1;
         int end = line.length;
         if (i + 1 < locations.length) {
-          end = locations[i + 1].column;
+          end = locations[i + 1].column - 1;
         }
         if (i == 0) {
           codeBuffer.write(lineNumber(lineIndex, width: lineNoWidth));
