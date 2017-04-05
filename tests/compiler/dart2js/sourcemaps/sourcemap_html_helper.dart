@@ -515,7 +515,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
             line++) {
           if (line >= 0) {
             dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
-            dartCodeBuffer.write(sourceFile.getLineText(line));
+            dartCodeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
           }
         }
         dartCodeBuffer.write(codeBuffer);
@@ -524,7 +524,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
             line++) {
           if (line < sourceFile.lines) {
             dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
-            dartCodeBuffer.write(sourceFile.getLineText(line));
+            dartCodeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
           }
         }
         dartCodeBuffer.write('</pre>\n');
@@ -544,10 +544,10 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
       } else {
         for (int line = lastLineIndex + 1; line < lineIndex; line++) {
           codeBuffer.write(lineNumber(line, width: lineNoWidth));
-          codeBuffer.write(sourceFile.getLineText(line));
+          codeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
         }
       }
-      String line = sourceFile.getLineText(lineIndex);
+      String line = sourceFile.kernelSource.getTextLine(lineIndex + 1);
       locations.sort((a, b) => a.offset.compareTo(b.offset));
       for (int i = 0; i < locations.length; i++) {
         SourceLocation sourceLocation = locations[i];

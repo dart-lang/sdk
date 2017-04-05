@@ -59,7 +59,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
         }
         for (CollectedMessage message in collector.warnings) {
           Expect.equals(uri, message.uri);
-          int lineNo = file.getLine(message.begin);
+          int lineNo = file.getLocation(message.begin).line - 1;
           if (expectedWarnings.containsKey(lineNo)) {
             unseenWarnings.remove(lineNo);
           } else if (!unexpectedStatus.contains(lineNo + 1)) {

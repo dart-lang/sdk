@@ -4,6 +4,7 @@
 
 library dart2js.source_information;
 
+import 'package:kernel/ast.dart' show Location;
 import '../common.dart';
 import '../elements/elements.dart'
     show
@@ -202,7 +203,7 @@ abstract class SourceLocation {
 /// A location in a source file.
 abstract class AbstractSourceLocation extends SourceLocation {
   final SourceFile _sourceFile;
-  int _line;
+  Location _location;
 
   AbstractSourceLocation(this._sourceFile) {
     assert(invariant(new SourceSpan(sourceUri, 0, 0), isValid,
@@ -218,12 +219,15 @@ abstract class AbstractSourceLocation extends SourceLocation {
 
   /// The 0-based line number of the [offset].
   int get line {
-    if (_line == null) _line = _sourceFile.getLine(offset);
-    return _line;
+    _location ??= _sourceFile.getLocation(offset);
+    return _location.line - 1;
   }
 
   /// The 0-base column number of the [offset] with its line.
-  int get column => _sourceFile.getColumn(line, offset);
+  int get column {
+    _location ??= _sourceFile.getLocation(offset);
+    return _location.column - 1;
+  }
 
   /// The name associated with this source location, if any.
   String get sourceName;

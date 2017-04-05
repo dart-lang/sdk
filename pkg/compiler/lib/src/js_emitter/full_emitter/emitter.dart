@@ -33,7 +33,7 @@ import '../../elements/elements.dart'
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
-import '../../io/line_column_provider.dart' show LineColumnCollector;
+import '../../io/location_provider.dart' show LocationCollector;
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
@@ -1524,11 +1524,11 @@ class Emitter implements js_emitter.Emitter {
   }
 
   void emitMainOutputUnit(OutputUnit mainOutputUnit, jsAst.Program program) {
-    LineColumnCollector lineColumnCollector;
+    LocationCollector locationCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (generateSourceMap) {
-      lineColumnCollector = new LineColumnCollector();
-      codeOutputListeners = <CodeOutputListener>[lineColumnCollector];
+      locationCollector = new LocationCollector();
+      codeOutputListeners = <CodeOutputListener>[locationCollector];
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
@@ -1552,7 +1552,7 @@ class Emitter implements js_emitter.Emitter {
     if (generateSourceMap) {
       SourceMapBuilder.outputSourceMap(
           mainOutput,
-          lineColumnCollector,
+          locationCollector,
           '',
           compiler.options.sourceMapUri,
           compiler.options.outputUri,
@@ -1855,10 +1855,10 @@ class Emitter implements js_emitter.Emitter {
       Hasher hasher = new Hasher();
       outputListeners.add(hasher);
 
-      LineColumnCollector lineColumnCollector;
+      LocationCollector locationCollector;
       if (generateSourceMap) {
-        lineColumnCollector = new LineColumnCollector();
-        outputListeners.add(lineColumnCollector);
+        locationCollector = new LocationCollector();
+        outputListeners.add(locationCollector);
       }
 
       String partPrefix =
@@ -1905,7 +1905,7 @@ class Emitter implements js_emitter.Emitter {
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        SourceMapBuilder.outputSourceMap(output, lineColumnCollector, partName,
+        SourceMapBuilder.outputSourceMap(output, locationCollector, partName,
             mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();

@@ -852,7 +852,8 @@ Future<CodeLinesResult> computeCodeLines(
   sourceMaps.elementSourceMapInfos
       .forEach((Element element, SourceMapInfo info) {
     CodePosition position = info.jsCodePositions[info.node];
-    elementMap[sourceFile.getLine(position.startPosition)] = element;
+    elementMap[sourceFile.getLocation(position.startPosition).line - 1] =
+        element;
   });
 
   codeLines = convertAnnotatedCodeToCodeLines(code, annotations);

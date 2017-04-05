@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Unittest for the [LineColumnCollector].
+// Unittest for the [LocationCollector].
 
-import 'package:expect/expect.dart';
 import 'package:compiler/src/io/code_output.dart';
-import 'package:compiler/src/io/line_column_provider.dart';
+import 'package:compiler/src/io/location_provider.dart';
+import 'package:expect/expect.dart';
+import 'package:kernel/ast.dart' show Location;
 
 import 'output_collector.dart';
 
 test(List events, Map<int, List<int>> expectedPositions) {
   BufferedOutputSink sink = new BufferedOutputSink();
-  LineColumnProvider lineColumnProvider = new LineColumnCollector();
-  CodeOutput output = new StreamCodeOutput(sink, [lineColumnProvider]);
+  LocationProvider locationProvider = new LocationCollector();
+  CodeOutput output = new StreamCodeOutput(sink, [locationProvider]);
   for (var event in events) {
     if (event is String) {
       output.add(event);
@@ -26,26 +27,27 @@ test(List events, Map<int, List<int>> expectedPositions) {
   expectedPositions.forEach((int offset, List<int> expectedPosition) {
     if (expectedPosition == null) {
       Expect.throws(
-          () => lineColumnProvider.getLine(offset),
+          () => locationProvider.getLocation(offset),
           (e) => true,
           'Expected out-of-bounds offset: $offset\n'
           'text:"""${sink.text}"""\n'
-          'lineColumnProvider:$lineColumnProvider');
+          'locationProvider:$locationProvider');
     } else {
-      int line = lineColumnProvider.getLine(offset);
-      int column = lineColumnProvider.getColumn(line, offset);
+      Location location = locationProvider.getLocation(offset);
+      int line = location.line - 1;
+      int column = location.column - 1;
       Expect.equals(
           expectedPosition[0],
           line,
           'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
           'text:"""${sink.text}"""\n'
-          'lineColumnProvider:$lineColumnProvider');
+          'locationProvider:$locationProvider');
       Expect.equals(
           expectedPosition[1],
           column,
           'Unexpected result: $offset -> $expectedPosition = [$line,$column]\n'
           'text:"""${sink.text}"""\n'
-          'lineColumnProvider:$lineColumnProvider');
+          'locationProvider:$locationProvider');
     }
   });
 }
