@@ -125,7 +125,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      _compiler.libraryLoader.libraries
+      (_compiler.libraryLoader.libraries as Iterable<LibraryElement>)
           .forEach(_mirrorsData.retainMetadataOfLibrary);
 
       if (!enqueuer.queueIsClosed) {
@@ -249,7 +249,7 @@ class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      _compiler.libraryLoader.libraries
+      (_compiler.libraryLoader.libraries as Iterable<LibraryElement>)
           .forEach(_mirrorsData.retainMetadataOfLibrary);
 
       for (Dependency dependency in _metadataConstants) {

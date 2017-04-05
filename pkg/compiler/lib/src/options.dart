@@ -202,6 +202,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to use kernel internally as part of compilation.
   final bool useKernel;
 
+  /// Read input from a .dill file rather than a .dart input (only to be used in
+  /// conjunction with useKernel = true).
+  final bool loadFromDill;
+
   // Whether to use kernel internally for global type inference calculations.
   // TODO(efortuna): Remove this and consolidate with useKernel.
   final bool kernelGlobalInference;
@@ -302,6 +306,7 @@ class CompilerOptions implements DiagnosticOptions {
         useContentSecurityPolicy:
             _hasOption(options, Flags.useContentSecurityPolicy),
         useKernel: _hasOption(options, Flags.useKernel),
+        loadFromDill: _hasOption(options, Flags.loadFromDill),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
         useMultiSourceInfo: _hasOption(options, Flags.useMultiSourceInfo),
@@ -362,6 +367,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool trustTypeAnnotations: false,
       bool useContentSecurityPolicy: false,
       bool useKernel: false,
+      bool loadFromDill: false,
       bool useFrequencyNamer: true,
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
@@ -434,6 +440,7 @@ class CompilerOptions implements DiagnosticOptions {
         trustTypeAnnotations: trustTypeAnnotations,
         useContentSecurityPolicy: useContentSecurityPolicy,
         useKernel: useKernel,
+        loadFromDill: loadFromDill,
         useFrequencyNamer: useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo,
@@ -484,6 +491,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.trustTypeAnnotations: false,
       this.useContentSecurityPolicy: false,
       this.useKernel: false,
+      this.loadFromDill: false,
       this.useFrequencyNamer: false,
       this.useMultiSourceInfo: false,
       this.useNewSourceInfo: false,
@@ -541,6 +549,7 @@ class CompilerOptions implements DiagnosticOptions {
       trustTypeAnnotations,
       useContentSecurityPolicy,
       useKernel,
+      loadFromDill,
       useFrequencyNamer,
       useMultiSourceInfo,
       useNewSourceInfo,
@@ -608,6 +617,7 @@ class CompilerOptions implements DiagnosticOptions {
         useContentSecurityPolicy:
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
         useKernel: useKernel ?? options.useKernel,
+        loadFromDill: loadFromDill ?? options.loadFromDill,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
         useMultiSourceInfo: useMultiSourceInfo ?? options.useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,

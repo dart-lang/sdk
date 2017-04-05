@@ -212,6 +212,7 @@ abstract class Compiler {
       serialization = new SerializationTask(this),
       patchParser = new PatchParserTask(this),
       libraryLoader = new LibraryLoaderTask(
+          options.loadFromDill,
           resolvedUriTranslator,
           options.compileOnly
               ? new _NoScriptLoader(this)
@@ -348,8 +349,8 @@ abstract class Compiler {
         }
       }
       String importChain = compactImportChain.map((CodeLocation codeLocation) {
-        return codeLocation
-            .relativize(loadedLibraries.rootLibrary.canonicalUri);
+        return codeLocation.relativize(
+            (loadedLibraries.rootLibrary as LibraryElement).canonicalUri);
       }).join(' => ');
 
       if (!importChains.contains(importChain)) {
@@ -381,7 +382,7 @@ abstract class Compiler {
   /// The method returns a [Future] allowing for the loading of additional
   /// libraries.
   LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
-    loadedLibraries.forEachLibrary((LibraryElement library) {
+    loadedLibraries.forEachLibrary((LibraryEntity library) {
       backend.setAnnotations(library);
     });
 
@@ -597,15 +598,17 @@ abstract class Compiler {
         phase = PHASE_RESOLVING;
         resolutionEnqueuer.applyImpact(mainImpact);
         if (options.resolveOnly) {
-          libraryLoader.libraries.where((LibraryElement library) {
+          libraryLoader.libraries.where((LibraryEntity library) {
             return !serialization.isDeserialized(library);
-          }).forEach((LibraryElement library) {
-            reporter.log('Enqueuing ${library.canonicalUri}');
+          }).forEach((LibraryEntity library) {
+            reporter
+                .log('Enqueuing ${(library as LibraryElement).canonicalUri}');
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (analyzeAll) {
-          libraryLoader.libraries.forEach((LibraryElement library) {
-            reporter.log('Enqueuing ${library.canonicalUri}');
+          libraryLoader.libraries.forEach((LibraryEntity library) {
+            reporter
+                .log('Enqueuing ${(library as LibraryElement).canonicalUri}');
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (options.analyzeMain) {
@@ -650,7 +653,7 @@ abstract class Compiler {
           serialization.serializeToSink(
               userOutputProvider.createOutputSink(
                   '', 'data', api.OutputType.serializationData),
-              libraryLoader.libraries.where((LibraryElement library) {
+              libraryLoader.libraries.where((LibraryEntity library) {
             return !serialization.isDeserialized(library);
           }));
         }
@@ -687,7 +690,7 @@ abstract class Compiler {
         codegenEnqueuer.applyImpact(
             backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
         if (compileAll) {
-          libraryLoader.libraries.forEach((LibraryElement library) {
+          libraryLoader.libraries.forEach((LibraryEntity library) {
             codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         }
@@ -964,10 +967,11 @@ abstract class Compiler {
       }
     }
 
-    libraryLoader.libraries.forEach((LibraryElement library) {
+    libraryLoader.libraries.forEach((LibraryEntity entity) {
       // TODO(ahe): Implement better heuristics to discover entry points of
       // packages and use that to discover unused implementation details in
       // packages.
+      LibraryElement library = entity;
       if (library.isPlatformLibrary || library.isPackageLibrary) return;
       library.compilationUnits.forEach((unit) {
         unit.forEachLocalMember(checkLive);
