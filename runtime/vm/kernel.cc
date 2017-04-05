@@ -80,7 +80,9 @@ bool CanonicalName::IsMember() {
 
 // Note the two occurrences of the parameter 'literal'.
 #define COMPARE_NAME(canonical_name, literal)                                  \
-  memcmp((canonical_name)->name()->buffer(), (literal), strlen(literal)) == 0
+  ((canonical_name)->name()->size() == strlen(literal) &&                      \
+   memcmp((canonical_name)->name()->buffer(), (literal), strlen(literal)) ==   \
+       0)
 
 bool CanonicalName::IsField() {
   // Fields with private names have the import URI of the library where they are
