@@ -5053,6 +5053,18 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
   } else {
     instructions += PushArgument();
 
+    // See if simple instanceOf is applicable.
+    if (dart::FlowGraphBuilder::SimpleInstanceOfType(type)) {
+      instructions += Constant(type);
+      instructions += PushArgument();  // Type.
+      instructions += InstanceCall(
+          node->position(),
+          dart::Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
+          Token::kIS, 2, 2);  // 2 checked arguments.
+      fragment_ = instructions;
+      return;
+    }
+
     if (!type.IsInstantiated()) {
       instructions += LoadInstantiatorTypeArguments();
     } else {

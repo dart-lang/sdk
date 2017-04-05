@@ -1487,23 +1487,6 @@ Value* EffectGraphVisitor::BuildAssignableValue(TokenPosition token_pos,
 }
 
 
-static bool simpleInstanceOfType(const AbstractType& type) {
-  // Bail if the type is still uninstantiated at compile time.
-  if (!type.IsInstantiated()) return false;
-
-  // Bail if the type is a function or a Dart Function type.
-  if (type.IsFunctionType() || type.IsDartFunctionType()) return false;
-
-  ASSERT(type.HasResolvedTypeClass());
-  const Class& type_class = Class::Handle(type.type_class());
-  // Bail if the type has any type parameters.
-  if (type_class.IsGeneric()) return false;
-
-  // Finally a simple class for instance of checking.
-  return true;
-}
-
-
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
@@ -1527,7 +1510,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   // We now know type is a real class (!num, !int, !smi, !string)
   // and the type check could NOT be removed at compile time.
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
-  if (simpleInstanceOfType(type)) {
+  if (FlowGraphBuilder::SimpleInstanceOfType(type)) {
     ZoneGrowableArray<PushArgumentInstr*>* arguments =
         new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
     arguments->Add(push_left);
@@ -4359,6 +4342,23 @@ void FlowGraphBuilder::PruneUnreachable() {
 
 void FlowGraphBuilder::Bailout(const char* reason) const {
   parsed_function_.Bailout("FlowGraphBuilder", reason);
+}
+
+
+bool FlowGraphBuilder::SimpleInstanceOfType(const AbstractType& type) {
+  // Bail if the type is still uninstantiated at compile time.
+  if (!type.IsInstantiated()) return false;
+
+  // Bail if the type is a function or a Dart Function type.
+  if (type.IsFunctionType() || type.IsDartFunctionType()) return false;
+
+  ASSERT(type.HasResolvedTypeClass());
+  const Class& type_class = Class::Handle(type.type_class());
+  // Bail if the type has any type parameters.
+  if (type_class.IsGeneric()) return false;
+
+  // Finally a simple class for instance of checking.
+  return true;
 }
 
 }  // namespace dart

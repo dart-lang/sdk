@@ -213,7 +213,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 3) {
 
 DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
   // This native is only called when the right hand side passes
-  // simpleInstanceOfType and it is a non-negative test.
+  // SimpleInstanceOfType and it is a non-negative test.
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const AbstractType& type =

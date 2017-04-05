@@ -178,6 +178,8 @@ class FlowGraphBuilder : public ValueObject {
     return await_token_positions_;
   }
 
+  static bool SimpleInstanceOfType(const AbstractType& type);
+
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
   friend class Intrinsifier;
