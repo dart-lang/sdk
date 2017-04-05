@@ -969,8 +969,10 @@ EMIT_NATIVE_CODE(NativeCall,
   __ PushConstant(argc_tag_kidx);
   if (is_bootstrap_native()) {
     __ NativeBootstrapCall();
+  } else if (is_auto_scope()) {
+    __ NativeAutoScopeCall();
   } else {
-    __ NativeCall();
+    __ NativeNoScopeCall();
   }
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,

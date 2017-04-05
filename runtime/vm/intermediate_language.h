@@ -3398,6 +3398,7 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
         function_(function),
         native_c_function_(NULL),
         is_bootstrap_native_(false),
+        is_auto_scope_(true),
         link_lazily_(link_lazily),
         token_pos_(position) {}
 
@@ -3407,6 +3408,7 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
   const Function& function() const { return *function_; }
   NativeFunction native_c_function() const { return native_c_function_; }
   bool is_bootstrap_native() const { return is_bootstrap_native_; }
+  bool is_auto_scope() const { return is_auto_scope_; }
   bool link_lazily() const { return link_lazily_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -3424,11 +3426,13 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
   }
 
   void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
+  void set_is_auto_scope(bool value) { is_auto_scope_ = value; }
 
   const String* native_name_;
   const Function* function_;
   NativeFunction native_c_function_;
   bool is_bootstrap_native_;
+  bool is_auto_scope_;
   bool link_lazily_;
   const TokenPosition token_pos_;
 

@@ -812,15 +812,19 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R10, Immediate(argc_tag));
   const StubEntry* stub_entry;
   if (link_lazily()) {
-    stub_entry = StubCode::CallBootstrapCFunction_entry();
+    stub_entry = StubCode::CallBootstrapNative_entry();
     ExternalLabel label(NativeEntry::LinkNativeCallEntry());
     __ LoadNativeEntry(RBX, &label, kPatchable);
     compiler->GeneratePatchableCall(token_pos(), *stub_entry,
                                     RawPcDescriptors::kOther, locs());
   } else {
-    stub_entry = (is_bootstrap_native())
-                     ? StubCode::CallBootstrapCFunction_entry()
-                     : StubCode::CallNativeCFunction_entry();
+    if (is_bootstrap_native()) {
+      stub_entry = StubCode::CallBootstrapNative_entry();
+    } else if (is_auto_scope()) {
+      stub_entry = StubCode::CallAutoScopeNative_entry();
+    } else {
+      stub_entry = StubCode::CallNoScopeNative_entry();
+    }
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
     __ LoadNativeEntry(RBX, &label, kNotPatchable);
     compiler->GenerateCall(token_pos(), *stub_entry, RawPcDescriptors::kOther,

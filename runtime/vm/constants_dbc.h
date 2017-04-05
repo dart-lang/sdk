@@ -159,7 +159,7 @@ namespace dart {
 //    Lookup and invoke method with N checked arguments using ICData in PP[D]
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
 //
-//  - NativeCall, NativeBootstrapCall
+//  - NativeBootstrapCall, NativeNoScopeCall, NativeAutoScopeCall
 //
 //    Invoke native function SP[-1] with argc_tag SP[0].
 //
@@ -696,8 +696,9 @@ namespace dart {
   V(InstanceCall2Opt,                    A_D, num, num, ___) \
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
-  V(NativeCall,                            0, ___, ___, ___) \
   V(NativeBootstrapCall,                   0, ___, ___, ___) \
+  V(NativeNoScopeCall,                     0, ___, ___, ___) \
+  V(NativeAutoScopeCall,                   0, ___, ___, ___) \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
   V(StringToCharCode,                    A_X, reg, xeg, ___) \
   V(AddTOS,                                0, ___, ___, ___) \

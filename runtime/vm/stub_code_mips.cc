@@ -134,7 +134,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   T5 : address of the native function to call.
 //   A2 : address of first argument in argument array.
 //   A1 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
+                                              Address wrapper) {
   const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
@@ -196,7 +197,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ ReserveAlignedFrameSpace(2 * kWordSize);  // Just passing A0, A1.
 
   // Call native wrapper function or redirection via simulator.
-  __ lw(T9, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
+  __ lw(T9, wrapper);
   __ jalr(T9);
   __ Comment("CallNativeCFunctionStub return");
 
@@ -211,13 +212,27 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::no_scope_native_wrapper_entry_point_offset()));
+}
+
+
+void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::auto_scope_native_wrapper_entry_point_offset()));
+}
+
+
 // Input parameters:
 //   RA : return address.
 //   SP : address of return value.
 //   T5 : address of the native function to call.
 //   A2 : address of first argument in argument array.
 //   A1 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();

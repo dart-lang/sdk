@@ -114,10 +114,6 @@ class NativeArguments {
     return *arg_ptr;
   }
 
-  bool IsNativeAutoSetupScope() const {
-    return AutoSetupScopeBits::decode(argc_tag_);
-  }
-
   int NativeArgCount() const {
     int function_bits = FunctionBits::decode(argc_tag_);
     return ArgCount() - NumHiddenArgs(function_bits);
@@ -163,9 +159,6 @@ class NativeArguments {
   static intptr_t retval_offset() {
     return OFFSET_OF(NativeArguments, retval_);
   }
-  static intptr_t AutoSetupScopeMask() {
-    return AutoSetupScopeBits::mask_in_place();
-  }
 
   static intptr_t ParameterCountForResolution(const Function& function) {
     ASSERT(function.is_native());
@@ -193,9 +186,6 @@ class NativeArguments {
       function_bits |= kClosureFunctionBit;
     }
     tag = FunctionBits::update(function_bits, tag);
-    if (function.IsNativeAutoSetupScope()) {
-      tag = AutoSetupScopeBits::update(1, tag);
-    }
     return tag;
   }
 
@@ -209,13 +199,10 @@ class NativeArguments {
     kArgcSize = 24,
     kFunctionBit = 24,
     kFunctionSize = 2,
-    kAutoSetupScopeBit = 26,
   };
   class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
   class FunctionBits
       : public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
-  class AutoSetupScopeBits
-      : public BitField<intptr_t, int, kAutoSetupScopeBit, 1> {};
   friend class Api;
   friend class BootstrapNatives;
   friend class Simulator;

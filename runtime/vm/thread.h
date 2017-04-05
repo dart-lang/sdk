@@ -124,8 +124,10 @@ class Zone;
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
-  V(uword, native_call_wrapper_entry_point_,                                   \
-    NativeEntry::NativeCallWrapperEntry(), 0)                                  \
+  V(uword, no_scope_native_wrapper_entry_point_,                               \
+    NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
+  V(uword, auto_scope_native_wrapper_entry_point_,                             \
+    NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
   V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
     NULL)                                                                      \
   V(uword, double_negate_address_,                                             \

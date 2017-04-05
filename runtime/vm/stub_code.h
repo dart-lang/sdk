@@ -30,8 +30,9 @@ class SnapshotWriter;
   V(PrintStopMessage)                                                          \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
-  V(CallBootstrapCFunction)                                                    \
-  V(CallNativeCFunction)                                                       \
+  V(CallBootstrapNative)                                                       \
+  V(CallNoScopeNative)                                                         \
+  V(CallAutoScopeNative)                                                       \
   V(FixCallersTarget)                                                          \
   V(CallStaticFunction)                                                        \
   V(OptimizeFunction)                                                          \

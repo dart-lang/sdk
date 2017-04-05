@@ -3974,9 +3974,19 @@ intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
 
 
 void NativeCallInstr::SetupNative() {
+  if (link_lazily()) {
+    // Resolution will happen during NativeEntry::LinkNativeCall.
+    return;
+  }
+
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
+
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
+  set_is_bootstrap_native(is_bootstrap_native);
+
   const int num_params =
       NativeArguments::ParameterCountForResolution(function());
   bool auto_setup_scope = true;
@@ -3988,11 +3998,8 @@ void NativeCallInstr::SetupNative() {
                      "native function '%s' (%" Pd " arguments) cannot be found",
                      native_name().ToCString(), function().NumParameters());
   }
+  set_is_auto_scope(auto_setup_scope);
   set_native_c_function(native_function);
-  function().SetIsNativeAutoSetupScope(auto_setup_scope);
-  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
-  set_is_bootstrap_native(is_bootstrap_native);
 }
 
 #undef __

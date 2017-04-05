@@ -1811,12 +1811,14 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
         switch (entry_type) {
           case ObjectPool::kTaggedObject: {
 #if !defined(TARGET_ARCH_DBC)
-            if (entry.raw_obj_ ==
-                StubCode::CallNativeCFunction_entry()->code()) {
+            if ((entry.raw_obj_ ==
+                 StubCode::CallNoScopeNative_entry()->code()) ||
+                (entry.raw_obj_ ==
+                 StubCode::CallAutoScopeNative_entry()->code())) {
               // Natives can run while precompiling, becoming linked and
               // switching their stub. Reset to the initial stub used for
               // lazy-linking.
-              s->WriteRef(StubCode::CallBootstrapCFunction_entry()->code());
+              s->WriteRef(StubCode::CallBootstrapNative_entry()->code());
               break;
             }
 #endif

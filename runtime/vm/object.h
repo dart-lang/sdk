@@ -2620,9 +2620,7 @@ class Function : public Object {
   }
 
   bool IsOptimizable() const;
-  bool IsNativeAutoSetupScope() const;
   void SetIsOptimizable(bool value) const;
-  void SetIsNativeAutoSetupScope(bool value) const;
 
   bool CanBeInlined() const;
 

@@ -126,7 +126,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   RAX : address of first argument in argument array.
 //   RBX : address of the native function to call.
 //   R10 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
+                                              Address wrapper_address) {
   const intptr_t native_args_struct_offset = 0;
   const intptr_t thread_offset =
       NativeArguments::thread_offset() + native_args_struct_offset;
@@ -178,7 +179,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Pass pointer to function entrypoint.
   __ movq(CallingConventions::kArg2Reg, RBX);
 
-  __ movq(RAX, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
+  __ movq(RAX, wrapper_address);
   __ CallCFunction(RAX);
 
   // Mark that the thread is executing Dart code.
@@ -192,13 +193,27 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::no_scope_native_wrapper_entry_point_offset()));
+}
+
+
+void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::auto_scope_native_wrapper_entry_point_offset()));
+}
+
+
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of return value.
 //   RAX : address of first argument in argument array.
 //   RBX : address of the native function to call.
 //   R10 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
   const intptr_t thread_offset =
       NativeArguments::thread_offset() + native_args_struct_offset;

@@ -120,7 +120,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   EAX : address of first argument in argument array.
 //   ECX : address of the native function to call.
 //   EDX : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
+                                              ExternalLabel* wrapper) {
   const intptr_t native_args_struct_offset =
       NativeEntry::kNumCallWrapperArguments * kWordSize;
   const intptr_t thread_offset =
@@ -172,8 +173,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
 
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
-  ExternalLabel label(NativeEntry::NativeCallWrapperEntry());
-  __ call(&label);
+  __ call(wrapper);
 
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
@@ -185,13 +185,25 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+  ExternalLabel wrapper(NativeEntry::NoScopeNativeCallWrapperEntry());
+  GenerateCallNativeWithWrapperStub(assembler, &wrapper);
+}
+
+
+void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+  ExternalLabel wrapper(NativeEntry::AutoScopeNativeCallWrapperEntry());
+  GenerateCallNativeWithWrapperStub(assembler, &wrapper);
+}
+
+
 // Input parameters:
 //   ESP : points to return address.
 //   ESP + 4 : address of return value.
 //   EAX : address of first argument in argument array.
 //   ECX : address of the native function to call.
 //   EDX : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = kWordSize;
   const intptr_t thread_offset =
       NativeArguments::thread_offset() + native_args_struct_offset;

@@ -818,21 +818,26 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const StubEntry* stub_entry;
   if (link_lazily()) {
-    stub_entry = StubCode::CallBootstrapCFunction_entry();
+    stub_entry = StubCode::CallBootstrapNative_entry();
     entry = NativeEntry::LinkNativeCallEntry();
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
     if (is_bootstrap_native()) {
-      stub_entry = StubCode::CallBootstrapCFunction_entry();
+      stub_entry = StubCode::CallBootstrapNative_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
           entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
+    } else if (is_auto_scope()) {
+      // In the case of non bootstrap native methods the CallNativeCFunction
+      // stub generates the redirection address when running under the simulator
+      // and hence we do not change 'entry' here.
+      stub_entry = StubCode::CallAutoScopeNative_entry();
     } else {
       // In the case of non bootstrap native methods the CallNativeCFunction
       // stub generates the redirection address when running under the simulator
       // and hence we do not change 'entry' here.
-      stub_entry = StubCode::CallNativeCFunction_entry();
+      stub_entry = StubCode::CallNoScopeNative_entry();
     }
   }
   __ LoadImmediate(R1, argc_tag);

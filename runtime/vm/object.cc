@@ -6090,11 +6090,6 @@ bool Function::IsOptimizable() const {
 }
 
 
-bool Function::IsNativeAutoSetupScope() const {
-  return is_native() ? is_optimizable() : false;
-}
-
-
 void Function::SetIsOptimizable(bool value) const {
   ASSERT(!is_native());
   set_is_optimizable(value);
@@ -6102,12 +6097,6 @@ void Function::SetIsOptimizable(bool value) const {
     set_is_inlinable(false);
     set_usage_counter(INT_MIN);
   }
-}
-
-
-void Function::SetIsNativeAutoSetupScope(bool value) const {
-  ASSERT(is_native());
-  set_is_optimizable(value);
 }
 
 

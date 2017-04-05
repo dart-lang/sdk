@@ -848,9 +848,13 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // There is no lazy-linking support on ia32.
   ASSERT(!link_lazily());
-  stub_entry = (is_bootstrap_native())
-                   ? StubCode::CallBootstrapCFunction_entry()
-                   : StubCode::CallNativeCFunction_entry();
+  if (is_bootstrap_native()) {
+    stub_entry = StubCode::CallBootstrapNative_entry();
+  } else if (is_auto_scope()) {
+    stub_entry = StubCode::CallAutoScopeNative_entry();
+  } else {
+    stub_entry = StubCode::CallNoScopeNative_entry();
+  }
   const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
   __ movl(ECX, Immediate(label.address()));
   compiler->GenerateCall(token_pos(), *stub_entry, RawPcDescriptors::kOther,
