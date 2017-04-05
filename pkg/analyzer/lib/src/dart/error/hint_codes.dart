@@ -359,7 +359,7 @@ class HintCode extends ErrorCode {
   static const HintCode MUST_BE_IMMUTABLE = const HintCode(
       'MUST_BE_IMMUTABLE',
       "This class inherits from a class marked as @immutable, "
-      "and therefore should be immutable (all fields must be final).");
+      "and therefore should be immutable (all instance fields must be final).");
 
   /**
    * Generate a hint for methods that override methods annotated `@mustCallSuper`

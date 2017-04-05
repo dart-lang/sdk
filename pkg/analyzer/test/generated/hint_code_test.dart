@@ -2007,6 +2007,19 @@ class A {
     verify([source]);
   }
 
+  test_mustBeImmutable_instance() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  static int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
   test_mustBeImmutable_extends() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
