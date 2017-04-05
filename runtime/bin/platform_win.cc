@@ -212,7 +212,7 @@ bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 #if defined(DART_IO_DISABLED) || defined(PLATFORM_DISABLE_SOCKET)
   return false;
 #else
-  if (!Socket::Initialize()) {
+  if (!SocketBase::Initialize()) {
     return false;
   }
   return gethostname(buffer, buffer_length) == 0;
