@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart';
 
 import '../builder/ast_factory.dart';
-import '../builder/shadow_ast.dart';
 import 'kernel_shadow_ast.dart';
 
 /// Concrete implementation of [builder.AstFactory] for building a kernel AST.
 class KernelAstFactory implements AstFactory {
   @override
-  KernelBlock block(List<ShadowStatement> statements, int charOffset) {
+  KernelBlock block(List<Statement> statements, int charOffset) {
     return new KernelBlock(statements)..fileOffset = charOffset;
   }
 
@@ -21,10 +20,11 @@ class KernelAstFactory implements AstFactory {
   }
 
   @override
-  KernelListLiteral listLiteral(List<ShadowExpression> expressions,
+  KernelListLiteral listLiteral(List<Expression> expressions,
       DartType typeArgument, bool isConst, int charOffset) {
     return new KernelListLiteral(expressions,
-        typeArgument: typeArgument, isConst: isConst)..fileOffset = charOffset;
+        typeArgument: typeArgument, isConst: isConst)
+      ..fileOffset = charOffset;
   }
 
   @override
@@ -33,15 +33,14 @@ class KernelAstFactory implements AstFactory {
   }
 
   @override
-  KernelReturnStatement returnStatement(
-      ShadowExpression expression, int charOffset) {
+  KernelReturnStatement returnStatement(Expression expression, int charOffset) {
     return new KernelReturnStatement(expression)..fileOffset = charOffset;
   }
 
   @override
   KernelVariableDeclaration variableDeclaration(String name,
       {DartType type,
-      ShadowExpression initializer,
+      Expression initializer,
       int charOffset,
       bool isFinal: false,
       bool isConst: false}) {
@@ -49,6 +48,7 @@ class KernelAstFactory implements AstFactory {
         type: type,
         initializer: initializer,
         isFinal: isFinal,
-        isConst: isConst)..fileEqualsOffset = charOffset;
+        isConst: isConst)
+      ..fileEqualsOffset = charOffset;
   }
 }

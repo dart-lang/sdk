@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show DartType, TreeNode;
-
-import 'shadow_ast.dart';
+import 'package:kernel/ast.dart';
 
 /// An abstract class containing factory methods that create AST objects.
 ///
@@ -36,23 +34,23 @@ import 'shadow_ast.dart';
 /// exact tokens that were used to specify a type.
 abstract class AstFactory {
   /// Creates a statement block.
-  ShadowBlock block(List<ShadowStatement> statements, int charOffset);
+  Block block(List<Statement> statements, int charOffset);
 
   /// Creates an integer literal.
-  ShadowIntLiteral intLiteral(value, int charOffset);
+  IntLiteral intLiteral(value, int charOffset);
 
   /// Creates a list literal expression.
   ///
   /// If the list literal did not have an explicitly declared type argument,
   /// [typeArgument] should be `null`.
-  ShadowListLiteral listLiteral(List<ShadowExpression> expressions,
-      DartType typeArgument, bool isConst, int charOffset);
+  ListLiteral listLiteral(List<Expression> expressions, DartType typeArgument,
+      bool isConst, int charOffset);
 
   /// Creates a null literal expression.
-  ShadowNullLiteral nullLiteral(int charOffset);
+  NullLiteral nullLiteral(int charOffset);
 
   /// Creates a return statement.
-  ShadowStatement returnStatement(ShadowExpression expression, int charOffset);
+  Statement returnStatement(Expression expression, int charOffset);
 
   /// Creates a variable declaration statement declaring one variable.
   ///
@@ -63,9 +61,9 @@ abstract class AstFactory {
   ///
   /// If the variable declaration did not have an explicitly declared type,
   /// [type] should be `null`.
-  ShadowVariableDeclaration variableDeclaration(String name,
+  VariableDeclaration variableDeclaration(String name,
       {DartType type,
-      ShadowExpression initializer,
+      Expression initializer,
       int charOffset: TreeNode.noOffset,
       bool isFinal: false,
       bool isConst: false});
