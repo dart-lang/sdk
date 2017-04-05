@@ -212,7 +212,6 @@ abstract class Compiler {
       serialization = new SerializationTask(this),
       patchParser = new PatchParserTask(this),
       libraryLoader = new LibraryLoaderTask(
-          options.loadFromDill,
           resolvedUriTranslator,
           options.compileOnly
               ? new _NoScriptLoader(this)
@@ -349,8 +348,8 @@ abstract class Compiler {
         }
       }
       String importChain = compactImportChain.map((CodeLocation codeLocation) {
-        return codeLocation.relativize(
-            (loadedLibraries.rootLibrary as LibraryElement).canonicalUri);
+        return codeLocation
+            .relativize(loadedLibraries.rootLibrary.canonicalUri);
       }).join(' => ');
 
       if (!importChains.contains(importChain)) {
@@ -382,7 +381,7 @@ abstract class Compiler {
   /// The method returns a [Future] allowing for the loading of additional
   /// libraries.
   LoadedLibraries processLoadedLibraries(LoadedLibraries loadedLibraries) {
-    loadedLibraries.forEachLibrary((LibraryEntity library) {
+    loadedLibraries.forEachLibrary((LibraryElement library) {
       backend.setAnnotations(library);
     });
 

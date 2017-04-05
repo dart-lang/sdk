@@ -8,7 +8,6 @@ import 'package:async_helper/async_helper.dart';
 
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
-import 'package:compiler/src/elements/elements.dart' show LibraryElement;
 import 'package:compiler/src/filenames.dart';
 
 import 'analyze_helper.dart';
@@ -81,7 +80,6 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
     }
   }
 
-  (compiler.libraryLoader.lookupLibrary(helperUri) as LibraryElement)
-      .forEachLocalMember(checkLive);
+  compiler.libraryLoader.lookupLibrary(helperUri).forEachLocalMember(checkLive);
   return handler.checkResults();
 }

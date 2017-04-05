@@ -30,9 +30,6 @@ class Flags {
   // Temporary flag to also integrate Kernel into global type inference.
   // TODO(efortuna): Remove when fully implemented and simply use "useKernel".
   static const String kernelGlobalInference = '--kernel-global-inference';
-  // Read input from a .dill file rather than a .dart input (use only in
-  // conjunction with --use-kernel=true).
-  static const String loadFromDill = '--read-dill';
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';

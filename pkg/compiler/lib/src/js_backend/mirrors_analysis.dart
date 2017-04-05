@@ -120,8 +120,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      (_compiler.libraryLoader.libraries as Iterable<LibraryElement>)
-          .forEach(_mirrorsData.retainMetadataOf);
+      _compiler.libraryLoader.libraries.forEach(_mirrorsData.retainMetadataOf);
 
       if (!enqueuer.queueIsClosed) {
         /// Register the constant value of [metadata] as live in resolution.
@@ -244,8 +243,7 @@ class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      (_compiler.libraryLoader.libraries as Iterable<LibraryElement>)
-          .forEach(_mirrorsData.retainMetadataOf);
+      _compiler.libraryLoader.libraries.forEach(_mirrorsData.retainMetadataOf);
 
       for (Dependency dependency in _metadataConstants) {
         _impactBuilder

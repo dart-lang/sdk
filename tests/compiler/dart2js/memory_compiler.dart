@@ -80,11 +80,7 @@ Future<CompilationResult> runCompiler(
     PackagesDiscoveryProvider packagesDiscoveryProvider,
     void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
-    if (options.contains('--read-dill')) {
-      entryPoint = Uri.parse('memory:main.dill');
-    } else {
-      entryPoint = Uri.parse('memory:main.dart');
-    }
+    entryPoint = Uri.parse('memory:main.dart');
   }
   CompilerImpl compiler = compilerFor(
       entryPoint: entryPoint,

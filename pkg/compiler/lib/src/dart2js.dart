@@ -328,7 +328,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // implemented.
     new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernel, passThrough),
-    new OptionHandler(Flags.loadFromDill, passThrough),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
