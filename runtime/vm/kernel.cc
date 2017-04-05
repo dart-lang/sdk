@@ -895,6 +895,71 @@ void Let::VisitChildren(Visitor* visitor) {
 }
 
 
+VectorCreation::~VectorCreation() {}
+
+
+void VectorCreation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
+  visitor->VisitVectorCreation(this);
+}
+
+
+void VectorCreation::VisitChildren(Visitor* visitor) {}
+
+
+VectorGet::~VectorGet() {}
+
+
+void VectorGet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
+  visitor->VisitVectorGet(this);
+}
+
+
+void VectorGet::VisitChildren(Visitor* visitor) {
+  vector_expression()->AcceptExpressionVisitor(visitor);
+}
+
+
+VectorSet::~VectorSet() {}
+
+
+void VectorSet::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
+  visitor->VisitVectorSet(this);
+}
+
+
+void VectorSet::VisitChildren(Visitor* visitor) {
+  vector_expression()->AcceptExpressionVisitor(visitor);
+  value()->AcceptExpressionVisitor(visitor);
+}
+
+
+VectorCopy::~VectorCopy() {}
+
+
+void VectorCopy::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
+  visitor->VisitVectorCopy(this);
+}
+
+
+void VectorCopy::VisitChildren(Visitor* visitor) {
+  vector_expression()->AcceptExpressionVisitor(visitor);
+}
+
+
+ClosureCreation::~ClosureCreation() {}
+
+
+void ClosureCreation::AcceptExpressionVisitor(ExpressionVisitor* visitor) {
+  visitor->VisitClosureCreation(this);
+}
+
+
+void ClosureCreation::VisitChildren(Visitor* visitor) {
+  context_vector()->AcceptExpressionVisitor(visitor);
+  function_type()->AcceptDartTypeVisitor(visitor);
+}
+
+
 Statement::~Statement() {}
 
 
@@ -1293,6 +1358,17 @@ void TypeParameterType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
 
 
 void TypeParameterType::VisitChildren(Visitor* visitor) {}
+
+
+VectorType::~VectorType() {}
+
+
+void VectorType::AcceptDartTypeVisitor(DartTypeVisitor* visitor) {
+  visitor->VisitVectorType(this);
+}
+
+
+void VectorType::VisitChildren(Visitor* visitor) {}
 
 
 TypeParameter::~TypeParameter() {}

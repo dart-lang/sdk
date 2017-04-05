@@ -105,6 +105,7 @@ enum Tag {
   kFunctionDeclaration = 79,
   kAsyncForInStatement = 80,
 
+  kVectorType = 88,
   kInvalidType = 90,
   kDynamicType = 91,
   kVoidType = 92,
@@ -113,6 +114,13 @@ enum Tag {
   kTypeParameterType = 95,
   kSimpleInterfaceType = 96,
   kSimpleFunctionType = 97,
+
+  kVectorCreation = 102,
+  kVectorGet = 103,
+  kVectorSet = 104,
+  kVectorCopy = 105,
+
+  kClosureCreation = 106,
 
   kSpecializedTagHighBit = 0x80,  // 10000000
   kSpecializedTagMask = 0xF8,     // 11111000

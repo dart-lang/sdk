@@ -21,7 +21,8 @@
   M(VoidType)                                                                  \
   M(InterfaceType)                                                             \
   M(FunctionType)                                                              \
-  M(TypeParameterType)
+  M(TypeParameterType)                                                         \
+  M(VectorType)
 
 #define KERNEL_TREE_NODES_DO(M)                                                \
   M(Library)                                                                   \
@@ -79,6 +80,11 @@
   M(AwaitExpression)                                                           \
   M(FunctionExpression)                                                        \
   M(Let)                                                                       \
+  M(VectorCreation)                                                            \
+  M(VectorGet)                                                                 \
+  M(VectorSet)                                                                 \
+  M(VectorCopy)                                                                \
+  M(ClosureCreation)                                                           \
   M(Statement)                                                                 \
   M(InvalidStatement)                                                          \
   M(ExpressionStatement)                                                       \
@@ -1935,6 +1941,126 @@ class Let : public Expression {
 };
 
 
+class VectorCreation : public Expression {
+ public:
+  static VectorCreation* ReadFrom(Reader* reader);
+
+  virtual ~VectorCreation();
+
+  DEFINE_CASTING_OPERATIONS(VectorCreation);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  intptr_t value() { return value_; }
+
+ private:
+  VectorCreation() {}
+
+  intptr_t value_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorCreation);
+};
+
+
+class VectorGet : public Expression {
+ public:
+  static VectorGet* ReadFrom(Reader* reader);
+
+  virtual ~VectorGet();
+
+  DEFINE_CASTING_OPERATIONS(VectorGet);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+  intptr_t index() { return index_; }
+
+ private:
+  VectorGet() {}
+
+  Child<Expression> vector_expression_;
+  intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorGet);
+};
+
+
+class VectorSet : public Expression {
+ public:
+  static VectorSet* ReadFrom(Reader* reader);
+
+  virtual ~VectorSet();
+
+  DEFINE_CASTING_OPERATIONS(VectorSet);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+  intptr_t index() { return index_; }
+  Expression* value() { return value_; }
+
+ private:
+  VectorSet() {}
+
+  Child<Expression> vector_expression_;
+  intptr_t index_;
+  Child<Expression> value_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorSet);
+};
+
+
+class VectorCopy : public Expression {
+ public:
+  static VectorCopy* ReadFrom(Reader* reader);
+
+  virtual ~VectorCopy();
+
+  DEFINE_CASTING_OPERATIONS(VectorCopy);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+
+ private:
+  VectorCopy() {}
+
+  Child<Expression> vector_expression_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorCopy);
+};
+
+
+class ClosureCreation : public Expression {
+ public:
+  static ClosureCreation* ReadFrom(Reader* reader);
+
+  virtual ~ClosureCreation();
+
+  DEFINE_CASTING_OPERATIONS(ClosureCreation);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  CanonicalName* top_level_function() { return top_level_function_reference_; }
+  Expression* context_vector() { return context_vector_; }
+  FunctionType* function_type() { return function_type_; }
+
+ private:
+  ClosureCreation() {}
+
+  Ref<CanonicalName> top_level_function_reference_;  // Procedure.
+  Child<Expression> context_vector_;
+  Child<FunctionType> function_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClosureCreation);
+};
+
+
 class Statement : public TreeNode {
  public:
   static Statement* ReadFrom(Reader* reader);
@@ -2710,6 +2836,24 @@ class TypeParameterType : public DartType {
 };
 
 
+class VectorType : public DartType {
+ public:
+  static VectorType* ReadFrom(Reader* reader);
+
+  virtual ~VectorType();
+
+  DEFINE_CASTING_OPERATIONS(VectorType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+ private:
+  VectorType() {}
+
+  DISALLOW_COPY_AND_ASSIGN(VectorType);
+};
+
+
 class TypeParameter : public TreeNode {
  public:
   TypeParameter* ReadFrom(Reader* reader);
@@ -2883,6 +3027,17 @@ class ExpressionVisitor {
     VisitDefaultBasicLiteral(node);
   }
   virtual void VisitLet(Let* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorCreation(VectorCreation* node) {
+    VisitDefaultExpression(node);
+  }
+  virtual void VisitVectorGet(VectorGet* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorSet(VectorSet* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorCopy(VectorCopy* node) {
+    VisitDefaultExpression(node);
+  }
+  virtual void VisitClosureCreation(ClosureCreation* node) {
+    VisitDefaultExpression(node);
+  }
 };
 
 
@@ -3015,6 +3170,7 @@ class DartTypeVisitor {
   virtual void VisitTypeParameterType(TypeParameterType* node) {
     VisitDefaultDartType(node);
   }
+  virtual void VisitVectorType(VectorType* node) { VisitDefaultDartType(node); }
 };
 
 
@@ -3158,7 +3314,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
 
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length);
-
 
 
 }  // namespace dart

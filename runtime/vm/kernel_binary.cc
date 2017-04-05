@@ -503,6 +503,16 @@ Expression* Expression::ReadFrom(Reader* reader) {
       return FunctionExpression::ReadFrom(reader);
     case kLet:
       return Let::ReadFrom(reader);
+    case kVectorCreation:
+      return VectorCreation::ReadFrom(reader);
+    case kVectorGet:
+      return VectorGet::ReadFrom(reader);
+    case kVectorSet:
+      return VectorSet::ReadFrom(reader);
+    case kVectorCopy:
+      return VectorCopy::ReadFrom(reader);
+    case kClosureCreation:
+      return ClosureCreation::ReadFrom(reader);
     case kBigIntLiteral:
       return BigintLiteral::ReadFrom(reader);
     case kStringLiteral:
@@ -957,6 +967,71 @@ Let* Let::ReadFrom(Reader* reader) {
 }
 
 
+VectorCreation* VectorCreation::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+
+  VectorCreation* vector_creation = new VectorCreation();
+  vector_creation->kernel_offset_ =
+      reader->offset() - 1;  // -1 to include tag byte.
+  vector_creation->value_ = reader->ReadUInt();
+
+  return vector_creation;
+}
+
+
+VectorGet* VectorGet::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+
+  VectorGet* vector_get = new VectorGet();
+  vector_get->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
+  vector_get->vector_expression_ = Expression::ReadFrom(reader);
+  vector_get->index_ = reader->ReadUInt();
+
+  return vector_get;
+}
+
+
+VectorSet* VectorSet::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+
+  VectorSet* vector_set = new VectorSet();
+  vector_set->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
+  vector_set->vector_expression_ = Expression::ReadFrom(reader);
+  vector_set->index_ = reader->ReadUInt();
+  vector_set->value_ = Expression::ReadFrom(reader);
+
+  return vector_set;
+}
+
+
+VectorCopy* VectorCopy::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+
+  VectorCopy* vector_copy = new VectorCopy();
+  vector_copy->kernel_offset_ =
+      reader->offset() - 1;  // -1 to include tag byte.
+  vector_copy->vector_expression_ = Expression::ReadFrom(reader);
+
+  return vector_copy;
+}
+
+
+ClosureCreation* ClosureCreation::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+
+  ClosureCreation* closure_creation = new ClosureCreation();
+  closure_creation->kernel_offset_ =
+      reader->offset() - 1;  // to include tag byte.
+  closure_creation->top_level_function_reference_ =
+      Reference::ReadMemberFrom(reader);
+  closure_creation->context_vector_ = Expression::ReadFrom(reader);
+  closure_creation->function_type_ =
+      FunctionType::Cast(DartType::ReadFrom(reader));
+
+  return closure_creation;
+}
+
+
 Statement* Statement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   Tag tag = reader->ReadTag();
@@ -1319,6 +1394,8 @@ DartType* DartType::ReadFrom(Reader* reader) {
       return FunctionType::ReadFrom(reader, true);
     case kTypeParameterType:
       return TypeParameterType::ReadFrom(reader);
+    case kVectorType:
+      return VectorType::ReadFrom(reader);
     default:
       UNREACHABLE();
   }
@@ -1393,6 +1470,13 @@ TypeParameterType* TypeParameterType::ReadFrom(Reader* reader) {
   TypeParameterType* type = new TypeParameterType();
   type->parameter_ =
       reader->helper()->type_parameters().Lookup(reader->ReadUInt());
+  return type;
+}
+
+
+VectorType* VectorType::ReadFrom(Reader* reader) {
+  TRACE_READ_OFFSET();
+  VectorType* type = new VectorType();
   return type;
 }
 
