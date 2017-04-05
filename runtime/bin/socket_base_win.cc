@@ -174,7 +174,8 @@ intptr_t SocketBase::GetStdioHandle(intptr_t num) {
   if (handle == INVALID_HANDLE_VALUE) {
     return -1;
   }
-  StdHandle* std_handle = new StdHandle(handle);
+  StdHandle* std_handle = StdHandle::Stdin(handle);
+  std_handle->Retain();
   std_handle->MarkDoesNotSupportOverlappedIO();
   std_handle->EnsureInitialized(EventHandler::delegate());
   return reinterpret_cast<intptr_t>(std_handle);
