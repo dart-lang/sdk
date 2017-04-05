@@ -404,6 +404,9 @@ template("dart_io") {
     set_sources_assignment_filter(custom_sources_filter)
 
     defines = []
+    deps = [
+      "$dart_zlib_path",
+    ]
     if (is_mac || is_ios) {
       libs = [
         "CoreFoundation.framework",
@@ -414,7 +417,7 @@ template("dart_io") {
         libs += [ "CoreServices.framework" ]
       }
     } else {
-      deps = [
+      deps += [
         "//third_party/boringssl",
       ]
     }
