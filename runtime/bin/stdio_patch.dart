@@ -14,7 +14,8 @@ class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_FILE:
         return new Stdin._(new _FileStream.forStdin());
       default:
-        throw new FileSystemException("Unsupported stdin type");
+        throw new FileSystemException(
+            "Couldn't determine file type of stdin (fd 0)");
     }
   }
 
@@ -28,7 +29,8 @@ class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_FILE:
         return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
       default:
-        throw new FileSystemException("Unsupported stdin type");
+        throw new FileSystemException(
+            "Couldn't determine file type of stdio handle (fd $fd)");
     }
   }
 

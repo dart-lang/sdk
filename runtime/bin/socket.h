@@ -260,6 +260,12 @@ class Socket : public ReferenceCounted<Socket> {
     kReverseLookupRequest = 2,
   };
 
+  enum SocketFinalizer {
+    kFinalizerNormal,
+    kFinalizerListening,
+    kFinalizerStdio,
+  };
+
   explicit Socket(intptr_t fd);
 
   intptr_t fd() const { return fd_; }
@@ -349,10 +355,10 @@ class Socket : public ReferenceCounted<Socket> {
 
   static void SetSocketIdNativeField(Dart_Handle handle,
                                      intptr_t id,
-                                     bool listening);
+                                     SocketFinalizer finalizer);
   static void ReuseSocketIdNativeField(Dart_Handle handle,
                                        Socket* socket,
-                                       bool listening);
+                                       SocketFinalizer finalizer);
   static Socket* GetSocketIdNativeField(Dart_Handle socket);
 
  private:

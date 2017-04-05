@@ -14,6 +14,9 @@ field_script_test: Pass, RuntimeError
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Not yet triaged.
 
+[ $system == windows ]
+async_generator_breakpoint_test: Skip # Issue 29145
+
 # Kernel version of tests
 [ $compiler != dartk ]
 ###
@@ -84,6 +87,7 @@ evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 get_allocation_samples_test: RuntimeError # Profiling unimplemented.
 get_cpu_profile_timeline_rpc_test: RuntimeError # Profiling unimplemented.
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
+async_single_step_exception_test: RuntimeError # Issue 29218
 
 # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
 next_through_catch_test: RuntimeError
