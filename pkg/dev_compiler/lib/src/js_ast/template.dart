@@ -670,7 +670,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       if (node is ArrowFun) {
         return new ArrowFun(params, body);
       } else if (node is Fun) {
-        return new Fun(params, body);
+        return new Fun(params, body,
+            isGenerator: node.isGenerator, asyncModifier: node.asyncModifier);
       } else {
         throw "Unknown FunctionExpression type ${node.runtimeType}: $node";
       }
