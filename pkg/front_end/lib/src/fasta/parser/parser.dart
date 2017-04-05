@@ -3309,6 +3309,7 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     int count = 1;
+    token = parseMetadataStar(token);
     token = parseModifiers(token);
     token = parseTypeOpt(token);
     listener.beginVariablesDeclaration(token);

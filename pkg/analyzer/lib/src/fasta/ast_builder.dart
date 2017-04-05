@@ -532,6 +532,8 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation type = pop();
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
+    pop(); // Metadata.
+    pop(); // Comment.
     push(ast.variableDeclarationStatement(
         ast.variableDeclarationList(
             null, null, toAnalyzerToken(keyword), type, variables),
@@ -1851,6 +1853,11 @@ class AstBuilder extends ScopeListener {
     var tokens = <analyzer.Token>[toAnalyzerCommentToken(comments)];
     var references = <CommentReference>[];
     return ast.documentationComment(tokens, references);
+  }
+
+  @override
+  void debugEvent(String name) {
+    // printEvent(name);
   }
 }
 

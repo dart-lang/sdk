@@ -1009,6 +1009,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     constantExpressionRequired = pop();
     currentLocalVariableType = pop();
     currentLocalVariableModifiers = pop();
+    pop(); // Metadata.
     if (variables.length != 1) {
       push(variables);
     } else {
