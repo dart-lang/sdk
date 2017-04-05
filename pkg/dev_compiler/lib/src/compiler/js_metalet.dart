@@ -143,7 +143,7 @@ class MetaLet extends Expression {
   }
 
   /// This generates as either a comma expression or a call.
-  int get precedenceLevel => variables.isEmpty ? EXPRESSION : CALL;
+  int get precedenceLevel => toExpression().precedenceLevel;
 
   /// Patch to pretend [Template] supports visitMetaLet.
   Instantiator _templateVisitMetaLet(InstantiatorGeneratorVisitor visitor) {

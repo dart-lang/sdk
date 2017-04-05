@@ -364,7 +364,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       properties.add(new JS.Property(
           js.string(jsLibraryDebuggerName(_libraryRoot, library)), value));
     });
-    return new JS.ObjectInitializer(properties);
+    return new JS.ObjectInitializer(properties, multiline: true);
   }
 
   List<String> _getJSName(Element e) {
