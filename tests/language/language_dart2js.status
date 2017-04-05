@@ -283,7 +283,7 @@ generic_field_mixin5_test: Crash # Issue 18651
 method_override5_test: RuntimeError # Issue 12809
 
 [ $compiler == dart2js ]
-many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
+many_method_calls_test: Pass, Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
 
 [ $compiler == dart2js && $runtime != drt && $runtime != dartium ]
 issue23244_test: RuntimeError # 23244
