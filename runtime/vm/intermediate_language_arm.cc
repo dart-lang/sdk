@@ -2907,8 +2907,8 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     LocalVariable* closure_parameter = scope->VariableAt(0);
     ASSERT(!closure_parameter->is_captured());
-    __ ldr(CTX, Address(FP, closure_parameter->index() * kWordSize));
-    __ ldr(CTX, FieldAddress(CTX, Closure::context_offset()));
+    __ LoadFromOffset(kWord, CTX, FP, closure_parameter->index() * kWordSize);
+    __ LoadFieldFromOffset(kWord, CTX, CTX, Closure::context_offset());
 
     const intptr_t context_index =
         parsed_function.current_context_var()->index();
