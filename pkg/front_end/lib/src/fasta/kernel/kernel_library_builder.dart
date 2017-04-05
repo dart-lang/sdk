@@ -101,6 +101,8 @@ class KernelLibraryBuilder
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
+    assert(currentDeclaration.parent == libraryDeclaration);
+    Map<String, MemberBuilder> members = currentDeclaration.members;
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
@@ -108,12 +110,12 @@ class KernelLibraryBuilder
         typeVariables,
         supertype,
         interfaces,
-        classMembers,
+        members,
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         charOffset);
     constructorReferences.clear();
-    classMembers.forEach((String name, MemberBuilder builder) {
+    members.forEach((String name, MemberBuilder builder) {
       while (builder != null) {
         builder.parent = cls;
         builder = builder.next;

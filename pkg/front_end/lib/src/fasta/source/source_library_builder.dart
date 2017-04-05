@@ -86,13 +86,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   List<T> get types => libraryDeclaration.types;
 
-  /// When parsing a class, this returns a map of its members (that have been
-  /// parsed so far).
-  Map<String, MemberBuilder> get classMembers {
-    assert(currentDeclaration.parent == libraryDeclaration);
-    return currentDeclaration.members;
-  }
-
   T addNamedType(String name, List<T> arguments, int charOffset);
 
   T addMixinApplication(T supertype, List<T> mixins, int charOffset);
