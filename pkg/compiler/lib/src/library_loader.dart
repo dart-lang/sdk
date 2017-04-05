@@ -873,13 +873,12 @@ class _DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         _worldBuilder = new KernelWorldBuilder(reporter, program);
         program.libraries.forEach((ir.Library library) => _allLoadedLibraries
             .add(_worldBuilder.lookupLibrary(library.importUri)));
-        LibraryEntity rootLibrary = null;
-        if (program.mainMethod != null) {
-          rootLibrary = _worldBuilder
-              .lookupLibrary(program.mainMethod.enclosingLibrary.importUri);
-        }
+        // TODO(efortuna): Handle `prgram.mainMethod == null` gracefully.
         return new _LoadedLibrariesAdapter(
-            rootLibrary, _allLoadedLibraries, _worldBuilder);
+            _worldBuilder
+                .lookupLibrary(program.mainMethod.enclosingLibrary.importUri),
+            _allLoadedLibraries,
+            _worldBuilder);
       });
     });
   }
