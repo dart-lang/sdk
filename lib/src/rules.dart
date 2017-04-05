@@ -53,6 +53,7 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/parameter_assignments.dart';
 import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
 import 'package:linter/src/rules/prefer_collection_literals.dart';
+import 'package:linter/src/rules/prefer_conditional_assignment.dart';
 import 'package:linter/src/rules/prefer_const_constructors.dart';
 import 'package:linter/src/rules/prefer_constructors_instead_of_static_methods.dart';
 import 'package:linter/src/rules/prefer_contains.dart';
@@ -137,6 +138,7 @@ void registerLintRules() {
     ..register(new ParameterAssignments())
     ..register(new PreferAdjacentStringConcatenation())
     ..register(new PreferCollectionLiterals())
+    ..register(new PreferConditionalAssignment())
     ..register(new PreferConstConstructors())
     ..register(new PreferConstructorsInsteadOfStaticMethods())
     ..register(new PreferContainsOverIndexOf())
