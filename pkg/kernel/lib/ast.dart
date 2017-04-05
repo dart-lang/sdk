@@ -784,7 +784,7 @@ class Field extends Member {
   /// setter is not necessarily final, as it may be mutated by direct field
   /// access.
   ///
-  /// By default, all non-static, non-final fields have implicit getters.
+  /// By default, all non-static, non-final fields have implicit setters.
   bool get hasImplicitSetter => flags & FlagHasImplicitSetter != 0;
 
   void set isFinal(bool value) {
@@ -1934,8 +1934,8 @@ class NamedExpression extends TreeNode {
   }
 }
 
-/// Common super class for [MethodInvocation], [SuperMethodInvocation],
-/// [StaticInvocation], and [ConstructorInvocation].
+/// Common super class for [DirectMethodInvocation], [MethodInvocation],
+/// [SuperMethodInvocation], [StaticInvocation], and [ConstructorInvocation].
 abstract class InvocationExpression extends Expression {
   Arguments get arguments;
   set arguments(Arguments value);
