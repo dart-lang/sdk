@@ -105,30 +105,78 @@ abstract class HVisitor<R> {
 
 abstract class HGraphVisitor {
   visitDominatorTree(HGraph graph) {
-    void visitBasicBlockAndSuccessors(HBasicBlock block) {
-      visitBasicBlock(block);
-      List dominated = block.dominatedBlocks;
-      for (int i = 0; i < dominated.length; i++) {
-        visitBasicBlockAndSuccessors(dominated[i]);
-      }
-    }
+    // Recursion free version of:
+    //
+    //     void visitBasicBlockAndSuccessors(HBasicBlock block) {
+    //       visitBasicBlock(block);
+    //       List dominated = block.dominatedBlocks;
+    //       for (int i = 0; i < dominated.length; i++) {
+    //         visitBasicBlockAndSuccessors(dominated[i]);
+    //       }
+    //     }
+    //     visitBasicBlockAndSuccessors(graph.entry);
 
-    visitBasicBlockAndSuccessors(graph.entry);
+    _Frame frame = new _Frame(null);
+    frame.block = graph.entry;
+    frame.index = 0;
+
+    visitBasicBlock(frame.block);
+
+    while (frame != null) {
+      HBasicBlock block = frame.block;
+      int index = frame.index;
+      if (index < block.dominatedBlocks.length) {
+        frame.index = index + 1;
+        frame = frame.next ??= new _Frame(frame);
+        frame.block = block.dominatedBlocks[index];
+        frame.index = 0;
+        visitBasicBlock(frame.block);
+        continue;
+      }
+      frame = frame.previous;
+    }
   }
 
   visitPostDominatorTree(HGraph graph) {
-    void visitBasicBlockAndSuccessors(HBasicBlock block) {
-      List dominated = block.dominatedBlocks;
-      for (int i = dominated.length - 1; i >= 0; i--) {
-        visitBasicBlockAndSuccessors(dominated[i]);
+    // Recusion free version of:
+    //
+    //     void visitBasicBlockAndSuccessors(HBasicBlock block) {
+    //       List dominated = block.dominatedBlocks;
+    //       for (int i = dominated.length - 1; i >= 0; i--) {
+    //         visitBasicBlockAndSuccessors(dominated[i]);
+    //       }
+    //       visitBasicBlock(block);
+    //     }
+    //     visitBasicBlockAndSuccessors(graph.entry);
+
+    _Frame frame = new _Frame(null);
+    frame.block = graph.entry;
+    frame.index = frame.block.dominatedBlocks.length;
+
+    while (frame != null) {
+      HBasicBlock block = frame.block;
+      int index = frame.index;
+      if (index > 0) {
+        frame.index = index - 1;
+        frame = frame.next ??= new _Frame(frame);
+        frame.block = block.dominatedBlocks[index - 1];
+        frame.index = frame.block.dominatedBlocks.length;
+        continue;
       }
       visitBasicBlock(block);
+      frame = frame.previous;
     }
-
-    visitBasicBlockAndSuccessors(graph.entry);
   }
 
   visitBasicBlock(HBasicBlock block);
+}
+
+class _Frame {
+  final _Frame previous;
+  _Frame next;
+  HBasicBlock block;
+  int index;
+  _Frame(this.previous);
 }
 
 abstract class HInstructionVisitor extends HGraphVisitor {
