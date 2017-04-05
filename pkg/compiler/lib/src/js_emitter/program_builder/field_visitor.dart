@@ -22,13 +22,8 @@ part of dart2js.js_emitter.program_builder;
  * case, [needsSetter] is always false. [needsCheckedSetter] is only true when
  * type assertions are enabled (checked mode).
  */
-typedef void AcceptField(
-    VariableElement member,
-    js.Name name,
-    js.Name accessorName,
-    bool needsGetter,
-    bool needsSetter,
-    bool needsCheckedSetter);
+typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
+    bool needsGetter, bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
   final Compiler compiler;
@@ -134,7 +129,7 @@ class FieldVisitor {
     }
   }
 
-  bool fieldNeedsGetter(VariableElement field) {
+  bool fieldNeedsGetter(FieldElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (backend.mirrorsData.shouldRetainGetter(field)) return true;
@@ -142,7 +137,7 @@ class FieldVisitor {
         compiler.codegenWorldBuilder.hasInvokedGetter(field, closedWorld);
   }
 
-  bool fieldNeedsSetter(VariableElement field) {
+  bool fieldNeedsSetter(FieldElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (field.isFinal || field.isConst) return false;

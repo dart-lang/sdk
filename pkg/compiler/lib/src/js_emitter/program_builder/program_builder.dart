@@ -658,8 +658,8 @@ class ProgramBuilder {
     return !method.functionSignature.optionalParameters.isEmpty;
   }
 
-  bool _methodCanBeReflected(FunctionElement method) {
-    return backend.mirrorsData.isAccessibleByReflection(method);
+  bool _methodCanBeReflected(MethodElement method) {
+    return backend.mirrorsData.isMemberAccessibleByReflection(method);
   }
 
   bool _methodCanBeApplied(FunctionElement method) {

@@ -1047,7 +1047,8 @@ class Emitter implements js_emitter.Emitter {
         ? library.libraryName
         : "";
 
-    jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
+    jsAst.Fun metadata =
+        task.metadataCollector.buildLibraryMetadataFunction(library);
 
     ClassBuilder descriptor = elementDescriptors[fragment][library];
 

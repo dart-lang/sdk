@@ -118,36 +118,37 @@ class Collector {
     if (backend.mirrorsData.mustRetainMetadata) {
       // TODO(floitsch): verify that we don't run through the same elements
       // multiple times.
-      for (Element element in backend.generatedCode.keys) {
-        if (backend.mirrorsData.isAccessibleByReflection(element)) {
+      for (MemberElement element in backend.generatedCode.keys) {
+        if (backend.mirrorsData.isMemberAccessibleByReflection(element)) {
           bool shouldRetainMetadata =
-              backend.mirrorsData.retainMetadataOf(element);
+              backend.mirrorsData.retainMetadataOfMember(element);
           if (shouldRetainMetadata &&
               (element.isFunction ||
                   element.isConstructor ||
                   element.isSetter)) {
-            FunctionElement function = element;
-            function.functionSignature
-                .forEachParameter(backend.mirrorsData.retainMetadataOf);
+            MethodElement function = element;
+            function.functionSignature.forEachParameter(
+                backend.mirrorsData.retainMetadataOfParameter);
           }
         }
       }
       for (ClassElement cls in neededClasses) {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
-          backend.mirrorsData.retainMetadataOf(cls);
+          backend.mirrorsData.retainMetadataOfClass(cls);
           new FieldVisitor(compiler, namer, closedWorld).visitFields(cls, false,
-              (Element member, js.Name name, js.Name accessorName,
+              (FieldElement member, js.Name name, js.Name accessorName,
                   bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
             bool needsAccessor = needsGetter || needsSetter;
             if (needsAccessor &&
-                backend.mirrorsData.isAccessibleByReflection(member)) {
-              backend.mirrorsData.retainMetadataOf(member);
+                backend.mirrorsData.isMemberAccessibleByReflection(member)) {
+              backend.mirrorsData.retainMetadataOfMember(member);
             }
           });
         }
       }
-      typedefsNeededForReflection.forEach(backend.mirrorsData.retainMetadataOf);
+      typedefsNeededForReflection
+          .forEach(backend.mirrorsData.retainMetadataOfTypedef);
     }
 
     JavaScriptConstantCompiler handler = backend.constants;
@@ -177,7 +178,7 @@ class Collector {
     // Compute needed typedefs.
     typedefsNeededForReflection = Elements.sortedByPosition(closedWorld
         .allTypedefs
-        .where(backend.mirrorsData.isAccessibleByReflection)
+        .where(backend.mirrorsData.isTypedefAccessibleByReflection)
         .toList());
 
     // Compute needed classes.
@@ -270,10 +271,10 @@ class Collector {
   }
 
   void computeNeededStatics() {
-    bool isStaticFunction(Element element) =>
+    bool isStaticFunction(MemberElement element) =>
         !element.isInstanceMember && !element.isField;
 
-    Iterable<Element> elements =
+    Iterable<MemberElement> elements =
         backend.generatedCode.keys.where(isStaticFunction);
 
     for (Element element in Elements.sortedByPosition(elements)) {
@@ -292,7 +293,7 @@ class Collector {
       list.add(element);
     }
 
-    Iterable<Element> fields = compiler
+    Iterable<FieldElement> fields = compiler
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         .codegenWorldBuilder
@@ -306,7 +307,7 @@ class Collector {
       } else {
         // We also need to emit static const fields if they are available for
         // reflection.
-        return backend.mirrorsData.isAccessibleByReflection(field);
+        return backend.mirrorsData.isMemberAccessibleByReflection(field);
       }
     });
 

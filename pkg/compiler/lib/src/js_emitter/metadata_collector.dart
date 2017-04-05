@@ -14,10 +14,15 @@ import '../elements/resolution_types.dart'
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/elements.dart'
     show
+        ClassElement,
         ConstructorElement,
         Element,
+        FieldElement,
         FunctionElement,
         FunctionSignature,
+        LibraryElement,
+        MemberElement,
+        MethodElement,
         MetadataAnnotation,
         ParameterElement;
 import '../js/js.dart' as jsAst;
@@ -164,9 +169,30 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       _backend.typeVariableCodegenAnalysis;
   DiagnosticReporter get reporter => _compiler.reporter;
 
-  bool _mustEmitMetadataFor(Element element) {
+  jsAst.Fun buildLibraryMetadataFunction(LibraryElement element) {
+    if (!_backend.mirrorsData.mustRetainMetadata ||
+        !_backend.mirrorsData.isLibraryReferencedFromMirrorSystem(element)) {
+      return null;
+    }
+    return _buildMetadataFunction(element);
+  }
+
+  jsAst.Fun buildClassMetadataFunction(ClassElement element) {
+    if (!_backend.mirrorsData.mustRetainMetadata ||
+        !_backend.mirrorsData.isClassReferencedFromMirrorSystem(element)) {
+      return null;
+    }
+    return _buildMetadataFunction(element);
+  }
+
+  bool _mustEmitMetadataForMember(MemberElement element) {
     return _backend.mirrorsData.mustRetainMetadata &&
-        _backend.mirrorsData.referencedFromMirrorSystem(element);
+        _backend.mirrorsData.isMemberReferencedFromMirrorSystem(element);
+  }
+
+  jsAst.Fun buildFieldMetadataFunction(FieldElement element) {
+    if (!_mustEmitMetadataForMember(element)) return null;
+    return _buildMetadataFunction(element);
   }
 
   /// The metadata function returns the metadata associated with
@@ -175,8 +201,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   /// constructed yet.  For example, a class is allowed to be
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
-  jsAst.Fun buildMetadataFunction(Element element) {
-    if (!_mustEmitMetadataFor(element)) return null;
+  jsAst.Fun _buildMetadataFunction(Element element) {
     return reporter.withCurrentElement(element, () {
       List<jsAst.Expression> metadata = <jsAst.Expression>[];
       for (MetadataAnnotation annotation in element.metadata) {
@@ -325,7 +350,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       if (ignoreTypeVariables) return new jsAst.LiteralNull();
       return _typeVariableCodegenAnalysis.reifyTypeVariable(variable.element);
     }, (ResolutionTypedefType typedef) {
-      return _backend.mirrorsData.isAccessibleByReflection(typedef.element);
+      return _backend.mirrorsData
+          .isTypedefAccessibleByReflection(typedef.element);
     });
 
     if (representation is jsAst.LiteralString) {
@@ -351,9 +377,10 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  List<jsAst.DeferredNumber> computeMetadata(FunctionElement element) {
+  List<jsAst.DeferredNumber> computeMetadata(MethodElement element) {
     return reporter.withCurrentElement(element, () {
-      if (!_mustEmitMetadataFor(element)) return const <jsAst.DeferredNumber>[];
+      if (!_mustEmitMetadataForMember(element))
+        return const <jsAst.DeferredNumber>[];
       List<jsAst.DeferredNumber> metadata = <jsAst.DeferredNumber>[];
       for (MetadataAnnotation annotation in element.metadata) {
         metadata.add(reifyMetadata(annotation));

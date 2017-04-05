@@ -91,7 +91,7 @@ class TypeVariableCodegenAnalysis {
   }
 
   void registerClassWithTypeVariables(ClassElement cls) {
-    if (_mirrorsData.isAccessibleByReflection(cls)) {
+    if (_mirrorsData.isClassAccessibleByReflection(cls)) {
       processTypeVariablesOf(cls);
     }
   }

@@ -8,7 +8,6 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/backend_api.dart';
-import '../common/names.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/constructors.dart';

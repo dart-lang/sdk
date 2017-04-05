@@ -337,7 +337,8 @@ class SourceMapProcessor {
     Map<Element, SourceMapInfo> elementSourceMapInfos =
         <Element, SourceMapInfo>{};
     if (perElement) {
-      backend.generatedCode.forEach((Element element, js.Expression node) {
+      backend.generatedCode
+          .forEach((MemberElement element, js.Expression node) {
         RecordedSourceInformationProcess subProcess =
             strategy.subProcessForNode(node);
         if (subProcess == null) {

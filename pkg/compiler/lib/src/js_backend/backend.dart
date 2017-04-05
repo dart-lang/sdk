@@ -315,7 +315,7 @@ class JavaScriptBackend {
 
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
-  Iterable<ClassElement> get classesRequiredForReflection {
+  Iterable<ClassEntity> get classesRequiredForReflection {
     // TODO(herhut): Clean this up when classes needed for rti are tracked.
     return [helpers.closureClass, helpers.jsIndexableClass];
   }
@@ -327,8 +327,8 @@ class JavaScriptBackend {
   /**
    * The generated code as a js AST for compiled methods.
    */
-  final Map<Element, jsAst.Expression> generatedCode =
-      <Element, jsAst.Expression>{};
+  final Map<MemberElement, jsAst.Expression> generatedCode =
+      <MemberElement, jsAst.Expression>{};
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
 
@@ -960,7 +960,7 @@ class JavaScriptBackend {
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
-    Element element = work.element;
+    MemberElement element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
           // If there's more than one error, the first is probably most
@@ -984,8 +984,7 @@ class JavaScriptBackend {
       return const CodegenImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      // ignore: INVALID_ASSIGNMENT
-      VariableElement variableElement = element;
+      FieldElement variableElement = element;
       ConstantExpression constant = variableElement.constant;
       if (constant != null) {
         ConstantValue initialValue = constants.getConstantValue(constant);

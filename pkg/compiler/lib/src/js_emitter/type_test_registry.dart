@@ -13,7 +13,7 @@ import '../elements/resolution_types.dart'
         Types,
         ResolutionTypeVariableType;
 import '../elements/elements.dart'
-    show ClassElement, Element, ElementKind, FunctionElement;
+    show ClassElement, Element, ElementKind, MemberElement, MethodElement;
 import '../js_backend/js_backend.dart'
     show JavaScriptBackend, RuntimeTypesSubstitutions, TypeChecks;
 import '../world.dart' show ClosedWorld;
@@ -130,23 +130,23 @@ class TypeTestRegistry {
       return false;
     }
 
-    bool canBeReflectedAsFunction(Element element) {
+    bool canBeReflectedAsFunction(MemberElement element) {
       return element.kind == ElementKind.FUNCTION ||
           element.kind == ElementKind.GETTER ||
           element.kind == ElementKind.SETTER ||
           element.kind == ElementKind.GENERATIVE_CONSTRUCTOR;
     }
 
-    bool canBeReified(Element element) {
+    bool canBeReified(MemberElement element) {
       return (canTearOff(element) ||
-          backend.mirrorsData.isAccessibleByReflection(element));
+          backend.mirrorsData.isMemberAccessibleByReflection(element));
     }
 
     // Find all types referenced from the types of elements that can be
     // reflected on 'as functions'.
     backend.generatedCode.keys.where((element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
-    }).forEach((FunctionElement function) {
+    }).forEach((MethodElement function) {
       ResolutionDartType type = function.type;
       for (ClassElement cls in backend.rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
