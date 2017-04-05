@@ -140,7 +140,7 @@ void registerLintRules() {
     ..register(new PreferConstConstructors())
     ..register(new PreferConstructorsInsteadOfStaticMethods())
     ..register(new PreferContainsOverIndexOf())
-    ..register(new PreferExpressionFunctionbBodies())
+    ..register(new PreferExpressionFunctionBodies())
     ..register(new PreferFinalFields())
     ..register(new PreferFinalLocals())
     ..register(new PreferFunctionDeclarationsOverVariables())

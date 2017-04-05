@@ -53,9 +53,9 @@ containsValue(String value) => getValues().contains(value);
 
 ''';
 
-class PreferExpressionFunctionbBodies extends LintRule {
+class PreferExpressionFunctionBodies extends LintRule {
   _Visitor _visitor;
-  PreferExpressionFunctionbBodies()
+  PreferExpressionFunctionBodies()
       : super(
             name: 'prefer_expression_function_bodies',
             description: _desc,
