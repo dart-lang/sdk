@@ -2158,6 +2158,38 @@ class B extends A implements Function {
     verify([source]);
   }
 
+  test_genericTypeAlias_noTypeParameters() async {
+    Source source = addSource(r'''
+typedef Foo = int Function<T>(T x);
+int foo<T>(T x) => 3;
+void test1() {
+  Foo y = foo;
+  // These two should be equivalent
+  foo<String>("hello");
+  y<String>("hello");
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_typeParameters() async {
+    Source source = addSource(r'''
+typedef Foo<S> = S Function<T>(T x);
+int foo<T>(T x) => 3;
+void test1() {
+  Foo<int> y = foo;
+  // These two should be equivalent
+  foo<String>("hello");
+  y<String>("hello");
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_implicitConstructorDependencies() async {
     // No warning should be generated for the code below; this requires that
     // implicit constructors are generated for C1 before C2, even though C1

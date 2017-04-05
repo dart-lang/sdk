@@ -8398,7 +8398,7 @@ class TypeNameResolver {
       List<DartType> typeArguments = new List<DartType>(parameterCount);
       if (argumentCount == parameterCount) {
         for (int i = 0; i < parameterCount; i++) {
-          typeArguments[i] = _getType(arguments[i]) ?? dynamicType;
+          typeArguments[i] = _getType(arguments[i]);
         }
       } else {
         reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
@@ -8461,6 +8461,34 @@ class TypeNameResolver {
     DartType type = annotation.type;
     if (type == null) {
       return undefinedType;
+    } else if (type is FunctionType) {
+      Element element = type.element;
+      if (annotation is TypeName && element is GenericTypeAliasElement) {
+        List<TypeParameterElement> parameterElements = element.typeParameters;
+        FunctionType functionType = element.function.type;
+        if (parameterElements.isNotEmpty) {
+          List<DartType> parameterTypes =
+              TypeParameterTypeImpl.getTypes(parameterElements);
+          int parameterCount = parameterTypes.length;
+          TypeArgumentList argumentList = annotation.typeArguments;
+          List<DartType> typeArguments;
+          if (argumentList != null) {
+            List<TypeAnnotation> arguments = argumentList.arguments;
+            int argumentCount = arguments.length;
+            if (argumentCount == parameterCount) {
+              typeArguments = new List<DartType>(parameterCount);
+              for (int i = 0; i < parameterCount; i++) {
+                typeArguments[i] = _getType(arguments[i]);
+              }
+            }
+          }
+          typeArguments ??=
+              new List<DartType>.filled(parameterCount, dynamicType);
+          functionType =
+              functionType.substitute2(typeArguments, parameterTypes);
+        }
+        return functionType;
+      }
     }
     return type;
   }

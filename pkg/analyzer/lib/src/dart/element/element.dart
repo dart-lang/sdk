@@ -3147,7 +3147,8 @@ abstract class ElementImpl implements Element {
    */
   DartType _checkElementOfType(DartType type) {
     Element element = type?.element;
-    if (element is GenericFunctionTypeElementImpl) {
+    if (element is GenericFunctionTypeElementImpl &&
+        element.enclosingElement == null) {
       element.enclosingElement = this;
     }
     return type;
@@ -7192,8 +7193,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     if (_unlinkedVariable != null && _initializer == null) {
       UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
       if (unlinkedInitializer != null) {
-        _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..isSynthetic = true;
+        _initializer =
+            new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
+              ..isSynthetic = true;
       } else {
         return null;
       }
@@ -7484,8 +7486,9 @@ class ParameterElementImpl extends VariableElementImpl
     if (_unlinkedParam != null && _initializer == null) {
       UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
       if (unlinkedInitializer != null) {
-        _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..isSynthetic = true;
+        _initializer =
+            new FunctionElementImpl.forSerialized(unlinkedInitializer, this)
+              ..isSynthetic = true;
       } else {
         return null;
       }
