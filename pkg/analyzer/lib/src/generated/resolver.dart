@@ -780,11 +780,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
 
     /**
-     * Return `true` if the given class [element] defines a non-final field.
+     * Return `true` if the given class [element] defines a non-final instance
+     * field.
      */
-    bool hasNonFinalField(ClassElement element) {
+    bool hasNonFinalInstanceField(ClassElement element) {
       for (FieldElement field in element.fields) {
-        if (!field.isSynthetic && !field.isFinal) {
+        if (!field.isSynthetic && !field.isFinal && !field.isStatic) {
           return true;
         }
       }
@@ -795,19 +796,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
      * Return `true` if the given class [element] defines or inherits a
      * non-final field.
      */
-    bool hasOrInheritsNonFinalField(
+    bool hasOrInheritsNonFinalInstanceField(
         ClassElement element, HashSet<ClassElement> visited) {
       if (visited.add(element)) {
-        if (hasNonFinalField(element)) {
+        if (hasNonFinalInstanceField(element)) {
           return true;
         }
         for (InterfaceType mixin in element.mixins) {
-          if (hasNonFinalField(mixin.element)) {
+          if (hasNonFinalInstanceField(mixin.element)) {
             return true;
           }
         }
         if (element.supertype != null) {
-          return hasOrInheritsNonFinalField(element.supertype.element, visited);
+          return hasOrInheritsNonFinalInstanceField(
+              element.supertype.element, visited);
         }
       }
       return false;
@@ -815,7 +817,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
     ClassElement element = node.element;
     if (isOrInheritsImmutable(element, new HashSet<ClassElement>()) &&
-        hasOrInheritsNonFinalField(element, new HashSet<ClassElement>())) {
+        hasOrInheritsNonFinalInstanceField(
+            element, new HashSet<ClassElement>())) {
       _errorReporter.reportErrorForNode(HintCode.MUST_BE_IMMUTABLE, node.name);
     }
   }
