@@ -156,10 +156,6 @@ abstract class Keyword {
 
   static const Keyword ASSERT = fasta.Keyword.ASSERT;
 
-  static const Keyword ASYNC = fasta.Keyword.ASYNC;
-
-  static const Keyword AWAIT = fasta.Keyword.AWAIT;
-
   static const Keyword BREAK = fasta.Keyword.BREAK;
 
   static const Keyword CASE = fasta.Keyword.CASE;
@@ -202,11 +198,7 @@ abstract class Keyword {
 
   static const Keyword FOR = fasta.Keyword.FOR;
 
-  static const Keyword FUNCTION = fasta.Keyword.FUNCTION;
-
   static const Keyword GET = fasta.Keyword.GET;
-
-  static const Keyword HIDE = fasta.Keyword.HIDE;
 
   static const Keyword IF = fasta.Keyword.IF;
 
@@ -220,21 +212,13 @@ abstract class Keyword {
 
   static const Keyword LIBRARY = fasta.Keyword.LIBRARY;
 
-  static const Keyword NATIVE = fasta.Keyword.NATIVE;
-
   static const Keyword NEW = fasta.Keyword.NEW;
 
   static const Keyword NULL = fasta.Keyword.NULL;
 
-  static const Keyword OF = fasta.Keyword.OF;
-
-  static const Keyword ON = fasta.Keyword.ON;
-
   static const Keyword OPERATOR = fasta.Keyword.OPERATOR;
 
   static const Keyword PART = fasta.Keyword.PART;
-
-  static const Keyword PATCH = fasta.Keyword.PATCH;
 
   static const Keyword RETHROW = fasta.Keyword.RETHROW;
 
@@ -242,17 +226,11 @@ abstract class Keyword {
 
   static const Keyword SET = fasta.Keyword.SET;
 
-  static const Keyword SHOW = fasta.Keyword.SHOW;
-
-  static const Keyword SOURCE = fasta.Keyword.SOURCE;
-
   static const Keyword STATIC = fasta.Keyword.STATIC;
 
   static const Keyword SUPER = fasta.Keyword.SUPER;
 
   static const Keyword SWITCH = fasta.Keyword.SWITCH;
-
-  static const Keyword SYNC = fasta.Keyword.SYNC;
 
   static const Keyword THIS = fasta.Keyword.THIS;
 
@@ -272,14 +250,10 @@ abstract class Keyword {
 
   static const Keyword WITH = fasta.Keyword.WITH;
 
-  static const Keyword YIELD = fasta.Keyword.YIELD;
-
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,
     AS,
     ASSERT,
-    ASYNC,
-    AWAIT,
     BREAK,
     CASE,
     CATCH,
@@ -301,32 +275,23 @@ abstract class Keyword {
     FINAL,
     FINALLY,
     FOR,
-    FUNCTION,
     GET,
-    HIDE,
     IF,
     IMPLEMENTS,
     IMPORT,
     IN,
     IS,
     LIBRARY,
-    NATIVE,
     NEW,
     NULL,
-    OF,
-    ON,
     OPERATOR,
     PART,
-    PATCH,
     RETHROW,
     RETURN,
     SET,
-    SHOW,
-    SOURCE,
     STATIC,
     SUPER,
     SWITCH,
-    SYNC,
     THIS,
     THROW,
     TRUE,
@@ -336,7 +301,6 @@ abstract class Keyword {
     VOID,
     WHILE,
     WITH,
-    YIELD,
   ];
 
   /**
@@ -369,8 +333,6 @@ abstract class Keyword {
       {this.isBuiltIn: false,
       this.isPseudo: false,
       this.info: fasta.KEYWORD_INFO});
-
-  bool get isBuiltInOrPseudo => isBuiltIn || isPseudo;
 
   /**
    * A flag indicating whether the keyword is "built-in" identifier.

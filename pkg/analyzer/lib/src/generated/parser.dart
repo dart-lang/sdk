@@ -158,17 +158,23 @@ class Modifiers {
  * A parser used to parse tokens into an AST structure.
  */
 class Parser {
-  static String ASYNC = Keyword.ASYNC.syntax;
+  static String ASYNC = "async";
 
-  static String _AWAIT = Keyword.AWAIT.syntax;
+  static String _AWAIT = "await";
 
-  static String _HIDE = Keyword.HIDE.syntax;
+  static String _HIDE = "hide";
 
-  static String _SHOW = Keyword.SHOW.syntax;
+  static String _OF = "of";
 
-  static String SYNC = Keyword.SYNC.syntax;
+  static String _ON = "on";
 
-  static String _YIELD = Keyword.YIELD.syntax;
+  static String _NATIVE = "native";
+
+  static String _SHOW = "show";
+
+  static String SYNC = "sync";
+
+  static String _YIELD = "yield";
 
   /**
    * The source being parsed.
@@ -1183,8 +1189,7 @@ class Parser {
     // Look for and skip over the extra-lingual 'native' specification.
     //
     NativeClause nativeClause = null;
-    if (_matchesKeyword(Keyword.NATIVE) &&
-        _tokenMatches(_peek(), TokenType.STRING)) {
+    if (_matchesString(_NATIVE) && _tokenMatches(_peek(), TokenType.STRING)) {
       nativeClause = _parseNativeClause();
     }
     //
@@ -1581,9 +1586,9 @@ class Parser {
    *       | 'hide' identifier (',' identifier)*
    */
   Combinator parseCombinator() {
-    if (_matchesKeyword(Keyword.SHOW)) {
+    if (_matchesString(_SHOW)) {
       return astFactory.showCombinator(getAndAdvance(), parseIdentifierList());
-    } else if (_matchesKeyword(Keyword.HIDE)) {
+    } else if (_matchesString(_HIDE)) {
       return astFactory.hideCombinator(getAndAdvance(), parseIdentifierList());
     }
     return null;
@@ -1912,7 +1917,7 @@ class Parser {
             }
             return parseLibraryDirective(commentAndMetadata);
           } else if (keyword == Keyword.PART) {
-            if (_tokenMatchesKeyword(_peek(), Keyword.OF)) {
+            if (_tokenMatchesString(_peek(), _OF)) {
               partOfDirectiveFound = true;
               return _parsePartOfDirective(commentAndMetadata);
             } else {
@@ -2955,7 +2960,7 @@ class Parser {
     _inLoop = true;
     try {
       Token awaitKeyword = null;
-      if (_matchesKeyword(Keyword.AWAIT)) {
+      if (_matchesString(_AWAIT)) {
         awaitKeyword = getAndAdvance();
       }
       Token forKeyword = _expectKeyword(Keyword.FOR);
@@ -3118,7 +3123,7 @@ class Parser {
       Token star = null;
       bool foundAsync = false;
       bool foundSync = false;
-      if (type == TokenType.KEYWORD) {
+      if (type == TokenType.IDENTIFIER) {
         String lexeme = _currentToken.lexeme;
         if (lexeme == ASYNC) {
           foundAsync = true;
@@ -3179,7 +3184,7 @@ class Parser {
               .emptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON));
         }
         return astFactory.blockFunctionBody(keyword, star, parseBlock());
-      } else if (_matchesKeyword(Keyword.NATIVE)) {
+      } else if (_matchesString(_NATIVE)) {
         Token nativeToken = getAndAdvance();
         StringLiteral stringLiteral = null;
         if (_matches(TokenType.STRING)) {
@@ -3333,7 +3338,7 @@ class Parser {
   GenericFunctionType parseGenericFunctionTypeAfterReturnType(
       TypeAnnotation returnType) {
     Token functionKeyword = null;
-    if (_matchesKeyword(Keyword.FUNCTION)) {
+    if (_matchesString('Function')) {
       functionKeyword = getAndAdvance();
     } else if (_matchesIdentifier()) {
       _reportErrorForCurrentToken(ParserErrorCode.NAMED_FUNCTION_TYPE);
@@ -3542,12 +3547,12 @@ class Parser {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
     } else if (!_matches(TokenType.SEMICOLON) &&
-        !_matchesKeyword(Keyword.SHOW) &&
-        !_matchesKeyword(Keyword.HIDE)) {
+        !_matchesString(_SHOW) &&
+        !_matchesString(_HIDE)) {
       Token nextToken = _peek();
       if (_tokenMatchesKeyword(nextToken, Keyword.AS) ||
-          _tokenMatchesKeyword(nextToken, Keyword.SHOW) ||
-          _tokenMatchesKeyword(nextToken, Keyword.HIDE)) {
+          _tokenMatchesString(nextToken, _SHOW) ||
+          _tokenMatchesString(nextToken, _HIDE)) {
         _reportErrorForCurrentToken(
             ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken]);
         _advance();
@@ -3984,8 +3989,7 @@ class Parser {
         }
       }
       return parseBlock();
-    } else if (type == TokenType.KEYWORD &&
-        !_currentToken.keyword.isBuiltInOrPseudo) {
+    } else if (type == TokenType.KEYWORD && !_currentToken.keyword.isBuiltIn) {
       Keyword keyword = _currentToken.keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this
       // if-then sequence to optimize performance
@@ -4101,15 +4105,15 @@ class Parser {
         return astFactory
             .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (_inGenerator && _matchesKeyword(Keyword.YIELD)) {
+    } else if (_inGenerator && _matchesString(_YIELD)) {
       return parseYieldStatement();
-    } else if (_inAsync && _matchesKeyword(Keyword.AWAIT)) {
+    } else if (_inAsync && _matchesString(_AWAIT)) {
       if (_tokenMatchesKeyword(_peek(), Keyword.FOR)) {
         return parseForStatement();
       }
       return astFactory.expressionStatement(
           parseExpression2(), _expect(TokenType.SEMICOLON));
-    } else if (_matchesKeyword(Keyword.AWAIT) &&
+    } else if (_matchesString(_AWAIT) &&
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
       Token awaitToken = _currentToken;
       Statement statement = parseForStatement();
@@ -4302,7 +4306,7 @@ class Parser {
    *         metadata 'part' 'of' identifier ';'
    */
   Directive parsePartOrPartOfDirective(CommentAndMetadata commentAndMetadata) {
-    if (_tokenMatchesKeyword(_peek(), Keyword.OF)) {
+    if (_tokenMatchesString(_peek(), _OF)) {
       return _parsePartOfDirective(commentAndMetadata);
     }
     return _parsePartDirective(commentAndMetadata);
@@ -4974,10 +4978,10 @@ class Parser {
     Block body = _parseBlockChecked();
     List<CatchClause> catchClauses = <CatchClause>[];
     Block finallyClause = null;
-    while (_matchesKeyword(Keyword.ON) || _matchesKeyword(Keyword.CATCH)) {
+    while (_matchesString(_ON) || _matchesKeyword(Keyword.CATCH)) {
       Token onKeyword = null;
       TypeName exceptionType = null;
-      if (_matchesKeyword(Keyword.ON)) {
+      if (_matchesString(_ON)) {
         onKeyword = getAndAdvance();
         exceptionType = parseTypeAnnotation(false);
       }
@@ -5237,7 +5241,7 @@ class Parser {
     } else if (type == TokenType.PLUS) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
-    } else if (_inAsync && _matchesKeyword(Keyword.AWAIT)) {
+    } else if (_inAsync && _matchesString(_AWAIT)) {
       return parseAwaitExpression();
     }
     return parsePostfixExpression();
@@ -5690,7 +5694,7 @@ class Parser {
    * function type alias.
    */
   bool _atGenericFunctionTypeAfterReturnType(Token startToken) {
-    if (_tokenMatchesKeyword(startToken, Keyword.FUNCTION)) {
+    if (_tokenMatchesString(startToken, 'Function')) {
       Token next = startToken.next;
       if (next != null &&
           (_tokenMatches(next, TokenType.OPEN_PAREN) ||
@@ -7989,7 +7993,7 @@ class Parser {
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
-      token.keyword?.isBuiltInOrPseudo ?? false;
+      token.keyword?.isBuiltIn ?? false;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].
