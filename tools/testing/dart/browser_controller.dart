@@ -14,8 +14,7 @@ import 'http_server.dart';
 import 'path.dart';
 import 'utils.dart';
 
-import 'reset_safari.dart' show
-    killAndResetSafari;
+import 'reset_safari.dart' show killAndResetSafari;
 
 class BrowserOutput {
   final StringBuffer stdout = new StringBuffer();
@@ -312,13 +311,14 @@ class Safari extends Browser {
         throw new AsyncError(error, stackTrace);
       }
     }
+
     Zone parent = Zone.current;
     ZoneSpecification specification = new ZoneSpecification(
         print: (Zone self, ZoneDelegate delegate, Zone zone, String line) {
-          delegate.run(parent, () {
-            _logEvent(line);
-          });
-        });
+      delegate.run(parent, () {
+        _logEvent(line);
+      });
+    });
     Future zoneWrapper() {
       Uri safariUri = Uri.base.resolve(safariBundleLocation);
       return new Future(() => killAndResetSafari(bundle: safariUri))
@@ -328,9 +328,8 @@ class Safari extends Browser {
     // We run killAndResetSafari in a Zone as opposed to running an external
     // process. The Zone allows us to collect its output, and protect the rest
     // of the test infrastructure against errors in it.
-    runZoned(
-        zoneWrapper, zoneSpecification: specification,
-        onError: handleUncaughtError);
+    runZoned(zoneWrapper,
+        zoneSpecification: specification, onError: handleUncaughtError);
 
     try {
       await completer.future;
@@ -413,8 +412,14 @@ class Safari extends Browser {
       return false;
     }
     var args = [
-        "-d", "-i", "-m", "-s", "-u", _binary,
-        "${userDir.path}/launch.html"];
+      "-d",
+      "-i",
+      "-m",
+      "-s",
+      "-u",
+      _binary,
+      "${userDir.path}/launch.html"
+    ];
     try {
       return startBrowserProcess("/usr/bin/caffeinate", args);
     } catch (error) {
@@ -424,8 +429,8 @@ class Safari extends Browser {
   }
 
   Future<Null> onDriverPageRequested() async {
-    await Process.run("/usr/bin/osascript",
-        ['-e', 'tell application "Safari" to activate']);
+    await Process.run(
+        "/usr/bin/osascript", ['-e', 'tell application "Safari" to activate']);
   }
 
   String toString() => "Safari";
@@ -473,7 +478,21 @@ class Chrome extends Browser {
 
       return Directory.systemTemp.createTemp().then((userDir) {
         _cleanup = () {
-          userDir.deleteSync(recursive: true);
+          try {
+            userDir.deleteSync(recursive: true);
+          } catch (e) {
+            _logEvent(
+                "Error: failed to delete Chrome user-data-dir ${userDir.path}"
+                ", will try again in 40 seconds: $e");
+            new Timer(new Duration(seconds: 40), () {
+              try {
+                userDir.deleteSync(recursive: true);
+              } catch (e) {
+                _logEvent("Error: failed on second attempt to delete Chrome "
+                    "user-data-dir ${userDir.path}: $e");
+              }
+            });
+          }
         };
         var args = [
           "--user-data-dir=${userDir.path}",
@@ -971,17 +990,15 @@ class BrowserTestRunner {
     if (_currentStartingBrowserId == id) _currentStartingBrowserId = null;
   }
 
-  BrowserTestRunner(
-      Map configuration,
-      String localIp,
-      String browserName,
+  BrowserTestRunner(Map configuration, String localIp, String browserName,
       this.maxNumBrowsers)
       : configuration = configuration,
         localIp = localIp,
         browserName = (browserName == 'ff') ? 'firefox' : browserName,
         checkedMode = configuration['checked'],
         testingServer = new BrowserTestingServer(
-            configuration, localIp,
+            configuration,
+            localIp,
             Browser.requiresIframe(browserName),
             Browser.requiresFocus(browserName)) {
     testingServer.testRunner = this;
@@ -1376,9 +1393,11 @@ class BrowserTestingServer {
         print(error);
       });
     }
+
     void errorHandler(e) {
       if (!underTermination) print("Error occured in httpserver: $e");
     }
+
     errorReportingServer.listen(errorReportingHandler, onError: errorHandler);
   }
 
@@ -1388,6 +1407,7 @@ class BrowserTestingServer {
       request.response.headers
           .set("Cache-Control", "no-cache, no-store, must-revalidate");
     }
+
     int testId(request) => int.parse(request.uri.queryParameters["id"]);
     String browserId(request, prefix) =>
         request.uri.path.substring(prefix.length + 1);
