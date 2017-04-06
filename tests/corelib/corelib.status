@@ -291,9 +291,7 @@ string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/02: DartkCrash
 symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: DartkCrash
 symbol_reserved_word_test/06: RuntimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError

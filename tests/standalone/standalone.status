@@ -450,10 +450,9 @@ io/socket_many_connections_test: RuntimeError
 map_insert_remove_oom_test: Crash
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError
-package/scenarios/invalid/invalid_package_name_test: DartkCrash
-package/scenarios/invalid/invalid_utf8_test: DartkCrash
-package/scenarios/invalid/non_existent_packages_file_test: DartkCrash
-package/scenarios/invalid/same_package_twice_test: DartkCrash
+package/scenarios/invalid/invalid_utf8_test: CompileTimeError
+package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
+package/scenarios/invalid/same_package_twice_test: CompileTimeError
 package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
 
 [ $runtime == flutter ]

@@ -6,8 +6,6 @@ library fasta.source_loader;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show FileSystemException;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/ast.dart' show Program;
@@ -30,7 +28,7 @@ import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
-import '../scanner/io.dart' show readBytesFromFile;
+import '../io.dart' show readBytesFromFile;
 
 import '../target_implementation.dart' show TargetImplementation;
 
@@ -60,35 +58,26 @@ class SourceLoader<L> extends Loader<L> {
     if (uri == null || uri.scheme != "file") {
       return inputError(library.uri, -1, "Not found: ${library.uri}.");
     }
-    try {
-      List<int> bytes = sourceBytes[uri];
-      if (bytes == null) {
-        bytes = sourceBytes[uri] = await readBytesFromFile(uri);
-      }
-      byteCount += bytes.length - 1;
-      ScannerResult result = scan(bytes);
-      Token token = result.tokens;
-      if (!suppressLexicalErrors) {
-        List<int> source = getSource(bytes);
-        target.addSourceInformation(library.fileUri, result.lineStarts, source);
-      }
-      while (token is ErrorToken) {
-        if (!suppressLexicalErrors) {
-          ErrorToken error = token;
-          library.addCompileTimeError(token.charOffset, error.assertionMessage,
-              fileUri: uri);
-        }
-        token = token.next;
-      }
-      return token;
-    } on FileSystemException catch (e) {
-      String message = e.message;
-      String osMessage = e.osError?.message;
-      if (osMessage != null && osMessage.isNotEmpty) {
-        message = osMessage;
-      }
-      return inputError(uri, -1, message);
+    List<int> bytes = sourceBytes[uri];
+    if (bytes == null) {
+      bytes = sourceBytes[uri] = await readBytesFromFile(uri);
     }
+    byteCount += bytes.length - 1;
+    ScannerResult result = scan(bytes);
+    Token token = result.tokens;
+    if (!suppressLexicalErrors) {
+      List<int> source = getSource(bytes);
+      target.addSourceInformation(library.fileUri, result.lineStarts, source);
+    }
+    while (token is ErrorToken) {
+      if (!suppressLexicalErrors) {
+        ErrorToken error = token;
+        library.addCompileTimeError(token.charOffset, error.assertionMessage,
+            fileUri: uri);
+      }
+      token = token.next;
+    }
+    return token;
   }
 
   List<int> getSource(List<int> bytes) {

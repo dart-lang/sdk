@@ -731,7 +731,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       addCompileTimeError(
           token.charOffset, "Not a constant expression: $context");
     }
-    push(new Identifier(name)..fileOffset = token.charOffset);
+    push(new Identifier(name, token.charOffset));
   }
 
   /// Look up [name] in [scope] using [charOffset] to report any
@@ -1464,7 +1464,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("ValuedFormalParameter");
     Expression initializer = popForValue();
     Identifier name = pop();
-    push(new InitializedIdentifier(name.name, initializer));
+    push(new InitializedIdentifier(name.name, initializer, name.fileOffset));
   }
 
   @override
@@ -1662,7 +1662,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (prefix is ClassBuilder) {
         type = prefix;
       } else {
-        type = new Identifier(start.lexeme)..fileOffset = start.charOffset;
+        type = new Identifier(start.lexeme, start.charOffset);
       }
     }
     String name;
@@ -2394,7 +2394,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleSymbolVoid(Token token) {
-    logEvent("SymbolVoid");
+    debugEvent("SymbolVoid");
+    push(new Identifier(token.stringValue, token.charOffset));
   }
 
   dynamic addCompileTimeError(int charOffset, String message,
@@ -2448,7 +2449,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 class Identifier extends InvalidExpression {
   final String name;
 
-  Identifier(this.name);
+  Identifier(this.name, int charOffset) {
+    fileOffset = charOffset;
+  }
 
   Expression get initializer => null;
 
@@ -2467,7 +2470,8 @@ class Operator extends InvalidExpression {
 class InitializedIdentifier extends Identifier {
   final Expression initializer;
 
-  InitializedIdentifier(String name, this.initializer) : super(name);
+  InitializedIdentifier(String name, this.initializer, int charOffset)
+      : super(name, charOffset);
 
   String toString() => "initialized-identifier($name, $initializer)";
 }

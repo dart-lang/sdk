@@ -165,13 +165,13 @@ Future<CompilationResult> parseScript(
     Target target = getTarget("vm", new TargetFlags(strongMode: false));
 
     Program program;
-    final uriTranslator = await TranslateUri.parse(null, packages);
-    final Ticker ticker = new Ticker(isVerbose: verbose);
-    final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-    dillTarget.read(patchedSdk.resolve('platform.dill'));
-    final KernelTarget kernelTarget =
-        new KernelTarget(dillTarget, uriTranslator);
     try {
+      TranslateUri uriTranslator = await TranslateUri.parse(null, packages);
+      final Ticker ticker = new Ticker(isVerbose: verbose);
+      final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+      dillTarget.read(patchedSdk.resolve('platform.dill'));
+      final KernelTarget kernelTarget =
+          new KernelTarget(dillTarget, uriTranslator);
       kernelTarget.read(fileName);
       await dillTarget.writeOutline(null);
       program = await kernelTarget.writeOutline(null);
