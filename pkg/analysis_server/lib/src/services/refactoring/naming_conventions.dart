@@ -6,7 +6,7 @@ library services.src.refactoring.naming_conventions;
 
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
+import 'package:front_end/src/scanner/token.dart' show Keyword;
 
 /**
  * Returns the [RefactoringStatus] with severity:
@@ -167,7 +167,7 @@ RefactoringStatus _validateIdentifier(
   }
   // keyword
   {
-    fasta.Keyword keyword = fasta.Keyword.keywords[identifier];
+    Keyword keyword = Keyword.keywords[identifier];
     if (keyword != null) {
       String message = "$desc must not be a keyword.";
       return new RefactoringStatus.fatal(message);

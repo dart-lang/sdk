@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
 import 'package:front_end/src/scanner/reader.dart' as analyzer;
@@ -155,18 +154,6 @@ class Foo {
     expect(token.matchesAny([TokenType.AMPERSAND]), false);
   }
 
-  /// Return all fasta and all analyzer keywords
-  List<Keyword> get _allKeywords =>
-      new List.from(Keyword.values)..addAll(fasta.Keyword.values);
-
-  void test_all_keywords() {
-    var keywords = new Set<fasta.Keyword>.from(fasta.Keyword.values);
-    for (Keyword kw in Keyword.values) {
-      expect(keywords.remove(kw), isTrue, reason: kw.name);
-    }
-    expect(keywords, isEmpty);
-  }
-
   void test_built_in_keywords() {
     var builtInKeywords = new Set<Keyword>.from([
       Keyword.ABSTRACT,
@@ -187,33 +174,31 @@ class Foo {
       Keyword.STATIC,
       Keyword.TYPEDEF,
     ]);
-    for (Keyword keyword in _allKeywords) {
+    for (Keyword keyword in Keyword.values) {
       var isBuiltIn = builtInKeywords.contains(keyword);
       expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
-      expect((keyword as fasta.Keyword).isBuiltIn, isBuiltIn,
-          reason: keyword.name);
+      expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
     }
   }
 
   void test_pseudo_keywords() {
     var pseudoKeywords = new Set<Keyword>.from([
-      fasta.Keyword.ASYNC,
-      fasta.Keyword.AWAIT,
-      fasta.Keyword.FUNCTION,
-      fasta.Keyword.HIDE,
-      fasta.Keyword.NATIVE,
-      fasta.Keyword.OF,
-      fasta.Keyword.ON,
-      fasta.Keyword.PATCH,
-      fasta.Keyword.SHOW,
-      fasta.Keyword.SOURCE,
-      fasta.Keyword.SYNC,
-      fasta.Keyword.YIELD,
+      Keyword.ASYNC,
+      Keyword.AWAIT,
+      Keyword.FUNCTION,
+      Keyword.HIDE,
+      Keyword.NATIVE,
+      Keyword.OF,
+      Keyword.ON,
+      Keyword.PATCH,
+      Keyword.SHOW,
+      Keyword.SOURCE,
+      Keyword.SYNC,
+      Keyword.YIELD,
     ]);
-    for (Keyword keyword in _allKeywords) {
+    for (Keyword keyword in Keyword.values) {
       var isPseudo = pseudoKeywords.contains(keyword);
-      expect((keyword as fasta.Keyword).isPseudo, isPseudo,
-          reason: keyword.name);
+      expect(keyword.isPseudo, isPseudo, reason: keyword.name);
     }
   }
 

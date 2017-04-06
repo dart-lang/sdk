@@ -10,7 +10,6 @@ import 'dart:collection';
 
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/string_utilities.dart';
-import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 
 /**
@@ -149,130 +148,132 @@ class DocumentationCommentToken extends CommentToken {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Keyword {
-  static const Keyword ABSTRACT = fasta.Keyword.ABSTRACT;
+class Keyword {
+  static const Keyword ABSTRACT = const Keyword("abstract", isBuiltIn: true);
 
-  static const Keyword AS = fasta.Keyword.AS;
+  static const Keyword AS =
+      const Keyword("as", info: fasta.AS_INFO, isBuiltIn: true);
 
-  static const Keyword ASSERT = fasta.Keyword.ASSERT;
+  static const Keyword ASSERT = const Keyword("assert");
 
-  static const Keyword ASYNC = fasta.Keyword.ASYNC;
+  static const Keyword ASYNC = const Keyword("async", isPseudo: true);
 
-  static const Keyword AWAIT = fasta.Keyword.AWAIT;
+  static const Keyword AWAIT = const Keyword("await", isPseudo: true);
 
-  static const Keyword BREAK = fasta.Keyword.BREAK;
+  static const Keyword BREAK = const Keyword("break");
 
-  static const Keyword CASE = fasta.Keyword.CASE;
+  static const Keyword CASE = const Keyword("case");
 
-  static const Keyword CATCH = fasta.Keyword.CATCH;
+  static const Keyword CATCH = const Keyword("catch");
 
-  static const Keyword CLASS = fasta.Keyword.CLASS;
+  static const Keyword CLASS = const Keyword("class");
 
-  static const Keyword CONST = fasta.Keyword.CONST;
+  static const Keyword CONST = const Keyword("const");
 
-  static const Keyword CONTINUE = fasta.Keyword.CONTINUE;
+  static const Keyword CONTINUE = const Keyword("continue");
 
-  static const Keyword COVARIANT = fasta.Keyword.COVARIANT;
+  static const Keyword COVARIANT = const Keyword("covariant", isBuiltIn: true);
 
-  static const Keyword DEFAULT = fasta.Keyword.DEFAULT;
+  static const Keyword DEFAULT = const Keyword("default");
 
-  static const Keyword DEFERRED = fasta.Keyword.DEFERRED;
+  static const Keyword DEFERRED = const Keyword("deferred", isBuiltIn: true);
 
-  static const Keyword DO = fasta.Keyword.DO;
+  static const Keyword DO = const Keyword("do");
 
-  static const Keyword DYNAMIC = fasta.Keyword.DYNAMIC;
+  static const Keyword DYNAMIC = const Keyword("dynamic", isBuiltIn: true);
 
-  static const Keyword ELSE = fasta.Keyword.ELSE;
+  static const Keyword ELSE = const Keyword("else");
 
-  static const Keyword ENUM = fasta.Keyword.ENUM;
+  static const Keyword ENUM = const Keyword("enum");
 
-  static const Keyword EXPORT = fasta.Keyword.EXPORT;
+  static const Keyword EXPORT = const Keyword("export", isBuiltIn: true);
 
-  static const Keyword EXTENDS = fasta.Keyword.EXTENDS;
+  static const Keyword EXTENDS = const Keyword("extends");
 
-  static const Keyword EXTERNAL = fasta.Keyword.EXTERNAL;
+  static const Keyword EXTERNAL = const Keyword("external", isBuiltIn: true);
 
-  static const Keyword FACTORY = fasta.Keyword.FACTORY;
+  static const Keyword FACTORY = const Keyword("factory", isBuiltIn: true);
 
-  static const Keyword FALSE = fasta.Keyword.FALSE;
+  static const Keyword FALSE = const Keyword("false");
 
-  static const Keyword FINAL = fasta.Keyword.FINAL;
+  static const Keyword FINAL = const Keyword("final");
 
-  static const Keyword FINALLY = fasta.Keyword.FINALLY;
+  static const Keyword FINALLY = const Keyword("finally");
 
-  static const Keyword FOR = fasta.Keyword.FOR;
+  static const Keyword FOR = const Keyword("for");
 
-  static const Keyword FUNCTION = fasta.Keyword.FUNCTION;
+  static const Keyword FUNCTION = const Keyword("Function", isPseudo: true);
 
-  static const Keyword GET = fasta.Keyword.GET;
+  static const Keyword GET = const Keyword("get", isBuiltIn: true);
 
-  static const Keyword HIDE = fasta.Keyword.HIDE;
+  static const Keyword HIDE = const Keyword("hide", isPseudo: true);
 
-  static const Keyword IF = fasta.Keyword.IF;
+  static const Keyword IF = const Keyword("if");
 
-  static const Keyword IMPLEMENTS = fasta.Keyword.IMPLEMENTS;
+  static const Keyword IMPLEMENTS =
+      const Keyword("implements", isBuiltIn: true);
 
-  static const Keyword IMPORT = fasta.Keyword.IMPORT;
+  static const Keyword IMPORT = const Keyword("import", isBuiltIn: true);
 
-  static const Keyword IN = fasta.Keyword.IN;
+  static const Keyword IN = const Keyword("in");
 
-  static const Keyword IS = fasta.Keyword.IS;
+  static const Keyword IS = const Keyword("is", info: fasta.IS_INFO);
 
-  static const Keyword LIBRARY = fasta.Keyword.LIBRARY;
+  static const Keyword LIBRARY = const Keyword("library", isBuiltIn: true);
 
-  static const Keyword NATIVE = fasta.Keyword.NATIVE;
+  static const Keyword NATIVE = const Keyword("native", isPseudo: true);
 
-  static const Keyword NEW = fasta.Keyword.NEW;
+  static const Keyword NEW = const Keyword("new");
 
-  static const Keyword NULL = fasta.Keyword.NULL;
+  static const Keyword NULL = const Keyword("null");
 
-  static const Keyword OF = fasta.Keyword.OF;
+  static const Keyword OF = const Keyword("of", isPseudo: true);
 
-  static const Keyword ON = fasta.Keyword.ON;
+  static const Keyword ON = const Keyword("on", isPseudo: true);
 
-  static const Keyword OPERATOR = fasta.Keyword.OPERATOR;
+  static const Keyword OPERATOR = const Keyword("operator", isBuiltIn: true);
 
-  static const Keyword PART = fasta.Keyword.PART;
+  static const Keyword PART = const Keyword("part", isBuiltIn: true);
 
-  static const Keyword PATCH = fasta.Keyword.PATCH;
+  static const Keyword PATCH = const Keyword("patch", isPseudo: true);
 
-  static const Keyword RETHROW = fasta.Keyword.RETHROW;
+  static const Keyword RETHROW = const Keyword("rethrow");
 
-  static const Keyword RETURN = fasta.Keyword.RETURN;
+  static const Keyword RETURN = const Keyword("return");
 
-  static const Keyword SET = fasta.Keyword.SET;
+  static const Keyword SET = const Keyword("set", isBuiltIn: true);
 
-  static const Keyword SHOW = fasta.Keyword.SHOW;
+  static const Keyword SHOW = const Keyword("show", isPseudo: true);
 
-  static const Keyword SOURCE = fasta.Keyword.SOURCE;
+  static const Keyword SOURCE = const Keyword("source", isPseudo: true);
 
-  static const Keyword STATIC = fasta.Keyword.STATIC;
+  static const Keyword STATIC = const Keyword("static", isBuiltIn: true);
 
-  static const Keyword SUPER = fasta.Keyword.SUPER;
+  static const Keyword SUPER = const Keyword("super");
 
-  static const Keyword SWITCH = fasta.Keyword.SWITCH;
+  static const Keyword SWITCH = const Keyword("switch");
 
-  static const Keyword SYNC = fasta.Keyword.SYNC;
+  static const Keyword SYNC = const Keyword("sync", isPseudo: true);
 
-  static const Keyword THIS = fasta.Keyword.THIS;
+  static const Keyword THIS = const Keyword("this");
 
-  static const Keyword THROW = fasta.Keyword.THROW;
+  static const Keyword THROW = const Keyword("throw");
 
-  static const Keyword TRUE = fasta.Keyword.TRUE;
+  static const Keyword TRUE = const Keyword("true");
 
-  static const Keyword TRY = fasta.Keyword.TRY;
+  static const Keyword TRY = const Keyword("try");
 
-  static const Keyword TYPEDEF = fasta.Keyword.TYPEDEF;
+  static const Keyword TYPEDEF = const Keyword("typedef", isBuiltIn: true);
 
-  static const Keyword VAR = fasta.Keyword.VAR;
+  static const Keyword VAR = const Keyword("var");
 
-  static const Keyword VOID = fasta.Keyword.VOID;
+  static const Keyword VOID = const Keyword("void");
 
-  static const Keyword WHILE = fasta.Keyword.WHILE;
+  static const Keyword WHILE = const Keyword("while");
 
-  static const Keyword WITH = fasta.Keyword.WITH;
+  static const Keyword WITH = const Keyword("with");
 
-  static const Keyword YIELD = fasta.Keyword.YIELD;
+  static const Keyword YIELD = const Keyword("yield", isPseudo: true);
 
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,

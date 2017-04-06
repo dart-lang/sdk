@@ -41,6 +41,7 @@ final subpackageRules = {
     'lib/src/fasta/scanner',
     'lib/src/fasta/testing',
     'lib/src/fasta/util',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/analyzer':
       new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
@@ -73,6 +74,7 @@ final subpackageRules = {
     'lib/src/fasta',
     'lib/src/fasta/scanner',
     'lib/src/fasta/util',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',

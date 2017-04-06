@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/fasta/token_utils.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as fasta;

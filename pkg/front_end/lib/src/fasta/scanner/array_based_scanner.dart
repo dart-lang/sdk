@@ -6,7 +6,7 @@ library fasta.scanner.array_based_scanner;
 
 import 'error_token.dart' show ErrorToken, UnmatchedToken;
 
-import 'keyword.dart' show Keyword;
+import '../../scanner/token.dart' show Keyword;
 
 import 'precedence.dart' show PrecedenceInfo;
 

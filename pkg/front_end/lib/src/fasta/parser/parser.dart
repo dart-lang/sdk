@@ -58,7 +58,7 @@ import '../scanner.dart' show ErrorToken;
 
 import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 
-import '../scanner/keyword.dart' show Keyword;
+import '../../scanner/token.dart' show Keyword;
 
 import '../scanner/precedence.dart'
     show

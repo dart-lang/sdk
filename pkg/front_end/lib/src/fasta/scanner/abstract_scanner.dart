@@ -9,11 +9,11 @@ import 'dart:collection' show ListMixin;
 import 'dart:typed_data' show Uint16List, Uint32List;
 
 import '../scanner.dart'
-    show ErrorToken, Scanner, buildUnexpectedCharacterToken;
+    show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
 
 import 'error_token.dart' show UnterminatedToken;
 
-import 'keyword.dart' show KeywordState, Keyword;
+import 'keyword_state.dart' show KeywordState;
 
 import 'precedence.dart';
 

@@ -6,8 +6,6 @@ library fasta.scanner.token;
 
 import '../../scanner/token.dart' as analyzer;
 
-import 'keyword.dart' show Keyword;
-
 import 'precedence.dart'
     show
         AS_INFO,
@@ -335,7 +333,7 @@ class BeginGroupToken extends SymbolToken
  * A keyword token.
  */
 class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
-  final Keyword keyword;
+  final analyzer.Keyword keyword;
 
   KeywordToken(this.keyword, int charOffset) : super(charOffset);
 
@@ -357,7 +355,7 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
   Token copyWithoutComments() => new KeywordToken(keyword, charOffset);
 
   @override
-  Keyword value() => keyword;
+  analyzer.Keyword value() => keyword;
 
   @override
   analyzer.TokenType get type => KEYWORD_INFO;
@@ -372,7 +370,8 @@ class SyntheticKeywordToken extends KeywordToken
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+  SyntheticKeywordToken(analyzer.Keyword keyword, int offset)
+      : super(keyword, offset);
 
   @override
   bool get isSynthetic => true;

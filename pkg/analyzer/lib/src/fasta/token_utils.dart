@@ -6,7 +6,7 @@ library fasta.analyzer.token_utils;
 
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 
-import 'package:front_end/src/fasta/scanner/keyword.dart' show Keyword;
+import 'package:front_end/src/scanner/token.dart' show Keyword;
 
 import 'package:front_end/src/fasta/scanner/precedence.dart';
 
