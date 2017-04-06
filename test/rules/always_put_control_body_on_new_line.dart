@@ -29,6 +29,10 @@ testIfElse() {
 
   if (false){ }// LINT
   else {} // LINT
+
+  if (false) print( // LINT
+    'First argument'
+    'Second argument');
 }
 
 testWhile() {
