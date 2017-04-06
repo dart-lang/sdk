@@ -3472,7 +3472,7 @@ class Parser {
     if (identical(value, ';')) {
       listener.handleNoExpression(token);
       return token;
-    } else if (isOneOf3(token, 'var', 'final', 'const')) {
+    } else if (isOneOf4(token, '@', 'var', 'final', 'const')) {
       return parseVariablesDeclarationNoSemicolon(token);
     }
     Token identifier = peekIdentifierAfterType(token);

@@ -540,11 +540,11 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation type = pop();
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
-    pop(); // Metadata.
-    pop(); // Comment.
+    List<Annotation> metadata = pop();
+    Comment comment = pop();
     push(ast.variableDeclarationStatement(
         ast.variableDeclarationList(
-            null, null, toAnalyzerToken(keyword), type, variables),
+            comment, metadata, toAnalyzerToken(keyword), type, variables),
         toAnalyzerToken(endToken)));
   }
 
