@@ -377,6 +377,7 @@ class Deserializer : public StackResource {
   Snapshot::Kind kind_;
   ReadStream stream_;
   InstructionsReader* instructions_reader_;
+  intptr_t num_base_objects_;
   intptr_t num_objects_;
   intptr_t num_clusters_;
   RawArray* refs_;

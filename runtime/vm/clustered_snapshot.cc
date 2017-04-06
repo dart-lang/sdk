@@ -4719,6 +4719,7 @@ void Serializer::Serialize() {
   }
 #endif
 
+  Write<int32_t>(num_base_objects_);
   Write<int32_t>(num_objects);
   Write<int32_t>(num_clusters);
 
@@ -5093,6 +5094,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
 
 
 void Deserializer::Prepare() {
+  num_base_objects_ = Read<int32_t>();
   num_objects_ = Read<int32_t>();
   num_clusters_ = Read<int32_t>();
 
@@ -5102,7 +5104,11 @@ void Deserializer::Prepare() {
 
 
 void Deserializer::Deserialize() {
-  // TODO(rmacnak): Verify num of base objects.
+  if (num_base_objects_ != (next_ref_index_ - 1)) {
+    FATAL2("Snapshot expects %" Pd
+           " base objects, but deserializer provided %" Pd,
+           num_base_objects_, next_ref_index_ - 1);
+  }
 
   {
     NOT_IN_PRODUCT(TimelineDurationScope tds(
@@ -5360,7 +5366,12 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
   // Can't have any mutation happening while we're serializing.
   ASSERT(isolate()->background_compiler() == NULL);
 
-  if (vm_snapshot_data_buffer != NULL) {
+  // TODO(rmacnak): The special case for AOT causes us to always generate the
+  // same VM isolate snapshot for every app. AOT snapshots should be cleaned up
+  // so the VM isolate snapshot is generated separately and each app is
+  // generated from a VM that has loaded this snapshots, much like app-jit
+  // snapshots.
+  if ((vm_snapshot_data_buffer != NULL) && (kind != Snapshot::kAppAOT)) {
     NOT_IN_PRODUCT(TimelineDurationScope tds(
         thread(), Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
 
@@ -5390,6 +5401,8 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
     Symbols::SetupSymbolTable(isolate());
   } else {
     // Reuse the current vm isolate.
+    saved_symbol_table_ = object_store->symbol_table();
+    new_vm_symbol_table_ = Dart::vm_isolate()->object_store()->symbol_table();
   }
 }
 
