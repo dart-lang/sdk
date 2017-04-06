@@ -37,7 +37,6 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 # #void should be a valid symbol.
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dart2js ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
-symbol_reserved_word_test/05: CompileTimeError # bug 20191
 
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
@@ -63,6 +62,7 @@ integer_to_radix_string_test: RuntimeError # issue 22045
 int_modulo_arith_test/bignum: RuntimeError # No bigints.
 int_modulo_arith_test/modPow: RuntimeError # No bigints.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
+symbol_reserved_word_test/05: Crash # bug 20191
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
