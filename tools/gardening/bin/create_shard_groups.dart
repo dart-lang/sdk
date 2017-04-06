@@ -76,7 +76,7 @@ main(List<String> args) {
   List<String> dartoSource = dartoSourceFile.readAsLinesSync();
 
   List<String> groups = findGroups(dartoSource);
-  List<String> shards = findShards(dartoSource);
+  List<List<String>> shards = findShards(dartoSource);
   int groupCount = math.min(groups.length, shards.length);
 
   // Print the resulting Dart declaration.
@@ -93,7 +93,7 @@ const Map<String, List<String>> shardGroups = const {
 """);
   for (int i = 0; i < groupCount; i++) {
     print("  '${groups[i]}': const <String>[");
-    for (List<String> shard in shards[i]) {
+    for (String shard in shards[i]) {
       print("    '$shard',");
     }
     print("  ],");
