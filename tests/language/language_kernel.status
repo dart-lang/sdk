@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-bad_initializer1_negative_test: Crash
 body_less_constructor_wrong_arg_negative_test: Crash
 built_in_identifier_test/01: CompileTimeError
 call_nonexistent_static_test/01: CompileTimeError
@@ -58,8 +57,6 @@ const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/01: MissingCompileTimeError
 const_syntax_test/02: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
-const_types_test/06: CompileTimeError
-const_types_test/13: CompileTimeError
 const_types_test/23: MissingCompileTimeError
 const_types_test/24: MissingCompileTimeError
 const_types_test/25: MissingCompileTimeError
@@ -279,14 +276,12 @@ library_ambiguous_test/00: MissingRuntimeError
 library_ambiguous_test/04: MissingRuntimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
-list_literal2_negative_test: Fail
 list_literal4_test: RuntimeError
 main_not_a_function_test/01: Crash
 malformed2_test/00: RuntimeError
 malformed_inheritance_test/09: MissingCompileTimeError
 malformed_inheritance_test/10: MissingCompileTimeError
 malformed_test/none: RuntimeError
-map_literal2_negative_test: Fail
 map_literal3_test: RuntimeError
 map_literal6_test: RuntimeError
 metadata_test: CompileTimeError
@@ -443,7 +438,6 @@ vm/type_vm_test: RuntimeError
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 const_instance_field_test/01: Crash
-list_literal2_negative_test: Crash
 switch1_negative_test: Crash
 type_parameter_test/04: Crash
 type_parameter_test/05: Crash

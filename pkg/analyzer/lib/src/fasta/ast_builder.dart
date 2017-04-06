@@ -96,6 +96,11 @@ class AstBuilder extends ScopeListener {
     _handleInstanceCreation(token);
   }
 
+  @override
+  void endConstLiteral(Token token) {
+    debugEvent("endConstLiteral");
+  }
+
   void _handleInstanceCreation(Token token) {
     MethodInvocation arguments = pop();
     ConstructorName constructorName = pop();

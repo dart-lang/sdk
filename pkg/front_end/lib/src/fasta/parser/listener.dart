@@ -104,6 +104,12 @@ class Listener {
     logEvent("CompilationUnit");
   }
 
+  void beginConstLiteral(Token token) {}
+
+  void endConstLiteral(Token token) {
+    logEvent("ConstLiteral");
+  }
+
   void beginConstructorReference(Token start) {}
 
   void endConstructorReference(

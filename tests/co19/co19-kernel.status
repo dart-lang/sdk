@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Disable tests globally for kernel.
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/non_final_instance_variable_t02: MissingCompileTimeError
@@ -111,7 +110,6 @@ Language/Expressions/Constants/no_other_constant_expressions_t15: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t17: Crash
 Language/Expressions/Constants/static_constant_t06: MissingCompileTimeError
 Language/Expressions/Constants/static_constant_t07: MissingCompileTimeError
-Language/Expressions/Constants/static_method_t02: Crash
 Language/Expressions/Constants/string_length_t03: MissingCompileTimeError
 Language/Expressions/Constants/ternary_operator_t02: MissingCompileTimeError
 Language/Expressions/Constants/top_level_function_t01: Crash
@@ -133,13 +131,7 @@ Language/Expressions/Instance_Creation/Const/deferred_type_t02: MissingCompileTi
 Language/Expressions/Instance_Creation/New/evaluation_t06: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Expressions/Lists/constant_list_t01: MissingCompileTimeError
-Language/Expressions/Lists/constant_list_t02: Crash
-Language/Expressions/Maps/constant_map_key_value_t01: Crash
-Language/Expressions/Maps/constant_map_key_value_t03: MissingCompileTimeError
-Language/Expressions/Maps/constant_map_t01: Crash
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
-Language/Expressions/Maps/constant_map_type_t01: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError # Dartk Issue 28562
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t17: RuntimeError
@@ -385,7 +377,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 Language/Classes/Instance_Variables/constant_t01: Crash
-Language/Expressions/Lists/constant_list_t01: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Statements/Switch/syntax_t16: Crash
 Language/Statements/Switch/syntax_t17: Crash

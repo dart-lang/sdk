@@ -3093,15 +3093,24 @@ class Parser {
     token = _injectGenericCommentTypeList(token);
     final String value = token.stringValue;
     if ((identical(value, '[')) || (identical(value, '[]'))) {
+      listener.beginConstLiteral(token);
       listener.handleNoTypeArguments(token);
-      return parseLiteralListSuffix(token, constKeyword);
+      token = parseLiteralListSuffix(token, constKeyword);
+      listener.endConstLiteral(token);
+      return token;
     }
     if (identical(value, '{')) {
+      listener.beginConstLiteral(token);
       listener.handleNoTypeArguments(token);
-      return parseLiteralMapSuffix(token, constKeyword);
+      token = parseLiteralMapSuffix(token, constKeyword);
+      listener.endConstLiteral(token);
+      return token;
     }
     if (identical(value, '<')) {
-      return parseLiteralListOrMapOrFunction(token, constKeyword);
+      listener.beginConstLiteral(token);
+      token = parseLiteralListOrMapOrFunction(token, constKeyword);
+      listener.endConstLiteral(token);
+      return token;
     }
     listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token);

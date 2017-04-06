@@ -747,7 +747,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantExpressionRequired) {
-          addCompileTimeError(charOffset, "Not a constant expression.");
+          return new UnresolvedAccessor(this, n, charOffset);
         }
         return new ThisPropertyAccessor(this, charOffset, n, null, null);
       } else if (isDartLibrary &&
@@ -1136,7 +1136,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       typeArgument = typeArguments.first;
       if (typeArguments.length > 1) {
         typeArgument = const DynamicType();
-        warning(
+        warningNotError(
             "Too many type arguments on List literal.", beginToken.charOffset);
       }
     }
@@ -1178,7 +1178,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (typeArguments.length != 2) {
         keyType = const DynamicType();
         valueType = const DynamicType();
-        warning(
+        warningNotError(
             "Map literal requires two type arguments.", beginToken.charOffset);
       } else {
         keyType = typeArguments[0];
@@ -1246,7 +1246,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ProblemBuilder problem = builder;
       addCompileTimeError(charOffset, problem.message);
     } else {
-      warning("Not a type: '${builder.fullNameForErrors}'.", charOffset);
+      warningNotError(
+          "Not a type: '${builder.fullNameForErrors}'.", charOffset);
     }
     // TODO(ahe): Create an error somehow.
     return const DynamicType();
@@ -1290,7 +1291,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       name = name.name;
     }
     if (name is FastaAccessor) {
-      warning("'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
+      warningNotError(
+          "'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
     } else if (name is TypeVariableBuilder) {
       if (constantExpressionRequired) {
@@ -1749,6 +1751,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("beginConstExpression");
     super.push(constantExpressionRequired);
     constantExpressionRequired = true;
+  }
+
+  @override
+  void beginConstLiteral(Token token) {
+    debugEvent("beginConstLiteral");
+    super.push(constantExpressionRequired);
+    constantExpressionRequired = true;
+  }
+
+  @override
+  void endConstLiteral(Token token) {
+    debugEvent("endConstLiteral");
+    var literal = pop();
+    constantExpressionRequired = pop();
+    push(literal);
   }
 
   @override
@@ -2421,6 +2438,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       super.warning(message, charOffset);
     }
+  }
+
+  void warningNotError(String message, [int charOffset = -1]) {
+    super.warning(message, charOffset);
   }
 
   Expression evaluateArgumentsBefore(
