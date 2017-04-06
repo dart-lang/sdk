@@ -101,6 +101,9 @@ void ScopeBuilder::AddParameter(VariableDeclaration* declaration,
   if (declaration->IsFinal()) {
     variable->set_is_final();
   }
+  if (variable->name().raw() == Symbols::IteratorParameter().raw()) {
+    variable->set_is_forced_stack();
+  }
   scope_->InsertParameterAt(pos, variable);
   result_->locals.Insert(declaration->kernel_offset(), variable);
 
@@ -303,7 +306,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   LocalVariable* context_var = parsed_function->current_context_var();
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
-  scope_->AddVariable(parsed_function->EnsureExpressionTemp());
 
   parsed_function->SetNodeSequence(
       new SequenceNode(TokenPosition::kNoSource, scope_));
@@ -443,7 +445,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();
   }
-
+  if (needs_expr_temp_) {
+    scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
+  }
   parsed_function->AllocateVariables();
 
   return result_;
@@ -481,6 +485,18 @@ void ScopeBuilder::VisitVariableGet(VariableGet* node) {
 
 void ScopeBuilder::VisitVariableSet(VariableSet* node) {
   LookupVariable(node->variable());
+  node->VisitChildren(this);
+}
+
+
+void ScopeBuilder::VisitConditionalExpression(ConditionalExpression* node) {
+  needs_expr_temp_ = true;
+  node->VisitChildren(this);
+}
+
+
+void ScopeBuilder::VisitLogicalExpression(LogicalExpression* node) {
+  needs_expr_temp_ = true;
   node->VisitChildren(this);
 }
 

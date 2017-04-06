@@ -640,7 +640,8 @@ class ScopeBuilder : public RecursiveVisitor {
         current_function_scope_(NULL),
         scope_(NULL),
         depth_(0),
-        name_index_(0) {}
+        name_index_(0),
+        needs_expr_temp_(false) {}
 
   virtual ~ScopeBuilder() {}
 
@@ -653,6 +654,8 @@ class ScopeBuilder : public RecursiveVisitor {
   virtual void VisitTypeParameterType(TypeParameterType* node);
   virtual void VisitVariableGet(VariableGet* node);
   virtual void VisitVariableSet(VariableSet* node);
+  virtual void VisitConditionalExpression(ConditionalExpression* node);
+  virtual void VisitLogicalExpression(LogicalExpression* node);
   virtual void VisitFunctionExpression(FunctionExpression* node);
   virtual void VisitLet(Let* node);
   virtual void VisitBlock(Block* node);
@@ -739,6 +742,8 @@ class ScopeBuilder : public RecursiveVisitor {
   DepthState depth_;
 
   intptr_t name_index_;
+
+  bool needs_expr_temp_;
 };
 
 class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
