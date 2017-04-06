@@ -12,6 +12,26 @@ kernel/*: Slow, Pass
 
 boolified_operator_test: Fail # Issue 8001
 
+# Skip most serialization tests. These are very slow and are no longer a 
+# priority.
+serialization/analysis1_test: Skip
+serialization/analysis3_test: Skip
+serialization/analysis4_test: Skip
+serialization/analysis5_test: Skip
+serialization/compilation_1_test: Skip
+serialization/compilation0_test: Skip
+serialization/compilation1_test: Skip
+serialization/compilation4_test: Skip
+serialization/compilation3_test: Skip
+serialization/compilation5_test: Skip
+serialization/library_test: Skip
+serialization/model_1_test: Skip
+serialization/model1_test: Skip
+serialization/model3_test: Skip
+serialization/model4_test: Skip
+serialization/model5_test: Skip
+serialization/native_data_test: Skip
+
 # Don't mark these tests as failing. Instead, fix the errors/warnings that they
 # report or update the whitelist in the test-files to temporarily allow
 # digression.
