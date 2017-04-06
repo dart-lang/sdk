@@ -63,7 +63,7 @@ class SsaOptimizerTask extends CompilerTask {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
       _backend.tracer.traceGraph(phase.name, graph);
-      assert(graph.isValid(), 'Graph not valid after ${phase.name}');
+      assert(graph.isValid());
     }
 
     bool trustPrimitives = _options.trustPrimitives;
@@ -733,29 +733,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   void simplifyCondition(
       HBasicBlock block, HInstruction condition, bool value) {
-    // `excludePhiOutEdges: true` prevents replacing a partially dominated phi
-    // node input with a constant. This tends to add unnecessary assignments, by
-    // transforming the following, which has phi(false, x),
-    //
-    //    if (x) { init(); x = false; }
-    //
-    // into this, which has phi(false, false)
-    //
-    //    if (x) { init(); x = false; } else { x = false; }
-    //
-    // which is further simplifed to:
-    //
-    //    if (x) { init(); }
-    //    ...
-    //    x = false;
-    //
-    // This is mostly harmless (if a little confusing) but does cause a lot of
-    // `x = false;` copies to be inserted when a loop body has many continue
-    // statements or ends with a switch.
-    var uses =
-        DominatedUses.of(condition, block.first, excludePhiOutEdges: true);
-    if (uses.isEmpty) return;
-    uses.replaceWith(_graph.addConstantBool(value, _closedWorld));
+    condition.dominatedUsers(block.first).forEach((user) {
+      HInstruction newCondition = _graph.addConstantBool(value, _closedWorld);
+      user.changeUse(condition, newCondition);
+    });
   }
 
   HInstruction visitIf(HIf node) {
@@ -1641,10 +1622,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       }
       // Run through the phis of the block and replace them with their input
       // that comes from the only live predecessor if that dominates the phi.
-      //
-      // TODO(sra): If the input is directly in the only live predecessor, it
-      // might be possible to move it into [block] (e.g. all its inputs are
-      // dominating.)
       block.forEachPhi((HPhi phi) {
         HInstruction replacement =
             (indexOfLive >= 0) ? phi.inputs[indexOfLive] : zapInstruction;
@@ -2193,12 +2170,14 @@ class SsaTypeConversionInserter extends HBaseVisitor
   // non-movable.
   void insertTypePropagationForDominatedUsers(
       HBasicBlock dominator, HInstruction input, TypeMask convertedType) {
-    DominatedUses dominatedUses = DominatedUses.of(input, dominator.first);
-    if (dominatedUses.isEmpty) return;
+    Setlet<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
+    if (dominatedUsers.isEmpty) return;
 
     HTypeKnown newInput = new HTypeKnown.pinned(convertedType, input);
     dominator.addBefore(dominator.first, newInput);
-    dominatedUses.replaceWith(newInput);
+    dominatedUsers.forEach((HInstruction user) {
+      user.changeUse(input, newInput);
+    });
   }
 
   void visitIs(HIs instruction) {
