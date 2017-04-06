@@ -1571,15 +1571,31 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
+
+    // Decompose the preliminary ConstructorName into the type name and
+    // the actual constructor name.
+    SimpleIdentifier returnType;
+    analyzer.Token period;
+    SimpleIdentifier name;
+    Identifier typeName = constructorName.type.name;
+    if (typeName is SimpleIdentifier) {
+      returnType = typeName;
+    } else if (typeName is PrefixedIdentifier) {
+      returnType = typeName.prefix;
+      period = typeName.period;
+      name =
+          ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
+    }
+
     push(ast.constructorDeclaration(
         comment,
         metadata,
         toAnalyzerToken(modifiers?.externalKeyword),
         toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
         toAnalyzerToken(factoryKeyword),
-        constructorName.type.name,
-        constructorName.period,
-        constructorName.name,
+        ast.simpleIdentifier(returnType.token),
+        period,
+        name,
         parameters,
         toAnalyzerToken(separator),
         null,

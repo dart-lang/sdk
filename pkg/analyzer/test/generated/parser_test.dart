@@ -1118,6 +1118,27 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(assertInitializer.message, isNull);
   }
 
+  void test_parseConstructor_factory_named() {
+    createParser('factory C.foo() => null;');
+    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
+    assertNoErrors();
+    expect(constructor, isNotNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword, isNotNull);
+    expect(constructor.returnType.name, 'C');
+    _assertIsDeclarationName(constructor.returnType, false);
+    expect(constructor.period.type, TokenType.PERIOD);
+    expect(constructor.name.name, 'foo');
+    _assertIsDeclarationName(constructor.name);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.parameters.parameters, isEmpty);
+    expect(constructor.separator, isNull);
+    expect(constructor.initializers, isEmpty);
+    expect(constructor.redirectedConstructor, isNull);
+    expect(constructor.body, new isInstanceOf<ExpressionFunctionBody>());
+  }
+
   void test_parseConstructor_initializers_field() {
     createParser('C(x, y) : _x = x, this._y = y;');
     ClassMember member = parser.parseClassMember('C');
