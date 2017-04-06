@@ -364,7 +364,7 @@ class FileState {
             null,
             null,
             new _FastaElementStoreProxy(),
-            null,
+            new fasta.Scope.top(isModifiable: true),
             uri);
         var parser = new fasta.Parser(astBuilder);
         parser.parseUnit(scanResult.tokens);
