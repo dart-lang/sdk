@@ -13,9 +13,9 @@ From the [flutter style guide](https://flutter.io/style-guide/):
 
 **DO** Separate the control structre expression from its statement.
 
-Don't put the statement part of an `if`, `for`, `while` on the same line as the
-expression, even if it is short. (Doing so makes it unobvious that there is
-relevant code there. This is especially important for early returns.)
+Don't put the statement part of an `if`, `for`, `while`, `do` on the same line
+as the expression, even if it is short. (Doing so makes it unobvious that there
+is relevant code there. This is especially important for early returns.)
 
 **GOOD:**
 ```
@@ -82,29 +82,18 @@ class Visitor extends SimpleAstVisitor {
     _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
   }
 
+  @override
+  visitDoStatement(DoStatement node) {
+    _checkNodeOnNextLine(node.body, node.doKeyword.end);
+  }
+
   void _checkNodeOnNextLine(AstNode node, int controlEnd) {
     // if (node is Block) return;
 
     final unit = node.root as CompilationUnit;
-    final content = unit.element.context.getContents(unit.element.source).data;
-
-    if (_getLine(content, controlEnd) == _getLine(content, node.end)) {
+    if (unit.lineInfo.getLocation(controlEnd).lineNumber ==
+        unit.lineInfo.getLocation(node.end).lineNumber) {
       rule.reportLintForToken(node.beginToken);
     }
   }
-}
-
-const int _LF = 10;
-const int _CR = 13;
-
-int _getLine(String content, int offset) {
-  int line = 1;
-  int char = 0;
-  for (int i = 0; i < offset; i++) {
-    int previousChar = char;
-    char = content.codeUnitAt(i);
-    if (char == _CR) line++;
-    if (char == _LF && previousChar != _CR) line++;
-  }
-  return line;
 }

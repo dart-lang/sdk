@@ -57,3 +57,12 @@ testFor() {
   for (;;)
     return; // OK
 }
+
+testDo() {
+  do print(''); // LINT
+  while (true);
+
+  do
+    print(''); // OK
+  while (true);
+}
