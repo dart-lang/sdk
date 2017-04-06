@@ -159,6 +159,14 @@ class Foo {
   List<Keyword> get _allKeywords =>
       new List.from(Keyword.values)..addAll(fasta.Keyword.values);
 
+  void test_all_keywords() {
+    var keywords = new Set<fasta.Keyword>.from(fasta.Keyword.values);
+    for (Keyword kw in Keyword.values) {
+      expect(keywords.remove(kw), isTrue, reason: kw.name);
+    }
+    expect(keywords, isEmpty);
+  }
+
   void test_built_in_keywords() {
     var builtInKeywords = new Set<Keyword>.from([
       Keyword.ABSTRACT,

@@ -13,7 +13,6 @@ import 'precedence.dart'
         AS_INFO,
         BAD_INPUT_INFO,
         EOF_INFO,
-        IDENTIFIER_INFO,
         IS_INFO,
         KEYWORD_INFO,
         PrecedenceInfo;
@@ -358,12 +357,10 @@ class KeywordToken extends Token implements analyzer.KeywordTokenWithComment {
   Token copyWithoutComments() => new KeywordToken(keyword, charOffset);
 
   @override
-  // Analyzer considers pseudo-keywords to have a different value
-  Object value() => isPseudo ? lexeme : keyword;
+  Keyword value() => keyword;
 
   @override
-  // Analyzer considers pseudo-keywords to be identifiers
-  analyzer.TokenType get type => isPseudo ? IDENTIFIER_INFO : KEYWORD_INFO;
+  analyzer.TokenType get type => KEYWORD_INFO;
 }
 
 /**

@@ -495,15 +495,6 @@ analyzer.Token toAnalyzerToken(Token token,
     case KEYWORD_TOKEN:
       KeywordToken keywordToken = token;
       var syntax = keywordToken.keyword.syntax;
-      if (keywordToken.keyword.isPseudo) {
-        // TODO(paulberry,ahe): Fasta considers "deferred" be a "pseudo-keyword"
-        // (ordinary identifier which has special meaning under circumstances),
-        // but analyzer and the spec consider it to be a built-in identifier
-        // (identifier which can't be used in type names).
-        if (!identical(syntax, 'deferred')) {
-          return makeStringToken(TokenType.IDENTIFIER);
-        }
-      }
       // TODO(paulberry): if the map lookup proves to be too slow, consider
       // using a switch statement, or perhaps a string of
       // "if (identical(syntax, "foo"))" checks.  (Note that identical checks
@@ -575,10 +566,13 @@ final _keywordMap = {
   "void": analyzer.Keyword.VOID,
   "while": analyzer.Keyword.WHILE,
   "with": analyzer.Keyword.WITH,
+  //
   "is": analyzer.Keyword.IS,
+  //
   "abstract": analyzer.Keyword.ABSTRACT,
   "as": analyzer.Keyword.AS,
   "covariant": analyzer.Keyword.COVARIANT,
+  "deferred": analyzer.Keyword.DEFERRED,
   "dynamic": analyzer.Keyword.DYNAMIC,
   "export": analyzer.Keyword.EXPORT,
   "external": analyzer.Keyword.EXTERNAL,
@@ -592,7 +586,19 @@ final _keywordMap = {
   "set": analyzer.Keyword.SET,
   "static": analyzer.Keyword.STATIC,
   "typedef": analyzer.Keyword.TYPEDEF,
-  "deferred": analyzer.Keyword.DEFERRED,
+  //
+  "async": analyzer.Keyword.ASYNC,
+  "await": analyzer.Keyword.AWAIT,
+  "Function": analyzer.Keyword.FUNCTION,
+  "hide": analyzer.Keyword.HIDE,
+  "native": analyzer.Keyword.NATIVE,
+  "of": analyzer.Keyword.OF,
+  "on": analyzer.Keyword.ON,
+  "patch": analyzer.Keyword.PATCH,
+  "show": analyzer.Keyword.SHOW,
+  "source": analyzer.Keyword.SOURCE,
+  "sync": analyzer.Keyword.SYNC,
+  "yield": analyzer.Keyword.YIELD,
 };
 
 TokenType getTokenType(Token token) {
