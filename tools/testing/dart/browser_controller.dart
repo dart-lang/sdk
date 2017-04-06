@@ -1805,11 +1805,17 @@ body div {
       function sendStatusUpdate () {
         var dom =
             embedded_iframe.contentWindow.document.documentElement.innerHTML;
-        reportMessage('Status:\\n  Messages received multiple times:\\n    ' +
-                      html_test.double_received_messages +
-                      '\\n  Unexpected messages:\\n    ' +
-                      html_test.unexpected_messages +
-                      '\\n  DOM:\\n    ' + dom, false, true);
+        var message = 'Status:\\n';
+        if (html_test != null) {
+          message +=
+            '  Messages received multiple times:\\n' +
+            '    ' + html_test.double_received_messages + '\\n' +
+            '  Unexpected messages:\\n' +
+            '    ' + html_test.unexpected_messages + '\\n';
+        }
+        message += '  DOM:\\n' +
+                   '    ' + dom;
+        reportMessage(message, false, true);
       }
 
       function sendRepeatingStatusUpdate() {
