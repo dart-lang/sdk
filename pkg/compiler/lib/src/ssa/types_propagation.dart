@@ -397,7 +397,9 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           addDependentInstructionsToWorkList(next);
         }
       } else {
-        bool hasCandidates() => receiver.dominatedUsers(instruction).length > 1;
+        bool hasCandidates() => DominatedUses
+            .of(receiver, instruction, excludeDominator: true)
+            .isNotEmpty;
 
         if ((receiver.usedBy.length <= _MAX_QUICK_USERS)
             ? (hasCandidates() && computeNewType() != receiverType)
