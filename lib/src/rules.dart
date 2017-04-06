@@ -7,6 +7,7 @@ library linter.src.rules;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_specify_types.dart';
+import 'package:linter/src/rules/always_use_required_for_non_null_named_parameter.dart';
 import 'package:linter/src/rules/annotate_overrides.dart';
 import 'package:linter/src/rules/avoid_annotating_with_dynamic.dart';
 import 'package:linter/src/rules/avoid_as.dart';
@@ -93,6 +94,7 @@ void registerLintRules() {
   Analyzer.facade
     ..register(new AlwaysDeclareReturnTypes())
     ..register(new AlwaysSpecifyTypes())
+    ..register(new AlwaysUseRequiredForNonNullNamedParameter())
     ..register(new AnnotateOverrides())
     ..register(new AvoidAnnotatingWithDynamic())
     ..register(new AvoidTypesOnClosureParameters())
