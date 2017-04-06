@@ -485,7 +485,9 @@ abstract class Future<T> {
         try {
           result = f();
         } catch (error, stackTrace) {
-          _completeWithErrorCallback(doneSignal, error, stackTrace);
+          // Cannot use _completeWithErrorCallback because it completes
+          // the future synchronously.
+          _asyncCompleteWithErrorCallback(doneSignal, error, stackTrace);
           return;
         }
         if (result is Future<bool>) {
@@ -871,6 +873,16 @@ void _completeWithErrorCallback(_Future result, error, stackTrace) {
     stackTrace = replacement.stackTrace;
   }
   result._completeError(error, stackTrace);
+}
+
+// Like [_completeWIthErrorCallback] but completes asynchronously.
+void _asyncCompleteWithErrorCallback(_Future result, error, stackTrace) {
+  AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+  if (replacement != null) {
+    error = _nonNullError(replacement.error);
+    stackTrace = replacement.stackTrace;
+  }
+  result._asyncCompleteError(error, stackTrace);
 }
 
 /** Helper function that converts `null` to a [NullThrownError]. */
