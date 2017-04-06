@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor {
         node.returnType?.type?.name != 'void') {
       return;
     }
-    bool _visitExpression(Expression expression) {
+    void _visitExpression(Expression expression) {
       if (expression is AssignmentExpression) {
         final leftOperand = DartTypeUtilities
             .getCanonicalElementFromIdentifier(expression.leftHandSide);
