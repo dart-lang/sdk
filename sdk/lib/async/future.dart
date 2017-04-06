@@ -423,31 +423,43 @@ abstract class Future<T> {
   }
 
   /**
-   * Perform an async operation for each element of the iterable, in turn.
+   * Perform an operation for each element of the iterable, in turn.
    *
-   * Runs [f] for each element in [input] in order, moving to the next element
-   * only when the [Future] returned by [f] completes. Returns a [Future] that
-   * completes when all elements have been processed.
+   * The operation, [f], may be either synchronous or asynchronous.
    *
-   * The return values of all [Future]s are discarded. Any errors will cause the
-   * iteration to stop and will be piped through the returned [Future].
+   * Calls [f] with each element in [input] in order.
+   * If the call to [f] returns a `Future<T>`, the iteration waits
+   * until the future is completed before moving to the next element.
    *
-   * If [f] returns a non-[Future], iteration continues immediately. Otherwise
-   * it waits for the returned [Future] to complete.
+   * Returns a [Future] that completes with `null` when all elements have been
+   * processed.
+   *
+   * Non-[Future] return values, and completion-values of returned [Future]s,
+   * are discarded.
+   *
+   * Any error from [f], synchronous or asynchronous, will stop the iteration
+   * and will be reported in the returned [Future].
    */
   static Future forEach<T>(Iterable<T> input, FutureOr f(T element)) {
     var iterator = input.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
-      return new Future.sync(() => f(iterator.current)).then((_) => true);
+      var result = f(iterator.current);
+      if (result is Future<T>) return result.then(_kTrue);
+      return true;
     });
   }
 
+  // Constant `true` function, used as callback by [forEach].
+  static bool _kTrue(_) => true;
+
   /**
-   * Performs an async operation repeatedly until it returns `false`.
+   * Performs an operation repeatedly until it returns `false`.
    *
-   * The function [f] is called repeatedly while it returns either the [bool]
-   * value `true` or a [Future] which completes with the value `true`.
+   * The operation, [f], may be either synchronous or asynchronous.
+   *
+   * The operation is called repeatedly as long as it returns either the [bool]
+   * value `true` or a `Future<bool>` which completes with the value `true`.
    *
    * If a call to [f] returns `false` or a [Future] that completes to `false`,
    * iteration ends and the future returned by [doWhile] is completed with
@@ -456,6 +468,11 @@ abstract class Future<T> {
    * If a call to [f] throws or a future returned by [f] completes with
    * an error, iteration ends and the future returned by [doWhile]
    * completes with the same error.
+   *
+   * Calls to [f] may happen at any time, including immediately after calling
+   * `doWhile`. The only restriction is a new call to [f] won't happen before
+   * the previous call has returned, and if it returned a `Future<bool>`, not
+   * until that future has completed.
    */
   static Future doWhile(FutureOr<bool> f()) {
     _Future doneSignal = new _Future();
@@ -464,8 +481,18 @@ abstract class Future<T> {
     // context of all the previous iterations' callbacks.
     nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
       if (keepGoing) {
-        new Future.sync(f)
-            .then(nextIteration, onError: doneSignal._completeError);
+        FutureOr<bool> result;
+        try {
+          result = f();
+        } catch (error, stackTrace) {
+          _completeWithErrorCallback(doneSignal, error, stackTrace);
+          return;
+        }
+        if (result is Future<bool>) {
+          result.then(nextIteration, onError: doneSignal._completeError);
+          return;
+        }
+        nextIteration(result);
       } else {
         doneSignal._complete(null);
       }
