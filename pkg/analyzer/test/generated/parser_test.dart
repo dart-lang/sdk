@@ -784,6 +784,17 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_native() {
+    createParser('m() native "str";');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
+    assertNoErrors();
+
+    var body = method.body as NativeFunctionBody;
+    expect(body.nativeKeyword, isNotNull);
+    expect(body.stringLiteral, isNotNull);
+    expect(body.semicolon, isNotNull);
+  }
+
   void test_parseClassMember_method_operator_noType() {
     createParser('operator() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -11054,18 +11065,6 @@ void''');
     expect(body.isAsynchronous, isTrue);
     expect(body.isGenerator, isFalse);
     expect(body.isSynchronous, isFalse);
-  }
-
-  void test_parseFunctionBody_nativeFunctionBody() {
-    createParser('native "str";');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertNoErrors();
-    expect(functionBody, new isInstanceOf<NativeFunctionBody>());
-    NativeFunctionBody body = functionBody;
-    expect(body.nativeKeyword, isNotNull);
-    expect(body.stringLiteral, isNotNull);
-    expect(body.semicolon, isNotNull);
   }
 
   void test_parseFunctionBody_skip_block() {

@@ -10,13 +10,13 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType;
+    show FormalParameterType, Parser;
 import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, Token;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/fasta_codes.dart'
-    show FastaMessage, codeExpectedExpression;
+    show FastaMessage, codeExpectedExpression, codeExpectedFunctionBody;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder, Scope;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
@@ -44,6 +44,12 @@ class AstBuilder extends ScopeListener {
 
   @override
   final Uri uri;
+
+  /**
+   * The [Parser] that uses this listener, used to parse optional parts, e.g.
+   * `native` support.
+   */
+  Parser parser;
 
   /// The name of the class currently being parsed, or `null` if no class is
   /// being parsed.
@@ -1112,8 +1118,25 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleInvalidFunctionBody(Token token) {
+    debugEvent("InvalidFunctionBody");
+  }
+
+  @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (message.code == codeExpectedExpression) {
+    if (message.code == codeExpectedFunctionBody) {
+      if (identical('native', token.stringValue) && parser != null) {
+        Token nativeKeyword = token;
+        Token semicolon = parser.parseLiteralString(token.next);
+        token = parser.expectSemicolon(semicolon);
+        StringLiteral name = pop();
+        pop(); // star
+        pop(); // async
+        push(ast.nativeFunctionBody(
+            toAnalyzerToken(nativeKeyword), name, toAnalyzerToken(semicolon)));
+        return token;
+      }
+    } else if (message.code == codeExpectedExpression) {
       String lexeme = token.lexeme;
       if (identical('async', lexeme) || identical('yield', lexeme)) {
         errorReporter?.reportErrorForOffset(

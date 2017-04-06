@@ -367,6 +367,7 @@ class FileState {
             new fasta.Scope.top(isModifiable: true),
             uri);
         var parser = new fasta.Parser(astBuilder);
+        astBuilder.parser = parser;
         parser.parseUnit(scanResult.tokens);
         var unit = astBuilder.pop() as CompilationUnit;
 
