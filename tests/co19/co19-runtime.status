@@ -25,9 +25,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
-Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
-Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
 Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 
 Language/Statements/Assert/execution_t02: skip # co19 issue 734
@@ -51,9 +48,6 @@ LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 # With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
-Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
 [ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
@@ -154,6 +148,13 @@ Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
+
+Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
+Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
+Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
+Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
 
 [ $runtime == dart_precompiled || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors

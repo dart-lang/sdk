@@ -183,7 +183,6 @@ Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: Missing
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/name_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/name_t02: MissingCompileTimeError
-Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t03: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t04: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t06: MissingCompileTimeError
@@ -201,13 +200,11 @@ Language/Functions/Function_Declarations/external_function_t02: MissingCompileTi
 Language/Functions/syntax_t05: MissingCompileTimeError
 Language/Functions/syntax_t31: MissingCompileTimeError
 Language/Generics/malformed_t01: RuntimeError
-Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass # OK
-Language/Libraries_and_Scripts/Exports/reexport_t01: Pass
+Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass # OK
 Language/Libraries_and_Scripts/Imports/same_name_t02/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t05: RuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
@@ -218,7 +215,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for de
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t11: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/syntax_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/syntax_t06: Pass # OK
 Language/Libraries_and_Scripts/Scripts/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t06: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t07: MissingCompileTimeError
@@ -312,7 +308,6 @@ Language/Statements/For/syntax_t19: MissingCompileTimeError
 Language/Statements/For/syntax_t20: MissingCompileTimeError
 Language/Statements/If/execution_t03: Crash
 Language/Statements/Labels/scope_t05: MissingCompileTimeError
-Language/Statements/Labels/syntax_t03: Pass # OK
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t11: MissingCompileTimeError
@@ -326,7 +321,6 @@ Language/Statements/Switch/expressions_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t03: MissingCompileTimeError
 Language/Statements/Switch/expressions_t04: MissingCompileTimeError
 Language/Statements/Switch/labels_constants_t01: MissingCompileTimeError
-Language/Statements/Switch/syntax_t02: Pass # OK
 Language/Statements/Switch/syntax_t16: MissingCompileTimeError
 Language/Statements/Switch/syntax_t17: MissingCompileTimeError
 Language/Statements/Try/malformed_type_t04: RuntimeError
