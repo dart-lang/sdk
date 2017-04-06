@@ -866,6 +866,8 @@ class HBasicBlock extends HInstructionList {
     } while (other != null && other.id >= id);
     return dominatesCache[other] = false;
   }
+
+  toString() => 'HBasicBlock($id)';
 }
 
 abstract class HInstruction implements Spannable {
@@ -1277,60 +1279,9 @@ abstract class HInstruction implements Spannable {
     removeFromList(oldInput.usedBy, this);
   }
 
-  // Compute the set of users of this instruction that is dominated by
-  // [other]. If [other] is a user of [this], it is included in the
-  // returned set.
-  Setlet<HInstruction> dominatedUsers(HInstruction other) {
-    // Keep track of all instructions that we have to deal with later
-    // and count the number of them that are in the current block.
-    Setlet<HInstruction> users = new Setlet<HInstruction>();
-    int usersInCurrentBlock = 0;
-
-    // Run through all the users and see if they are dominated or
-    // potentially dominated by [other].
-    HBasicBlock otherBlock = other.block;
-    for (int i = 0, length = usedBy.length; i < length; i++) {
-      HInstruction current = usedBy[i];
-      HBasicBlock currentBlock = current.block;
-      if (otherBlock.dominates(currentBlock)) {
-        if (identical(currentBlock, otherBlock)) usersInCurrentBlock++;
-        users.add(current);
-      }
-    }
-
-    // Run through all the phis in the same block as [other] and remove them
-    // from the users set.
-    if (usersInCurrentBlock > 0) {
-      for (HPhi phi = otherBlock.phis.first; phi != null; phi = phi.next) {
-        if (users.contains(phi)) {
-          users.remove(phi);
-          if (--usersInCurrentBlock == 0) break;
-        }
-      }
-    }
-
-    // Run through all the instructions before [other] and remove them
-    // from the users set.
-    if (usersInCurrentBlock > 0) {
-      HInstruction current = otherBlock.first;
-      while (!identical(current, other)) {
-        if (users.contains(current)) {
-          users.remove(current);
-          if (--usersInCurrentBlock == 0) break;
-        }
-        current = current.next;
-      }
-    }
-
-    return users;
-  }
-
   void replaceAllUsersDominatedBy(
       HInstruction cursor, HInstruction newInstruction) {
-    Setlet<HInstruction> users = dominatedUsers(cursor);
-    for (HInstruction user in users) {
-      user.changeUse(this, newInstruction);
-    }
+    DominatedUses.of(this, cursor).replaceWith(newInstruction);
   }
 
   void moveBefore(HInstruction other) {
@@ -1414,6 +1365,132 @@ abstract class HInstruction implements Spannable {
    */
   bool hasSameLoopHeaderAs(HInstruction other) {
     return block.enclosingLoopHeader == other.block.enclosingLoopHeader;
+  }
+}
+
+/// The set of uses of [source] that are dominated by [dominator].
+class DominatedUses {
+  final HInstruction _source;
+
+  // Two list of matching length holding (instruction, input-index) pairs for
+  // the dominated uses.
+  final List<HInstruction> _instructions = <HInstruction>[];
+  final List<int> _indexes = <int>[];
+
+  DominatedUses._(this._source);
+
+  /// The uses of [source] that are dominated by [dominator].
+  ///
+  /// The uses by [dominator] are included in the result, unless
+  /// [excludeDominator] is `true`, so `true` selects uses following
+  /// [dominator].
+  ///
+  /// The uses include the in-edges of a HPhi node that corresponds to a
+  /// dominated block. (There can be many such edges on a single phi at the exit
+  /// of a loop with many break statements).  If [excludePhiOutEdges] is `true`
+  /// then these edge uses are not included.
+  static of(HInstruction source, HInstruction dominator,
+      {bool excludeDominator: false, bool excludePhiOutEdges: false}) {
+    return new DominatedUses._(source)
+      .._compute(source, dominator, excludeDominator, excludePhiOutEdges);
+  }
+
+  bool get isEmpty => _instructions.isEmpty;
+  bool get isNotEmpty => !isEmpty;
+
+  /// Changes all the uses in the set to [newInstruction].
+  void replaceWith(HInstruction newInstruction) {
+    assert(!identical(newInstruction, _source));
+    if (isEmpty) return;
+    for (int i = 0; i < _instructions.length; i++) {
+      HInstruction user = _instructions[i];
+      int index = _indexes[i];
+      HInstruction oldInstruction = user.inputs[index];
+      assert(
+          identical(oldInstruction, _source),
+          'Input ${index} of ${user} changed.'
+          '\n  Found: ${oldInstruction}\n  Expected: ${_source}');
+      user.inputs[index] = newInstruction;
+      oldInstruction.usedBy.remove(user);
+      newInstruction.usedBy.add(user);
+    }
+  }
+
+  void _addUse(HInstruction user, int inputIndex) {
+    _instructions.add(user);
+    _indexes.add(inputIndex);
+  }
+
+  void _compute(HInstruction source, HInstruction dominator,
+      bool excludeDominator, bool excludePhiOutEdges) {
+    // Keep track of all instructions that we have to deal with later and count
+    // the number of them that are in the current block.
+    Set<HInstruction> users = new Setlet<HInstruction>();
+    Set<HInstruction> seen = new Setlet<HInstruction>();
+    int usersInCurrentBlock = 0;
+
+    HBasicBlock dominatorBlock = dominator.block;
+
+    // Run through all the users and see if they are dominated, or potentially
+    // dominated, or partially dominated by [dominator]. It is easier to
+    // de-duplicate [usedBy] and process all inputs of an instruction than to
+    // track the repeated elements of usedBy and match them up by index.
+    for (HInstruction current in source.usedBy) {
+      if (!seen.add(current)) continue;
+      HBasicBlock currentBlock = current.block;
+      if (dominatorBlock.dominates(currentBlock)) {
+        users.add(current);
+        if (identical(currentBlock, dominatorBlock)) usersInCurrentBlock++;
+      } else if (!excludePhiOutEdges && current is HPhi) {
+        // A non-dominated HPhi.
+        // See if there a dominated edge into the phi. The input must be
+        // [source] and the position must correspond to a dominated block.
+        List<HBasicBlock> predecessors = currentBlock.predecessors;
+        for (int i = 0; i < predecessors.length; i++) {
+          if (current.inputs[i] != source) continue;
+          HBasicBlock predecessor = predecessors[i];
+          if (dominatorBlock.dominates(predecessor)) {
+            _addUse(current, i);
+          }
+        }
+      }
+    }
+
+    // Run through all the phis in the same block as [dominator] and remove them
+    // from the users set. These come before [dominator].
+    // TODO(sra): Could we simply not add them in the first place?
+    if (usersInCurrentBlock > 0) {
+      for (HPhi phi = dominatorBlock.phis.first; phi != null; phi = phi.next) {
+        if (users.remove(phi)) {
+          if (--usersInCurrentBlock == 0) break;
+        }
+      }
+    }
+
+    // Run through all the instructions before [dominator] and remove them from
+    // the users set.
+    if (usersInCurrentBlock > 0) {
+      HInstruction current = dominatorBlock.first;
+      while (!identical(current, dominator)) {
+        if (users.remove(current)) {
+          if (--usersInCurrentBlock == 0) break;
+        }
+        current = current.next;
+      }
+      if (excludeDominator) {
+        users.remove(dominator);
+      }
+    }
+
+    // Convert users into a list of (user, input-index) uses.
+    for (HInstruction user in users) {
+      var inputs = user.inputs;
+      for (int i = 0; i < inputs.length; i++) {
+        if (inputs[i] == source) {
+          _addUse(user, i);
+        }
+      }
+    }
   }
 }
 
