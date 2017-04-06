@@ -566,40 +566,40 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
     const Function& signature = Function::Handle(Type::Cast(type).signature());
     Type& signature_type = Type::Handle(signature.SignatureType());
     if (signature_type.raw() != type.raw()) {
+      // This type was promoted to a function type because its type class is a
+      // typedef class. The promotion is achieved by assigning the signature
+      // function of the typedef class to this type. This function is pointing
+      // to the original typedef function type, which is not this type.
+      // By resolving the typedef function type (which may already be resolved,
+      // hence saving work), we will resolve the shared signature function.
+      ASSERT(Class::Handle(type.type_class()).IsTypedefClass());
       ResolveType(cls, signature_type);
     } else {
       const Class& scope_class = Class::Handle(type.type_class());
       if (scope_class.IsTypedefClass()) {
+        // This type is the original function type of the typedef class.
         ResolveSignature(scope_class, signature);
       } else {
+        ASSERT(scope_class.IsClosureClass());
         ResolveSignature(cls, signature);
-        if ((type.arguments() != TypeArguments::null()) &&
-            signature.HasInstantiatedSignature()) {
-          ASSERT(scope_class.IsGeneric());
-          // Although the scope class of this function type is generic,
-          // the signature of this function type does not refer to any
-          // of its type parameters. Reset its scope class to _Closure.
-          Type::Cast(type).set_type_class(Class::Handle(
-              Isolate::Current()->object_store()->closure_class()));
-          type.set_arguments(Object::null_type_arguments());
-        }
-      }
-      if (signature.IsSignatureFunction()) {
-        // Drop fields that are not necessary anymore after resolution.
-        // The parent function, owner, and token position of a shared
-        // canonical function type are meaningless, since the canonical
-        // representent is picked arbitrarily.
-        signature.set_parent_function(Function::Handle());
-        // TODO(regis): As long as we support metadata in typedef signatures,
-        // we cannot reset these fields used to reparse a typedef.
-        // Note that the scope class of a typedef function type is always
-        // preserved as the typedef class (not reset to _Closure class), thereby
-        // preventing sharing of canonical function types between typedefs.
-        // Not being shared, these fields are therefore always meaningful for
-        // typedefs.
-        if (!scope_class.IsTypedefClass()) {
-          signature.set_owner(Object::Handle());
-          signature.set_token_pos(TokenPosition::kNoSource);
+        ASSERT(type.arguments() == TypeArguments::null());
+        if (signature.IsSignatureFunction()) {
+          // Drop fields that are not necessary anymore after resolution.
+          // The parent function, owner, and token position of a shared
+          // canonical function type are meaningless, since the canonical
+          // representent is picked arbitrarily.
+          signature.set_parent_function(Function::Handle());
+          // TODO(regis): As long as we support metadata in typedef signatures,
+          // we cannot reset these fields used to reparse a typedef.
+          // Note that the scope class of a typedef function type is always
+          // preserved as the typedef class (not reset to _Closure class),
+          // thereby preventing sharing of canonical function types between
+          // typedefs. Not being shared, these fields are therefore always
+          // meaningful for typedefs.
+          if (!scope_class.IsTypedefClass()) {
+            signature.set_owner(Object::Handle());
+            signature.set_token_pos(TokenPosition::kNoSource);
+          }
         }
       }
     }
@@ -891,6 +891,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
         TypeArguments::Handle(super_type.arguments());
     // Offset of super type's type parameters in cls' type argument vector.
     const intptr_t super_offset = num_super_type_args - num_super_type_params;
+    // If the super type is raw (i.e. super_type_args is null), set to dynamic.
     AbstractType& super_type_arg = AbstractType::Handle(Type::DynamicType());
     for (intptr_t i = super_offset; i < num_uninitialized_arguments; i++) {
       if (!super_type_args.IsNull()) {
@@ -1239,17 +1240,44 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // signature, i.e. finalize the result type and parameter types of the
   // signature function of this function type.
   // We do this after marking this type as finalized in order to allow a
-  // function type to refer to itself via its parameter types and result type.
-  // Note that we do not instantiate these types according to the type
-  // arguments. This will happen on demand when executing a type test.
+  // typedef function type to refer to itself via its parameter types and
+  // result type.
   if (type.IsFunctionType()) {
-    const Function& signature =
-        Function::Handle(zone, Type::Cast(type).signature());
-    const Class& scope_class =
-        Class::Handle(zone, Type::Cast(type).type_class());
+    ASSERT(!type.IsBeingFinalized());
+    const Type& fun_type = Type::Cast(type);
+    const Class& scope_class = Class::Handle(zone, fun_type.type_class());
     if (scope_class.IsTypedefClass()) {
-      FinalizeSignature(scope_class, signature);
+      Function& signature =
+          Function::Handle(zone, scope_class.signature_function());
+      if (!scope_class.is_type_finalized()) {
+        FinalizeSignature(scope_class, signature);
+      }
+      // If the function type is a generic typedef, instantiate its signature
+      // from its type arguments.
+      // Example: typedef T F<T>(T x) has uninstantiated signature (T x) => T.
+      // The instantiated signature of F(int) becomes (int x) => int.
+      // Note that after this step, the signature of the function type is not
+      // identical to the canonical signature of the typedef class anymore.
+      if (scope_class.IsGeneric() && !signature.HasInstantiatedSignature()) {
+        const TypeArguments& type_args =
+            TypeArguments::Handle(zone, fun_type.arguments());
+        if (FLAG_trace_type_finalization) {
+          THR_Print("Instantiating signature '%s' of typedef '%s'\n",
+                    String::Handle(zone, signature.Signature()).ToCString(),
+                    String::Handle(zone, fun_type.Name()).ToCString());
+        }
+        signature = signature.InstantiateSignatureFrom(type_args, Heap::kOld);
+        // Note that if type_args contains type parameters, signature is still
+        // uninstantiated here (typedef type parameters were substituted in the
+        // signature with typedef type arguments).
+      }
+      fun_type.set_signature(signature);
+      // The type was already marked as finalized and uninstantiated in
+      // ExpandAndFinalizeTypeArguments above when its signature was not
+      // instantiated yet. Check again by calling ResetIsFinalized().
+      fun_type.ResetIsFinalized();
     } else {
+      const Function& signature = Function::Handle(zone, fun_type.signature());
       FinalizeSignature(cls, signature);
     }
   }

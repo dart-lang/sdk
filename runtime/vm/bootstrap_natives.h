@@ -402,7 +402,7 @@ namespace dart {
   V(DeclarationMirror_metadata, 1)                                             \
   V(FunctionTypeMirror_call_method, 2)                                         \
   V(FunctionTypeMirror_parameters, 2)                                          \
-  V(FunctionTypeMirror_return_type, 2)                                         \
+  V(FunctionTypeMirror_return_type, 1)                                         \
   V(MethodMirror_owner, 2)                                                     \
   V(MethodMirror_parameters, 2)                                                \
   V(MethodMirror_return_type, 2)                                               \

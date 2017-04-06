@@ -966,14 +966,13 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 2) {
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, instantiator,
-                               arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   ASSERT(!func.IsNull());
   AbstractType& type = AbstractType::Handle(func.result_type());
-  return InstantiateType(type, instantiator);
+  // Signatures of function types are instantiated, but not canonical.
+  return type.Canonicalize();
 }
 
 
@@ -1947,7 +1946,8 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
   // We handle constructors in Dart code.
   ASSERT(!func.IsGenerativeConstructor());
-  const AbstractType& type = AbstractType::Handle(func.result_type());
+  AbstractType& type = AbstractType::Handle(func.result_type());
+  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 
@@ -2071,8 +2071,9 @@ DEFINE_NATIVE_ENTRY(ParameterMirror_type, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, pos, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(2));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
-  const AbstractType& type = AbstractType::Handle(
+  AbstractType& type = AbstractType::Handle(
       func.ParameterTypeAt(func.NumImplicitParameters() + pos.Value()));
+  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 

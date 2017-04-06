@@ -124,6 +124,11 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
     if (obj->IsFunction()) {
       funcHandle_ ^= obj;
       classHandle_ ^= funcHandle_.Owner();
+      // Signature functions get created, but not canonicalized, when function
+      // types get instantiated during run time type tests.
+      if (funcHandle_.IsSignatureFunction()) {
+        return;
+      }
       // Verify that the result type of a function is canonical or a
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();

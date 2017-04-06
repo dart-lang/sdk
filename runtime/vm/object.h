@@ -2200,40 +2200,28 @@ class Function : public Object {
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;
 
-  // Build a string of the form 'C<T, R>(T, {B b, C c}) => R' representing the
+  // Return a new function with instantiated result and parameter types.
+  RawFunction* InstantiateSignatureFrom(
+      const TypeArguments& instantiator_type_arguments,
+      Heap::Space space) const;
+
+  // Build a string of the form '(T, {B b, C c}) => R' representing the
   // internal signature of the given function. In this example, T and R are
   // type parameters of class C, the owner of the function.
-  RawString* Signature() const {
-    const bool instantiate = false;
-    return BuildSignature(instantiate, kInternalName,
-                          Object::null_type_arguments());
-  }
+  RawString* Signature() const { return BuildSignature(kInternalName); }
 
   // Build a string of the form '(T, {B b, C c}) => R' representing the
   // user visible signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function, also called the
-  // scope class of the function type.
-  // Implicit parameters are hidden, as well as the prefix denoting the
-  // scope class and its type parameters.
+  // type parameters of class C, the owner of the function.
+  // Implicit parameters are hidden.
   RawString* UserVisibleSignature() const {
-    const bool instantiate = false;
-    return BuildSignature(instantiate, kUserVisibleName,
-                          Object::null_type_arguments());
-  }
-
-  // Build a string of the form '(A, {B b, C c}) => D' representing the
-  // signature of the given function, where all generic types (e.g. '<T, R>' in
-  // 'C<T, R>(T, {B b, C c}) => R') are instantiated using the given
-  // instantiator type argument vector of a C instance (e.g. '<A, D>').
-  RawString* InstantiatedSignatureFrom(const TypeArguments& instantiator,
-                                       NameVisibility name_visibility) const {
-    const bool instantiate = true;
-    return BuildSignature(instantiate, name_visibility, instantiator);
+    return BuildSignature(kUserVisibleName);
   }
 
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
-  bool HasInstantiatedSignature() const;
+  bool HasInstantiatedSignature(Genericity genericity = kAny,
+                                TrailPtr trail = NULL) const;
 
   // Build a string of the form 'T, {B b, C c}' representing the user
   // visible formal parameters of the function.
@@ -2666,31 +2654,23 @@ class Function : public Object {
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
-  bool IsSubtypeOf(const TypeArguments& type_arguments,
-                   const Function& other,
-                   const TypeArguments& other_type_arguments,
+  bool IsSubtypeOf(const Function& other,
                    Error* bound_error,
                    Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, type_arguments, other, other_type_arguments,
-                    bound_error, space);
+    return TypeTest(kIsSubtypeOf, other, bound_error, space);
   }
 
   // Returns true if the type of this function is more specific than the type of
   // the other function.
-  bool IsMoreSpecificThan(const TypeArguments& type_arguments,
-                          const Function& other,
-                          const TypeArguments& other_type_arguments,
+  bool IsMoreSpecificThan(const Function& other,
                           Error* bound_error,
                           Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, type_arguments, other,
-                    other_type_arguments, bound_error, space);
+    return TypeTest(kIsMoreSpecificThan, other, bound_error, space);
   }
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
-                const TypeArguments& type_arguments,
                 const Function& other,
-                const TypeArguments& other_type_arguments,
                 Error* bound_error,
                 Heap::Space space) const;
 
@@ -2833,7 +2813,7 @@ class Function : public Object {
 
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
-  static RawFunction* NewSignatureFunction(const Class& owner,
+  static RawFunction* NewSignatureFunction(const Object& owner,
                                            TokenPosition token_pos);
 
   static RawFunction* NewEvalFunction(const Class& owner,
@@ -3006,13 +2986,9 @@ class Function : public Object {
   void BuildSignatureParameters(
       Thread* thread,
       Zone* zone,
-      bool instantiate,
       NameVisibility name_visibility,
-      const TypeArguments& instantiator,
       GrowableHandlePtrArray<const String>* pieces) const;
-  RawString* BuildSignature(bool instantiate,
-                            NameVisibility name_visibility,
-                            const TypeArguments& instantiator) const;
+  RawString* BuildSignature(NameVisibility name_visibility) const;
 
   // Checks the type of the formal parameter at the given position for
   // subtyping or 'more specific' relationship between the type of this function
@@ -3020,9 +2996,7 @@ class Function : public Object {
   bool TestParameterType(TypeTestKind test_kind,
                          intptr_t parameter_position,
                          intptr_t other_parameter_position,
-                         const TypeArguments& type_arguments,
                          const Function& other,
-                         const TypeArguments& other_type_arguments,
                          Error* bound_error,
                          Heap::Space space) const;
 
@@ -5928,7 +5902,10 @@ class Type : public AbstractType {
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
-  // If signature is not null, this type represents a function type.
+  // If signature is not null, this type represents a function type. Note that
+  // the signature fully represents the type and type arguments can be ignored.
+  // However, in case of a generic typedef, they document how the typedef class
+  // was parameterized to obtain the actual signature.
   RawFunction* signature() const;
   void set_signature(const Function& value) const;
   virtual bool IsFunctionType() const {

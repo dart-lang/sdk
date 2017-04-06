@@ -950,8 +950,8 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   TypeMirror _returnType = null;
   TypeMirror get returnType {
     if (_returnType == null) {
-      _returnType = reflectType(
-          _FunctionTypeMirror_return_type(_functionReflectee, _instantiator));
+      _returnType =
+          reflectType(_FunctionTypeMirror_return_type(_functionReflectee));
     }
     return _returnType;
   }
@@ -977,7 +977,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   MethodMirror _FunctionTypeMirror_call_method(functionReflectee)
       native "FunctionTypeMirror_call_method";
 
-  static Type _FunctionTypeMirror_return_type(functionReflectee, instantiator)
+  static Type _FunctionTypeMirror_return_type(functionReflectee)
       native "FunctionTypeMirror_return_type";
 
   List<ParameterMirror> _FunctionTypeMirror_parameters(functionReflectee)

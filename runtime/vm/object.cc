@@ -4824,8 +4824,12 @@ bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    // If the type argument is null, the type parameterized with this type
-    // argument is still being finalized. Skip this null type argument.
+    // If this type argument T is null, the type A containing T in its flattened
+    // type argument vector V is recursive and is still being finalized.
+    // T is the type argument of a super type of A. T is being instantiated
+    // during finalization of V, which is also the instantiator. T depends
+    // solely on the type parameters of A and will be replaced by a non-null
+    // type before A is marked as finalized.
     if (!type.IsNull() && !type.IsInstantiated(genericity, trail)) {
       return false;
     }
@@ -5085,7 +5089,6 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
 
 
 RawAbstractType* const* TypeArguments::TypeAddr(intptr_t index) const {
-  // TODO(iposva): Determine if we should throw an exception here.
   ASSERT((index >= 0) && (index < Length()));
   return &raw_ptr()->types()[index];
 }
@@ -5625,40 +5628,34 @@ RawType* Function::SignatureType() const {
     type = ClosureData::Cast(obj).signature_type();
   }
   if (type.IsNull()) {
-    // A function type is parameterized in the same way as the owner class of
-    // its non-static signature function.
-    // It is not type parameterized if its signature function is static.
-    // During type finalization, the type arguments of the super class of the
-    // owner class of its signature function will be prepended to the type
-    // argument vector. Therefore, we only need to set the type arguments
-    // matching the type parameters here.
-    // In case of a function type alias, the function owner is the alias class,
-    // i.e. the typedef. The signature type is therefore parameterized according
-    // to the alias class declaration, even if the function type is not generic.
-    // Otherwise, if the function is static or if its signature type is
-    // non-generic, i.e. it does not depend on any type parameter of the owner
-    // class, then the signature type is not parameterized, although the owner
-    // class may be. In this case, the scope class of the function type is reset
-    // to _Closure class as well as the owner of the signature function.
+    // The function type of this function is not yet cached and needs to be
+    // constructed and cached here.
+    // A function type is type parameterized in the same way as the owner class
+    // of its non-static signature function.
+    // It is not type parameterized if its signature function is static, or if
+    // none of its result type or formal parameter types are type parameterized.
+    // Unless the function type is a generic typedef, the type arguments of the
+    // function type are not explicitly stored in the function type as a vector
+    // of type arguments.
+    // The type class of a non-typedef function type is always the non-generic
+    // _Closure class, whether the type is generic or not.
+    // The type class of a typedef function type is always the typedef class,
+    // which may be generic, in which case the type stores type arguments.
     // With the introduction of generic functions, we may reach here before the
     // function type parameters have been resolved. Therefore, we cannot yet
     // check whether the function type has an instantiated signature.
-    // We will do it later when resolving the type.
+    // We can do it only when the signature has been resolved.
+    // We only set the type class of the function type to the typedef class
+    // if the signature of the function type is the signature of the typedef.
+    // Note that a function type can have a typedef class as owner without
+    // representing the typedef, as in the following example:
+    // typedef F(f(int x)); where the type of f is a function type with F as
+    // owner, without representing the function type of F.
     Class& scope_class = Class::Handle(Owner());
-    if (!scope_class.IsTypedefClass() &&
-        (is_static() || !scope_class.IsGeneric())) {
+    if (!scope_class.IsTypedefClass() ||
+        (scope_class.signature_function() != raw())) {
       scope_class = Isolate::Current()->object_store()->closure_class();
-      if (IsSignatureFunction()) {
-        set_owner(scope_class);
-        set_token_pos(TokenPosition::kNoSource);
-      }
     }
-    // TODO(regis): With generic functions, this type is not only parameterized
-    // with the type parameters of the scope class, but also with those of all
-    // enclosing generic functions, which may not even have been parsed at this
-    // point. What actually matters is that a signature type can be expressed in
-    // a right-hand side type test by name. This is only possible with a typedef
-    // and the free variables are only the type parameters of the typedef.
     const TypeArguments& signature_type_arguments =
         TypeArguments::Handle(scope_class.type_parameters());
     // Return the still unfinalized signature type.
@@ -6384,8 +6381,22 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
-  if (!TypeTest(kIsSubtypeOf, Object::null_type_arguments(), other,
-                Object::null_type_arguments(), bound_error, Heap::kOld)) {
+  // Map type parameters in the signature to dynamic before the test.
+  Function& this_fun = Function::Handle(raw());
+  if (!this_fun.HasInstantiatedSignature()) {
+    // TODO(regis): Should we pass the context explicitly here (i.e. null) once
+    // we support generic functions?
+    this_fun = this_fun.InstantiateSignatureFrom(Object::null_type_arguments(),
+                                                 Heap::kOld);
+  }
+  Function& other_fun = Function::Handle(other.raw());
+  if (!other_fun.HasInstantiatedSignature()) {
+    // TODO(regis): Should we pass the context explicitly here (i.e. null) once
+    // we support generic functions?
+    other_fun = other_fun.InstantiateSignatureFrom(
+        Object::null_type_arguments(), Heap::kOld);
+  }
+  if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, Heap::kOld)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
     *bound_error = LanguageError::NewFormatted(
@@ -6393,15 +6404,11 @@ bool Function::HasCompatibleParametersWith(const Function& other,
         Script::Handle(other.script()), other.token_pos(), Report::AtLocation,
         Report::kError, Heap::kNew,
         "signature type '%s' of function '%s' is not a subtype of signature "
-        "type '%s' of function '%s' where\n%s%s",
+        "type '%s' of function '%s'\n",
         String::Handle(UserVisibleSignature()).ToCString(),
         String::Handle(UserVisibleName()).ToCString(),
         String::Handle(other.UserVisibleSignature()).ToCString(),
-        String::Handle(other.UserVisibleName()).ToCString(),
-        String::Handle(Type::Handle(SignatureType()).EnumerateURIs())
-            .ToCString(),
-        String::Handle(Type::Handle(other.SignatureType()).EnumerateURIs())
-            .ToCString());
+        String::Handle(other.UserVisibleName()).ToCString());
     return false;
   }
   // We should also check that if the other function explicitly specifies a
@@ -6411,6 +6418,41 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // values are not stored in the Function object, but discarded after a
   // function is compiled.
   return true;
+}
+
+
+RawFunction* Function::InstantiateSignatureFrom(
+    const TypeArguments& instantiator_type_arguments,
+    Heap::Space space) const {
+  Zone* zone = Thread::Current()->zone();
+  const Object& owner = Object::Handle(zone, RawOwner());
+  // TODO(regis): Should we change Function::New() to accept a space, since
+  // InstantiateFrom is sometimes called with Heap::kNew?
+  ASSERT(!HasInstantiatedSignature());
+  Function& sig = Function::Handle(
+      zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
+  sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+  AbstractType& type = AbstractType::Handle(zone, result_type());
+  if (!type.IsInstantiated()) {
+    type = type.InstantiateFrom(instantiator_type_arguments, NULL, NULL, NULL,
+                                space);
+  }
+  sig.set_result_type(type);
+  const intptr_t num_params = NumParameters();
+  sig.set_num_fixed_parameters(num_fixed_parameters());
+  sig.SetNumOptionalParameters(NumOptionalParameters(),
+                               HasOptionalPositionalParameters());
+  sig.set_parameter_types(Array::Handle(Array::New(num_params, space)));
+  for (intptr_t i = 0; i < num_params; i++) {
+    type = ParameterTypeAt(i);
+    if (!type.IsInstantiated()) {
+      type = type.InstantiateFrom(instantiator_type_arguments, NULL, NULL, NULL,
+                                  space);
+    }
+    sig.SetParameterTypeAt(i, type);
+  }
+  sig.set_parameter_names(Array::Handle(zone, parameter_names()));
+  return sig.raw();
 }
 
 
@@ -6425,33 +6467,16 @@ bool Function::HasCompatibleParametersWith(const Function& other,
 bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t parameter_position,
                                  intptr_t other_parameter_position,
-                                 const TypeArguments& type_arguments,
                                  const Function& other,
-                                 const TypeArguments& other_type_arguments,
                                  Error* bound_error,
                                  Heap::Space space) const {
-  AbstractType& other_param_type =
+  const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (!other_param_type.IsInstantiated()) {
-    other_param_type =
-        other_param_type.InstantiateFrom(other_type_arguments, bound_error,
-                                         NULL,  // instantiation_trail
-                                         NULL,  // bound_trail
-                                         space);
-    ASSERT((bound_error == NULL) || bound_error->IsNull());
-  }
   if (other_param_type.IsDynamicType()) {
     return true;
   }
-  AbstractType& param_type =
+  const AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
-  if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments, bound_error,
-                                            NULL,  // instantiation_trail
-                                            NULL,  // bound_trail
-                                            space);
-    ASSERT((bound_error == NULL) || bound_error->IsNull());
-  }
   if (param_type.IsDynamicType()) {
     return test_kind == kIsSubtypeOf;
   }
@@ -6472,9 +6497,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
 
 
 bool Function::TypeTest(TypeTestKind test_kind,
-                        const TypeArguments& type_arguments,
                         const Function& other,
-                        const TypeArguments& other_type_arguments,
                         Error* bound_error,
                         Heap::Space space) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -6498,19 +6521,10 @@ bool Function::TypeTest(TypeTestKind test_kind,
     return false;
   }
   // Check the result type.
-  AbstractType& other_res_type = AbstractType::Handle(other.result_type());
-  if (!other_res_type.IsInstantiated()) {
-    other_res_type = other_res_type.InstantiateFrom(
-        other_type_arguments, bound_error, NULL, NULL, space);
-    ASSERT((bound_error == NULL) || bound_error->IsNull());
-  }
+  const AbstractType& other_res_type =
+      AbstractType::Handle(other.result_type());
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
-    AbstractType& res_type = AbstractType::Handle(result_type());
-    if (!res_type.IsInstantiated()) {
-      res_type = res_type.InstantiateFrom(type_arguments, bound_error, NULL,
-                                          NULL, space);
-      ASSERT((bound_error == NULL) || bound_error->IsNull());
-    }
+    const AbstractType& res_type = AbstractType::Handle(result_type());
     if (res_type.IsVoidType()) {
       return false;
     }
@@ -6532,8 +6546,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
                             other_num_opt_pos_params);
        i++) {
     if (!TestParameterType(test_kind, i + num_ignored_params,
-                           i + other_num_ignored_params, type_arguments, other,
-                           other_type_arguments, bound_error, space)) {
+                           i + other_num_ignored_params, other, bound_error,
+                           space)) {
       return false;
     }
   }
@@ -6561,8 +6575,7 @@ bool Function::TypeTest(TypeTestKind test_kind,
       ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
-        if (!TestParameterType(test_kind, j, i, type_arguments, other,
-                               other_type_arguments, bound_error, space)) {
+        if (!TestParameterType(test_kind, j, i, other, bound_error, space)) {
           return false;
         }
         break;
@@ -6631,7 +6644,7 @@ RawFunction* Function::New(const String& name,
                            bool is_native,
                            const Object& owner,
                            TokenPosition token_pos) {
-  ASSERT(!owner.IsNull());
+  ASSERT(!owner.IsNull() || (kind == RawFunction::kSignatureFunction));
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Object::empty_array());
   result.set_parameter_names(Object::empty_array());
@@ -6695,6 +6708,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
   clone.set_kernel_function(kernel_function());
+  // TODO(regis): Clone function type parameters (their bounds may change).
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
     AbstractType& type = AbstractType::Handle(clone.result_type());
@@ -6733,7 +6747,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
 }
 
 
-RawFunction* Function::NewSignatureFunction(const Class& owner,
+RawFunction* Function::NewSignatureFunction(const Object& owner,
                                             TokenPosition token_pos) {
   const Function& result = Function::Handle(Function::New(
       Symbols::AnonymousSignature(), RawFunction::kSignatureFunction,
@@ -6857,9 +6871,7 @@ RawString* Function::UserVisibleFormalParameters() const {
   // Typically 3, 5,.. elements in 'pieces', e.g.:
   // '_LoadRequest', CommaSpace, '_LoadError'.
   GrowableHandlePtrArray<const String> pieces(zone, 5);
-  const TypeArguments& instantiator = TypeArguments::Handle(zone);
-  BuildSignatureParameters(thread, zone, false, kUserVisibleName, instantiator,
-                           &pieces);
+  BuildSignatureParameters(thread, zone, kUserVisibleName, &pieces);
   return Symbols::FromConcatAll(thread, pieces);
 }
 
@@ -6867,9 +6879,7 @@ RawString* Function::UserVisibleFormalParameters() const {
 void Function::BuildSignatureParameters(
     Thread* thread,
     Zone* zone,
-    bool instantiate,
     NameVisibility name_visibility,
-    const TypeArguments& instantiator,
     GrowableHandlePtrArray<const String>* pieces) const {
   AbstractType& param_type = AbstractType::Handle(zone);
   const intptr_t num_params = NumParameters();
@@ -6887,11 +6897,6 @@ void Function::BuildSignatureParameters(
   while (i < num_fixed_params) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
-    if (instantiate && param_type.IsFinalized() &&
-        !param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(instantiator, NULL, NULL, NULL,
-                                              Heap::kNew);
-    }
     name = param_type.BuildName(name_visibility);
     pieces->Add(name);
     if (i != (num_params - 1)) {
@@ -6907,11 +6912,6 @@ void Function::BuildSignatureParameters(
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       param_type = ParameterTypeAt(i);
-      if (instantiate && param_type.IsFinalized() &&
-          !param_type.IsInstantiated()) {
-        param_type = param_type.InstantiateFrom(instantiator, NULL, NULL, NULL,
-                                                Heap::kNew);
-      }
       ASSERT(!param_type.IsNull());
       name = param_type.BuildName(name_visibility);
       pieces->Add(name);
@@ -6951,12 +6951,10 @@ RawInstance* Function::ImplicitStaticClosure() const {
 RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(IsImplicitClosureFunction());
   Zone* zone = Thread::Current()->zone();
-  const Type& signature_type = Type::Handle(zone, SignatureType());
-  const Class& cls = Class::Handle(zone, signature_type.type_class());
   const Context& context = Context::Handle(zone, Context::New(1));
   context.SetAt(0, receiver);
   TypeArguments& instantiator = TypeArguments::Handle(zone);
-  if (cls.IsGeneric()) {
+  if (!HasInstantiatedSignature(kCurrentClass)) {
     instantiator = receiver.GetTypeArguments();
   }
   return Closure::New(instantiator, *this, context);
@@ -6985,70 +6983,31 @@ RawSmi* Function::GetClosureHashCode() const {
 }
 
 
-RawString* Function::BuildSignature(bool instantiate,
-                                    NameVisibility name_visibility,
-                                    const TypeArguments& instantiator) const {
+RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
-  String& name = String::Handle(zone);
-  if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
-    // Prefix the signature with its scope class and type parameters, if any
-    // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
-    // scope class name is the alias name.
-    // The signature of static functions cannot be type parameterized.
-    const Class& scope_class = Class::Handle(zone, Owner());
-    ASSERT(!scope_class.IsNull());
-    if (scope_class.IsGeneric()) {
-      const TypeArguments& type_parameters =
-          TypeArguments::Handle(zone, scope_class.type_parameters());
-      const String& scope_class_name = String::Handle(zone, scope_class.Name());
-      pieces.Add(scope_class_name);
-      const intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(Symbols::LAngleBracket());
-      TypeParameter& type_parameter = TypeParameter::Handle(zone);
-      AbstractType& bound = AbstractType::Handle(zone);
-      for (intptr_t i = 0; i < num_type_parameters; i++) {
-        type_parameter ^= type_parameters.TypeAt(i);
-        name = type_parameter.name();
-        pieces.Add(name);
-        bound = type_parameter.bound();
-        if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(Symbols::SpaceExtendsSpace());
-          name = bound.BuildName(name_visibility);
-          pieces.Add(name);
-        }
-        if (i < num_type_parameters - 1) {
-          pieces.Add(Symbols::CommaSpace());
-        }
-      }
-      pieces.Add(Symbols::RAngleBracket());
-    }
-  }
   pieces.Add(Symbols::LParen());
-  BuildSignatureParameters(thread, zone, instantiate, name_visibility,
-                           instantiator, &pieces);
+  BuildSignatureParameters(thread, zone, name_visibility, &pieces);
   pieces.Add(Symbols::RParenArrow());
-  AbstractType& res_type = AbstractType::Handle(zone, result_type());
-  if (instantiate && res_type.IsFinalized() && !res_type.IsInstantiated()) {
-    res_type =
-        res_type.InstantiateFrom(instantiator, NULL, NULL, NULL, Heap::kNew);
-  }
-  name = res_type.BuildName(name_visibility);
+  const AbstractType& res_type = AbstractType::Handle(zone, result_type());
+  const String& name =
+      String::Handle(zone, res_type.BuildName(name_visibility));
   pieces.Add(name);
   return Symbols::FromConcatAll(thread, pieces);
 }
 
 
-bool Function::HasInstantiatedSignature() const {
+bool Function::HasInstantiatedSignature(Genericity genericity,
+                                        TrailPtr trail) const {
   AbstractType& type = AbstractType::Handle(result_type());
-  if (!type.IsInstantiated()) {
+  if (!type.IsInstantiated(genericity, trail)) {
     return false;
   }
   const intptr_t num_parameters = NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = ParameterTypeAt(i);
-    if (!type.IsInstantiated()) {
+    if (!type.IsInstantiated(genericity, trail)) {
       return false;
     }
   }
@@ -15658,22 +15617,14 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     const Function& signature =
         Function::Handle(Closure::Cast(*this).function());
     Type& type = Type::Handle(signature.SignatureType());
-    if (type.type_class() == cls.raw()) {
-      // Type is not parameterized.
-      if (!type.IsCanonical()) {
-        type ^= type.Canonicalize();
-        signature.SetSignatureType(type);
-      }
-      return type.raw();
+    if (!type.IsInstantiated()) {
+      TypeArguments& instantiator_type_arguments =
+          TypeArguments::Handle(Closure::Cast(*this).instantiator());
+      // TODO(regis): Should we pass the context explicitly here (i.e. null)
+      // once we support generic functions?
+      type ^= type.InstantiateFrom(instantiator_type_arguments, NULL, NULL,
+                                   NULL, space);
     }
-    const Class& scope_cls = Class::Handle(type.type_class());
-    ASSERT(scope_cls.NumTypeArguments() > 0);
-    TypeArguments& type_arguments =
-        TypeArguments::Handle(Closure::Cast(*this).instantiator());
-    type =
-        Type::New(scope_cls, type_arguments, TokenPosition::kNoSource, space);
-    type.set_signature(signature);
-    type.SetIsFinalized();
     type ^= type.Canonicalize();
     return type.raw();
   }
@@ -15731,13 +15682,11 @@ bool Instance::IsInstanceOf(const AbstractType& other,
         other.IsDartClosureType()) {
       return true;
     }
-    Function& other_signature = Function::Handle(zone);
-    TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
+    AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
     // Note that we may encounter a bound error in checked mode.
     if (!other.IsInstantiated()) {
-      AbstractType& instantiated_other = AbstractType::Handle(
-          zone, other.InstantiateFrom(other_instantiator, bound_error, NULL,
-                                      NULL, Heap::kOld));
+      instantiated_other = other.InstantiateFrom(
+          other_instantiator, bound_error, NULL, NULL, Heap::kOld);
       if ((bound_error != NULL) && !bound_error->IsNull()) {
         ASSERT(Isolate::Current()->type_checks());
         return false;
@@ -15750,27 +15699,24 @@ bool Instance::IsInstanceOf(const AbstractType& other,
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
-      if (!instantiated_other.IsFunctionType()) {
-        return false;
-      }
-      other_signature = Type::Cast(instantiated_other).signature();
-      other_type_arguments = instantiated_other.arguments();
-    } else {
-      if (!other.IsFunctionType()) {
-        return false;
-      }
-      other_signature = Type::Cast(other).signature();
-      other_type_arguments = other.arguments();
     }
-    const Function& signature =
-        Function::Handle(zone, Closure::Cast(*this).function());
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(zone, Closure::Cast(*this).instantiator());
-    // TODO(regis): If signature function is generic, pass its type parameters
-    // as function instantiator, otherwise pass null.
-    // Pass the closure context as well to the the IsSubtypeOf call.
-    return signature.IsSubtypeOf(type_arguments, other_signature,
-                                 other_type_arguments, bound_error, Heap::kOld);
+    if (!instantiated_other.IsFunctionType()) {
+      return false;
+    }
+    Function& other_signature =
+        Function::Handle(zone, Type::Cast(instantiated_other).signature());
+    Function& sig_fun = Function::Handle(zone, Closure::Cast(*this).function());
+    if (!sig_fun.HasInstantiatedSignature()) {
+      const TypeArguments& instantiator_type_arguments =
+          TypeArguments::Handle(zone, Closure::Cast(*this).instantiator());
+      // TODO(regis): If sig_fun is generic, pass its type parameters
+      // as function instantiator, otherwise pass null.
+      // Pass the closure context as well to InstantiateSignatureFrom().
+      // No bound error possible, since the instance exists.
+      sig_fun = sig_fun.InstantiateSignatureFrom(instantiator_type_arguments,
+                                                 Heap::kOld);
+    }
+    return sig_fun.IsSubtypeOf(other_signature, bound_error, Heap::kOld);
   }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
@@ -15809,17 +15755,22 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
   if (other_is_dart_function || instantiated_other.IsFunctionType()) {
     // Check if this instance understands a call() method of a compatible type.
-    const Function& call_function =
+    Function& sig_fun =
         Function::Handle(zone, cls.LookupCallFunctionForTypeTest());
-    if (!call_function.IsNull()) {
+    if (!sig_fun.IsNull()) {
       if (other_is_dart_function) {
         return true;
       }
+      if (!sig_fun.HasInstantiatedSignature()) {
+        // TODO(regis): If sig_fun is generic, pass its type parameters
+        // as function instantiator, otherwise pass null.
+        // Pass the closure context as well to InstantiateSignatureFrom().
+        // No bound error possible, since the instance exists.
+        sig_fun = sig_fun.InstantiateSignatureFrom(type_arguments, Heap::kOld);
+      }
       const Function& other_signature =
           Function::Handle(zone, Type::Cast(instantiated_other).signature());
-      if (call_function.IsSubtypeOf(type_arguments, other_signature,
-                                    other_type_arguments, bound_error,
-                                    Heap::kOld)) {
+      if (sig_fun.IsSubtypeOf(other_signature, bound_error, Heap::kOld)) {
         return true;
       }
     }
@@ -16328,14 +16279,11 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     cls = type_class();
     const Function& signature_function =
         Function::Handle(zone, Type::Cast(*this).signature());
-    if (!cls.IsTypedefClass() ||
-        (cls.signature_function() != signature_function.raw())) {
-      if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
-        return signature_function.UserVisibleSignature();
-      }
-      return signature_function.InstantiatedSignatureFrom(args,
-                                                          name_visibility);
+    if (!cls.IsTypedefClass()) {
+      return signature_function.UserVisibleSignature();
     }
+    // Instead of printing the actual signature, use the typedef name with
+    // its type arguments, if any.
     class_name = cls.Name();  // Typedef name.
     // We may be reporting an error about a malformed function type. In that
     // case, avoid instantiating the signature, since it may cause divergence.
@@ -16622,9 +16570,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       // Check for two function types.
       const Function& fun =
           Function::Handle(zone, Type::Cast(*this).signature());
-      return fun.TypeTest(
-          test_kind, TypeArguments::Handle(zone, arguments()), other_fun,
-          TypeArguments::Handle(zone, other.arguments()), bound_error, space);
+      return fun.TypeTest(test_kind, other_fun, bound_error, space);
     }
     // Check if type S has a call() method of function type T.
     const Function& call_function =
@@ -16632,10 +16578,8 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     if (!call_function.IsNull()) {
       if (other_is_dart_function_type ||
           call_function.TypeTest(
-              test_kind, TypeArguments::Handle(zone, arguments()),
-              Function::Handle(zone, Type::Cast(other).signature()),
-              TypeArguments::Handle(zone, other.arguments()), bound_error,
-              space)) {
+              test_kind, Function::Handle(zone, Type::Cast(other).signature()),
+              bound_error, space)) {
         return true;
       }
     }
@@ -16911,6 +16855,15 @@ bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
       (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated)) {
     return false;
   }
+  if (IsFunctionType()) {
+    const Function& sig_fun = Function::Handle(signature());
+    if (!sig_fun.HasInstantiatedSignature(genericity, trail)) {
+      return false;
+    }
+    // Because a generic typedef with an instantiated signature is considered
+    // uninstantiated, we still need to check the type arguments, even if the
+    // signature is instantiated.
+  }
   if (arguments() == TypeArguments::null()) {
     return true;
   }
@@ -16951,10 +16904,18 @@ RawAbstractType* Type::InstantiateFrom(
   // finalizing the type argument vector of a recursive type.
   const Class& cls = Class::Handle(zone, type_class());
   TypeArguments& type_arguments = TypeArguments::Handle(zone, arguments());
-  ASSERT(type_arguments.Length() == cls.NumTypeArguments());
-  type_arguments =
-      type_arguments.InstantiateFrom(instantiator_type_arguments, bound_error,
-                                     instantiation_trail, bound_trail, space);
+  Function& sig_fun = Function::Handle(zone, signature());
+  if (!type_arguments.IsNull() &&
+      (sig_fun.IsNull() || !type_arguments.IsInstantiated())) {
+    // This type is uninstantiated because either its type arguments or its
+    // signature, or both are uninstantiated.
+    // Note that the type arguments of a function type merely document the
+    // parameterization of a generic typedef. They are otherwise ignored.
+    ASSERT(type_arguments.Length() == cls.NumTypeArguments());
+    type_arguments =
+        type_arguments.InstantiateFrom(instantiator_type_arguments, bound_error,
+                                       instantiation_trail, bound_trail, space);
+  }
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
   const Type& instantiated_type =
@@ -16964,11 +16925,19 @@ RawAbstractType* Type::InstantiateFrom(
     const LanguageError& bound_error = LanguageError::Handle(zone, error());
     instantiated_type.set_error(bound_error);
   }
-  // Preserve the signature if this type represents a function type.
-  // Note that the types in the signature remain unchanged. They get indirectly
-  // instantiated by instantiating the type arguments above.
-  const Function& sig_fun = Function::Handle(zone, signature());
+  // If this type is a function type, instantiate its signature.
   if (!sig_fun.IsNull()) {
+    // If we are finalizing a typedef, do not yet instantiate its signature.
+    // Other function types should never be instantiated while unfinalized.
+    if (IsFinalized()) {
+      // A generic typedef may actually declare an instantiated signature.
+      if (!sig_fun.HasInstantiatedSignature()) {
+        sig_fun = sig_fun.InstantiateSignatureFrom(instantiator_type_arguments,
+                                                   space);
+      }
+    } else {
+      ASSERT(cls.IsTypedefClass());
+    }
     instantiated_type.set_signature(sig_fun);
   }
   if (IsFinalized()) {
@@ -17220,29 +17189,12 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     const LanguageError& bound_error = LanguageError::Handle(zone, error());
     clone.set_error(bound_error);
   }
-  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-  bool type_args_cloned = false;
   // Clone the signature if this type represents a function type.
   const Function& fun = Function::Handle(zone, signature());
   if (!fun.IsNull()) {
+    ASSERT(type_cls.IsTypedefClass() || type_cls.IsClosureClass());
     // If the scope class is not a typedef and if it is generic, it must be the
     // mixin class, set it to the new owner.
-    if (!type_cls.IsTypedefClass() && type_cls.IsGeneric()) {
-      clone.set_type_class(new_owner);
-      AbstractType& decl_type = AbstractType::Handle(zone);
-#ifdef DEBUG
-      decl_type = type_cls.DeclarationType();
-      ASSERT(decl_type.IsFinalized());
-      const TypeArguments& decl_type_args =
-          TypeArguments::Handle(zone, decl_type.arguments());
-      ASSERT(type_args.Equals(decl_type_args));
-#endif  // DEBUG
-      decl_type = new_owner.DeclarationType();
-      ASSERT(decl_type.IsFinalized());
-      type_args = decl_type.arguments();
-      clone.set_arguments(type_args);
-      type_args_cloned = true;
-    }
     Function& fun_clone = Function::Handle(
         zone,
         Function::NewSignatureFunction(new_owner, TokenPosition::kNoSource));
@@ -17263,7 +17215,8 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     fun_clone.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
     clone.set_signature(fun_clone);
   }
-  if (!type_args_cloned) {
+  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+  if (!type_args.IsNull()) {
     // Upper bounds of uninstantiated type arguments may form a cycle.
     if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
       AddOnlyBuddyToTrail(&trail, clone);
@@ -17591,10 +17544,7 @@ const char* Type::ToCString() const {
   }
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(zone, signature());
-    const String& sig =
-        IsFinalized() ? String::Handle(zone, sig_fun.InstantiatedSignatureFrom(
-                                                 type_args, kInternalName))
-                      : String::Handle(zone, sig_fun.Signature());
+    const String& sig = String::Handle(zone, sig_fun.Signature());
     if (cls.IsClosureClass()) {
       ASSERT(type_args.IsNull());
       return OS::SCreate(zone, "%sFunction Type: %s", unresolved,
@@ -18259,10 +18209,19 @@ RawAbstractType* BoundedType::InstantiateFrom(
         // upper_bound, because one or both of them is still being finalized or
         // uninstantiated. For example, instantiated_bounded_type may be the
         // still unfinalized cloned type parameter of a mixin application class.
+        // There is another special case where we do not want to report a bound
+        // error yet: if the upper bound is a function type, but the bounded
+        // type is not and its class is not compiled yet, i.e. we cannot look
+        // for a call method yet.
         ASSERT(instantiated_bounded_type.IsBeingFinalized() ||
                instantiated_upper_bound.IsBeingFinalized() ||
                !instantiated_bounded_type.IsInstantiated() ||
-               !instantiated_upper_bound.IsInstantiated());
+               !instantiated_upper_bound.IsInstantiated() ||
+               (!instantiated_bounded_type.IsFunctionType() &&
+                instantiated_upper_bound.IsFunctionType() &&
+                instantiated_bounded_type.HasResolvedTypeClass() &&
+                !Class::Handle(instantiated_bounded_type.type_class())
+                     .is_finalized()));
         // Postpone bound check by returning a new BoundedType with unfinalized
         // or partially instantiated bounded_type and upper_bound, but keeping
         // type_param.
