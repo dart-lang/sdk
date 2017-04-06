@@ -9,7 +9,7 @@ class A {
 }
 
 var a = new A();
-var cyclicStatic = (() => a.foo + 1)();
+dynamic cyclicStatic = (() => a.foo + 1)();
 
 cyclicInitialization() {
   return cyclicStatic;

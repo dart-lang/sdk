@@ -189,4 +189,4 @@ main() {
   });
 }
 
-var _undefined = (() => new List(5)[0])();
+dynamic _undefined = (() => new List(5)[0])();
