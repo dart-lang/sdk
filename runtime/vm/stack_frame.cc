@@ -97,10 +97,6 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   Code code;
   code = GetCodeObject();
   if (!code.IsNull()) {
-    // Visit the code object.
-    RawObject* raw_code = code.raw();
-    visitor->VisitPointer(&raw_code);
-
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
     Array maps;
