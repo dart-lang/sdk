@@ -26,6 +26,16 @@ async_(gen, T, @rest args) => JS(
     '',
     '''(() => {
   let iter;
+  const FutureT = ${getGenericClass(Future)}($T);
+  let _FutureType;
+  // Return the raw class type or null if not a class object.
+  // This is streamlined to test for native futures.
+  function _getRawClassType(obj) {
+    if (!obj) return null;
+    let constructor = obj.constructor;
+    if (!constructor == null) return null;
+    return $getGenericClass(constructor);
+  }
   function onValue(res) {
     if (res === void 0) res = null;
     return next(iter.next(res));
@@ -46,15 +56,14 @@ async_(gen, T, @rest args) => JS(
     if (ret.done) {
       return ret.value;
     }
-    // Checks if the awaited value is a Future.
-    if (!$instanceOf(future, $Future)) {
+    // Wraps if future is not a native Future.
+    if (_getRawClassType(future) !== _FutureType) {
       future = $Future.value(future);
     }
     // Chain the Future so `await` receives the Future's value.
     return future.then($dynamic)(onValue, {onError: onError});
   }
-  let FutureT = ${getGenericClass(Future)(T)};
-  return FutureT.microtask(function() {
+  let result = FutureT.microtask(function() {
     iter = $gen.apply(null, $args)[Symbol.iterator]();
     var result = onValue();
     if ($strongInstanceOf(result, FutureT) == null) {
@@ -65,6 +74,9 @@ async_(gen, T, @rest args) => JS(
       return result;
     }
   });
+  // TODO(jmesserly): optimize this further.
+  _FutureType = _getRawClassType(result);
+  return result;  
 })()''');
 
 // Implementation inspired by _AsyncStarStreamController in

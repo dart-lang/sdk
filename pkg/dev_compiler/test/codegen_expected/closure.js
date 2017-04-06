@@ -155,4 +155,6 @@ dart.defineLazy(closure, {
   },
   set some_top_level_var(_) {}
 });
-dart.trackLibraries("closure", {"closure.dart": closure}, null);
+dart.trackLibraries("closure", {
+  "closure.dart": closure
+}, null);

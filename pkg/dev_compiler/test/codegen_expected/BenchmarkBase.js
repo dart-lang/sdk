@@ -96,7 +96,9 @@ define(['dart_sdk'], function(dart_sdk) {
     statics: () => ({measureFor: dart.definiteFunctionType(core.double, [core.Function, core.int])}),
     names: ['measureFor']
   });
-  dart.trackLibraries("BenchmarkBase", {"BenchmarkBase.dart": BenchmarkBase$}, null);
+  dart.trackLibraries("BenchmarkBase", {
+    "BenchmarkBase.dart": BenchmarkBase$
+  }, null);
   // Exports:
   return {
     BenchmarkBase: BenchmarkBase$
