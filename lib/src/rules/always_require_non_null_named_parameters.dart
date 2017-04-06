@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.always_use_required_for_non_null_named_parameter;
+library linter.src.rules.always_require_non_null_named_parameters;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstVisitor, TypedLiteral;
@@ -49,10 +49,10 @@ bool _isRequired(Element element) =>
     element.name == _REQUIRED_VAR_NAME &&
     element.library?.name == _META_LIB_NAME;
 
-class AlwaysUseRequiredForNonNullNamedParameter extends LintRule {
-  AlwaysUseRequiredForNonNullNamedParameter()
+class AlwaysRequireNonNullNamedParameters extends LintRule {
+  AlwaysRequireNonNullNamedParameters()
       : super(
-            name: 'always_use_required_for_non_null_named_parameter',
+            name: 'always_require_non_null_named_parameters',
             description: desc,
             details: details,
             group: Group.style);
@@ -74,42 +74,45 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitFormalParameterList(FormalParameterList node) {
-    final namedParametersWithoutDefault = node.parameters
+    final params = node.parameters
+        // only named parameters
         .where((p) => p.kind == ParameterKind.NAMED)
         .map((p) => p as DefaultFormalParameter)
-        .where((p) => p.defaultValue == null);
-    for (final param in namedParametersWithoutDefault) {
-      if (param.metadata.any((a) => _isRequired(a.element))) continue;
-
-      final parent = param.parent.parent;
-      if (parent is FunctionExpression) {
-        _checkBody(param, parent.body);
-      } else if (parent is ConstructorDeclaration) {
-        _checkBody(param, parent.body);
-      } else if (parent is MethodDeclaration) {
-        _checkBody(param, parent.body);
-      }
+        // without default value
+        .where((p) => p.defaultValue == null)
+        // without @required
+        .where((p) => !p.metadata.any((a) => _isRequired(a.element)))
+        .toList();
+    final parent = node.parent;
+    if (parent is FunctionExpression) {
+      _checkParams(params, parent.body);
+    } else if (parent is ConstructorDeclaration) {
+      _checkParams(params, parent.body);
+    } else if (parent is MethodDeclaration) {
+      _checkParams(params, parent.body);
     }
   }
 
-  _checkBody(DefaultFormalParameter param, FunctionBody body) {
+  _checkParams(List<DefaultFormalParameter> params, FunctionBody body) {
     if (body is BlockFunctionBody) {
-      final hasNotNullAssert = body.block.childEntities
-          .skip(1) // the first `{`
-          .takeWhile((e) => e is AssertStatement)
-          .any((e) => _isAssertNotNull(e, param.identifier));
-      if (hasNotNullAssert) {
-        rule.reportLintForToken(param.identifier.beginToken);
+      final asserts =
+          body.block.statements.takeWhile((e) => e is AssertStatement).toList();
+      for (final param in params) {
+        if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {
+          rule.reportLintForToken(param.identifier.beginToken);
+        }
       }
     }
   }
 
-  _isAssertNotNull(AssertStatement node, SimpleIdentifier identifier) {
+  bool _hasAssertNotNull(AssertStatement node, String name) {
     final expression = node.condition.unParenthesized;
-    return expression is BinaryExpression &&
-        expression.leftOperand is SimpleIdentifier &&
-        (expression.leftOperand as SimpleIdentifier).name == identifier.name &&
-        expression.operator.type == TokenType.BANG_EQ &&
-        expression.rightOperand is NullLiteral;
+    if (expression is BinaryExpression &&
+        expression.operator.type == TokenType.BANG_EQ) {
+      final operands = [expression.leftOperand, expression.rightOperand];
+      return operands.any((e) => e is NullLiteral) &&
+          operands.any((e) => e is SimpleIdentifier && e.name == name);
+    }
+    return false;
   }
 }

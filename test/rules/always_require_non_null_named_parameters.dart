@@ -18,12 +18,13 @@ m1(
   a,
   b,
   c, {
-  d,
+  d, // LINT
   e: '',
   @required f, // OK
   g, // LINT
   h: 1, // OK
 }) {
+  assert(null != d);
   assert(g != null);
   assert(f != null);
   assert(h != null);
