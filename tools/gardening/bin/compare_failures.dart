@@ -9,15 +9,23 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:gardening/src/buildbot_structures.dart';
+import 'package:gardening/src/buildbot_loading.dart';
 import 'package:gardening/src/util.dart';
 
 main(List<String> args) async {
-  if (args.length != 1) {
-    print('Usage: compare_failures <log-uri>');
+  ArgParser argParser = createArgParser();
+  ArgResults argResults = argParser.parse(args);
+  processArgResults(argResults);
+  if (argResults.rest.length != 1) {
+    print('Usage: compare_failures [options] <log-uri>');
+    print('where <log-uri> is the uri the stdio output of a failing test step');
+    print('and options are:');
+    print(argParser.usage);
     exit(1);
   }
-  String url = args.first;
+  String url = argResults.rest.first;
   if (!url.endsWith('/text')) {
     // Use the text version of the stdio log.
     url += '/text';
@@ -44,48 +52,6 @@ Future<List<BuildResult>> readBuildResults(
     }
   }
   return summaries;
-}
-
-/// Parses the [buildUri] test log and creates a [BuildResult] for it.
-Future<BuildResult> readBuildResult(
-    HttpClient client, BuildUri buildUri) async {
-  Uri uri = buildUri.toUri();
-  log('Reading $uri');
-  String text = await readUriAsText(client, uri);
-
-  bool inFailure = false;
-  List<String> currentFailure;
-  bool parsingTimingBlock = false;
-
-  List<TestFailure> failures = <TestFailure>[];
-  List<Timing> timings = <Timing>[];
-  for (String line in text.split('\n')) {
-    if (currentFailure != null) {
-      if (line.startsWith('!@@@STEP_CLEAR@@@')) {
-        failures.add(new TestFailure(buildUri, currentFailure));
-        currentFailure = null;
-      } else {
-        currentFailure.add(line);
-      }
-    } else if (inFailure && line.startsWith('@@@STEP_FAILURE@@@')) {
-      inFailure = false;
-    } else if (line.startsWith('!@@@STEP_FAILURE@@@')) {
-      inFailure = true;
-    } else if (line.startsWith('FAILED:')) {
-      currentFailure = <String>[];
-      currentFailure.add(line);
-    }
-    if (line.startsWith('--- Total time:')) {
-      parsingTimingBlock = true;
-    } else if (parsingTimingBlock) {
-      if (line.startsWith('0:')) {
-        timings.addAll(parseTimings(buildUri, line));
-      } else {
-        parsingTimingBlock = false;
-      }
-    }
-  }
-  return new BuildResult(buildUri, failures, timings);
 }
 
 /// Generate a summary of the timeouts and other failures in [results].
@@ -176,131 +142,4 @@ String generateBuildResultsSummary(
     });
   }
   return sb.toString();
-}
-
-/// The results of a build step.
-class BuildResult {
-  final BuildUri buildUri;
-  final List<TestFailure> _failures;
-  final List<Timing> _timings;
-
-  BuildResult(this.buildUri, this._failures, this._timings);
-
-  /// `true` of the build result has test failures.
-  bool get hasFailures => _failures.isNotEmpty;
-
-  /// Returns the top-20 timings found in the build log.
-  Iterable<Timing> get timings => _timings;
-
-  /// Returns the [TestFailure]s for tests that timed out.
-  Iterable<TestFailure> get timeouts {
-    return _failures
-        .where((TestFailure failure) => failure.actual == 'Timeout');
-  }
-
-  /// Returns the [TestFailure]s for failing tests that did not time out.
-  Iterable<TestFailure> get errors {
-    return _failures
-        .where((TestFailure failure) => failure.actual != 'Timeout');
-  }
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('$buildUri\n');
-    sb.write('Failures:\n${_failures.join('\n-----\n')}\n');
-    sb.write('\nTimings:\n${_timings.join('\n')}');
-    return sb.toString();
-  }
-}
-
-/// Test failure data derived from the test failure summary in the build step
-/// stdio log.
-class TestFailure {
-  final BuildUri uri;
-  final TestConfiguration id;
-  final String expected;
-  final String actual;
-  final String text;
-
-  factory TestFailure(BuildUri uri, List<String> lines) {
-    List<String> parts = split(lines.first, ['FAILED: ', ' ', ' ']);
-    String configName = parts[1];
-    String archName = parts[2];
-    String testName = parts[3];
-    TestConfiguration id =
-        new TestConfiguration(configName, archName, testName);
-    String expected = split(lines[1], ['Expected: '])[1];
-    String actual = split(lines[2], ['Actual: '])[1];
-    return new TestFailure.internal(
-        uri, id, expected, actual, lines.skip(3).join('\n'));
-  }
-
-  TestFailure.internal(
-      this.uri, this.id, this.expected, this.actual, this.text);
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('FAILED: $id\n');
-    sb.write('Expected: $expected\n');
-    sb.write('Actual: $actual\n');
-    sb.write(text);
-    return sb.toString();
-  }
-}
-
-/// Id for a single test step, for instance the compilation and run steps of
-/// a test.
-class TestStep {
-  final String stepName;
-  final TestConfiguration id;
-
-  TestStep(this.stepName, this.id);
-
-  String toString() {
-    return '$stepName - $id';
-  }
-
-  int get hashCode => stepName.hashCode * 13 + id.hashCode * 17;
-
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! TestStep) return false;
-    return stepName == other.stepName && id == other.id;
-  }
-}
-
-/// The timing result for a single test step.
-class Timing {
-  final BuildUri uri;
-  final String time;
-  final TestStep step;
-
-  Timing(this.uri, this.time, this.step);
-
-  String toString() {
-    return '$time - $step';
-  }
-}
-
-/// Create the [Timing]s for the [line] as found in the top-20 timings of a
-/// build step stdio log.
-List<Timing> parseTimings(BuildUri uri, String line) {
-  List<String> parts = split(line, [' - ', ' - ', ' ']);
-  String time = parts[0];
-  String stepName = parts[1];
-  String configName = parts[2];
-  String testNames = parts[3];
-  List<Timing> timings = <Timing>[];
-  for (String name in testNames.split(',')) {
-    name = name.trim();
-    int slashPos = name.indexOf('/');
-    String archName = name.substring(0, slashPos);
-    String testName = name.substring(slashPos + 1);
-    timings.add(new Timing(
-        uri,
-        time,
-        new TestStep(
-            stepName, new TestConfiguration(configName, archName, testName))));
-  }
-  return timings;
 }

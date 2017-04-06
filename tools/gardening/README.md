@@ -46,3 +46,14 @@ where `<test-nameX>` are test names like `language/arithmetic_test`.
 
 The results are currently pulled from the second to last build since the
 last build might not have completed yet.
+
+#### find_timeouts ####
+Scans past `dart2js-windows` test steps for timeouts and reports the
+frequency of each test that has timed out.
+
+Usage: 
+```console
+dart bin/find_timeouts.dart [<count>]
+```
+
+where `<count>` is the number past build that are scanned.  
