@@ -101,7 +101,7 @@ source_set("tcmalloc") {
     "-fpermissive",
   ]
 
-  if (!is_clang && current_cpu == "x86") {
+  if (!is_clang) {
     cflags += [ "-Wno-format" ]
   }
 
