@@ -88,7 +88,7 @@ class Visitor extends SimpleAstVisitor {
   }
 
   void _checkNodeOnNextLine(AstNode node, int controlEnd) {
-    // if (node is Block) return;
+    if (node is Block && node.statements.isEmpty) return;
 
     final unit = node.root as CompilationUnit;
     if (node is Block &&

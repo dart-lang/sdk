@@ -7,7 +7,7 @@
 testIfElse() {
   if (false) return; // LINT
 
-  if (false) {} // LINT
+  if (false) {} // OK
 
   if (false)
     return; // OK
@@ -19,7 +19,7 @@ testIfElse() {
     return; // OK
   else return; // LINT
 
-  if (false) { } // LINT
+  if (false) { } // OK
   else return; // LINT
 
   if (false)
@@ -27,8 +27,8 @@ testIfElse() {
   else
     return; // OK
 
-  if (false){ }// LINT
-  else {} // LINT
+  if (false){ }// OK
+  else {} // OK
 
   if (false) print( // LINT
     'First argument'
@@ -38,7 +38,7 @@ testIfElse() {
 testWhile() {
   while (true) return; // LINT
 
-  while (true) {} // LINT
+  while (true) {} // OK
 
   while (true)
     return; // OK
@@ -47,7 +47,7 @@ testWhile() {
 testForEach(List l) {
   for (var i in l) return; // LINT
 
-  for (var i in l) {} // LINT
+  for (var i in l) {} // OK
 
   for (var i in l)
     return; // OK
@@ -56,7 +56,7 @@ testForEach(List l) {
 testFor() {
   for (;;) return; // LINT
 
-  for (;;) {} // LINT
+  for (;;) {} // OK
 
   for (;;)
     return; // OK
