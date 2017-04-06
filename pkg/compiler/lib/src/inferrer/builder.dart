@@ -131,6 +131,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
   }
 
+  void initializationIsIndefinite() {
+    if (analyzedElement.isGenerativeConstructor) {
+      locals.fieldScope.isIndefinite = true;
+    }
+  }
+
   DiagnosticReporter get reporter => compiler.reporter;
 
   ClosedWorld get closedWorld => inferrer.closedWorld;
@@ -710,6 +716,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation visitTryStatement(ast.TryStatement node) {
     LocalsHandler saved = locals;
     locals = new LocalsHandler.from(locals, node, useOtherTryBlock: false);
+    initializationIsIndefinite();
     visit(node.tryBlock);
     saved.mergeDiamondFlow(locals, null);
     locals = saved;
@@ -2863,6 +2870,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     recordReturnType(
         expression == null ? types.nullType : expression.accept(this));
     locals.seenReturnOrThrow = true;
+    initializationIsIndefinite();
     return null;
   }
 

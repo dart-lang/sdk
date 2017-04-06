@@ -102,16 +102,24 @@ class VariableScope {
   }
 }
 
+/// Tracks initializers via initializations and assignments.
 class FieldInitializationScope {
   final TypeSystem types;
   Map<Element, TypeInformation> fields;
   bool isThisExposed;
 
-  FieldInitializationScope(this.types) : isThisExposed = false;
+  /// `true` when control flow prevents accumulating definite assignments,
+  /// e.g. an early return or caught exception.
+  bool isIndefinite;
+
+  FieldInitializationScope(this.types)
+      : isThisExposed = false,
+        isIndefinite = false;
 
   FieldInitializationScope.internalFrom(FieldInitializationScope other)
       : types = other.types,
-        isThisExposed = other.isThisExposed;
+        isThisExposed = other.isThisExposed,
+        isIndefinite = other.isIndefinite;
 
   factory FieldInitializationScope.from(FieldInitializationScope other) {
     if (other == null) return null;
@@ -120,7 +128,8 @@ class FieldInitializationScope {
 
   void updateField(Element field, TypeInformation type) {
     if (isThisExposed) return;
-    if (fields == null) fields = new Map<Element, TypeInformation>();
+    if (isIndefinite) return;
+    fields ??= new Map<Element, TypeInformation>();
     fields[field] = type;
   }
 
@@ -129,25 +138,27 @@ class FieldInitializationScope {
   }
 
   void forEach(void f(Element element, TypeInformation type)) {
-    if (fields == null) return;
-    fields.forEach(f);
+    fields?.forEach(f);
   }
 
   void mergeDiamondFlow(
       FieldInitializationScope thenScope, FieldInitializationScope elseScope) {
-    // Quick bailout check. If [isThisExposed] is true, we know the
-    // code following won'TypeInformation do anything.
+    // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
+    // know the code following won'TypeInformation do anything.
     if (isThisExposed) return;
-    if (elseScope == null || elseScope.fields == null) {
-      elseScope = this;
-    }
+    if (isIndefinite) return;
+
+    FieldInitializationScope otherScope =
+        (elseScope == null || elseScope.fields == null) ? this : elseScope;
 
     thenScope.forEach((Element field, TypeInformation type) {
-      TypeInformation otherType = elseScope.readField(field);
+      TypeInformation otherType = otherScope.readField(field);
       if (otherType == null) return;
       updateField(field, types.allocateDiamondPhi(type, otherType));
     });
+
     isThisExposed = thenScope.isThisExposed || elseScope.isThisExposed;
+    isIndefinite = thenScope.isIndefinite || elseScope.isIndefinite;
   }
 }
 
