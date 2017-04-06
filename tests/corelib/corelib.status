@@ -20,6 +20,7 @@ compare_to2_test: Fail    # Bug 4018
 symbol_test/01: Fail, Pass # bug 11669
 
 # With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/05: CompileTimeError # bug 20191
 symbol_reserved_word_test/06: RuntimeError # bug 11669
 symbol_reserved_word_test/09: RuntimeError # bug 11669
 symbol_reserved_word_test/12: RuntimeError # bug 11669
