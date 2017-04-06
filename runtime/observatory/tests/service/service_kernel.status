@@ -65,3 +65,8 @@ object_graph_vm_test: RuntimeError
 
 # Inherited from service.status
 isolate_lifecycle_test: Pass, RuntimeError
+
+
+[ $compiler == dartk && $mode == debug ]
+isolate_lifecycle_test: Skip # Flaky.
+pause_idle_isolate_test: Skip # Flaky

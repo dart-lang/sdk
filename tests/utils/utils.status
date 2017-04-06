@@ -30,3 +30,7 @@ recursive_import_test: Skip # Issue 27744
 
 [ $builder_tag == asan ]
 recursive_import_test: Skip # Issue 27441
+
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+dummy_compiler_test: Slow, Pass
+recursive_import_test: Slow, Pass
