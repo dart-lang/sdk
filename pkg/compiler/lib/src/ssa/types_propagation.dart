@@ -397,12 +397,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           addDependentInstructionsToWorkList(next);
         }
       } else {
-        DominatedUses uses;
-        bool hasCandidates() {
-          uses =
-              DominatedUses.of(receiver, instruction, excludeDominator: true);
-          return uses.isNotEmpty;
-        }
+        bool hasCandidates() => receiver.dominatedUsers(instruction).length > 1;
 
         if ((receiver.usedBy.length <= _MAX_QUICK_USERS)
             ? (hasCandidates() && computeNewType() != receiverType)
@@ -412,7 +407,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeKnown converted =
               new HTypeKnown.witnessed(newType, receiver, instruction);
           instruction.block.addBefore(instruction.next, converted);
-          uses.replaceWith(converted);
+          receiver.replaceAllUsersDominatedBy(converted.next, converted);
           addDependentInstructionsToWorkList(converted);
         }
       }
