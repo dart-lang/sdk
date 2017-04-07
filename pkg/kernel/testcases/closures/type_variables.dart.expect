@@ -17,8 +17,8 @@ class C<T extends core::Object, S extends core::Object> extends core::Object {
   method baz() → dynamic {
     return MakeClosure<() → dynamic>(self::closure#C#baz#function, null);
   }
-  static factory •<T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> {
-    final () → dynamic local = MakeClosure<() → dynamic>(self::closure#C#function#local, null);
+  static factory •<T extends core::Object, S extends core::Object>() → dynamic {
+    final dynamic local = MakeClosure<() → dynamic>(self::closure#C#function#local, null);
     return local.call();
   }
 }

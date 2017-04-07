@@ -2,13 +2,13 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method f_1_1_no_default(dynamic a, [dynamic b]) → dynamic {
+static method f_1_1_no_default(dynamic a, [dynamic b = null]) → dynamic {
   return a.+(b);
 }
 static method f_1_1_default(dynamic a, [dynamic b = 2]) → dynamic {
   return a.+(b);
 }
-static method f_1_b_no_default(dynamic a, {dynamic b}) → dynamic {
+static method f_1_b_no_default(dynamic a, {dynamic b = null}) → dynamic {
   return a.+(b);
 }
 static method f_1_b_default(dynamic a, {dynamic b = 2}) → dynamic {
@@ -33,7 +33,7 @@ static method test_1(core::Function f, core::bool hasDefault) → dynamic {
     result = f.call(40);
     threw = false;
   }
-  on dynamic catch(dynamic _) {
+  on dynamic catch(final dynamic _) {
   }
   if(hasDefault) {
     if(threw)
@@ -54,11 +54,11 @@ static method main(dynamic arguments) → dynamic {
   self::test_1_b(MakeClosure<(dynamic, {b: dynamic}) → dynamic>(self::closure#f_1_b_no_default, null), false);
   self::test_1_b(MakeClosure<(dynamic, {b: dynamic}) → dynamic>(self::closure#f_1_b_default, null), true);
 }
-static method closure#f_1_1_no_default(Vector #contextParameter, dynamic a, [dynamic b]) → dynamic
+static method closure#f_1_1_no_default(Vector #contextParameter, dynamic a, [dynamic b = null]) → dynamic
   return self::f_1_1_no_default(a, b);
 static method closure#f_1_1_default(Vector #contextParameter, dynamic a, [dynamic b = 2]) → dynamic
   return self::f_1_1_default(a, b);
-static method closure#f_1_b_no_default(Vector #contextParameter, dynamic a, {dynamic b}) → dynamic
+static method closure#f_1_b_no_default(Vector #contextParameter, dynamic a, {dynamic b = null}) → dynamic
   return self::f_1_b_no_default(a, b: b);
 static method closure#f_1_b_default(Vector #contextParameter, dynamic a, {dynamic b = 2}) → dynamic
   return self::f_1_b_default(a, b: b);

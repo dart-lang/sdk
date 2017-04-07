@@ -1,7 +1,7 @@
 library;
 import self as self;
 
-static field dynamic v = null;
+static field dynamic v;
 static method main(dynamic arguments) → dynamic {
   final Vector #context = MakeVector(2);
   #context[1] = null;
