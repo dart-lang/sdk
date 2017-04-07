@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N unnecessary_null_in_if_null_operator`
+// test w/ `pub run test -N unnecessary_null_in_if_null_operators`
 
 var x = 1 ?? null; //LINT
 var y = 1 ?? 1; //OK
