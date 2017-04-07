@@ -86,6 +86,7 @@ main(List<String> arguments) {
     'language',
     'corelib',
     path.join('corelib', 'regexp'),
+    path.join('lib', 'async'),
     path.join('lib', 'collection'),
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
