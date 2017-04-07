@@ -622,10 +622,8 @@ class StrongTypeSystemImpl extends TypeSystem {
         // Also pass dynamicIsBottom, because this is a fuzzy arrow.
         var newType = _substituteForUnknownType(p.type,
             lowerBound: !lowerBound, dynamicIsBottom: true);
-        return identical(p.type, newType) && p is ParameterElementImpl
-            ? p
-            : new ParameterElementImpl.synthetic(
-                p.name, newType, p.parameterKind);
+        return new ParameterElementImpl.synthetic(
+            p.name, newType, p.parameterKind);
       });
       // Return type is covariant.
       var newReturnType =
@@ -639,7 +637,7 @@ class StrongTypeSystemImpl extends TypeSystem {
         ..isSynthetic = true
         ..returnType = newReturnType
         ..shareTypeParameters(type.typeFormals)
-        ..shareParameters(newParameters);
+        ..parameters = newParameters;
       return function.type = new FunctionTypeImpl(function);
     }
     return type;
