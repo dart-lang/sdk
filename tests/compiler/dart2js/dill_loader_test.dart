@@ -17,17 +17,18 @@ import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import "package:expect/expect.dart";
 import 'package:path/path.dart' as path;
 
-/// Run the dartk.dart script, and return the binary encoded results.
-List<int> runDartk(Uri filename) {
-  String basePath = path.fromUri(Uri.base);
-  String dartkPath =
-      path.normalize(path.join(basePath, 'tools/dartk_wrappers/dartk'));
+final String dartkExecutable = Platform.isWindows
+    ? 'tools/dartk_wrappers/dartk.bat'
+    : 'tools/dartk_wrappers/dartk';
 
-  var args = [filename.path, '-fbin', '-ostdout'];
-  ProcessResult result = Process.runSync(
-      dartkPath, [filename.path, '-fbin', '-ostdout'],
-      stdoutEncoding: null);
-  Expect.equals(0, result.exitCode);
+/// Run the dartk.dart script, and return the binary encoded results.
+List<int> runDartk(String filename) {
+  String basePath = path.fromUri(Uri.base);
+  String dartkPath = path.normalize(path.join(basePath, dartkExecutable));
+
+  var args = [filename, '-fbin', '-ostdout'];
+  ProcessResult result = Process.runSync(dartkPath, args, stdoutEncoding: null);
+  Expect.equals(0, result.exitCode, result.stderr);
   return result.stdout;
 }
 
@@ -43,12 +44,12 @@ class TestScriptLoader implements ScriptLoader {
 /// than just string source files.
 main() {
   asyncTest(() async {
-    Uri uri = Uri.base.resolve('tests/corelib/list_literal_test.dart');
-    File entity = new File.fromUri(uri);
+    String filename = 'tests/corelib/list_literal_test.dart';
+    Uri uri = Uri.base.resolve(filename);
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
     Uri entryPoint = Uri.parse('memory:main.dill');
-    List<int> kernelBinary = runDartk(entity.uri);
+    List<int> kernelBinary = runDartk(filename);
 
     CompilerImpl compiler = compilerFor(
         entryPoint: entryPoint,
