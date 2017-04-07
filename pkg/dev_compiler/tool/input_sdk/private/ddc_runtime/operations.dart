@@ -911,7 +911,7 @@ String _toString(obj) {
 // TODO(jmesserly): is the argument type verified statically?
 noSuchMethod(obj, Invocation invocation) {
   if (obj == null || JS('bool', 'typeof # == "function"', obj)) {
-    throw new NoSuchMethodError(obj, invocation.memberName,
+    throwNoSuchMethodError(obj, invocation.memberName,
         invocation.positionalArguments, invocation.namedArguments);
   }
   // Delegate to the (possibly user-defined) method on the object.
