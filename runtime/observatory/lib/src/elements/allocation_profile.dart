@@ -226,7 +226,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
               ..children = _isCompacted
                   ? [
                       new HeadingElement.h2()
-                        ..text = '(${_usedCaption(_profile.newSpace)}) '
+                        ..text = '(${_usedCaption(_profile.oldSpace)}) '
                             'Old Generation',
                     ]
                   : [
