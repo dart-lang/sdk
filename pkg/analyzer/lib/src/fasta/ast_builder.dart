@@ -11,8 +11,10 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType, Parser;
+import 'package:front_end/src/fasta/scanner/precedence.dart';
+import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart'
-    show BeginGroupToken, Token;
+    show BeginGroupToken, CommentToken, Token;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/fasta_codes.dart'
@@ -50,6 +52,8 @@ class AstBuilder extends ScopeListener {
    * `native` support.
    */
   Parser parser;
+
+  bool parseGenericMethodComments = false;
 
   /// The name of the class currently being parsed, or `null` if no class is
   /// being parsed.
@@ -1906,6 +1910,78 @@ class AstBuilder extends ScopeListener {
   @override
   void debugEvent(String name) {
     // printEvent(name);
+  }
+
+  @override
+  Token injectGenericCommentTypeAssign(Token token) {
+    // TODO(paulberry,scheglov,ahe): figure out how to share these generic
+    // comment methods with BodyBuilder.
+    return _injectGenericComment(token, GENERIC_METHOD_TYPE_ASSIGN, 3);
+  }
+
+  @override
+  Token injectGenericCommentTypeList(Token token) {
+    return _injectGenericComment(token, GENERIC_METHOD_TYPE_LIST, 2);
+  }
+
+  @override
+  Token replaceTokenWithGenericCommentTypeAssign(
+      Token tokenToStartReplacing, Token tokenWithComment) {
+    Token injected = injectGenericCommentTypeAssign(tokenWithComment);
+    if (!identical(injected, tokenWithComment)) {
+      Token prev = tokenToStartReplacing.previous;
+      prev.setNextWithoutSettingPrevious(injected);
+      tokenToStartReplacing = injected;
+      tokenToStartReplacing.previous = prev;
+    }
+    return tokenToStartReplacing;
+  }
+
+  /// Check if the given [token] has a comment token with the given [info],
+  /// which should be either [GENERIC_METHOD_TYPE_ASSIGN] or
+  /// [GENERIC_METHOD_TYPE_LIST].  If found, parse the comment into tokens and
+  /// inject into the token stream before the [token].
+  Token _injectGenericComment(Token token, PrecedenceInfo info, int prefixLen) {
+    if (parseGenericMethodComments) {
+      CommentToken t = token.precedingCommentTokens;
+      for (; t != null; t = t.next) {
+        if (t.info == info) {
+          String code = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
+          Token tokens = _scanGenericMethodComment(code, t.offset + prefixLen);
+          if (tokens != null) {
+            // Remove the token from the comment stream.
+            t.remove();
+            // Insert the tokens into the stream.
+            _injectTokenList(token, tokens);
+            return tokens;
+          }
+        }
+      }
+    }
+    return token;
+  }
+
+  void _injectTokenList(Token beforeToken, Token firstToken) {
+    // Scanner creates a cyclic EOF token.
+    Token lastToken = firstToken;
+    while (lastToken.next.info != EOF_INFO) {
+      lastToken = lastToken.next;
+    }
+    // Inject these new tokens into the stream.
+    Token previous = beforeToken.previous;
+    lastToken.setNext(beforeToken);
+    previous.setNext(firstToken);
+    beforeToken = firstToken;
+  }
+
+  /// Scans the given [code], and returns the tokens, otherwise returns `null`.
+  Token _scanGenericMethodComment(String code, int offset) {
+    var scanner = new SubStringScanner(offset, code);
+    Token firstToken = scanner.tokenize();
+    if (scanner.hasErrors) {
+      return null;
+    }
+    return firstToken;
   }
 }
 

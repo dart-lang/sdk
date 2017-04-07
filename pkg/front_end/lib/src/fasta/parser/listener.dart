@@ -1028,6 +1028,28 @@ class Listener {
     logEvent("Script");
   }
 
+  /// Matches a generic comment type substitution and injects it into the token
+  /// stream before the given [token].
+  Token injectGenericCommentTypeAssign(Token token) {
+    return token;
+  }
+
+  /// Matches a generic comment type parameters or type arguments and injects
+  /// them into the token stream before the given [token].
+  Token injectGenericCommentTypeList(Token token) {
+    return token;
+  }
+
+  /// If the [tokenWithComment] has a type substitution comment /*=T*/, then
+  /// the comment should be scanned into new tokens, and these tokens inserted
+  /// instead of tokens from the [tokenToStartReplacing] to the
+  /// [tokenWithComment]. Returns the first newly inserted token, or the
+  /// original [tokenWithComment].
+  Token replaceTokenWithGenericCommentTypeAssign(
+      Token tokenToStartReplacing, Token tokenWithComment) {
+    return tokenToStartReplacing;
+  }
+
   /// Creates a new synthetic token whose `next` pointer points to [next].
   ///
   /// If [next] is `null`, `null` is returned.

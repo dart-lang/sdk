@@ -232,12 +232,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseFunctionExpression_typeParameterComments() {
-    super.test_parseFunctionExpression_typeParameterComments();
-  }
-
-  @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
     super
         .test_parseInstanceCreationExpression_type_named_typeArgumentComments();
@@ -803,9 +797,9 @@ class ParserProxy implements analyzer.Parser {
     var elementStore = new ElementStoreProxy();
     var scope = new ScopeProxy();
     var astBuilder = new AstBuilder(null, library, member, elementStore, scope);
+    astBuilder.parseGenericMethodComments = enableGenericMethodComments;
     var fastaParser = new fasta.Parser(astBuilder);
     astBuilder.parser = fastaParser;
-    fastaParser.parseGenericMethodComments = enableGenericMethodComments;
     return new ParserProxy._(startingToken, fastaParser, astBuilder);
   }
 
@@ -891,13 +885,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseFunctionDeclarationStatement_typeParameterComments() {
-    // TODO(scheglov): Fasta doesn't support generic comment syntax.
-    super.test_parseFunctionDeclarationStatement_typeParameterComments();
-  }
-
-  @override
-  @failingTest
   void test_parseStatement_emptyTypeArgumentList() {
     super.test_parseStatement_emptyTypeArgumentList();
   }
@@ -918,36 +905,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseTryStatement_on_catch_finally() {
     super.test_parseTryStatement_on_catch_finally();
-  }
-
-  @override
-  @failingTest
-  void test_parseVariableDeclarationListAfterMetadata_const_typeComment() {
-    super.test_parseVariableDeclarationListAfterMetadata_const_typeComment();
-  }
-
-  @override
-  @failingTest
-  void test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment() {
-    super.test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment();
-  }
-
-  @override
-  @failingTest
-  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
-    super.test_parseVariableDeclarationListAfterMetadata_final_typeComment();
-  }
-
-  @override
-  @failingTest
-  void test_parseVariableDeclarationListAfterMetadata_type_typeComment() {
-    super.test_parseVariableDeclarationListAfterMetadata_type_typeComment();
-  }
-
-  @override
-  @failingTest
-  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
-    super.test_parseVariableDeclarationListAfterMetadata_var_typeComment();
   }
 }
 
