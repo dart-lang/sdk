@@ -841,7 +841,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
           if (isInstantiated(mixinApplication)) {
             uses.add(mixinApplication);
           } else if (mixinApplication.isNamedMixinApplication) {
-            Set<MixinApplicationElement> next = _mixinUses[mixinApplication];
+            Set<ClassEntity> next = _mixinUses[mixinApplication];
             if (next != null) {
               next.forEach(addLiveUse);
             }
