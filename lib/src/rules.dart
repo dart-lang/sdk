@@ -6,6 +6,7 @@ library linter.src.rules;
 
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
+import 'package:linter/src/rules/always_put_control_body_on_new_line.dart';
 import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/always_require_non_null_named_parameters.dart';
 import 'package:linter/src/rules/annotate_overrides.dart';
@@ -94,6 +95,7 @@ import 'package:linter/src/rules/valid_regexps.dart';
 void registerLintRules() {
   Analyzer.facade
     ..register(new AlwaysDeclareReturnTypes())
+    ..register(new AlwaysPutControlBodyOnNewLine())
     ..register(new AlwaysSpecifyTypes())
     ..register(new AlwaysRequireNonNullNamedParameters())
     ..register(new AnnotateOverrides())
