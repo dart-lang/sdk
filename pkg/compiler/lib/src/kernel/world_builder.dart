@@ -23,6 +23,7 @@ import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
+import '../universe/call_structure.dart';
 import 'element_adapter.dart';
 import 'elements.dart';
 
@@ -55,19 +56,17 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   Map<ir.TypeParameter, KTypeVariable> _typeVariableMap =
       <ir.TypeParameter, KTypeVariable>{};
 
+  // TODO(johnniwinther): Change this to a list of 'KMemberData' class if we
+  // need more data for members.
+  List<ir.Member> _memberList = <ir.Member>[];
+
   Map<ir.Member, KConstructor> _constructorMap = <ir.Member, KConstructor>{};
-  // TODO(johnniwinther): Change this to a list of 'KConstructorData' class
-  // holding the [ConstantConstructor] if we need more data for constructors.
-  List<ir.Member> _constructorList = <ir.Member>[];
   Map<KConstructor, ConstantConstructor> _constructorConstantMap =
       <KConstructor, ConstantConstructor>{};
 
   Map<ir.Procedure, KFunction> _methodMap = <ir.Procedure, KFunction>{};
 
   Map<ir.Field, KField> _fieldMap = <ir.Field, KField>{};
-  // TODO(johnniwinther): Change this to a list of 'KFieldData' class
-  // holding the [ConstantExpression] if we need more data for fields.
-  List<ir.Field> _fieldList = <ir.Field>[];
   Map<KField, ConstantExpression> _fieldConstantMap =
       <KField, ConstantExpression>{};
 
@@ -112,14 +111,15 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KLibrary _getLibrary(ir.Library node, [KLibraryEnv libraryEnv]) {
     return _libraryMap.putIfAbsent(node, () {
-      _libraryEnvs.add(libraryEnv ?? _env.lookupLibrary(node.importUri));
+      Uri canonicalUri = node.importUri;
+      _libraryEnvs.add(libraryEnv ?? _env.lookupLibrary(canonicalUri));
       String name = node.name;
       if (name == null) {
         // Use the file name as script name.
-        String path = node.importUri.path;
+        String path = canonicalUri.path;
         name = path.substring(path.lastIndexOf('/') + 1);
       }
-      return new KLibrary(_libraryMap.length, name);
+      return new KLibrary(_libraryMap.length, name, canonicalUri);
     });
   }
 
@@ -194,27 +194,31 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KConstructor _getConstructor(ir.Member node) {
     return _constructorMap.putIfAbsent(node, () {
-      int constructorIndex = _constructorList.length;
+      int memberIndex = _memberList.length;
       KConstructor constructor;
       KClass enclosingClass = _getClass(node.enclosingClass);
       Name name = getName(node.name);
       bool isExternal = node.isExternal;
       if (node is ir.Constructor) {
         constructor = new KGenerativeConstructor(
-            constructorIndex, enclosingClass, name,
-            isExternal: isExternal);
+            memberIndex, enclosingClass, name,
+            isExternal: isExternal, isConst: node.isConst);
+      } else if (node is ir.Procedure) {
+        constructor = new KFactoryConstructor(memberIndex, enclosingClass, name,
+            isExternal: isExternal, isConst: node.isConst);
       } else {
-        constructor = new KFactoryConstructor(
-            constructorIndex, enclosingClass, name,
-            isExternal: isExternal);
+        // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
+        throw new SpannableAssertionFailure(
+            NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
       }
-      _constructorList.add(node);
+      _memberList.add(node);
       return constructor;
     });
   }
 
   KFunction _getMethod(ir.Procedure node) {
     return _methodMap.putIfAbsent(node, () {
+      int memberIndex = _memberList.length;
       KLibrary library;
       KClass enclosingClass;
       if (node.enclosingClass != null) {
@@ -226,26 +230,33 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
       bool isExternal = node.isExternal;
+      KFunction function;
       switch (node.kind) {
         case ir.ProcedureKind.Factory:
           throw new UnsupportedError("Cannot create method from factory.");
         case ir.ProcedureKind.Getter:
-          return new KGetter(library, enclosingClass, name,
+          function = new KGetter(memberIndex, library, enclosingClass, name,
               isStatic: isStatic, isExternal: isExternal);
+          break;
         case ir.ProcedureKind.Method:
         case ir.ProcedureKind.Operator:
-          return new KMethod(library, enclosingClass, name,
+          function = new KMethod(memberIndex, library, enclosingClass, name,
               isStatic: isStatic, isExternal: isExternal);
+          break;
         case ir.ProcedureKind.Setter:
-          return new KSetter(library, enclosingClass, getName(node.name).setter,
+          function = new KSetter(
+              memberIndex, library, enclosingClass, getName(node.name).setter,
               isStatic: isStatic, isExternal: isExternal);
+          break;
       }
+      _memberList.add(node);
+      return function;
     });
   }
 
   KField _getField(ir.Field node) {
     return _fieldMap.putIfAbsent(node, () {
-      int fieldIndex = _fieldList.length;
+      int memberIndex = _memberList.length;
       KLibrary library;
       KClass enclosingClass;
       if (node.enclosingClass != null) {
@@ -256,9 +267,11 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       }
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
-      _fieldList.add(node);
-      return new KField(fieldIndex, library, enclosingClass, name,
-          isStatic: isStatic, isAssignable: node.isMutable);
+      _memberList.add(node);
+      return new KField(memberIndex, library, enclosingClass, name,
+          isStatic: isStatic,
+          isAssignable: node.isMutable,
+          isConst: node.isConst);
     });
   }
 
@@ -400,7 +413,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   ConstantConstructor _getConstructorConstant(KConstructor constructor) {
     return _constructorConstantMap.putIfAbsent(constructor, () {
-      ir.Member node = _constructorList[constructor.constructorIndex];
+      ir.Member node = _memberList[constructor.memberIndex];
       if (node is ir.Constructor && node.isConst) {
         return new Constantifier(this).computeConstantConstructor(node);
       }
@@ -413,7 +426,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   ConstantExpression _getFieldConstant(KField field) {
     return _fieldConstantMap.putIfAbsent(field, () {
-      ir.Field node = _fieldList[field.fieldIndex];
+      ir.Field node = _memberList[field.memberIndex];
       if (node.isConst) {
         return new Constantifier(this).visit(node.initializer);
       }
@@ -556,6 +569,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  FunctionType getFunctionType(KFunction function) {
+    throw new UnimplementedError('KernelElementEnvironment.getFunctionType');
+  }
+
+  @override
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false}) {
     ConstructorEntity constructor = worldBuilder.lookupConstructor(cls, name);
@@ -626,6 +644,30 @@ class KernelElementEnvironment implements ElementEnvironment {
           CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
     return library;
+  }
+
+  @override
+  CallStructure getCallStructure(KFunction function) {
+    ir.Member member = worldBuilder._memberList[function.memberIndex];
+    ir.FunctionNode functionNode;
+    if (member is ir.Procedure) {
+      functionNode = member.function;
+    } else if (member is ir.Constructor) {
+      functionNode = member.function;
+    } else {
+      throw new SpannableAssertionFailure(
+          function, "Unexpected function node ${member} for $function.");
+    }
+    return new CallStructure(
+        functionNode.positionalParameters.length +
+            functionNode.namedParameters.length,
+        functionNode.namedParameters.map((d) => d.name).toList());
+  }
+
+  @override
+  bool isDeferredLoadLibraryGetter(KMember member) {
+    // TODO(johnniwinther): Support these.
+    return false;
   }
 }
 

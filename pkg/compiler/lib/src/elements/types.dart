@@ -59,6 +59,9 @@ abstract class DartType {
 
   /// Is `true` if this type is a malformed type.
   bool get isMalformed => false;
+
+  /// Whether this type contains a type variable.
+  bool get containsTypeVariables => false;
 }
 
 class InterfaceType extends DartType {
@@ -66,6 +69,9 @@ class InterfaceType extends DartType {
   final List<DartType> typeArguments;
 
   InterfaceType(this.element, this.typeArguments);
+
+  bool get containsTypeVariables =>
+      typeArguments.any((type) => type.containsTypeVariables);
 
   int get hashCode {
     int hash = element.hashCode;
@@ -107,6 +113,8 @@ class TypeVariableType extends DartType {
   TypeVariableType(this.element);
 
   bool get isTypeVariable => true;
+
+  bool get containsTypeVariables => true;
 
   int get hashCode => 17 * element.hashCode;
 
@@ -160,6 +168,13 @@ class FunctionType extends DartType {
       this.optionalParameterTypes,
       this.namedParameters,
       this.namedParameterTypes);
+
+  bool get containsTypeVariables {
+    return returnType.containsTypeVariables ||
+        parameterTypes.any((type) => type.containsTypeVariables) ||
+        optionalParameterTypes.any((type) => type.containsTypeVariables) ||
+        namedParameterTypes.any((type) => type.containsTypeVariables);
+  }
 
   bool get isFunctionType => true;
 

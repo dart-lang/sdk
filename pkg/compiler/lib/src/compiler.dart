@@ -37,6 +37,7 @@ import 'elements/resolution_types.dart'
     show
         ResolutionDartType,
         ResolutionDynamicType,
+        ResolutionFunctionType,
         ResolutionInterfaceType,
         Types;
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
@@ -1971,5 +1972,26 @@ class _CompilerElementEnvironment implements ElementEnvironment {
           library, "The library '${uri}' was not found.");
     }
     return library;
+  }
+
+  @override
+  CallStructure getCallStructure(MethodElement method) {
+    ResolutionFunctionType type = method.computeType(_resolution);
+    return new CallStructure(
+        type.parameterTypes.length +
+            type.optionalParameterTypes.length +
+            type.namedParameterTypes.length,
+        type.namedParameters);
+  }
+
+  @override
+  bool isDeferredLoadLibraryGetter(MemberElement member) {
+    return member.isDeferredLoaderGetter;
+  }
+
+  @override
+  ResolutionFunctionType getFunctionType(MethodElement method) {
+    method.computeType(_resolution);
+    return method.type;
   }
 }

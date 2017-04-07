@@ -11,8 +11,9 @@ class KLibrary implements LibraryEntity {
   /// Library index used for fast lookup in [KernelWorldBuilder].
   final int libraryIndex;
   final String name;
+  final Uri canonicalUri;
 
-  KLibrary(this.libraryIndex, this.name);
+  KLibrary(this.libraryIndex, this.name, this.canonicalUri);
 
   String toString() => 'library($name)';
 }
@@ -33,18 +34,24 @@ class KClass implements ClassEntity {
 }
 
 abstract class KMember implements MemberEntity {
+  /// Member index used for fast lookup in [KernelWorldBuilder].
+  final int memberIndex;
   final KLibrary library;
   final KClass enclosingClass;
   final Name _name;
   final bool _isStatic;
 
-  KMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
+  KMember(this.memberIndex, this.library, this.enclosingClass, this._name,
+      {bool isStatic: false})
       : _isStatic = isStatic;
 
   String get name => _name.text;
 
   @override
   bool get isAssignable => false;
+
+  @override
+  bool get isConst => false;
 
   @override
   bool get isSetter => false;
@@ -79,18 +86,17 @@ abstract class KMember implements MemberEntity {
 abstract class KFunction extends KMember implements FunctionEntity {
   final bool isExternal;
 
-  KFunction(KLibrary library, KClass enclosingClass, Name name,
+  KFunction(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic: false, this.isExternal: false})
-      : super(library, enclosingClass, name, isStatic: isStatic);
+      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
 }
 
 abstract class KConstructor extends KFunction implements ConstructorEntity {
-  /// Constructor index used for fast lookup in [KernelWorldBuilder].
-  final int constructorIndex;
+  final bool isConst;
 
-  KConstructor(this.constructorIndex, KClass enclosingClass, Name name,
-      {bool isExternal})
-      : super(enclosingClass.library, enclosingClass, name,
+  KConstructor(int memberIndex, KClass enclosingClass, Name name,
+      {bool isExternal, this.isConst})
+      : super(memberIndex, enclosingClass.library, enclosingClass, name,
             isExternal: isExternal);
 
   @override
@@ -110,8 +116,9 @@ abstract class KConstructor extends KFunction implements ConstructorEntity {
 
 class KGenerativeConstructor extends KConstructor {
   KGenerativeConstructor(int constructorIndex, KClass enclosingClass, Name name,
-      {bool isExternal})
-      : super(constructorIndex, enclosingClass, name, isExternal: isExternal);
+      {bool isExternal, bool isConst})
+      : super(constructorIndex, enclosingClass, name,
+            isExternal: isExternal, isConst: isConst);
 
   @override
   bool get isFactoryConstructor => false;
@@ -121,9 +128,10 @@ class KGenerativeConstructor extends KConstructor {
 }
 
 class KFactoryConstructor extends KConstructor {
-  KFactoryConstructor(int constructorIndex, KClass enclosingClass, Name name,
-      {bool isExternal})
-      : super(constructorIndex, enclosingClass, name, isExternal: isExternal);
+  KFactoryConstructor(int memberIndex, KClass enclosingClass, Name name,
+      {bool isExternal, bool isConst})
+      : super(memberIndex, enclosingClass, name,
+            isExternal: isExternal, isConst: isConst);
 
   @override
   bool get isFactoryConstructor => true;
@@ -133,9 +141,9 @@ class KFactoryConstructor extends KConstructor {
 }
 
 class KMethod extends KFunction {
-  KMethod(KLibrary library, KClass enclosingClass, Name name,
+  KMethod(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, bool isExternal})
-      : super(library, enclosingClass, name,
+      : super(memberIndex, library, enclosingClass, name,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -145,9 +153,9 @@ class KMethod extends KFunction {
 }
 
 class KGetter extends KFunction {
-  KGetter(KLibrary library, KClass enclosingClass, Name name,
+  KGetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, bool isExternal})
-      : super(library, enclosingClass, name,
+      : super(memberIndex, library, enclosingClass, name,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -157,9 +165,9 @@ class KGetter extends KFunction {
 }
 
 class KSetter extends KFunction {
-  KSetter(KLibrary library, KClass enclosingClass, Name name,
+  KSetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, bool isExternal})
-      : super(library, enclosingClass, name,
+      : super(memberIndex, library, enclosingClass, name,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -172,13 +180,12 @@ class KSetter extends KFunction {
 }
 
 class KField extends KMember implements FieldEntity {
-  /// Field index used for fast lookup in [KernelWorldBuilder].
-  final int fieldIndex;
   final bool isAssignable;
+  final bool isConst;
 
-  KField(this.fieldIndex, KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, this.isAssignable})
-      : super(library, enclosingClass, name, isStatic: isStatic);
+  KField(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
+      {bool isStatic, this.isAssignable, this.isConst})
+      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
 
   @override
   bool get isField => true;

@@ -7,8 +7,9 @@ import '../common/resolution.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../universe/call_structure.dart';
 import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
@@ -74,7 +75,7 @@ abstract class CustomElementsAnalysisBase {
     join.instantiatedClasses.add(classElement);
   }
 
-  void registerStaticUse(Element element) {
+  void registerStaticUse(MemberEntity element) {
     assert(element != null);
     if (element == _helpers.findIndexForNativeSubclassType) {
       join.demanded = true;

@@ -9,7 +9,6 @@ import '../common/names.dart' show Identifiers, Uris;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
 import '../deferred_load.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
@@ -90,19 +89,21 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     _backendUsage.processBackendImpact(impact);
   }
 
-  void _addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder) {
+  void _addInterceptors(ClassEntity cls, WorldImpactBuilder impactBuilder) {
     _interceptorData.addInterceptors(cls);
-    impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+    impactBuilder.registerTypeUse(
+        new TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
     _backendUsage.registerBackendClassUse(cls);
   }
 
   @override
-  WorldImpact registerClosurizedMember(MemberElement element) {
+  WorldImpact registerClosurizedMember(FunctionEntity element) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     _backendUsage.processBackendImpact(_impacts.memberClosure);
     impactBuilder
         .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
-    if (element.type.containsTypeVariables) {
+    FunctionType type = _elementEnvironment.getFunctionType(element);
+    if (type.containsTypeVariables) {
       impactBuilder.addImpact(_registerComputeSignature());
     }
     return impactBuilder;
@@ -132,7 +133,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   /// Called to enable support for isolates. Any backend specific [WorldImpact]
   /// of this is returned.
-  WorldImpact _enableIsolateSupport(MethodElement mainMethod) {
+  WorldImpact _enableIsolateSupport(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     // TODO(floitsch): We should also ensure that the class IsolateMessage is
     // instantiated. Currently, just enabling isolate support works.
@@ -155,14 +156,16 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
-  WorldImpact _computeMainImpact(MethodElement mainMethod) {
+  WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-    if (mainMethod.parameters.isNotEmpty) {
+    CallStructure callStructure =
+        _elementEnvironment.getCallStructure(mainMethod);
+    if (callStructure.argumentCount > 0) {
       _impacts.mainWithArguments
           .registerImpact(mainImpact, _elementEnvironment);
       _backendUsage.processBackendImpact(_impacts.mainWithArguments);
       mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
+          new StaticUse.staticInvoke(mainMethod, callStructure));
       // If the main method takes arguments, this compilation could be the
       // target of Isolate.spawnUri. Strictly speaking, that can happen also if
       // main takes no arguments, but in this case the spawned isolate can't
@@ -258,10 +261,10 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
-      ClassElement cls = interceptor.cls;
-      _computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
+      InterfaceType type = _elementEnvironment.getThisType(interceptor.cls);
+      _computeImpactForInstantiatedConstantType(type, impactBuilder);
     } else if (constant.isType) {
-      MethodElement helper = _helpers.createRuntimeType;
+      FunctionEntity helper = _helpers.createRuntimeType;
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           // TODO(johnniwinther): Find the right [CallStructure].
           helper,
@@ -296,21 +299,23 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  WorldImpact registerUsedElement(MemberElement member) {
+  WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     _mirrorsDataBuilder.registerUsedMember(member);
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
-      MethodElement method = member;
-      ClassElement cls = method.enclosingClass;
-      if (method.name == Identifiers.call && !cls.typeVariables.isEmpty) {
+      FunctionEntity method = member;
+      ClassEntity cls = method.enclosingClass;
+
+      if (method.name == Identifiers.call &&
+          _elementEnvironment.getThisType(cls).typeArguments.isNotEmpty) {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }
     _backendUsage.registerUsedMember(member);
 
-    if (member.isDeferredLoaderGetter) {
+    if (_elementEnvironment.isDeferredLoadLibraryGetter(member)) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!_isLoadLibraryFunctionResolved) {
         _isLoadLibraryFunctionResolved = true;
@@ -322,7 +327,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // library, or timers for the async library.  We exclude constant fields,
     // which are ending here because their initializing expression is
     // compiled.
-    LibraryElement library = member.library;
+    LibraryEntity library = member.library;
     if (!_backendUsage.isIsolateInUse && !(member.isField && member.isConst)) {
       Uri uri = library.canonicalUri;
       if (uri == Uris.dart_isolate) {
@@ -361,9 +366,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     return _impacts.runtimeTypeSupport.createImpact(_elementEnvironment);
   }
 
-  WorldImpact _processClass(ClassElement cls) {
+  WorldImpact _processClass(ClassEntity cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (!cls.typeVariables.isEmpty) {
+    if (_elementEnvironment.getThisType(cls).typeArguments.isNotEmpty) {
       _typeVariableResolutionAnalysis.registerClassWithTypeVariables(cls);
     }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function

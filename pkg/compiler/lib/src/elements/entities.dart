@@ -23,7 +23,10 @@ abstract class Entity implements Spannable {
 ///
 /// Currently only [LibraryElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
-abstract class LibraryEntity extends Entity {}
+abstract class LibraryEntity extends Entity {
+  /// Return the canonical uri that identifies this library.
+  Uri get canonicalUri;
+}
 
 /// Stripped down super interface for class like entities.
 ///
@@ -83,7 +86,10 @@ abstract class MemberEntity extends Entity {
   /// Whether this member is assignable, i.e. a non-final field.
   bool get isAssignable;
 
-  /// The enclosing class if this is a constuctor, instance member or
+  /// Whether this member is constant, i.e. a constant field or constructor.
+  bool get isConst;
+
+  /// The enclosing class if this is a constructor, instance member or
   /// static member of a class.
   ClassEntity get enclosingClass;
 

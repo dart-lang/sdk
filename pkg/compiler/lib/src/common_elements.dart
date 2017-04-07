@@ -8,6 +8,7 @@ library dart2js.type_system;
 import 'common/names.dart' show Uris;
 import 'elements/types.dart';
 import 'elements/entities.dart';
+import 'universe/call_structure.dart';
 
 /// The common elements and types in Dart.
 abstract class CommonElements {
@@ -284,6 +285,17 @@ abstract class ElementEnvironment {
 
   /// Returns `true` if [a] is a subtype of [b].
   bool isSubtype(DartType a, DartType b);
+
+  /// Returns the type if [function].
+  FunctionType getFunctionType(FunctionEntity function);
+
+  /// Returns the [CallStructure] corresponding to calling [entity] with all
+  /// arguments, both required and optional.
+  CallStructure getCallStructure(FunctionEntity entity);
+
+  /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
+  /// on deferred libraries.
+  bool isDeferredLoadLibraryGetter(MemberEntity member);
 }
 
 class CommonElementsImpl implements CommonElements {
