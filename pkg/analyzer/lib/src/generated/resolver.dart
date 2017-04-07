@@ -10183,7 +10183,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (returnType == null) {
       return _dynamicType;
     } else {
-      return returnType.type;
+      return _typeNameResolver._getType(returnType);
     }
   }
 
