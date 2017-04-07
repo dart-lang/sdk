@@ -1109,9 +1109,9 @@ class Parser {
   /// [value2], or [value3].
   bool isOneOf3(Token token, String value1, String value2, String value3) {
     String stringValue = token.stringValue;
-    return value1 == stringValue ||
-        value2 == stringValue ||
-        value3 == stringValue;
+    return identical(value1, stringValue) ||
+        identical(value2, stringValue) ||
+        identical(value3, stringValue);
   }
 
   /// Returns true if the stringValue of the [token] is either [value1],
@@ -1119,10 +1119,10 @@ class Parser {
   bool isOneOf4(
       Token token, String value1, String value2, String value3, String value4) {
     String stringValue = token.stringValue;
-    return value1 == stringValue ||
-        value2 == stringValue ||
-        value3 == stringValue ||
-        value4 == stringValue;
+    return identical(value1, stringValue) ||
+        identical(value2, stringValue) ||
+        identical(value3, stringValue) ||
+        identical(value4, stringValue);
   }
 
   bool notEofOrValue(String value, Token token) {
