@@ -33,6 +33,9 @@ testIfElse() {
   if (false) print( // LINT
     'First argument'
     'Second argument');
+
+  if (false) { print('should be on next line'); // LINT
+  }
 }
 
 testWhile() {

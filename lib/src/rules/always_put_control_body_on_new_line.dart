@@ -91,12 +91,10 @@ class Visitor extends SimpleAstVisitor {
     if (node is Block && node.statements.isEmpty) return;
 
     final unit = node.root as CompilationUnit;
-    if (node is Block &&
-            unit.lineInfo.getLocation(controlEnd).lineNumber ==
-                unit.lineInfo.getLocation(node.end).lineNumber ||
-        node is! Block &&
-            unit.lineInfo.getLocation(controlEnd).lineNumber ==
-                unit.lineInfo.getLocation(node.offset).lineNumber) {
+    final offsetFirstStatement =
+        node is Block ? node.statements.first.offset : node.offset;
+    if (unit.lineInfo.getLocation(controlEnd).lineNumber ==
+        unit.lineInfo.getLocation(offsetFirstStatement).lineNumber) {
       rule.reportLintForToken(node.beginToken);
     }
   }
