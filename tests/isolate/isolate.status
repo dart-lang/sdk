@@ -250,11 +250,8 @@ deferred_in_isolate2_test: Crash # Requires deferred libraries
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
 
-[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+[ ($compiler == dartk || $compiler == dartkp) ]
 compile_time_error_test/01: MissingCompileTimeError
-deferred_in_isolate2_test: Timeout
-deferred_in_isolate_test: RuntimeError
-issue_21398_parent_isolate2_test/01: Timeout
 message3_test/int32x4: Crash
 message_test: RuntimeError
 ping_pause_test: Timeout
@@ -266,3 +263,9 @@ spawn_uri_nested_vm_test: Pass, Timeout
 issue_21398_parent_isolate2_test/01: Skip # Flutter Issue 9114
 simple_message_test/01: Skip # Flutter Issue 9114
 isolate_import_test/01: Skip # Flutter Issue 9114
+
+# Deferred loading kernel issue 28335.
+[ ($compiler == dartk || $compiler == dartkp) ]
+deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
+deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
+issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.

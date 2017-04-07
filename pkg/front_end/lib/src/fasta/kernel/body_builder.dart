@@ -740,11 +740,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   /// if the name doesn't resolve in the scope).
   @override
   scopeLookup(Scope scope, String name, int charOffset,
-      {bool isQualified: false}) {
+      {bool isQualified: false, PrefixBuilder prefix}) {
     Builder builder = scope.lookup(name, charOffset, uri);
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       Name n = new Name(name, library.library);
-      if (!isQualified && isInstanceContext) {
+      if (prefix != null &&
+          prefix.deferred &&
+          builder == null &&
+          "loadLibrary" == name) {
+        return buildCompileTimeError(
+            "Deferred loading isn't implemented yet.", charOffset);
+      } else if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantExpressionRequired) {
           return new UnresolvedAccessor(this, n, charOffset);
@@ -779,6 +785,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       assert(builder.isStatic || builder.isTopLevel);
       return new StaticAccessor(this, charOffset, builder.target, null);
     } else if (builder is PrefixBuilder) {
+      if (constantExpressionRequired && builder.deferred) {
+        addCompileTimeError(
+            charOffset,
+            "'$name' can't be used in a constant expression because it's "
+            "marked as 'deferred' which means it isn't available until "
+            "loaded.\n"
+            "You might try moving the constant to the deferred library, "
+            "or removing 'deferred' from the import.");
+      }
       return builder;
     } else {
       if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
@@ -1279,7 +1294,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (builder is PrefixBuilder) {
         name = scopeLookup(builder.exports, suffix, beginToken.charOffset,
-            isQualified: true);
+            isQualified: true, prefix: builder);
       } else {
         push(const DynamicType());
         addCompileTimeError(beginToken.charOffset,
@@ -1659,7 +1674,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       identifier = type[1];
       if (prefix is PrefixBuilder) {
         type = scopeLookup(prefix.exports, identifier.name, start.charOffset,
-            isQualified: true);
+            isQualified: true, prefix: prefix);
         identifier = null;
       } else if (prefix is ClassBuilder) {
         type = prefix;

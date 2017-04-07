@@ -471,7 +471,7 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 
-[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+[ $compiler == dartk || $compiler == dartkp ]
 async/future_or_only_in_async_test/00: MissingRuntimeError
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
@@ -487,9 +487,6 @@ mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/dart2js_mirrors_test: Crash
-mirrors/deferred_mirrors_metadata_test: RuntimeError
-mirrors/deferred_mirrors_metatarget_test: RuntimeError
-mirrors/deferred_mirrors_update_test: RuntimeError
 mirrors/deferred_type_test: RuntimeError
 mirrors/delegate_class_test: RuntimeError
 mirrors/empty_test: Crash
@@ -532,10 +529,8 @@ mirrors/invoke_test: RuntimeError
 mirrors/invoke_throws_test: Crash
 mirrors/lazy_static_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_shown_test: RuntimeError
-mirrors/library_import_deferred_loading_test: RuntimeError
 mirrors/library_imports_bad_metadata_test/01: MissingCompileTimeError
 mirrors/library_imports_deferred_test: RuntimeError
 mirrors/library_imports_hidden_test: RuntimeError
@@ -640,7 +635,6 @@ mirrors/symbol_validation_test/01: RuntimeError
 mirrors/symbol_validation_test/none: RuntimeError
 mirrors/synthetic_accessor_properties_test: RuntimeError
 mirrors/to_string_test: RuntimeError
-mirrors/typedef_deferred_library_test: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
@@ -664,3 +658,12 @@ mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
 mirrors/regress_16321_test/01: MissingCompileTimeError
+
+# Deferred loading kernel issue 28335.
+[ $compiler == dartk || $compiler == dartkp ]
+mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.

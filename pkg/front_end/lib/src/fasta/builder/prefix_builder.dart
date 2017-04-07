@@ -13,7 +13,9 @@ class PrefixBuilder extends Builder {
 
   final LibraryBuilder parent;
 
-  PrefixBuilder(this.name, LibraryBuilder parent, int charOffset)
+  final bool deferred;
+
+  PrefixBuilder(this.name, this.deferred, LibraryBuilder parent, int charOffset)
       : parent = parent,
         super(parent, charOffset, parent.fileUri);
 

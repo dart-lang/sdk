@@ -43,7 +43,8 @@ abstract class BuilderHelper {
 
   Member lookupSuperMember(Name name, {bool isSetter: false});
 
-  scopeLookup(Scope scope, String name, int offset, {bool isQualified: false});
+  scopeLookup(Scope scope, String name, int offset,
+      {bool isQualified: false, PrefixBuilder prefix});
 
   finishSend(Object receiver, Arguments arguments, int offset);
 
@@ -432,7 +433,7 @@ class SendAccessor extends IncompleteSend {
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
       receiver = helper.scopeLookup(prefix.exports, name.name, offset,
-          isQualified: true);
+          isQualified: true, prefix: prefix);
       return helper.finishSend(receiver, arguments, offset);
     }
     Expression result;
@@ -518,7 +519,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
       return helper.scopeLookup(prefix.exports, name.name, offset,
-          isQualified: true);
+          isQualified: true, prefix: prefix);
     }
     if (receiver is KernelClassBuilder) {
       Builder builder = receiver.findStaticBuilder(name.name, offset, uri);

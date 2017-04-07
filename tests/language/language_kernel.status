@@ -7,9 +7,6 @@ body_less_constructor_wrong_arg_negative_test: Crash
 built_in_identifier_test/01: CompileTimeError
 call_nonexistent_static_test/01: CompileTimeError
 call_nonexistent_static_test/04: CompileTimeError
-cha_deopt1_test: RuntimeError  # Deferred Loading Issue 28335
-cha_deopt2_test: RuntimeError  # Deferred Loading Issue 28335
-cha_deopt3_test: RuntimeError  # Deferred Loading Issue 28335
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_c_test/03: MissingCompileTimeError
 compile_time_constant_k_test/01: RuntimeError
@@ -21,8 +18,6 @@ compile_time_constant_r_test/01: Crash
 compile_time_constant_r_test/02: Crash
 compile_time_constant_r_test/03: Crash
 compile_time_constant_test/01: MissingCompileTimeError
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
 conditional_method_invocation_test/11: MissingCompileTimeError
 conditional_property_access_test/09: MissingCompileTimeError
 conditional_property_assignment_test/20: MissingCompileTimeError
@@ -110,73 +105,16 @@ cyclic_typedef_test/09: MissingCompileTimeError
 cyclic_typedef_test/10: MissingCompileTimeError
 cyclic_typedef_test/11: MissingCompileTimeError
 deferred_call_empty_before_load_test: RuntimeError # Deferred Loading Issue 28335
-deferred_closurize_load_library_test: RuntimeError
-deferred_constant_list_test: RuntimeError
-deferred_constraints_constants_test/constructor1: MissingCompileTimeError
-deferred_constraints_constants_test/constructor2: MissingCompileTimeError
-deferred_constraints_constants_test/default_argument1: MissingCompileTimeError
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
-deferred_constraints_constants_test/metadata1: MissingCompileTimeError
-deferred_constraints_constants_test/metadata2: MissingCompileTimeError
-deferred_constraints_constants_test/metadata3: MissingCompileTimeError
-deferred_constraints_constants_test/none: RuntimeError
-deferred_constraints_constants_test/reference1: MissingCompileTimeError
-deferred_constraints_constants_test/reference2: MissingCompileTimeError
-deferred_constraints_constants_test/reference_after_load: RuntimeError
-deferred_constraints_type_annotation_test/as_operation: RuntimeError
-deferred_constraints_type_annotation_test/catch_check: RuntimeError
-deferred_constraints_type_annotation_test/is_check: RuntimeError
-deferred_constraints_type_annotation_test/new: RuntimeError
-deferred_constraints_type_annotation_test/new_before_load: RuntimeError
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError
-deferred_constraints_type_annotation_test/none: RuntimeError
-deferred_constraints_type_annotation_test/static_method: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation1: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError
 deferred_duplicate_prefix1_test/01: MissingCompileTimeError
 deferred_duplicate_prefix2_test/01: MissingCompileTimeError
 deferred_duplicate_prefix3_test/01: MissingCompileTimeError
-deferred_function_type_test: RuntimeError
-deferred_global_test: RuntimeError
-deferred_import_core_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
-deferred_inlined_test: RuntimeError
-deferred_load_constants_test/01: MissingCompileTimeError
-deferred_load_constants_test/02: MissingCompileTimeError
-deferred_load_constants_test/03: MissingCompileTimeError
-deferred_load_constants_test/04: MissingCompileTimeError
-deferred_load_constants_test/05: MissingCompileTimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_inval_code_test: RuntimeError
-deferred_load_library_wrong_args_test/none: RuntimeError
-deferred_mixin_test: RuntimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
-deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError
-deferred_only_constant_test: RuntimeError
-deferred_optimized_test: RuntimeError
-deferred_redirecting_factory_test: RuntimeError
-deferred_regression_22995_test: RuntimeError
-deferred_regression_28678_test: RuntimeError
 deferred_shadow_load_library_test: RuntimeError
-deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_static_seperate_test: RuntimeError
-deferred_super_dependency_test/01: RuntimeError
-deferred_type_dependency_test/as: RuntimeError
-deferred_type_dependency_test/is: RuntimeError
-deferred_type_dependency_test/none: RuntimeError
-deferred_type_dependency_test/type_annotation: RuntimeError
 dynamic_prefix_core_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_syntax_test/06: MissingCompileTimeError
@@ -270,7 +208,6 @@ is_malformed_type_test/98: RuntimeError
 is_malformed_type_test/99: RuntimeError
 is_not_class2_test: RuntimeError
 isnot_malformed_type_test: RuntimeError
-issue_1751477_test: RuntimeError
 large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 library_ambiguous_test/00: MissingRuntimeError
 library_ambiguous_test/04: MissingRuntimeError
@@ -357,12 +294,9 @@ ref_before_declaration_test/07: MissingCompileTimeError
 regress_13494_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
-regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
-regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
 regress_27617_test/1: MissingCompileTimeError
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
-regress_28278_test: RuntimeError  # Mirrors Issue
 runtime_type_function_test: RuntimeError
 scope_variable_test/01: MissingCompileTimeError
 static_field3_test/03: CompileTimeError
@@ -532,9 +466,6 @@ const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
 default_factory2_test/01: Fail
-deferred_constraints_type_annotation_test/type_annotation1: Pass
-deferred_constraints_type_annotation_test/type_annotation_generic1: Pass
-deferred_constraints_type_annotation_test/type_annotation_generic4: Pass
 factory1_test/00: Fail
 factory1_test/01: Fail
 factory_implementation_test/00: Fail
@@ -587,3 +518,58 @@ type_parameter_test/04: Fail
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/06: Fail
 type_variable_bounds4_test/01: RuntimeError
+
+# Deferred loading kernel issue 28335.
+[ ($compiler == dartk || $compiler == dartkp) ]
+cha_deopt1_test: CompileTimeError # Deferred loading kernel issue 28335.
+cha_deopt2_test: CompileTimeError # Deferred loading kernel issue 28335.
+cha_deopt3_test: CompileTimeError # Deferred loading kernel issue 28335.
+conditional_import_string_test: CompileTimeError # Deferred loading kernel issue 28335.
+conditional_import_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_closurize_load_library_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constant_list_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/reference_after_load: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/as_operation: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/catch_check: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/is_check: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_before_load: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_generic2: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_generic3: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/static_method: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic3: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_function_type_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_global_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_import_core_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_inlined_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_load_constants_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_load_inval_code_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_load_library_wrong_args_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_mixin_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_no_such_method_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_only_constant_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_optimized_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_redirecting_factory_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_regression_22995_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_regression_28678_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_shared_and_unshared_classes_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_static_seperate_test: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_super_dependency_test/01: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_type_dependency_test/as: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_type_dependency_test/is: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_type_dependency_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_type_dependency_test/type_annotation: CompileTimeError # Deferred loading kernel issue 28335.
+issue_1751477_test: CompileTimeError # Deferred loading kernel issue 28335.
+regress_22443_test: CompileTimeError # Deferred loading kernel issue 28335.
+regress_23408_test: CompileTimeError # Deferred loading kernel issue 28335.
+regress_28278_test: CompileTimeError # Deferred loading kernel issue 28335.

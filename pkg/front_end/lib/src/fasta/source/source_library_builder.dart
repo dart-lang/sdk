@@ -130,8 +130,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool deferred,
       int charOffset,
       int prefixCharOffset) {
-    imports.add(new Import(this, loader.read(resolve(uri)), prefix, combinators,
-        charOffset, prefixCharOffset));
+    imports.add(new Import(this, loader.read(resolve(uri)), deferred, prefix,
+        combinators, charOffset, prefixCharOffset));
   }
 
   void addPart(List<MetadataBuilder> metadata, String path) {
