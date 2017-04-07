@@ -910,10 +910,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       className = _emitTopLevelName(classElem);
     }
 
-    var extensions = _extensionsToImplement(classElem);
     var savedClassProperties = _classProperties;
     _classProperties =
-        new ClassPropertyModel.build(virtualFields, classElem, extensions);
+        new ClassPropertyModel.build(_extensionTypes, virtualFields, classElem);
 
     var classExpr = _emitClassExpression(
         classElem, _emitClassMethods(node, ctors, fields),
@@ -935,9 +934,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     _defineNamedConstructors(ctors, body, className, isCallableTransitive);
     _emitVirtualFieldSymbols(classElem, body);
-    _emitClassSignature(
-        methods, allFields, classElem, ctors, extensions, className, body);
-    _defineExtensionMembers(extensions, className, body);
+    _emitClassSignature(methods, allFields, classElem, ctors, className, body);
+    _defineExtensionMembers(className, body);
     _emitClassMetadata(node.metadata, className, body);
 
     JS.Statement classDef = _statement(body);
@@ -1484,13 +1482,14 @@ class CodeGenerator extends GeneralizingAstVisitor
         if (m.isStatic) continue;
         for (VariableDeclaration field in m.fields.variables) {
           if (virtualFields.containsKey(field.element)) {
-            jsMethods.addAll(_emitVirtualFieldAccessor(field, virtualFields));
+            jsMethods.addAll(_emitVirtualFieldAccessor(field));
           }
         }
       }
     }
 
-    jsMethods.addAll(_implementMockInterfaces(type));
+    jsMethods.addAll(_classProperties.mockMembers.values
+        .map((e) => _implementMockMember(e, type)));
 
     // If the type doesn't have an `iterator`, but claims to implement Iterable,
     // we inject the adaptor method here, as it's less code size to put the
@@ -1509,64 +1508,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     _superHelpers.clear();
 
     return jsMethods.where((m) => m != null).toList(growable: false);
-  }
-
-  Iterable<ExecutableElement> _collectMockMethods(InterfaceType type) {
-    var element = type.element;
-    if (!_hasNoSuchMethod(element)) {
-      return [];
-    }
-
-    // Collect all unimplemented members.
-    //
-    // Initially, we track abstract and concrete members separately, then
-    // remove concrete from the abstract set. This is done because abstract
-    // members are allowed to "override" concrete ones in Dart.
-    // (In that case, it will still be treated as a concrete member and can be
-    // called at run time.)
-    var abstractMembers = new Map<String, ExecutableElement>();
-    var concreteMembers = new HashSet<String>();
-
-    void visit(InterfaceType type, bool isAbstract) {
-      if (type == null) return;
-      visit(type.superclass, isAbstract);
-      for (var m in type.mixins) visit(m, isAbstract);
-      for (var i in type.interfaces) visit(i, true);
-
-      var members = <ExecutableElement>[]
-        ..addAll(type.methods)
-        ..addAll(type.accessors);
-      for (var m in members) {
-        if (isAbstract || m.isAbstract) {
-          // Inconsistent signatures are disallowed, even with nSM, so we don't
-          // need to worry too much about which abstract member we save.
-          abstractMembers[m.name] = m;
-        } else {
-          concreteMembers.add(m.name);
-        }
-      }
-    }
-
-    visit(type, false);
-
-    concreteMembers.forEach(abstractMembers.remove);
-    return abstractMembers.values;
-  }
-
-  Iterable<JS.Method> _implementMockInterfaces(InterfaceType type) {
-    // TODO(jmesserly): every type with nSM will generate new stubs for all
-    // abstract members. For example:
-    //
-    //     class C { m(); noSuchMethod(...) { ... } }
-    //     class D extends C { m(); noSuchMethod(...) { ... } }
-    //
-    // We'll generate D.m even though it is not necessary.
-    //
-    // Doing better is a bit tricky, as our current codegen strategy for the
-    // mock methods encodes information about the number of arguments (and type
-    // arguments) that D expects.
-    return _collectMockMethods(type)
-        .map((method) => _implementMockMethod(method, type));
   }
 
   /// Given a class C that implements method M from interface I, but does not
@@ -1588,7 +1529,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///       return core.bool.as(this.noSuchMethod(
   ///           new dart.InvocationImpl('eatFood', args)));
   ///     }
-  JS.Method _implementMockMethod(ExecutableElement method, InterfaceType type) {
+  JS.Method _implementMockMember(ExecutableElement method, InterfaceType type) {
     var invocationProps = <JS.Property>[];
     addProperty(String name, JS.Expression value) {
       invocationProps.add(new JS.Property(js.string(name), value));
@@ -1646,19 +1587,6 @@ class CodeGenerator extends GeneralizingAstVisitor
         isStatic: false);
   }
 
-  /// Return `true` if the given [classElement] has a noSuchMethod() method
-  /// distinct from the one declared in class Object, as per the Dart Language
-  /// Specification (section 10.4).
-  // TODO(jmesserly): this was taken from error_verifier.dart
-  bool _hasNoSuchMethod(ClassElement classElement) {
-    // TODO(jmesserly): this is slow in Analyzer. It's a linear scan through all
-    // methods, up through the class hierarchy.
-    MethodElement method = classElement.lookUpMethod(
-        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
-    var definingClass = method?.enclosingElement;
-    return definingClass != null && !definingClass.type.isObject;
-  }
-
   /// This is called whenever a derived class needs to introduce a new field,
   /// shadowing a field or getter/setter pair on its parent.
   ///
@@ -1666,21 +1594,26 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// would end up calling the getter or setter, and one of those might not even
   /// exist, resulting in a runtime error. Even if they did exist, that's the
   /// wrong behavior if a new field was declared.
-  List<JS.Method> _emitVirtualFieldAccessor(VariableDeclaration field,
-      Map<FieldElement, JS.TemporaryId> virtualFields) {
-    var virtualField = virtualFields[field.element];
+  List<JS.Method> _emitVirtualFieldAccessor(VariableDeclaration field) {
+    var element = field.element as FieldElement;
+    var virtualField = _classProperties.virtualFields[element];
     var result = <JS.Method>[];
-    var name = _declareMemberName((field.element as FieldElement).getter);
-    var getter = js.call('function() { return this[#]; }', [virtualField]);
-    result.add(new JS.Method(name, getter, isGetter: true));
+    var name = _declareMemberName(element.getter);
 
-    if (field.isFinal) {
-      var setter = js.call('function(value) { super[#] = value; }', [name]);
-      result.add(new JS.Method(name, setter, isSetter: true));
-    } else {
-      var setter =
-          js.call('function(value) { this[#] = value; }', [virtualField]);
-      result.add(new JS.Method(name, setter, isSetter: true));
+    var mocks = _classProperties.mockMembers;
+    if (!mocks.containsKey(element.name)) {
+      var getter = js.call('function() { return this[#]; }', [virtualField]);
+      result.add(new JS.Method(name, getter, isGetter: true));
+    }
+
+    if (!mocks.containsKey(element.name + '=')) {
+      var args = field.isFinal
+          ? [new JS.Super(), name]
+          : [new JS.This(), virtualField];
+
+      result.add(new JS.Method(
+          name, js.call('function(value) { #[#] = value; }', args),
+          isSetter: true));
     }
 
     return result;
@@ -1861,20 +1794,25 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// If a concrete class implements one of our extensions, we might need to
   /// add forwarders.
-  void _defineExtensionMembers(List<ExecutableElement> extensions,
+  void _defineExtensionMembers(
       JS.Expression className, List<JS.Statement> body) {
-    // If a concrete class implements one of our extensions, we might need to
-    // add forwarders.
-    if (extensions.isNotEmpty) {
-      var methodNames = <JS.Expression>[];
-      for (var e in extensions) {
-        methodNames.add(_declareMemberName(e, useExtension: false));
-      }
+    void emitExtensions(
+        JS.Expression target, Iterable<ExecutableElement> extensions) {
+      if (extensions.isEmpty) return;
+
+      var names = extensions
+          .map((e) => _declareMemberName(e, useExtension: false))
+          .toList();
       body.add(_callHelperStatement('defineExtensionMembers(#, #);', [
-        className,
-        new JS.ArrayInitializer(methodNames, multiline: methodNames.length > 4)
+        target,
+        new JS.ArrayInitializer(names, multiline: names.length > 4)
       ]));
     }
+
+    // Define mixin members (if any) on the mixin class.
+    var mixinClass = js.call('#.__proto__', [className]);
+    emitExtensions(mixinClass, _classProperties.mixinExtensionMembers);
+    emitExtensions(className, _classProperties.extensionMembers);
   }
 
   JS.Property _buildSignatureField(String name, List<JS.Property> elements) {
@@ -1890,7 +1828,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       List<FieldDeclaration> fields,
       ClassElement classElem,
       List<ConstructorDeclaration> ctors,
-      List<ExecutableElement> extensions,
       JS.Expression className,
       List<JS.Statement> body) {
     if (classElem.interfaces.isNotEmpty) {
@@ -2039,7 +1976,11 @@ class CodeGenerator extends GeneralizingAstVisitor
       sigFields.add(_buildSignatureField('statics', tStaticMethods));
       sigFields.add(aNames);
     }
-    if (!sigFields.isEmpty || extensions.isNotEmpty) {
+    // We set signature here, even if empty, to simplify the work of
+    // defineExtensionMembers at runtime. See _defineExtensionMembers.
+    if (!sigFields.isEmpty ||
+        _classProperties.extensionMembers.isNotEmpty ||
+        _classProperties.mixinExtensionMembers.isNotEmpty) {
       var sig = new JS.ObjectInitializer(sigFields);
       body.add(_callHelperStatement('setSignature(#, #);', [className, sig]));
     }
@@ -2081,34 +2022,6 @@ class CodeGenerator extends GeneralizingAstVisitor
             [new JS.ArrayInitializer(dartxNames, multiline: true)]));
       }
     }
-  }
-
-  List<ExecutableElement> _extensionsToImplement(ClassElement element) {
-    if (_extensionTypes.isNativeClass(element)) return [];
-
-    // Collect all extension types we implement.
-    var type = element.type;
-    var types = _extensionTypes.collectNativeInterfaces(element);
-    if (types.isEmpty) return [];
-
-    var members = new Set<ExecutableElement>();
-    // Collect all possible extension method names.
-    var extensionMembers = new HashSet<String>();
-    for (var t in types) {
-      for (var m in [t.methods, t.accessors].expand((e) => e)) {
-        if (!m.isStatic && m.isPublic) extensionMembers.add(m.name);
-      }
-    }
-
-    // Collect all of extension methods this type implements.
-    for (var m in [type.methods, type.accessors].expand((e) => e)) {
-      if (!m.isStatic && !m.isAbstract && extensionMembers.contains(m.name)) {
-        members.add(m);
-      }
-    }
-    members.addAll(_collectMockMethods(type)
-        .where((m) => extensionMembers.contains(m.name)));
-    return members.toList();
   }
 
   /// Generates the implicit default constructor for class C of the form

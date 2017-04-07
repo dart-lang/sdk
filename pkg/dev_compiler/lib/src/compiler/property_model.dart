@@ -4,12 +4,13 @@
 
 import 'dart:collection' show HashMap, HashSet, Queue;
 
-import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart' show InterfaceType;
 import 'package:analyzer/src/dart/element/element.dart' show FieldElementImpl;
 
 import '../js_ast/js_ast.dart' as JS;
 import 'element_helpers.dart';
+import 'extension_types.dart';
 import 'js_names.dart' as JS;
 
 /// Dart allows all fields to be overridden.
@@ -184,8 +185,13 @@ class ClassPropertyModel {
   /// super.
   final inheritedSetters = new HashSet<String>();
 
-  ClassPropertyModel.build(VirtualFieldModel fieldModel, ClassElement classElem,
-      Iterable<ExecutableElement> extensionMembers) {
+  final mockMembers = <String, ExecutableElement>{};
+
+  final extensionMembers = new Set<ExecutableElement>();
+  final mixinExtensionMembers = new Set<ExecutableElement>();
+
+  ClassPropertyModel.build(ExtensionTypeSet extensionTypes,
+      VirtualFieldModel fieldModel, ClassElement classElem) {
     // Visit superclasses to collect information about their fields/accessors.
     // This is expensive so we try to collect everything in one pass.
     for (var base in getSuperclasses(classElem)) {
@@ -194,20 +200,26 @@ class ClassPropertyModel {
         if (accessor.correspondingGetter != null) continue;
 
         var field = accessor.variable;
-        var name = field.name;
         // Ignore private names from other libraries.
-        if (Identifier.isPrivateName(name) &&
-            accessor.library != classElem.library) {
+        if (field.isPrivate && accessor.library != classElem.library) {
           continue;
         }
 
-        if (field.getter?.isAbstract == false) inheritedGetters.add(name);
-        if (field.setter?.isAbstract == false) inheritedSetters.add(name);
+        if (field.getter?.isAbstract == false) inheritedGetters.add(field.name);
+        if (field.setter?.isAbstract == false) inheritedSetters.add(field.name);
       }
     }
 
-    var extensionNames =
-        new HashSet<String>.from(extensionMembers.map((e) => e.name));
+    _collectMockMembers(classElem.type);
+    _collectExtensionMembers(extensionTypes, classElem);
+
+    var virtualAccessorNames = new HashSet<String>()
+      ..addAll(inheritedGetters)
+      ..addAll(inheritedSetters)
+      ..addAll(extensionMembers
+          .map((m) => m is PropertyAccessorElement ? m.variable.name : m.name))
+      ..addAll(mockMembers.values
+          .map((m) => m is PropertyAccessorElement ? m.variable.name : m.name));
 
     // Visit accessors in the current class, and see if they need to be
     // generated differently based on the inherited fields/accessors.
@@ -221,9 +233,7 @@ class ClassPropertyModel {
       var name = field.name;
       // Is it a field?
       if (!field.isSynthetic && field is FieldElementImpl) {
-        if (inheritedGetters.contains(name) ||
-            inheritedSetters.contains(name) ||
-            extensionNames.contains(name) ||
+        if (virtualAccessorNames.contains(name) ||
             fieldModel.isVirtual(field)) {
           if (field.isStatic) {
             staticFieldOverrides.add(field);
@@ -232,6 +242,89 @@ class ClassPropertyModel {
           }
         }
       }
+    }
+  }
+
+  void _collectMockMembers(InterfaceType type) {
+    // TODO(jmesserly): every type with nSM will generate new stubs for all
+    // abstract members. For example:
+    //
+    //     class C { m(); noSuchMethod(...) { ... } }
+    //     class D extends C { m(); noSuchMethod(...) { ... } }
+    //
+    // We'll generate D.m even though it is not necessary.
+    //
+    // Doing better is a bit tricky, as our current codegen strategy for the
+    // mock methods encodes information about the number of arguments (and type
+    // arguments) that D expects.
+    var element = type.element;
+    if (!hasNoSuchMethod(element)) return;
+
+    // Collect all unimplemented members.
+    //
+    // Initially, we track abstract and concrete members separately, then
+    // remove concrete from the abstract set. This is done because abstract
+    // members are allowed to "override" concrete ones in Dart.
+    // (In that case, it will still be treated as a concrete member and can be
+    // called at runtime.)
+    var concreteMembers = new HashSet<String>();
+
+    void visit(InterfaceType type, bool isAbstract) {
+      if (type == null) return;
+      visit(type.superclass, isAbstract);
+      for (var m in type.mixins) visit(m, isAbstract);
+      for (var i in type.interfaces) visit(i, true);
+
+      for (var m in [type.methods, type.accessors].expand((m) => m)) {
+        if (isAbstract || m.isAbstract) {
+          mockMembers[m.name] = m;
+        } else if (!m.isStatic) {
+          concreteMembers.add(m.name);
+        }
+      }
+    }
+
+    visit(type, false);
+
+    concreteMembers.forEach(mockMembers.remove);
+  }
+
+  void _collectExtensionMembers(
+      ExtensionTypeSet extensionTypes, ClassElement element) {
+    if (extensionTypes.isNativeClass(element)) return;
+
+    // Collect all extension types we implement.
+    var type = element.type;
+    var types = extensionTypes.collectNativeInterfaces(element);
+    if (types.isEmpty) return;
+
+    // Collect all possible extension method names.
+    var possibleExtensions = new HashSet<String>();
+    for (var t in types) {
+      for (var m in [t.methods, t.accessors].expand((m) => m)) {
+        if (!m.isStatic && m.isPublic) possibleExtensions.add(m.name);
+      }
+    }
+
+    // Collect all of extension methods this type and its mixins implement.
+
+    void visitType(InterfaceType type, bool isMixin) {
+      for (var mixin in type.mixins) {
+        // If the mixin isn't native, make sure to visit it too, because those
+        // methods haven't been accounted for yet.
+        if (!extensionTypes.hasNativeSubtype(mixin)) visitType(mixin, true);
+      }
+      for (var m in [type.methods, type.accessors].expand((m) => m)) {
+        if (!m.isAbstract && possibleExtensions.contains(m.name)) {
+          (isMixin ? mixinExtensionMembers : extensionMembers).add(m);
+        }
+      }
+    }
+
+    visitType(type, false);
+
+    for (var m in mockMembers.values) {
+      if (possibleExtensions.contains(m.name)) extensionMembers.add(m);
     }
   }
 }

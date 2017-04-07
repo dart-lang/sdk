@@ -4,7 +4,6 @@
 
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
-import '../js_ast/precedence.dart';
 
 import 'js_names.dart' show TemporaryId;
 
