@@ -41,6 +41,9 @@ abstract class ClassEntity extends Entity {
   /// Whether this is a synthesized class for a closurized method or local
   /// function.
   bool get isClosure;
+
+  /// Whether this is an abstract class.
+  bool get isAbstract;
 }
 
 abstract class TypeVariableEntity extends Entity {

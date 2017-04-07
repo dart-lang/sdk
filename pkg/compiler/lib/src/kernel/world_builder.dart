@@ -159,7 +159,8 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
         classEnv = _libraryEnvs[library.libraryIndex].lookupClass(node.name);
       }
       _classEnvs.add(classEnv);
-      return new KClass(library, _classMap.length, node.name);
+      return new KClass(library, _classMap.length, node.name,
+          isAbstract: node.isAbstract);
     });
   }
 
@@ -599,6 +600,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   ClassEntity getSuperClass(ClassEntity cls) {
     throw new UnimplementedError('KernelElementEnvironment.getSuperClass');
+  }
+
+  @override
+  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
+    throw new UnimplementedError('KernelElementEnvironment.forEachSupertype');
   }
 
   @override

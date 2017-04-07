@@ -221,8 +221,6 @@ EnqueuerListener createKernelResolutionEnqueuerListener(CompilerOptions options,
 }
 
 ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
-  JavaScriptBackend backend = compiler.backend;
-
   enqueuer.open(const ImpactStrategy(), compiler.mainFunction,
       compiler.libraryLoader.libraries);
   enqueuer.forEach((work) {

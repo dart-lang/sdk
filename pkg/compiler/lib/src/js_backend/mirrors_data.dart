@@ -658,7 +658,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
       ClassElement cls = _helpers.closureClass;
       _classesNeededForReflection.add(cls);
     }
-    Set<MethodElement> closurizedMembers = worldBuilder.closurizedMembers;
+    Set<FunctionEntity> closurizedMembers = worldBuilder.closurizedMembers;
     if (closurizedMembers.any(_membersNeededForReflection.contains)) {
       ClassElement cls = _helpers.boundClosureClass;
       _classesNeededForReflection.add(cls);

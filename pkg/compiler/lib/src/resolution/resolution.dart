@@ -270,10 +270,9 @@ class ResolverTask extends CompilerTask {
       ClassElement enclosingClass = element.enclosingClass;
       if (enclosingClass != null) {
         // TODO(johnniwinther): Find another way to obtain mixin uses.
-        Iterable<MixinApplicationElement> mixinUses =
-            world.allMixinUsesOf(enclosingClass);
         ClassElement mixin = enclosingClass;
-        for (MixinApplicationElement mixinApplication in mixinUses) {
+        for (MixinApplicationElement mixinApplication
+            in world.allMixinUsesOf(enclosingClass)) {
           checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
         }
       }

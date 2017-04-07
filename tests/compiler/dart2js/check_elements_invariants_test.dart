@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/apiimpl.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/resolution/class_members.dart'
     show ClassMemberMixin;
 import 'memory_compiler.dart';
@@ -17,13 +17,13 @@ const List<String> DART2JS_OPTIONS = const <String>[
   '--disable-type-inference'
 ];
 
-Iterable<ClassElement> computeLiveClasses(CompilerImpl compiler) {
-  return new Set<ClassElement>()
+Iterable<ClassEntity> computeLiveClasses(CompilerImpl compiler) {
+  return new Set<ClassEntity>()
     ..addAll(compiler.resolutionWorldBuilder.directlyInstantiatedClasses)
     ..addAll(compiler.codegenWorldBuilder.directlyInstantiatedClasses);
 }
 
-void checkClassInvariants(ClassElement cls) {
+void checkClassInvariants(ClassEntity cls) {
   ClassMemberMixin impl = cls;
   Expect.isTrue(impl.areAllMembersComputed(),
       "Not all members have been computed for $cls.");

@@ -1898,12 +1898,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassElement cls) {
-    cls = cls.superclass;
-    while (cls != null && cls.isUnnamedMixinApplication) {
-      cls = cls.superclass;
-    }
-    return cls;
+  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
+
+  @override
+  void forEachSupertype(
+      ClassElement cls, void f(ResolutionInterfaceType supertype)) {
+    cls.allSupertypes.forEach((ResolutionDartType supertype) => f(supertype));
   }
 
   @override

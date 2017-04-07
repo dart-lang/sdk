@@ -451,7 +451,9 @@ bool areInstantiationInfosEquivalent(
 
 bool areInstancesEquivalent(Instance instance1, Instance instance2,
     bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
-  return typeEquivalence(instance1.type, instance2.type) &&
+  ResolutionInterfaceType type1 = instance1.type;
+  ResolutionInterfaceType type2 = instance2.type;
+  return typeEquivalence(type1, type2) &&
       instance1.kind == instance2.kind &&
       instance1.isRedirection == instance2.isRedirection;
 }

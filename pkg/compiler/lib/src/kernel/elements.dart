@@ -23,9 +23,11 @@ class KClass implements ClassEntity {
 
   /// Class index used for fast lookup in [KernelWorldBuilder].
   final int classIndex;
-  final String name;
 
-  KClass(this.library, this.classIndex, this.name);
+  final String name;
+  final bool isAbstract;
+
+  KClass(this.library, this.classIndex, this.name, {this.isAbstract});
 
   @override
   bool get isClosure => false;

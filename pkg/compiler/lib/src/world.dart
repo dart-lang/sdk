@@ -364,15 +364,15 @@ abstract class OpenWorld implements World {
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
   /// classes that extend or implement it.
-  void registerClass(ClassElement cls);
+  void registerClass(ClassEntity cls);
 
-  void registerUsedElement(MemberElement element);
+  void registerUsedElement(MemberEntity element);
   void registerTypedef(TypedefElement typedef);
 
   ClosedWorld closeWorld(DiagnosticReporter reporter);
 
   /// Returns an iterable over all mixin applications that mixin [cls].
-  Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls);
+  Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
 }
 
 /// Enum values defining subset of classes included in queries.
@@ -396,15 +396,15 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
   final Iterable<TypedefElement> _allTypedefs;
 
-  final Map<ClassElement, Set<MixinApplicationElement>> _mixinUses;
+  final Map<ClassEntity, Set<ClassEntity>> _mixinUses;
   Map<ClassElement, List<MixinApplicationElement>> _liveMixinUses;
 
-  final Map<ClassElement, Set<ClassElement>> _typesImplementedBySubclasses;
+  final Map<ClassEntity, Set<ClassEntity>> _typesImplementedBySubclasses;
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassElement, ClassHierarchyNode> _classHierarchyNodes;
-  final Map<ClassElement, ClassSet> _classSets;
+  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
+  final Map<ClassEntity, ClassSet> _classSets;
 
   final Map<ClassElement, Map<ClassElement, bool>> _subtypeCoveredByCache =
       <ClassElement, Map<ClassElement, bool>>{};
@@ -433,10 +433,10 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
       ResolutionWorldBuilder resolutionWorldBuilder,
       FunctionSetBuilder functionSetBuilder,
       Iterable<TypedefElement> allTypedefs,
-      Map<ClassElement, Set<MixinApplicationElement>> mixinUses,
-      Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses,
-      Map<ClassElement, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassElement, ClassSet> classSets})
+      Map<ClassEntity, Set<ClassEntity>> mixinUses,
+      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
+      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
+      Map<ClassEntity, ClassSet> classSets})
       : this._backend = backend,
         this._resolverWorld = resolutionWorldBuilder,
         this._allTypedefs = allTypedefs,
@@ -914,7 +914,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
       ClassElement superclass, ClassElement type) {
     assert(isClosed);
 
-    Set<ClassElement> subclasses =
+    Set<ClassEntity> subclasses =
         _typesImplementedBySubclasses[superclass.declaration];
     if (subclasses == null) return false;
     return subclasses.contains(type);

@@ -252,15 +252,17 @@ abstract class ElementEnvironment {
 
   /// Returns the declared superclass of [cls].
   ///
-  /// Unnamed mixin applications are skipped, for instance for these classes
+  /// Unnamed mixin applications are included, for instance for these classes
   ///
   ///     class S {}
   ///     class M {}
   ///     class C extends S with M {}
   ///
-  /// the result of `getSuperClass(C)` is `S` and not the unnamed mixin
-  /// application typically named `S+M`.
+  /// the result of `getSuperClass(C)` is the unnamed mixin application
+  /// typically named `S+M` and `getSuperClass(S+M)` is `S`.
   ClassEntity getSuperClass(ClassEntity cls);
+
+  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
   /// Calls [f] for each class that is mixed into [cls] or one of its
   /// superclasses.
