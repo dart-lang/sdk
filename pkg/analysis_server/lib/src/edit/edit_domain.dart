@@ -14,6 +14,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -249,6 +250,38 @@ class EditDomainHandler implements RequestHandler {
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
+  Future getStatementCompletion(Request request) async {
+    var params = new EditGetStatementCompletionParams.fromRequest(request);
+    SourceChange change;
+
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      CompilationUnitElement unitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      if (unitElement.context != null) {
+        StatementCompletionContext context = new StatementCompletionContext(
+            params.file,
+            result.lineInfo,
+            params.offset,
+            unit,
+            unitElement,
+            result.errors);
+        StatementCompletionProcessor processor =
+            new StatementCompletionProcessor(context);
+        StatementCompletion completion = await processor.compute();
+        change = completion.change;
+      }
+    }
+    if (change == null) {
+      change = new SourceChange("", edits: []);
+    }
+
+    Response response = new EditGetStatementCompletionResult(change, false)
+        .toResponse(request.id);
+    server.sendResponse(response);
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -270,6 +303,9 @@ class EditDomainHandler implements RequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_SORT_MEMBERS) {
         sortMembers(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_GET_STATEMENT_COMPLETION) {
+        getStatementCompletion(request);
         return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {

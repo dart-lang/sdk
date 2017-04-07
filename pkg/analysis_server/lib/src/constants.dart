@@ -82,6 +82,7 @@ const String DISPLAY_NAME = 'displayName';
 const String EDIT_FORMAT = 'edit.format';
 const String EDIT_GET_ASSISTS = 'edit.getAssists';
 const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
+const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
 
 //
 // Execution methods
