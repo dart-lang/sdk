@@ -7,8 +7,8 @@ library linter.src.rules;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_put_control_body_on_new_line.dart';
-import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/always_require_non_null_named_parameters.dart';
+import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/annotate_overrides.dart';
 import 'package:linter/src/rules/avoid_annotating_with_dynamic.dart';
 import 'package:linter/src/rules/avoid_as.dart';
@@ -34,6 +34,7 @@ import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:linter/src/rules/do_not_catch_errors.dart';
 import 'package:linter/src/rules/do_not_check_for_null_in_equality_operators.dart';
+import 'package:linter/src/rules/do_not_create_setter_without_getter.dart';
 import 'package:linter/src/rules/empty_catches.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
@@ -96,8 +97,8 @@ void registerLintRules() {
   Analyzer.facade
     ..register(new AlwaysDeclareReturnTypes())
     ..register(new AlwaysPutControlBodyOnNewLine())
-    ..register(new AlwaysSpecifyTypes())
     ..register(new AlwaysRequireNonNullNamedParameters())
+    ..register(new AlwaysSpecifyTypes())
     ..register(new AnnotateOverrides())
     ..register(new AvoidAnnotatingWithDynamic())
     ..register(new AvoidTypesOnClosureParameters())
@@ -123,6 +124,7 @@ void registerLintRules() {
     ..register(new DirectivesOrdering())
     ..register(new DoNotCatchErrors())
     ..register(new DoNotCheckForNullInEqualityOperators())
+    ..register(new DoNotCreateSetterWithoutGetter())
     ..register(new EmptyCatches())
     ..registerDefault(new EmptyConstructorBodies())
     ..register(new EmptyStatements())

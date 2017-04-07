@@ -1,0 +1,79 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/ast.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
+
+const _desc = r' ';
+
+const _details = r'''
+
+**DON’T** define a setter without a corresponding getter.
+
+**BAD:**
+```
+class Bad {
+  int l, r;
+
+  set length(int newLength) {
+    r = l + newLength;
+  }
+}
+```
+
+**GOOD:**
+```
+class Good {
+  int l, r;
+
+  int get length => r - l;
+
+  set length(int newLength) {
+    r = l + newLength;
+  }
+}
+```
+
+''';
+
+bool _hasGetter(MethodDeclaration node) =>
+    DartTypeUtilities.lookUpGetter(node) != null;
+
+bool _hasInheritedSetter(MethodDeclaration node) =>
+    DartTypeUtilities.lookUpInheritedConcreteSetter(node) != null;
+
+class DoNotCreateSetterWithoutGetter extends LintRule {
+  _Visitor _visitor;
+  DoNotCreateSetterWithoutGetter()
+      : super(
+            name: 'do_not_create_setter_without_getter',
+            description: _desc,
+            details: _details,
+            group: Group.style) {
+    _visitor = new _Visitor(this);
+  }
+
+  @override
+  AstVisitor getVisitor() => _visitor;
+}
+
+class _Visitor extends SimpleAstVisitor {
+  LintRule rule;
+  _Visitor(this.rule);
+
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    final methods = node.members.where(isMethod);
+    for (MethodDeclaration method in methods) {
+      if (method.isSetter &&
+          !_hasInheritedSetter(method) &&
+          !_hasGetter(method)) {
+        rule.reportLint(method.name);
+      }
+    }
+  }
+}
