@@ -286,7 +286,27 @@ class KernelTarget extends TargetImplementation {
   Future writeDepsFile(Uri output, Uri depsFile,
       {Iterable<Uri> extraDependencies}) async {
     String toRelativeFilePath(Uri uri) {
-      return Uri.parse(relativizeUri(uri)).toFilePath();
+      // Ninja expects to find file names relative to the current working
+      // directory. We've tried making them relative to the deps file, but that
+      // doesn't work for downstream projects. Making them absolute also
+      // doesn't work.
+      //
+      // We can test if it works by running ninja twice, for example:
+      //
+      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+      //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+      //
+      // The second time, ninja should say:
+      //
+      //     ninja: Entering directory `xcodebuild/ReleaseX64'
+      //     ninja: no work to do.
+      //
+      // It's broken if it says something like this:
+      //
+      //     ninja explain: expected depfile 'patched_sdk.d' to mention
+      //     'patched_sdk/platform.dill', got
+      //     '/.../xcodebuild/ReleaseX64/patched_sdk/platform.dill'
+      return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
     }
 
     if (loader.first == null) return null;
