@@ -365,10 +365,6 @@ class MyCompiler extends CompilerImpl {
           resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
-        if (deferredLoadTask.isProgramSplit) {
-          resolutionEnqueuer
-              .applyImpact(backend.computeDeferredLoadingImpact());
-        }
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);

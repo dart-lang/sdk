@@ -622,10 +622,6 @@ abstract class Compiler {
             }
           }
         }
-        if (deferredLoadTask.isProgramSplit) {
-          resolutionEnqueuer
-              .applyImpact(backend.computeDeferredLoadingImpact());
-        }
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         MethodElement mainMethod;

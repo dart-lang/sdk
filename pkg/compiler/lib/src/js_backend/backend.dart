@@ -799,12 +799,6 @@ class JavaScriptBackend {
     noSuchMethodRegistry.onTypeInferenceComplete(results);
   }
 
-  /// Returns the [WorldImpact] of enabling deferred loading.
-  WorldImpact computeDeferredLoadingImpact() {
-    backendUsageBuilder.processBackendImpact(impacts.deferredLoading);
-    return impacts.deferredLoading.createImpact(compiler.elementEnvironment);
-  }
-
   /// Called when resolving a call to a foreign function.
   native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
@@ -900,6 +894,7 @@ class JavaScriptBackend {
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
+            compiler.deferredLoadTask,
             kernelTask),
         new ElementResolutionWorldBuilder(
             this, compiler.resolution, const OpenWorldStrategy()),

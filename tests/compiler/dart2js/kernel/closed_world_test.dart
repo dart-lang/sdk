@@ -13,6 +13,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
@@ -158,11 +159,12 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
           backend.impacts, backend.backendUsageBuilder),
       backend.nativeResolutionEnqueuer,
+      compiler.deferredLoadTask,
       backend.kernelTask);
 }
 
-EnqueuerListener createKernelResolutionEnqueuerListener(
-    CompilerOptions options, KernelWorldBuilder worldBuilder) {
+EnqueuerListener createKernelResolutionEnqueuerListener(CompilerOptions options,
+    DeferredLoadTask deferredLoadTask, KernelWorldBuilder worldBuilder) {
   ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
   CommonElements commonElements = worldBuilder.commonElements;
   BackendHelpers helpers =
@@ -214,15 +216,13 @@ EnqueuerListener createKernelResolutionEnqueuerListener(
       mirrorsResolutionAnalysis,
       new TypeVariableResolutionAnalysis(
           elementEnvironment, impacts, backendUsageBuilder),
-      nativeResolutionEnqueuer);
+      nativeResolutionEnqueuer,
+      deferredLoadTask);
 }
 
 ClosedWorld computeClosedWorld(Compiler compiler, ResolutionEnqueuer enqueuer) {
   JavaScriptBackend backend = compiler.backend;
 
-  if (compiler.deferredLoadTask.isProgramSplit) {
-    enqueuer.applyImpact(backend.computeDeferredLoadingImpact());
-  }
   enqueuer.open(const ImpactStrategy(), compiler.mainFunction,
       compiler.libraryLoader.libraries);
   enqueuer.forEach((work) {

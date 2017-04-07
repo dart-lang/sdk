@@ -8,6 +8,7 @@ import '../common/backend_api.dart';
 import '../common/names.dart' show Identifiers, Uris;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
+import '../deferred_load.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -36,6 +37,7 @@ import 'type_variable_handler.dart';
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.
   final KernelTask _kernelTask;
+  final DeferredLoadTask _deferredLoadTask;
 
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
@@ -79,6 +81,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._mirrorsAnalysis,
       this._typeVariableResolutionAnalysis,
       this._nativeEnqueuer,
+      this._deferredLoadTask,
       [this._kernelTask]);
 
   void _registerBackendImpact(
@@ -171,9 +174,18 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     return mainImpact;
   }
 
+  /// Returns the [WorldImpact] of enabling deferred loading.
+  WorldImpact _computeDeferredLoadingImpact() {
+    _backendUsage.processBackendImpact(_impacts.deferredLoading);
+    return _impacts.deferredLoading.createImpact(_elementEnvironment);
+  }
+
   @override
   void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
       Iterable<LibraryEntity> libraries) {
+    if (_deferredLoadTask.isProgramSplit) {
+      enqueuer.applyImpact(_computeDeferredLoadingImpact());
+    }
     enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
     if (mainMethod != null) {
       enqueuer.applyImpact(_computeMainImpact(mainMethod));
