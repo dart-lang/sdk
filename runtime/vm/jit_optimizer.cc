@@ -141,10 +141,10 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
         Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
                                                   call->argument_names()));
     ArgumentsDescriptor args_desc(args_desc_array);
-    const Function& function =
-        Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
-                                receiver_class, call->function_name(),
-                                args_desc, false /* allow add */));
+    bool allow_add = false;
+    const Function& function = Function::Handle(
+        Z, Resolver::ResolveDynamicForReceiverClass(
+               receiver_class, call->function_name(), args_desc, allow_add));
     if (function.IsNull()) {
       return false;
     }
@@ -175,10 +175,10 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
           Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
                                                     call->argument_names()));
       ArgumentsDescriptor args_desc(args_desc_array);
-      const Function& function =
-          Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
-                                  owner_class, call->function_name(), args_desc,
-                                  false /* allow_add */));
+      bool allow_add = false;
+      const Function& function = Function::Handle(
+          Z, Resolver::ResolveDynamicForReceiverClass(
+                 owner_class, call->function_name(), args_desc, allow_add));
       if (!function.IsNull()) {
         const ICData& ic_data = ICData::ZoneHandle(
             Z, ICData::NewFrom(*call->ic_data(), class_ids.length()));
@@ -1458,8 +1458,10 @@ bool JitOptimizer::LookupMethodFor(int class_id,
   if (!cls.is_finalized()) return false;
   if (Array::Handle(cls.functions()).IsNull()) return false;
 
-  Function& target_function = Function::Handle(
-      Z, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
+  bool allow_add = false;
+  Function& target_function =
+      Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
+                              cls, name, args_desc, allow_add));
   if (target_function.IsNull()) return false;
   *fn_return ^= target_function.raw();
   return true;
