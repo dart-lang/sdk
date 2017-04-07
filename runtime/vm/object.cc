@@ -14484,47 +14484,43 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
 
 
 const char* Code::ToCString() const {
-  Zone* zone = Thread::Current()->zone();
-  if (IsStubCode()) {
-    const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
-    return zone->PrintToString("[stub: %s]", name);
-  } else {
-    return zone->PrintToString("Code entry: 0x%" Px, UncheckedEntryPoint());
-  }
+  return Thread::Current()->zone()->PrintToString("Code(%s)", QualifiedName());
 }
 
 
 const char* Code::Name() const {
-  const Object& obj = Object::Handle(owner());
+  Zone* zone = Thread::Current()->zone();
+  const Object& obj = Object::Handle(zone, owner());
   if (obj.IsNull()) {
     // Regular stub.
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     ASSERT(name != NULL);
-    return OS::SCreate(zone, "[Stub] %s", name);
+    return zone->PrintToString("[Stub] %s", name);
   } else if (obj.IsClass()) {
     // Allocation stub.
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    const Class& cls = Class::Cast(obj);
-    String& cls_name = String::Handle(zone, cls.ScrubbedName());
+    String& cls_name = String::Handle(zone, Class::Cast(obj).ScrubbedName());
     ASSERT(!cls_name.IsNull());
-    return OS::SCreate(zone, "[Stub] Allocate %s", cls_name.ToCString());
+    return zone->PrintToString("[Stub] Allocate %s", cls_name.ToCString());
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
-    // Same as scrubbed name.
-    return String::Handle(Function::Cast(obj).UserVisibleName()).ToCString();
+    const char* opt = is_optimized() ? "*" : "";
+    const char* function_name =
+        String::Handle(zone, Function::Cast(obj).UserVisibleName()).ToCString();
+    return zone->PrintToString("%s%s", opt, function_name);
   }
 }
 
 
 const char* Code::QualifiedName() const {
-  const Object& obj = Object::Handle(owner());
+  Zone* zone = Thread::Current()->zone();
+  const Object& obj = Object::Handle(zone, owner());
   if (obj.IsFunction()) {
-    return String::Handle(Function::Cast(obj).QualifiedScrubbedName())
-        .ToCString();
+    const char* opt = is_optimized() ? "*" : "";
+    const char* function_name =
+        String::Handle(zone, Function::Cast(obj).QualifiedScrubbedName())
+            .ToCString();
+    return zone->PrintToString("%s%s", opt, function_name);
   }
   return Name();
 }

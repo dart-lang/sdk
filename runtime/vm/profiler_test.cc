@@ -1535,7 +1535,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
@@ -1555,7 +1555,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
@@ -1655,7 +1655,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1672,7 +1672,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
