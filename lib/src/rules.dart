@@ -7,8 +7,8 @@ library linter.src.rules;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_put_control_body_on_new_line.dart';
-import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/always_require_non_null_named_parameters.dart';
+import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/annotate_overrides.dart';
 import 'package:linter/src/rules/avoid_annotating_with_dynamic.dart';
 import 'package:linter/src/rules/avoid_as.dart';
@@ -90,6 +90,7 @@ import 'package:linter/src/rules/unnecessary_this.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/use_rethrow_when_possible.dart';
 import 'package:linter/src/rules/use_setters_to_change_a_property.dart';
+import 'package:linter/src/rules/use_to_and_as_if_applicable.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
 void registerLintRules() {
@@ -181,5 +182,6 @@ void registerLintRules() {
     ..register(new UnrelatedTypeEqualityChecks())
     ..register(new UseRethrowWhenPossible())
     ..register(new UseSettersToChangeAProperty())
+    ..register(new UseToAndAsIfApplicable())
     ..register(new ValidRegExps());
 }
