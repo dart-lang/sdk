@@ -51,6 +51,8 @@ class VerifyingVisitor extends RecursiveVisitor {
   /// attempt to validate constructor initializers.
   bool isOutline = false;
 
+  bool inCatchBlock = false;
+
   Member currentMember;
   Class currentClass;
   TreeNode currentParent;
@@ -234,7 +236,10 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   visitFunctionNode(FunctionNode node) {
     declareTypeParameters(node.typeParameters);
+    bool savedInCatchBlock = inCatchBlock;
+    inCatchBlock = false;
     visitWithLocalScope(node);
+    inCatchBlock = savedInCatchBlock;
     undeclareTypeParameters(node.typeParameters);
   }
 
@@ -272,10 +277,34 @@ class VerifyingVisitor extends RecursiveVisitor {
   }
 
   visitCatch(Catch node) {
+    bool savedInCatchBlock = inCatchBlock;
+    inCatchBlock = true;
     visitWithLocalScope(node);
+    inCatchBlock = savedInCatchBlock;
+  }
+
+  @override
+  visitRethrow(Rethrow node) {
+    if (!inCatchBlock) {
+      problem(node, "Rethrow must be inside a Catch block.");
+    }
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
+    var parent = node.parent;
+    if (parent is! Block &&
+        !(parent is Catch && parent.body != node) &&
+        !(parent is FunctionNode && parent.body != node) &&
+        parent is! FunctionDeclaration &&
+        !(parent is ForStatement && parent.body != node) &&
+        !(parent is ForInStatement && parent.body != node) &&
+        parent is! Let &&
+        parent is! LocalInitializer) {
+      problem(
+          node,
+          "VariableDeclaration must be a direct child of a Block, "
+          "not ${parent.runtimeType}.");
+    }
     visitChildren(node);
     declareVariable(node);
   }
