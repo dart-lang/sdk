@@ -78,10 +78,32 @@ class DartTypeUtilities {
       type.name == className &&
       type.element?.library?.name == library;
 
-  static Element lookUpInheritedMethod(MethodDeclaration node) =>
+  static PropertyAccessorElement lookUpGetter(MethodDeclaration node) =>
+      (node.parent as ClassDeclaration)
+          .element
+          .lookUpGetter(node.name.name, node.element.library);
+
+  static PropertyAccessorElement lookUpInheritedConcreteGetter(
+          MethodDeclaration node) =>
+      (node.parent as ClassDeclaration)
+          .element
+          .lookUpInheritedConcreteGetter(node.name.name, node.element.library);
+
+  static PropertyAccessorElement lookUpInheritedConcreteSetter(
+          MethodDeclaration node) =>
+      (node.parent as ClassDeclaration)
+          .element
+          .lookUpInheritedConcreteSetter(node.name.name, node.element.library);
+
+  static MethodElement lookUpInheritedMethod(MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
           .element
           .lookUpInheritedMethod(node.name.name, node.element.library);
+
+  static PropertyAccessorElement lookUpSetter(MethodDeclaration node) =>
+      (node.parent as ClassDeclaration)
+          .element
+          .lookUpSetter(node.name.name, node.element.library);
 
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself, it excludes the nodes for which the exclusion
