@@ -921,14 +921,14 @@ dynamic x;
 
 foo1() async => x;
 Future foo2() async => x;
-Future<int> foo3() async => x;
+Future<int> foo3() async => /*info:DYNAMIC_CAST*/x;
 Future<int> foo4() async => new Future<int>.value(x);
 Future<int> foo5() async =>
     /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
-Future<int> bar3() async { return x; }
+Future<int> bar3() async { return /*info:DYNAMIC_CAST*/x; }
 Future<int> bar4() async { return new Future<int>.value(x); }
 Future<int> bar5() async {
   return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
@@ -955,7 +955,7 @@ Future<bool> get issue_ddc_264 async {
 
 
 Future<String> issue_sdk_26404() async {
-  return (1 > 0) ? new Future<String>.value('hello') : "world";
+  return (/*info:DOWN_CAST_COMPOSITE*/(1 > 0) ? new Future<String>.value('hello') : "world");
 }
 ''');
   }
@@ -2197,11 +2197,20 @@ main() {
   test_implicitCasts() async {
     addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
     await check();
-    // TODO(jmesserly): should not be emitting the hint as well as the error.
-    // It is a "strong mode hint" however, so it will not be user visible.
-    addFile(
-        'num n; int i = /*info:ASSIGNMENT_CAST,error:INVALID_ASSIGNMENT*/n;');
+    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;');
     await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_return() async {
+    addFile(r'''
+import 'dart:async';
+
+Future<List<String>> foo() async {
+  List<Object> x = <Object>["hello", "world"];
+  return /*info:DOWN_CAST_IMPLICIT*/x;
+}
+    ''');
+    await check();
   }
 
   test_implicitCasts_genericMethods() async {
