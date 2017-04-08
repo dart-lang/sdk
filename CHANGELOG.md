@@ -13,8 +13,10 @@
 
 ### Tool Changes
 
-* `pub build` will use a failing exit code if there are errors in any
-  transformer.
+* Pub
+    * `pub build` will use a failing exit code if there are errors in any
+      transformer.
+    * Allow publishing packages that depend on the Flutter SDK.
 
 ## 1.23.0
 
