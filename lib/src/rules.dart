@@ -91,6 +91,7 @@ import 'package:linter/src/rules/unnecessary_this.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/use_rethrow_when_possible.dart';
 import 'package:linter/src/rules/use_setters_to_change_a_property.dart';
+import 'package:linter/src/rules/use_to_and_as_if_applicable.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
 void registerLintRules() {
@@ -183,5 +184,6 @@ void registerLintRules() {
     ..register(new UnrelatedTypeEqualityChecks())
     ..register(new UseRethrowWhenPossible())
     ..register(new UseSettersToChangeAProperty())
+    ..register(new UseToAndAsIfApplicable())
     ..register(new ValidRegExps());
 }

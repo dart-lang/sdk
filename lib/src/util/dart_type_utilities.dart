@@ -45,6 +45,9 @@ class DartTypeUtilities {
     return lastStatement;
   }
 
+  static bool hasInheritedMethod(MethodDeclaration node) =>
+      lookUpInheritedMethod(node) != null;
+
   static bool implementsAnyInterface(
       DartType type, Iterable<InterfaceTypeDefinition> definitions) {
     if (type is! InterfaceType) {
