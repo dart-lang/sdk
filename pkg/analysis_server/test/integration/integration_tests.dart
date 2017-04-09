@@ -115,6 +115,11 @@ abstract class AbstractAnalysisServerIntegrationTest
       new HashMap<String, List<AnalysisError>>();
 
   /**
+   * The last list of analyzed files received.
+   */
+  List<String> lastAnalyzedFiles;
+
+  /**
    * True if the teardown process should skip sending a "server.shutdown"
    * request (e.g. because the server is known to have already shutdown).
    */
@@ -138,7 +143,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * multiple times in one test; each time it is used it will wait afresh for
    * analysis to finish.
    */
-  Future get analysisFinished {
+  Future<ServerStatusParams> get analysisFinished {
     Completer completer = new Completer();
     StreamSubscription subscription;
     // This will only work if the caller has already subscribed to
@@ -191,6 +196,9 @@ abstract class AbstractAnalysisServerIntegrationTest
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
+    });
+    onAnalysisAnalyzedFiles.listen((AnalysisAnalyzedFilesParams params) {
+      lastAnalyzedFiles = params.directories;
     });
     Completer serverConnected = new Completer();
     onServerConnected.listen((_) {

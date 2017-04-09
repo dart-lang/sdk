@@ -8,16 +8,16 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 ## analysis domain
 - [x] analysis.getErrors
 - [x] analysis.getHover
-- [ ] analysis.getReachableSources
-- [ ] analysis.getLibraryDependencies
+- [x] analysis.getReachableSources (failing - see #329311)
+- [x] analysis.getLibraryDependencies (failing - see #29310)
 - [x] analysis.getNavigation (failing - see #28799)
 - [x] analysis.reanalyze
 - [x] analysis.setAnalysisRoots
-- [ ] analysis.setGeneralSubscriptions
-- [ ] analysis.setPriorityFiles
+- [x] analysis.setGeneralSubscriptions
+- [x] analysis.setPriorityFiles
 - [x] analysis.setSubscriptions
 - [x] analysis.updateContent
-- [x] analysis.updateOptions (failing - see #28800)
+- [x] analysis.updateOptions (failing - see #28800) (deprecated)
 
 ## completion domain
 - [x] completion.getSuggestions
