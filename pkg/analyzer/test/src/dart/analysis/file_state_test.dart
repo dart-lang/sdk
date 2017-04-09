@@ -314,6 +314,22 @@ class A2 {}
     expect(file.unlinked.classes, isEmpty);
   }
 
+  test_getFileForPath_emptyUri() {
+    String path = _p('/test.dart');
+    provider.newFile(
+        path,
+        r'''
+import '';
+export '';
+part '';
+''');
+
+    FileState file = fileSystemState.getFileForPath(path);
+    _assertIsUnresolvedFile(file.importedFiles[0]);
+    _assertIsUnresolvedFile(file.exportedFiles[0]);
+    _assertIsUnresolvedFile(file.partedFiles[0]);
+  }
+
   test_getFileForPath_hasLibraryDirective_hasPartOfDirective() {
     String a = _p('/test/lib/a.dart');
     provider.newFile(
@@ -326,7 +342,7 @@ part of L;
     expect(file.isPart, isFalse);
   }
 
-  test_getFileForPath_import_invalidUri() {
+  test_getFileForPath_invalidUri() {
     String a = _p('/aaa/lib/a.dart');
     String a1 = _p('/aaa/lib/a1.dart');
     String a2 = _p('/aaa/lib/a2.dart');
@@ -335,8 +351,8 @@ part of L;
 import 'package:aaa/a1.dart';
 import '[invalid uri]';
 
-export '[invalid uri]';
 export 'package:aaa/a2.dart';
+export '[invalid uri]';
 
 part 'a3.dart';
 part '[invalid uri]';
@@ -345,20 +361,23 @@ part '[invalid uri]';
 
     FileState file = fileSystemState.getFileForPath(a);
 
-    expect(_excludeSdk(file.importedFiles), hasLength(1));
+    expect(_excludeSdk(file.importedFiles), hasLength(2));
     expect(file.importedFiles[0].path, a1);
     expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a1.dart'));
     expect(file.importedFiles[0].source, isNotNull);
+    _assertIsUnresolvedFile(file.importedFiles[1]);
 
-    expect(_excludeSdk(file.exportedFiles), hasLength(1));
+    expect(_excludeSdk(file.exportedFiles), hasLength(2));
     expect(file.exportedFiles[0].path, a2);
     expect(file.exportedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
     expect(file.exportedFiles[0].source, isNotNull);
+    _assertIsUnresolvedFile(file.exportedFiles[1]);
 
-    expect(_excludeSdk(file.partedFiles), hasLength(1));
+    expect(_excludeSdk(file.partedFiles), hasLength(2));
     expect(file.partedFiles[0].path, a3);
     expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a3.dart'));
     expect(file.partedFiles[0].source, isNotNull);
+    _assertIsUnresolvedFile(file.partedFiles[1]);
   }
 
   test_getFileForPath_library() {
@@ -789,6 +808,12 @@ set _V3(_) {}
     expect(_excludeSdk(actual), unorderedEquals(expected));
   }
 
+  void _assertIsUnresolvedFile(FileState file) {
+    expect(file.path, isNull);
+    expect(file.uri, isNull);
+    expect(file.source, isNull);
+  }
+
   void _assertTransitiveFiles(FileState file, List<FileState> expected) {
     expect(_excludeSdk(file.transitiveFiles), unorderedEquals(expected));
   }
@@ -796,7 +821,7 @@ set _V3(_) {}
   List<T> _excludeSdk<T>(Iterable<T> files) {
     return files.where((Object file) {
       if (file is FileState) {
-        return file.uri.scheme != 'dart';
+        return file.uri?.scheme != 'dart';
       } else {
         return !(file as String).startsWith(_p('/sdk'));
       }

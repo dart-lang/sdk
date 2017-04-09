@@ -213,13 +213,13 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[unlinkedSummary];
       for (String part in serializedUnits[0].publicNamespace.parts) {
         Source partSource = sourceFactory.resolveUri(librarySource, part);
-        if (partSource == null) {
-          serializedUnits.add(null);
-        } else {
+        UnlinkedUnit partUnlinkedUnit;
+        if (partSource != null) {
           String partAbsUri = partSource.uri.toString();
-          serializedUnits.add(getUnlinkedSummary(partAbsUri) ??
-              new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
+          partUnlinkedUnit = getUnlinkedSummary(partAbsUri);
         }
+        serializedUnits.add(partUnlinkedUnit ??
+            new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
       }
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
@@ -1037,9 +1037,6 @@ class _LibraryResynthesizer {
       String uri, UnlinkedPart partDecl, int unitNum) {
     Source unitSource =
         summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
-    if (unitSource == null) {
-      return null;
-    }
     _UnitResynthesizer partResynthesizer =
         createUnitResynthesizer(unitNum, unitSource, partDecl);
     CompilationUnitElementImpl partUnit = partResynthesizer.unit;
@@ -1101,10 +1098,13 @@ class _LibraryResynthesizer {
   /**
    * Remember the absolute URI to the corresponding unit mapping.
    */
-  void rememberUriToUnit(_UnitResynthesizer unitResynthesized) {
-    CompilationUnitElementImpl unit = unitResynthesized.unit;
-    String absoluteUri = unit.source.uri.toString();
-    resynthesizedUnits[absoluteUri] = unit;
+  void rememberUriToUnit(_UnitResynthesizer unitResynthesizer) {
+    CompilationUnitElementImpl unit = unitResynthesizer.unit;
+    Source source = unit.source;
+    if (source != null) {
+      String absoluteUri = source.uri.toString();
+      resynthesizedUnits[absoluteUri] = unit;
+    }
   }
 }
 
@@ -1512,7 +1512,7 @@ class _UnitResynthesizer {
         _resynthesizerContext,
         unlinkedUnit,
         unlinkedPart,
-        unitSource.shortName);
+        unitSource?.shortName);
 
     {
       List<int> lineStarts = unlinkedUnit.lineStarts;

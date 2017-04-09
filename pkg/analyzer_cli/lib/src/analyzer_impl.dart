@@ -81,11 +81,13 @@ class AnalyzerImpl {
 
   void addCompilationUnitSource(
       CompilationUnitElement unit, Set<CompilationUnitElement> units) {
-    if (unit == null || units.contains(unit)) {
+    if (unit == null || !units.add(unit)) {
       return;
     }
-    units.add(unit);
-    sources.add(unit.source);
+    Source source = unit.source;
+    if (source != null) {
+      sources.add(source);
+    }
   }
 
   void addLibrarySources(LibraryElement library, Set<LibraryElement> libraries,

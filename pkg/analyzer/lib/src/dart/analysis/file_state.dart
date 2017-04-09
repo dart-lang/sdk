@@ -16,6 +16,9 @@ import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
+import 'package:analyzer/src/fasta/element_store.dart' as fasta;
+import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -28,9 +31,6 @@ import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
-import 'package:analyzer/src/fasta/element_store.dart' as fasta;
-import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
@@ -502,28 +502,22 @@ class FileState {
     for (UnlinkedImport import in _unlinked.imports) {
       String uri = import.isImplicit ? 'dart:core' : import.uri;
       FileState file = _fileForRelativeUri(uri);
-      if (file != null) {
-        _importedFiles.add(file);
-      }
+      _importedFiles.add(file);
     }
     for (UnlinkedExportPublic export in _unlinked.publicNamespace.exports) {
       String uri = export.uri;
       FileState file = _fileForRelativeUri(uri);
-      if (file != null) {
-        _exportedFiles.add(file);
-        _exportFilters
-            .add(new NameFilter.forUnlinkedCombinators(export.combinators));
-      }
+      _exportedFiles.add(file);
+      _exportFilters
+          .add(new NameFilter.forUnlinkedCombinators(export.combinators));
     }
     for (String uri in _unlinked.publicNamespace.parts) {
       FileState file = _fileForRelativeUri(uri);
-      if (file != null) {
-        _partedFiles.add(file);
-        // TODO(scheglov) Sort for stable results?
-        _fsState._partToLibraries
-            .putIfAbsent(file, () => <FileState>[])
-            .add(this);
-      }
+      _partedFiles.add(file);
+      // TODO(scheglov) Sort for stable results?
+      _fsState._partToLibraries
+          .putIfAbsent(file, () => <FileState>[])
+          .add(this);
     }
 
     // Compute referenced files.
@@ -554,16 +548,21 @@ class FileState {
   String toString() => path;
 
   /**
-   * Return the [FileState] for the given [relativeUri], or `null` if the URI
-   * cannot be parsed, cannot correspond any file, etc.
+   * Return the [FileState] for the given [relativeUri], maybe "unresolved"
+   * file if the URI cannot be parsed, cannot correspond any file, etc.
    */
   FileState _fileForRelativeUri(String relativeUri) {
+    if (relativeUri.isEmpty) {
+      return _fsState.unresolvedFile;
+    }
+
     Uri absoluteUri;
     try {
       absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     } on FormatException {
-      return null;
+      return _fsState.unresolvedFile;
     }
+
     return _fsState.getFileForUri(absoluteUri);
   }
 
@@ -630,6 +629,11 @@ class FileSystemState {
    */
   final Map<FileState, List<FileState>> _partToLibraries = {};
 
+  /**
+   * The [FileState] instance that correspond to an unresolved URI.
+   */
+  FileState _unresolvedFile;
+
   FileSystemStateTestView _testView;
 
   FileSystemState(
@@ -651,6 +655,17 @@ class FileSystemState {
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
+
+  /**
+   * Return the [FileState] instance that correspond to an unresolved URI.
+   */
+  FileState get unresolvedFile {
+    if (_unresolvedFile == null) {
+      _unresolvedFile = new FileState._(this, null, null, null);
+      _unresolvedFile.refresh();
+    }
+    return _unresolvedFile;
+  }
 
   /**
    * Return the canonical [FileState] for the given absolute [path]. The
@@ -692,11 +707,14 @@ class FileSystemState {
     FileState file = _uriToFile[uri];
     if (file == null) {
       Source uriSource = _sourceFactory.resolveUri(null, uri.toString());
-      // If the URI is invalid, for example package:/test/d.dart (note the
-      // leading '/'), then `null` is returned. We should ignore this URI.
+
+      // If the URI cannot be resolved, for example because the factory
+      // does not understand the scheme, return the unresolved file instance.
       if (uriSource == null) {
-        return null;
+        _uriToFile[uri] = unresolvedFile;
+        return unresolvedFile;
       }
+
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);

@@ -57,6 +57,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   bool allowMissingFiles = false;
 
   /**
+   * Tests may set this to `false` to indicate that resynthesized elements
+   * should not be compare with elements created using AnalysisContext.
+   */
+  bool shouldCompareLibraryElements = true;
+
+  /**
    * Return `true` if resynthesizing should be done is strong mode.
    */
   bool get isStrongMode;
@@ -8863,6 +8869,32 @@ Future<dynamic> f;
     }
   }
 
+  test_import_invalidUri_metadata() {
+    allowMissingFiles = true;
+    shouldCompareLibraryElements = false;
+    LibraryElementImpl resynthesized = checkLibrary('''
+@foo
+import '';
+''');
+    if (isStrongMode) {
+      checkElementText(
+          resynthesized,
+          r'''
+@
+        foo/*location: null*/
+import '';
+''');
+    } else {
+      checkElementText(
+          resynthesized,
+          r'''
+@
+        foo/*location: null*/
+import '';
+''');
+    }
+  }
+
   test_import_multiple_combinators() {
     addLibrary('dart:async');
     var library =
@@ -10104,6 +10136,7 @@ class C {
 
   test_invalidUri_part_emptyUri() {
     allowMissingFiles = true;
+    shouldCompareLibraryElements = false;
     var library = checkLibrary(r'''
 part '';
 class B extends A {}
@@ -10112,21 +10145,30 @@ class B extends A {}
       checkElementText(
           library,
           r'''
+part '';
 class B {
 }
+--------------------
+unit: null
+
 ''');
     } else {
       checkElementText(
           library,
           r'''
+part '';
 class B {
 }
+--------------------
+unit: null
+
 ''');
     }
   }
 
   test_invalidUris() {
     allowMissingFiles = true;
+    shouldCompareLibraryElements = false;
     var library = checkLibrary(r'''
 import '[invalid uri]';
 import '[invalid uri]:foo.dart';
@@ -10148,22 +10190,54 @@ part '[invalid uri]';
       checkElementText(
           library,
           r'''
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
 import 'a1.dart';
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
 export 'a2.dart';
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+part '[invalid uri]';
 part 'a3.dart';
+part '[invalid uri]';
+--------------------
+unit: null
+
 --------------------
 unit: a3.dart
+
+--------------------
+unit: null
 
 ''');
     } else {
       checkElementText(
           library,
           r'''
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
 import 'a1.dart';
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
 export 'a2.dart';
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+part '[invalid uri]';
 part 'a3.dart';
+part '[invalid uri]';
+--------------------
+unit: null
+
 --------------------
 unit: a3.dart
+
+--------------------
+unit: null
 
 ''');
     }
@@ -12661,6 +12735,7 @@ unit: b.dart
 
   test_parts_invalidUri() {
     allowMissingFiles = true;
+    shouldCompareLibraryElements = false;
     addSource('/foo/bar.dart', 'part of my.lib;');
     var library = checkLibrary('library my.lib; part "foo/";');
     if (isStrongMode) {
@@ -12668,18 +12743,27 @@ unit: b.dart
           library,
           r'''
 library my.lib;
+part 'foo/';
+--------------------
+unit: null
+
 ''');
     } else {
       checkElementText(
           library,
           r'''
 library my.lib;
+part 'foo/';
+--------------------
+unit: null
+
 ''');
     }
   }
 
   test_parts_invalidUri_nullStringValue() {
     allowMissingFiles = true;
+    shouldCompareLibraryElements = false;
     addSource('/foo/bar.dart', 'part of my.lib;');
     var library = checkLibrary(r'''
 library my.lib;
@@ -12690,12 +12774,20 @@ part "${foo}/bar.dart";
           library,
           r'''
 library my.lib;
+part '';
+--------------------
+unit: null
+
 ''');
     } else {
       checkElementText(
           library,
           r'''
 library my.lib;
+part '';
+--------------------
+unit: null
+
 ''');
     }
   }

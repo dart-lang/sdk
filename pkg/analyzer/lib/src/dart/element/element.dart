@@ -5880,16 +5880,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         for (int i = 0; i < length; i++) {
           UnlinkedExportPublic serializedExportPublic =
               unlinkedPublicExports[i];
-          LibraryElement exportedLibrary = resynthesizerContext
-              .buildExportedLibrary(serializedExportPublic.uri);
-          if (exportedLibrary != null) {
-            UnlinkedExportNonPublic serializedExportNonPublic =
-                unlinkedNonPublicExports[i];
-            ExportElementImpl exportElement =
-                new ExportElementImpl.forSerialized(
-                    serializedExportPublic, serializedExportNonPublic, library);
-            exports.add(exportElement);
-          }
+          UnlinkedExportNonPublic serializedExportNonPublic =
+              unlinkedNonPublicExports[i];
+          ExportElementImpl exportElement = new ExportElementImpl.forSerialized(
+              serializedExportPublic, serializedExportNonPublic, library);
+          exports.add(exportElement);
         }
         _exports = exports;
       } else {
@@ -5970,14 +5965,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
         for (int i = 0; i < length; i++) {
           int dependency = linkedLibrary.importDependencies[i];
-          LibraryElement importedLibrary =
-              resynthesizerContext.buildImportedLibrary(dependency);
-          if (importedLibrary != null) {
-            ImportElementImpl importElement =
-                new ImportElementImpl.forSerialized(
-                    unlinkedImports[i], dependency, library);
-            imports.add(importElement);
-          }
+          ImportElementImpl importElement = new ImportElementImpl.forSerialized(
+              unlinkedImports[i], dependency, library);
+          imports.add(importElement);
         }
         _imports = imports;
       } else {

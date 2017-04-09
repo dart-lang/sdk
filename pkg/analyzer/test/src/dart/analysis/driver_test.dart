@@ -1231,9 +1231,9 @@ export 'dart:math';
         .elementDeclaredByCompilationUnit(result.unit)
         .library
         .exports;
-    expect(
-        imports.map((import) => import.exportedLibrary.source.uri.toString()),
-        unorderedEquals(['dart:async', 'dart:math']));
+    expect(imports.map((import) {
+      return import.exportedLibrary?.source?.uri?.toString();
+    }), ['dart:async', null, 'dart:math']);
   }
 
   test_getResult_invalidUri_imports_dart() async {
@@ -1251,12 +1251,11 @@ import 'dart:math';
         .elementDeclaredByCompilationUnit(result.unit)
         .library
         .imports;
-    expect(
-        imports.map((import) => import.importedLibrary.source.uri.toString()),
-        unorderedEquals(['dart:async', 'dart:math', 'dart:core']));
+    expect(imports.map((import) {
+      return import.importedLibrary?.source?.uri?.toString();
+    }), ['dart:async', null, 'dart:math', 'dart:core']);
   }
 
-  @failingTest
   test_getResult_invalidUri_metadata() async {
     String content = r'''
 @foo
