@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N omit_type_for_local_variables`
+// test w/ `pub run test -N omit_local_variable_types`
+
+int goodGlobalVariable = 3, a = 4; // OK
 
 Map<int, List<Person>> badGroupByZip(Iterable<Person> people) {
   Map<int, List<Person>> peopleByZip = <int, List<Person>>{}; // LINT
