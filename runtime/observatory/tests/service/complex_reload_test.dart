@@ -67,6 +67,7 @@ var tests = [
       rootLibUri: v2Uri.toString(),
       packagesUri: v2PackagesUri.toString(),
     );
+    print(response);
     expect(response['success'], isTrue);
 
     // Invoke test in v2.
