@@ -2,7 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N use_initializing_formals_when_possible`
+// test w/ `pub run test -N prefer_initializing_formals`
+
+class A {
+  int x;
+  A(this.x);
+}
+
+class B extends A {
+  B(int y) : super(y) {
+    x = y; // OK
+  }
+}
 
 num cos(num theta) {
   return 0;

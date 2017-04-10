@@ -57,24 +57,15 @@ Iterable<ConstructorFieldInitializer>
       .map((e) => (e as ConstructorFieldInitializer));
 }
 
-Element _getLeftElement(AssignmentExpression assignment) {
-  final leftPart = assignment.leftHandSide;
-  return leftPart is SimpleIdentifier
-      ? DartTypeUtilities.getCanonicalElement(leftPart.bestElement)
-      : leftPart is PropertyAccess
-          ? DartTypeUtilities
-              .getCanonicalElement(leftPart.propertyName.bestElement)
-          : null;
-}
+Element _getLeftElement(AssignmentExpression assignment) => DartTypeUtilities
+    .getCanonicalElementFromIdentifier(assignment.leftHandSide);
 
 Iterable<Element> _getParameters(ConstructorDeclaration node) {
   return node.parameters.parameters.map((e) => e.identifier.bestElement);
 }
 
-Element _getRightElement(AssignmentExpression assignment) {
-  final rightPart = assignment.rightHandSide;
-  return rightPart is SimpleIdentifier ? rightPart.bestElement : null;
-}
+Element _getRightElement(AssignmentExpression assignment) => DartTypeUtilities
+    .getCanonicalElementFromIdentifier(assignment.rightHandSide);
 
 class PreferInitializingFormals extends LintRule {
   _Visitor _visitor;
@@ -109,6 +100,7 @@ class _Visitor extends SimpleAstVisitor {
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
+          leftElement.enclosingElement == node.element.enclosingElement &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) ||
               leftElement.name == rightElement.name);
