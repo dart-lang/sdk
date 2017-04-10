@@ -45,12 +45,10 @@ bool _isComparingEquality(TokenType tokenType) =>
 
 bool _isComparingParameterWithNull(BinaryExpression node, Element parameter) =>
     _isComparingEquality(node.operator.type) &&
-    ((_isNullLiteral(node.leftOperand) &&
+    ((DartTypeUtilities.isNullLiteral(node.leftOperand) &&
             _isParameter(node.rightOperand, parameter)) ||
-        (_isNullLiteral(node.rightOperand) &&
+        (DartTypeUtilities.isNullLiteral(node.rightOperand) &&
             _isParameter(node.leftOperand, parameter)));
-
-bool _isNullLiteral(Expression node) => node.unParenthesized is NullLiteral;
 
 bool _isParameter(Expression expression, Element parameter) {
   return DartTypeUtilities.getCanonicalElementFromIdentifier(expression) ==

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const desc = 'Avoid null in if null operator';
 
@@ -49,7 +50,8 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION &&
-        (node.rightOperand is NullLiteral || node.leftOperand is NullLiteral)) {
+        (DartTypeUtilities.isNullLiteral(node.rightOperand) ||
+            DartTypeUtilities.isNullLiteral(node.leftOperand))) {
       rule.reportLint(node);
     }
   }

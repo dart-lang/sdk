@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const desc = 'Avoid null in null-aware assignment';
 
@@ -49,7 +50,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
-        node.rightHandSide is NullLiteral) {
+        DartTypeUtilities.isNullLiteral(node.rightHandSide)) {
       rule.reportLint(node);
     }
   }
