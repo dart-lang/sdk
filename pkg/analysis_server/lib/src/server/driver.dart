@@ -291,7 +291,7 @@ class Driver implements ServerStarter {
    * The name of the flag used to enable version 2 of semantic highlight
    * notification.
    */
-  static const String USE_ANALISYS_HIGHLIGHT2 = "useAnalysisHighlight2";
+  static const String USE_ANALYSIS_HIGHLIGHT2 = "useAnalysisHighlight2";
 
   /**
    * The option for specifying the http diagnostic port.
@@ -400,7 +400,7 @@ class Driver implements ServerStarter {
         results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
-        results[USE_ANALISYS_HIGHLIGHT2];
+        results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
@@ -581,19 +581,19 @@ class Driver implements ServerStarter {
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
     parser.addFlag(NO_INDEX,
         help: "disable indexing sources", defaultsTo: false, negatable: false);
-    parser.addFlag(USE_ANALISYS_HIGHLIGHT2,
+    parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
         help: "enable version 2 of semantic highlight",
         defaultsTo: false,
         negatable: false);
     parser.addOption(FILE_READ_MODE,
-        help: "an option of the ways files can be read from disk, " +
-            "some clients normalize end of line characters which would make " +
-            "the file offset and range information incorrect.",
+        help: "an option for reading files (some clients normalize eol "
+            "characters, which make the file offset and range information "
+            "incorrect)",
         allowed: ["as-is", "normalize-eol-always"],
         allowedHelp: {
-          "as-is": "file contents are read as-is, no file changes occur",
+          "as-is": "file contents are read as-is",
           "normalize-eol-always":
-              r'file contents normalize the end of line characters to the single character new line `\n`'
+              r"eol characters normalized to the single character new line ('\n')"
         },
         defaultsTo: "as-is");
 
