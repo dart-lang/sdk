@@ -648,7 +648,6 @@ mirrors/variable_is_const_test/01: MissingCompileTimeError
 mirrors/variable_is_const_test/none: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
-async/stream_type_test: Crash
 mirrors/variable_is_const_test/01: Crash
 
 # dartk: checked mode failures
