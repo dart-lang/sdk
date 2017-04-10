@@ -3,8 +3,6 @@ server calls.
 
 This file is validated by `coverage_test.dart`.
 
-TODO(devoncarew): We should track analysis server notifications here as well.
-
 ## analysis domain
 - [x] analysis.getErrors
 - [x] analysis.getHover
@@ -28,9 +26,9 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 
 ## edit domain
 - [x] edit.format
-- [ ] edit.getAssists
+- [x] edit.getAssists
 - [ ] edit.getAvailableRefactorings
-- [ ] edit.getFixes
+- [x] edit.getFixes
 - [ ] edit.getRefactoring
 - [ ] edit.getStatementCompletion
 - [x] edit.sortMembers

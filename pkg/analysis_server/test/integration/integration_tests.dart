@@ -459,7 +459,7 @@ class Server {
   /**
    * Server process object, or null if server hasn't been started yet.
    */
-  Process _process = null;
+  Process _process;
 
   /**
    * Commands that have been sent to the server but not yet acknowledged, and
@@ -654,14 +654,15 @@ class Server {
    * with "--observe" and "--pause-isolates-on-exit", allowing the observatory
    * to be used.
    */
-  Future start(
-      {bool checked: true,
-      int diagnosticPort,
-      bool enableNewAnalysisDriver: false,
-      bool profileServer: false,
-      String sdkPath,
-      int servicesPort,
-      bool useAnalysisHighlight2: false}) {
+  Future start({
+    bool checked: true,
+    int diagnosticPort,
+    bool enableNewAnalysisDriver: false,
+    bool profileServer: false,
+    String sdkPath,
+    int servicesPort,
+    bool useAnalysisHighlight2: false,
+  }) async {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -717,14 +718,12 @@ class Server {
 //    print('$dartBinary ${arguments.join(' ')}');
     // TODO(devoncarew): We could experiment with instead launching the analysis
     // server in a separate isolate. This would make it easier to debug the
-    // integration tests, and would like speed the tests up as well.
-    return Process.start(dartBinary, arguments).then((Process process) {
-      _process = process;
-      process.exitCode.then((int code) {
-        if (code != 0) {
-          _badDataFromServer('server terminated with exit code $code');
-        }
-      });
+    // integration tests, and would likely speed the tests up as well.
+    _process = await Process.start(dartBinary, arguments);
+    _process.exitCode.then((int code) {
+      if (code != 0) {
+        _badDataFromServer('server terminated with exit code $code');
+      }
     });
   }
 
