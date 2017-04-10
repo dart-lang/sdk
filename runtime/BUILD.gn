@@ -203,6 +203,16 @@ config("dart_config") {
   }
 }
 
+source_set("dart_api") {
+  public_configs = [ ":dart_public_config" ]
+  sources = [
+    "include/dart_api.h",
+    "include/dart_mirrors_api.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+  ]
+}
+
 template("libdart_library") {
   extra_configs = []
   if (defined(invoker.extra_configs)) {
@@ -240,6 +250,8 @@ template("libdart_library") {
   }
 }
 
+# TODO(rmacnak): Remove after updating all clients to use libdart_jit
+# or libdart_precompiled_runtime.
 libdart_library("libdart") {
   extra_configs = [ ":dart_maybe_precompiled_runtime_config" ]
   extra_deps = [
@@ -248,22 +260,18 @@ libdart_library("libdart") {
   ]
 }
 
+libdart_library("libdart_jit") {
+  extra_deps = [
+    "vm:libdart_lib_jit",
+    "vm:libdart_vm_jit",
+  ]
+}
+
 libdart_library("libdart_precompiled_runtime") {
   extra_configs = [ ":dart_precompiled_runtime_config" ]
   extra_deps = [
     "vm:libdart_lib_precompiled_runtime",
     "vm:libdart_vm_precompiled_runtime",
-  ]
-}
-
-libdart_library("libdart_nosnapshot") {
-  extra_configs = [
-    ":dart_no_snapshot_config",
-    ":dart_maybe_precompiled_runtime_config",
-  ]
-  extra_deps = [
-    "vm:libdart_lib_nosnapshot",
-    "vm:libdart_vm_nosnapshot",
   ]
 }
 
@@ -318,10 +326,10 @@ executable("libdart_dependency_helper") {
   ]
   deps = [
     "third_party/double-conversion/src:libdouble_conversion",
-    "vm:libdart_lib",
-    "vm:libdart_lib_nosnapshot",
-    "vm:libdart_vm",
-    "vm:libdart_vm_nosnapshot",
+    "vm:libdart_lib_jit",
+    "vm:libdart_lib_nosnapshot_with_precompiler",
+    "vm:libdart_vm_jit",
+    "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
   sources = [
     "vm/libdart_dependency_helper.cc",
