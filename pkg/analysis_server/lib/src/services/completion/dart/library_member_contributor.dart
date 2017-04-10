@@ -56,26 +56,27 @@ class LibraryMemberContributor extends DartCompletionContributor {
     for (ImportElement importElem in imports) {
       if (importElem.prefix?.name == elem.name) {
         LibraryElement library = importElem.importedLibrary;
+        if (library != null) {
+          // Suggest elements from the imported library
+          AstNode parent = request.target.containingNode.parent;
+          bool isConstructor = parent.parent is ConstructorName;
+          bool typesOnly = parent is TypeName;
+          bool instCreation = typesOnly && isConstructor;
+          LibraryElementSuggestionBuilder builder =
+              new LibraryElementSuggestionBuilder(
+                  containingLibrary,
+                  CompletionSuggestionKind.INVOCATION,
+                  typesOnly,
+                  instCreation,
+                  request.ideOptions);
+          library.visitChildren(builder);
+          suggestions.addAll(builder.suggestions);
 
-        // Suggest elements from the imported library
-        AstNode parent = request.target.containingNode.parent;
-        bool isConstructor = parent.parent is ConstructorName;
-        bool typesOnly = parent is TypeName;
-        bool instCreation = typesOnly && isConstructor;
-        LibraryElementSuggestionBuilder builder =
-            new LibraryElementSuggestionBuilder(
-                containingLibrary,
-                CompletionSuggestionKind.INVOCATION,
-                typesOnly,
-                instCreation,
-                request.ideOptions);
-        library.visitChildren(builder);
-        suggestions.addAll(builder.suggestions);
-
-        // If the import is 'deferred' then suggest 'loadLibrary'
-        if (importElem.isDeferred) {
-          FunctionElement loadLibFunct = library.loadLibraryFunction;
-          suggestions.add(createSuggestion(loadLibFunct, request.ideOptions));
+          // If the import is 'deferred' then suggest 'loadLibrary'
+          if (importElem.isDeferred) {
+            FunctionElement loadLibFunct = library.loadLibraryFunction;
+            suggestions.add(createSuggestion(loadLibFunct, request.ideOptions));
+          }
         }
       }
     }

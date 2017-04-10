@@ -2104,7 +2104,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       LibraryElement library = exportElement.exportedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
-          _checkCombinator(exportElement.exportedLibrary, combinator);
+          _checkCombinator(library, combinator);
         }
       }
     }
@@ -4082,7 +4082,7 @@ class ImportsVerifier {
    */
   void _addAdditionalLibrariesForExports(LibraryElement library,
       ImportDirective importDirective, Set<LibraryElement> visitedLibraries) {
-    if (!visitedLibraries.add(library)) {
+    if (library == null || !visitedLibraries.add(library)) {
       return;
     }
     List<ExportElement> exports = library.exports;
