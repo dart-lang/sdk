@@ -652,15 +652,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
   ASSERT(isolate_data != NULL);
-  if ((tag == Dart_kScriptTag) && Dart_IsString(library)) {
-    // Update packages file for isolate.
-    const char* packages_file = NULL;
-    Dart_Handle result = Dart_StringToCString(library, &packages_file);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    isolate_data->UpdatePackagesFile(packages_file);
-  }
+
   // Grab this isolate's loader.
   Loader* loader = NULL;
 
