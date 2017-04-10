@@ -132,11 +132,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final DeclaredVariables declaredVariables = new DeclaredVariables();
 
   /**
-   * If `true`, then analysis should be done without using tasks model.
-   */
-  final bool analyzeWithoutTasks;
-
-  /**
    * Information about the context root being analyzed by this driver.
    */
   final ContextRoot contextRoot;
@@ -257,8 +252,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {PackageBundle sdkBundle,
-      this.analyzeWithoutTasks: true})
+      {PackageBundle sdkBundle})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle {
@@ -953,39 +947,28 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       try {
         LibraryContext libraryContext = _createLibraryContext(library);
         try {
-          CompilationUnit resolvedUnit;
-          List<int> bytes;
-          if (analyzeWithoutTasks) {
-            LibraryAnalyzer analyzer = new LibraryAnalyzer(
-                analysisOptions,
-                declaredVariables,
-                sourceFactory,
-                _fileTracker.fsState,
-                libraryContext.store,
-                library);
-            Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
-            for (FileState unitFile in results.keys) {
-              UnitAnalysisResult unitResult = results[unitFile];
-              List<int> unitBytes =
-                  _serializeResolvedUnit(unitResult.unit, unitResult.errors);
-              String unitSignature =
-                  _getResolvedUnitSignature(library, unitFile);
-              String unitKey = _getResolvedUnitKey(unitSignature);
-              _byteStore.put(unitKey, unitBytes);
-              if (unitFile == file) {
-                bytes = unitBytes;
-                resolvedUnit = unitResult.unit;
-              }
-            }
-          } else {
-            ResolutionResult resolutionResult =
-                libraryContext.resolveUnit(library.source, file.source);
-            resolvedUnit = resolutionResult.resolvedUnit;
-            List<AnalysisError> errors = resolutionResult.errors;
+          LibraryAnalyzer analyzer = new LibraryAnalyzer(
+              analysisOptions,
+              declaredVariables,
+              sourceFactory,
+              _fileTracker.fsState,
+              libraryContext.store,
+              library);
+          Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
-            // Store the result into the cache.
-            bytes = _serializeResolvedUnit(resolvedUnit, errors);
-            _byteStore.put(key, bytes);
+          List<int> bytes;
+          CompilationUnit resolvedUnit;
+          for (FileState unitFile in results.keys) {
+            UnitAnalysisResult unitResult = results[unitFile];
+            List<int> unitBytes =
+                _serializeResolvedUnit(unitResult.unit, unitResult.errors);
+            String unitSignature = _getResolvedUnitSignature(library, unitFile);
+            String unitKey = _getResolvedUnitKey(unitSignature);
+            _byteStore.put(unitKey, unitBytes);
+            if (unitFile == file) {
+              bytes = unitBytes;
+              resolvedUnit = unitResult.unit;
+            }
           }
 
           // Return the result, full or partial.
