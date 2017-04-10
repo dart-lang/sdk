@@ -21,17 +21,16 @@ class DartTypeUtilities {
   static Element getCanonicalElement(Element element) =>
       element is PropertyAccessorElement ? element.variable : element;
 
-  static Element getCanonicalElementFromIdentifier(AstNode node) {
-    if (node is ParenthesizedExpression) {
-      return getCanonicalElementFromIdentifier(node.expression);
+  static Element getCanonicalElementFromIdentifier(AstNode rawNode) {
+    if (rawNode is Expression) {
+      final node = rawNode.unParenthesized;
+      if (node is Identifier) {
+        return getCanonicalElement(node.bestElement);
+      } else if (node is PropertyAccess) {
+        return getCanonicalElement(node.propertyName.bestElement);
+      }
     }
-    Element element;
-    if (node is Identifier) {
-      element = node.bestElement;
-    } else if (node is PropertyAccess) {
-      element = node.propertyName.bestElement;
-    }
-    return getCanonicalElement(element);
+    return null;
   }
 
   static Statement getLastStatementInBlock(Block node) {
