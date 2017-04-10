@@ -69,11 +69,14 @@ class IsolateLoaderState extends IsolateEmbedderData {
   IsolateLoaderState(this.isolateId);
 
   final int isolateId;
-
+  bool _dead = false;
   SendPort sp;
 
   void init(String packageRootFlag, String packagesConfigFlag,
       String workingDirectory, String rootScript) {
+    if (_dead) {
+      return;
+    }
     // _workingDirectory must be set first.
     _workingDirectory = new Uri.directory(workingDirectory);
     if (rootScript != null) {
@@ -87,10 +90,13 @@ class IsolateLoaderState extends IsolateEmbedderData {
     if (packagesConfigFlag != null) {
       _setPackagesConfig(packagesConfigFlag);
     }
-    _fileRequestQueue = new List<FileRequest>();
+    if (_fileRequestQueue != null) {
+      _fileRequestQueue = new List<FileRequest>();
+    }
   }
 
   void cleanup() {
+    _dead = true;
     if (_packagesPort != null) {
       _packagesPort.close();
       _packagesPort = null;
@@ -255,8 +261,11 @@ class IsolateLoaderState extends IsolateEmbedderData {
   RawReceivePort _packagesPort;
 
   void _requestPackagesMap([Uri packageConfig]) {
-    assert(_packagesPort == null);
     assert(_rootScript != null);
+    if (_packagesPort != null) {
+      // Already scheduled.
+      return;
+    }
     // Create a port to receive the packages map on.
     _packagesPort = new RawReceivePort(_handlePackagesReply);
     var sp = _packagesPort.sendPort;
@@ -275,7 +284,9 @@ class IsolateLoaderState extends IsolateEmbedderData {
   }
 
   void _handlePackagesReply(msg) {
-    assert(_packagesPort != null);
+    if (_packagesPort == null) {
+      return;
+    }
     // Make sure to close the _packagePort before any other action.
     _packagesPort.close();
     _packagesPort = null;
