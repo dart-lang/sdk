@@ -177,9 +177,9 @@ class DartFixKind {
   static const IMPORT_LIBRARY_PROJECT3 =
       const FixKind('IMPORT_LIBRARY_PROJECT3', 49, "Import library '{0}'");
   static const IMPORT_LIBRARY_SDK =
-      const FixKind('IMPORT_LIBRARY_SDK', 49, "Import library '{0}'");
+      const FixKind('IMPORT_LIBRARY_SDK', 46, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =
-      const FixKind('IMPORT_LIBRARY_SHOW', 49, "Update library '{0}' import");
+      const FixKind('IMPORT_LIBRARY_SHOW', 45, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const LINT_ADD_OVERRIDE =
