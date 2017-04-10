@@ -808,13 +808,12 @@ int Process::Start(const char* path,
 
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {
-  UNIMPLEMENTED();
+  errno = ENOSYS;
   return -1;
 }
 
 
 void Process::ClearSignalHandler(intptr_t signal) {
-  UNIMPLEMENTED();
 }
 
 }  // namespace bin
