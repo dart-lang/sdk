@@ -77,17 +77,22 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList node) {
+  visitForStatement(ForStatement node) {
+    _visitVariableDeclarationList(node.variables);
+  }
+
+  @override
+  visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _visitVariableDeclarationList(node.variables);
+  }
+
+  _visitVariableDeclarationList(VariableDeclarationList node) {
     final staticType = node.type;
-    if (staticType == null) {
-      return;
-    }
-    if (node.parent is FieldDeclaration) {
+    if (staticType?.type == null) {
       return;
     }
     for (final child in node.variables) {
-      if (child.initializer == null ||
-          child.initializer.bestType != staticType.type) {
+      if (child.initializer?.bestType != staticType.type) {
         return;
       }
     }
