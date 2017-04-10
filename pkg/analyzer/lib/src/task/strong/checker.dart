@@ -843,7 +843,7 @@ class CodeChecker extends RecursiveAstVisitor {
       } else {
         // Future<T> -> FutureOr<T>
         var typeArg = (type.element == typeProvider.futureType.element)
-            ? type.typeArguments[0]
+            ? (type as InterfaceType).typeArguments[0]
             : typeProvider.dynamicType;
         return typeProvider.futureOrType.instantiate([typeArg]);
       }
@@ -930,7 +930,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // Special case for FutureOr to handle returned values from async functions.
     // In this case, we're more permissive than assignability.
     if (to.element == typeProvider.futureOrType.element) {
-      var to1 = to.typeArguments[0];
+      var to1 = (to as InterfaceType).typeArguments[0];
       var to2 = typeProvider.futureType.instantiate([to1]);
       return _needsImplicitCast(expr, to1, from: from) == true ||
           _needsImplicitCast(expr, to2, from: from) == true;
