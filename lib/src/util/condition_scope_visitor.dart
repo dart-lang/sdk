@@ -9,13 +9,12 @@ import 'package:linter/src/util/dart_type_utilities.dart';
 Element _getLeftElement(AssignmentExpression assignment) => DartTypeUtilities
     .getCanonicalElementFromIdentifier(assignment.leftHandSide);
 
-List<Expression> _splitConjunctions(Expression expression) {
+List<Expression> _splitConjunctions(Expression rawExpression) {
+  final expression = rawExpression.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.AMPERSAND_AMPERSAND) {
     return _splitConjunctions(expression.leftOperand)
       ..addAll(_splitConjunctions(expression.rightOperand));
-  } else if (expression is ParenthesizedExpression) {
-    return _splitConjunctions(expression.expression);
   }
   return [expression];
 }

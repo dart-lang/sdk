@@ -50,12 +50,7 @@ bool _isComparingParameterWithNull(BinaryExpression node, Element parameter) =>
         (_isNullLiteral(node.rightOperand) &&
             _isParameter(node.leftOperand, parameter)));
 
-bool _isNullLiteral(Expression node) {
-  if (node is ParenthesizedExpression) {
-    return _isNullLiteral(node.expression);
-  }
-  return node is NullLiteral;
-}
+bool _isNullLiteral(Expression node) => node.unParenthesized is NullLiteral;
 
 bool _isParameter(Expression expression, Element parameter) {
   return DartTypeUtilities.getCanonicalElementFromIdentifier(expression) ==

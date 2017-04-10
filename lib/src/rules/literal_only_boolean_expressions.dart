@@ -82,12 +82,10 @@ void bad() {
 
 ''';
 
-bool _onlyLiterals(Expression expression) {
+bool _onlyLiterals(Expression rawExpression) {
+  final expression = rawExpression.unParenthesized;
   if (expression is Literal) {
     return true;
-  }
-  if (expression is ParenthesizedExpression) {
-    return _onlyLiterals(expression.expression);
   }
   if (expression is PrefixExpression) {
     return _onlyLiterals(expression.operand);

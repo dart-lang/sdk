@@ -52,29 +52,23 @@ bool _checkStatement(Statement statement, Element element) {
   return false;
 }
 
-Element _getElementInCondition(Expression node) {
-  if (node is ParenthesizedExpression) {
-    return _getElementInCondition(node.expression);
-  }
-  if (node is BinaryExpression && node.operator.type == TokenType.EQ_EQ) {
-    if (_isNullLiteral(node.rightOperand)) {
+Element _getElementInCondition(Expression rawExpression) {
+  final expression = rawExpression.unParenthesized;
+  if (expression is BinaryExpression &&
+      expression.operator.type == TokenType.EQ_EQ) {
+    if (_isNullLiteral(expression.rightOperand)) {
       return DartTypeUtilities
-          .getCanonicalElementFromIdentifier(node.leftOperand);
+          .getCanonicalElementFromIdentifier(expression.leftOperand);
     }
-    if (_isNullLiteral(node.leftOperand)) {
+    if (_isNullLiteral(expression.leftOperand)) {
       return DartTypeUtilities
-          .getCanonicalElementFromIdentifier(node.rightOperand);
+          .getCanonicalElementFromIdentifier(expression.rightOperand);
     }
   }
   return null;
 }
 
-bool _isNullLiteral(Expression node) {
-  if (node is ParenthesizedExpression) {
-    return _isNullLiteral(node.expression);
-  }
-  return node is NullLiteral;
-}
+bool _isNullLiteral(Expression node) => node.unParenthesized is NullLiteral;
 
 class PreferConditionalAssignment extends LintRule {
   _Visitor _visitor;
