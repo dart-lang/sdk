@@ -16875,6 +16875,12 @@ bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
     len = cls.NumTypeParameters();  // Check the type parameters only.
+    if (len > num_type_args) {
+      // This type has the wrong number of arguments and is not finalized yet.
+      // Type arguments are reset to null when finalizing such a type.
+      ASSERT(!IsFinalized());
+      len = num_type_args;
+    }
   }
   return (len == 0) ||
          args.IsSubvectorInstantiated(num_type_args - len, len, genericity,
@@ -16921,10 +16927,12 @@ RawAbstractType* Type::InstantiateFrom(
     const LanguageError& bound_error = LanguageError::Handle(zone, error());
     instantiated_type.set_error(bound_error);
   }
-  // If this type is a function type, instantiate its signature.
+  // For a function type, possibly instantiate and set its signature.
   if (!sig_fun.IsNull()) {
-    // If we are finalizing a typedef, do not yet instantiate its signature.
-    // Other function types should never be instantiated while unfinalized.
+    // If we are finalizing a typedef, do not yet instantiate its signature,
+    // since it gets instantiated just before the type is marked as finalized.
+    // Other function types should never get instantiated while unfinalized,
+    // even while checking bounds of recursive types.
     if (IsFinalized()) {
       // A generic typedef may actually declare an instantiated signature.
       if (!sig_fun.HasInstantiatedSignature()) {
@@ -16932,7 +16940,8 @@ RawAbstractType* Type::InstantiateFrom(
                                                    space);
       }
     } else {
-      ASSERT(cls.IsTypedefClass());
+      // The Kernel frontend does not keep the information that a function type
+      // is a typedef, so we cannot assert that cls.IsTypedefClass().
     }
     instantiated_type.set_signature(sig_fun);
   }

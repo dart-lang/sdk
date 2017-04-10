@@ -815,19 +815,8 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
     }
   }
 
-  // Self referencing types may get finalized indirectly.
-  if (!type.IsFinalized()) {
-    ASSERT(full_arguments.IsNull() ||
-           !full_arguments.IsRaw(0, num_type_arguments));
-    if (FLAG_trace_type_finalization) {
-      THR_Print("Marking type '%s' as finalized for class '%s'\n",
-                String::Handle(zone, type.Name()).ToCString(),
-                String::Handle(zone, cls.Name()).ToCString());
-    }
-    // Mark the type as finalized.
-    type.SetIsFinalized();
-    // Do not yet remove the type from the pending_types array.
-  }
+  ASSERT(full_arguments.IsNull() ||
+         !full_arguments.IsRaw(0, num_type_arguments));
   return full_arguments.IsNull() ? 0 : full_arguments.Length();
 }
 
@@ -1225,6 +1214,57 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   const intptr_t num_expanded_type_arguments =
       ExpandAndFinalizeTypeArguments(cls, type, pending_types);
 
+  // Self referencing types may get finalized indirectly.
+  if (!type.IsFinalized()) {
+    // If the type is a function type, we also need to finalize the types in its
+    // signature, i.e. finalize the result type and parameter types of the
+    // signature function of this function type.
+    // We do this after marking this type as finalized in order to allow a
+    // typedef function type to refer to itself via its parameter types and
+    // result type.
+    if (type.IsFunctionType()) {
+      const Type& fun_type = Type::Cast(type);
+      const Class& scope_class = Class::Handle(zone, fun_type.type_class());
+      if (scope_class.IsTypedefClass()) {
+        Function& signature =
+            Function::Handle(zone, scope_class.signature_function());
+        if (!scope_class.is_type_finalized()) {
+          FinalizeSignature(scope_class, signature);
+        }
+        // If the function type is a generic typedef, instantiate its signature
+        // from its type arguments.
+        // Example: typedef T F<T>(T x) has uninstantiated signature (T x) => T.
+        // The instantiated signature of F(int) becomes (int x) => int.
+        // Note that after this step, the signature of the function type is not
+        // identical to the canonical signature of the typedef class anymore.
+        if (scope_class.IsGeneric() && !signature.HasInstantiatedSignature()) {
+          const TypeArguments& type_args =
+              TypeArguments::Handle(zone, fun_type.arguments());
+          if (FLAG_trace_type_finalization) {
+            THR_Print("Instantiating signature '%s' of typedef '%s'\n",
+                      String::Handle(zone, signature.Signature()).ToCString(),
+                      String::Handle(zone, fun_type.Name()).ToCString());
+          }
+          signature = signature.InstantiateSignatureFrom(type_args, Heap::kOld);
+          // Note that if type_args contains type parameters, signature is still
+          // uninstantiated here (typedef type parameters were substituted in
+          // the signature with typedef type arguments).
+        }
+        fun_type.set_signature(signature);
+      } else {
+        FinalizeSignature(cls, Function::Handle(zone, fun_type.signature()));
+      }
+    }
+
+    if (FLAG_trace_type_finalization) {
+      THR_Print("Marking type '%s' as finalized for class '%s'\n",
+                String::Handle(zone, type.Name()).ToCString(),
+                String::Handle(zone, cls.Name()).ToCString());
+    }
+    // Mark the type as finalized.
+    type.SetIsFinalized();
+  }
+
   // If we are done finalizing a graph of mutually recursive types, check their
   // bounds.
   if (is_root_type) {
@@ -1233,52 +1273,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       if (!type.IsMalformed() && !type.IsCanonical()) {
         CheckTypeBounds(cls, type);
       }
-    }
-  }
-
-  // If the type is a function type, we also need to finalize the types in its
-  // signature, i.e. finalize the result type and parameter types of the
-  // signature function of this function type.
-  // We do this after marking this type as finalized in order to allow a
-  // typedef function type to refer to itself via its parameter types and
-  // result type.
-  if (type.IsFunctionType()) {
-    ASSERT(!type.IsBeingFinalized());
-    const Type& fun_type = Type::Cast(type);
-    const Class& scope_class = Class::Handle(zone, fun_type.type_class());
-    if (scope_class.IsTypedefClass()) {
-      Function& signature =
-          Function::Handle(zone, scope_class.signature_function());
-      if (!scope_class.is_type_finalized()) {
-        FinalizeSignature(scope_class, signature);
-      }
-      // If the function type is a generic typedef, instantiate its signature
-      // from its type arguments.
-      // Example: typedef T F<T>(T x) has uninstantiated signature (T x) => T.
-      // The instantiated signature of F(int) becomes (int x) => int.
-      // Note that after this step, the signature of the function type is not
-      // identical to the canonical signature of the typedef class anymore.
-      if (scope_class.IsGeneric() && !signature.HasInstantiatedSignature()) {
-        const TypeArguments& type_args =
-            TypeArguments::Handle(zone, fun_type.arguments());
-        if (FLAG_trace_type_finalization) {
-          THR_Print("Instantiating signature '%s' of typedef '%s'\n",
-                    String::Handle(zone, signature.Signature()).ToCString(),
-                    String::Handle(zone, fun_type.Name()).ToCString());
-        }
-        signature = signature.InstantiateSignatureFrom(type_args, Heap::kOld);
-        // Note that if type_args contains type parameters, signature is still
-        // uninstantiated here (typedef type parameters were substituted in the
-        // signature with typedef type arguments).
-      }
-      fun_type.set_signature(signature);
-      // The type was already marked as finalized and uninstantiated in
-      // ExpandAndFinalizeTypeArguments above when its signature was not
-      // instantiated yet. Check again by calling ResetIsFinalized().
-      fun_type.ResetIsFinalized();
-    } else {
-      const Function& signature = Function::Handle(zone, fun_type.signature());
-      FinalizeSignature(cls, signature);
     }
   }
 
