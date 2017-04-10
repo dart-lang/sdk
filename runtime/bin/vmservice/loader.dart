@@ -90,7 +90,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
     if (packagesConfigFlag != null) {
       _setPackagesConfig(packagesConfigFlag);
     }
-    if (_fileRequestQueue != null) {
+    if (_fileRequestQueue == null) {
       _fileRequestQueue = new List<FileRequest>();
     }
   }
