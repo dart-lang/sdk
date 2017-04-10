@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const desc = 'Use @required.';
 
@@ -106,12 +107,17 @@ class Visitor extends SimpleAstVisitor {
   }
 
   bool _hasAssertNotNull(AssertStatement node, String name) {
+    bool _hasSameName(Expression rawExpression) {
+      final expression = rawExpression.unParenthesized;
+      return expression is SimpleIdentifier && expression.name == name;
+    }
+
     final expression = node.condition.unParenthesized;
     if (expression is BinaryExpression &&
         expression.operator.type == TokenType.BANG_EQ) {
       final operands = [expression.leftOperand, expression.rightOperand];
-      return operands.any((e) => e is NullLiteral) &&
-          operands.any((e) => e is SimpleIdentifier && e.name == name);
+      return operands.any(DartTypeUtilities.isNullLiteral) &&
+          operands.any(_hasSameName);
     }
     return false;
   }

@@ -127,8 +127,8 @@ class DerivedClass2 extends ClassBase with Mixin {}
 ''';
 
 bool _hasNonComparableOperands(BinaryExpression node) =>
-    node.leftOperand is! NullLiteral &&
-    node.rightOperand is! NullLiteral &&
+    !DartTypeUtilities.isNullLiteral(node.leftOperand) &&
+    !DartTypeUtilities.isNullLiteral(node.rightOperand) &&
     DartTypeUtilities.unrelatedTypes(
         node.leftOperand.bestType, node.rightOperand.bestType);
 

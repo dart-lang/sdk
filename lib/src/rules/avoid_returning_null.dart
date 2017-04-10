@@ -44,7 +44,7 @@ bool _isPrimitiveType(DartType type) =>
     DartTypeUtilities.isClass(type, 'double', 'dart.core');
 
 bool _isReturnNull(AstNode node) =>
-    node is ReturnStatement && node.expression is NullLiteral;
+    node is ReturnStatement && DartTypeUtilities.isNullLiteral(node.expression);
 
 class AvoidReturningNull extends LintRule {
   _Visitor _visitor;
@@ -80,7 +80,8 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   _visitFunctionBody(FunctionBody node) {
-    if (node is ExpressionFunctionBody && node.expression is NullLiteral) {
+    if (node is ExpressionFunctionBody &&
+        DartTypeUtilities.isNullLiteral(node.expression)) {
       rule.reportLint(node);
       return;
     }

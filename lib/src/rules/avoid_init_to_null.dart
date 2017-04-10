@@ -7,6 +7,7 @@ library linter.src.rules.avoid_init_to_null;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const desc = r"Don't explicitly initialize variables to null";
 
@@ -74,7 +75,9 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    if (node.initializer is NullLiteral && !node.isConst && !node.isFinal) {
+    if (!node.isConst &&
+        !node.isFinal &&
+        DartTypeUtilities.isNullLiteral(node.initializer)) {
       rule.reportLint(node);
     }
   }

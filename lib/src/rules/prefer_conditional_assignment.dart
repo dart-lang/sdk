@@ -56,19 +56,17 @@ Element _getElementInCondition(Expression rawExpression) {
   final expression = rawExpression.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.EQ_EQ) {
-    if (_isNullLiteral(expression.rightOperand)) {
+    if (DartTypeUtilities.isNullLiteral(expression.rightOperand)) {
       return DartTypeUtilities
           .getCanonicalElementFromIdentifier(expression.leftOperand);
     }
-    if (_isNullLiteral(expression.leftOperand)) {
+    if (DartTypeUtilities.isNullLiteral(expression.leftOperand)) {
       return DartTypeUtilities
           .getCanonicalElementFromIdentifier(expression.rightOperand);
     }
   }
   return null;
 }
-
-bool _isNullLiteral(Expression node) => node.unParenthesized is NullLiteral;
 
 class PreferConditionalAssignment extends LintRule {
   _Visitor _visitor;

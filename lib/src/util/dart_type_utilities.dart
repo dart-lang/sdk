@@ -80,6 +80,9 @@ class DartTypeUtilities {
       type.name == className &&
       type.element?.library?.name == library;
 
+  static bool isNullLiteral(Expression expression) =>
+      expression?.unParenthesized is NullLiteral;
+
   static PropertyAccessorElement lookUpGetter(MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
           .element
