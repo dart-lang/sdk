@@ -1249,6 +1249,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           // Note that if type_args contains type parameters, signature is still
           // uninstantiated here (typedef type parameters were substituted in
           // the signature with typedef type arguments).
+          FinalizeSignature(scope_class, signature);  // Canonicalize signature.
         }
         fun_type.set_signature(signature);
       } else {

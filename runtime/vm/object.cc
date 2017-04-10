@@ -18186,11 +18186,10 @@ RawAbstractType* BoundedType::InstantiateFrom(
   if ((Isolate::Current()->type_checks()) && (bound_error != NULL) &&
       bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
-    ASSERT(upper_bound.IsFinalized());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     AbstractType& instantiated_upper_bound =
         AbstractType::Handle(upper_bound.raw());
-    if (!upper_bound.IsInstantiated()) {
+    if (upper_bound.IsFinalized() && !upper_bound.IsInstantiated()) {
       instantiated_upper_bound =
           upper_bound.InstantiateFrom(instantiator_type_arguments, bound_error,
                                       instantiation_trail, bound_trail, space);
