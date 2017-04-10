@@ -1022,9 +1022,9 @@ _processLoadRequest(request) {
         if (loaderState == null) {
           loaderState = new IsolateLoaderState(isolateId);
           isolateEmbedderData[isolateId] = loaderState;
-          loaderState.init(
-              packageRoot, packagesFile, workingDirectory, rootScript);
         }
+        loaderState.init(
+            packageRoot, packagesFile, workingDirectory, rootScript);
         loaderState.sp = sp;
         assert(isolateEmbedderData[isolateId] == loaderState);
       }
