@@ -177,6 +177,12 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitGenericTypeAlias(GenericTypeAlias node) {
+    addNameIfPublic(node.name.name, ReferenceKind.genericFunctionTypedef,
+        node.typeParameters?.typeParameters?.length ?? 0);
+  }
+
+  @override
   visitPartDirective(PartDirective node) {
     parts.add(node.uri.stringValue ?? '');
   }

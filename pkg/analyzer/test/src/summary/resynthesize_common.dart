@@ -13860,8 +13860,50 @@ typedef dynamic F();
   }
 
   test_typedef_generic() {
-    checkLibrary(
-        'typedef F<T> = Function<S>(List<S> list, Function<A>(A), T);');
+    var library = checkLibrary(
+        'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef F<T> = int Function<S>(List<S> list, <A>(A) → num , T );
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef F<T> = int Function<S>(List<S> list, <A>(A) → num , T );
+''');
+    }
+  }
+
+  test_typedef_generic_asFieldType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+typedef Foo<S> = S Function<T>(T x);
+class A {
+  Foo<int> f;
+}
+''');
+    if (isStrongMode) {
+      checkElementText(
+          library,
+          r'''
+typedef Foo<S> = S Function<T>(T x);
+class A {
+  <T>(T) → int f;
+}
+''');
+    } else {
+      checkElementText(
+          library,
+          r'''
+typedef Foo<S> = S Function<T>(T x);
+class A {
+  <T>(T) → int f;
+}
+''');
+    }
   }
 
   test_typedef_parameter_parameters() {

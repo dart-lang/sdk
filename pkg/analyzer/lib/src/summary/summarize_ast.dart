@@ -799,11 +799,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     scopes.add(typeParameterScope);
     EntityRefBuilder b = new EntityRefBuilder();
     b.entityKind = EntityRefKind.genericFunctionType;
+    b.typeParameters =
+        serializeTypeParameters(node.typeParameters, typeParameterScope);
     b.syntheticReturnType = node.returnType == null
         ? serializeDynamic()
         : serializeTypeName(node.returnType);
-    b.typeParameters =
-        serializeTypeParameters(node.typeParameters, typeParameterScope);
     b.syntheticParams = node.parameters.parameters
         .map((FormalParameter p) => p.accept(this) as UnlinkedParamBuilder)
         .toList();
