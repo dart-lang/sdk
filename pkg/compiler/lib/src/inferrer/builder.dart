@@ -994,7 +994,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         if (!isConstructorRedirect &&
             !seenSuperConstructorCall &&
             !cls.isObject) {
-          FunctionElement target = cls.superclass.lookupDefaultConstructor();
+          ConstructorElement target = cls.superclass.lookupDefaultConstructor();
           ArgumentsTypes arguments = new ArgumentsTypes([], {});
           analyzeSuperConstructorCall(target, arguments);
           inferrer.registerCalledElement(node, null, null, outermostElement,
@@ -1985,13 +1985,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           (node.asSendSet() != null) &&
           (node.asSendSet().receiver != null) &&
           node.asSendSet().receiver.isThis()) {
-        Iterable<Element> targets = closedWorld.allFunctions.filter(
+        Iterable<MemberEntity> targets = closedWorld.allFunctions.filter(
             setterSelector, types.newTypedSelector(thisType, setterMask));
         // We just recognized a field initialization of the form:
         // `this.foo = 42`. If there is only one target, we can update
         // its type.
         if (targets.length == 1) {
-          Element single = targets.first;
+          MemberElement single = targets.first;
           if (single.isField) {
             locals.updateField(single, rhsType);
           }
@@ -2816,7 +2816,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation synthesizeForwardingCall(
-      Spannable node, FunctionElement element) {
+      Spannable node, ConstructorElement element) {
     element = element.implementation;
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.functionSignature;
@@ -2849,7 +2849,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
-    Element element = elements.getRedirectingTargetConstructor(node);
+    ConstructorElement element = elements.getRedirectingTargetConstructor(node);
     if (Elements.isMalformed(element)) {
       recordReturnType(types.dynamicType);
     } else {

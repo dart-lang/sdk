@@ -463,7 +463,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
           selections.addAll(closedWorld.allFunctions
               .filter(dynamicUse.selector, dynamicUse.mask)
-              .map((e) => new Selection(e, dynamicUse.mask)));
+              .map((MemberElement e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),

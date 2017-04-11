@@ -56,6 +56,9 @@ abstract class KMember implements MemberEntity {
   bool get isConst => false;
 
   @override
+  bool get isAbstract => false;
+
+  @override
   bool get isSetter => false;
 
   @override
@@ -143,8 +146,10 @@ class KFactoryConstructor extends KConstructor {
 }
 
 class KMethod extends KFunction {
+  final bool isAbstract;
+
   KMethod(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, bool isExternal})
+      {bool isStatic, bool isExternal, this.isAbstract})
       : super(memberIndex, library, enclosingClass, name,
             isStatic: isStatic, isExternal: isExternal);
 
@@ -155,8 +160,10 @@ class KMethod extends KFunction {
 }
 
 class KGetter extends KFunction {
+  final bool isAbstract;
+
   KGetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, bool isExternal})
+      {bool isStatic, bool isExternal, this.isAbstract})
       : super(memberIndex, library, enclosingClass, name,
             isStatic: isStatic, isExternal: isExternal);
 
@@ -167,8 +174,10 @@ class KGetter extends KFunction {
 }
 
 class KSetter extends KFunction {
+  final bool isAbstract;
+
   KSetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
-      {bool isStatic, bool isExternal})
+      {bool isStatic, bool isExternal, this.isAbstract})
       : super(memberIndex, library, enclosingClass, name,
             isStatic: isStatic, isExternal: isExternal);
 

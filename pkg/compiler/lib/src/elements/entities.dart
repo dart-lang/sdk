@@ -92,6 +92,10 @@ abstract class MemberEntity extends Entity {
   /// Whether this member is constant, i.e. a constant field or constructor.
   bool get isConst;
 
+  /// Whether this member is abstract, i.e. an abstract method, getter or
+  /// setter.
+  bool get isAbstract;
+
   /// The enclosing class if this is a constructor, instance member or
   /// static member of a class.
   ClassEntity get enclosingClass;

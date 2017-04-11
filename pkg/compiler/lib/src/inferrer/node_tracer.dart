@@ -381,7 +381,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Passed to noSuchMethod');
     }
 
-    Iterable<Element> inferredTargetTypes = info.targets.map((element) {
+    Iterable<Element> inferredTargetTypes =
+        info.targets.map((MemberElement element) {
       return inferrer.types.getInferredTypeOf(element);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {

@@ -231,23 +231,30 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
       bool isExternal = node.isExternal;
+      bool isAbstract = node.isAbstract;
       KFunction function;
       switch (node.kind) {
         case ir.ProcedureKind.Factory:
           throw new UnsupportedError("Cannot create method from factory.");
         case ir.ProcedureKind.Getter:
           function = new KGetter(memberIndex, library, enclosingClass, name,
-              isStatic: isStatic, isExternal: isExternal);
+              isStatic: isStatic,
+              isExternal: isExternal,
+              isAbstract: isAbstract);
           break;
         case ir.ProcedureKind.Method:
         case ir.ProcedureKind.Operator:
           function = new KMethod(memberIndex, library, enclosingClass, name,
-              isStatic: isStatic, isExternal: isExternal);
+              isStatic: isStatic,
+              isExternal: isExternal,
+              isAbstract: isAbstract);
           break;
         case ir.ProcedureKind.Setter:
           function = new KSetter(
               memberIndex, library, enclosingClass, getName(node.name).setter,
-              isStatic: isStatic, isExternal: isExternal);
+              isStatic: isStatic,
+              isExternal: isExternal,
+              isAbstract: isAbstract);
           break;
       }
       _memberList.add(node);

@@ -237,12 +237,6 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         classSets: _classSets);
   }
 
-  void registerUsedElement(MemberElement element) {
-    if (element.isInstanceMember && !element.isAbstract) {
-      _allFunctions.add(element);
-    }
-  }
-
   @override
   void registerMixinUse(
       MixinApplicationElement mixinApplication, ClassElement mixin) {

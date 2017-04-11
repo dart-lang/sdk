@@ -764,6 +764,12 @@ abstract class ResolutionWorldBuilderBase
     users.add(mixinApplication);
   }
 
+  void registerUsedElement(MemberEntity element) {
+    if (element.isInstanceMember && !element.isAbstract) {
+      _allFunctions.add(element);
+    }
+  }
+
   ClosedWorld get closedWorldCache {
     assert(isClosed);
     return _closedWorldCache;

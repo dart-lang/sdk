@@ -91,9 +91,9 @@ class InferrerEngine {
    */
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(Element element)) {
-    Iterable<Element> elements =
+    Iterable<MemberEntity> elements =
         closedWorld.allFunctions.filter(selector, mask);
-    for (Element e in elements) {
+    for (MemberElement e in elements) {
       if (!f(e.implementation)) return;
     }
   }
@@ -442,8 +442,8 @@ class InferrerEngine {
           print('${types.getInferredSignatureOf(info.element)} for '
               '${info.element}');
         } else if (info is DynamicCallSiteTypeInformation) {
-          for (Element target in info.targets) {
-            if (target is FunctionElement) {
+          for (MemberElement target in info.targets) {
+            if (target is MethodElement) {
               print('${types.getInferredSignatureOf(target)} for ${target}');
             } else {
               print('${types.getInferredTypeOf(target).type} for ${target}');
@@ -563,7 +563,9 @@ class InferrerEngine {
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach(closedWorldRefiner.addFunctionCalledInLoop);
+        info.targets.forEach((MemberElement element) {
+          closedWorldRefiner.addFunctionCalledInLoop(element);
+        });
       }
     });
   }
@@ -883,7 +885,9 @@ class InferrerEngine {
           arguments, sideEffects, inLoop);
     }
 
-    closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
+    closedWorld.allFunctions
+        .filter(selector, mask)
+        .forEach((MemberElement callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 

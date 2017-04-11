@@ -90,7 +90,8 @@ class ClosureTracerVisitor extends TracerVisitor {
       // where `foo` is a getter.
       _registerCallForLaterAnalysis(info);
     }
-    if (_checkIfFunctionApply(called) &&
+    if (called is MemberElement &&
+        _checkIfFunctionApply(called) &&
         info.arguments != null &&
         info.arguments.contains(currentUser)) {
       _tagAsFunctionApplyTarget("static call");
@@ -100,9 +101,8 @@ class ClosureTracerVisitor extends TracerVisitor {
   bool _checkIfCurrentUser(element) =>
       inferrer.types.getInferredTypeOf(element) == currentUser;
 
-  bool _checkIfFunctionApply(Element element) {
-    return element is MemberElement &&
-        compiler.commonElements.isFunctionApplyMethod(element);
+  bool _checkIfFunctionApply(MemberElement element) {
+    return compiler.commonElements.isFunctionApplyMethod(element);
   }
 
   @override
