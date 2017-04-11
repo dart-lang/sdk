@@ -765,6 +765,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(info.expression.conditionExpression);
     }
     js.Expression key = pop();
+    bool handledDefault = false;
     List<js.SwitchClause> cases = <js.SwitchClause>[];
     HSwitch switchInstruction = info.expression.end.last;
     List<HInstruction> inputs = switchInstruction.inputs;
@@ -786,6 +787,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } while ((successors[inputIndex - 1] == successor) &&
             (inputIndex < inputs.length));
 
+        // If this is the last statement, then these cases also belong to the
+        // default block.
+        if (statementIndex == info.statements.length - 1) {
+          currentContainer = new js.Block.empty();
+          cases.add(new js.Default(currentContainer));
+          handledDefault = true;
+        }
+
         generateStatements(info.statements[statementIndex]);
       } else {
         // Skip all the case statements that belong to this
@@ -799,7 +808,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // If the default case is dead, we omit it. Likewise, if it is an
     // empty block, we omit it, too.
-    if (info.statements.last.start.isLive) {
+    if (info.statements.last.start.isLive && !handledDefault) {
       currentContainer = new js.Block.empty();
       generateStatements(info.statements.last);
       if (currentContainer.statements.isNotEmpty) {
