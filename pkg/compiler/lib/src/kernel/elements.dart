@@ -6,6 +6,7 @@
 
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
 
 class KLibrary implements LibraryEntity {
   /// Library index used for fast lookup in [KernelWorldBuilder].
@@ -224,8 +225,10 @@ class KLocalFunction implements Local {
   final String name;
   final MemberEntity memberContext;
   final Entity executableContext;
+  final FunctionType functionType;
 
-  KLocalFunction(this.name, this.memberContext, this.executableContext);
+  KLocalFunction(
+      this.name, this.memberContext, this.executableContext, this.functionType);
 
   String toString() =>
       'local_function(${memberContext.name}.${name ?? '<anonymous>'})';

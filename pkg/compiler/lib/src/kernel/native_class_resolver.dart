@@ -12,7 +12,7 @@ class KernelNativeClassResolver implements NativeClassResolver {
 
   Iterable<ClassEntity> computeNativeClasses(
       Iterable<LibraryEntity> libraries) {
-    throw new UnimplementedError(
-        "KernelNativeClassResolver.computeNativeClasses");
+    // TODO(johnniwinther): Implement this.
+    return const <ClassEntity>[];
   }
 }

@@ -1710,7 +1710,7 @@ class CompilerResolution implements Resolution {
   WorldImpact transformResolutionImpact(
       Element element, ResolutionImpact resolutionImpact) {
     WorldImpact worldImpact = _compiler.backend.impactTransformer
-        .transformResolutionImpact(enqueuer, resolutionImpact);
+        .transformResolutionImpact(resolutionImpact);
     _worldImpactCache[element] = worldImpact;
     return worldImpact;
   }
@@ -1814,6 +1814,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   @override
   FunctionEntity get mainFunction => _compiler.mainFunction;
+
+  @override
+  Iterable<LibraryEntity> get libraries => _compiler.libraryLoader.libraries;
 
   @override
   ResolutionInterfaceType getThisType(ClassElement cls) {

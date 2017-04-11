@@ -15,7 +15,6 @@ import '../elements/elements.dart' show AsyncMarker;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart' show Types;
 import '../elements/types.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
@@ -61,8 +60,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._rtiNeedBuilder);
 
   @override
-  WorldImpact transformResolutionImpact(
-      ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
 

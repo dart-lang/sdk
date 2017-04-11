@@ -221,6 +221,9 @@ abstract class ElementEnvironment {
   /// Returns the main method for the compilation.
   FunctionEntity get mainFunction;
 
+  /// Returns all known libraries.
+  Iterable<LibraryEntity> get libraries;
+
   /// Lookup the library with the canonical [uri], fail if the library is
   /// missing and [required];
   LibraryEntity lookupLibrary(Uri uri, {bool required: false});
@@ -426,7 +429,10 @@ class CommonElementsImpl implements CommonElements {
 
   ConstructorEntity _symbolConstructor;
   ConstructorEntity get symbolConstructor =>
-      _symbolConstructor ??= findConstructor(symbolClass, '');
+      // TODO(johnniwinther): Kernel does not include redirecting factories
+      // so this cannot be found in kernel. Find a consistent way to handle
+      // this and similar cases.
+      _symbolConstructor ??= findConstructor(symbolClass, '', required: false);
 
   bool isSymbolConstructor(Entity e) => e == symbolConstructor;
 

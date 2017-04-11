@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/backend_api.dart';
+import '../common/resolution.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/constructors.dart';
@@ -23,6 +24,7 @@ import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
+import '../ssa/kernel_impact.dart';
 import '../universe/call_structure.dart';
 import 'element_adapter.dart';
 import 'elements.dart';
@@ -316,10 +318,15 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
         parent = parent.parent;
       }
       String name;
+      FunctionType functionType;
       if (node is ir.FunctionDeclaration) {
         name = node.variable.name;
+        functionType = getFunctionType(node.function);
+      } else if (node is ir.FunctionExpression) {
+        functionType = getFunctionType(node.function);
       }
-      return new KLocalFunction(name, memberContext, executableContext);
+      return new KLocalFunction(
+          name, memberContext, executableContext, functionType);
     });
   }
 
@@ -347,29 +354,81 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     return list;
   }
 
+  void _ensureThisAndRawType(KClass cls, KClassEnv env) {
+    if (env.thisType == null) {
+      ir.Class node = env.cls;
+      // TODO(johnniwinther): Add the type argument to the list literal when we
+      // no longer use resolution types.
+      if (node.typeParameters.isEmpty) {
+        env.thisType =
+            env.rawType = new InterfaceType(cls, const/*<DartType>*/ []);
+      } else {
+        env.thisType = new InterfaceType(
+            cls,
+            new List/*<DartType>*/ .generate(node.typeParameters.length,
+                (int index) {
+              return new TypeVariableType(
+                  _getTypeVariable(node.typeParameters[index]));
+            }));
+        env.rawType = new InterfaceType(
+            cls,
+            new List/*<DartType>*/ .filled(
+                node.typeParameters.length, const DynamicType()));
+      }
+    }
+  }
+
   InterfaceType _getThisType(KClass cls) {
     KClassEnv env = _classEnvs[cls.classIndex];
-    ir.Class node = env.cls;
-    // TODO(johnniwinther): Add the type argument to the list literal when we
-    // no longer use resolution types.
-    return new InterfaceType(
-        cls,
-        new List/*<DartType>*/ .generate(node.typeParameters.length,
-            (int index) {
-          return new TypeVariableType(
-              _getTypeVariable(node.typeParameters[index]));
-        }));
+    _ensureThisAndRawType(cls, env);
+    return env.thisType;
   }
 
   InterfaceType _getRawType(KClass cls) {
     KClassEnv env = _classEnvs[cls.classIndex];
-    ir.Class node = env.cls;
-    // TODO(johnniwinther): Add the type argument to the list literal when we
-    // no longer use resolution types.
-    return new InterfaceType(
-        cls,
-        new List/*<DartType>*/ .filled(
-            node.typeParameters.length, const DynamicType()));
+    _ensureThisAndRawType(cls, env);
+    return env.rawType;
+  }
+
+  void _ensureSupertypes(KClass cls, KClassEnv env) {
+    if (env.supertypes == null) {
+      _ensureThisAndRawType(cls, env);
+
+      ir.Class node = env.cls;
+
+      Set<InterfaceType> supertypes = new Set<InterfaceType>();
+
+      InterfaceType addSupertype(ir.Supertype node) {
+        if (node == null) return null;
+        InterfaceType type = _typeConverter.visitSupertype(node);
+        KClass superclass = type.element;
+        KClassEnv env = _classEnvs[superclass.classIndex];
+        _ensureSupertypes(superclass, env);
+        for (InterfaceType supertype in env.supertypes) {
+          supertypes.add(
+              supertype.subst(type.typeArguments, env.thisType.typeArguments));
+        }
+        return type;
+      }
+
+      env.supertype = addSupertype(node.supertype);
+      addSupertype(node.mixedInType);
+      node.implementedTypes.forEach(addSupertype);
+
+      env.supertypes = supertypes.toList();
+    }
+  }
+
+  InterfaceType _getSuperType(KClass cls) {
+    KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.supertype;
+  }
+
+  void _forEachSupertype(KClass cls, void f(InterfaceType supertype)) {
+    KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    env.supertypes.forEach(f);
   }
 
   @override
@@ -457,6 +516,11 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
           "KernelWorldBuilder._getConstructorConstant");
     });
   }
+
+  ResolutionImpact computeWorldImpact(KMember member) {
+    ir.Member node = _memberList[member.memberIndex];
+    return buildKernelImpact(node, this);
+  }
 }
 
 /// Environment for fast lookup of program libraries.
@@ -518,6 +582,11 @@ class KLibraryEnv {
 class KClassEnv {
   final ir.Class cls;
 
+  InterfaceType thisType;
+  InterfaceType rawType;
+  InterfaceType supertype;
+  List<InterfaceType> supertypes;
+
   Map<String, ir.Member> _constructorMap;
   Map<String, ir.Member> _memberMap;
 
@@ -569,6 +638,9 @@ class KernelElementEnvironment implements ElementEnvironment {
   FunctionEntity get mainFunction => worldBuilder._mainFunction;
 
   @override
+  Iterable<LibraryEntity> get libraries => worldBuilder._libraryMap.values;
+
+  @override
   InterfaceType getThisType(ClassEntity cls) {
     return worldBuilder._getThisType(cls);
   }
@@ -592,7 +664,8 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   bool isSubtype(DartType a, DartType b) {
-    throw new UnimplementedError('KernelElementEnvironment.isSubtype');
+    // TODO(johnniwinther): Implement this.
+    return false;
   }
 
   @override
@@ -601,9 +674,8 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  FunctionType getLocalFunctionType(Local function) {
-    throw new UnimplementedError(
-        'KernelElementEnvironment.getLocalFunctionType');
+  FunctionType getLocalFunctionType(KLocalFunction function) {
+    return function.functionType;
   }
 
   @override
@@ -614,8 +686,10 @@ class KernelElementEnvironment implements ElementEnvironment {
       {bool required: false}) {
     ConstructorEntity constructor = worldBuilder.lookupConstructor(cls, name);
     if (constructor == null && required) {
-      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-          "The constructor $name was not found in class '${cls.name}'.");
+      throw new SpannableAssertionFailure(
+          CURRENT_ELEMENT_SPANNABLE,
+          "The constructor '$name' was not found in class '${cls.name}' "
+          "in library ${cls.library.canonicalUri}.");
     }
     return constructor;
   }
@@ -634,12 +708,12 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   ClassEntity getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelElementEnvironment.getSuperClass');
+    return worldBuilder._getSuperType(cls)?.element;
   }
 
   @override
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
-    throw new UnimplementedError('KernelElementEnvironment.forEachSupertype');
+    worldBuilder._forEachSupertype(cls, f);
   }
 
   @override
@@ -650,8 +724,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
-    throw new UnimplementedError(
-        'KernelElementEnvironment.forEachInstanceMember');
+    // TODO(johnniwinther): Implement this.
   }
 
   @override
@@ -728,6 +801,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   DartType visitType(ir.DartType type) {
     topLevel = false;
     return type.accept(this);
+  }
+
+  InterfaceType visitSupertype(ir.Supertype node) {
+    ClassEntity cls = elementAdapter.getClass(node.classNode);
+    return new InterfaceType(cls, visitTypes(node.typeArguments));
   }
 
   List<DartType> visitTypes(List<ir.DartType> types) {

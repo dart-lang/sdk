@@ -213,7 +213,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    Set<ClassEntity> nativeClasses =
+    Iterable<ClassEntity> nativeClasses =
         _nativeClassResolver.computeNativeClasses(libraries);
     _nativeClasses.addAll(nativeClasses);
     _unusedClasses.addAll(nativeClasses);

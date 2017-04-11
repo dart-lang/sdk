@@ -785,3 +785,24 @@ abstract class ResolutionWorldBuilderBase
     return usage != null && usage.hasUse;
   }
 }
+
+class KernelResolutionWorldBuilder extends ResolutionWorldBuilderBase {
+  KernelResolutionWorldBuilder(
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      NativeBasicData nativeBasicData,
+      SelectorConstraintsStrategy selectorConstraintsStrategy)
+      : super(elementEnvironment, commonElements, nativeBasicData,
+            selectorConstraintsStrategy);
+
+  @override
+  ClosedWorld closeWorld(DiagnosticReporter reporter) {
+    // TODO(johnniwinther): Implement this.
+    return null;
+  }
+
+  @override
+  void registerClass(ClassEntity cls) {
+    throw new UnimplementedError('KernelResolutionWorldBuilder.registerClass');
+  }
+}

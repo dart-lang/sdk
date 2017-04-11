@@ -10,7 +10,6 @@ import '../elements/types.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/entities.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
 import '../serialization/serialization.dart'
     show DeserializerPlugin, SerializerPlugin;
 import '../tree/tree.dart' show Node;
@@ -44,8 +43,7 @@ abstract class ForeignResolver {
 class ImpactTransformer {
   /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
   /// backend dependencies for features used in [worldImpact].
-  WorldImpact transformResolutionImpact(
-      ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     return worldImpact;
   }
 }
