@@ -2158,6 +2158,27 @@ class B extends A implements Function {
     verify([source]);
   }
 
+  test_genericTypeAlias_fieldAndReturnType() async {
+    Source source = addSource(r'''
+typedef Foo = int Function<T>(T x);
+int foo<T>(T x) => 3;
+Foo bar() => foo;
+void test1() {
+  bar()<String>("hello");
+}
+
+class A {
+  Foo f;
+  void test() {
+    f<String>("hello");
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_genericTypeAlias_noTypeParameters() async {
     Source source = addSource(r'''
 typedef Foo = int Function<T>(T x);
