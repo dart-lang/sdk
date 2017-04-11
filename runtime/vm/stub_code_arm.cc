@@ -1754,8 +1754,8 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments (only if n == 4, can be raw_null).
-// R2: function type arguments (only if n == 4, can be raw_null).
+// R2: instantiator type arguments (only if n == 4, can be raw_null).
+// R1: function type arguments (only if n == 4, can be raw_null).
 // R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
@@ -1775,8 +1775,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   }
   __ LoadClassId(R8, R0);
   // R0: instance.
-  // R1: instantiator type arguments (only if n == 4, can be raw_null).
-  // R2: function type arguments (only if n == 4, can be raw_null).
+  // R2: instantiator type arguments (only if n == 4, can be raw_null).
+  // R1: function type arguments (only if n == 4, can be raw_null).
   // R3: SubtypeTestCache.
   // R8: instance class id.
   // R4: instance type arguments (null if none), used only if n > 1.
@@ -1811,11 +1811,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ b(&next_iteration, NE);
       __ ldr(R9, Address(R3, kWordSize *
                                  SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmp(R9, Operand(R1));
+      __ cmp(R9, Operand(R2));
       __ b(&next_iteration, NE);
       __ ldr(R9,
              Address(R3, kWordSize * SubtypeTestCache::kFunctionTypeArguments));
-      __ cmp(R9, Operand(R2));
+      __ cmp(R9, Operand(R1));
       __ b(&found, EQ);
     }
   }
@@ -1836,8 +1836,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: unused.
 // R2: unused.
+// R1: unused.
 // R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
@@ -1848,8 +1848,8 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: unused.
 // R2: unused.
+// R1: unused.
 // R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
@@ -1860,8 +1860,8 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments (can be raw_null).
-// R2: function type arguments (can be raw_null).
+// R2: instantiator type arguments (can be raw_null).
+// R1: function type arguments (can be raw_null).
 // R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {

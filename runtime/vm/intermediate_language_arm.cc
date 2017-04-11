@@ -353,8 +353,8 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(R1));  // Instant. type args.
-  summary->set_in(2, Location::RegisterLocation(R2));  // Function type args.
+  summary->set_in(1, Location::RegisterLocation(R2));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(R1));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
@@ -2370,8 +2370,8 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Instance.
-  summary->set_in(1, Location::RegisterLocation(R1));  // Instant. type args.
-  summary->set_in(2, Location::RegisterLocation(R2));  // Function type args.
+  summary->set_in(1, Location::RegisterLocation(R2));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(R1));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
@@ -2379,8 +2379,8 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R0);  // Value.
-  ASSERT(locs()->in(1).reg() == R1);  // Instantiator type arguments.
-  ASSERT(locs()->in(2).reg() == R2);  // Function type arguments.
+  ASSERT(locs()->in(1).reg() == R2);  // Instantiator type arguments.
+  ASSERT(locs()->in(2).reg() == R1);  // Function type arguments.
 
   compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == R0);
@@ -2629,8 +2629,8 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(R0));  // Instant. type args.
-  locs->set_in(1, Location::RegisterLocation(R1));  // Function type args.
+  locs->set_in(0, Location::RegisterLocation(R1));  // Instant. type args.
+  locs->set_in(1, Location::RegisterLocation(R0));  // Function type args.
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
@@ -2646,14 +2646,12 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // A runtime call to instantiate the type is required.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ PushObject(type());
-  __ Push(instantiator_type_args_reg);  // Push instantiator type arguments.
-  __ Push(function_type_args_reg);      // Push function type arguments.
-  // TODO(regis): Renumber registers and use PushList.
+  __ PushList((1 << instantiator_type_args_reg) |
+              (1 << function_type_args_reg));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
                                 kInstantiateTypeRuntimeEntry, 3, locs());
   __ Drop(3);          // Drop 2 type argument vectors and uninstantiated type.
   __ Pop(result_reg);  // Pop instantiated type.
-  ASSERT(instantiator_type_args_reg == result_reg);
 }
 
 
@@ -2664,8 +2662,8 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(R0));  // Instant. type args.
-  locs->set_in(1, Location::RegisterLocation(R1));  // Function type args.
+  locs->set_in(0, Location::RegisterLocation(R1));  // Instant. type args.
+  locs->set_in(1, Location::RegisterLocation(R0));  // Function type args.
   locs->set_out(0, Location::RegisterLocation(R0));
   return locs;
 }
@@ -2676,9 +2674,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   const Register instantiator_type_args_reg = locs()->in(0).reg();
   const Register function_type_args_reg = locs()->in(1).reg();
   const Register result_reg = locs()->out(0).reg();
-  ASSERT(instantiator_type_args_reg == R0);
-  ASSERT(function_type_args_reg == R1);
-  ASSERT(instantiator_type_args_reg == result_reg);
+  ASSERT(instantiator_type_args_reg == R1);
+  ASSERT(function_type_args_reg == R0);
 
   // 'instantiator_type_args_reg' is a TypeArguments object (or null).
   // 'function_type_args_reg' is a TypeArguments object (or null).
@@ -2695,6 +2692,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ cmp(instantiator_type_args_reg, Operand(IP));
     __ cmp(function_type_args_reg, Operand(IP), EQ);
     __ b(&type_arguments_instantiated, EQ);
+    ASSERT(function_type_args_reg == result_reg);
   }
 
   // Lookup cache before calling runtime.
@@ -2727,9 +2725,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // A runtime call to instantiate the type arguments is required.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ PushObject(type_arguments());
-  __ Push(instantiator_type_args_reg);  // Push instantiator type arguments.
-  __ Push(function_type_args_reg);      // Push function type arguments.
-  // TODO(regis): Renumber registers and use PushList.
+  __ PushList((1 << instantiator_type_args_reg) |
+              (1 << function_type_args_reg));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
                                 kInstantiateTypeArgumentsRuntimeEntry, 3,
                                 locs());
