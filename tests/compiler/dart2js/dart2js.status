@@ -92,6 +92,7 @@ jsinterop/world_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
 kernel/visitor_test: Pass, Slow
 output_type_test: Pass, Slow
+preserve_uris_test: Pass, Slow
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one
