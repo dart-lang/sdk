@@ -6,9 +6,16 @@
 
 import 'dart:math' as math;
 
+void alreadyDeclared() {
+  List list;
+  print("intermediate statement");
+  list = [];
+  list.clear(); // LINT
+}
+
 void noCascade() {
   List<int> list = [];
-  list.removeWhere((i) => i % 5 == 0); // LINT
+  list.clear(); // LINT
   list.clear(); // LINT
 }
 
@@ -17,15 +24,27 @@ int get someThing => 5;
 void noCascadeIntermediate() {
   List<int> list = [];
   print(list);
-  list.removeWhere((i) => i % 5 == 0);
+  list.clear();
   list.clear(); // LINT
+  list.toString(); // LINT
+  // toString is not void and it is not a problem.
+}
+
+void cascadeIntermediate() {
+  List<int> list = [];
+  print(list);
+  list.clear();
+  list.clear(); // LINT
+  list..clear(); // LINT
+  list..clear(); // LINT
+  list..clear(); // LINT
 }
 
 class HasMethodWithNoCascade {
   List<int> list = [];
 
   void noCascade() {
-    list.removeWhere((i) => i % 5 == 0);
+    list.clear();
     list.clear(); // LINT
   }
 }
@@ -43,6 +62,9 @@ void noCascadeWithGetter() {
   foo.bar; // LINT
   foo.foo(); // LINT
   foo.bar = 8; // LINT
+  foo?.bar = 8; // OK
+  foo.bar = 0; // OK
+  foo?.bar; // OK
 }
 
 void alternatingReferences() {
@@ -68,6 +90,8 @@ void withDifferentTypes() {
 void cascade() {
   final foo = new Foo();
   foo?.baz();
+  foo.baz(); // OK
+  foo.baz(); // LINT
 }
 
 void prefixLibrary() {
@@ -80,8 +104,60 @@ class StaticFoo {
   static int decrement() => 0;
 }
 
-  void cascadeStatic() {
-    StaticFoo.increment();
-    StaticFoo.decrement();
-  }
+void cascadeStatic() {
+  StaticFoo.increment();
+  StaticFoo.decrement();
+}
+
+// Bug 339
+class Identifier339 {
+  String value;
+  String system;
+}
+
+class Resource339 {
+  String id;
+  dynamic identifier;
+}
+
+class Practitioner339 extends Resource339{
+  int foo;
+
+  String build() => null;
+
+  void bar(dynamic) {}
+}
+
+class Entry339 {
+  Resource339 resource;
+}
+
+void main339() {
+  final entry = new Entry339();
+  final resource = (entry.resource as Practitioner339);
+  resource.identifier = [ // OK
+    new Identifier339()
+      ..system = 'urn:system'
+      ..value = 'mdc_${resource.id}'
+  ];
+}
+
+void otherDependencies1() {
+  final entry = new Entry339();
+  final resource = (entry.resource as Practitioner339);
+  resource.identifier = resource; // OK
+}
+
+void otherDependencies2() {
+  final entry = new Entry339();
+  final resource = (entry.resource as Practitioner339);
+  resource.bar(resource); // OK
+}
+
+// assignment
+void otherDependencies3() {
+  var entry, resource;
+  entry = new Entry339();
+  resource = (entry.resource as Practitioner339);
+  resource.bar(resource); // OK
 }
