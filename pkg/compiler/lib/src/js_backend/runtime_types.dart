@@ -52,7 +52,6 @@ abstract class RuntimeTypesNeedBuilder {
       ClosedWorld closedWorld,
       DartTypes types,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendUsage backendUsage,
       {bool enableTypeAssertions});
 }
@@ -266,7 +265,6 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
       ClosedWorld closedWorld,
       DartTypes types,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendUsage backendUsage,
       {bool enableTypeAssertions}) {
     Set<ClassElement> classesNeedingRti = new Set<ClassElement>();
@@ -319,9 +317,9 @@ class _RuntimeTypesNeedBuilder extends _RuntimeTypesBase
     // the calls of the list constructor whenever we determine that
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
-    if (helpers.jsArrayClass != null) {
+    if (commonElements.jsArrayClass != null) {
       ClassElement listClass = commonElements.listClass;
-      registerRtiDependency(helpers.jsArrayClass, listClass);
+      registerRtiDependency(commonElements.jsArrayClass, listClass);
     }
 
     // Check local functions and closurized members.
@@ -694,10 +692,10 @@ class _RuntimeTypes extends _RuntimeTypesBase
 class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   final Namer namer;
   final CodeEmitterTask emitter;
-  final BackendHelpers helpers;
+  final CommonElements commonElements;
   final TypeRepresentationGenerator representationGenerator;
 
-  _RuntimeTypesEncoder(this.namer, this.emitter, this.helpers)
+  _RuntimeTypesEncoder(this.namer, this.emitter, this.commonElements)
       : representationGenerator =
             new TypeRepresentationGenerator(namer, emitter);
 
@@ -776,7 +774,7 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
     if (contextClass != null) {
       jsAst.Name contextName = namer.className(contextClass);
       return js('function () { return #(#, #, #); }', [
-        emitter.staticFunctionAccess(helpers.computeSignature),
+        emitter.staticFunctionAccess(commonElements.computeSignature),
         encoding,
         this_,
         js.quoteName(contextName)

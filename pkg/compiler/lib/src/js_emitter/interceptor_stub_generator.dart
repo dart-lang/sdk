@@ -10,7 +10,6 @@ import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart'
     show
         CustomElementsCodegenAnalysis,
@@ -33,8 +32,6 @@ class InterceptorStubGenerator {
 
   Emitter get emitter => backend.emitter.emitter;
 
-  BackendHelpers get helpers => backend.helpers;
-
   jsAst.Expression generateGetInterceptorMethod(Set<ClassEntity> classes) {
     jsAst.Expression interceptorFor(ClassEntity cls) {
       return backend.emitter.interceptorPrototypeAccess(cls);
@@ -47,20 +44,20 @@ class InterceptorStubGenerator {
     jsAst.Statement buildInterceptorCheck(ClassEntity cls) {
       jsAst.Expression condition;
       assert(backend.interceptorData.isInterceptedClass(cls));
-      if (cls == helpers.jsBoolClass) {
+      if (cls == compiler.commonElements.jsBoolClass) {
         condition = js('(typeof receiver) == "boolean"');
-      } else if (cls == helpers.jsIntClass ||
-          cls == helpers.jsDoubleClass ||
-          cls == helpers.jsNumberClass) {
+      } else if (cls == compiler.commonElements.jsIntClass ||
+          cls == compiler.commonElements.jsDoubleClass ||
+          cls == compiler.commonElements.jsNumberClass) {
         throw 'internal error';
-      } else if (cls == helpers.jsArrayClass ||
-          cls == helpers.jsMutableArrayClass ||
-          cls == helpers.jsFixedArrayClass ||
-          cls == helpers.jsExtendableArrayClass) {
+      } else if (cls == compiler.commonElements.jsArrayClass ||
+          cls == compiler.commonElements.jsMutableArrayClass ||
+          cls == compiler.commonElements.jsFixedArrayClass ||
+          cls == compiler.commonElements.jsExtendableArrayClass) {
         condition = js('receiver.constructor == Array');
-      } else if (cls == helpers.jsStringClass) {
+      } else if (cls == compiler.commonElements.jsStringClass) {
         condition = js('(typeof receiver) == "string"');
-      } else if (cls == helpers.jsNullClass) {
+      } else if (cls == compiler.commonElements.jsNullClass) {
         condition = js('receiver == null');
       } else {
         throw 'internal error';
@@ -80,22 +77,22 @@ class InterceptorStubGenerator {
         backend.nativeCodegenEnqueuer.hasInstantiatedNativeClasses;
 
     for (ClassEntity cls in classes) {
-      if (cls == helpers.jsArrayClass ||
-          cls == helpers.jsMutableArrayClass ||
-          cls == helpers.jsFixedArrayClass ||
-          cls == helpers.jsExtendableArrayClass)
+      if (cls == compiler.commonElements.jsArrayClass ||
+          cls == compiler.commonElements.jsMutableArrayClass ||
+          cls == compiler.commonElements.jsFixedArrayClass ||
+          cls == compiler.commonElements.jsExtendableArrayClass)
         hasArray = true;
-      else if (cls == helpers.jsBoolClass)
+      else if (cls == compiler.commonElements.jsBoolClass)
         hasBool = true;
-      else if (cls == helpers.jsDoubleClass)
+      else if (cls == compiler.commonElements.jsDoubleClass)
         hasDouble = true;
-      else if (cls == helpers.jsIntClass)
+      else if (cls == compiler.commonElements.jsIntClass)
         hasInt = true;
-      else if (cls == helpers.jsNullClass)
+      else if (cls == compiler.commonElements.jsNullClass)
         hasNull = true;
-      else if (cls == helpers.jsNumberClass)
+      else if (cls == compiler.commonElements.jsNumberClass)
         hasNumber = true;
-      else if (cls == helpers.jsStringClass)
+      else if (cls == compiler.commonElements.jsStringClass)
         hasString = true;
       else {
         // The set of classes includes classes mixed-in to interceptor classes
@@ -131,8 +128,9 @@ class InterceptorStubGenerator {
       /// and JavaScript's Number (typeof receiver == 'number').  This
       /// is the fallback used when we have determined that receiver
       /// is a JavaScript Number.
-      jsAst.Expression interceptorForNumber = interceptorFor(
-          hasDouble ? helpers.jsDoubleClass : helpers.jsNumberClass);
+      jsAst.Expression interceptorForNumber = interceptorFor(hasDouble
+          ? compiler.commonElements.jsDoubleClass
+          : compiler.commonElements.jsNumberClass);
 
       if (hasInt) {
         whenNumber = js.statement(
@@ -140,7 +138,10 @@ class InterceptorStubGenerator {
             if (Math.floor(receiver) == receiver) return #;
             return #;
         }''',
-            [interceptorFor(helpers.jsIntClass), interceptorForNumber]);
+            [
+              interceptorFor(compiler.commonElements.jsIntClass),
+              interceptorForNumber
+            ]);
       } else {
         whenNumber = js.statement('return #', interceptorForNumber);
       }
@@ -149,10 +150,12 @@ class InterceptorStubGenerator {
     }
 
     if (hasString) {
-      statements.add(buildInterceptorCheck(helpers.jsStringClass));
+      statements
+          .add(buildInterceptorCheck(compiler.commonElements.jsStringClass));
     }
     if (hasNull) {
-      statements.add(buildInterceptorCheck(helpers.jsNullClass));
+      statements
+          .add(buildInterceptorCheck(compiler.commonElements.jsNullClass));
     } else {
       // Returning "undefined" or "null" here will provoke a JavaScript
       // TypeError which is later identified as a null-error by
@@ -160,12 +163,14 @@ class InterceptorStubGenerator {
       statements.add(js.statement('if (receiver == null) return receiver'));
     }
     if (hasBool) {
-      statements.add(buildInterceptorCheck(helpers.jsBoolClass));
+      statements
+          .add(buildInterceptorCheck(compiler.commonElements.jsBoolClass));
     }
     // TODO(ahe): It might be faster to check for Array before
     // function and bool.
     if (hasArray) {
-      statements.add(buildInterceptorCheck(helpers.jsArrayClass));
+      statements
+          .add(buildInterceptorCheck(compiler.commonElements.jsArrayClass));
     }
 
     if (hasNative) {
@@ -179,14 +184,15 @@ class InterceptorStubGenerator {
           return #(receiver);
       }''',
           [
-            interceptorFor(helpers.jsJavaScriptFunctionClass),
+            interceptorFor(compiler.commonElements.jsJavaScriptFunctionClass),
             backend.emitter
                 .constructorAccess(compiler.commonElements.objectClass),
-            backend.emitter
-                .staticFunctionAccess(helpers.getNativeInterceptorMethod)
+            backend.emitter.staticFunctionAccess(
+                compiler.commonElements.getNativeInterceptorMethod)
           ]));
     } else {
-      ClassEntity jsUnknown = helpers.jsUnknownJavaScriptObjectClass;
+      ClassEntity jsUnknown =
+          compiler.commonElements.jsUnknownJavaScriptObjectClass;
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
           .contains(jsUnknown)) {
         statements.add(js.statement('if (!(receiver instanceof #)) return #;', [
@@ -216,9 +222,9 @@ class InterceptorStubGenerator {
             return a0 != null && receiver === a0;
         }''');
       }
-      if (!classes.contains(helpers.jsIntClass) &&
-          !classes.contains(helpers.jsNumberClass) &&
-          !classes.contains(helpers.jsDoubleClass)) {
+      if (!classes.contains(compiler.commonElements.jsIntClass) &&
+          !classes.contains(compiler.commonElements.jsNumberClass) &&
+          !classes.contains(compiler.commonElements.jsDoubleClass)) {
         return null;
       }
       if (selector.argumentCount == 1) {
@@ -265,14 +271,16 @@ class InterceptorStubGenerator {
       //        }
       //      }
       //    }
-      bool containsArray = classes.contains(helpers.jsArrayClass);
-      bool containsString = classes.contains(helpers.jsStringClass);
-      bool containsJsIndexable =
-          closedWorld.isImplemented(helpers.jsIndexingBehaviorInterface) &&
-              classes.any((cls) {
-                return closedWorld.isSubtypeOf(
-                    cls, helpers.jsIndexingBehaviorInterface);
-              });
+      bool containsArray =
+          classes.contains(compiler.commonElements.jsArrayClass);
+      bool containsString =
+          classes.contains(compiler.commonElements.jsStringClass);
+      bool containsJsIndexable = closedWorld.isImplemented(
+              compiler.commonElements.jsIndexingBehaviorInterface) &&
+          classes.any((cls) {
+            return closedWorld.isSubtypeOf(
+                cls, compiler.commonElements.jsIndexingBehaviorInterface);
+          });
       // The index set operator requires a check on its set value in
       // checked mode, so we don't optimize the interceptor if the
       // compiler has type assertions enabled.
@@ -355,8 +363,8 @@ class InterceptorStubGenerator {
     }
 
     jsAst.Name invocationName = backend.namer.invocationName(selector);
-    String globalObject =
-        namer.globalObjectForLibrary(helpers.interceptorsLibrary);
+    String globalObject = namer
+        .globalObjectForLibrary(compiler.commonElements.interceptorsLibrary);
 
     jsAst.Statement optimizedPath =
         _fastPathForOneShotInterceptor(selector, classes);

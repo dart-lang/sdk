@@ -37,7 +37,6 @@ import '../../io/location_provider.dart' show LocationCollector;
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
-import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
     show
         ConstantEmitter,
@@ -827,7 +826,7 @@ class Emitter implements js_emitter.Emitter {
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
     jsAst.Expression cyclicThrow =
-        staticFunctionAccess(backend.helpers.cyclicThrowHelper);
+        staticFunctionAccess(backend.commonElements.cyclicThrowHelper);
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 

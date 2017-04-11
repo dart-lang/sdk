@@ -126,7 +126,8 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'needsNativeSupport': program.needsNativeSupport,
     'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
-    'isInterceptorClass': namer.operatorIs(backend.helpers.jsInterceptorClass),
+    'isInterceptorClass':
+        namer.operatorIs(compiler.commonElements.jsInterceptorClass),
     'isObject': namer.operatorIs(compiler.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
@@ -441,7 +442,7 @@ function $setupProgramName(programData, typesOffset) {
       for (var i = 0; i < properties.length; i++) finishClass(properties[i]);
     }
 
-    // Generic handler for deferred class setup. The handler updates the 
+    // Generic handler for deferred class setup. The handler updates the
     // prototype that it is installed on (it traverses the prototype chain
     // of [this] to find itself) and then removes itself. It recurses by
     // calling deferred handling again, which terminates on Object due to
@@ -734,7 +735,7 @@ function $setupProgramName(programData, typesOffset) {
           if (isSetter) {
             reflectionName += "=";
           } else if (!isGetter) {
-            reflectionName += ":" + 
+            reflectionName += ":" +
                 (requiredParameterCount + optionalParameterCount);
           }
           mangledNames[name] = reflectionName;

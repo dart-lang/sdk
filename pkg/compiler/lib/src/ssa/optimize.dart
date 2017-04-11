@@ -14,7 +14,6 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../js_backend/native_data.dart' show NativeData;
@@ -51,8 +50,6 @@ class SsaOptimizerTask extends CompilerTask {
 
   GlobalTypeInferenceResults get _results => _compiler.globalInference.results;
 
-  BackendHelpers get _helpers => _backend.helpers;
-
   CompilerOptions get _options => _compiler.options;
 
   RuntimeTypesSubstitutions get _rtiSubstitutions => _backend.rtiSubstitutions;
@@ -75,55 +72,58 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(_results, _options, _helpers,
-            _rtiSubstitutions, closedWorld, registry),
+        new SsaInstructionSimplifier(
+            _results, _options, _rtiSubstitutions, closedWorld, registry),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(_results, _options, _helpers, closedWorld),
+        new SsaTypePropagator(
+            _results, _options, closedWorld.commonElements, closedWorld),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(_results, _options, _helpers,
-            _rtiSubstitutions, closedWorld, registry),
-        new SsaCheckInserter(
-            trustPrimitives, _helpers, closedWorld, boundsChecked),
-        new SsaInstructionSimplifier(_results, _options, _helpers,
-            _rtiSubstitutions, closedWorld, registry),
-        new SsaCheckInserter(
-            trustPrimitives, _helpers, closedWorld, boundsChecked),
-        new SsaTypePropagator(_results, _options, _helpers, closedWorld),
+        new SsaInstructionSimplifier(
+            _results, _options, _rtiSubstitutions, closedWorld, registry),
+        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
+        new SsaInstructionSimplifier(
+            _results, _options, _rtiSubstitutions, closedWorld, registry),
+        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
+        new SsaTypePropagator(
+            _results, _options, closedWorld.commonElements, closedWorld),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
         new SsaDeadCodeEliminator(closedWorld, this),
         new SsaGlobalValueNumberer(),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        new SsaTypePropagator(_results, _options, _helpers, closedWorld),
+        new SsaTypePropagator(
+            _results, _options, closedWorld.commonElements, closedWorld),
         codeMotion = new SsaCodeMotion(),
-        loadElimination =
-            new SsaLoadElimination(_helpers, _compiler, closedWorld),
+        loadElimination = new SsaLoadElimination(_compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         // After GVN and load elimination the same value may be used in code
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
         new SsaTypeConversionInserter(closedWorld),
-        new SsaTypePropagator(_results, _options, _helpers, closedWorld),
-        new SsaValueRangeAnalyzer(_helpers, closedWorld, this),
+        new SsaTypePropagator(
+            _results, _options, closedWorld.commonElements, closedWorld),
+        new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(_results, _options, _helpers,
-            _rtiSubstitutions, closedWorld, registry),
-        new SsaCheckInserter(
-            trustPrimitives, _helpers, closedWorld, boundsChecked),
+        new SsaInstructionSimplifier(
+            _results, _options, _rtiSubstitutions, closedWorld, registry),
+        new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
 
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(new SsaSimplifyInterceptors(closedWorld, _helpers,
-          _interceptorData, work.element.enclosingClass));
+      runPhase(new SsaSimplifyInterceptors(
+          closedWorld,
+          closedWorld.commonElements,
+          _interceptorData,
+          work.element.enclosingClass));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
@@ -131,25 +131,26 @@ class SsaOptimizerTask extends CompilerTask {
           dce.eliminatedSideEffects ||
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(_results, _options, _helpers, closedWorld),
+          new SsaTypePropagator(
+              _results, _options, closedWorld.commonElements, closedWorld),
           new SsaGlobalValueNumberer(),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(_helpers, closedWorld, this),
-          new SsaInstructionSimplifier(_results, _options, _helpers,
-              _rtiSubstitutions, closedWorld, registry),
-          new SsaCheckInserter(
-              trustPrimitives, _helpers, closedWorld, boundsChecked),
-          new SsaSimplifyInterceptors(closedWorld, _helpers, _interceptorData,
-              work.element.enclosingClass),
+          new SsaValueRangeAnalyzer(closedWorld, this),
+          new SsaInstructionSimplifier(
+              _results, _options, _rtiSubstitutions, closedWorld, registry),
+          new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
+          new SsaSimplifyInterceptors(closedWorld, closedWorld.commonElements,
+              _interceptorData, work.element.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(_results, _options, _helpers, closedWorld),
+          new SsaTypePropagator(
+              _results, _options, closedWorld.commonElements, closedWorld),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(_results, _options, _helpers,
-              _rtiSubstitutions, closedWorld, registry),
+          new SsaInstructionSimplifier(
+              _results, _options, _rtiSubstitutions, closedWorld, registry),
         ];
       }
       phases.forEach(runPhase);
@@ -190,14 +191,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final String name = "SsaInstructionSimplifier";
   final GlobalTypeInferenceResults _globalInferenceResults;
   final CompilerOptions _options;
-  final BackendHelpers _helpers;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final ClosedWorld _closedWorld;
   final CodegenRegistry _registry;
   HGraph _graph;
 
   SsaInstructionSimplifier(this._globalInferenceResults, this._options,
-      this._helpers, this._rtiSubstitutions, this._closedWorld, this._registry);
+      this._rtiSubstitutions, this._closedWorld, this._registry);
 
   CommonElements get commonElements => _closedWorld.commonElements;
 
@@ -321,7 +321,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(_helpers.jsBoolClass, _closedWorld)) {
+    if (!mask.contains(commonElements.jsBoolClass, _closedWorld)) {
       return _graph.addConstantBool(false, _closedWorld);
     }
     return node;
@@ -374,10 +374,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
       TypeMask resultType = _closedWorld.commonMasks.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
-          actualType, _helpers.jsUInt31Class, _closedWorld)) {
+          actualType, commonElements.jsUInt31Class, _closedWorld)) {
         resultType = _closedWorld.commonMasks.uint31Type;
       } else if (HInstruction.isInstanceOf(
-          actualType, _helpers.jsUInt32Class, _closedWorld)) {
+          actualType, commonElements.jsUInt32Class, _closedWorld)) {
         resultType = _closedWorld.commonMasks.uint32Type;
       }
       HGetLength result =
@@ -402,8 +402,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     // Try converting the instruction to a builtin instruction.
-    HInstruction instruction = node.specializer.tryConvertToBuiltin(node,
-        _graph, _globalInferenceResults, _options, _helpers, _closedWorld);
+    HInstruction instruction = node.specializer.tryConvertToBuiltin(
+        node,
+        _graph,
+        _globalInferenceResults,
+        _options,
+        commonElements,
+        _closedWorld);
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;
@@ -418,22 +423,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (selector.isCall || selector.isOperator) {
       FunctionEntity target;
       if (input.isExtendableArray(_closedWorld)) {
-        if (applies(_helpers.jsArrayRemoveLast)) {
-          target = _helpers.jsArrayRemoveLast;
-        } else if (applies(_helpers.jsArrayAdd)) {
+        if (applies(commonElements.jsArrayRemoveLast)) {
+          target = commonElements.jsArrayRemoveLast;
+        } else if (applies(commonElements.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
           if (!_options.enableTypeAssertions) {
-            target = _helpers.jsArrayAdd;
+            target = commonElements.jsArrayAdd;
           }
         }
       } else if (input.isStringOrNull(_closedWorld)) {
-        if (applies(_helpers.jsStringSplit)) {
+        if (applies(commonElements.jsStringSplit)) {
           HInstruction argument = node.inputs[2];
           if (argument.isString(_closedWorld)) {
-            target = _helpers.jsStringSplit;
+            target = commonElements.jsStringSplit;
           }
-        } else if (applies(_helpers.jsStringOperatorAdd)) {
+        } else if (applies(commonElements.jsStringOperatorAdd)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
           // TODO(sra): Do this via [node.specializer].
@@ -441,7 +446,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           if (argument.isString(_closedWorld) && !input.canBeNull()) {
             return new HStringConcat(input, argument, node.instructionType);
           }
-        } else if (applies(_helpers.jsStringToString) && !input.canBeNull()) {
+        } else if (applies(commonElements.jsStringToString) &&
+            !input.canBeNull()) {
           return input;
         }
       }
@@ -460,7 +466,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(_helpers.jsIndexableLength)) {
+      if (selector.applies(commonElements.jsIndexableLength)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -1068,7 +1074,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _closedWorld.commonMasks.boolType)
           ..sourceInformation = node.sourceInformation;
       }
-    } else if (element == _helpers.checkConcurrentModificationError) {
+    } else if (element == commonElements.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
@@ -1076,17 +1082,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
           if (constant.constant.isTrue) return constant;
         }
       }
-    } else if (element == _helpers.checkInt) {
+    } else if (element == commonElements.checkInt) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
         if (argument.isInteger(_closedWorld)) return argument;
       }
-    } else if (element == _helpers.checkNum) {
+    } else if (element == commonElements.checkNum) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
         if (argument.isNumber(_closedWorld)) return argument;
       }
-    } else if (element == _helpers.checkString) {
+    } else if (element == commonElements.checkString) {
       if (node.inputs.length == 1) {
         HInstruction argument = node.inputs[0];
         if (argument.isString(_closedWorld)) return argument;
@@ -1178,7 +1184,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // All intercepted classes extend `Interceptor`, so if the receiver can't
       // be a class extending `Interceptor` then it can be called directly.
       if (new TypeMask.nonNullSubclass(
-              _helpers.jsInterceptorClass, _closedWorld)
+              commonElements.jsInterceptorClass, _closedWorld)
           .isDisjoint(input.instructionType, _closedWorld)) {
         var inputs = <HInstruction>[input, input]; // [interceptor, receiver].
         HInstruction result = new HInvokeDynamicMethod(
@@ -1371,13 +1377,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final Set<HInstruction> boundsChecked;
   final bool trustPrimitives;
-  final BackendHelpers _helpers;
   final ClosedWorld closedWorld;
   final String name = "SsaCheckInserter";
   HGraph graph;
 
-  SsaCheckInserter(this.trustPrimitives, this._helpers, this.closedWorld,
-      this.boundsChecked);
+  SsaCheckInserter(this.trustPrimitives, this.closedWorld, this.boundsChecked);
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -1440,7 +1444,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     MemberEntity element = node.element;
     if (node.isInterceptedCall) return;
-    if (element != _helpers.jsArrayRemoveLast) return;
+    if (element != closedWorld.commonElements.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
     // `0` is the index we want to check, but we want to report `-1`, as if we
     // executed `a[a.length-1]`
@@ -2300,7 +2304,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
  * location.
  */
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
-  final BackendHelpers _helpers;
   final Compiler compiler;
   final ClosedWorld closedWorld;
   final String name = "SsaLoadElimination";
@@ -2308,7 +2311,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   List<MemorySet> memories;
   bool newGvnCandidates = false;
 
-  SsaLoadElimination(this._helpers, this.compiler, this.closedWorld);
+  SsaLoadElimination(this.compiler, this.closedWorld);
 
   void visitGraph(HGraph graph) {
     memories = new List<MemorySet>(graph.blocks.length);
@@ -2377,8 +2380,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitGetLength(HGetLength instruction) {
-    _visitFieldGet(_helpers.jsIndexableLength, instruction.receiver.nonCheck(),
-        instruction);
+    _visitFieldGet(closedWorld.commonElements.jsIndexableLength,
+        instruction.receiver.nonCheck(), instruction);
   }
 
   void _visitFieldGet(

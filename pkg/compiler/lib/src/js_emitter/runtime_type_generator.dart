@@ -161,7 +161,7 @@ class RuntimeTypeGenerator {
     _generateIsTestsOn(classElement, generateIsTest,
         generateFunctionTypeSignature, generateSubstitution, generateTypeCheck);
 
-    if (classElement == backend.helpers.jsJavaScriptFunctionClass) {
+    if (classElement == commonElements.jsJavaScriptFunctionClass) {
       var type = backend.jsInteropAnalysis.buildJsFunctionType();
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();

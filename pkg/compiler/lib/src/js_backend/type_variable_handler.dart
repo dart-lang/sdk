@@ -15,7 +15,6 @@ import '../universe/use.dart' show ConstantUse;
 import '../universe/world_impact.dart';
 import 'backend.dart';
 import 'backend_usage.dart' show BackendUsageBuilder;
-import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'mirrors_data.dart';
 
@@ -59,7 +58,7 @@ class TypeVariableResolutionAnalysis {
 class TypeVariableCodegenAnalysis {
   final ElementEnvironment _elementEnvironment;
   final JavaScriptBackend _backend;
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
   final MirrorsData _mirrorsData;
 
   /**
@@ -81,7 +80,7 @@ class TypeVariableCodegenAnalysis {
       new StagedWorldImpactBuilder();
 
   TypeVariableCodegenAnalysis(this._elementEnvironment, this._backend,
-      this._helpers, this._mirrorsData);
+      this._commonElements, this._mirrorsData);
 
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
@@ -112,10 +111,10 @@ class TypeVariableCodegenAnalysis {
           _elementEnvironment.getTypeVariableBound(typeVariableElement));
       ConstantValue boundValue = new SyntheticConstantValue(
           SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
-      ClassEntity typeVariableClass = _helpers.typeVariableClass;
+      ClassEntity typeVariableClass = _commonElements.typeVariableClass;
       ConstantExpression constant = new ConstructedConstantExpression(
           _elementEnvironment.getThisType(typeVariableClass),
-          _helpers.typeVariableConstructor,
+          _commonElements.typeVariableConstructor,
           const CallStructure.unnamed(3), [
         new TypeConstantExpression(
             _elementEnvironment.getRawType(cls), cls.name),

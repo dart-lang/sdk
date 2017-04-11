@@ -19,7 +19,6 @@ import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/backend_helpers.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
@@ -78,10 +77,10 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   KernelWorldBuilder(this.reporter, ir.Program program)
       : _env = new KEnv(program) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _commonElements = new CommonElements(_elementEnvironment);
     ConstantEnvironment constants = new KernelConstantEnvironment(this);
     _nativeBehaviorBuilder =
-        new KernelBehaviorBuilder(_commonElements, helpers, constants);
+        new KernelBehaviorBuilder(_commonElements, constants);
     _typeConverter = new DartTypeConverter(this);
   }
 
@@ -863,10 +862,9 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 /// [native.BehaviorBuilder] for kernel based elements.
 class KernelBehaviorBuilder extends native.BehaviorBuilder {
   final CommonElements commonElements;
-  final BackendHelpers helpers;
   final ConstantEnvironment constants;
 
-  KernelBehaviorBuilder(this.commonElements, this.helpers, this.constants);
+  KernelBehaviorBuilder(this.commonElements, this.constants);
 
   @override
   bool get trustJSInteropTypeAnnotations {

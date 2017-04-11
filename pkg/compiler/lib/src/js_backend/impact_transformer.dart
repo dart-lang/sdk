@@ -24,7 +24,6 @@ import '../universe/use.dart'
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
 import 'backend.dart';
-import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -335,7 +334,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 class CodegenImpactTransformer {
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
   final BackendImpacts _impacts;
   final CheckedModeHelpers _checkedModeHelpers;
   final NativeData _nativeData;
@@ -350,7 +349,7 @@ class CodegenImpactTransformer {
   CodegenImpactTransformer(
       this._options,
       this._elementEnvironment,
-      this._helpers,
+      this._commonElements,
       this._impacts,
       this._checkedModeHelpers,
       this._nativeData,
@@ -378,14 +377,14 @@ class CodegenImpactTransformer {
       CheckedModeHelper helper =
           _checkedModeHelpers.getCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(_helpers);
+        StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);
       }
       // We also need the native variant of the check (for DOM types).
       helper =
           _checkedModeHelpers.getNativeCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(_helpers);
+        StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);
       }
     }

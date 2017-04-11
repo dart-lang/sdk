@@ -271,7 +271,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     ResolutionDartType type = constant.representedType;
     jsAst.Name typeName = namer.runtimeTypeName(type.element);
-    return new jsAst.Call(getHelperProperty(backend.helpers.createRuntimeType),
+    return new jsAst.Call(
+        getHelperProperty(backend.commonElements.createRuntimeType),
         [js.quoteName(typeName)]);
   }
 
@@ -328,7 +329,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
         !type.treatAsRaw &&
         backend.rtiNeed.classNeedsRti(type.element)) {
       return new jsAst.Call(
-          getHelperProperty(backend.helpers.setRuntimeTypeInfo),
+          getHelperProperty(backend.commonElements.setRuntimeTypeInfo),
           [value, _reifiedTypeArguments(type)]);
     }
     return value;

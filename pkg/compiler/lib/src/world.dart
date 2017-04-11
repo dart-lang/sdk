@@ -717,7 +717,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
     assert(isClosed);
     if (nativeData.isJsInteropClass(cls)) {
-      return _backend.helpers.jsJavaScriptObjectClass;
+      return commonElements.jsJavaScriptObjectClass;
     }
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     return hierarchy != null
@@ -729,7 +729,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
     assert(isClosed);
     if (nativeData.isJsInteropClass(cls)) {
-      return _backend.helpers.jsJavaScriptObjectClass;
+      return commonElements.jsJavaScriptObjectClass;
     }
     ClassSet classSet = _classSets[cls.declaration];
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;

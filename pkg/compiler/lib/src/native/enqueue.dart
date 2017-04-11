@@ -8,7 +8,6 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
@@ -54,12 +53,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
-  final BackendHelpers _helpers;
   final BackendClasses _backendClasses;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
   NativeEnqueuerBase(this._options, this._elementEnvironment,
-      this._commonElements, this._helpers, this._backendClasses);
+      this._commonElements, this._backendClasses);
 
   bool get enableLiveTypeAnalysis => _options.enableNativeLiveTypeAnalysis;
 
@@ -163,10 +161,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       _registerBackendUse(element);
     }
 
-    staticUse(_helpers.defineProperty);
-    staticUse(_helpers.toStringForNativeObject);
-    staticUse(_helpers.hashCodeForNativeObject);
-    staticUse(_helpers.closureConverter);
+    staticUse(_commonElements.defineProperty);
+    staticUse(_commonElements.toStringForNativeObject);
+    staticUse(_commonElements.hashCodeForNativeObject);
+    staticUse(_commonElements.closureConverter);
     return _findNativeExceptions();
   }
 
@@ -199,12 +197,10 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
       CompilerOptions options,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendClasses backendClasses,
       this._backendUsageBuilder,
       this._nativeClassResolver)
-      : super(options, elementEnvironment, commonElements, helpers,
-            backendClasses);
+      : super(options, elementEnvironment, commonElements, backendClasses);
 
   void _registerBackendUse(FunctionEntity element) {
     _backendUsageBuilder.registerBackendFunctionUse(element);
@@ -241,13 +237,11 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       CompilerOptions options,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendClasses backendClasses,
       this._emitter,
       this._resolutionEnqueuer,
       this._nativeData)
-      : super(options, elementEnvironment, commonElements, helpers,
-            backendClasses);
+      : super(options, elementEnvironment, commonElements, backendClasses);
 
   WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();

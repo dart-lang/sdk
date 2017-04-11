@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common_elements.dart' show CommonElements;
 import '../common/backend_api.dart' show BackendClasses;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../js_backend/backend_helpers.dart';
 import '../js_backend/interceptor_data.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -38,13 +38,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
   final ClosedWorld closedWorld;
-  final BackendHelpers helpers;
   final InterceptorData interceptorData;
+  final CommonElements _commonElements;
   final ClassEntity enclosingClass;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.closedWorld, this.helpers, this.interceptorData,
-      this.enclosingClass);
+  SsaSimplifyInterceptors(this.closedWorld, this._commonElements,
+      this.interceptorData, this.enclosingClass);
 
   BackendClasses get backendClasses => closedWorld.backendClasses;
 
@@ -108,7 +108,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
     // a class extending `Interceptor` then it can be called directly.
-    return new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
+    return new TypeMask.nonNullSubclass(
+            _commonElements.jsInterceptorClass, closedWorld)
         .isDisjoint(receiver.instructionType, closedWorld);
   }
 

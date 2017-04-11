@@ -223,10 +223,9 @@ class ClosureClassElement extends ClassElementX {
             // classes (since the emitter sorts classes by their id).
             compiler.idGenerator.getNextFreeId(),
             STATE_DONE) {
-    JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember
-        ? backend.helpers.boundClosureClass
-        : backend.helpers.closureClass;
+        ? compiler.commonElements.boundClosureClass
+        : compiler.commonElements.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<ResolutionDartType>();

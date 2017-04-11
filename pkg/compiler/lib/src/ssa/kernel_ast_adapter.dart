@@ -280,9 +280,10 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
       ir.ForInStatement forInStatement, ClosedWorld closedWorld) {
     TypeMask mask = typeOfIterator(forInStatement);
     return mask != null &&
-        mask.satisfies(_backend.helpers.jsIndexableClass, closedWorld) &&
+        mask.satisfies(
+            _compiler.commonElements.jsIndexableClass, closedWorld) &&
         // String is indexable but not iterable.
-        !mask.satisfies(_backend.helpers.jsStringClass, closedWorld);
+        !mask.satisfies(_compiler.commonElements.jsStringClass, closedWorld);
   }
 
   bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
@@ -369,7 +370,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
     return false;
   }
 
-  LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
+  LibraryElement get jsHelperLibrary =>
+      _compiler.commonElements.jsHelperLibrary;
 
   KernelJumpTarget getJumpTarget(ir.TreeNode node,
       {bool isContinueTarget: false}) {
@@ -383,116 +385,118 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   }
 
   ir.Procedure get checkDeferredIsLoaded =>
-      kernel.functions[_backend.helpers.checkDeferredIsLoaded];
+      kernel.functions[_compiler.commonElements.checkDeferredIsLoaded];
 
   TypeMask get checkDeferredIsLoadedType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.checkDeferredIsLoaded, _globalInferenceResults);
+          _compiler.commonElements.checkDeferredIsLoaded,
+          _globalInferenceResults);
 
   ir.Procedure get createInvocationMirror =>
-      kernel.functions[_backend.helpers.createInvocationMirror];
+      kernel.functions[_compiler.commonElements.createInvocationMirror];
 
   ir.Class get mapLiteralClass =>
-      kernel.classes[_backend.helpers.mapLiteralClass];
+      kernel.classes[_compiler.commonElements.mapLiteralClass];
 
   ir.Procedure get mapLiteralConstructor =>
-      kernel.functions[_backend.helpers.mapLiteralConstructor];
+      kernel.functions[_compiler.commonElements.mapLiteralConstructor];
 
   ir.Procedure get mapLiteralConstructorEmpty =>
-      kernel.functions[_backend.helpers.mapLiteralConstructorEmpty];
+      kernel.functions[_compiler.commonElements.mapLiteralConstructorEmpty];
 
   ir.Procedure get mapLiteralUntypedEmptyMaker =>
-      kernel.functions[_backend.helpers.mapLiteralUntypedEmptyMaker];
+      kernel.functions[_compiler.commonElements.mapLiteralUntypedEmptyMaker];
 
   ir.Procedure get exceptionUnwrapper =>
-      kernel.functions[_backend.helpers.exceptionUnwrapper];
+      kernel.functions[_compiler.commonElements.exceptionUnwrapper];
 
   TypeMask get exceptionUnwrapperType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.exceptionUnwrapper, _globalInferenceResults);
+          _compiler.commonElements.exceptionUnwrapper, _globalInferenceResults);
 
   ir.Procedure get traceFromException =>
-      kernel.functions[_backend.helpers.traceFromException];
+      kernel.functions[_compiler.commonElements.traceFromException];
 
   TypeMask get traceFromExceptionType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.traceFromException, _globalInferenceResults);
+          _compiler.commonElements.traceFromException, _globalInferenceResults);
 
   ir.Procedure get streamIteratorConstructor =>
-      kernel.functions[_backend.helpers.streamIteratorConstructor];
+      kernel.functions[_compiler.commonElements.streamIteratorConstructor];
 
   TypeMask get streamIteratorConstructorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
           // ignore: UNNECESSARY_CAST
-          _backend.helpers.streamIteratorConstructor as FunctionEntity,
+          _compiler.commonElements.streamIteratorConstructor as FunctionEntity,
           _globalInferenceResults);
 
   ir.Procedure get fallThroughError =>
-      kernel.functions[_backend.helpers.fallThroughError];
+      kernel.functions[_compiler.commonElements.fallThroughError];
 
   TypeMask get fallThroughErrorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.fallThroughError, _globalInferenceResults);
+          _compiler.commonElements.fallThroughError, _globalInferenceResults);
 
   ir.Procedure get mapLiteralUntypedMaker =>
-      kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
+      kernel.functions[_compiler.commonElements.mapLiteralUntypedMaker];
 
-  ir.Procedure get checkConcurrentModificationError =>
-      kernel.functions[_backend.helpers.checkConcurrentModificationError];
+  ir.Procedure get checkConcurrentModificationError => kernel
+      .functions[_compiler.commonElements.checkConcurrentModificationError];
 
   TypeMask get checkConcurrentModificationErrorReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.checkConcurrentModificationError,
+          _compiler.commonElements.checkConcurrentModificationError,
           _globalInferenceResults);
 
   ir.Procedure get checkSubtype =>
-      kernel.functions[_backend.helpers.checkSubtype];
+      kernel.functions[_compiler.commonElements.checkSubtype];
 
   ir.Procedure get checkSubtypeOfRuntimeType =>
-      kernel.functions[_backend.helpers.checkSubtypeOfRuntimeType];
+      kernel.functions[_compiler.commonElements.checkSubtypeOfRuntimeType];
 
   ir.Procedure get functionTypeTest =>
-      kernel.functions[_backend.helpers.functionTypeTest];
+      kernel.functions[_compiler.commonElements.functionTypeTest];
 
   ir.Procedure get throwTypeError =>
-      kernel.functions[_backend.helpers.throwTypeError];
+      kernel.functions[_compiler.commonElements.throwTypeError];
 
   TypeMask get throwTypeErrorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.throwTypeError, _globalInferenceResults);
+          _compiler.commonElements.throwTypeError, _globalInferenceResults);
 
   ir.Procedure get assertHelper =>
-      kernel.functions[_backend.helpers.assertHelper];
+      kernel.functions[_compiler.commonElements.assertHelper];
 
   TypeMask get assertHelperReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.assertHelper, _globalInferenceResults);
+          _compiler.commonElements.assertHelper, _globalInferenceResults);
 
-  ir.Procedure get assertTest => kernel.functions[_backend.helpers.assertTest];
+  ir.Procedure get assertTest =>
+      kernel.functions[_compiler.commonElements.assertTest];
 
   TypeMask get assertTestReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.assertTest, _globalInferenceResults);
+          _compiler.commonElements.assertTest, _globalInferenceResults);
 
   ir.Procedure get assertThrow =>
-      kernel.functions[_backend.helpers.assertThrow];
+      kernel.functions[_compiler.commonElements.assertThrow];
 
   ir.Procedure get setRuntimeTypeInfo =>
-      kernel.functions[_backend.helpers.setRuntimeTypeInfo];
+      kernel.functions[_compiler.commonElements.setRuntimeTypeInfo];
 
   TypeMask get assertThrowReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.assertThrow, _globalInferenceResults);
+          _compiler.commonElements.assertThrow, _globalInferenceResults);
 
   ir.Procedure get runtimeTypeToString =>
-      kernel.functions[_backend.helpers.runtimeTypeToString];
+      kernel.functions[_compiler.commonElements.runtimeTypeToString];
 
   ir.Procedure get createRuntimeType =>
-      kernel.functions[_backend.helpers.createRuntimeType];
+      kernel.functions[_compiler.commonElements.createRuntimeType];
 
   TypeMask get createRuntimeTypeReturnType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.createRuntimeType, _globalInferenceResults);
+          _compiler.commonElements.createRuntimeType, _globalInferenceResults);
 
   ir.Class get objectClass =>
       kernel.classes[_compiler.commonElements.objectClass];
@@ -504,10 +508,10 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
       new TypeMask.subclass(_compiler.commonElements.objectClass, closedWorld);
 
   ir.Procedure get currentIsolate =>
-      kernel.functions[_backend.helpers.currentIsolate];
+      kernel.functions[_compiler.commonElements.currentIsolate];
 
   ir.Procedure get callInIsolate =>
-      kernel.functions[_backend.helpers.callInIsolate];
+      kernel.functions[_compiler.commonElements.callInIsolate];
 
   bool isInForeignLibrary(ir.Member member) =>
       _backend.isForeign(getElement(member));
@@ -518,7 +522,7 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
     int index = _extractEnumIndexFromConstantValue(
-        constant, _backend.helpers.jsGetNameEnum);
+        constant, _compiler.commonElements.jsGetNameEnum);
     if (index == null) return null;
     return _backend.namer
         .getNameForJsGetName(getNode(argument), JsGetName.values[index]);
@@ -526,7 +530,7 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   js.Template getJsBuiltinTemplate(ConstantValue constant) {
     int index = _extractEnumIndexFromConstantValue(
-        constant, _backend.helpers.jsBuiltinEnum);
+        constant, _compiler.commonElements.jsBuiltinEnum);
     if (index == null) return null;
     return _backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
   }

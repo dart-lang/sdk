@@ -66,7 +66,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 
-    if (classElement == backend.helpers.closureClass) {
+    if (classElement == backend.commonElements.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');

@@ -15,7 +15,6 @@ import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
 import 'backend_usage.dart' show BackendUsageBuilder;
-import 'backend_helpers.dart';
 import 'native_data.dart';
 
 /**
@@ -57,10 +56,11 @@ import 'native_data.dart';
  */
 abstract class CustomElementsAnalysisBase {
   final NativeBasicData _nativeData;
-  final BackendHelpers _helpers;
   final Resolution _resolution;
+  final CommonElements _commonElements;
 
-  CustomElementsAnalysisBase(this._resolution, this._helpers, this._nativeData);
+  CustomElementsAnalysisBase(
+      this._resolution, this._commonElements, this._nativeData);
 
   CustomElementsAnalysisJoin get join;
 
@@ -77,7 +77,7 @@ abstract class CustomElementsAnalysisBase {
 
   void registerStaticUse(MemberEntity element) {
     assert(element != null);
-    if (element == _helpers.findIndexForNativeSubclassType) {
+    if (element == _commonElements.findIndexForNativeSubclassType) {
       join.demanded = true;
     }
   }
@@ -94,13 +94,12 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
       ConstantSystem constantSystem,
       CommonElements commonElements,
       BackendClasses backendClasses,
-      BackendHelpers helpers,
       NativeBasicData nativeData,
       BackendUsageBuilder backendUsageBuilder)
       : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
             commonElements, backendClasses, nativeData,
             backendUsageBuilder: backendUsageBuilder),
-        super(resolution, helpers, nativeData) {
+        super(resolution, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the work-around
@@ -132,11 +131,10 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
       ConstantSystem constantSystem,
       CommonElements commonElements,
       BackendClasses backendClasses,
-      BackendHelpers helpers,
       NativeBasicData nativeData)
       : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
             commonElements, backendClasses, nativeData),
-        super(resolution, helpers, nativeData) {
+        super(resolution, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the work-around

@@ -362,7 +362,7 @@ const String directAccessTestExpression = r'''
     var object = new cls();
     if (!(object.__proto__ && object.__proto__.p === cls.prototype.p))
       return false;
-    
+
     try {
       // Are we running on a platform where the performance is good?
       // (i.e. Chrome or d8).
@@ -468,7 +468,7 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(directAccessTestExpression),
       'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
       'cyclicThrow': backend.emitter
-          .staticFunctionAccess(backend.helpers.cyclicThrowHelper),
+          .staticFunctionAccess(compiler.commonElements.cyclicThrowHelper),
       'operatorIsPrefix': js.string(namer.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(backend)),
       'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),

@@ -11,7 +11,6 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local;
 import '../elements/resolution_types.dart';
-import '../js_backend/backend_helpers.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/js_backend.dart';
@@ -84,8 +83,6 @@ abstract class GraphBuilder {
   JavaScriptConstantCompiler get constants => backend.constants;
 
   ConstantSystem get constantSystem => constants.constantSystem;
-
-  BackendHelpers get helpers => backend.helpers;
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 

@@ -43,8 +43,6 @@ class Collector {
 
   JavaScriptBackend get backend => compiler.backend;
 
-  BackendHelpers get helpers => backend.helpers;
-
   CommonElements get commonElements => compiler.commonElements;
 
   Collector(this.compiler, this.namer, this.closedWorld, this.rtiNeededClasses,
@@ -99,12 +97,12 @@ class Collector {
     }
 
     // These classes are just helpers for the backend's type system.
-    unneededClasses.add(helpers.jsMutableArrayClass);
-    unneededClasses.add(helpers.jsFixedArrayClass);
-    unneededClasses.add(helpers.jsExtendableArrayClass);
-    unneededClasses.add(helpers.jsUInt32Class);
-    unneededClasses.add(helpers.jsUInt31Class);
-    unneededClasses.add(helpers.jsPositiveIntClass);
+    unneededClasses.add(commonElements.jsMutableArrayClass);
+    unneededClasses.add(commonElements.jsFixedArrayClass);
+    unneededClasses.add(commonElements.jsExtendableArrayClass);
+    unneededClasses.add(commonElements.jsUInt32Class);
+    unneededClasses.add(commonElements.jsUInt31Class);
+    unneededClasses.add(commonElements.jsPositiveIntClass);
 
     return (ClassEntity cls) => !unneededClasses.contains(cls);
   }
@@ -227,22 +225,22 @@ class Collector {
     neededClasses.addAll(classesOnlyNeededForRti);
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
-    if (neededClasses.contains(helpers.jsIntClass)) {
+    if (neededClasses.contains(commonElements.jsIntClass)) {
       neededClasses.add(commonElements.intClass);
     }
-    if (neededClasses.contains(helpers.jsDoubleClass)) {
+    if (neededClasses.contains(commonElements.jsDoubleClass)) {
       neededClasses.add(commonElements.doubleClass);
     }
-    if (neededClasses.contains(helpers.jsNumberClass)) {
+    if (neededClasses.contains(commonElements.jsNumberClass)) {
       neededClasses.add(commonElements.numClass);
     }
-    if (neededClasses.contains(helpers.jsStringClass)) {
+    if (neededClasses.contains(commonElements.jsStringClass)) {
       neededClasses.add(commonElements.stringClass);
     }
-    if (neededClasses.contains(helpers.jsBoolClass)) {
+    if (neededClasses.contains(commonElements.jsBoolClass)) {
       neededClasses.add(commonElements.boolClass);
     }
-    if (neededClasses.contains(helpers.jsArrayClass)) {
+    if (neededClasses.contains(commonElements.jsArrayClass)) {
       neededClasses.add(commonElements.listClass);
     }
 

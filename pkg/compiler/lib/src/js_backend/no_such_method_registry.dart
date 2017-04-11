@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
+import '../common_elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../types/types.dart';
 import '../tree/tree.dart';
-import 'backend_helpers.dart';
 
 /**
  * Categorizes `noSuchMethod` implementations.
@@ -69,10 +69,10 @@ class NoSuchMethodRegistry {
   /// The implementations that have not yet been categorized.
   final Set<FunctionEntity> _uncategorizedImpls = new Set<FunctionEntity>();
 
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
   final NoSuchMethodResolver _resolver;
 
-  NoSuchMethodRegistry(this._helpers, this._resolver);
+  NoSuchMethodRegistry(this._commonElements, this._resolver);
 
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
@@ -146,7 +146,7 @@ class NoSuchMethodRegistry {
       notApplicableImpls.add(element);
       return NsmCategory.NOT_APPLICABLE;
     }
-    if (_helpers.isDefaultNoSuchMethodImplementation(element)) {
+    if (_commonElements.isDefaultNoSuchMethodImplementation(element)) {
       defaultImpls.add(element);
       return NsmCategory.DEFAULT;
     } else if (_resolver.hasForwardingSyntax(element)) {

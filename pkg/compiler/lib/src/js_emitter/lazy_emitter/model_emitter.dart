@@ -210,7 +210,7 @@ class ModelEmitter {
         'callName': js.string(namer.callNameField)
       }),
       'cyclicThrow': backend.emitter
-          .staticFunctionAccess(backend.helpers.cyclicThrowHelper),
+          .staticFunctionAccess(backend.commonElements.cyclicThrowHelper),
       'outputContainsConstantList': program.outputContainsConstantList,
       'embeddedGlobals': emitEmbeddedGlobals(program),
       'readMetadataTypeFunction': readMetadataTypeFunction,
@@ -1025,7 +1025,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
       };
     } else {
       // Parse the tear off information and generate compile handlers.
-      // TODO(herhut): Share parser with instance methods.      
+      // TODO(herhut): Share parser with instance methods.
       function compileAllStubs(typesOffset) {
         var funs;
         var fun = compile(name, descriptor[0]);
@@ -1048,7 +1048,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
           if (typeof reflectionInfo == "number") {
             reflectionInfo = reflectionInfo + typesOffset;
           }
-          holder[descriptor[2]] = 
+          holder[descriptor[2]] =
               tearOff(funs, reflectionInfo, true, name, false);
         }
         if (pos < descriptor.length) {

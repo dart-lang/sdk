@@ -22,8 +22,7 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'common_elements.dart'
-    show CommonElements, CommonElementsImpl, ElementEnvironment;
+import 'common_elements.dart' show CommonElements, ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -88,7 +87,7 @@ abstract class Compiler {
 
   final IdGenerator idGenerator = new IdGenerator();
   Types types;
-  CommonElementsImpl _commonElements;
+  CommonElements _commonElements;
   _CompilerElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
@@ -197,7 +196,7 @@ abstract class Compiler {
     }
     _resolution = createResolution();
     _elementEnvironment = new _CompilerElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _commonElements = new CommonElements(_elementEnvironment);
     types = new Types(_resolution);
 
     if (options.verbose) {

@@ -9,7 +9,6 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
@@ -19,8 +18,6 @@ class MainCallStubGenerator {
   final CodeEmitterTask emitterTask;
 
   MainCallStubGenerator(this.backend, this.emitterTask);
-
-  BackendHelpers get helpers => backend.helpers;
 
   /// Returns the code equivalent to:
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
@@ -37,7 +34,7 @@ class MainCallStubGenerator {
   jsAst.Statement generateInvokeMain(FunctionEntity main) {
     jsAst.Expression mainCallClosure = null;
     if (backend.backendUsage.isIsolateInUse) {
-      FunctionEntity isolateMain = helpers.startRootIsolate;
+      FunctionEntity isolateMain = backend.commonElements.startRootIsolate;
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);
     } else {
       mainCallClosure = emitterTask.staticFunctionAccess(main);

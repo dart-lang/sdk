@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
-import '../js_backend/backend_helpers.dart';
 import '../options.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -19,11 +19,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   final GlobalTypeInferenceResults results;
   final CompilerOptions options;
-  final BackendHelpers helpers;
+  final CommonElements commonElements;
   final ClosedWorld closedWorld;
   String get name => 'type propagator';
 
-  SsaTypePropagator(this.results, this.options, this.helpers, this.closedWorld);
+  SsaTypePropagator(
+      this.results, this.options, this.commonElements, this.closedWorld);
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -285,7 +286,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         TypeMask type = new TypeMask.nonNullSubclass(cls, closedWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
-        if (!type.satisfies(helpers.jsIndexableClass, closedWorld) &&
+        if (!type.satisfies(commonElements.jsIndexableClass, closedWorld) &&
             !type.containsOnlyNum(closedWorld) &&
             !type.containsOnlyBool(closedWorld)) {
           return false;
@@ -418,7 +419,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    return instruction.specializer.computeTypeFromInputTypes(
-        instruction, results, options, helpers, closedWorld);
+    return instruction.specializer
+        .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 }

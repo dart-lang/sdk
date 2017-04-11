@@ -23,7 +23,7 @@ import '../elements/entities.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
@@ -707,7 +707,8 @@ class SsaBuilder extends ast.Visitor
           parameters.values.where((p) => p.instructionType.isEmpty);
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
-        pushInvokeStatic(function.body, helpers.assertUnreachableMethod, []);
+        pushInvokeStatic(
+            function.body, commonElements.assertUnreachableMethod, []);
         pop();
         return closeFunction();
       }
@@ -1434,24 +1435,24 @@ class SsaBuilder extends ast.Visitor
 
   insertTraceCall(Element element) {
     if (JavaScriptBackend.TRACE_METHOD == 'console') {
-      if (element == helpers.traceHelper) return;
+      if (element == commonElements.traceHelper) return;
       n(e) => e == null ? '' : e.name;
       String name = "${n(element.library)}:${n(element.enclosingClass)}."
           "${n(element)}";
       HConstant nameConstant = addConstantString(name);
-      add(new HInvokeStatic(helpers.traceHelper, <HInstruction>[nameConstant],
-          commonMasks.dynamicType));
+      add(new HInvokeStatic(commonElements.traceHelper,
+          <HInstruction>[nameConstant], commonMasks.dynamicType));
     }
   }
 
   insertCoverageCall(Element element) {
     if (JavaScriptBackend.TRACE_METHOD == 'post') {
-      if (element == helpers.traceHelper) return;
+      if (element == commonElements.traceHelper) return;
       // TODO(sigmund): create a better uuid for elements.
       HConstant idConstant =
           graph.addConstantInt(element.hashCode, closedWorld);
       HConstant nameConstant = addConstantString(element.name);
-      add(new HInvokeStatic(helpers.traceHelper,
+      add(new HInvokeStatic(commonElements.traceHelper,
           <HInstruction>[idConstant, nameConstant], commonMasks.dynamicType));
     }
   }
@@ -1464,7 +1465,7 @@ class SsaBuilder extends ast.Visitor
         localsHandler.substInContext(supertype), sourceElement);
     HInstruction messageInstruction = graph.addConstantString(
         new ast.DartString.literal(message), closedWorld);
-    MethodElement element = helpers.assertIsSubtype;
+    MethodElement element = commonElements.assertIsSubtype;
     var inputs = <HInstruction>[
       subtypeInstruction,
       supertypeInstruction,
@@ -1529,7 +1530,7 @@ class SsaBuilder extends ast.Visitor
       //     assertHelper(condition);
       //
       visit(node.condition);
-      pushInvokeStatic(node, helpers.assertHelper, [pop()]);
+      pushInvokeStatic(node, commonElements.assertHelper, [pop()]);
       pop();
       return;
     }
@@ -1539,12 +1540,12 @@ class SsaBuilder extends ast.Visitor
     //
     void buildCondition() {
       visit(node.condition);
-      pushInvokeStatic(node, helpers.assertTest, [pop()]);
+      pushInvokeStatic(node, commonElements.assertTest, [pop()]);
     }
 
     void fail() {
       visit(node.message);
-      pushInvokeStatic(node, helpers.assertThrow, [pop()]);
+      pushInvokeStatic(node, commonElements.assertThrow, [pop()]);
       pop();
     }
 
@@ -2027,7 +2028,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction loadIdConstant = addConstantString(loadId);
     String uri = prefixElement.deferredImport.uri.toString();
     HInstruction uriConstant = addConstantString(uri);
-    MethodElement helper = helpers.checkDeferredIsLoaded;
+    MethodElement helper = commonElements.checkDeferredIsLoaded;
     pushInvokeStatic(location, helper, [loadIdConstant, uriConstant]);
     pop();
   }
@@ -2393,21 +2394,21 @@ class SsaBuilder extends ast.Visitor
         expression,
         representation,
       ];
-      pushInvokeStatic(node, helpers.functionTypeTest, inputs,
+      pushInvokeStatic(node, commonElements.functionTypeTest, inputs,
           typeMask: commonMasks.boolType);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, commonMasks.boolType);
     } else if (type.isTypeVariable) {
       HInstruction runtimeType =
           typeBuilder.addTypeVariableReference(type, sourceElement);
-      MethodElement helper = helpers.checkSubtypeOfRuntimeType;
+      MethodElement helper = commonElements.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs, typeMask: commonMasks.boolType);
       HInstruction call = pop();
       return new HIs.variable(type, expression, call, commonMasks.boolType);
     } else if (RuntimeTypesSubstitutions.hasTypeArguments(type)) {
       ClassElement element = type.element;
-      MethodElement helper = helpers.checkSubtype;
+      MethodElement helper = commonElements.checkSubtype;
       HInstruction representations =
           typeBuilder.buildTypeArgumentRepresentations(type, sourceElement);
       add(representations);
@@ -2671,7 +2672,7 @@ class SsaBuilder extends ast.Visitor
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      MethodElement element = helpers.currentIsolate;
+      MethodElement element = commonElements.currentIsolate;
       if (element == null) {
         reporter.internalError(node, 'Isolate library and compiler mismatch.');
       }
@@ -2739,7 +2740,7 @@ class SsaBuilder extends ast.Visitor
     Element element = elements[argument];
     if (element == null ||
         element is! EnumConstantElement ||
-        element.enclosingClass != helpers.jsGetNameEnum) {
+        element.enclosingClass != commonElements.jsGetNameEnum) {
       reporter.reportErrorMessage(argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsGetName enum value.'});
     }
@@ -2760,7 +2761,7 @@ class SsaBuilder extends ast.Visitor
     Element builtinElement = elements[arguments[1]];
     if (builtinElement == null ||
         (builtinElement is! EnumConstantElement) ||
-        builtinElement.enclosingClass != helpers.jsBuiltinEnum) {
+        builtinElement.enclosingClass != commonElements.jsBuiltinEnum) {
       reporter.reportErrorMessage(argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
     }
@@ -2864,7 +2865,7 @@ class SsaBuilder extends ast.Visitor
           <HInstruction>[pop()], commonMasks.dynamicType));
     } else {
       // Call a helper method from the isolate library.
-      MethodElement element = helpers.callInIsolate;
+      MethodElement element = commonElements.callInIsolate;
       if (element == null) {
         reporter.internalError(node, 'Isolate library and compiler mismatch.');
       }
@@ -2940,7 +2941,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignSend(ast.Send node, FunctionElement element) {
     String name = element.name;
-    if (name == BackendHelpers.JS) {
+    if (name == JavaScriptBackend.JS) {
       handleForeignJs(node);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
       handleForeignJsCurrentIsolateContext(node);
@@ -2956,15 +2957,15 @@ class SsaBuilder extends ast.Visitor
       handleForeignJsGetStaticState(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
-    } else if (name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
+    } else if (name == JavaScriptBackend.JS_EMBEDDED_GLOBAL) {
       handleForeignJsEmbeddedGlobal(node);
-    } else if (name == BackendHelpers.JS_BUILTIN) {
+    } else if (name == JavaScriptBackend.JS_BUILTIN) {
       handleForeignJsBuiltin(node);
     } else if (name == 'JS_GET_FLAG') {
       handleForeignJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(closedWorld));
-    } else if (name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
+    } else if (name == JavaScriptBackend.JS_INTERCEPTOR_CONSTANT) {
       handleJsInterceptorConstant(node);
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
@@ -2977,7 +2978,7 @@ class SsaBuilder extends ast.Visitor
       SourceInformation sourceInformation) {
     // Until now we only handle these as getters.
     invariant(node, deferredLoader.isDeferredLoaderGetter);
-    FunctionEntity loadFunction = helpers.loadLibraryWrapper;
+    FunctionEntity loadFunction = commonElements.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
     String loadId =
         compiler.deferredLoadTask.getImportDeferName(node, prefixElement);
@@ -3015,7 +3016,8 @@ class SsaBuilder extends ast.Visitor
 
     js.Name internalName = namer.invocationName(selector);
 
-    MethodElement createInvocationMirror = helpers.createInvocationMirror;
+    MethodElement createInvocationMirror =
+        commonElements.createInvocationMirror;
     var argumentsInstruction = buildLiteralList(arguments);
     add(argumentsInstruction);
 
@@ -3245,7 +3247,7 @@ class SsaBuilder extends ast.Visitor
   HInstruction callSetRuntimeTypeInfo(
       HInstruction typeInfo, HInstruction newObject) {
     // Set the runtime type information on the object.
-    MethodElement typeInfoSetterElement = helpers.setRuntimeTypeInfo;
+    MethodElement typeInfoSetterElement = commonElements.setRuntimeTypeInfo;
     pushInvokeStatic(
         null, typeInfoSetterElement, <HInstruction>[newObject, typeInfo],
         typeMask: commonMasks.dynamicType,
@@ -3319,14 +3321,15 @@ class SsaBuilder extends ast.Visitor
 
     final bool isSymbolConstructor =
         closedWorld.commonElements.isSymbolConstructor(constructorDeclaration);
-    final bool isJSArrayTypedConstructor =
-        constructorDeclaration == helpers.jsArrayTypedConstructor;
+    final bool isJSArrayTypedConstructor = constructorDeclaration ==
+        closedWorld.commonElements.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
-      constructor = helpers.symbolValidatedConstructor;
+      constructor = commonElements.symbolValidatedConstructor;
       assert(invariant(send, constructor != null,
           message: 'Constructor Symbol.validated is missing'));
-      callStructure = helpers.symbolValidatedConstructorSelector.callStructure;
+      callStructure =
+          commonElements.symbolValidatedConstructorSelector.callStructure;
       assert(invariant(send, callStructure != null,
           message: 'Constructor Symbol.validated is missing'));
     }
@@ -3753,9 +3756,9 @@ class SsaBuilder extends ast.Visitor
       ResolutionDartType type = localsHandler.substInContext(typeVariable);
       HInstruction value = typeBuilder.analyzeTypeArgument(type, sourceElement,
           sourceInformation: sourceInformationBuilder.buildGet(node));
-      pushInvokeStatic(node, helpers.runtimeTypeToString, [value],
+      pushInvokeStatic(node, commonElements.runtimeTypeToString, [value],
           typeMask: commonMasks.stringType);
-      pushInvokeStatic(node, helpers.createRuntimeType, [pop()]);
+      pushInvokeStatic(node, commonElements.createRuntimeType, [pop()]);
     }
   }
 
@@ -3796,17 +3799,17 @@ class SsaBuilder extends ast.Visitor
   }
 
   void generateRuntimeError(ast.Node node, String message) {
-    MethodElement helper = helpers.throwRuntimeError;
+    MethodElement helper = commonElements.throwRuntimeError;
     generateError(node, message, helper);
   }
 
   void generateTypeError(ast.Node node, String message) {
-    MethodElement helper = helpers.throwTypeError;
+    MethodElement helper = commonElements.throwTypeError;
     generateError(node, message, helper);
   }
 
   void generateAbstractClassInstantiationError(ast.Node node, String message) {
-    MethodElement helper = helpers.throwAbstractClassInstantiationError;
+    MethodElement helper = commonElements.throwAbstractClassInstantiationError;
     generateError(node, message, helper);
   }
 
@@ -3815,7 +3818,7 @@ class SsaBuilder extends ast.Visitor
       List<HInstruction> argumentValues,
       List<String> existingArguments,
       SourceInformation sourceInformation}) {
-    MethodElement helper = helpers.throwNoSuchMethod;
+    MethodElement helper = commonElements.throwNoSuchMethod;
     ConstantValue receiverConstant =
         constantSystem.createString(new ast.DartString.empty());
     HInstruction receiver = graph.addConstant(receiverConstant, closedWorld);
@@ -3930,10 +3933,10 @@ class SsaBuilder extends ast.Visitor
       bool isLength = selector.isGetter && selector.name == "length";
       if (isLength || selector.isIndex) {
         return closedWorld.isSubtypeOf(
-            element.enclosingClass, helpers.jsIndexableClass);
+            element.enclosingClass, commonElements.jsIndexableClass);
       } else if (selector.isIndexSet) {
         return closedWorld.isSubtypeOf(
-            element.enclosingClass, helpers.jsMutableIndexableClass);
+            element.enclosingClass, commonElements.jsMutableIndexableClass);
       } else {
         return false;
       }
@@ -3947,9 +3950,9 @@ class SsaBuilder extends ast.Visitor
       if (selector.isSetter) return true;
       if (selector.isIndex) return true;
       if (selector.isIndexSet) return true;
-      if (element == helpers.jsArrayAdd ||
-          element == helpers.jsArrayRemoveLast ||
-          element == helpers.jsStringSplit) {
+      if (element == commonElements.jsArrayAdd ||
+          element == commonElements.jsArrayRemoveLast ||
+          element == commonElements.jsStringSplit) {
         return true;
       }
       return false;
@@ -4065,7 +4068,7 @@ class SsaBuilder extends ast.Visitor
     if (!options.trustJSInteropTypeAnnotations ||
         type.isObject ||
         type.isDynamic) {
-      ClassElement cls = helpers.jsJavaScriptObjectClass;
+      ClassElement cls = commonElements.jsJavaScriptObjectClass;
       nativeBehavior.typesInstantiated.add(cls.thisType);
     }
 
@@ -5311,7 +5314,7 @@ class SsaBuilder extends ast.Visitor
 
     visit(node.expression);
     HInstruction expression = pop();
-    ConstructorElement constructor = helpers.streamIteratorConstructor;
+    ConstructorElement constructor = commonElements.streamIteratorConstructor;
     pushInvokeStatic(
         node, constructor, [expression, graph.addConstantNull(closedWorld)]);
     streamIterator = pop();
@@ -5379,9 +5382,9 @@ class SsaBuilder extends ast.Visitor
     TypeMask mask = elementInferenceResults.typeOfIterator(node);
 
     if (mask != null &&
-        mask.satisfies(helpers.jsIndexableClass, closedWorld) &&
+        mask.satisfies(commonElements.jsIndexableClass, closedWorld) &&
         // String is indexable but not iterable.
-        !mask.satisfies(helpers.jsStringClass, closedWorld)) {
+        !mask.satisfies(commonElements.jsStringClass, closedWorld)) {
       return buildSyncForInIndexable(node, mask);
     }
     buildSyncForInIterator(node);
@@ -5479,8 +5482,8 @@ class SsaBuilder extends ast.Visitor
       //
       HInstruction length = buildGetLength();
       push(new HIdentity(length, originalLength, null, boolType));
-      pushInvokeStatic(
-          node, helpers.checkConcurrentModificationError, [pop(), array]);
+      pushInvokeStatic(node, commonElements.checkConcurrentModificationError,
+          [pop(), array]);
       pop();
     }
 
@@ -5608,9 +5611,9 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = <HInstruction>[];
 
     if (listInputs.isEmpty) {
-      listConstructor = helpers.mapLiteralConstructorEmpty;
+      listConstructor = commonElements.mapLiteralConstructorEmpty;
     } else {
-      listConstructor = helpers.mapLiteralConstructor;
+      listConstructor = commonElements.mapLiteralConstructor;
       HLiteralList keyValuePairs = buildLiteralList(listInputs);
       add(keyValuePairs);
       inputs.add(keyValuePairs);
@@ -5640,9 +5643,9 @@ class SsaBuilder extends ast.Visitor
       // in the output.
       if (typeInputs.every((HInstruction input) => input.isNull())) {
         if (listInputs.isEmpty) {
-          createFunction = helpers.mapLiteralUntypedEmptyMaker;
+          createFunction = commonElements.mapLiteralUntypedEmptyMaker;
         } else {
-          createFunction = helpers.mapLiteralUntypedMaker;
+          createFunction = commonElements.mapLiteralUntypedMaker;
         }
       } else {
         inputs.addAll(typeInputs);
@@ -5658,8 +5661,8 @@ class SsaBuilder extends ast.Visitor
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
-    TypeMask mapType =
-        new TypeMask.nonNullSubtype(helpers.mapLiteralClass, closedWorld);
+    TypeMask mapType = new TypeMask.nonNullSubtype(
+        commonElements.mapLiteralClass, closedWorld);
     TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
         createFunction, globalInferenceResults);
     TypeMask instructionType =
@@ -5966,7 +5969,7 @@ class SsaBuilder extends ast.Visitor
       buildSwitchCase(switchCase);
       if (!isAborted()) {
         if (caseIterator.hasNext && isReachable) {
-          pushInvokeStatic(switchCase, helpers.fallThroughError, []);
+          pushInvokeStatic(switchCase, commonElements.fallThroughError, []);
           HInstruction error = pop();
           closeAndGotoExit(new HThrow(error, error.sourceInformation));
         } else if (!isDefaultCase(switchCase)) {
@@ -6186,7 +6189,7 @@ class SsaBuilder extends ast.Visitor
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
 
-      pushInvokeStatic(node, helpers.exceptionUnwrapper, [exception]);
+      pushInvokeStatic(node, commonElements.exceptionUnwrapper, [exception]);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
       Link<ast.Node> link = node.catchBlocks.nodes;
@@ -6231,7 +6234,8 @@ class SsaBuilder extends ast.Visitor
         }
         ast.Node trace = catchBlock.trace;
         if (trace != null) {
-          pushInvokeStatic(trace, helpers.traceFromException, [exception]);
+          pushInvokeStatic(
+              trace, commonElements.traceFromException, [exception]);
           HInstruction traceInstruction = pop();
           LocalVariableElement traceVariable = elements[trace];
           localsHandler.updateLocal(traceVariable, traceInstruction);

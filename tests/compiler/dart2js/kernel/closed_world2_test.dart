@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,7 +22,6 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/js_backend/backend_helpers.dart';
 import 'package:compiler/src/js_backend/backend_impact.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/custom_elements_analysis.dart';
@@ -102,9 +101,7 @@ List createKernelResolutionEnqueuerListener(CompilerOptions options,
     DeferredLoadTask deferredLoadTask, KernelWorldBuilder worldBuilder) {
   ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
   CommonElements commonElements = worldBuilder.commonElements;
-  BackendHelpers helpers =
-      new BackendHelpers(elementEnvironment, commonElements);
-  BackendImpacts impacts = new BackendImpacts(options, commonElements, helpers);
+  BackendImpacts impacts = new BackendImpacts(options, commonElements);
 
   // TODO(johnniwinther): Create Kernel based implementations for these:
   NativeBasicData nativeBasicData = new NativeBasicDataImpl();
@@ -118,20 +115,19 @@ List createKernelResolutionEnqueuerListener(CompilerOptions options,
       new MirrorsResolutionAnalysisImpl();
 
   BackendClasses backendClasses = new JavaScriptBackendClasses(
-      elementEnvironment, helpers, nativeBasicData);
+      elementEnvironment, commonElements, nativeBasicData);
   InterceptorDataBuilder interceptorDataBuilder =
       new InterceptorDataBuilderImpl(
-          nativeBasicData, helpers, elementEnvironment, commonElements);
+          nativeBasicData, elementEnvironment, commonElements);
   BackendUsageBuilder backendUsageBuilder =
-      new BackendUsageBuilderImpl(commonElements, helpers);
+      new BackendUsageBuilderImpl(commonElements);
   NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
-      helpers, new KernelNoSuchMethodResolver(worldBuilder));
+      commonElements, new KernelNoSuchMethodResolver(worldBuilder));
   NativeResolutionEnqueuer nativeResolutionEnqueuer =
       new NativeResolutionEnqueuer(
           options,
           elementEnvironment,
           commonElements,
-          helpers,
           backendClasses,
           backendUsageBuilder,
           new KernelNativeClassResolver(worldBuilder));
@@ -140,7 +136,6 @@ List createKernelResolutionEnqueuerListener(CompilerOptions options,
       options,
       elementEnvironment,
       commonElements,
-      helpers,
       impacts,
       backendClasses,
       nativeBasicData,
@@ -216,7 +211,6 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       ClosedWorld closedWorld,
       DartTypes types,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendUsage backendUsage,
       {bool enableTypeAssertions}) {
     throw new UnimplementedError(

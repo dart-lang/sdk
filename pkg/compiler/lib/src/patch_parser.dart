@@ -411,7 +411,7 @@ class PatchAnnotationHandler extends EagerAnnotationHandler<PatchVersion> {
     ResolutionDartType annotationType =
         constant.getType(compiler.commonElements);
     if (annotationType.element !=
-        compiler.backend.helpers.patchAnnotationClass) {
+        compiler.commonElements.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid patch annotation.');
     }

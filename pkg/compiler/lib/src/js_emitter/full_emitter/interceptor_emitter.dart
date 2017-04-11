@@ -49,7 +49,8 @@ class InterceptorEmitter extends CodeEmitterHelper {
       Set<ClassEntity> classes =
           backend.oneShotInterceptorData.getSpecializedGetInterceptorsFor(name);
       parts.add(js.statement('#.# = #', [
-        namer.globalObjectForLibrary(backend.helpers.interceptorsLibrary),
+        namer
+            .globalObjectForLibrary(backend.commonElements.interceptorsLibrary),
         name,
         buildGetInterceptorMethod(name, classes)
       ]));
@@ -65,8 +66,8 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend, closedWorld);
-    String globalObject =
-        namer.globalObjectForLibrary(backend.helpers.interceptorsLibrary);
+    String globalObject = namer
+        .globalObjectForLibrary(backend.commonElements.interceptorsLibrary);
     for (jsAst.Name name in names) {
       jsAst.Expression function =
           stubGenerator.generateOneShotInterceptor(name);

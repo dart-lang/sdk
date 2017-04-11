@@ -60,7 +60,6 @@ import '../universe/world_impact.dart'
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'annotations.dart';
-import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'backend_usage.dart';
@@ -304,6 +303,11 @@ enum SyntheticConstantKind {
 }
 
 class JavaScriptBackend {
+  static const String JS = 'JS';
+  static const String JS_BUILTIN = 'JS_BUILTIN';
+  static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
+  static const String JS_INTERCEPTOR_CONSTANT = 'JS_INTERCEPTOR_CONSTANT';
+
   final Compiler compiler;
 
   String get patchVersion => emitter.patchVersion;
@@ -317,7 +321,7 @@ class JavaScriptBackend {
   /// otherwise visible during resolution.
   Iterable<ClassEntity> get classesRequiredForReflection {
     // TODO(herhut): Clean this up when classes needed for rti are tracked.
-    return [helpers.closureClass, helpers.jsIndexableClass];
+    return [commonElements.closureClass, commonElements.jsIndexableClass];
   }
 
   FunctionCompiler functionCompiler;
@@ -444,7 +448,6 @@ class JavaScriptBackend {
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
-  BackendHelpers helpers;
   BackendImpacts impacts;
 
   /// Common classes used by the backend.
@@ -497,12 +500,11 @@ class JavaScriptBackend {
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
     _target = new JavaScriptBackendTarget(this);
-    helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
-    impacts = new BackendImpacts(compiler.options, commonElements, helpers);
+    impacts = new BackendImpacts(compiler.options, commonElements);
     _mirrorsData = new MirrorsDataImpl(
-        compiler, compiler.options, commonElements, helpers, constants);
-    _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements, helpers);
-    _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
+        compiler, compiler.options, commonElements, constants);
+    _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
+    _checkedModeHelpers = new CheckedModeHelpers(commonElements);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
 
@@ -514,8 +516,8 @@ class JavaScriptBackend {
     lookupMapResolutionAnalysis =
         new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
 
-    noSuchMethodRegistry =
-        new NoSuchMethodRegistry(helpers, new NoSuchMethodResolverImpl());
+    noSuchMethodRegistry = new NoSuchMethodRegistry(
+        commonElements, new NoSuchMethodResolverImpl());
     kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler =
@@ -693,11 +695,12 @@ class JavaScriptBackend {
     });
   }
 
-  bool isForeign(Element element) => element.library == helpers.foreignLibrary;
+  bool isForeign(Element element) =>
+      element.library == commonElements.foreignLibrary;
 
   bool isBackendLibrary(LibraryElement library) {
-    return library == helpers.interceptorsLibrary ||
-        library == helpers.jsHelperLibrary;
+    return library == commonElements.interceptorsLibrary ||
+        library == compiler.commonElements.jsHelperLibrary;
   }
 
   Namer determineNamer(
@@ -705,10 +708,9 @@ class JavaScriptBackend {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
             ? new FrequencyBasedNamer(
-                helpers, nativeData, closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(
-                helpers, nativeData, closedWorld, codegenWorldBuilder)
-        : new Namer(helpers, nativeData, closedWorld, codegenWorldBuilder);
+                nativeData, closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(nativeData, closedWorld, codegenWorldBuilder)
+        : new Namer(nativeData, closedWorld, codegenWorldBuilder);
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -737,8 +739,10 @@ class JavaScriptBackend {
   /// Maps compile-time classes to their runtime class.  The runtime class is
   /// always a superclass or the class itself.
   ClassElement getRuntimeClass(ClassElement class_) {
-    if (class_.isSubclassOf(helpers.jsIntClass)) return helpers.jsIntClass;
-    if (class_.isSubclassOf(helpers.jsArrayClass)) return helpers.jsArrayClass;
+    if (class_.isSubclassOf(commonElements.jsIntClass))
+      return commonElements.jsIntClass;
+    if (class_.isSubclassOf(commonElements.jsArrayClass))
+      return commonElements.jsArrayClass;
     return class_;
   }
 
@@ -766,11 +770,17 @@ class JavaScriptBackend {
   }
 
   void onResolutionStart(ResolutionEnqueuer enqueuer) {
-    helpers.onResolutionStart();
+    // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
+    // calls. Currently needed to ensure resolution of the classes for various
+    // queries in native behavior computation, inference and codegen.
+    compiler.elementEnvironment.getThisType(commonElements.jsArrayClass);
+    compiler.elementEnvironment
+        .getThisType(commonElements.jsExtendableArrayClass);
 
-    validateInterceptorImplementsAllObjectMethods(helpers.jsInterceptorClass);
+    validateInterceptorImplementsAllObjectMethods(
+        commonElements.jsInterceptorClass);
     // The null-interceptor must also implement *all* methods.
-    validateInterceptorImplementsAllObjectMethods(helpers.jsNullClass);
+    validateInterceptorImplementsAllObjectMethods(commonElements.jsNullClass);
   }
 
   void onResolutionComplete(
@@ -786,12 +796,11 @@ class JavaScriptBackend {
         closedWorld,
         compiler.types,
         commonElements,
-        helpers,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
     _interceptorData = interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
-        new OneShotInterceptorData(interceptorData, helpers);
+        new OneShotInterceptorData(interceptorData, commonElements);
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
@@ -802,13 +811,13 @@ class JavaScriptBackend {
   /// Called when resolving a call to a foreign function.
   native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
-    if (element.name == BackendHelpers.JS) {
+    if (element.name == JS) {
       return _nativeDataResolver.resolveJsCall(node, resolver);
-    } else if (element.name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
+    } else if (element.name == JS_EMBEDDED_GLOBAL) {
       return _nativeDataResolver.resolveJsEmbeddedGlobalCall(node, resolver);
-    } else if (element.name == BackendHelpers.JS_BUILTIN) {
+    } else if (element.name == JS_BUILTIN) {
       return _nativeDataResolver.resolveJsBuiltinCall(node, resolver);
-    } else if (element.name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
+    } else if (element.name == JS_INTERCEPTOR_CONSTANT) {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
       // native class dispatch record referencing the interceptor.
@@ -836,23 +845,21 @@ class JavaScriptBackend {
     _nativeBasicData =
         nativeBasicDataBuilder.close(compiler.elementEnvironment);
     _backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, helpers, nativeBasicData);
+        compiler.elementEnvironment, commonElements, nativeBasicData);
     _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
-        helpers,
         backendClasses,
         backendUsageBuilder,
         new NativeClassResolverImpl(
-            compiler.resolution, reporter, helpers, nativeBasicData));
+            compiler.resolution, reporter, commonElements, nativeBasicData));
     _nativeData = new NativeDataImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
         compiler.resolution,
         constantSystem,
         commonElements,
         backendClasses,
-        helpers,
         nativeBasicData,
         backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
@@ -867,7 +874,7 @@ class JavaScriptBackend {
         customElementsResolutionAnalysis,
         rtiNeedBuilder);
     _interceptorDataBuilder = new InterceptorDataBuilderImpl(
-        nativeBasicData, helpers, compiler.elementEnvironment, commonElements);
+        nativeBasicData, compiler.elementEnvironment, commonElements);
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -879,7 +886,6 @@ class JavaScriptBackend {
             compiler.options,
             compiler.elementEnvironment,
             commonElements,
-            helpers,
             impacts,
             backendClasses,
             nativeBasicData,
@@ -904,14 +910,13 @@ class JavaScriptBackend {
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
-        compiler.elementEnvironment, this, helpers, mirrorsData);
+        compiler.elementEnvironment, this, commonElements, mirrorsData);
     _lookupMapAnalysis = new LookupMapAnalysis(
         reporter,
         constantSystem,
         constants,
         compiler.elementEnvironment,
         commonElements,
-        helpers,
         backendClasses,
         lookupMapResolutionAnalysis);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
@@ -920,13 +925,11 @@ class JavaScriptBackend {
         constantSystem,
         commonElements,
         backendClasses,
-        helpers,
         nativeBasicData);
     _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
-        helpers,
         backendClasses,
         emitter,
         _nativeResolutionEnqueuer,
@@ -941,7 +944,6 @@ class JavaScriptBackend {
         new CodegenEnqueuerListener(
             compiler.elementEnvironment,
             commonElements,
-            helpers,
             impacts,
             backendClasses,
             backendUsage,
@@ -973,7 +975,7 @@ class JavaScriptBackend {
       return const WorldImpact();
     }
     if (element.isConstructor &&
-        element.enclosingClass == helpers.jsNullClass) {
+        element.enclosingClass == commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
       return const CodegenImpact();
     }
@@ -1007,7 +1009,7 @@ class JavaScriptBackend {
         // the static variable.
         // We also need to register the use of the cyclic-error helper.
         work.registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
-            helpers.cyclicThrowHelper, CallStructure.ONE_ARG));
+            commonElements.cyclicThrowHelper, CallStructure.ONE_ARG));
       }
     }
 
@@ -1032,11 +1034,11 @@ class JavaScriptBackend {
 
   ClassElement defaultSuperclass(ClassElement element) {
     if (nativeBasicData.isJsInteropClass(element)) {
-      return helpers.jsJavaScriptObjectClass;
+      return commonElements.jsJavaScriptObjectClass;
     }
     // Native classes inherit from Interceptor.
     return nativeBasicData.isNativeClass(element)
-        ? helpers.jsInterceptorClass
+        ? commonElements.jsInterceptorClass
         : commonElements.objectClass;
   }
 
@@ -1103,11 +1105,11 @@ class JavaScriptBackend {
         element == commonElements.numClass ||
         element == commonElements.intClass ||
         element == commonElements.doubleClass ||
-        element == helpers.jsArrayClass ||
-        element == helpers.jsMutableArrayClass ||
-        element == helpers.jsExtendableArrayClass ||
-        element == helpers.jsFixedArrayClass ||
-        element == helpers.jsUnmodifiableArrayClass;
+        element == commonElements.jsArrayClass ||
+        element == commonElements.jsMutableArrayClass ||
+        element == commonElements.jsExtendableArrayClass ||
+        element == commonElements.jsFixedArrayClass ||
+        element == commonElements.jsUnmodifiableArrayClass;
   }
 
   /// This method is called immediately after the [library] and its parts have
@@ -1137,16 +1139,18 @@ class JavaScriptBackend {
   /// have been computed.
   void onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     if (loadedLibraries.containsLibrary(Uris.dart_core)) {
-      helpers.onLibrariesLoaded(loadedLibraries);
+      assert(loadedLibraries.containsLibrary(Uris.dart_core));
+      assert(loadedLibraries.containsLibrary(Uris.dart__interceptors));
+      assert(loadedLibraries.containsLibrary(Uris.dart__js_helper));
 
       // These methods are overwritten with generated versions.
-      inlineCache.markAsNonInlinable(helpers.getInterceptorMethod,
+      inlineCache.markAsNonInlinable(commonElements.getInterceptorMethod,
           insideLoop: true);
 
       specialOperatorEqClasses
         ..add(commonElements.objectClass)
-        ..add(helpers.jsInterceptorClass)
-        ..add(helpers.jsNullClass);
+        ..add(commonElements.jsInterceptorClass)
+        ..add(commonElements.jsNullClass);
     }
   }
 
@@ -1163,7 +1167,7 @@ class JavaScriptBackend {
         new jsAst.PropertyAccess(use2, dispatchProperty);
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
-    MethodElement helper = helpers.isJsIndexable;
+    MethodElement helper = commonElements.isJsIndexable;
     jsAst.Expression helperExpression = emitter.staticFunctionAccess(helper);
     return new jsAst.Call(helperExpression, arguments);
   }
@@ -1195,12 +1199,12 @@ class JavaScriptBackend {
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
     emitter.createEmitter(namer, closedWorld);
-    _rtiEncoder =
-        _namer.rtiEncoder = new _RuntimeTypesEncoder(namer, emitter, helpers);
+    _rtiEncoder = _namer.rtiEncoder =
+        new _RuntimeTypesEncoder(namer, emitter, commonElements);
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,
-        helpers,
+        commonElements,
         impacts,
         checkedModeHelpers,
         nativeData,
@@ -1230,8 +1234,8 @@ class JavaScriptBackend {
 
   bool isTargetSpecificLibrary(LibraryElement library) {
     Uri canonicalUri = library.canonicalUri;
-    if (canonicalUri == BackendHelpers.DART_JS_HELPER ||
-        canonicalUri == BackendHelpers.DART_INTERCEPTORS) {
+    if (canonicalUri == Uris.dart__js_helper ||
+        canonicalUri == Uris.dart__interceptors) {
       return true;
     }
     return false;
@@ -1266,21 +1270,21 @@ class JavaScriptBackend {
       if (!constantValue.isConstructedObject) continue;
       ObjectConstantValue value = constantValue;
       ClassElement cls = value.type.element;
-      if (cls == helpers.forceInlineClass) {
+      if (cls == commonElements.forceInlineClass) {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Must inline"});
         }
         inlineCache.markAsMustInline(element);
-      } else if (cls == helpers.noInlineClass) {
+      } else if (cls == commonElements.noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Cannot inline"});
         }
         inlineCache.markAsNonInlinable(element);
-      } else if (cls == helpers.noThrowsClass) {
+      } else if (cls == commonElements.noThrowsClass) {
         hasNoThrows = true;
         if (!Elements.isStaticOrTopLevelFunction(element) &&
             !element.isFactoryConstructor) {
@@ -1294,7 +1298,7 @@ class JavaScriptBackend {
               element, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
         closedWorldRefiner.registerCannotThrow(element);
-      } else if (cls == helpers.noSideEffectsClass) {
+      } else if (cls == commonElements.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
@@ -1317,11 +1321,11 @@ class JavaScriptBackend {
     }
   }
 
-  MethodElement helperForBadMain() => helpers.badMain;
+  MethodElement helperForBadMain() => commonElements.badMain;
 
-  MethodElement helperForMissingMain() => helpers.missingMain;
+  MethodElement helperForMissingMain() => commonElements.missingMain;
 
-  MethodElement helperForMainArity() => helpers.mainHasTooManyParameters;
+  MethodElement helperForMainArity() => commonElements.mainHasTooManyParameters;
 
   /// Returns the filename for the output-unit named [name].
   ///
@@ -1352,39 +1356,41 @@ class JavaScriptBackend {
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
         rewriter = new AsyncRewriter(reporter, element,
-            asyncHelper: emitter.staticFunctionAccess(helpers.asyncHelper),
-            wrapBody: emitter.staticFunctionAccess(helpers.wrapBody),
-            newCompleter:
-                emitter.staticFunctionAccess(helpers.syncCompleterConstructor),
+            asyncHelper:
+                emitter.staticFunctionAccess(commonElements.asyncHelper),
+            wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
+            newCompleter: emitter
+                .staticFunctionAccess(commonElements.syncCompleterConstructor),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             bodyName: namer.deriveAsyncBodyName(name));
         break;
       case AsyncMarker.SYNC_STAR:
         rewriter = new SyncStarRewriter(reporter, element,
             endOfIteration:
-                emitter.staticFunctionAccess(helpers.endOfIteration),
-            newIterable: emitter
-                .staticFunctionAccess(helpers.syncStarIterableConstructor),
+                emitter.staticFunctionAccess(commonElements.endOfIteration),
+            newIterable: emitter.staticFunctionAccess(
+                commonElements.syncStarIterableConstructor),
             yieldStarExpression:
-                emitter.staticFunctionAccess(helpers.yieldStar),
-            uncaughtErrorExpression:
-                emitter.staticFunctionAccess(helpers.syncStarUncaughtError),
+                emitter.staticFunctionAccess(commonElements.yieldStar),
+            uncaughtErrorExpression: emitter
+                .staticFunctionAccess(commonElements.syncStarUncaughtError),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             bodyName: namer.deriveAsyncBodyName(name));
         break;
       case AsyncMarker.ASYNC_STAR:
         rewriter = new AsyncStarRewriter(reporter, element,
             asyncStarHelper:
-                emitter.staticFunctionAccess(helpers.asyncStarHelper),
+                emitter.staticFunctionAccess(commonElements.asyncStarHelper),
             streamOfController:
-                emitter.staticFunctionAccess(helpers.streamOfController),
-            wrapBody: emitter.staticFunctionAccess(helpers.wrapBody),
-            newController: emitter
-                .staticFunctionAccess(helpers.asyncStarControllerConstructor),
+                emitter.staticFunctionAccess(commonElements.streamOfController),
+            wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
+            newController: emitter.staticFunctionAccess(
+                commonElements.asyncStarControllerConstructor),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-            yieldExpression: emitter.staticFunctionAccess(helpers.yieldSingle),
+            yieldExpression:
+                emitter.staticFunctionAccess(commonElements.yieldSingle),
             yieldStarExpression:
-                emitter.staticFunctionAccess(helpers.yieldStar),
+                emitter.staticFunctionAccess(commonElements.yieldStar),
             bodyName: namer.deriveAsyncBodyName(name));
         break;
       default:
@@ -1467,47 +1473,50 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
   }
 }
 
+// TODO(efortuna): Merge with commonElements.
 class JavaScriptBackendClasses implements BackendClasses {
   final ElementEnvironment _env;
-  final BackendHelpers helpers;
+  final CommonElements _commonElements;
   final NativeBasicData _nativeData;
 
-  JavaScriptBackendClasses(this._env, this.helpers, this._nativeData);
+  JavaScriptBackendClasses(this._env, this._commonElements, this._nativeData);
 
-  ClassEntity get intClass => helpers.jsIntClass;
-  ClassEntity get uint32Class => helpers.jsUInt32Class;
-  ClassEntity get uint31Class => helpers.jsUInt31Class;
-  ClassEntity get positiveIntClass => helpers.jsPositiveIntClass;
-  ClassEntity get doubleClass => helpers.jsDoubleClass;
-  ClassEntity get numClass => helpers.jsNumberClass;
-  ClassEntity get stringClass => helpers.jsStringClass;
-  ClassEntity get listClass => helpers.jsArrayClass;
-  ClassEntity get mutableListClass => helpers.jsMutableArrayClass;
-  ClassEntity get constListClass => helpers.jsUnmodifiableArrayClass;
-  ClassEntity get fixedListClass => helpers.jsFixedArrayClass;
-  ClassEntity get growableListClass => helpers.jsExtendableArrayClass;
-  ClassEntity get mapClass => helpers.mapLiteralClass;
-  ClassEntity get constMapClass => helpers.constMapLiteralClass;
-  ClassEntity get typeClass => helpers.typeLiteralClass;
+  ClassEntity get intClass => _commonElements.jsIntClass;
+  ClassEntity get uint32Class => _commonElements.jsUInt32Class;
+  ClassEntity get uint31Class => _commonElements.jsUInt31Class;
+  ClassEntity get positiveIntClass => _commonElements.jsPositiveIntClass;
+  ClassEntity get doubleClass => _commonElements.jsDoubleClass;
+  ClassEntity get numClass => _commonElements.jsNumberClass;
+  ClassEntity get stringClass => _commonElements.jsStringClass;
+  ClassEntity get listClass => _commonElements.jsArrayClass;
+  ClassEntity get mutableListClass => _commonElements.jsMutableArrayClass;
+  ClassEntity get constListClass => _commonElements.jsUnmodifiableArrayClass;
+  ClassEntity get fixedListClass => _commonElements.jsFixedArrayClass;
+  ClassEntity get growableListClass => _commonElements.jsExtendableArrayClass;
+  ClassEntity get mapClass => _commonElements.mapLiteralClass;
+  ClassEntity get constMapClass => _commonElements.constMapLiteralClass;
+  ClassEntity get typeClass => _commonElements.typeLiteralClass;
   InterfaceType get typeType => _env.getRawType(typeClass);
 
-  ClassEntity get boolClass => helpers.jsBoolClass;
-  ClassEntity get nullClass => helpers.jsNullClass;
-  ClassEntity get syncStarIterableClass => helpers.syncStarIterable;
-  ClassEntity get asyncFutureClass => helpers.futureImplementation;
-  ClassEntity get asyncStarStreamClass => helpers.controllerStream;
-  ClassEntity get functionClass => helpers.commonElements.functionClass;
-  ClassEntity get indexableClass => helpers.jsIndexableClass;
-  ClassEntity get mutableIndexableClass => helpers.jsMutableIndexableClass;
-  ClassEntity get indexingBehaviorClass => helpers.jsIndexingBehaviorInterface;
-  ClassEntity get interceptorClass => helpers.jsInterceptorClass;
+  ClassEntity get boolClass => _commonElements.jsBoolClass;
+  ClassEntity get nullClass => _commonElements.jsNullClass;
+  ClassEntity get syncStarIterableClass => _commonElements.syncStarIterable;
+  ClassEntity get asyncFutureClass => _commonElements.futureImplementation;
+  ClassEntity get asyncStarStreamClass => _commonElements.controllerStream;
+  ClassEntity get functionClass => _commonElements.functionClass;
+  ClassEntity get indexableClass => _commonElements.jsIndexableClass;
+  ClassEntity get mutableIndexableClass =>
+      _commonElements.jsMutableIndexableClass;
+  ClassEntity get indexingBehaviorClass =>
+      _commonElements.jsIndexingBehaviorInterface;
+  ClassEntity get interceptorClass => _commonElements.jsInterceptorClass;
 
   bool isDefaultEqualityImplementation(MemberEntity element) {
     assert(element.name == '==');
     ClassEntity classElement = element.enclosingClass;
-    return classElement == helpers.commonElements.objectClass ||
-        classElement == helpers.jsInterceptorClass ||
-        classElement == helpers.jsNullClass;
+    return classElement == _commonElements.objectClass ||
+        classElement == _commonElements.jsInterceptorClass ||
+        classElement == _commonElements.jsNullClass;
   }
 
   @override
@@ -1519,9 +1528,9 @@ class JavaScriptBackendClasses implements BackendClasses {
       {bool hasProtoKey: false, bool onlyStringKeys: false}) {
     ClassEntity classElement = onlyStringKeys
         ? (hasProtoKey
-            ? helpers.constantProtoMapClass
-            : helpers.constantStringMapClass)
-        : helpers.generalConstantMapClass;
+            ? _commonElements.constantProtoMapClass
+            : _commonElements.constantStringMapClass)
+        : _commonElements.generalConstantMapClass;
     List<DartType> typeArgument = sourceType.typeArguments;
     if (sourceType.treatAsRaw) {
       return _env.getRawType(classElement);
@@ -1531,11 +1540,11 @@ class JavaScriptBackendClasses implements BackendClasses {
   }
 
   @override
-  FieldEntity get symbolField => helpers.symbolImplementationField;
+  FieldEntity get symbolField => _commonElements.symbolImplementationField;
 
   @override
   InterfaceType get symbolType {
-    return _env.getRawType(helpers.symbolImplementationClass);
+    return _env.getRawType(_commonElements.symbolImplementationClass);
   }
 }
 
@@ -1567,7 +1576,7 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isDefaultNoSuchMethod(MethodElement element) {
-    return _backend.helpers.isDefaultNoSuchMethodImplementation(element);
+    return _backend.commonElements.isDefaultNoSuchMethodImplementation(element);
   }
 
   @override

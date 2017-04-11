@@ -176,7 +176,7 @@ class NsmEmitter extends CodeEmitterHelper {
     // Object class to catch noSuchMethod invocations.
     ClassEntity objectClass = compiler.commonElements.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
-        .staticFunctionAccess(backend.helpers.createInvocationMirror);
+        .staticFunctionAccess(compiler.commonElements.createInvocationMirror);
     if (useDiffEncoding) {
       statements.add(js.statement(
           '''{

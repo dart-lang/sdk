@@ -584,7 +584,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
     // TODO(efortuna): Source information!
     push(new HInvokeStatic(
-        helpers.loadLibraryWrapper,
+        commonElements.loadLibraryWrapper,
         [
           graph.addConstantString(
               new DartString.literal(loadLibrary.import.name), closedWorld)

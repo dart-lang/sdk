@@ -15,8 +15,7 @@ import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../js_backend/backend_helpers.dart';
-import '../js_backend/js_backend.dart' as js;
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart' as op;
 import '../resolution/semantic_visitor.dart';
@@ -2511,9 +2510,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeMask mask = inTreeData.typeOfSend(node);
     String name = element.name;
     handleStaticSend(node, selector, mask, element, arguments);
-    if (name == BackendHelpers.JS ||
-        name == BackendHelpers.JS_EMBEDDED_GLOBAL ||
-        name == BackendHelpers.JS_BUILTIN) {
+    if (name == JavaScriptBackend.JS ||
+        name == JavaScriptBackend.JS_EMBEDDED_GLOBAL ||
+        name == JavaScriptBackend.JS_BUILTIN) {
       native.NativeBehavior nativeBehavior = elements.getNativeData(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
@@ -2920,8 +2919,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
-    js.JavaScriptBackend backend = compiler.backend;
-    ConstructorElement ctor = backend.helpers.streamIteratorConstructor;
+    ConstructorElement ctor = compiler.commonElements.streamIteratorConstructor;
 
     /// Synthesize a call to the [StreamIterator] constructor.
     TypeInformation iteratorType = handleStaticSend(

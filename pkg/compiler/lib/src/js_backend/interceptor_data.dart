@@ -13,7 +13,6 @@ import '../js/js.dart' as jsAst;
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart';
 import '../world.dart' show ClosedWorld;
-import 'backend_helpers.dart';
 import 'namer.dart';
 import 'native_data.dart';
 
@@ -49,7 +48,7 @@ abstract class InterceptorDataBuilder {
 
 class InterceptorDataImpl implements InterceptorData {
   final NativeBasicData _nativeData;
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
   final ClosedWorld _closedWorld;
 
   /// The members of instantiated interceptor classes: maps a member name to the
@@ -84,7 +83,7 @@ class InterceptorDataImpl implements InterceptorData {
 
   InterceptorDataImpl(
       this._nativeData,
-      this._helpers,
+      this._commonElements,
       this._closedWorld,
       this._interceptedElements,
       this._interceptedClasses,
@@ -139,13 +138,13 @@ class InterceptorDataImpl implements InterceptorData {
   /// True if the given class is an internal class used for type inference
   /// and never exists at runtime.
   bool _isCompileTimeOnlyClass(ClassEntity class_) {
-    return class_ == _helpers.jsPositiveIntClass ||
-        class_ == _helpers.jsUInt32Class ||
-        class_ == _helpers.jsUInt31Class ||
-        class_ == _helpers.jsFixedArrayClass ||
-        class_ == _helpers.jsUnmodifiableArrayClass ||
-        class_ == _helpers.jsMutableArrayClass ||
-        class_ == _helpers.jsExtendableArrayClass;
+    return class_ == _commonElements.jsPositiveIntClass ||
+        class_ == _commonElements.jsUInt32Class ||
+        class_ == _commonElements.jsUInt31Class ||
+        class_ == _commonElements.jsFixedArrayClass ||
+        class_ == _commonElements.jsUnmodifiableArrayClass ||
+        class_ == _commonElements.jsMutableArrayClass ||
+        class_ == _commonElements.jsExtendableArrayClass;
   }
 
   /// Returns a set of interceptor classes that contain a member named [name]
@@ -216,7 +215,6 @@ class InterceptorDataImpl implements InterceptorData {
 
 class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final NativeBasicData _nativeData;
-  final BackendHelpers _helpers;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
 
@@ -235,13 +233,13 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final Set<ClassEntity> _classesMixedIntoInterceptedClasses =
       new Set<ClassEntity>();
 
-  InterceptorDataBuilderImpl(this._nativeData, this._helpers,
-      this._elementEnvironment, this._commonElements);
+  InterceptorDataBuilderImpl(
+      this._nativeData, this._elementEnvironment, this._commonElements);
 
   InterceptorData onResolutionComplete(ClosedWorld closedWorld) {
     return new InterceptorDataImpl(
         _nativeData,
-        _helpers,
+        _commonElements,
         closedWorld,
         _interceptedElements,
         _interceptedClasses,
@@ -276,15 +274,15 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
         set.add(member);
       });
     }
-    _interceptedClasses.add(_helpers.jsInterceptorClass);
+    _interceptedClasses.add(_commonElements.jsInterceptorClass);
   }
 }
 
 class OneShotInterceptorData {
   final InterceptorData _interceptorData;
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
 
-  OneShotInterceptorData(this._interceptorData, this._helpers);
+  OneShotInterceptorData(this._interceptorData, this._commonElements);
 
   /// A collection of selectors that must have a one shot interceptor generated.
   final Map<jsAst.Name, Selector> _oneShotInterceptors =
@@ -325,7 +323,7 @@ class OneShotInterceptorData {
   void registerSpecializedGetInterceptor(
       Set<ClassEntity> classes, Namer namer) {
     jsAst.Name name = namer.nameForGetInterceptor(classes);
-    if (classes.contains(_helpers.jsInterceptorClass)) {
+    if (classes.contains(_commonElements.jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
       _specializedGetInterceptors[name] = _interceptorData.interceptedClasses;

@@ -201,4 +201,34 @@ class Uris {
 
   /// The URI for 'dart:web_sql'.
   static final Uri dart_web_sql = new Uri(scheme: 'dart', path: 'web_sql');
+
+  /// The URI for 'dart:_js_helper'.
+  static final Uri dart__js_helper =
+      new Uri(scheme: 'dart', path: '_js_helper');
+
+  /// The URI for 'dart:_interceptors'.
+  static final Uri dart__interceptors =
+      new Uri(scheme: 'dart', path: '_interceptors');
+
+  /// The URI for 'dart:_foreign_helper'.
+  static final Uri dart__foreign_helper =
+      new Uri(scheme: 'dart', path: '_foreign_helper');
+
+  /// The URI for 'dart:_js_mirrors'.
+  static final Uri dart__js_mirrors =
+      new Uri(scheme: 'dart', path: '_js_mirrors');
+
+  /// The URI for 'dart:_js_names'.
+  static final Uri dart__js_names = new Uri(scheme: 'dart', path: '_js_names');
+
+  /// The URI for 'dart:_js_embedded_names'.
+  static final Uri dart__js_embedded_names =
+      new Uri(scheme: 'dart', path: '_js_embedded_names');
+
+  /// The URI for 'dart:_isolate_helper'.
+  static final Uri dart__isolate_helper =
+      new Uri(scheme: 'dart', path: '_isolate_helper');
+
+  /// The URI for 'package:js'.
+  static final Uri package_js = new Uri(scheme: 'package', path: 'js/js.dart');
 }

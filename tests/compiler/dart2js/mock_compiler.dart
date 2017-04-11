@@ -18,8 +18,7 @@ import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
-import 'package:compiler/src/js_backend/backend_helpers.dart'
-    show BackendHelpers;
+import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
     show LookupMapResolutionAnalysis;
 import 'package:compiler/src/io/source_file.dart';
@@ -115,16 +114,16 @@ class MockCompiler extends Compiler {
         Uris.dart_core, buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
     registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
 
-    registerSource(BackendHelpers.DART_JS_HELPER,
-        buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
-    registerSource(BackendHelpers.DART_FOREIGN_HELPER,
+    registerSource(
+        Uris.dart__js_helper, buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
+    registerSource(Uris.dart__foreign_helper,
         buildLibrarySource(DEFAULT_FOREIGN_HELPER_LIBRARY));
-    registerSource(BackendHelpers.DART_INTERCEPTORS,
+    registerSource(Uris.dart__interceptors,
         buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
-    registerSource(BackendHelpers.DART_ISOLATE_HELPER,
+    registerSource(Uris.dart__isolate_helper,
         buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
     registerSource(Uris.dart_mirrors, DEFAULT_MIRRORS_SOURCE);
-    registerSource(BackendHelpers.DART_JS_MIRRORS, DEFAULT_JS_MIRRORS_SOURCE);
+    registerSource(Uris.dart__js_mirrors, DEFAULT_JS_MIRRORS_SOURCE);
 
     Map<String, String> asyncLibrarySource = <String, String>{};
     asyncLibrarySource.addAll(DEFAULT_ASYNC_LIBRARY);

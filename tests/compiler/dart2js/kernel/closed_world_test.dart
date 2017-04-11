@@ -22,7 +22,6 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/js_backend/backend_helpers.dart';
 import 'package:compiler/src/js_backend/backend_impact.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/js_backend/custom_elements_analysis.dart';
@@ -151,7 +150,6 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       compiler.options,
       compiler.elementEnvironment,
       compiler.commonElements,
-      backend.helpers,
       backend.impacts,
       backend.backendClasses,
       backend.nativeBasicData,

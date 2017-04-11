@@ -14,7 +14,6 @@ import '../options.dart';
 import '../world.dart';
 import '../universe/world_builder.dart';
 import '../util/emptyset.dart';
-import 'backend_helpers.dart';
 import 'constant_handler_javascript.dart';
 
 abstract class MirrorsData {
@@ -208,23 +207,21 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
 
   final CommonElements _commonElements;
 
-  final BackendHelpers _helpers;
-
   final JavaScriptConstantCompiler _constants;
 
-  MirrorsDataImpl(this._compiler, this._options, this._commonElements,
-      this._helpers, this._constants);
+  MirrorsDataImpl(
+      this._compiler, this._options, this._commonElements, this._constants);
 
   void registerUsedMember(MemberElement member) {
-    if (member == _helpers.disableTreeShakingMarker) {
+    if (member == _commonElements.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
-    } else if (member == _helpers.preserveNamesMarker) {
+    } else if (member == _commonElements.preserveNamesMarker) {
       mustPreserveNames = true;
-    } else if (member == _helpers.preserveMetadataMarker) {
+    } else if (member == _commonElements.preserveMetadataMarker) {
       mustRetainMetadata = true;
-    } else if (member == _helpers.preserveUrisMarker) {
+    } else if (member == _commonElements.preserveUrisMarker) {
       if (_options.preserveUris) mustPreserveUris = true;
-    } else if (member == _helpers.preserveLibraryNamesMarker) {
+    } else if (member == _commonElements.preserveLibraryNamesMarker) {
       mustRetainLibraryNames = true;
     }
   }
@@ -401,19 +398,19 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   }
 
   ClassElement _getDartClass(ClassElement cls) {
-    if (cls == _helpers.jsIntClass) {
+    if (cls == _commonElements.jsIntClass) {
       return _commonElements.intClass;
-    } else if (cls == _helpers.jsBoolClass) {
+    } else if (cls == _commonElements.jsBoolClass) {
       return _commonElements.boolClass;
-    } else if (cls == _helpers.jsNumberClass) {
+    } else if (cls == _commonElements.jsNumberClass) {
       return _commonElements.numClass;
-    } else if (cls == _helpers.jsDoubleClass) {
+    } else if (cls == _commonElements.jsDoubleClass) {
       return _commonElements.doubleClass;
-    } else if (cls == _helpers.jsStringClass) {
+    } else if (cls == _commonElements.jsStringClass) {
       return _commonElements.stringClass;
-    } else if (cls == _helpers.jsArrayClass) {
+    } else if (cls == _commonElements.jsArrayClass) {
       return _commonElements.listClass;
-    } else if (cls == _helpers.jsNullClass) {
+    } else if (cls == _commonElements.jsNullClass) {
       return _commonElements.nullClass;
     } else {
       return cls;
@@ -655,12 +652,12 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
     // As we do not think about closures as classes, yet, we have to make sure
     // their superclasses are available for reflection manually.
     if (foundClosure) {
-      ClassElement cls = _helpers.closureClass;
+      ClassElement cls = _commonElements.closureClass;
       _classesNeededForReflection.add(cls);
     }
     Set<FunctionEntity> closurizedMembers = worldBuilder.closurizedMembers;
     if (closurizedMembers.any(_membersNeededForReflection.contains)) {
-      ClassElement cls = _helpers.boundClosureClass;
+      ClassElement cls = _commonElements.boundClosureClass;
       _classesNeededForReflection.add(cls);
     }
     // Add typedefs.

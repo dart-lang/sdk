@@ -26,7 +26,6 @@ import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
-import 'backend_helpers.dart';
 
 /// Lookup map handling for resolution.
 ///
@@ -128,7 +127,6 @@ class LookupMapAnalysis {
       ConstantEnvironment constants,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
-      BackendHelpers helpers,
       BackendClasses backendClasses,
       LookupMapResolutionAnalysis analysis) {
     /// Checks if the version of lookup_map is valid, and if so, enable this
@@ -169,7 +167,7 @@ class LookupMapAnalysis {
         elementEnvironment.lookupClassMember(typeLookupMapClass, '_value');
     // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
 
-    return new _LookupMapAnalysis(constantSystem, commonElements, helpers,
+    return new _LookupMapAnalysis(constantSystem, commonElements,
         backendClasses, entriesField, keyField, valueField, typeLookupMapClass);
   }
 
@@ -206,8 +204,6 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   final ConstantSystem _constantSystem;
 
   final CommonElements _commonElements;
-
-  final BackendHelpers _helpers;
 
   final BackendClasses _backendClasses;
 
@@ -254,7 +250,6 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   _LookupMapAnalysis(
       this._constantSystem,
       this._commonElements,
-      this._helpers,
       this._backendClasses,
       this._entriesField,
       this._keyField,
@@ -351,7 +346,7 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
         // TODO(sigmund): can we get rid of this?
         _impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
-            _helpers.createRuntimeType,
+            _commonElements.createRuntimeType,
             null));
         _addGenerics(arg);
       }
