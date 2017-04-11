@@ -59,9 +59,28 @@ class FileTracker {
   final _changedFiles = new LinkedHashSet<String>();
 
   /**
-   * The set of files that are currently scheduled for analysis.
+   * The set of files that are currently scheduled for analysis, which were
+   * reported as changed through [changeFile].
    */
-  final _pendingFiles = new LinkedHashSet<String>();
+  var _pendingChangedFiles = new LinkedHashSet<String>();
+
+  /**
+   * The set of files that are currently scheduled for analysis, which directly
+   * import a changed file.
+   */
+  var _pendingImportFiles = new LinkedHashSet<String>();
+
+  /**
+   * The set of files that are currently scheduled for analysis, which have an
+   * error or a warning, which might be fixed by a changed file.
+   */
+  var _pendingErrorFiles = new LinkedHashSet<String>();
+
+  /**
+   * The set of files that are currently scheduled for analysis, and don't
+   * have any special relation with changed files.
+   */
+  var _pendingFiles = new LinkedHashSet<String>();
 
   FileTracker(
       this.logger,
@@ -79,7 +98,18 @@ class FileTracker {
    * Returns the path to exactly one that needs analysis.  Throws a [StateError]
    * if no files need analysis.
    */
-  String get anyPendingFile => _pendingFiles.first;
+  String get anyPendingFile {
+    if (_pendingChangedFiles.isNotEmpty) {
+      return _pendingChangedFiles.first;
+    }
+    if (_pendingImportFiles.isNotEmpty) {
+      return _pendingImportFiles.first;
+    }
+    if (_pendingErrorFiles.isNotEmpty) {
+      return _pendingErrorFiles.first;
+    }
+    return _pendingFiles.first;
+  }
 
   /**
    * Returns a boolean indicating whether there are any files that have changed,
@@ -88,15 +118,42 @@ class FileTracker {
   bool get hasChangedFiles => _changedFiles.isNotEmpty;
 
   /**
+   * Return `true` if there are changed files that need analysis.
+   */
+  bool get hasPendingChangedFiles => _pendingChangedFiles.isNotEmpty;
+
+  /**
+   * Return `true` if there are files that have an error or warning, and that
+   * need analysis.
+   */
+  bool get hasPendingErrorFiles => _pendingErrorFiles.isNotEmpty;
+
+  /**
    * Returns a boolean indicating whether there are any files that need
    * analysis.
    */
-  bool get hasPendingFiles => _pendingFiles.isNotEmpty;
+  bool get hasPendingFiles {
+    return hasPendingChangedFiles ||
+        hasPendingImportFiles ||
+        hasPendingErrorFiles ||
+        _pendingFiles.isNotEmpty;
+  }
+
+  /**
+   * Return `true` if there are files that directly import a changed file that
+   * need analysis.
+   */
+  bool get hasPendingImportFiles => _pendingImportFiles.isNotEmpty;
 
   /**
    * Returns a count of how many files need analysis.
    */
-  int get numberOfPendingFiles => _pendingFiles.length;
+  int get numberOfPendingFiles {
+    return _pendingChangedFiles.length +
+        _pendingImportFiles.length +
+        _pendingErrorFiles.length +
+        _pendingFiles.length;
+  }
 
   /**
    * Adds the given [path] to the set of "added files".
@@ -122,7 +179,7 @@ class FileTracker {
   void changeFile(String path) {
     _changedFiles.add(path);
     if (addedFiles.contains(path)) {
-      _pendingFiles.add(path);
+      _pendingChangedFiles.add(path);
     }
     _changeHook();
   }
@@ -133,6 +190,9 @@ class FileTracker {
    * Should be called after the client has analyzed a file.
    */
   void fileWasAnalyzed(String path) {
+    _pendingChangedFiles.remove(path);
+    _pendingImportFiles.remove(path);
+    _pendingErrorFiles.remove(path);
     _pendingFiles.remove(path);
   }
 
@@ -140,13 +200,21 @@ class FileTracker {
    * Returns a boolean indicating whether the given [path] points to a file that
    * requires analysis.
    */
-  bool isFilePending(String path) => _pendingFiles.contains(path);
+  bool isFilePending(String path) {
+    return _pendingChangedFiles.contains(path) ||
+        _pendingImportFiles.contains(path) ||
+        _pendingErrorFiles.contains(path) ||
+        _pendingFiles.contains(path);
+  }
 
   /**
    * Removes the given [path] from the set of "added files".
    */
   void removeFile(String path) {
     addedFiles.remove(path);
+    _pendingChangedFiles.remove(path);
+    _pendingImportFiles.remove(path);
+    _pendingErrorFiles.remove(path);
     _pendingFiles.remove(path);
     // TODO(paulberry): removing the path from [fsState] and re-analyzing all
     // files seems extreme.
@@ -172,7 +240,48 @@ class FileTracker {
       if (anyApiChanged) {
         logger.writeln('API signatures mismatch found for $path');
         // TODO(scheglov) schedule analysis of only affected files
-        _pendingFiles.addAll(addedFiles);
+        var pendingChangedFiles = new LinkedHashSet<String>();
+        var pendingImportFiles = new LinkedHashSet<String>();
+        var pendingErrorFiles = new LinkedHashSet<String>();
+        var pendingFiles = new LinkedHashSet<String>();
+
+        // Add the changed file.
+        if (addedFiles.contains(path)) {
+          pendingChangedFiles.add(path);
+        }
+
+        // Add files that directly import the changed file.
+        for (String addedPath in addedFiles) {
+          FileState addedFile = fsState.getFileForPath(addedPath);
+          for (FileState changedFile in files) {
+            if (addedFile.importedFiles.contains(changedFile)) {
+              pendingImportFiles.add(addedPath);
+            }
+          }
+        }
+
+        // Add files with errors or warnings that might be fixed.
+        for (String addedPath in addedFiles) {
+          FileState addedFile = fsState.getFileForPath(addedPath);
+          if (addedFile.hasErrorOrWarning) {
+            pendingErrorFiles.add(addedPath);
+          }
+        }
+
+        // Add all previous pending files.
+        pendingChangedFiles.addAll(_pendingChangedFiles);
+        pendingImportFiles.addAll(_pendingImportFiles);
+        pendingErrorFiles.addAll(_pendingErrorFiles);
+        pendingFiles.addAll(_pendingFiles);
+
+        // Add all the rest.
+        pendingFiles.addAll(addedFiles);
+
+        // Replace pending files.
+        _pendingChangedFiles = pendingChangedFiles;
+        _pendingImportFiles = pendingImportFiles;
+        _pendingErrorFiles = pendingErrorFiles;
+        _pendingFiles = pendingFiles;
       }
       return files[0];
     });

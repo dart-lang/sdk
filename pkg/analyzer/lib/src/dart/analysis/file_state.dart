@@ -116,6 +116,12 @@ class FileState {
   Map<String, TopLevelDeclaration> _topLevelDeclarations;
   Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
 
+  /**
+   * The flag that shows whether the file has an error or warning that
+   * might be fixed by a change to another file.
+   */
+  bool hasErrorOrWarning = false;
+
   FileState._(this._fsState, this.path, this.uri, this.source);
 
   /**

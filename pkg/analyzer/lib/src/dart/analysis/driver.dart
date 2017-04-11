@@ -403,10 +403,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
       }
     }
-    if (_fileTracker.hasPendingFiles) {
-      return AnalysisDriverPriority.general;
-    }
     if (_fileTracker.hasChangedFiles) {
+      return AnalysisDriverPriority.changedFiles;
+    }
+    if (_fileTracker.hasPendingChangedFiles) {
+      return AnalysisDriverPriority.generalChanged;
+    }
+    if (_fileTracker.hasPendingImportFiles) {
+      return AnalysisDriverPriority.generalImportChanged;
+    }
+    if (_fileTracker.hasPendingErrorFiles) {
+      return AnalysisDriverPriority.generalWithErrors;
+    }
+    if (_fileTracker.hasPendingFiles) {
       return AnalysisDriverPriority.general;
     }
     if (_requestedParts.isNotEmpty || _partsToAnalyze.isNotEmpty) {
@@ -1069,6 +1078,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       {String content, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);
+    _updateHasErrorOrWarningFlag(file, errors);
     return new AnalysisResult(
         this,
         _sourceFactory,
@@ -1225,6 +1235,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
   }
+
+  /**
+   * Given the list of [errors] for the [file], update the [file]'s
+   * [FileState.hasErrorOrWarning] flag.
+   */
+  void _updateHasErrorOrWarningFlag(
+      FileState file, List<AnalysisError> errors) {
+    for (AnalysisError error in errors) {
+      ErrorSeverity severity = error.errorCode.errorSeverity;
+      if (severity == ErrorSeverity.ERROR ||
+          severity == ErrorSeverity.WARNING) {
+        file.hasErrorOrWarning = true;
+        return;
+      }
+    }
+    file.hasErrorOrWarning = false;
+  }
 }
 
 /**
@@ -1260,7 +1287,16 @@ abstract class AnalysisDriverGeneric {
  * of the list, the earlier the corresponding [AnalysisDriver] should be asked
  * to perform work.
  */
-enum AnalysisDriverPriority { nothing, general, priority, interactive }
+enum AnalysisDriverPriority {
+  nothing,
+  general,
+  generalWithErrors,
+  generalImportChanged,
+  generalChanged,
+  changedFiles,
+  priority,
+  interactive
+}
 
 /**
  * Instances of this class schedule work in multiple [AnalysisDriver]s so that
