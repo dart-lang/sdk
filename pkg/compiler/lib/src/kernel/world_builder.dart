@@ -559,6 +559,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
+    throw new UnimplementedError(
+        'KernelElementEnvironment.getTypeVariableBound');
+  }
+
+  @override
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments) {
     return new InterfaceType(cls, typeArguments);

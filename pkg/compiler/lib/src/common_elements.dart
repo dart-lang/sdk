@@ -285,6 +285,10 @@ abstract class ElementEnvironment {
   /// where the type arguments are the type variables of [cls].
   InterfaceType getThisType(ClassEntity cls);
 
+  /// The upper bound on the [typeVariable]. If not explicitly declared, this is
+  /// `Object`.
+  DartType getTypeVariableBound(TypeVariableEntity typeVariable);
+
   /// Returns `true` if [a] is a subtype of [b].
   bool isSubtype(DartType a, DartType b);
 

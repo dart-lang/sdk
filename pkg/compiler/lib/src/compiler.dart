@@ -1828,6 +1828,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  ResolutionDartType getTypeVariableBound(TypeVariableElement typeVariable) {
+    return typeVariable.bound;
+  }
+
+  @override
   ResolutionInterfaceType createInterfaceType(
       ClassElement cls, List<ResolutionDartType> typeArguments) {
     cls.ensureResolved(_resolution);

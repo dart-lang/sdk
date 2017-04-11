@@ -904,8 +904,8 @@ class JavaScriptBackend {
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
-    _typeVariableCodegenAnalysis =
-        new TypeVariableCodegenAnalysis(this, helpers, mirrorsData);
+    _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
+        compiler.elementEnvironment, this, helpers, mirrorsData);
     _lookupMapAnalysis = new LookupMapAnalysis(
         reporter,
         constantSystem,
