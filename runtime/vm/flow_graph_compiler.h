@@ -710,15 +710,17 @@ class FlowGraphCompiler : public ValueObject {
   enum TypeTestStubKind {
     kTestTypeOneArg,
     kTestTypeTwoArgs,
-    kTestTypeThreeArgs,
+    kTestTypeFourArgs,
   };
 
-  RawSubtypeTestCache* GenerateCallSubtypeTestStub(TypeTestStubKind test_kind,
-                                                   Register instance_reg,
-                                                   Register type_arguments_reg,
-                                                   Register temp_reg,
-                                                   Label* is_instance_lbl,
-                                                   Label* is_not_instance_lbl);
+  RawSubtypeTestCache* GenerateCallSubtypeTestStub(
+      TypeTestStubKind test_kind,
+      Register instance_reg,
+      Register instantiator_type_arguments_reg,
+      Register function_type_arguments_reg,
+      Register temp_reg,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 

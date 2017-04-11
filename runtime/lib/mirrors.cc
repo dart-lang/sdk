@@ -754,7 +754,13 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
 
+  // TODO(regis): Support uninstantiated type referring to function type params.
+  if (!type.IsInstantiated(kFunctions)) {
+    UNIMPLEMENTED();
+  }
+
   if (type.IsInstantiated() || instantiator.IsNull()) {
+    // TODO(regis): Shouldn't type parameters be replaced by dynamic?
     return type.Canonicalize();
   }
 
@@ -762,11 +768,12 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   ASSERT(instantiator.IsFinalized());
   PROPAGATE_IF_MALFORMED(instantiator);
 
-  const TypeArguments& type_args =
+  const TypeArguments& instantiator_type_args =
       TypeArguments::Handle(instantiator.arguments());
   Error& bound_error = Error::Handle();
-  AbstractType& result = AbstractType::Handle(
-      type.InstantiateFrom(type_args, &bound_error, NULL, NULL, Heap::kOld));
+  AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
+      instantiator_type_args, Object::null_type_arguments(), &bound_error, NULL,
+      NULL, Heap::kOld));
   if (!bound_error.IsNull()) {
     Exceptions::PropagateError(bound_error);
     UNREACHABLE();
@@ -1703,9 +1710,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type reflected by the class mirror.
+      ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, &bound_error, NULL, NULL, Heap::kOld);
+          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
+          NULL, Heap::kOld);
       if (!bound_error.IsNull()) {
         Exceptions::PropagateError(bound_error);
         UNREACHABLE();

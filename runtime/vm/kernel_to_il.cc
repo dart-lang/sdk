@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <map>
 #include <set>
 #include <string>
 
@@ -2154,10 +2153,18 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
 }
 
 
+Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
+  UNIMPLEMENTED();  // TODO(regis)
+  return Fragment(NULL);
+}
+
+
 Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
-  InstantiateTypeInstr* instr = new (Z)
-      InstantiateTypeInstr(TokenPosition::kNoSource, type, Pop(),
-                           NULL);  // TODO(regis): Pop function type arguments.
+  Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
+  InstantiateTypeInstr* instr =
+      new (Z) InstantiateTypeInstr(TokenPosition::kNoSource, type,
+                                   instantiator_type_args, function_type_args);
   Push(instr);
   return Fragment(instr);
 }
@@ -2165,9 +2172,11 @@ Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
 
 Fragment FlowGraphBuilder::InstantiateTypeArguments(
     const TypeArguments& type_arguments) {
+  Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
-      TokenPosition::kNoSource, type_arguments, *active_class_.klass, Pop(),
-      NULL);  // TODO(regis): Pop function type arguments.
+      TokenPosition::kNoSource, type_arguments, *active_class_.klass,
+      instantiator_type_args, function_type_args);
   Push(instr);
   return Fragment(instr);
 }
@@ -2200,7 +2209,16 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
     } else {
       // Otherwise we need to resolve [TypeParameterType]s in the type
       // expression based on the current instantiator type argument vector.
-      instructions += LoadInstantiatorTypeArguments();
+      if (!type_arguments.IsInstantiated(kCurrentClass)) {
+        instructions += LoadInstantiatorTypeArguments();
+      } else {
+        instructions += NullConstant();
+      }
+      if (!type_arguments.IsInstantiated(kCurrentFunction)) {
+        instructions += LoadFunctionTypeArguments();
+      } else {
+        instructions += NullConstant();
+      }
       instructions += InstantiateTypeArguments(type_arguments);
     }
   }
@@ -3814,13 +3832,23 @@ Fragment FlowGraphBuilder::AssertAssignable(const dart::AbstractType& dst_type,
   Fragment instructions;
   Value* value = Pop();
 
-  instructions += LoadInstantiatorTypeArguments();
-  Value* type_args = Pop();
+  if (!dst_type.IsInstantiated(kCurrentClass)) {
+    instructions += LoadInstantiatorTypeArguments();
+  } else {
+    instructions += NullConstant();
+  }
+  Value* instantiator_type_args = Pop();
 
-  AssertAssignableInstr* instr = new (Z)
-      AssertAssignableInstr(TokenPosition::kNoSource, value, type_args,
-                            NULL,  // TODO(regis): Pop function type arguments.
-                            dst_type, dst_name, H.thread()->GetNextDeoptId());
+  if (!dst_type.IsInstantiated(kCurrentFunction)) {
+    instructions += LoadFunctionTypeArguments();
+  } else {
+    instructions += NullConstant();
+  }
+  Value* function_type_args = Pop();
+
+  AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
+      TokenPosition::kNoSource, value, instantiator_type_args,
+      function_type_args, dst_type, dst_name, H.thread()->GetNextDeoptId());
   Push(instr);
 
   instructions += Fragment(instr);
@@ -4655,7 +4683,16 @@ void FlowGraphBuilder::VisitTypeLiteral(TypeLiteral* node) {
   if (type.IsInstantiated()) {
     instructions += Constant(type);
   } else {
-    instructions += LoadInstantiatorTypeArguments();
+    if (!type.IsInstantiated(kCurrentClass)) {
+      instructions += LoadInstantiatorTypeArguments();
+    } else {
+      instructions += NullConstant();
+    }
+    if (!type.IsInstantiated(kCurrentFunction)) {
+      instructions += LoadFunctionTypeArguments();
+    } else {
+      instructions += NullConstant();
+    }
     instructions += InstantiateType(type);
   }
   fragment_ = instructions;
@@ -5081,12 +5118,19 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
       return;
     }
 
-    if (!type.IsInstantiated()) {
+    if (!type.IsInstantiated(kCurrentClass)) {
       instructions += LoadInstantiatorTypeArguments();
     } else {
       instructions += NullConstant();
     }
-    instructions += PushArgument();  // Type arguments.
+    instructions += PushArgument();  // Instantiator type arguments.
+
+    if (!type.IsInstantiated(kCurrentFunction)) {
+      instructions += LoadFunctionTypeArguments();
+    } else {
+      instructions += NullConstant();
+    }
+    instructions += PushArgument();  // Function type arguments.
 
     instructions += Constant(type);
     instructions += PushArgument();  // Type.
@@ -5094,7 +5138,7 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
     instructions +=
         InstanceCall(node->position(),
                      dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
-                     Token::kIS, 3);
+                     Token::kIS, 4);
   }
 
   fragment_ = instructions;
@@ -5122,19 +5166,26 @@ void FlowGraphBuilder::VisitAsExpression(AsExpression* node) {
   } else {
     instructions += PushArgument();
 
-    if (!type.IsInstantiated()) {
+    if (!type.IsInstantiated(kCurrentClass)) {
       instructions += LoadInstantiatorTypeArguments();
     } else {
       instructions += NullConstant();
     }
-    instructions += PushArgument();  // Type arguments.
+    instructions += PushArgument();  // Instantiator type arguments.
+
+    if (!type.IsInstantiated(kCurrentFunction)) {
+      instructions += LoadFunctionTypeArguments();
+    } else {
+      instructions += NullConstant();
+    }
+    instructions += PushArgument();  // Function type arguments.
 
     instructions += Constant(type);
     instructions += PushArgument();  // Type.
 
     instructions += InstanceCall(
         node->position(), dart::Library::PrivateCoreLibName(Symbols::_as()),
-        Token::kAS, 3);
+        Token::kAS, 4);
   }
 
   fragment_ = instructions;
@@ -6175,13 +6226,15 @@ void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
         catch_body += LoadLocal(CurrentException());
         catch_body += PushArgument();  // exception
         catch_body += NullConstant();
-        catch_body += PushArgument();  // type arguments
+        catch_body += PushArgument();  // instantiator type arguments
+        catch_body += NullConstant();
+        catch_body += PushArgument();  // function type arguments
         catch_body += Constant(*type_guard);
         catch_body += PushArgument();  // guard type
         catch_body += InstanceCall(
             TokenPosition::kNoSource,
             dart::Library::PrivateCoreLibName(Symbols::_instanceOf()),
-            Token::kIS, 3);
+            Token::kIS, 4);
 
         TargetEntryInstr* catch_entry;
         TargetEntryInstr* next_catch_entry;

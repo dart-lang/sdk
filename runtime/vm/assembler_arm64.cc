@@ -1102,7 +1102,7 @@ void Assembler::EnterFrame(intptr_t frame_size) {
   sub(TMP, SP, Operand(kMaxDartFrameSize));
   andi(CSP, TMP, Immediate(~15));
 
-  PushPair(LR, FP);
+  PushPair(FP, LR);  // low: FP, high: LR.
   mov(FP, SP);
 
   if (frame_size > 0) {
@@ -1113,7 +1113,7 @@ void Assembler::EnterFrame(intptr_t frame_size) {
 
 void Assembler::LeaveFrame() {
   mov(SP, FP);
-  PopPair(LR, FP);
+  PopPair(FP, LR);  // low: FP, high: LR.
 }
 
 

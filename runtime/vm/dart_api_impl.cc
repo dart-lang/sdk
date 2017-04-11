@@ -2001,6 +2001,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   CHECK_CALLBACK_STATE(T);
   Error& malformed_type_error = Error::Handle(Z);
   *value = instance.IsInstanceOf(type_obj, Object::null_type_arguments(),
+                                 Object::null_type_arguments(),
                                  &malformed_type_error);
   ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
   return Api::Success();
@@ -3873,9 +3874,12 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type argument.
+      // We do not support generic constructors.
+      ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, &bound_error, NULL, NULL, Heap::kNew);
+          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
+          NULL, Heap::kNew);
       if (!bound_error.IsNull()) {
         return Api::NewHandle(T, bound_error.raw());
       }

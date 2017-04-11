@@ -220,16 +220,15 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
     ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
     TypeArguments& type_args = TypeArguments::Handle();
     intptr_t i = 0;
-    while (true) {
-      if (prior_instantiations.At(i) == Smi::New(StubCode::kNoInstantiator)) {
-        break;
-      }
+    while (prior_instantiations.At(i) != Smi::New(StubCode::kNoInstantiator)) {
       JSONObject instantiation(&jsarr);
       type_args ^= prior_instantiations.At(i);
-      instantiation.AddProperty("instantiator", type_args, true);
+      instantiation.AddProperty("instantiatorTypeArguments", type_args, true);
       type_args ^= prior_instantiations.At(i + 1);
+      instantiation.AddProperty("functionTypeArguments", type_args, true);
+      type_args ^= prior_instantiations.At(i + 2);
       instantiation.AddProperty("instantiated", type_args, true);
-      i += 2;
+      i += StubCode::kInstantiationSizeInWords;
     }
   }
 }

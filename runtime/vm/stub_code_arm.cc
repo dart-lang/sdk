@@ -1754,68 +1754,73 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R1: instantiator type arguments (only if n == 4, can be raw_null).
+// R2: function type arguments (only if n == 4, can be raw_null).
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT((1 <= n) && (n <= 3));
+  ASSERT((n == 1) || (n == 2) || (n == 4));
   if (n > 1) {
-    // Get instance type arguments.
-    __ LoadClass(R3, R0, R4);
+    __ LoadClass(R8, R0, R4);
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
     __ LoadObject(R4, Object::null_object());
     __ ldr(R9, FieldAddress(
-                   R3, Class::type_arguments_field_offset_in_words_offset()));
+                   R8, Class::type_arguments_field_offset_in_words_offset()));
     __ CompareImmediate(R9, Class::kNoTypeArguments);
     __ b(&has_no_type_arguments, EQ);
     __ add(R9, R0, Operand(R9, LSL, 2));
     __ ldr(R4, FieldAddress(R9, 0));
     __ Bind(&has_no_type_arguments);
   }
-  __ LoadClassId(R3, R0);
+  __ LoadClassId(R8, R0);
   // R0: instance.
-  // R1: instantiator type arguments or NULL.
-  // R2: SubtypeTestCache.
-  // R3: instance class id.
+  // R1: instantiator type arguments (only if n == 4, can be raw_null).
+  // R2: function type arguments (only if n == 4, can be raw_null).
+  // R3: SubtypeTestCache.
+  // R8: instance class id.
   // R4: instance type arguments (null if none), used only if n > 1.
-  __ ldr(R2, FieldAddress(R2, SubtypeTestCache::cache_offset()));
-  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
+  __ ldr(R3, FieldAddress(R3, SubtypeTestCache::cache_offset()));
+  __ AddImmediate(R3, Array::data_offset() - kHeapObjectTag);
 
   Label loop, found, not_found, next_iteration;
-  // R2: entry start.
-  // R3: instance class id.
+  // R3: entry start.
+  // R8: instance class id.
   // R4: instance type arguments (still null if closure).
-  __ SmiTag(R3);
-  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ SmiTag(R8);
+  __ CompareImmediate(R8, Smi::RawValue(kClosureCid));
   __ ldr(R4, FieldAddress(R0, Closure::instantiator_offset()), EQ);
-  __ ldr(R3, FieldAddress(R0, Closure::function_offset()), EQ);
-  // R3: instance class id as Smi or function.
+  __ ldr(R8, FieldAddress(R0, Closure::function_offset()), EQ);
+  // R8: instance class id as Smi or function.
   __ Bind(&loop);
   __ ldr(R9,
-         Address(R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
+         Address(R3, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ CompareObject(R9, Object::null_object());
   __ b(&not_found, EQ);
-  __ cmp(R9, Operand(R3));
+  __ cmp(R9, Operand(R8));
   if (n == 1) {
     __ b(&found, EQ);
   } else {
     __ b(&next_iteration, NE);
     __ ldr(R9,
-           Address(R2, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
+           Address(R3, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
     __ cmp(R9, Operand(R4));
     if (n == 2) {
       __ b(&found, EQ);
     } else {
       __ b(&next_iteration, NE);
-      __ ldr(R9, Address(R2, kWordSize *
+      __ ldr(R9, Address(R3, kWordSize *
                                  SubtypeTestCache::kInstantiatorTypeArguments));
       __ cmp(R9, Operand(R1));
+      __ b(&next_iteration, NE);
+      __ ldr(R9,
+             Address(R3, kWordSize * SubtypeTestCache::kFunctionTypeArguments));
+      __ cmp(R9, Operand(R2));
       __ b(&found, EQ);
     }
   }
   __ Bind(&next_iteration);
-  __ AddImmediate(R2, kWordSize * SubtypeTestCache::kTestEntryLength);
+  __ AddImmediate(R3, kWordSize * SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
   // Fall through to not found.
   __ Bind(&not_found);
@@ -1823,7 +1828,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ Ret();
 
   __ Bind(&found);
-  __ ldr(R1, Address(R2, kWordSize * SubtypeTestCache::kTestResult));
+  __ ldr(R1, Address(R3, kWordSize * SubtypeTestCache::kTestResult));
   __ Ret();
 }
 
@@ -1831,8 +1836,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R1: unused.
+// R2: unused.
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
@@ -1842,8 +1848,9 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R1: unused.
+// R2: unused.
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
@@ -1853,11 +1860,12 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R1: instantiator type arguments (can be raw_null).
+// R2: function type arguments (can be raw_null).
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
-void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
+void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
 

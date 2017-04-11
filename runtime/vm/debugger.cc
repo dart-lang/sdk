@@ -844,7 +844,8 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         if (type.IsDynamicType()) {
           return true;
         }
-        if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(), NULL)) {
+        if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(),
+                                 Object::null_type_arguments(), NULL)) {
           return true;
         }
       }

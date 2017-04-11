@@ -409,12 +409,13 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 2;
+  const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(A0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(A1));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(A1));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(A2));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(A0));
   return summary;
 }
@@ -2235,12 +2236,13 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 2;
+  const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(A0));
-  summary->set_in(1, Location::RegisterLocation(A1));
+  summary->set_in(0, Location::RegisterLocation(A0));  // Instance.
+  summary->set_in(1, Location::RegisterLocation(A1));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(A2));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(V0));
   return summary;
 }
@@ -2249,6 +2251,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == A0);  // Value.
   ASSERT(locs()->in(1).reg() == A1);  // Instantiator type arguments.
+  ASSERT(locs()->in(2).reg() == A2);  // Function type arguments.
 
   __ Comment("InstanceOfInstr");
   compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
@@ -2455,11 +2458,12 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_in(0, Location::RegisterLocation(T0));  // Instant. type args.
+  locs->set_in(1, Location::RegisterLocation(T1));  // Function type args.
   locs->set_out(0, Location::RegisterLocation(T0));
   return locs;
 }
@@ -2467,37 +2471,40 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
 
 void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("InstantiateTypeInstr");
-  Register instantiator_reg = locs()->in(0).reg();
+  Register instantiator_type_args_reg = locs()->in(0).reg();
+  Register function_type_args_reg = locs()->in(1).reg();
   Register result_reg = locs()->out(0).reg();
 
-  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
+  // 'instantiator_type_args_reg' is a TypeArguments object (or null).
+  // 'function_type_args_reg' is a TypeArguments object (or null).
   // A runtime call to instantiate the type is required.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
   __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ sw(TMP, Address(SP, 3 * kWordSize));  // Make room for the result.
   __ LoadObject(TMP, type());
-  __ sw(TMP, Address(SP, 1 * kWordSize));
-  // Push instantiator type arguments.
-  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(instantiator_type_args_reg, Address(SP, 1 * kWordSize));
+  __ sw(function_type_args_reg, Address(SP, 0 * kWordSize));
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeRuntimeEntry, 2, locs());
+                                kInstantiateTypeRuntimeEntry, 3, locs());
   // Pop instantiated type.
-  __ lw(result_reg, Address(SP, 2 * kWordSize));
+  __ lw(result_reg, Address(SP, 3 * kWordSize));
+
   // Drop instantiator and uninstantiated type.
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
-  ASSERT(instantiator_reg == result_reg);
+  __ addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_in(0, Location::RegisterLocation(T0));  // Instant. type args.
+  locs->set_in(1, Location::RegisterLocation(T1));  // Function type args.
   locs->set_out(0, Location::RegisterLocation(T0));
   return locs;
 }
@@ -2506,60 +2513,73 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   __ Comment("InstantiateTypeArgumentsInstr");
-  Register instantiator_reg = locs()->in(0).reg();
+  Register instantiator_type_args_reg = locs()->in(0).reg();
+  Register function_type_args_reg = locs()->in(1).reg();
   Register result_reg = locs()->out(0).reg();
-  ASSERT(instantiator_reg == T0);
-  ASSERT(instantiator_reg == result_reg);
+  ASSERT(instantiator_type_args_reg == T0);
+  ASSERT(instantiator_type_args_reg == result_reg);
 
-  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
+  // 'instantiator_type_args_reg' is a TypeArguments object (or null).
+  // 'function_type_args_reg' is a TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
+  // If both the instantiator and function type arguments are null and if the
+  // type argument vector instantiated from null becomes a vector of dynamic,
+  // then use null as the type arguments.
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    __ BranchEqual(instantiator_reg, Object::null_object(),
+  if (type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
+    Label non_null_type_args;
+    __ BranchNotEqual(instantiator_type_args_reg, Object::null_object(),
+                      &non_null_type_args);
+    __ BranchEqual(function_type_args_reg, Object::null_object(),
                    &type_arguments_instantiated);
+    __ Bind(&non_null_type_args);
   }
 
+  // Lookup cache before calling runtime.
+  // TODO(regis): Consider moving this into a shared stub to reduce
+  // generated code size.
   __ LoadObject(T2, type_arguments());
   __ lw(T2, FieldAddress(T2, TypeArguments::instantiations_offset()));
   __ AddImmediate(T2, Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  Label loop, found, slow_case;
+  Label loop, next, found, slow_case;
   __ Bind(&loop);
-  __ lw(T1, Address(T2, 0 * kWordSize));  // Cached instantiator.
-  __ beq(T1, T0, &found);
-  __ BranchNotEqual(T1, Immediate(Smi::RawValue(StubCode::kNoInstantiator)),
+  __ lw(T3, Address(T2, 0 * kWordSize));  // Cached instantiator type args.
+  __ bne(T3, T0, &next);
+  __ lw(T4, Address(T2, 1 * kWordSize));  // Cached function type args.
+  __ beq(T4, T1, &found);
+  __ Bind(&next);
+  __ BranchNotEqual(T3, Immediate(Smi::RawValue(StubCode::kNoInstantiator)),
                     &loop);
-  __ delay_slot()->addiu(T2, T2, Immediate(2 * kWordSize));
+  __ delay_slot()->addiu(
+      T2, T2, Immediate(StubCode::kInstantiationSizeInWords * kWordSize));
   __ b(&slow_case);
   __ Bind(&found);
-  __ lw(T0, Address(T2, 1 * kWordSize));  // Cached instantiated args.
+  __ lw(T0, Address(T2, 2 * kWordSize));  // Cached instantiated args.
   __ b(&type_arguments_instantiated);
 
   __ Bind(&slow_case);
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
   __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ sw(TMP, Address(SP, 3 * kWordSize));  // Make room for the result.
   __ LoadObject(TMP, type_arguments());
-  __ sw(TMP, Address(SP, 1 * kWordSize));
-  // Push instantiator type arguments.
-  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(instantiator_type_args_reg, Address(SP, 1 * kWordSize));
+  __ sw(function_type_args_reg, Address(SP, 0 * kWordSize));
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry, 2,
+                                kInstantiateTypeArgumentsRuntimeEntry, 3,
                                 locs());
   // Pop instantiated type arguments.
-  __ lw(result_reg, Address(SP, 2 * kWordSize));
-  // Drop instantiator and uninstantiated type arguments.
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ lw(result_reg, Address(SP, 3 * kWordSize));
+  // Drop 2 type argument vectors and uninstantiated type arguments.
+  __ addiu(SP, SP, Immediate(4 * kWordSize));
   __ Bind(&type_arguments_instantiated);
 }
 

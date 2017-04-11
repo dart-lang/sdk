@@ -209,10 +209,13 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
 
 // R0: instance (must be preserved).
 // R1: instantiator type arguments (if used).
+// R2: function type arguments (if used).
+// R3: type test cache.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
-    Register type_arguments_reg,
+    Register instantiator_type_arguments_reg,
+    Register function_type_arguments_reg,
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -220,18 +223,19 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   ASSERT(temp_reg == kNoRegister);  // Unused on ARM.
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New());
-  __ LoadUniqueObject(R2, type_test_cache);
+  __ LoadUniqueObject(R3, type_test_cache);
   if (test_kind == kTestTypeOneArg) {
-    ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadObject(R1, Object::null_object());
+    ASSERT(instantiator_type_arguments_reg == kNoRegister);
+    ASSERT(function_type_arguments_reg == kNoRegister);
     __ BranchLink(*StubCode::Subtype1TestCache_entry());
   } else if (test_kind == kTestTypeTwoArgs) {
-    ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadObject(R1, Object::null_object());
+    ASSERT(instantiator_type_arguments_reg == kNoRegister);
+    ASSERT(function_type_arguments_reg == kNoRegister);
     __ BranchLink(*StubCode::Subtype2TestCache_entry());
-  } else if (test_kind == kTestTypeThreeArgs) {
-    ASSERT(type_arguments_reg == R1);
-    __ BranchLink(*StubCode::Subtype3TestCache_entry());
+  } else if (test_kind == kTestTypeFourArgs) {
+    ASSERT(instantiator_type_arguments_reg == R1);
+    ASSERT(function_type_arguments_reg == R2);
+    __ BranchLink(*StubCode::Subtype4TestCache_entry());
   } else {
     UNREACHABLE();
   }
@@ -245,7 +249,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
 // type test is conclusive, otherwise fallthrough if a type test could not
 // be completed.
 // R0: instance being type checked (preserved).
-// Clobbers R2.
+// Clobbers R1, R2.
 RawSubtypeTestCache*
 FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     TokenPosition token_pos,
@@ -309,11 +313,13 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     }
   }
   // Regular subtype test cache involving instance's type arguments.
-  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kInstantiatorTypeArgumentsReg = kNoRegister;
+  const Register kFunctionTypeArgumentsReg = kNoRegister;
   const Register kTempReg = kNoRegister;
   // R0: instance (must be preserved).
   return GenerateCallSubtypeTestStub(kTestTypeTwoArgs, kInstanceReg,
-                                     kTypeArgumentsReg, kTempReg,
+                                     kInstantiatorTypeArgumentsReg,
+                                     kFunctionTypeArgumentsReg, kTempReg,
                                      is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -400,7 +406,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
 // Uses SubtypeTestCache to store instance class and result.
 // R0: instance to test.
-// Clobbers R1-R4,R9.
+// Clobbers R1-R4, R8, R9.
 // Immediate class test already done.
 // TODO(srdjan): Implement a quicker subtype check, as type test
 // arrays can grow too high, but they may be useful when optimizing
@@ -420,10 +426,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   __ CompareImmediate(R2, Smi::RawValue(type_class.id()));
   __ b(is_instance_lbl, EQ);
 
-  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kInstantiatorTypeArgumentsReg = kNoRegister;
+  const Register kFunctionTypeArgumentsReg = kNoRegister;
   const Register kTempReg = kNoRegister;
   return GenerateCallSubtypeTestStub(kTestTypeOneArg, kInstanceReg,
-                                     kTypeArgumentsReg, kTempReg,
+                                     kInstantiatorTypeArgumentsReg,
+                                     kFunctionTypeArgumentsReg, kTempReg,
                                      is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -440,57 +448,69 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator type arguments on stack.
-    __ ldr(R1, Address(SP, 0));  // Get instantiator type arguments.
+    __ ldr(R1, Address(SP, 1 * kWordSize));  // Get instantiator type args.
+    __ ldr(R2, Address(SP, 0 * kWordSize));  // Get function type args.
+    // TODO(regis): Renumber registers and use ldm.
     // R1: instantiator type arguments.
+    // R2: function type arguments.
+    const Register kTypeArgumentsReg =
+        type_param.IsClassTypeParameter() ? R1 : R2;
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
-    __ CompareObject(R1, Object::null_object());
+    __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ b(is_instance_lbl, EQ);
-    __ ldr(R2,
-           FieldAddress(R1, TypeArguments::type_at_offset(type_param.index())));
-    // R2: concrete type of type.
+    __ ldr(R3, FieldAddress(kTypeArgumentsReg,
+                            TypeArguments::type_at_offset(type_param.index())));
+    // R3: concrete type of type.
     // Check if type argument is dynamic.
-    __ CompareObject(R2, Object::dynamic_type());
+    __ CompareObject(R3, Object::dynamic_type());
     __ b(is_instance_lbl, EQ);
-    __ CompareObject(R2, Type::ZoneHandle(zone(), Type::ObjectType()));
+    __ CompareObject(R3, Type::ZoneHandle(zone(), Type::ObjectType()));
     __ b(is_instance_lbl, EQ);
+    // TODO(regis): Optimize void type as well once allowed as type argument.
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
     __ tst(R0, Operand(kSmiTagMask));  // Value is Smi?
     __ b(&not_smi, NE);
-    __ CompareObject(R2, Type::ZoneHandle(zone(), Type::IntType()));
+    __ CompareObject(R3, Type::ZoneHandle(zone(), Type::IntType()));
     __ b(is_instance_lbl, EQ);
-    __ CompareObject(R2, Type::ZoneHandle(zone(), Type::Number()));
+    __ CompareObject(R3, Type::ZoneHandle(zone(), Type::Number()));
     __ b(is_instance_lbl, EQ);
     // Smi must be handled in runtime.
     Label fall_through;
     __ b(&fall_through);
 
     __ Bind(&not_smi);
-    // R1: instantiator type arguments.
     // R0: instance.
+    // R1: instantiator type arguments.
+    // R2: function type arguments.
     const Register kInstanceReg = R0;
-    const Register kTypeArgumentsReg = R1;
+    const Register kInstantiatorTypeArgumentsReg = R1;
+    const Register kFunctionTypeArgumentsReg = R2;
     const Register kTempReg = kNoRegister;
     const SubtypeTestCache& type_test_cache = SubtypeTestCache::ZoneHandle(
         zone(), GenerateCallSubtypeTestStub(
-                    kTestTypeThreeArgs, kInstanceReg, kTypeArgumentsReg,
+                    kTestTypeFourArgs, kInstanceReg,
+                    kInstantiatorTypeArgumentsReg, kFunctionTypeArgumentsReg,
                     kTempReg, is_instance_lbl, is_not_instance_lbl));
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
   if (type.IsType()) {
     const Register kInstanceReg = R0;
-    const Register kTypeArgumentsReg = R1;
+    const Register kInstantiatorTypeArgumentsReg = R1;
+    const Register kFunctionTypeArgumentsReg = R2;
     __ tst(kInstanceReg, Operand(kSmiTagMask));  // Is instance Smi?
     __ b(is_not_instance_lbl, EQ);
-    __ ldr(kTypeArgumentsReg, Address(SP, 0));  // Instantiator type args.
+    __ ldr(kInstantiatorTypeArgumentsReg, Address(SP, 1 * kWordSize));
+    __ ldr(kFunctionTypeArgumentsReg, Address(SP, 0 * kWordSize));
+    // TODO(regis): Renumber registers and use ldm.
     // Uninstantiated type class is known at compile time, but the type
-    // arguments are determined at runtime by the instantiator.
+    // arguments are determined at runtime by the instantiator(s).
     const Register kTempReg = kNoRegister;
-    return GenerateCallSubtypeTestStub(kTestTypeThreeArgs, kInstanceReg,
-                                       kTypeArgumentsReg, kTempReg,
+    return GenerateCallSubtypeTestStub(kTestTypeFourArgs, kInstanceReg,
+                                       kInstantiatorTypeArgumentsReg,
+                                       kFunctionTypeArgumentsReg, kTempReg,
                                        is_instance_lbl, is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
@@ -500,9 +520,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 // Inputs:
 // - R0: instance being type checked (preserved).
 // - R1: optional instantiator type arguments (preserved).
-// Clobbers R2, R3.
+// - R2: optional function type arguments (preserved).
+// Clobbers R3, R4, R8, R9.
 // Returns:
-// - preserved instance in R0 and optional instantiator type arguments in R1.
+// - preserved instance in R0, optional instantiator type arguments in R1, and
+//   optional function type arguments in R2.
 // Note that this inlined code must be followed by the runtime_call code, as it
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
@@ -551,6 +573,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - R0: object.
 // - R1: instantiator type arguments or raw_null.
+// - R2: function type arguments or raw_null.
 // Returns:
 // - true or false in R0.
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
@@ -560,8 +583,9 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType());
 
-  // Preserve instantiator type arguments (R1).
-  __ Push(R1);
+  __ Push(R1);  // Store instantiator type arguments.
+  __ Push(R2);  // Store function type arguments.
+  // TODO(regis): Renumber registers and use PushList.
 
   Label is_instance, is_not_instance;
   // If type is instantiated and non-parameterized, we can inline code
@@ -587,18 +611,21 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    // Load instantiator type arguments (R1).
-    __ ldr(R1, Address(SP, 0 * kWordSize));
+    __ ldr(R1, Address(SP, 1 * kWordSize));  // Get instantiator type args.
+    __ ldr(R2, Address(SP, 0 * kWordSize));  // Get function type args.
+    // TODO(regis): Renumber registers and use ldm.
     __ PushObject(Object::null_object());  // Make room for the result.
     __ Push(R0);                           // Push the instance.
     __ PushObject(type);                   // Push the type.
-    __ Push(R1);  // Push instantiator type arguments (R1).
+    __ Push(R1);                           // Instantiator type arguments.
+    __ Push(R2);                           // Function type arguments.
+    // TODO(regis): Renumber registers and use PushList.
     __ LoadUniqueObject(R0, test_cache);
     __ Push(R0);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 4, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(4);
+    __ Drop(5);
     __ Pop(R0);
     __ b(&done);
   }
@@ -609,8 +636,8 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   __ Bind(&is_instance);
   __ LoadObject(R0, Bool::Get(true));
   __ Bind(&done);
-  // Remove instantiator type arguments (R1).
-  __ Drop(1);
+  // Remove instantiator type arguments and function type arguments.
+  __ Drop(2);
 }
 
 
@@ -621,6 +648,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // Inputs:
 // - R0: instance being type checked.
 // - R1: instantiator type arguments or raw_null.
+// - R2: function type arguments or raw_null.
 // Returns:
 // - object in R0 for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -636,8 +664,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  // Preserve instantiator type arguments (R1).
-  __ Push(R1);
+  __ Push(R1);  // Store instantiator type arguments.
+  __ Push(R2);  // Store function type arguments.
+  // TODO(regis): Renumber registers and use PushList.
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
   __ CompareObject(R0, Object::null_object());
@@ -655,8 +684,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ bkpt(0);
 
     __ Bind(&is_assignable);  // For a null object.
-    // Restore instantiator type arguments (R1).
-    __ Pop(R1);
+    __ Pop(R2);               // Remove pushed function type arguments.
+    __ Pop(R1);               // Remove pushed instantiator type arguments.
+    // TODO(regis): Renumber registers and use PopList.
     return;
   }
 
@@ -666,24 +696,28 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                         &runtime_call);
 
   __ Bind(&runtime_call);
-  // Load instantiator type arguments (R1).
-  __ ldr(R1, Address(SP, 0 * kWordSize));
+  __ ldr(R1, Address(SP, 1 * kWordSize));  // Get instantiator type args.
+  __ ldr(R2, Address(SP, 0 * kWordSize));  // Get function type args.
+  // TODO(regis): Renumber registers and use ldm.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ Push(R0);                           // Push the source object.
   __ PushObject(dst_type);               // Push the type of the destination.
-  __ Push(R1);              // Push instantiator type arguments (R1).
+  __ Push(R1);                           // Instantiator type arguments.
+  __ Push(R2);                           // Function type arguments.
+  // TODO(regis): Renumber registers and use PushList.
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadUniqueObject(R0, test_cache);
   __ Push(R0);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(5);
+  __ Drop(6);
   __ Pop(R0);
 
   __ Bind(&is_assignable);
-  // Restore instantiator type arguments (R1).
-  __ Pop(R1);
+  __ Pop(R2);  // Remove pushed function type arguments.
+  __ Pop(R1);  // Remove pushed instantiator type arguments.
+  // TODO(regis): Renumber registers and use PopList.
 }
 
 

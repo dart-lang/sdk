@@ -1071,13 +1071,13 @@ class Assembler : public ValueObject {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
-  void PushPair(Register first, Register second) {
-    ASSERT((first != PP) && (second != PP));
-    stp(second, first, Address(SP, -2 * kWordSize, Address::PairPreIndex));
+  void PushPair(Register low, Register high) {
+    ASSERT((low != PP) && (high != PP));
+    stp(low, high, Address(SP, -2 * kWordSize, Address::PairPreIndex));
   }
-  void PopPair(Register first, Register second) {
-    ASSERT((first != PP) && (second != PP));
-    ldp(second, first, Address(SP, 2 * kWordSize, Address::PairPostIndex));
+  void PopPair(Register low, Register high) {
+    ASSERT((low != PP) && (high != PP));
+    ldp(low, high, Address(SP, 2 * kWordSize, Address::PairPostIndex));
   }
   void PushFloat(VRegister reg) {
     fstrs(reg, Address(SP, -1 * kFloatSize, Address::PreIndex));

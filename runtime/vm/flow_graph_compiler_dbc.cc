@@ -234,8 +234,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   }
 
   if (is_optimizing()) {
-    __ Push(locs->in(0).reg());
-    __ Push(locs->in(1).reg());
+    __ Push(locs->in(0).reg());  // Instance.
+    __ Push(locs->in(1).reg());  // Instantiator type arguments.
+    __ Push(locs->in(2).reg());  // Function type arguments.
   }
   __ PushConstant(dst_type);
   __ PushConstant(dst_name);

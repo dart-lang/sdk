@@ -1587,50 +1587,58 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(InstantiateType, A_D);
+    // Stack: instantiator type args, function type args
     RawObject* type = LOAD_CONSTANT(rD);
     SP[1] = type;
-    SP[2] = SP[0];
-    SP[0] = null_value;
-    Exit(thread, FP, SP + 3, pc);
+    SP[2] = SP[-1];
+    SP[3] = SP[0];
+    Exit(thread, FP, SP + 4, pc);
     {
-      NativeArguments args(thread, 2, SP + 1, SP);
+      NativeArguments args(thread, 3, SP + 1, SP - 1);
       INVOKE_RUNTIME(DRT_InstantiateType, args);
     }
+    SP -= 1;
     DISPATCH();
   }
 
   {
     BYTECODE(InstantiateTypeArgumentsTOS, A_D);
+    // Stack: instantiator type args, function type args
     RawTypeArguments* type_arguments =
         static_cast<RawTypeArguments*>(LOAD_CONSTANT(rD));
 
-    RawObject* instantiator = SP[0];
-    // If the instantiator is null and if the type argument vector
+    RawObject* instantiator_type_args = SP[-1];
+    RawObject* function_type_args = SP[0];
+    // If both instantiators are null and if the type argument vector
     // instantiated from null becomes a vector of dynamic, then use null as
     // the type arguments.
-    if (rA == 0 || null_value != instantiator) {
+    if ((rA == 0) || (null_value != instantiator_type_args) ||
+        (null_value != function_type_args)) {
       // First lookup in the cache.
       RawArray* instantiations = type_arguments->ptr()->instantiations_;
       for (intptr_t i = 0;
            instantiations->ptr()->data()[i] != NULL;  // kNoInstantiator
-           i += 2) {
-        if (instantiations->ptr()->data()[i] == instantiator) {
+           i += 3) {  // kInstantiationSizeInWords
+        if ((instantiations->ptr()->data()[i] == instantiator_type_args) &&
+            (instantiations->ptr()->data()[i + 1] == function_type_args)) {
           // Found in the cache.
-          SP[0] = instantiations->ptr()->data()[i + 1];
+          SP[-1] = instantiations->ptr()->data()[i + 2];
           goto InstantiateTypeArgumentsTOSDone;
         }
       }
 
       // Cache lookup failed, call runtime.
       SP[1] = type_arguments;
-      SP[2] = instantiator;
+      SP[2] = instantiator_type_args;
+      SP[3] = function_type_args;
 
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments args(thread, 2, SP + 1, SP);
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments args(thread, 3, SP + 1, SP - 1);
       INVOKE_RUNTIME(DRT_InstantiateTypeArguments, args);
     }
 
   InstantiateTypeArgumentsTOSDone:
+    SP -= 1;
     DISPATCH();
   }
 
@@ -2989,9 +2997,12 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(InstanceOf, 0);  // Stack: instance, type args, type, cache
-    RawInstance* instance = static_cast<RawInstance*>(SP[-3]);
+    BYTECODE(InstanceOf, 0);
+    // Stack: instance, instantiator type args, function type args, type, cache
+    RawInstance* instance = static_cast<RawInstance*>(SP[-4]);
     RawTypeArguments* instantiator_type_arguments =
+        static_cast<RawTypeArguments*>(SP[-3]);
+    RawTypeArguments* function_type_arguments =
         static_cast<RawTypeArguments*>(SP[-2]);
     RawAbstractType* type = static_cast<RawAbstractType*>(SP[-1]);
     RawSubtypeTestCache* cache = static_cast<RawSubtypeTestCache*>(SP[0]);
@@ -3027,8 +3038,10 @@ RawObject* Simulator::Call(const Code& code,
             (entries[SubtypeTestCache::kInstanceTypeArguments] ==
              instance_type_arguments) &&
             (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
-             instantiator_type_arguments)) {
-          SP[-3] = entries[SubtypeTestCache::kTestResult];
+             instantiator_type_arguments) &&
+            (entries[SubtypeTestCache::kFunctionTypeArguments] ==
+             function_type_arguments)) {
+          SP[-4] = entries[SubtypeTestCache::kTestResult];
           goto InstanceOfOk;
         }
       }
@@ -3040,37 +3053,40 @@ RawObject* Simulator::Call(const Code& code,
       SP[1] = instance;
       SP[2] = type;
       SP[3] = instantiator_type_arguments;
-      SP[4] = cache;
-      Exit(thread, FP, SP + 5, pc);
-      NativeArguments native_args(thread, 4, SP + 1, SP - 3);
+      SP[4] = function_type_arguments;
+      SP[5] = cache;
+      Exit(thread, FP, SP + 6, pc);
+      NativeArguments native_args(thread, 5, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_Instanceof, native_args);
     }
   // clang-format on
 
   InstanceOfOk:
-    SP -= 3;
+    SP -= 4;
     DISPATCH();
   }
 
   {
-    BYTECODE(BadTypeError, 0);  // Stack: instance, type args, type, name
-    RawObject** args = SP - 3;
+    BYTECODE(BadTypeError, 0);
+    // Stack: instance, instantiator type args, function type args, type, name
+    RawObject** args = SP - 4;
     if (args[0] != null_value) {
       SP[1] = args[0];  // instance.
-      SP[2] = args[3];  // name.
-      SP[3] = args[2];  // type.
+      SP[2] = args[4];  // name.
+      SP[3] = args[3];  // type.
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 3, SP + 1, SP - 3);
+      NativeArguments native_args(thread, 3, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_BadTypeError, native_args);
       UNREACHABLE();
     }
-    SP -= 3;
+    SP -= 4;
     DISPATCH();
   }
 
   {
-    BYTECODE(AssertAssignable, A_D);  // Stack: instance, type args, type, name
-    RawObject** args = SP - 3;
+    BYTECODE(AssertAssignable, A_D);
+    // Stack: instance, instantiator type args, function type args, type, name
+    RawObject** args = SP - 4;
     const bool may_be_smi = (rA == 1);
     const bool is_smi =
         ((reinterpret_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
@@ -3082,6 +3098,8 @@ RawObject* Simulator::Call(const Code& code,
         RawInstance* instance = static_cast<RawInstance*>(args[0]);
         RawTypeArguments* instantiator_type_arguments =
             static_cast<RawTypeArguments*>(args[1]);
+        RawTypeArguments* function_type_arguments =
+            static_cast<RawTypeArguments*>(args[2]);
 
         const intptr_t cid = SimulatorHelpers::GetClassId(instance);
 
@@ -3113,7 +3131,9 @@ RawObject* Simulator::Call(const Code& code,
               (entries[SubtypeTestCache::kInstanceTypeArguments] ==
                instance_type_arguments) &&
               (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
-               instantiator_type_arguments)) {
+               instantiator_type_arguments) &&
+              (entries[SubtypeTestCache::kFunctionTypeArguments] ==
+               function_type_arguments)) {
             if (true_value == entries[SubtypeTestCache::kTestResult]) {
               goto AssertAssignableOk;
             } else {
@@ -3125,17 +3145,18 @@ RawObject* Simulator::Call(const Code& code,
 
     AssertAssignableCallRuntime:
       SP[1] = args[0];  // instance
-      SP[2] = args[2];  // type
-      SP[3] = args[1];  // type args
-      SP[4] = args[3];  // name
-      SP[5] = cache;
-      Exit(thread, FP, SP + 6, pc);
-      NativeArguments native_args(thread, 5, SP + 1, SP - 3);
+      SP[2] = args[3];  // type
+      SP[3] = args[1];  // instantiator type args
+      SP[4] = args[2];  // function type args
+      SP[5] = args[4];  // name
+      SP[6] = cache;
+      Exit(thread, FP, SP + 7, pc);
+      NativeArguments native_args(thread, 6, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_TypeCheck, native_args);
     }
 
   AssertAssignableOk:
-    SP -= 3;
+    SP -= 4;
     DISPATCH();
   }
 

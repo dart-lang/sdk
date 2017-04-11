@@ -3898,7 +3898,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // The index of the type parameters is adjusted upon finalization.
         error = Error::null();
         interface_args = interface_args.InstantiateFrom(
-            type_arguments, &error, NULL, bound_trail, space);
+            type_arguments, Object::null_type_arguments(), &error, NULL,
+            bound_trail, space);
         if (!error.IsNull()) {
           // Return the first bound error to the caller if it requests it.
           if ((bound_error != NULL) && bound_error->IsNull()) {
@@ -4716,9 +4717,14 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
     type = TypeAt(from_index + i);
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
-        // An uninstantiated type parameter is equivalent to dynamic (even in
-        // the presence of a malformed bound in checked mode).
-        continue;
+        const TypeParameter& type_param = TypeParameter::Cast(type);
+        if (type_param.IsClassTypeParameter() ||
+            (type_param.IsFunctionTypeParameter() &&
+             type_param.parent_level() == 0)) {
+          // An uninstantiated type parameter is equivalent to dynamic (even in
+          // the presence of a malformed bound in checked mode).
+          continue;
+        }
       }
       return false;
     }
@@ -4767,11 +4773,13 @@ bool TypeArguments::HasInstantiations() const {
 intptr_t TypeArguments::NumInstantiations() const {
   const Array& prior_instantiations = Array::Handle(instantiations());
   ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
+  intptr_t num = 0;
   intptr_t i = 0;
   while (prior_instantiations.At(i) != Smi::New(StubCode::kNoInstantiator)) {
-    i += 2;
+    i += StubCode::kInstantiationSizeInWords;
+    num++;
   }
-  return i / 2;
+  return num;
 }
 
 
@@ -4980,6 +4988,7 @@ bool TypeArguments::IsBounded() const {
 
 RawTypeArguments* TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -5002,7 +5011,8 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     // solely on the type parameters of A and will be replaced by a non-null
     // type before A is marked as finalized.
     if (!type.IsNull() && !type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments, bound_error,
+      type = type.InstantiateFrom(instantiator_type_arguments,
+                                  function_type_arguments, bound_error,
                                   instantiation_trail, bound_trail, space);
     }
     instantiated_array.SetTypeAt(i, type);
@@ -5013,10 +5023,13 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
 
 RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Error* bound_error) const {
   ASSERT(!IsInstantiated());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsCanonical());
+  ASSERT(function_type_arguments.IsNull() ||
+         function_type_arguments.IsCanonical());
   // Lookup instantiator and, if found, return paired instantiated result.
   Array& prior_instantiations = Array::Handle(instantiations());
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
@@ -5025,18 +5038,19 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
   intptr_t index = 0;
   while (true) {
-    if (prior_instantiations.At(index) == instantiator_type_arguments.raw()) {
-      return TypeArguments::RawCast(prior_instantiations.At(index + 1));
+    if ((prior_instantiations.At(index) == instantiator_type_arguments.raw()) &&
+        (prior_instantiations.At(index + 1) == function_type_arguments.raw())) {
+      return TypeArguments::RawCast(prior_instantiations.At(index + 2));
     }
     if (prior_instantiations.At(index) == Smi::New(StubCode::kNoInstantiator)) {
       break;
     }
-    index += 2;
+    index += StubCode::kInstantiationSizeInWords;
   }
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle();
-  result = InstantiateFrom(instantiator_type_arguments, bound_error, NULL, NULL,
-                           Heap::kOld);
+  result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
+                           bound_error, NULL, NULL, Heap::kOld);
   if ((bound_error != NULL) && !bound_error->IsNull()) {
     return result.raw();
   }
@@ -5045,21 +5059,30 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
   // indirectly, so the prior_instantiations array cannot have grown.
   ASSERT(prior_instantiations.raw() == instantiations());
-  // Add instantiator and result to instantiations array.
+  // Do not cache result if the context is required to instantiate the
+  // type arguments, i.e. they refer to the type parameters of parent functions.
+  if (!IsInstantiated(kParentFunctions)) {
+    return result.raw();
+  }
+  // Add instantiator and function type args and result to instantiations array.
   intptr_t length = prior_instantiations.Length();
-  if ((index + 2) >= length) {
+  if ((index + StubCode::kInstantiationSizeInWords) >= length) {
+    // TODO(regis): Should we limit the number of cached instantiations?
     // Grow the instantiations array.
     // The initial array is Object::zero_array() of length 1.
-    length = (length > 64) ? (length + 64)
-                           : ((length == 1) ? 3 : ((length - 1) * 2 + 1));
+    length = (length > 64)
+                 ? (length + 64)
+                 : ((length == 1) ? StubCode::kInstantiationSizeInWords + 1
+                                  : ((length - 1) * 2 + 1));
     prior_instantiations =
         Array::Grow(prior_instantiations, length, Heap::kOld);
     set_instantiations(prior_instantiations);
-    ASSERT((index + 2) < length);
+    ASSERT((index + StubCode::kInstantiationSizeInWords) < length);
   }
-  prior_instantiations.SetAt(index, instantiator_type_arguments);
-  prior_instantiations.SetAt(index + 1, result);
-  prior_instantiations.SetAt(index + 2,
+  prior_instantiations.SetAt(index + 0, instantiator_type_arguments);
+  prior_instantiations.SetAt(index + 1, function_type_arguments);
+  prior_instantiations.SetAt(index + 2, result);
+  prior_instantiations.SetAt(index + 3,
                              Smi::Handle(Smi::New(StubCode::kNoInstantiator)));
   return result.raw();
 }
@@ -5960,6 +5983,8 @@ intptr_t Function::NumTypeParameters(Thread* thread) const {
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
   TypeArguments& type_params = thread->TypeArgumentsHandle();
   type_params = type_parameters();
+  // We require null to represent a non-generic function.
+  ASSERT(type_params.Length() != 0);
   return type_params.Length();
 }
 
@@ -6387,6 +6412,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
     // TODO(regis): Should we pass the context explicitly here (i.e. null) once
     // we support generic functions?
     this_fun = this_fun.InstantiateSignatureFrom(Object::null_type_arguments(),
+                                                 Object::null_type_arguments(),
                                                  Heap::kOld);
   }
   Function& other_fun = Function::Handle(other.raw());
@@ -6394,7 +6420,8 @@ bool Function::HasCompatibleParametersWith(const Function& other,
     // TODO(regis): Should we pass the context explicitly here (i.e. null) once
     // we support generic functions?
     other_fun = other_fun.InstantiateSignatureFrom(
-        Object::null_type_arguments(), Heap::kOld);
+        Object::null_type_arguments(), Object::null_type_arguments(),
+        Heap::kOld);
   }
   if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, Heap::kOld)) {
     // For more informative error reporting, use the location of the other
@@ -6423,6 +6450,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
 
 RawFunction* Function::InstantiateSignatureFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
@@ -6434,8 +6462,9 @@ RawFunction* Function::InstantiateSignatureFrom(
   sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
-    type = type.InstantiateFrom(instantiator_type_arguments, NULL, NULL, NULL,
-                                space);
+    type =
+        type.InstantiateFrom(instantiator_type_arguments,
+                             function_type_arguments, NULL, NULL, NULL, space);
   }
   sig.set_result_type(type);
   const intptr_t num_params = NumParameters();
@@ -6446,7 +6475,8 @@ RawFunction* Function::InstantiateSignatureFrom(
   for (intptr_t i = 0; i < num_params; i++) {
     type = ParameterTypeAt(i);
     if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments, NULL, NULL, NULL,
+      type = type.InstantiateFrom(instantiator_type_arguments,
+                                  function_type_arguments, NULL, NULL, NULL,
                                   space);
     }
     sig.SetParameterTypeAt(i, type);
@@ -15079,6 +15109,7 @@ void SubtypeTestCache::AddCheck(
     const Object& instance_class_id_or_function,
     const TypeArguments& instance_type_arguments,
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     const Bool& test_result) const {
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
@@ -15091,6 +15122,7 @@ void SubtypeTestCache::AddCheck(
   data.SetAt(data_pos + kInstanceTypeArguments, instance_type_arguments);
   data.SetAt(data_pos + kInstantiatorTypeArguments,
              instantiator_type_arguments);
+  data.SetAt(data_pos + kFunctionTypeArguments, function_type_arguments);
   data.SetAt(data_pos + kTestResult, test_result);
 }
 
@@ -15099,6 +15131,7 @@ void SubtypeTestCache::GetCheck(intptr_t ix,
                                 Object* instance_class_id_or_function,
                                 TypeArguments* instance_type_arguments,
                                 TypeArguments* instantiator_type_arguments,
+                                TypeArguments* function_type_arguments,
                                 Bool* test_result) const {
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
@@ -15107,6 +15140,7 @@ void SubtypeTestCache::GetCheck(intptr_t ix,
   *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
+  *function_type_arguments ^= data.At(data_pos + kFunctionTypeArguments);
   *test_result ^= data.At(data_pos + kTestResult);
 }
 
@@ -15616,10 +15650,13 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     if (!type.IsInstantiated()) {
       TypeArguments& instantiator_type_arguments =
           TypeArguments::Handle(Closure::Cast(*this).instantiator());
-      // TODO(regis): Should we pass the context explicitly here (i.e. null)
-      // once we support generic functions?
-      type ^= type.InstantiateFrom(instantiator_type_arguments, NULL, NULL,
-                                   NULL, space);
+      const TypeArguments& function_type_arguments =
+          TypeArguments::Handle(signature.type_parameters());
+      // TODO(regis): Pass the closure context to InstantiateSignatureFrom().
+      // No bound error possible, since the instance exists.
+      type ^= type.InstantiateFrom(instantiator_type_arguments,
+                                   function_type_arguments, NULL, NULL, NULL,
+                                   space);
     }
     type ^= type.Canonicalize();
     return type.raw();
@@ -15660,9 +15697,11 @@ void Instance::SetTypeArguments(const TypeArguments& value) const {
 }
 
 
-bool Instance::IsInstanceOf(const AbstractType& other,
-                            const TypeArguments& other_instantiator,
-                            Error* bound_error) const {
+bool Instance::IsInstanceOf(
+    const AbstractType& other,
+    const TypeArguments& other_instantiator_type_arguments,
+    const TypeArguments& other_function_type_arguments,
+    Error* bound_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
@@ -15682,7 +15721,8 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     // Note that we may encounter a bound error in checked mode.
     if (!other.IsInstantiated()) {
       instantiated_other = other.InstantiateFrom(
-          other_instantiator, bound_error, NULL, NULL, Heap::kOld);
+          other_instantiator_type_arguments, other_function_type_arguments,
+          bound_error, NULL, NULL, Heap::kOld);
       if ((bound_error != NULL) && !bound_error->IsNull()) {
         ASSERT(Isolate::Current()->type_checks());
         return false;
@@ -15705,12 +15745,11 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     if (!sig_fun.HasInstantiatedSignature()) {
       const TypeArguments& instantiator_type_arguments =
           TypeArguments::Handle(zone, Closure::Cast(*this).instantiator());
-      // TODO(regis): If sig_fun is generic, pass its type parameters
-      // as function instantiator, otherwise pass null.
-      // Pass the closure context as well to InstantiateSignatureFrom().
-      // No bound error possible, since the instance exists.
-      sig_fun = sig_fun.InstantiateSignatureFrom(instantiator_type_arguments,
-                                                 Heap::kOld);
+      const TypeArguments& function_type_arguments =
+          TypeArguments::Handle(zone, sig_fun.type_parameters());
+      // TODO(regis): Pass the closure context to InstantiateSignatureFrom().
+      sig_fun = sig_fun.InstantiateSignatureFrom(
+          instantiator_type_arguments, function_type_arguments, Heap::kOld);
     }
     return sig_fun.IsSubtypeOf(other_signature, bound_error, Heap::kOld);
   }
@@ -15734,8 +15773,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
-    instantiated_other = other.InstantiateFrom(other_instantiator, bound_error,
-                                               NULL, NULL, Heap::kOld);
+    instantiated_other = other.InstantiateFrom(
+        other_instantiator_type_arguments, other_function_type_arguments,
+        bound_error, NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(Isolate::Current()->type_checks());
       return false;
@@ -15758,11 +15798,12 @@ bool Instance::IsInstanceOf(const AbstractType& other,
         return true;
       }
       if (!sig_fun.HasInstantiatedSignature()) {
-        // TODO(regis): If sig_fun is generic, pass its type parameters
-        // as function instantiator, otherwise pass null.
-        // Pass the closure context as well to InstantiateSignatureFrom().
+        const TypeArguments& function_type_arguments =
+            TypeArguments::Handle(zone, sig_fun.type_parameters());
+        // TODO(regis): Pass the closure context to InstantiateSignatureFrom().
         // No bound error possible, since the instance exists.
-        sig_fun = sig_fun.InstantiateSignatureFrom(type_arguments, Heap::kOld);
+        sig_fun = sig_fun.InstantiateSignatureFrom(
+            type_arguments, function_type_arguments, Heap::kOld);
       }
       const Function& other_signature =
           Function::Handle(zone, Type::Cast(instantiated_other).signature());
@@ -16117,6 +16158,7 @@ bool AbstractType::IsRecursive() const {
 
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -16890,6 +16932,7 @@ bool Type::IsInstantiated(Genericity genericity, TrailPtr trail) const {
 
 RawAbstractType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -16914,9 +16957,9 @@ RawAbstractType* Type::InstantiateFrom(
     // Note that the type arguments of a function type merely document the
     // parameterization of a generic typedef. They are otherwise ignored.
     ASSERT(type_arguments.Length() == cls.NumTypeArguments());
-    type_arguments =
-        type_arguments.InstantiateFrom(instantiator_type_arguments, bound_error,
-                                       instantiation_trail, bound_trail, space);
+    type_arguments = type_arguments.InstantiateFrom(
+        instantiator_type_arguments, function_type_arguments, bound_error,
+        instantiation_trail, bound_trail, space);
   }
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
@@ -16936,8 +16979,8 @@ RawAbstractType* Type::InstantiateFrom(
     if (IsFinalized()) {
       // A generic typedef may actually declare an instantiated signature.
       if (!sig_fun.HasInstantiatedSignature()) {
-        sig_fun = sig_fun.InstantiateSignatureFrom(instantiator_type_arguments,
-                                                   space);
+        sig_fun = sig_fun.InstantiateSignatureFrom(
+            instantiator_type_arguments, function_type_arguments, space);
       }
     } else {
       // The Kernel frontend does not keep the information that a function type
@@ -17595,6 +17638,7 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
 
 RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -17610,9 +17654,9 @@ RawTypeRef* TypeRef::InstantiateFrom(
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
-  instantiated_ref_type =
-      ref_type.InstantiateFrom(instantiator_type_arguments, bound_error,
-                               instantiation_trail, bound_trail, space);
+  instantiated_ref_type = ref_type.InstantiateFrom(
+      instantiator_type_arguments, function_type_arguments, bound_error,
+      instantiation_trail, bound_trail, space);
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref.set_type(instantiated_ref_type);
   return instantiated_type_ref.raw();
@@ -17834,16 +17878,29 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 
 RawAbstractType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
     Heap::Space space) const {
   ASSERT(IsFinalized());
+  if (IsFunctionTypeParameter()) {
+    if (parent_level() == 0) {
+      if (function_type_arguments.IsNull()) {
+        return Type::DynamicType();
+      }
+      return function_type_arguments.TypeAt(index());
+    }
+    // We need to find the type argument vector of the parent function at
+    // parent_level() in the context.
+    UNIMPLEMENTED();
+    return function_type_arguments.TypeAt(index());
+  }
+  ASSERT(IsClassTypeParameter());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  const AbstractType& type_arg =
-      AbstractType::Handle(instantiator_type_arguments.TypeAt(index()));
+  return instantiator_type_arguments.TypeAt(index());
   // There is no need to canonicalize the instantiated type parameter, since all
   // type arguments are canonicalized at type finalization time. It would be too
   // early to canonicalize the returned type argument here, since instantiation
@@ -17854,7 +17911,6 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   // time (i.e. compile time).
   // Indeed, the instantiator (type arguments of an instance) is always
   // instantiated at run time and any bounds were checked during allocation.
-  return type_arg.raw();
 }
 
 
@@ -18165,6 +18221,7 @@ void BoundedType::set_type_parameter(const TypeParameter& value) const {
 
 RawAbstractType* BoundedType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -18175,9 +18232,9 @@ RawAbstractType* BoundedType::InstantiateFrom(
   AbstractType& instantiated_bounded_type =
       AbstractType::Handle(bounded_type.raw());
   if (!bounded_type.IsInstantiated()) {
-    instantiated_bounded_type =
-        bounded_type.InstantiateFrom(instantiator_type_arguments, bound_error,
-                                     instantiation_trail, bound_trail, space);
+    instantiated_bounded_type = bounded_type.InstantiateFrom(
+        instantiator_type_arguments, function_type_arguments, bound_error,
+        instantiation_trail, bound_trail, space);
     // In case types of instantiator_type_arguments are not finalized
     // (or instantiated), then the instantiated_bounded_type is not finalized
     // (or instantiated) either.
@@ -18190,9 +18247,9 @@ RawAbstractType* BoundedType::InstantiateFrom(
     AbstractType& instantiated_upper_bound =
         AbstractType::Handle(upper_bound.raw());
     if (upper_bound.IsFinalized() && !upper_bound.IsInstantiated()) {
-      instantiated_upper_bound =
-          upper_bound.InstantiateFrom(instantiator_type_arguments, bound_error,
-                                      instantiation_trail, bound_trail, space);
+      instantiated_upper_bound = upper_bound.InstantiateFrom(
+          instantiator_type_arguments, function_type_arguments, bound_error,
+          instantiation_trail, bound_trail, space);
       // The instantiated_upper_bound may not be finalized or instantiated.
       // See comment above.
     }

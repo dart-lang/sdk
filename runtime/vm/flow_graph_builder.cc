@@ -1234,7 +1234,7 @@ void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
   }
   Value* function_type_arguments = NULL;
   if (type.IsInstantiated(kCurrentFunction)) {
-    // TODO(regis): function_type_arguments = BuildNullValue((token_pos);
+    function_type_arguments = BuildNullValue(token_pos);
   } else {
     function_type_arguments = BuildFunctionTypeArguments(token_pos);
   }
@@ -1463,7 +1463,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
     instantiator_type_arguments = BuildInstantiatorTypeArguments(token_pos);
   }
   if (dst_type.IsInstantiated(kCurrentFunction)) {
-    // TODO(regis): function_type_arguments = BuildNullValue(token_pos);
+    function_type_arguments = BuildNullValue(token_pos);
   } else {
     function_type_arguments = BuildFunctionTypeArguments(token_pos);
   }
@@ -1532,13 +1532,13 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 
   PushArgumentInstr* push_instantiator_type_args =
       PushInstantiatorTypeArguments(type, node->token_pos());
-  // TODO(regis): PushArgumentInstr* push_function_type_args =
-  //    PushFunctionTypeArguments(type, node->token_pos());
+  PushArgumentInstr* push_function_type_args =
+      PushFunctionTypeArguments(type, node->token_pos());
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(4);
   arguments->Add(push_left);
   arguments->Add(push_instantiator_type_args);
-  // TODO(regis): arguments->Add(push_function_type_args);
+  arguments->Add(push_function_type_args);
   Value* type_const = Bind(new (Z) ConstantInstr(type));
   arguments->Add(PushArgument(type_const));
   const intptr_t kNumArgsChecked = 1;
@@ -1570,13 +1570,13 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   PushArgumentInstr* push_left = PushArgument(for_value.value());
   PushArgumentInstr* push_instantiator_type_args =
       PushInstantiatorTypeArguments(type, node->token_pos());
-  // TODO(regis): PushArgumentInstr* push_function_type_args =
-  //    PushFunctionTypeArguments(type, node->token_pos());
+  PushArgumentInstr* push_function_type_args =
+      PushFunctionTypeArguments(type, node->token_pos());
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(4);
   arguments->Add(push_left);
   arguments->Add(push_instantiator_type_args);
-  // TODO(regis): arguments->Add(push_function_type_args);
+  arguments->Add(push_function_type_args);
   Value* type_arg = Bind(new (Z) ConstantInstr(type));
   arguments->Add(PushArgument(type_arg));
   const intptr_t kNumArgsChecked = 1;
@@ -2738,7 +2738,7 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   }
   Value* function_type_args = NULL;
   if (type_arguments.IsInstantiated(kCurrentFunction)) {
-    // TODO(regis): function_type_args = BuildNullValue(token_pos);
+    function_type_args = BuildNullValue(token_pos);
   } else {
     function_type_args = BuildFunctionTypeArguments(token_pos);
   }
@@ -4140,9 +4140,8 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       new (Z) ZoneGrowableArray<PushArgumentInstr*>();
   // Object receiver, actually a class literal of the unresolved method's owner.
   AbstractType& type = Type::ZoneHandle(
-      Z,
-      Type::New(function_class, TypeArguments::Handle(Z, TypeArguments::null()),
-                token_pos, Heap::kOld));
+      Z, Type::New(function_class, Object::null_type_arguments(), token_pos,
+                   Heap::kOld));
   type ^= ClassFinalizer::FinalizeType(function_class, type);
   Value* receiver_value = Bind(new (Z) ConstantInstr(type));
   arguments->Add(PushArgument(receiver_value));

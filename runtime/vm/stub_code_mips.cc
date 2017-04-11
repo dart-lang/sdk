@@ -1863,14 +1863,14 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // RA: return address.
 // A0: instance (must be preserved).
-// A1: instantiator type arguments or NULL.
-// A2: cache array.
+// A1: instantiator type arguments (only if n == 4, can be raw_null).
+// A2: function type arguments (only if n == 4, can be raw_null).
+// A3: SubtypeTestCache.
 // Result in V0: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ Comment("SubtypeNTestCacheStub");
-  ASSERT((1 <= n) && (n <= 3));
+  ASSERT((n == 1) || (n == 2) || (n == 4));
   if (n > 1) {
-    // Get instance type arguments.
     __ LoadClass(T0, A0);
     // Compute instance type arguments into T1.
     Label has_no_type_arguments;
@@ -1886,15 +1886,15 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   }
   __ LoadClassId(T0, A0);
   // A0: instance.
-  // A1: instantiator type arguments or NULL.
-  // A2: SubtypeTestCache.
+  // A1: instantiator type arguments (only if n == 4, can be raw_null).
+  // A2: function type arguments (only if n == 4, can be raw_null).
+  // A3: SubtypeTestCache.
   // T0: instance class id.
   // T1: instance type arguments (null if none), used only if n > 1.
-  __ lw(T2, FieldAddress(A2, SubtypeTestCache::cache_offset()));
+  __ lw(T2, FieldAddress(A3, SubtypeTestCache::cache_offset()));
   __ AddImmediate(T2, Array::data_offset() - kHeapObjectTag);
 
   __ LoadObject(T7, Object::null_object());
-
   Label loop, found, not_found, next_iteration;
   // T0: instance class id.
   // T1: instance type arguments (still null if closure).
@@ -1909,7 +1909,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ lw(T3,
         Address(T2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ beq(T3, T7, &not_found);
-
   if (n == 1) {
     __ beq(T3, T0, &found);
   } else {
@@ -1922,7 +1921,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ bne(T3, T1, &next_iteration);
       __ lw(T3, Address(T2, kWordSize *
                                 SubtypeTestCache::kInstantiatorTypeArguments));
-      __ beq(T3, A1, &found);
+      __ bne(T3, A1, &next_iteration);
+      __ lw(T3,
+            Address(T2, kWordSize * SubtypeTestCache::kFunctionTypeArguments));
+      __ beq(T3, A2, &found);
     }
   }
   __ Bind(&next_iteration);
@@ -1944,8 +1946,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 // Used to check class and type arguments. Arguments passed in registers:
 // RA: return address.
 // A0: instance (must be preserved).
-// A1: instantiator type arguments or NULL.
-// A2: cache array.
+// A1: unused.
+// A2: unused.
+// A3: SubtypeTestCache.
 // Result in V0: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
@@ -1955,8 +1958,9 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // RA: return address.
 // A0: instance (must be preserved).
-// A1: instantiator type arguments or NULL.
-// A2: cache array.
+// A1: unused.
+// A2: unused.
+// A3: SubtypeTestCache.
 // Result in V0: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
@@ -1966,11 +1970,12 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // RA: return address.
 // A0: instance (must be preserved).
-// A1: instantiator type arguments or NULL.
-// A2: cache array.
+// A1: instantiator type arguments (can be raw_null).
+// A2: function type arguments (can be raw_null).
+// A3: SubtypeTestCache.
 // Result in V0: null -> not found, otherwise result (true or false).
-void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
+void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
 

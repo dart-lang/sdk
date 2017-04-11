@@ -13484,7 +13484,8 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
       if (I->type_checks() && !element_type.IsDynamicType() &&
           (!elem->AsLiteralNode()->literal().IsNull() &&
            !elem->AsLiteralNode()->literal().IsInstanceOf(
-               element_type, Object::null_type_arguments(), &bound_error))) {
+               element_type, Object::null_type_arguments(),
+               Object::null_type_arguments(), &bound_error))) {
         // If the failure is due to a bound error, display it instead.
         if (!bound_error.IsNull()) {
           ReportError(bound_error);
@@ -13708,7 +13709,8 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
         if (!arg_type.IsDynamicType() &&
             (!arg->AsLiteralNode()->literal().IsNull() &&
              !arg->AsLiteralNode()->literal().IsInstanceOf(
-                 arg_type, Object::null_type_arguments(), &bound_error))) {
+                 arg_type, Object::null_type_arguments(),
+                 Object::null_type_arguments(), &bound_error))) {
           // If the failure is due to a bound error, display it.
           if (!bound_error.IsNull()) {
             ReportError(bound_error);
@@ -13988,8 +13990,10 @@ void Parser::ParseConstructorClosurization(Function* constructor,
       type = constructor->RedirectionType();
       ASSERT(!type.IsMalformedOrMalbounded());
       if (!type.IsInstantiated()) {
+        ASSERT(type.IsInstantiated(kFunctions));  // No generic constructors.
         Error& error = Error::Handle(Z);
-        type ^= type.InstantiateFrom(*type_arguments, &error,
+        type ^= type.InstantiateFrom(*type_arguments,
+                                     Object::null_type_arguments(), &error,
                                      NULL,  // instantiation_trail
                                      NULL,  // bound_trail
                                      Heap::kOld);
@@ -14152,14 +14156,16 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       Type& redirect_type = Type::ZoneHandle(Z, constructor.RedirectionType());
       if (!redirect_type.IsMalformedOrMalbounded() &&
           !redirect_type.IsInstantiated()) {
+        // No generic constructors allowed.
+        ASSERT(redirect_type.IsInstantiated(kFunctions));
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
         Error& error = Error::Handle(Z);
-        redirect_type ^=
-            redirect_type.InstantiateFrom(type_arguments, &error,
-                                          NULL,  // instantiation_trail
-                                          NULL,  // bound_trail
-                                          Heap::kOld);
+        redirect_type ^= redirect_type.InstantiateFrom(
+            type_arguments, Object::null_type_arguments(), &error,
+            NULL,  // instantiation_trail
+            NULL,  // bound_trail
+            Heap::kOld);
         if (!error.IsNull()) {
           redirect_type = ClassFinalizer::NewFinalizedMalformedType(
               error, script_, call_pos,
@@ -14322,7 +14328,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       Error& bound_error = Error::Handle(Z);
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
       if (!const_instance.IsInstanceOf(
-              type_bound, Object::null_type_arguments(), &bound_error)) {
+              type_bound, Object::null_type_arguments(),
+              Object::null_type_arguments(), &bound_error)) {
         type_bound = ClassFinalizer::NewFinalizedMalformedType(
             bound_error, script_, new_pos,
             "const factory result is not an instance of '%s'",

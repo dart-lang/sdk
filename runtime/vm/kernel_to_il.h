@@ -865,6 +865,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment PopContext();
 
   Fragment LoadInstantiatorTypeArguments();
+  Fragment LoadFunctionTypeArguments();
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
   Fragment TranslateInstantiatedTypeArguments(

@@ -1448,15 +1448,18 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = NULL;
+  Definition* instantiator_type_args = NULL;
+  Definition* function_type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
   if (call->ArgumentCount() == 2) {
-    type_args = flow_graph()->constant_null();
+    instantiator_type_args = flow_graph()->constant_null();
+    function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
   } else {
-    type_args = call->ArgumentAt(1);
-    type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
+    instantiator_type_args = call->ArgumentAt(1);
+    function_type_args = call->ArgumentAt(2);
+    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
 
   if (TypeCheckAsClassEquality(type)) {
@@ -1550,8 +1553,8 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   }
 
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type args.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
@@ -1561,9 +1564,10 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = call->ArgumentAt(1);
+  Definition* instantiator_type_args = call->ArgumentAt(1);
+  Definition* function_type_args = call->ArgumentAt(2);
   const AbstractType& type =
-      AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value());
+      AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
   ASSERT(!type.IsMalformedOrMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
@@ -1593,8 +1597,8 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     }
   }
   AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type arguments.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }

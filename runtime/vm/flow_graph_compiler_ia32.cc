@@ -207,7 +207,8 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
-    Register type_arguments_reg,
+    Register instantiator_type_arguments_reg,
+    Register function_type_arguments_reg,
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -219,23 +220,28 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   __ pushl(temp_reg);      // Subtype test cache.
   __ pushl(instance_reg);  // Instance.
   if (test_kind == kTestTypeOneArg) {
-    ASSERT(type_arguments_reg == kNoRegister);
+    ASSERT(instantiator_type_arguments_reg == kNoRegister);
+    ASSERT(function_type_arguments_reg == kNoRegister);
+    __ pushl(raw_null);
     __ pushl(raw_null);
     __ Call(*StubCode::Subtype1TestCache_entry());
   } else if (test_kind == kTestTypeTwoArgs) {
-    ASSERT(type_arguments_reg == kNoRegister);
+    ASSERT(instantiator_type_arguments_reg == kNoRegister);
+    ASSERT(function_type_arguments_reg == kNoRegister);
+    __ pushl(raw_null);
     __ pushl(raw_null);
     __ Call(*StubCode::Subtype2TestCache_entry());
-  } else if (test_kind == kTestTypeThreeArgs) {
-    __ pushl(type_arguments_reg);
-    __ Call(*StubCode::Subtype3TestCache_entry());
+  } else if (test_kind == kTestTypeFourArgs) {
+    __ pushl(instantiator_type_arguments_reg);
+    __ pushl(function_type_arguments_reg);
+    __ Call(*StubCode::Subtype4TestCache_entry());
   } else {
     UNREACHABLE();
   }
   // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
   ASSERT(instance_reg != ECX);
   ASSERT(temp_reg != ECX);
-  __ popl(instance_reg);  // Discard.
+  __ Drop(2);
   __ popl(instance_reg);  // Restore receiver.
   __ popl(temp_reg);      // Discard.
   GenerateBoolToJump(ECX, is_instance_lbl, is_not_instance_lbl);
@@ -311,10 +317,12 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     }
   }
   // Regular subtype test cache involving instance's type arguments.
-  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kInstantiatorTypeArgumentsReg = kNoRegister;
+  const Register kFunctionTypeArgumentsReg = kNoRegister;
   const Register kTempReg = EDI;
   return GenerateCallSubtypeTestStub(kTestTypeTwoArgs, kInstanceReg,
-                                     kTypeArgumentsReg, kTempReg,
+                                     kInstantiatorTypeArgumentsReg,
+                                     kFunctionTypeArgumentsReg, kTempReg,
                                      is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -421,10 +429,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   __ cmpl(EDI, Immediate(Smi::RawValue(type_class.id())));
   __ j(EQUAL, is_instance_lbl);
 
-  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kInstantiatorTypeArgumentsReg = kNoRegister;
+  const Register kFunctionTypeArgumentsReg = kNoRegister;
   const Register kTempReg = EDI;
   return GenerateCallSubtypeTestStub(kTestTypeOneArg, kInstanceReg,
-                                     kTypeArgumentsReg, kTempReg,
+                                     kInstantiatorTypeArgumentsReg,
+                                     kFunctionTypeArgumentsReg, kTempReg,
                                      is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -444,20 +454,24 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator type arguments on stack.
-    __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+    __ movl(EDX, Address(ESP, 1 * kWordSize));  // Get instantiator type args.
+    __ movl(ECX, Address(ESP, 0 * kWordSize));  // Get function type args.
     // EDX: instantiator type arguments.
+    // ECX: function type arguments.
+    const Register kTypeArgumentsReg =
+        type_param.IsClassTypeParameter() ? EDX : ECX;
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
-    __ cmpl(EDX, raw_null);
+    __ cmpl(kTypeArgumentsReg, raw_null);
     __ j(EQUAL, is_instance_lbl);
-    __ movl(EDI, FieldAddress(
-                     EDX, TypeArguments::type_at_offset(type_param.index())));
+    __ movl(EDI, FieldAddress(kTypeArgumentsReg, TypeArguments::type_at_offset(
+                                                     type_param.index())));
     // EDI: concrete type of type.
     // Check if type argument is dynamic.
     __ CompareObject(EDI, Object::dynamic_type());
     __ j(EQUAL, is_instance_lbl);
     __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::ObjectType()));
     __ j(EQUAL, is_instance_lbl);
+    // TODO(regis): Optimize void type as well once allowed as type argument.
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
@@ -473,28 +487,34 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 
     __ Bind(&not_smi);
     // EDX: instantiator type arguments.
+    // ECX: function type arguments.
     // EAX: instance.
     const Register kInstanceReg = EAX;
-    const Register kTypeArgumentsReg = EDX;
+    const Register kInstantiatorTypeArgumentsReg = EDX;
+    const Register kFunctionTypeArgumentsReg = ECX;
     const Register kTempReg = EDI;
     const SubtypeTestCache& type_test_cache = SubtypeTestCache::ZoneHandle(
         zone(), GenerateCallSubtypeTestStub(
-                    kTestTypeThreeArgs, kInstanceReg, kTypeArgumentsReg,
+                    kTestTypeFourArgs, kInstanceReg,
+                    kInstantiatorTypeArgumentsReg, kFunctionTypeArgumentsReg,
                     kTempReg, is_instance_lbl, is_not_instance_lbl));
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
   if (type.IsType()) {
     const Register kInstanceReg = EAX;
-    const Register kTypeArgumentsReg = EDX;
+    const Register kInstantiatorTypeArgumentsReg = EDX;
+    const Register kFunctionTypeArgumentsReg = ECX;
     __ testl(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
     __ j(ZERO, is_not_instance_lbl);
-    __ movl(kTypeArgumentsReg, Address(ESP, 0));  // Instantiator type args.
+    __ movl(kInstantiatorTypeArgumentsReg, Address(ESP, 1 * kWordSize));
+    __ movl(kFunctionTypeArgumentsReg, Address(ESP, 0 * kWordSize));
     // Uninstantiated type class is known at compile time, but the type
-    // arguments are determined at runtime by the instantiator.
+    // arguments are determined at runtime by the instantiator(s).
     const Register kTempReg = EDI;
-    return GenerateCallSubtypeTestStub(kTestTypeThreeArgs, kInstanceReg,
-                                       kTypeArgumentsReg, kTempReg,
+    return GenerateCallSubtypeTestStub(kTestTypeFourArgs, kInstanceReg,
+                                       kInstantiatorTypeArgumentsReg,
+                                       kFunctionTypeArgumentsReg, kTempReg,
                                        is_instance_lbl, is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
@@ -504,9 +524,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 // Inputs:
 // - EAX: instance to test against (preserved).
 // - EDX: optional instantiator type arguments (preserved).
-// Clobbers ECX, EDI.
+// - ECX: optional function type arguments (preserved).
+// Clobbers EDI.
 // Returns:
-// - preserved instance in EAX and optional instantiator type arguments in EDX.
+// - preserved instance in EAX, optional instantiator type arguments in EDX, and
+//   optional function type arguments in RCX.
 // Note that this inlined code must be followed by the runtime_call code, as it
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
@@ -555,7 +577,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - EAX: object.
 // - EDX: instantiator type arguments or raw_null.
-// Clobbers EDX.
+// - ECX: function type arguments or raw_null.
 // Returns:
 // - true or false in EAX.
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
@@ -565,10 +587,12 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType());
 
+  __ pushl(EDX);  // Store instantiator type arguments.
+  __ pushl(ECX);  // Store function type arguments.
+
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label is_instance, is_not_instance;
-  __ pushl(EDX);  // Store instantiator type arguments.
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
@@ -592,17 +616,19 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    __ movl(EDX, Address(ESP, 0));         // Get instantiator type arguments.
+    __ movl(EDX, Address(ESP, 1 * kWordSize));  // Get instantiator type args.
+    __ movl(ECX, Address(ESP, 0 * kWordSize));  // Get function type args.
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushl(EAX);                         // Push the instance.
     __ PushObject(type);                   // Push the type.
     __ pushl(EDX);                         // Instantiator type arguments.
+    __ pushl(ECX);                         // Function type arguments.
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 4, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(4);
+    __ Drop(5);
     __ popl(EAX);
     __ jmp(&done, Assembler::kNearJump);
   }
@@ -613,6 +639,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   __ Bind(&is_instance);
   __ LoadObject(EAX, Bool::Get(true));
   __ Bind(&done);
+  __ popl(ECX);  // Remove pushed function type arguments.
   __ popl(EDX);  // Remove pushed instantiator type arguments.
 }
 
@@ -624,6 +651,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 // Inputs:
 // - EAX: object.
 // - EDX: instantiator type arguments or raw_null.
+// - ECX: function type arguments or raw_null.
 // Returns:
 // - object in EAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -640,6 +668,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
   __ pushl(EDX);  // Store instantiator type arguments.
+  __ pushl(ECX);  // Store function type arguments.
   // A null object is always assignable and is returned as result.
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -659,6 +688,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ int3();
 
     __ Bind(&is_assignable);  // For a null object.
+    __ popl(ECX);             // Remove pushed function type arguments.
     __ popl(EDX);             // Remove pushed instantiator type arguments.
     return;
   }
@@ -669,21 +699,24 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                         &runtime_call);
 
   __ Bind(&runtime_call);
-  __ movl(EDX, Address(ESP, 0));         // Get instantiator type arguments.
+  __ movl(EDX, Address(ESP, 1 * kWordSize));  // Get instantiator type args.
+  __ movl(ECX, Address(ESP, 0 * kWordSize));  // Get function type args.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushl(EAX);                         // Push the source object.
   __ PushObject(dst_type);               // Push the type of the destination.
   __ pushl(EDX);                         // Instantiator type arguments.
+  __ pushl(ECX);                         // Function type arguments.
   __ PushObject(dst_name);               // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(5);
+  __ Drop(6);
   __ popl(EAX);
 
   __ Bind(&is_assignable);
+  __ popl(ECX);  // Remove pushed function type arguments.
   __ popl(EDX);  // Remove pushed instantiator type arguments.
 }
 

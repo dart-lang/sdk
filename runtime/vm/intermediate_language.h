@@ -2536,7 +2536,7 @@ class UnboxedConstantInstr : public ConstantInstr {
 };
 
 
-class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
+class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
  public:
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
@@ -2554,7 +2554,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(2, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
@@ -2563,6 +2563,7 @@ class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator_type_arguments() const { return inputs_[1]; }
+  Value* function_type_arguments() const { return inputs_[2]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& dst_type() const { return dst_type_; }
@@ -3971,7 +3972,7 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 
-class InstanceOfInstr : public TemplateDefinition<2, Throws> {
+class InstanceOfInstr : public TemplateDefinition<3, Throws> {
  public:
   InstanceOfInstr(TokenPosition token_pos,
                   Value* value,
@@ -3983,7 +3984,7 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
+    SetInputAt(2, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
@@ -3991,6 +3992,7 @@ class InstanceOfInstr : public TemplateDefinition<2, Throws> {
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator_type_arguments() const { return inputs_[1]; }
+  Value* function_type_arguments() const { return inputs_[2]; }
 
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -4398,7 +4400,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 
-class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
+class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
  public:
   InstantiateTypeInstr(TokenPosition token_pos,
                        const AbstractType& type,
@@ -4408,13 +4410,14 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
         token_pos_(token_pos),
         type_(type) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
     SetInputAt(0, instantiator_type_arguments);
+    SetInputAt(1, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateType)
 
   Value* instantiator_type_arguments() const { return inputs_[0]; }
+  Value* function_type_arguments() const { return inputs_[1]; }
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -4432,7 +4435,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
 };
 
 
-class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
+class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
  public:
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
@@ -4444,13 +4447,14 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
     ASSERT(type_arguments.IsZoneHandle());
-    ASSERT(function_type_arguments == NULL);  // TODO(regis): Implement.
     SetInputAt(0, instantiator_type_arguments);
+    SetInputAt(1, function_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
 
   Value* instantiator_type_arguments() const { return inputs_[0]; }
+  Value* function_type_arguments() const { return inputs_[1]; }
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
   virtual TokenPosition token_pos() const { return token_pos_; }

@@ -186,7 +186,7 @@ DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(CheckedSmiComparison)
 
 
 EMIT_NATIVE_CODE(InstanceOf,
-                 2,
+                 3,
                  Location::SameAsFirstInput(),
                  LocationSummary::kCall) {
   SubtypeTestCache& test_cache = SubtypeTestCache::Handle();
@@ -197,6 +197,7 @@ EMIT_NATIVE_CODE(InstanceOf,
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());  // Value.
     __ Push(locs()->in(1).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(2).reg());  // Function type arguments.
   }
 
   __ PushConstant(type());
@@ -212,7 +213,7 @@ EMIT_NATIVE_CODE(InstanceOf,
 
 
 DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable,
-                             2,
+                             3,
                              Location::SameAsFirstInput(),
                              LocationSummary::kCall);
 
@@ -1272,11 +1273,12 @@ EMIT_NATIVE_CODE(ReThrow, 0, Location::NoLocation(), LocationSummary::kCall) {
 }
 
 EMIT_NATIVE_CODE(InstantiateType,
-                 1,
+                 2,
                  Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (compiler->is_optimizing()) {
-    __ Push(locs()->in(0).reg());
+    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(1).reg());  // Function type arguments.
   }
   __ InstantiateType(__ AddConstant(type()));
   compiler->RecordSafepoint(locs());
@@ -1288,14 +1290,15 @@ EMIT_NATIVE_CODE(InstantiateType,
 }
 
 EMIT_NATIVE_CODE(InstantiateTypeArguments,
-                 1,
+                 2,
                  Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (compiler->is_optimizing()) {
-    __ Push(locs()->in(0).reg());
+    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(1).reg());  // Function type arguments.
   }
   __ InstantiateTypeArgumentsTOS(
-      type_arguments().IsRawInstantiatedRaw(type_arguments().Length()),
+      type_arguments().IsRawWhenInstantiatedFromRaw(type_arguments().Length()),
       __ AddConstant(type_arguments()));
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),

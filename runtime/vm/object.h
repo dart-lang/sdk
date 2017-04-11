@@ -1596,10 +1596,12 @@ class TypeArguments : public Object {
   }
 
   // Check if this type argument vector would consist solely of DynamicType if
-  // it was instantiated from a raw (null) instantiator, i.e. consider each type
-  // parameter as it would be first instantiated from a vector of dynamic types.
+  // it was instantiated from both a raw (null) instantiator typearguments and
+  // a raw (null) function type arguments, i.e. consider each class type
+  // parameter and function type parameters as it would be first instantiated
+  // from a vector of dynamic types.
   // Consider only a prefix of length 'len'.
-  bool IsRawInstantiatedRaw(intptr_t len) const {
+  bool IsRawWhenInstantiatedFromRaw(intptr_t len) const {
     return IsDynamicTypes(true, 0, len);
   }
 
@@ -1680,10 +1682,12 @@ class TypeArguments : public Object {
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
-  // type of the instantiator type argument vector.
+  // type from the various type argument vectors (class instantiator, function,
+  // or parent functions via the current context).
   // If bound_error is not NULL, it may be set to reflect a bound error.
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -1693,6 +1697,7 @@ class TypeArguments : public Object {
   // finalization at compile time.
   RawTypeArguments* InstantiateAndCanonicalizeFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Error* bound_error) const;
 
   // Return true if this type argument vector has cached instantiations.
@@ -1734,7 +1739,7 @@ class TypeArguments : public Object {
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
-  // If raw_instantiated is true, consider each type parameter to be first
+  // If raw_instantiated is true, consider each class type parameter to be first
   // instantiated from a vector of dynamic types.
   bool IsDynamicTypes(bool raw_instantiated,
                       intptr_t from_index,
@@ -2203,6 +2208,7 @@ class Function : public Object {
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Heap::Space space) const;
 
   // Build a string of the form '(T, {B b, C c}) => R' representing the
@@ -5247,19 +5253,22 @@ class SubtypeTestCache : public Object {
     kInstanceClassIdOrFunction = 0,
     kInstanceTypeArguments = 1,
     kInstantiatorTypeArguments = 2,
-    kTestResult = 3,
-    kTestEntryLength = 4,
+    kFunctionTypeArguments = 3,
+    kTestResult = 4,
+    kTestEntryLength = 5,
   };
 
   intptr_t NumberOfChecks() const;
   void AddCheck(const Object& instance_class_id_or_function,
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
+                const TypeArguments& function_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
                 Object* instance_class_id_or_function,
                 TypeArguments* instance_type_arguments,
                 TypeArguments* instantiator_type_arguments,
+                TypeArguments* function_type_arguments,
                 Bool* test_result) const;
 
   static RawSubtypeTestCache* New();
@@ -5494,9 +5503,11 @@ class Instance : public Object {
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
 
-  // Check if the type of this instance is a subtype of the given type.
-  bool IsInstanceOf(const AbstractType& type,
-                    const TypeArguments& type_instantiator,
+  // Check if the type of this instance is a subtype of the given other type.
+  // The type argument vectors are used to instantiate the other type if needed.
+  bool IsInstanceOf(const AbstractType& other,
+                    const TypeArguments& other_instantiator_type_arguments,
+                    const TypeArguments& other_function_type_arguments,
                     Error* bound_error) const;
 
   bool IsValidNativeIndex(int index) const {
@@ -5693,11 +5704,13 @@ class AbstractType : public Instance {
   // Check if this type represents a function type.
   virtual bool IsFunctionType() const { return false; }
 
-  // Instantiate this type using the given type argument vector.
+  // Instantiate this type using the given type argument vectors and possibly
+  // the current context.
   // Return a new type, or return 'this' if it is already instantiated.
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -5913,6 +5926,7 @@ class Type : public AbstractType {
   }
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6049,6 +6063,7 @@ class TypeRef : public AbstractType {
   virtual bool IsRecursive() const { return true; }
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6134,6 +6149,7 @@ class TypeParameter : public AbstractType {
   virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6235,6 +6251,7 @@ class BoundedType : public AbstractType {
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
