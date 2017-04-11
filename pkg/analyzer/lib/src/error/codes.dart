@@ -980,8 +980,28 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       const CompileTimeErrorCode(
           'EXTRA_POSITIONAL_ARGUMENTS',
-          "{0} positional arguments expected, but {1} found.",
+          "Too many positional arguments: {0} expected, but {1} found.",
           "Try removing the extra arguments.");
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
+   * h</i> or if <i>m &gt; n</i>.
+   *
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   *
+   * Parameters:
+   * 0: the maximum number of positional arguments
+   * 1: the actual number of positional arguments given
+   *
+   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
+   */
+  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
+      const CompileTimeErrorCode(
+          'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+          "Too many positional arguments: {0} expected, but {1} found.",
+          "Try removing the extra positional arguments, "
+          "or specifying the name for named arguments.");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
@@ -3507,8 +3527,25 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS =
       const StaticWarningCode(
           'EXTRA_POSITIONAL_ARGUMENTS',
-          "{0} positional arguments expected, but {1} found.",
+          "Too many positional arguments: {0} expected, but {1} found.",
           "Try removing the extra positional arguments.");
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
+   * h</i> or if <i>m &gt; n</i>.
+   *
+   * Parameters:
+   * 0: the maximum number of positional arguments
+   * 1: the actual number of positional arguments given
+   *
+   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
+   */
+  static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
+      const StaticWarningCode(
+          'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+          "Too many positional arguments: {0} expected, but {1} found.",
+          "Try removing the extra positional arguments, "
+          "or specifying the name for named arguments.");
 
   /**
    * 5. Variables: It is a static warning if a final instance variable that has

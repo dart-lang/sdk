@@ -2190,6 +2190,34 @@ class B extends A {
     verify([source]);
   }
 
+  test_extraPositionalArgumentsCouldBeNamed_const() async {
+    Source source = addSource(r'''
+class A {
+  const A({int x});
+}
+main() {
+  const A(0);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
+    verify([source]);
+  }
+
+  test_extraPositionalArgumentsCouldBeNamed_const_super() async {
+    Source source = addSource(r'''
+class A {
+  const A({int x});
+}
+class B extends A {
+  const B() : super(0);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
+    verify([source]);
+  }
+
   test_fieldFormalParameter_assignedInInitializer() async {
     Source source = addSource(r'''
 class A {

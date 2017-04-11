@@ -7157,9 +7157,18 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
-      ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
-          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      ErrorCode errorCode;
+      int namedParameterCount = namedParameters?.length ?? 0;
+      int namedArgumentCount = usedNames?.length ?? 0;
+      if (namedParameterCount > namedArgumentCount) {
+        errorCode = (reportAsError
+            ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
+            : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED);
+      } else {
+        errorCode = (reportAsError
+            ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
+            : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      }
       if (onError != null) {
         onError(errorCode, argumentList,
             [unnamedParameterCount, positionalArgumentCount]);
