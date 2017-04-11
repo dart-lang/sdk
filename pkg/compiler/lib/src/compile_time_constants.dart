@@ -867,7 +867,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
     target.computeType(resolution);
 
-    if (!callStructure.signatureApplies(target.type)) {
+    if (!callStructure.signatureApplies(target.parameterStructure)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
       reporter.reportErrorMessage(node,
@@ -1114,7 +1114,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     }
     assert(invariant(
         node,
-        callStructure.signatureApplies(constructor.type) ||
+        callStructure.signatureApplies(constructor.parameterStructure) ||
             compiler.compilationFailed,
         message: "Call structure $callStructure does not apply to constructor "
             "$constructor."));

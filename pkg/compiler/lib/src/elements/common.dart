@@ -9,6 +9,7 @@ library elements.common;
 import '../common/names.dart' show Identifiers, Names, Uris;
 import '../common_elements.dart' show CommonElements;
 import '../util/util.dart' show Link;
+import 'entities.dart';
 import 'elements.dart';
 import 'resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType, ResolutionFunctionType;
@@ -498,6 +499,8 @@ abstract class ClassElementCommon implements ClassElement {
 }
 
 abstract class FunctionSignatureCommon implements FunctionSignature {
+  ParameterStructure _parameterStructure;
+
   ResolutionDartType get returnType => type.returnType;
 
   void forEachRequiredParameter(void function(Element parameter)) {
@@ -554,6 +557,24 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
           parameterCount >= otherTotalCount;
     }
     return true;
+  }
+
+  ParameterStructure get parameterStructure {
+    if (_parameterStructure == null) {
+      int requiredParameters = requiredParameterCount;
+      int positionalParameters;
+      List<String> namedParameters;
+      if (optionalParametersAreNamed) {
+        namedParameters = type.namedParameters;
+        positionalParameters = requiredParameters;
+      } else {
+        namedParameters = const <String>[];
+        positionalParameters = requiredParameters + optionalParameterCount;
+      }
+      _parameterStructure = new ParameterStructure(
+          requiredParameters, positionalParameters, namedParameters);
+    }
+    return _parameterStructure;
   }
 }
 

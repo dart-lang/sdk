@@ -3374,7 +3374,8 @@ class SsaBuilder extends ast.Visitor
     // calling [makeStaticArgumentList].
     constructorImplementation = constructor.implementation;
     if (constructorImplementation.isMalformed ||
-        !callStructure.signatureApplies(constructorImplementation.type)) {
+        !callStructure
+            .signatureApplies(constructorImplementation.parameterStructure)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }

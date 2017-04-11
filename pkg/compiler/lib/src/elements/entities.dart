@@ -119,6 +119,9 @@ abstract class FunctionEntity extends MemberEntity {
   /// Whether this function is external, i.e. the body is not defined in terms
   /// of Dart code.
   bool get isExternal;
+
+  /// The structure of the function parameters.
+  ParameterStructure get parameterStructure;
 }
 
 /// Stripped down super interface for constructor like entities.
@@ -157,4 +160,27 @@ abstract class Local extends Entity {
   /// member context is the top level, static or instance member in which it is
   /// defined.
   MemberEntity get memberContext;
+}
+
+/// The structure of function parameters.
+class ParameterStructure {
+  /// The number of required (positional) parameters.
+  final int requiredParameters;
+
+  /// The number of positional parameters.
+  final int positionalParameters;
+
+  /// The named parameters sorted alphabetically.
+  final List<String> namedParameters;
+
+  const ParameterStructure(
+      this.requiredParameters, this.positionalParameters, this.namedParameters);
+
+  const ParameterStructure.getter() : this(0, 0, const <String>[]);
+
+  const ParameterStructure.setter() : this(1, 1, const <String>[]);
+
+  /// The number of optional parameters (positional or named).
+  int get optionalParameters =>
+      positionalParameters - requiredParameters + namedParameters.length;
 }

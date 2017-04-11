@@ -927,7 +927,7 @@ class Elements {
     // TODO(ngeoffray): Should the resolver do it instead?
     CallStructure callStructure = new CallStructure(
         signature.parameterCount, signature.type.namedParameters);
-    if (!callStructure.signatureApplies(signature.type)) {
+    if (!callStructure.signatureApplies(signature.parameterStructure)) {
       return false;
     }
     list.addAll(makeArgumentsList<T>(callStructure, nodes, callee,
@@ -1288,6 +1288,8 @@ abstract class FunctionSignature {
   void orderedForEachParameter(void function(FormalElement parameter));
 
   bool isCompatibleWith(FunctionSignature constructorSignature);
+
+  ParameterStructure get parameterStructure;
 }
 
 /// A top level, static or instance method, constructor, local function, or
@@ -1317,6 +1319,9 @@ abstract class FunctionElement extends Element
 
   /// `true` if this function is external.
   bool get isExternal;
+
+  /// The structure of the function parameters.
+  ParameterStructure get parameterStructure;
 }
 
 /// A getter or setter.

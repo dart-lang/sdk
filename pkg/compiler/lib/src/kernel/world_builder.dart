@@ -193,6 +193,16 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     });
   }
 
+  ParameterStructure _getParameterStructure(ir.FunctionNode node) {
+    // TODO(johnniwinther): Cache the computed function type.
+    int requiredParameters = node.requiredParameterCount;
+    int positionalParameters = node.positionalParameters.length;
+    List<String> namedParameters =
+        node.namedParameters.map((p) => p.name).toList()..sort();
+    return new ParameterStructure(
+        requiredParameters, positionalParameters, namedParameters);
+  }
+
   KConstructor _getConstructor(ir.Member node) {
     return _constructorMap.putIfAbsent(node, () {
       int memberIndex = _memberList.length;
@@ -200,12 +210,14 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       KClass enclosingClass = _getClass(node.enclosingClass);
       Name name = getName(node.name);
       bool isExternal = node.isExternal;
+
       if (node is ir.Constructor) {
-        constructor = new KGenerativeConstructor(
-            memberIndex, enclosingClass, name,
+        constructor = new KGenerativeConstructor(memberIndex, enclosingClass,
+            name, _getParameterStructure(node.function),
             isExternal: isExternal, isConst: node.isConst);
       } else if (node is ir.Procedure) {
         constructor = new KFactoryConstructor(memberIndex, enclosingClass, name,
+            _getParameterStructure(node.function),
             isExternal: isExternal, isConst: node.isConst);
       } else {
         // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
@@ -245,6 +257,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
         case ir.ProcedureKind.Method:
         case ir.ProcedureKind.Operator:
           function = new KMethod(memberIndex, library, enclosingClass, name,
+              _getParameterStructure(node.function),
               isStatic: isStatic,
               isExternal: isExternal,
               isAbstract: isAbstract);

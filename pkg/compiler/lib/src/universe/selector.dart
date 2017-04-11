@@ -243,8 +243,7 @@ class Selector {
   }
 
   bool signatureApplies(MethodElement function) {
-    if (Elements.isUnresolved(function)) return false;
-    return callStructure.signatureApplies(function.type);
+    return callStructure.signatureApplies(function.parameterStructure);
   }
 
   bool applies(MemberElement element) {
