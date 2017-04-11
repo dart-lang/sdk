@@ -1105,7 +1105,7 @@ void test() {
     Element elementA = AstFinder.getClass(unit, "A").element;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
-    DartType check(int i) {
+    void check(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
       Expression init = decl.initializer;
