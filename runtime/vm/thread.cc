@@ -294,8 +294,6 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       return "kSweeperTask";
     case kMarkerTask:
       return "kMarkerTask";
-    case kFinalizerTask:
-      return "kFinalizerTask";
     default:
       UNREACHABLE();
       return "";

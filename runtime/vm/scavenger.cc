@@ -197,12 +197,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  ScavengerWeakVisitor(Thread* thread,
-                       Scavenger* scavenger,
-                       FinalizationQueue* finalization_queue)
-      : HandleVisitor(thread),
-        scavenger_(scavenger),
-        queue_(finalization_queue) {
+  ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
+      : HandleVisitor(thread), scavenger_(scavenger) {
     ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
@@ -211,7 +207,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      handle->UpdateUnreachable(thread()->isolate(), queue_);
+      handle->UpdateUnreachable(thread()->isolate());
     } else {
       handle->UpdateRelocated(thread()->isolate());
     }
@@ -219,7 +215,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
 
  private:
   Scavenger* scavenger_;
-  FinalizationQueue* queue_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -823,19 +818,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     int64_t middle = OS::GetCurrentMonotonicMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-      if (FLAG_background_finalization) {
-        FinalizationQueue* queue = new FinalizationQueue();
-        ScavengerWeakVisitor weak_visitor(thread, this, queue);
-        IterateWeakRoots(isolate, &weak_visitor);
-        if (queue->length() > 0) {
-          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
-        } else {
-          delete queue;
-        }
-      } else {
-        ScavengerWeakVisitor weak_visitor(thread, this, NULL);
-        IterateWeakRoots(isolate, &weak_visitor);
-      }
+      ScavengerWeakVisitor weak_visitor(thread, this);
+      IterateWeakRoots(isolate, &weak_visitor);
     }
     ProcessWeakReferences();
     page_space->ReleaseDataLock();

@@ -1605,8 +1605,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    FinalizationQueue* queue = NULL;  // Finalize in the foreground.
-    handle->UpdateUnreachable(thread()->isolate(), queue);
+    handle->UpdateUnreachable(thread()->isolate());
   }
 
  private:

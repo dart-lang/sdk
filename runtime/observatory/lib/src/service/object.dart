@@ -3139,10 +3139,6 @@ class Thread extends ServiceObject implements M.Thread {
         _kind = M.ThreadKind.markerTask;
         _kindString = 'marker';
         break;
-      case "kFinalizerTask":
-        _kind = M.ThreadKind.finalizerTask;
-        _kindString = 'finalizer';
-        break;
       default:
         assert(false);
     }
