@@ -12098,34 +12098,12 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                   false /* is_conditional */);
           }
         } else if (primary_node->primary().IsTypeParameter()) {
-          TypeParameter& type_parameter = TypeParameter::ZoneHandle(Z);
-          type_parameter = TypeParameter::Cast(primary_node->primary()).raw();
-          const String& name = String::ZoneHandle(Z, type_parameter.name());
-          if (type_parameter.IsClassTypeParameter()) {
-            if (ParsingStaticMember()) {
-              // Treat as this.T(), because T is in scope.
-              ReportError(primary_pos,
-                          "cannot access type parameter '%s' "
-                          "from static function",
-                          name.ToCString());
-            } else {
-              // Treat as call to unresolved (instance) method.
-              selector =
-                  ParseInstanceCall(LoadReceiver(primary_pos), name,
-                                    primary_pos, false /* is_conditional */);
-            }
-          } else {
-            ASSERT(type_parameter.IsFunctionTypeParameter());
-            // TODO(regis): Should we throw a type error instead?
-            ReportError(primary_pos,
-                        "illegal use of function type parameter '%s'",
-                        name.ToCString());
-          }
+          selector = LoadTypeParameter(primary_node);
         } else if (primary_node->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(
-              Z, Type::New(type_class, TypeArguments::Handle(Z), primary_pos,
-                           Heap::kOld));
+              Z, Type::New(type_class, Object::null_type_arguments(),
+                           primary_pos, Heap::kOld));
           type ^= CanonicalizeType(type);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());

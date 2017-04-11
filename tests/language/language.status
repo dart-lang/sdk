@@ -7,7 +7,6 @@
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
-type_variable_conflict2_test/01: RuntimeError # Issue 19725
 
 # These test entries will be valid for vm/dartium (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
@@ -128,8 +127,6 @@ generic_methods_function_type_test: Skip # Issue 25869
 generic_methods_type_expression_test: Skip # Issue 25869
 
 config_import_test: Skip  # Issue 26250
-
-type_variable_conflict2_test/01: RuntimeError # Issue 19725
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
 issue_22780_test/01: Pass, Timeout # Issue 24473
