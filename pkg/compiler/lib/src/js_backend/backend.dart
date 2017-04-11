@@ -1474,37 +1474,37 @@ class JavaScriptBackendClasses implements BackendClasses {
 
   JavaScriptBackendClasses(this._env, this.helpers, this._nativeData);
 
-  ClassElement get intClass => helpers.jsIntClass;
-  ClassElement get uint32Class => helpers.jsUInt32Class;
-  ClassElement get uint31Class => helpers.jsUInt31Class;
-  ClassElement get positiveIntClass => helpers.jsPositiveIntClass;
-  ClassElement get doubleClass => helpers.jsDoubleClass;
-  ClassElement get numClass => helpers.jsNumberClass;
-  ClassElement get stringClass => helpers.jsStringClass;
-  ClassElement get listClass => helpers.jsArrayClass;
-  ClassElement get mutableListClass => helpers.jsMutableArrayClass;
-  ClassElement get constListClass => helpers.jsUnmodifiableArrayClass;
-  ClassElement get fixedListClass => helpers.jsFixedArrayClass;
-  ClassElement get growableListClass => helpers.jsExtendableArrayClass;
-  ClassElement get mapClass => helpers.mapLiteralClass;
-  ClassElement get constMapClass => helpers.constMapLiteralClass;
-  ClassElement get typeClass => helpers.typeLiteralClass;
+  ClassEntity get intClass => helpers.jsIntClass;
+  ClassEntity get uint32Class => helpers.jsUInt32Class;
+  ClassEntity get uint31Class => helpers.jsUInt31Class;
+  ClassEntity get positiveIntClass => helpers.jsPositiveIntClass;
+  ClassEntity get doubleClass => helpers.jsDoubleClass;
+  ClassEntity get numClass => helpers.jsNumberClass;
+  ClassEntity get stringClass => helpers.jsStringClass;
+  ClassEntity get listClass => helpers.jsArrayClass;
+  ClassEntity get mutableListClass => helpers.jsMutableArrayClass;
+  ClassEntity get constListClass => helpers.jsUnmodifiableArrayClass;
+  ClassEntity get fixedListClass => helpers.jsFixedArrayClass;
+  ClassEntity get growableListClass => helpers.jsExtendableArrayClass;
+  ClassEntity get mapClass => helpers.mapLiteralClass;
+  ClassEntity get constMapClass => helpers.constMapLiteralClass;
+  ClassEntity get typeClass => helpers.typeLiteralClass;
   InterfaceType get typeType => _env.getRawType(typeClass);
 
-  ClassElement get boolClass => helpers.jsBoolClass;
-  ClassElement get nullClass => helpers.jsNullClass;
-  ClassElement get syncStarIterableClass => helpers.syncStarIterable;
-  ClassElement get asyncFutureClass => helpers.futureImplementation;
-  ClassElement get asyncStarStreamClass => helpers.controllerStream;
-  ClassElement get functionClass => helpers.commonElements.functionClass;
-  ClassElement get indexableClass => helpers.jsIndexableClass;
-  ClassElement get mutableIndexableClass => helpers.jsMutableIndexableClass;
-  ClassElement get indexingBehaviorClass => helpers.jsIndexingBehaviorInterface;
-  ClassElement get interceptorClass => helpers.jsInterceptorClass;
+  ClassEntity get boolClass => helpers.jsBoolClass;
+  ClassEntity get nullClass => helpers.jsNullClass;
+  ClassEntity get syncStarIterableClass => helpers.syncStarIterable;
+  ClassEntity get asyncFutureClass => helpers.futureImplementation;
+  ClassEntity get asyncStarStreamClass => helpers.controllerStream;
+  ClassEntity get functionClass => helpers.commonElements.functionClass;
+  ClassEntity get indexableClass => helpers.jsIndexableClass;
+  ClassEntity get mutableIndexableClass => helpers.jsMutableIndexableClass;
+  ClassEntity get indexingBehaviorClass => helpers.jsIndexingBehaviorInterface;
+  ClassEntity get interceptorClass => helpers.jsInterceptorClass;
 
-  bool isDefaultEqualityImplementation(MemberElement element) {
+  bool isDefaultEqualityImplementation(MemberEntity element) {
     assert(element.name == '==');
-    ClassElement classElement = element.enclosingClass;
+    ClassEntity classElement = element.enclosingClass;
     return classElement == helpers.commonElements.objectClass ||
         classElement == helpers.jsInterceptorClass ||
         classElement == helpers.jsNullClass;
@@ -1517,7 +1517,7 @@ class JavaScriptBackendClasses implements BackendClasses {
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool hasProtoKey: false, bool onlyStringKeys: false}) {
-    ClassElement classElement = onlyStringKeys
+    ClassEntity classElement = onlyStringKeys
         ? (hasProtoKey
             ? helpers.constantProtoMapClass
             : helpers.constantStringMapClass)
