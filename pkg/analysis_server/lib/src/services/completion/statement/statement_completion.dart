@@ -29,8 +29,8 @@ import 'package:analyzer/src/generated/source.dart';
 class DartStatementCompletion {
   static const NO_COMPLETION =
       const StatementCompletionKind('No_COMPLETION', 'No completion available');
-  static const PLAIN_OLE_ENTER = const StatementCompletionKind(
-      'PLAIN_OLE_ENTER', "Insert a newline at the end of the current line");
+  static const SIMPLE_ENTER = const StatementCompletionKind(
+      'SIMPLE_ENTER', "Insert a newline at the end of the current line");
   static const SIMPLE_SEMICOLON = const StatementCompletionKind(
       'SIMPLE_SEMICOLON', "Add a semicolon and newline");
   static const COMPLETE_IF_STMT = const StatementCompletionKind(
@@ -171,10 +171,11 @@ class StatementCompletionProcessor {
       }
     }
 
+    // TODO(messick) Consider changing (some of) this to a visitor.
     if (_complete_ifStatement() ||
         _complete_whileStatement() ||
         _complete_simpleSemicolon() ||
-        _complete_plainOleEnter()) {
+        _complete_simpleEnter()) {
       return completion;
     }
     return NO_COMPLETION;
@@ -276,7 +277,7 @@ class StatementCompletionProcessor {
     return false;
   }
 
-  bool _complete_plainOleEnter() {
+  bool _complete_simpleEnter() {
     int offset;
     if (!errors.isEmpty) {
       offset = selectionOffset;
@@ -286,7 +287,7 @@ class StatementCompletionProcessor {
       _addInsertEdit(loc, indent + eol);
       offset = loc + indent.length + eol.length;
     }
-    _setCompletionAt(DartStatementCompletion.PLAIN_OLE_ENTER, offset);
+    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, offset);
     return true;
   }
 
