@@ -63,24 +63,28 @@ class TestOptionsParser {
           '''Specify any compilation step (if needed).
 
    none: Do not compile the Dart code (run native Dart code on the VM).
-         (only valid with the following runtimes: vm, flutter, drt)
+          (only valid with the following runtimes: vm, flutter, drt)
+
+   precompiler: Compile into AOT snapshot before running the test.
+          (only valid with the dart_precompiled runtime)
 
    dart2js: Compile dart code to JavaScript by running dart2js.
-         (only valid with the following runtimes: d8, drt, chrome,
-         safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
-         none (compile only)),
+          (only valid with the following runtimes: d8, drt, chrome,
+          safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
+          none (compile only)),
 
    dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)
 
-   dart2app:
-   dart2appjit: Compile the Dart code into an app snapshot before running test
+   app_jit: Compile the Dart code into an app snapshot before running test
           (only valid with dart_app runtime)
 
    dartk: Compile the Dart source into Kernel before running test.
 
    dartkp: Compiler the Dart source into Kernel and then Kernel into AOT
-   snapshot before running the test.''',
+          snapshot before running the test.
+          (only valid with the dart_precompiled runtime)
+          ''',
           ['-c', '--compiler'],
           [
             'none',
