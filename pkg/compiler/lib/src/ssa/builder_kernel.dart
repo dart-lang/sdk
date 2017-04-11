@@ -150,7 +150,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(
-        this, targetElement, null, backend.nativeData, backend.interceptorData);
+        this, targetElement, null, nativeData, interceptorData);
     this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
     target = astAdapter.getInitialKernelNode(targetElement);
@@ -220,7 +220,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
     var enclosing = constructor.enclosingClass;
-    if (backend.rtiNeed.classNeedsRti(astAdapter.getElement(enclosing))) {
+    if (rtiNeed.classNeedsRti(astAdapter.getElement(enclosing))) {
       enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
         var typeParamElement = astAdapter.getElement(typeParameter);
         HParameterValue param =
@@ -405,8 +405,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           arguments.positional[positionalIndex++].accept(this);
           builtArguments.add(pop());
         } else {
-          var constantValue =
-              backend.constants.getConstantValue(element.constant);
+          var constantValue = constants.getConstantValue(element.constant);
           assert(invariant(element, constantValue != null,
               message: 'No constant computed for $element'));
           builtArguments.add(graph.addConstant(constantValue, closedWorld));
@@ -421,8 +420,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           correspondingNamed.value.accept(this);
           builtArguments.add(pop());
         } else {
-          var constantValue =
-              backend.constants.getConstantValue(element.constant);
+          var constantValue = constants.getConstantValue(element.constant);
           assert(invariant(element, constantValue != null,
               message: 'No constant computed for $element'));
           builtArguments.add(graph.addConstant(constantValue, closedWorld));
@@ -585,7 +583,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
     // TODO(efortuna): Source information!
     push(new HInvokeStatic(
-        backend.helpers.loadLibraryWrapper,
+        helpers.loadLibraryWrapper,
         [
           graph.addConstantString(
               new DartString.literal(loadLibrary.import.name), closedWorld)
@@ -1460,9 +1458,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
       List<ConstantValue> getConstants(
           ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
-        return <ConstantValue>[
-          backend.constantSystem.createInt(caseIndex[switchCase])
-        ];
+        return <ConstantValue>[constantSystem.createInt(caseIndex[switchCase])];
       }
 
       void buildSwitchCase(ir.SwitchCase switchCase) {
@@ -1677,7 +1673,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction object, ir.ListLiteral listLiteral) {
     ResolutionInterfaceType type = localsHandler
         .substInContext(astAdapter.getDartTypeOfListLiteral(listLiteral));
-    if (!backend.rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
@@ -1752,7 +1748,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     ir.Class cls = constructor.enclosingClass;
 
-    if (backend.rtiNeed.classNeedsRti(astAdapter.getClass(cls))) {
+    if (rtiNeed.classNeedsRti(astAdapter.getClass(cls))) {
       List<HInstruction> typeInputs = <HInstruction>[];
       type.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs
@@ -2197,10 +2193,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    if (!backend.backendUsage.isIsolateInUse) {
+    if (!backendUsage.isIsolateInUse) {
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
-      String name = backend.namer.staticStateHolder;
+      String name = namer.staticStateHolder;
       push(new HForeignCode(
           js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
           nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
@@ -2226,7 +2222,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
 
-    if (!backend.backendUsage.isIsolateInUse) {
+    if (!backendUsage.isIsolateInUse) {
       // If the isolate library is not used, we ignore the isolate argument and
       // just invoke the closure.
       push(new HInvokeClosure(new Selector.callClosure(0),
@@ -2269,7 +2265,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
                   function.positionalParameters.length &&
               function.namedParameters.isEmpty) {
             push(new HForeignCode(
-                js.js.expressionTemplateYielding(backend.emitter
+                js.js.expressionTemplateYielding(emitter
                     .staticFunctionAccess(astAdapter.getMethod(staticTarget))),
                 commonMasks.dynamicType,
                 <HInstruction>[],
@@ -2297,7 +2293,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
 
-    String isolateName = backend.namer.staticStateHolder;
+    String isolateName = namer.staticStateHolder;
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
     push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
@@ -2313,7 +2309,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    push(new HForeignCode(js.js.parseForeignJS(backend.namer.staticStateHolder),
+    push(new HForeignCode(js.js.parseForeignJS(namer.staticStateHolder),
         commonMasks.dynamicType, <HInstruction>[],
         nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
@@ -2353,7 +2349,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     String globalName = _foreignConstantStringArgument(
         invocation, 1, 'JS_EMBEDDED_GLOBAL', 'second ');
     js.Template expr = js.js.expressionTemplateYielding(
-        backend.emitter.generateEmbeddedGlobalAccess(globalName));
+        emitter.generateEmbeddedGlobalAccess(globalName));
 
     native.NativeBehavior nativeBehavior =
         astAdapter.getNativeBehavior(invocation);
@@ -2421,7 +2417,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     bool value = false;
     switch (name) {
       case 'MUST_RETAIN_METADATA':
-        value = backend.mirrorsData.mustRetainMetadata;
+        value = mirrorsData.mustRetainMetadata;
         break;
       case 'USE_CONTENT_SECURITY_POLICY':
         value = options.useContentSecurityPolicy;
@@ -2688,7 +2684,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ir.Class cls = _containingClass(invocation).superclass;
     assert(cls != null);
     ir.Procedure noSuchMethod = _findNoSuchMethodInClass(cls);
-    if (backend.backendUsage.isInvokeOnUsed &&
+    if (backendUsage.isInvokeOnUsed &&
         _containingClass(noSuchMethod) != astAdapter.objectClass) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object] (it might be
@@ -2700,9 +2696,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     ConstantValue nameConstant =
-        backend.constantSystem.createString(new DartString.literal(publicName));
+        constantSystem.createString(new DartString.literal(publicName));
 
-    js.Name internalName = backend.namer.invocationName(selector);
+    js.Name internalName = namer.invocationName(selector);
 
     var argumentsInstruction =
         new HLiteralList(arguments, commonMasks.extendableArrayType);
@@ -2710,8 +2706,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     var argumentNames = new List<HInstruction>();
     for (String argumentName in selector.namedArguments) {
-      ConstantValue argumentNameConstant = backend.constantSystem
-          .createString(new DartString.literal(argumentName));
+      ConstantValue argumentNameConstant =
+          constantSystem.createString(new DartString.literal(argumentName));
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
     }
     var argumentNamesInstruction =
@@ -2719,7 +2715,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     add(argumentNamesInstruction);
 
     ConstantValue kindConstant =
-        backend.constantSystem.createInt(selector.invocationMirrorKind);
+        constantSystem.createInt(selector.invocationMirrorKind);
 
     _pushStaticInvocation(
         astAdapter.createInvocationMirror,
@@ -2857,12 +2853,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           .buildTypeArgumentRepresentations(typeValue, sourceElement);
       add(representations);
       ClassElement element = typeValue.element;
-      js.Name operator = backend.namer.operatorIs(element);
+      js.Name operator = namer.operatorIs(element);
       HInstruction isFieldName =
           graph.addConstantStringFromName(operator, closedWorld);
       HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element)
           ? graph.addConstantStringFromName(
-              backend.namer.substitutionName(element), closedWorld)
+              namer.substitutionName(element), closedWorld)
           : graph.addConstantNull(closedWorld);
       List<HInstruction> inputs = <HInstruction>[
         expression,

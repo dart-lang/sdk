@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../closure.dart';
+import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
 import '../compiler.dart';
@@ -10,7 +11,15 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local;
 import '../elements/resolution_types.dart';
+import '../js_backend/backend_helpers.dart';
+import '../js_backend/backend_usage.dart';
+import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/js_backend.dart';
+import '../js_backend/native_data.dart';
+import '../js_backend/js_interop_analysis.dart';
+import '../js_backend/interceptor_data.dart';
+import '../js_backend/mirrors_data.dart';
+import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../resolution/tree_elements.dart';
 import '../types/types.dart';
@@ -55,10 +64,36 @@ abstract class GraphBuilder {
 
   CommonElements get commonElements => closedWorld.commonElements;
 
+  CodeEmitterTask get emitter => backend.emitter;
+
   GlobalTypeInferenceResults get globalInferenceResults =>
       compiler.globalInference.results;
 
   ClosureTask get closureToClassMapper => compiler.closureToClassMapper;
+
+  NativeData get nativeData => backend.nativeData;
+
+  InterceptorData get interceptorData => backend.interceptorData;
+
+  BackendUsage get backendUsage => backend.backendUsage;
+
+  Namer get namer => backend.namer;
+
+  RuntimeTypesNeed get rtiNeed => backend.rtiNeed;
+
+  JavaScriptConstantCompiler get constants => backend.constants;
+
+  ConstantSystem get constantSystem => constants.constantSystem;
+
+  BackendHelpers get helpers => backend.helpers;
+
+  RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
+
+  FunctionInlineCache get inlineCache => backend.inlineCache;
+
+  MirrorsData get mirrorsData => backend.mirrorsData;
+
+  JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;
@@ -215,7 +250,7 @@ abstract class GraphBuilder {
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(ResolutionDartType type,
       List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!backend.rtiNeed.classNeedsRti(type.element)) {
+    if (!rtiNeed.classNeedsRti(type.element)) {
       return newObject;
     }
 

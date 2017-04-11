@@ -7,7 +7,6 @@ import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../ssa/builder.dart' show SsaBuilder;
 import '../ssa/nodes.dart' show HInstruction, HForeignCode, HReturn;
@@ -19,7 +18,6 @@ final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   MethodElement element = builder.target;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
-  JavaScriptBackend backend = builder.backend;
 
   HInstruction convertDartClosure(
       ParameterElement parameter, ResolutionFunctionType type) {
@@ -30,7 +28,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         builder.graph.addConstant(arityConstant, builder.closedWorld);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    MethodElement helper = backend.helpers.closureConverter;
+    MethodElement helper = builder.helpers.closureConverter;
     builder.pushInvokeStatic(nativeBody, helper, [local, arity]);
     HInstruction closure = builder.pop();
     return closure;
@@ -44,8 +42,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   // 3) foo() native "return 42";
   //      hasBody = true
   bool hasBody = false;
-  assert(backend.nativeData.isNativeMember(element));
-  String nativeMethodName = backend.nativeData.getFixedBackendName(element);
+  assert(builder.nativeData.isNativeMember(element));
+  String nativeMethodName = builder.nativeData.getFixedBackendName(element);
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
