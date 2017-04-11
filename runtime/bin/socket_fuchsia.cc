@@ -7,22 +7,11 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA)
 
+#include "bin/socket.h"
+
 #include <errno.h>        // NOLINT
-#include <fcntl.h>        // NOLINT
-#include <ifaddrs.h>      // NOLINT
-#include <net/if.h>       // NOLINT
-#include <netinet/tcp.h>  // NOLINT
-#include <stdio.h>        // NOLINT
-#include <stdlib.h>       // NOLINT
-#include <string.h>       // NOLINT
-#include <sys/ioctl.h>    // NOLINT
-#include <sys/stat.h>     // NOLINT
-#include <unistd.h>       // NOLINT
 
 #include "bin/fdutils.h"
-#include "bin/file.h"
-#include "bin/socket.h"
-#include "bin/socket_base_fuchsia.h"
 #include "platform/signal_blocker.h"
 
 // #define SOCKET_LOG_INFO 1

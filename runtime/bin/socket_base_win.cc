@@ -174,14 +174,32 @@ intptr_t SocketBase::GetStdioHandle(intptr_t num) {
   if (handle == INVALID_HANDLE_VALUE) {
     return -1;
   }
+<<<<<<< HEAD
   StdHandle* std_handle = StdHandle::Stdin(handle);
   std_handle->Retain();
+=======
+  StdHandle* std_handle = new StdHandle(handle);
+>>>>>>> Revert "Reverting until bots clear up."
   std_handle->MarkDoesNotSupportOverlappedIO();
   std_handle->EnsureInitialized(EventHandler::delegate());
   return reinterpret_cast<intptr_t>(std_handle);
 }
 
 
+<<<<<<< HEAD
+=======
+intptr_t ServerSocket::Accept(intptr_t fd) {
+  ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
+  ClientSocket* client_socket = listen_socket->Accept();
+  if (client_socket != NULL) {
+    return reinterpret_cast<intptr_t>(client_socket);
+  } else {
+    return -1;
+  }
+}
+
+
+>>>>>>> Revert "Reverting until bots clear up."
 AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
                                                       int type,
                                                       OSError** os_error) {

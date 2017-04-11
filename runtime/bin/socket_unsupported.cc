@@ -11,6 +11,7 @@
 namespace dart {
 namespace bin {
 
+
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewDartArgumentError("Sockets unsupported on this platform"));
