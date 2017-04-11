@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common/codegen.dart' show CodegenRegistry;
+import '../common_elements.dart';
 import '../compiler.dart';
+import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local;
 import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart';
+import '../options.dart';
 import '../resolution/tree_elements.dart';
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -44,6 +47,12 @@ abstract class GraphBuilder {
   ClosedWorld get closedWorld;
 
   CommonMasks get commonMasks => closedWorld.commonMasks;
+
+  DiagnosticReporter get reporter => backend.reporter;
+
+  CompilerOptions get options => compiler.options;
+
+  CommonElements get commonElements => closedWorld.commonElements;
 
   GlobalTypeInferenceResults get globalInferenceResults =>
       compiler.globalInference.results;

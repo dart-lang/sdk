@@ -208,7 +208,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      ResolutionInterfaceType type = compiler.commonElements.boolType;
+      ResolutionInterfaceType type = commonElements.boolType;
       return typeBuilder.potentiallyCheckOrTrustType(value, type,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
@@ -601,7 +601,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       if (!isReachable) {
         // The block has been aborted by a return or a throw.
         if (stack.isNotEmpty) {
-          compiler.reporter.internalError(
+          reporter.internalError(
               NO_LOCATION_SPANNABLE, 'Non-empty instruction stack.');
         }
         return;
@@ -609,8 +609,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     assert(!current.isClosed());
     if (stack.isNotEmpty) {
-      compiler.reporter
-          .internalError(NO_LOCATION_SPANNABLE, 'Non-empty instruction stack');
+      reporter.internalError(
+          NO_LOCATION_SPANNABLE, 'Non-empty instruction stack');
     }
   }
 
@@ -664,7 +664,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       returnStatement.expression.accept(this);
       value = pop();
       if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
-        if (compiler.options.enableTypeAssertions &&
+        if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(_targetFunction.returnType)) {
           generateTypeError(
               returnStatement,
@@ -1124,7 +1124,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       void visitElse(),
       SourceInformation sourceInformation}) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(
-        this, compiler, node == null ? node : astAdapter.getNode(node));
+        this, node == null ? node : astAdapter.getNode(node));
     branchBuilder.handleIf(visitCondition, visitThen, visitElse,
         sourceInformation: sourceInformation);
   }
@@ -1176,7 +1176,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitAssertStatement(ir.AssertStatement assertStatement) {
-    if (!compiler.options.enableUserAssertions) return;
+    if (!options.enableUserAssertions) return;
     if (assertStatement.message == null) {
       assertStatement.condition.accept(this);
       _pushStaticInvocation(astAdapter.assertHelper, <HInstruction>[pop()],
@@ -1214,7 +1214,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(target is KernelJumpTarget);
     if (target == null) {
       // No breaks or continues to this node.
-      return new NullJumpHandler(compiler.reporter);
+      return new NullJumpHandler(reporter);
     }
     if (isLoopJump && node is ir.SwitchStatement) {
       return new KernelSwitchCaseJumpHandler(this, target, node, astAdapter);
@@ -1478,7 +1478,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // in the call to [handleLoop] below.
       _handleSwitch(
           switchStatement, // nor is buildExpression.
-          new NullJumpHandler(compiler.reporter),
+          new NullJumpHandler(reporter),
           buildExpression,
           switchStatement.cases,
           getConstants,
@@ -1623,7 +1623,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitConditionalExpression(ir.ConditionalExpression conditional) {
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this);
     brancher.handleConditional(
         () => conditional.condition.accept(this),
         () => conditional.then.accept(this),
@@ -1632,7 +1632,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitLogicalExpression(ir.LogicalExpression logicalExpression) {
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this);
     brancher.handleLogicalBinary(() => logicalExpression.left.accept(this),
         () => logicalExpression.right.accept(this),
         isAnd: logicalExpression.operator == '&&');
@@ -2111,7 +2111,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(invocation);
     } else {
-      compiler.reporter.internalError(
+      reporter.internalError(
           astAdapter.getNode(invocation), "Unknown foreign: ${name}");
     }
   }
@@ -2131,7 +2131,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ir.Arguments arguments = invocation.arguments;
     bool bad = false;
     if (arguments.types.isNotEmpty) {
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(invocation),
           MessageKind.GENERIC,
           {'text': "Error: '${name()}' does not take type arguments."});
@@ -2140,7 +2140,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (arguments.positional.length < minPositional) {
       String phrase = pluralizeArguments(minPositional);
       if (maxPositional != minPositional) phrase = 'at least $phrase';
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(invocation),
           MessageKind.GENERIC,
           {'text': "Error: Too few arguments. '${name()}' takes $phrase."});
@@ -2149,14 +2149,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (maxPositional != null && arguments.positional.length > maxPositional) {
       String phrase = pluralizeArguments(maxPositional);
       if (maxPositional != minPositional) phrase = 'at most $phrase';
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(invocation),
           MessageKind.GENERIC,
           {'text': "Error: Too many arguments. '${name()}' takes $phrase."});
       bad = true;
     }
     if (arguments.named.isNotEmpty) {
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(invocation),
           MessageKind.GENERIC,
           {'text': "Error: '${name()}' does not take named arguments."});
@@ -2176,7 +2176,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction instruction = pop();
 
     if (!instruction.isConstantString()) {
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(argument), MessageKind.GENERIC, {
         'text': "Error: Expected String constant as ${adjective}argument "
             "to '$methodName'."
@@ -2209,7 +2209,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // for binding to methods.
       ir.Procedure target = astAdapter.currentIsolate;
       if (target == null) {
-        compiler.reporter.internalError(astAdapter.getNode(invocation),
+        reporter.internalError(astAdapter.getNode(invocation),
             'Isolate library and compiler mismatch.');
       }
       _pushStaticInvocation(target, <HInstruction>[], commonMasks.dynamicType);
@@ -2234,7 +2234,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Call a helper method from the isolate library.
       ir.Procedure callInIsolate = astAdapter.callInIsolate;
       if (callInIsolate == null) {
-        compiler.reporter.internalError(astAdapter.getNode(invocation),
+        reporter.internalError(astAdapter.getNode(invocation),
             'Isolate library and compiler mismatch.');
       }
       _pushStaticInvocation(callInIsolate, inputs, commonMasks.dynamicType);
@@ -2281,7 +2281,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
     }
 
-    compiler.reporter.reportErrorMessage(astAdapter.getNode(invocation),
+    reporter.reportErrorMessage(astAdapter.getNode(invocation),
         MessageKind.GENERIC, {'text': "'$name' $problem."});
     stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack.
     return;
@@ -2335,7 +2335,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    compiler.reporter.reportErrorMessage(
+    reporter.reportErrorMessage(
         astAdapter.getNode(argument),
         MessageKind.GENERIC,
         {'text': 'Error: Expected a JsGetName enum value.'});
@@ -2383,7 +2383,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       template = astAdapter.getJsBuiltinTemplate(instruction.constant);
     }
     if (template == null) {
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(nameArgument),
           MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
@@ -2423,10 +2423,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         value = backend.mirrorsData.mustRetainMetadata;
         break;
       case 'USE_CONTENT_SECURITY_POLICY':
-        value = compiler.options.useContentSecurityPolicy;
+        value = options.useContentSecurityPolicy;
         break;
       default:
-        compiler.reporter.reportErrorMessage(
+        reporter.reportErrorMessage(
             astAdapter.getNode(invocation),
             MessageKind.GENERIC,
             {'text': 'Error: Unknown internal flag "$name".'});
@@ -2458,7 +2458,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
     }
 
-    compiler.reporter.reportErrorMessage(astAdapter.getNode(invocation),
+    reporter.reportErrorMessage(astAdapter.getNode(invocation),
         MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     stack.add(graph.addConstantNull(closedWorld));
   }
@@ -2482,7 +2482,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     if (nativeBehavior.codeTemplate.positionalArgumentCount != inputs.length) {
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(invocation), MessageKind.GENERIC, {
         'text': 'Mismatch between number of placeholders'
             ' and number of arguments.'
@@ -2493,7 +2493,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     if (native.HasCapturedPlaceholders.check(nativeBehavior.codeTemplate.ast)) {
-      compiler.reporter.reportErrorMessage(
+      reporter.reportErrorMessage(
           astAdapter.getNode(invocation), MessageKind.JS_PLACEHOLDER_CAPTURE);
     }
 
@@ -2938,7 +2938,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction exception = rethrowableException;
     if (exception == null) {
       exception = graph.addConstantNull(closedWorld);
-      compiler.reporter.internalError(astAdapter.getNode(rethrowNode),
+      reporter.internalError(astAdapter.getNode(rethrowNode),
           'rethrowableException should not be null.');
     }
     handleInTryStatement();

@@ -295,12 +295,6 @@ abstract class Compiler {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
-  // TODO(het): remove this from here. Either inline at all use sites or add it
-  // to Reporter.
-  void unimplemented(Spannable spannable, String methodName) {
-    reporter.internalError(spannable, "$methodName not implemented.");
-  }
-
   // Compiles the dart script at [uri].
   //
   // The resulting future will complete with true if the compilation
@@ -927,8 +921,8 @@ abstract class Compiler {
    * See [LibraryLoader] for terminology on URIs.
    */
   Future<Script> readScript(Uri readableUri, [Spannable node]) {
-    unimplemented(node, 'Compiler.readScript');
-    return null;
+    throw new SpannableAssertionFailure(
+        node, 'Compiler.readScript not implemented.');
   }
 
   Element lookupElementIn(ScopeContainerElement container, String name) {

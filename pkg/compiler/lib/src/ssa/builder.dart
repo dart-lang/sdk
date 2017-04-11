@@ -15,7 +15,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
@@ -227,10 +226,6 @@ class SsaBuilder extends ast.Visitor
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  CommonElements get commonElements => closedWorld.commonElements;
-
   Element get targetElement => target;
 
   /// Reference to resolved elements in [target]'s AST.
@@ -285,7 +280,7 @@ class SsaBuilder extends ast.Visitor
       result = buildMethod(target);
     } else if (target.isField) {
       if (target.isInstanceMember) {
-        assert(compiler.options.enableTypeAssertions);
+        assert(options.enableTypeAssertions);
         result = buildCheckedSetter(target);
       } else {
         result = buildLazyInitializer(target);
@@ -427,7 +422,7 @@ class SsaBuilder extends ast.Visitor
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
-      if (compiler.options.disableInlining) return false;
+      if (options.disableInlining) return false;
 
       assert(invariant(
           currentNode != null ? currentNode : function,
@@ -474,7 +469,7 @@ class SsaBuilder extends ast.Visitor
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
       return InlineWeeder.canBeInlined(functionResolvedAst, 1,
-          enableUserAssertions: compiler.options.enableUserAssertions);
+          enableUserAssertions: options.enableUserAssertions);
     }
 
     bool reductiveHeuristic() {
@@ -482,7 +477,7 @@ class SsaBuilder extends ast.Visitor
       // does not make the program larger.
       if (isCalledOnce(function)) {
         return InlineWeeder.canBeInlined(functionResolvedAst, null,
-            enableUserAssertions: compiler.options.enableUserAssertions);
+            enableUserAssertions: options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
       // case we miss by doing nothing is inlining very simple constructors
@@ -521,7 +516,7 @@ class SsaBuilder extends ast.Visitor
         // if we can inline this method regardless of size.
         assert(InlineWeeder.canBeInlined(functionResolvedAst, null,
             allowLoops: true,
-            enableUserAssertions: compiler.options.enableUserAssertions));
+            enableUserAssertions: options.enableUserAssertions));
         return true;
       }
 
@@ -543,7 +538,7 @@ class SsaBuilder extends ast.Visitor
       }
       bool canInline = InlineWeeder.canBeInlined(
           functionResolvedAst, maxInliningNodes,
-          enableUserAssertions: compiler.options.enableUserAssertions);
+          enableUserAssertions: options.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(function, insideLoop: insideLoop);
       } else {
@@ -1508,7 +1503,7 @@ class SsaBuilder extends ast.Visitor
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      ResolutionInterfaceType boolType = compiler.commonElements.boolType;
+      ResolutionInterfaceType boolType = commonElements.boolType;
       return typeBuilder.potentiallyCheckOrTrustType(value, boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
@@ -1535,7 +1530,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitAssert(ast.Assert node) {
-    if (!compiler.options.enableUserAssertions) return;
+    if (!options.enableUserAssertions) return;
 
     if (!node.hasMessage) {
       // Generate:
@@ -1855,7 +1850,7 @@ class SsaBuilder extends ast.Visitor
       void visitThen(),
       void visitElse(),
       SourceInformation sourceInformation}) {
-    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     branchBuilder.handleIf(visitCondition, visitThen, visitElse,
         sourceInformation: sourceInformation);
   }
@@ -1872,7 +1867,7 @@ class SsaBuilder extends ast.Visitor
 
   @override
   void visitIfNull(ast.Send node, ast.Node left, ast.Node right, _) {
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleIfNull(() => visit(left), () => visit(right));
   }
 
@@ -1917,14 +1912,14 @@ class SsaBuilder extends ast.Visitor
 
   @override
   void visitLogicalAnd(ast.Send node, ast.Node left, ast.Node right, _) {
-    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     handleLogicalBinaryWithLeftNode(left, () => visit(right), branchBuilder,
         isAnd: true);
   }
 
   @override
   void visitLogicalOr(ast.Send node, ast.Node left, ast.Node right, _) {
-    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     handleLogicalBinaryWithLeftNode(left, () => visit(right), branchBuilder,
         isAnd: false);
   }
@@ -2193,7 +2188,7 @@ class SsaBuilder extends ast.Visitor
     // we will be able to later compress it as:
     //   t1 || t1.x
     HInstruction expression;
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(
         () {
           expression = visitAndPop(receiver);
@@ -2552,7 +2547,7 @@ class SsaBuilder extends ast.Visitor
       ast.NodeList arguments, Selector selector, _) {
     /// Desugar `exp?.m()` to `(t1 = exp) == null ? t1 : t1.m()`
     HInstruction receiver;
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(() {
       receiver = generateInstanceSendReceiver(node);
       pushCheckNull(receiver);
@@ -2723,7 +2718,7 @@ class SsaBuilder extends ast.Visitor
         value = backend.mirrorsData.mustRetainMetadata;
         break;
       case 'USE_CONTENT_SECURITY_POLICY':
-        value = compiler.options.useContentSecurityPolicy;
+        value = options.useContentSecurityPolicy;
         break;
       default:
         reporter.reportErrorMessage(node, MessageKind.GENERIC,
@@ -3503,7 +3498,7 @@ class SsaBuilder extends ast.Visitor
   /// returns [:true:] if an error can be statically determined.
   bool checkTypeVariableBounds(
       ast.NewExpression node, ResolutionInterfaceType type) {
-    if (!compiler.options.enableTypeAssertions) return false;
+    if (!options.enableTypeAssertions) return false;
 
     Map<ResolutionDartType, Set<ResolutionDartType>> seenChecksMap =
         new Map<ResolutionDartType, Set<ResolutionDartType>>();
@@ -3889,7 +3884,7 @@ class SsaBuilder extends ast.Visitor
   void bulkHandleNew(ast.NewExpression node, [_]) {
     Element element = elements[node.send];
     final bool isSymbolConstructor =
-        element == compiler.commonElements.symbolConstructor;
+        element == commonElements.symbolConstructor;
     if (!Elements.isMalformed(element)) {
       ConstructorElement function = element;
       element = function.effectiveTarget;
@@ -4037,7 +4032,7 @@ class SsaBuilder extends ast.Visitor
 
       var nativeBehavior = new native.NativeBehavior()
         ..codeTemplate = codeTemplate;
-      if (compiler.options.trustJSInteropTypeAnnotations) {
+      if (options.trustJSInteropTypeAnnotations) {
         nativeBehavior.typesReturned.add(constructor.enclosingClass.thisType);
       }
       return new HForeignCode(
@@ -4068,10 +4063,9 @@ class SsaBuilder extends ast.Visitor
     // Native behavior effects here are similar to native/behavior.dart.
     // The return type is dynamic if we don't trust js-interop type
     // declarations.
-    nativeBehavior.typesReturned.add(
-        compiler.options.trustJSInteropTypeAnnotations
-            ? type
-            : const ResolutionDynamicType());
+    nativeBehavior.typesReturned.add(options.trustJSInteropTypeAnnotations
+        ? type
+        : const ResolutionDynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
@@ -4082,7 +4076,7 @@ class SsaBuilder extends ast.Visitor
 
     // It also includes any other JS interop type if we don't trust the
     // annotation or if is declared too broad.
-    if (!compiler.options.trustJSInteropTypeAnnotations ||
+    if (!options.trustJSInteropTypeAnnotations ||
         type.isObject ||
         type.isDynamic) {
       ClassElement cls = backend.helpers.jsJavaScriptObjectClass;
@@ -4243,7 +4237,7 @@ class SsaBuilder extends ast.Visitor
       }
 
       if (node.isIfNullAssignment) {
-        SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
         brancher.handleIfNull(() => stack.add(getterInstruction), () {
           addDynamicSendArgumentsToList(node, setterInputs);
           generateSuperSendSet();
@@ -4563,7 +4557,7 @@ class SsaBuilder extends ast.Visitor
         //   if (t1 == null)
         //      t1 = x[i] = e;
         //   result = t1
-        SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
         brancher.handleIfNull(() => stack.add(getterInstruction), () {
           visit(arguments.head);
           HInstruction value = pop();
@@ -4614,7 +4608,7 @@ class SsaBuilder extends ast.Visitor
     // else
     //   result = e.x = e2
     HInstruction receiverInstruction;
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(
         () {
           receiverInstruction = generateInstanceSendReceiver(node);
@@ -4787,8 +4781,7 @@ class SsaBuilder extends ast.Visitor
             receiver);
         HInstruction getterInstruction = pop();
         if (node.isIfNullAssignment) {
-          SsaBranchBuilder brancher =
-              new SsaBranchBuilder(this, compiler, node);
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
           brancher.handleIfNull(() => stack.add(getterInstruction), () {
             visit(node.arguments.head);
             generateInstanceSetterWithCompiledReceiver(node, receiver, pop());
@@ -4809,7 +4802,7 @@ class SsaBuilder extends ast.Visitor
         //   t1 = e
         //   t1 == null ? t1 : (t1.x = t1.x op e2);
         HInstruction receiver;
-        SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
         brancher.handleConditional(() {
           receiver = generateInstanceSendReceiver(node);
           pushCheckNull(receiver);
@@ -4835,7 +4828,7 @@ class SsaBuilder extends ast.Visitor
     }
     HInstruction getterInstruction = pop();
     if (node.isIfNullAssignment) {
-      SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+      SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
       brancher.handleIfNull(() => stack.add(getterInstruction), () {
         visit(node.arguments.head);
         generateNonInstanceSetter(node, element, pop());
@@ -5134,7 +5127,7 @@ class SsaBuilder extends ast.Visitor
       visit(node.expression);
       value = pop();
       if (isBuildingAsyncFunction) {
-        if (compiler.options.enableTypeAssertions &&
+        if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(returnType)) {
           String message = "Async function returned a Future, "
               "was declared to return a $returnType.";
@@ -5246,7 +5239,7 @@ class SsaBuilder extends ast.Visitor
       commonMasks.dynamicType;
 
   visitConditional(ast.Conditional node) {
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(() => visit(node.condition),
         () => visit(node.thenExpression), () => visit(node.elseExpression));
   }
@@ -5268,7 +5261,8 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitModifiers(ast.Modifiers node) {
-    compiler.unimplemented(node, 'SsaFromAstMixin.visitModifiers.');
+    throw new SpannableAssertionFailure(
+        node, 'SsaFromAstMixin.visitModifiers not implemented.');
   }
 
   visitBreakStatement(ast.BreakStatement node) {
@@ -6370,11 +6364,13 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitTypedef(ast.Typedef node) {
-    compiler.unimplemented(node, 'SsaFromAstMixin.visitTypedef.');
+    throw new SpannableAssertionFailure(
+        node, 'SsaFromAstMixin.visitTypedef not implemented.');
   }
 
   visitTypeVariable(ast.TypeVariable node) {
-    reporter.internalError(node, 'SsaFromAstMixin.visitTypeVariable.');
+    throw new SpannableAssertionFailure(
+        node, 'SsaFromAstMixin.visitTypeVariable not implemented.');
   }
 
   /**
@@ -6489,8 +6485,6 @@ class StringBuilderVisitor extends ast.Visitor {
   HInstruction result = null;
 
   StringBuilderVisitor(this.builder, this.diagnosticNode);
-
-  Compiler get compiler => builder.compiler;
 
   void visit(ast.Node node) {
     node.accept(this);
