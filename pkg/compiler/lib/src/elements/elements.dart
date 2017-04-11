@@ -1676,8 +1676,8 @@ abstract class ClassElement extends TypeDeclarationElement
   ///
   /// This method recursively visits superclasses until the member is found or
   /// [stopAt] is reached.
-  Element lookupByName(Name memberName, {ClassElement stopAt});
-  Element lookupSuperByName(Name memberName);
+  MemberElement lookupByName(Name memberName, {ClassElement stopAt});
+  MemberElement lookupSuperByName(Name memberName);
 
   Element lookupLocalMember(String memberName);
   Element lookupBackendMember(String memberName);

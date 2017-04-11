@@ -930,13 +930,12 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
         : result.implementation == element.implementation;
   }
 
-  Element findMatchIn(ClassElement cls, Selector selector,
+  MemberElement findMatchIn(ClassElement cls, Selector selector,
       {ClassElement stopAtSuperclass}) {
     // Use the [:implementation] of [cls] in case the found [element]
     // is in the patch class.
-    var result = cls.implementation
+    return cls.implementation
         .lookupByName(selector.memberName, stopAt: stopAtSuperclass);
-    return result;
   }
 
   /// Returns whether a [selector] call on an instance of [cls]
@@ -945,7 +944,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
       {ClassElement stopAtSuperclass}) {
     assert(invariant(cls, isInstantiated(cls),
         message: '$cls has not been instantiated.'));
-    Element element = findMatchIn(cls, selector);
+    MemberElement element = findMatchIn(cls, selector);
     if (element == null) return false;
 
     if (element.isAbstract) {

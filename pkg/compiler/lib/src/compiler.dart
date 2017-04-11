@@ -1892,6 +1892,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     cls.ensureResolved(_resolution);
     cls.forEachMember((ClassElement declarer, MemberElement member) {
       if (member.isSynthesized) return;
+      if (member.isMalformed) return;
       f(declarer, member);
     }, includeSuperAndInjectedMembers: true);
   }

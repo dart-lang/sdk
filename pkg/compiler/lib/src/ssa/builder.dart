@@ -3053,8 +3053,9 @@ class SsaBuilder extends ast.Visitor
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     Selector selector = elements.getSelector(node);
-    assert(invariant(node, selector.applies(method.implementation),
-        message: "$selector does not apply to ${method.implementation}"));
+    MethodElement implementation = method.implementation;
+    assert(invariant(node, selector.applies(implementation),
+        message: "$selector does not apply to ${implementation}"));
     List<HInstruction> inputs =
         makeStaticArgumentList(selector.callStructure, node.arguments, method);
     push(buildInvokeSuper(selector, method, inputs, sourceInformation));
@@ -4179,7 +4180,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   void handleSuperSendSet(ast.SendSet node) {
-    Element element = elements[node];
+    MemberElement element = elements[node];
     List<HInstruction> setterInputs = <HInstruction>[];
     void generateSuperSendSet() {
       Selector setterSelector = elements.getSelector(node);

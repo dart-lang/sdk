@@ -199,7 +199,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      Element member, ClosedWorld world) {
+      MemberElement member, ClosedWorld world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
@@ -404,6 +404,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     cls.implementation.forEachMember((_, MemberElement member) {
       assert(invariant(member, member.isDeclaration));
       if (!member.isInstanceMember) return;
+      if (member.isMalformed) return;
       _getMemberUsage(member, memberUsed);
     });
   }

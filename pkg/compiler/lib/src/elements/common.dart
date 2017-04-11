@@ -217,16 +217,16 @@ abstract class ClassElementCommon implements ClassElement {
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupByName(Name memberName, {ClassElement stopAt}) {
+  MemberElement lookupByName(Name memberName, {ClassElement stopAt}) {
     return internalLookupByName(memberName,
         isSuperLookup: false, stopAtSuperclass: stopAt);
   }
 
-  Element lookupSuperByName(Name memberName) {
+  MemberElement lookupSuperByName(Name memberName) {
     return internalLookupByName(memberName, isSuperLookup: true);
   }
 
-  Element internalLookupByName(Name memberName,
+  MemberElement internalLookupByName(Name memberName,
       {bool isSuperLookup, ClassElement stopAtSuperclass}) {
     String name = memberName.text;
     bool isPrivate = memberName.isPrivate;
@@ -250,8 +250,8 @@ abstract class ClassElementCommon implements ClassElement {
       // for. Otherwise, we continue up the superclass chain.
       if (member.isAbstractField) {
         AbstractFieldElement field = member;
-        FunctionElement getter = field.getter;
-        FunctionElement setter = field.setter;
+        GetterElement getter = field.getter;
+        SetterElement setter = field.setter;
         if (memberName.isSetter) {
           // Abstract members can be defined in a super class.
           if (setter != null && !setter.isAbstract) {
@@ -263,7 +263,7 @@ abstract class ClassElementCommon implements ClassElement {
           }
         }
         // Abstract members can be defined in a super class.
-      } else if (!member.isAbstract) {
+      } else if (!member.isAbstract && !member.isMalformed) {
         return member;
       }
     }

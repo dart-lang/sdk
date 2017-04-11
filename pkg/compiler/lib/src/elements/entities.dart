@@ -86,7 +86,7 @@ abstract class MemberEntity extends Entity {
   /// Whether this is a setter.
   bool get isSetter;
 
-  /// Whether this member is assignable, i.e. a non-final field.
+  /// Whether this member is assignable, i.e. a non-final, non-const field.
   bool get isAssignable;
 
   /// Whether this member is constant, i.e. a constant field or constructor.
