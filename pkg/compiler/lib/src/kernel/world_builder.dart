@@ -581,6 +581,15 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  FunctionType getLocalFunctionType(Local function) {
+    throw new UnimplementedError(
+        'KernelElementEnvironment.getLocalFunctionType');
+  }
+
+  @override
+  DartType getUnaliasedType(DartType type) => type;
+
+  @override
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false}) {
     ConstructorEntity constructor = worldBuilder.lookupConstructor(cls, name);

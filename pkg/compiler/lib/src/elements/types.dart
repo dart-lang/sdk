@@ -62,6 +62,10 @@ abstract class DartType {
 
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
+
+  /// Applies [f] to each occurence of a [ResolutionTypeVariableType] within
+  /// this type.
+  void forEachTypeVariable(f(TypeVariableType variable)) {}
 }
 
 class InterfaceType extends DartType {
@@ -72,6 +76,10 @@ class InterfaceType extends DartType {
 
   bool get containsTypeVariables =>
       typeArguments.any((type) => type.containsTypeVariables);
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    typeArguments.forEach((type) => type.forEachTypeVariable(f));
+  }
 
   int get hashCode {
     int hash = element.hashCode;
@@ -115,6 +123,10 @@ class TypeVariableType extends DartType {
   bool get isTypeVariable => true;
 
   bool get containsTypeVariables => true;
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    f(this);
+  }
 
   int get hashCode => 17 * element.hashCode;
 
@@ -174,6 +186,13 @@ class FunctionType extends DartType {
         parameterTypes.any((type) => type.containsTypeVariables) ||
         optionalParameterTypes.any((type) => type.containsTypeVariables) ||
         namedParameterTypes.any((type) => type.containsTypeVariables);
+  }
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    returnType.forEachTypeVariable(f);
+    parameterTypes.forEach((type) => type.forEachTypeVariable(f));
+    optionalParameterTypes.forEach((type) => type.forEachTypeVariable(f));
+    namedParameterTypes.forEach((type) => type.forEachTypeVariable(f));
   }
 
   bool get isFunctionType => true;

@@ -102,7 +102,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return measure(() {
       MethodElement element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
-        work.registry.registerAsyncMarker(element);
+        work.registry.registerAsyncMarker(element.asyncMarker);
       }
       SsaCodeGenerator codegen = new SsaCodeGenerator(
           backend.compiler.options,

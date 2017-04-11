@@ -15,6 +15,7 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
@@ -1222,11 +1223,10 @@ class SsaBuilder extends ast.Visitor
     ResolutionInterfaceType type = classElement.thisType;
     TypeMask ssaType =
         new TypeMask.nonNullExact(classElement.declaration, closedWorld);
-    List<ResolutionDartType> instantiatedTypes;
+    List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
-      instantiatedTypes =
-          new List<ResolutionDartType>.from(currentInlinedInstantiations);
+      instantiatedTypes = new List<DartType>.from(currentInlinedInstantiations);
     }
 
     HInstruction newObject;

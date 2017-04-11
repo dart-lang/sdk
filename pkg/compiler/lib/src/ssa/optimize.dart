@@ -1185,7 +1185,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
             selector,
             input.instructionType, // receiver mask.
             inputs,
-            toStringType)..sourceInformation = node.sourceInformation;
+            toStringType)
+          ..sourceInformation = node.sourceInformation;
         return result;
       }
       return null;

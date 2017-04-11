@@ -15,6 +15,7 @@ import '../common_elements.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../util/util.dart' show equalElements;
 import 'elements.dart';
+import 'entities.dart';
 import 'modelx.dart' show TypeDeclarationElementX;
 import 'types.dart';
 
@@ -1477,10 +1478,10 @@ class Types implements DartTypes {
    * Returns the [ClassElement] which declares the type variables occurring in
    * [type], or [:null:] if [type] does not contain type variables.
    */
-  static ClassElement getClassContext(ResolutionDartType type) {
-    ClassElement contextClass;
-    type.forEachTypeVariable((ResolutionTypeVariableType typeVariable) {
-      if (typeVariable.element.typeDeclaration is! ClassElement) return;
+  static ClassEntity getClassContext(DartType type) {
+    ClassEntity contextClass;
+    type.forEachTypeVariable((TypeVariableType typeVariable) {
+      if (typeVariable.element.typeDeclaration is! ClassEntity) return;
       contextClass = typeVariable.element.typeDeclaration;
     });
     // GENERIC_METHODS: When generic method support is complete enough to

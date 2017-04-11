@@ -211,6 +211,9 @@ abstract class CommonElements {
 ///
 /// The _env makes private and injected members directly available and
 /// should therefore not be used to determine scopes.
+// TODO(johnniwinther): Split this into an element environment and a type query
+// interface, the first should only be used during resolution and the latter in
+// both resolution and codegen.
 abstract class ElementEnvironment {
   /// Returns the main library for the compilation.
   LibraryEntity get mainLibrary;
@@ -294,6 +297,15 @@ abstract class ElementEnvironment {
 
   /// Returns the type if [function].
   FunctionType getFunctionType(FunctionEntity function);
+
+  /// Returns the type of the [local] function.
+  FunctionType getLocalFunctionType(Local local);
+
+  /// Returns the unaliased type of [type].
+  ///
+  /// Use this during resolution to ensure that the alias has been computed.
+  // TODO(johnniwinther): Remove this when the resolver is removed.
+  DartType getUnaliasedType(DartType type);
 
   /// Returns the [CallStructure] corresponding to calling [entity] with all
   /// arguments, both required and optional.

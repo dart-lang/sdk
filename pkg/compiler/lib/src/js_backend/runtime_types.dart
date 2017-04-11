@@ -29,7 +29,7 @@ abstract class RuntimeTypesNeed {
 /// Interface for computing classes and methods that need runtime types.
 abstract class RuntimeTypesNeedBuilder {
   /// Registers that [cls] contains a type variable literal.
-  void registerClassUsingTypeVariableExpression(ClassElement cls);
+  void registerClassUsingTypeVariableExpression(ClassEntity cls);
 
   /// Registers that if [element] needs reified runtime type information then so
   /// does [dependency].
@@ -44,7 +44,7 @@ abstract class RuntimeTypesNeedBuilder {
   ///
   /// Here `A` need reified runtime type information because `B` needs it in
   /// order to generate the check against `B<int>`.
-  void registerRtiDependency(ClassElement element, ClassElement dependency);
+  void registerRtiDependency(ClassEntity element, ClassEntity dependency);
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(

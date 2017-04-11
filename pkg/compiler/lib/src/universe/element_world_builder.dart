@@ -90,15 +90,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
   }
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
-    if (staticUse.kind == StaticUseKind.CLOSURE) {
-      LocalFunctionElement localFunction = staticUse.element;
-      if (localFunction.type.containsTypeVariables) {
-        localFunctionsWithFreeTypeVariables.add(localFunction);
-      }
-      localFunctions.add(staticUse.element);
-      return;
-    }
-    MemberElement element = staticUse.element;
+    Element element = staticUse.element;
     assert(invariant(element, element.isDeclaration,
         message: "Element ${element} is not the declaration."));
     super.registerStaticUse(staticUse, memberUsed);

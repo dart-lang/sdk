@@ -1993,4 +1993,15 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     method.computeType(_resolution);
     return method.type;
   }
+
+  @override
+  ResolutionFunctionType getLocalFunctionType(LocalFunctionElement function) {
+    return function.type;
+  }
+
+  @override
+  ResolutionDartType getUnaliasedType(ResolutionDartType type) {
+    type.computeUnaliased(_resolution);
+    return type.unaliased;
+  }
 }

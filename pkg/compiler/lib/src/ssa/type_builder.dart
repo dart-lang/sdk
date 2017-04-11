@@ -200,7 +200,8 @@ class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.commonMasks.dynamicType)..sourceInformation = sourceInformation;
+        builder.commonMasks.dynamicType)
+      ..sourceInformation = sourceInformation;
     builder.add(result);
     return result;
   }

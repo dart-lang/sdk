@@ -857,7 +857,6 @@ class JavaScriptBackend {
         backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
-        compiler.resolution,
         compiler.elementEnvironment,
         commonElements,
         impacts,

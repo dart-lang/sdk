@@ -565,6 +565,17 @@ abstract class ResolutionWorldBuilderBase
   }
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
+    if (staticUse.kind == StaticUseKind.CLOSURE) {
+      Local localFunction = staticUse.element;
+      FunctionType type =
+          _elementEnvironment.getLocalFunctionType(localFunction);
+      if (type.containsTypeVariables) {
+        localFunctionsWithFreeTypeVariables.add(localFunction);
+      }
+      localFunctions.add(staticUse.element);
+      return;
+    }
+
     MemberEntity element = staticUse.element;
     _StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
       if ((element.isStatic || element.isTopLevel) && element.isFunction) {
@@ -589,8 +600,8 @@ abstract class ResolutionWorldBuilderBase
         fieldSetters.add(staticUse.element);
         break;
       case StaticUseKind.CLOSURE:
-        throw new UnimplementedError(
-            "registerStaticUse not implemented for StaticUseKind.CLOSURE.");
+        // Already handled above.
+        break;
       case StaticUseKind.SUPER_TEAR_OFF:
         useSet.addAll(usage.tearOff());
         methodsNeedingSuperGetter.add(staticUse.element);
