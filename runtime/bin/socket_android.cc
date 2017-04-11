@@ -7,9 +7,18 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_ANDROID)
 
-#include "bin/socket.h"
+#include <errno.h>        // NOLINT
+#include <netinet/tcp.h>  // NOLINT
+#include <stdio.h>        // NOLINT
+#include <stdlib.h>       // NOLINT
+#include <string.h>       // NOLINT
+#include <sys/stat.h>     // NOLINT
+#include <unistd.h>       // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/file.h"
+#include "bin/socket.h"
+#include "bin/socket_base_android.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {

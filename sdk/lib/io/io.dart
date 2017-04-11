@@ -242,6 +242,5 @@ part 'service_object.dart';
 part 'socket.dart';
 part 'stdio.dart';
 part 'string_transformer.dart';
-part 'sync_socket.dart';
 part 'websocket.dart';
 part 'websocket_impl.dart';

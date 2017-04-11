@@ -151,17 +151,6 @@ namespace bin {
   V(Stdout_GetTerminalSize, 1)                                                 \
   V(Stdout_AnsiSupported, 1)                                                   \
   V(StringToSystemEncoding, 1)                                                 \
-  V(SynchronousSocket_Available, 1)                                            \
-  V(SynchronousSocket_CloseSync, 1)                                            \
-  V(SynchronousSocket_CreateConnectSync, 3)                                    \
-  V(SynchronousSocket_GetPort, 1)                                              \
-  V(SynchronousSocket_GetRemotePeer, 1)                                        \
-  V(SynchronousSocket_LookupRequest, 2)                                        \
-  V(SynchronousSocket_ShutdownRead, 1)                                         \
-  V(SynchronousSocket_ShutdownWrite, 1)                                        \
-  V(SynchronousSocket_Read, 2)                                                 \
-  V(SynchronousSocket_ReadList, 4)                                             \
-  V(SynchronousSocket_WriteList, 4)                                            \
   V(SystemEncodingToString, 1)                                                 \
   V(X509_Subject, 1)                                                           \
   V(X509_Issuer, 1)                                                            \

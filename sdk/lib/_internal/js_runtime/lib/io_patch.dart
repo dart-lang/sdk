@@ -428,14 +428,6 @@ class SecureSocket {
 }
 
 @patch
-class RawSynchronousSocket {
-  @patch
-  static RawSynchronousSocket connectSync(host, int port) {
-    throw new UnsupportedError("RawSynchronousSocket.connectSync");
-  }
-}
-
-@patch
 class SecurityContext {
   @patch
   factory SecurityContext() {

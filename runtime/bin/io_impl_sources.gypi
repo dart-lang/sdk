@@ -90,12 +90,5 @@
     'stdio_macos.cc',
     'stdio_unsupported.cc',
     'stdio_win.cc',
-    'sync_socket.cc',
-    'sync_socket.h',
-    'sync_socket_android.cc',
-    'sync_socket_fuchsia.cc',
-    'sync_socket_linux.cc',
-    'sync_socket_macos.cc',
-    'sync_socket_win.cc',
   ],
 }
