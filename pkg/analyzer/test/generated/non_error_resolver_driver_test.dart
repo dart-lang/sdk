@@ -16,9 +16,4 @@ main() {
 class NonErrorResolverTest_Driver extends NonErrorResolverTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  test_genericTypeAlias_fieldAndReturnType() async {
-    return super.test_genericTypeAlias_fieldAndReturnType();
-  }
 }

@@ -383,10 +383,18 @@ class _Prelinker {
               executable.typeParameters.length));
     }
     for (UnlinkedTypedef typedef in unit.typedefs) {
-      privateNamespace.add(
-          typedef.name,
-          new _Meaning(unitNum, ReferenceKind.typedef, 0,
-              typedef.typeParameters.length));
+      ReferenceKind kind;
+      switch (typedef.style) {
+        case TypedefStyle.functionType:
+          kind = ReferenceKind.typedef;
+          break;
+        case TypedefStyle.genericFunctionType:
+          kind = ReferenceKind.genericFunctionTypedef;
+          break;
+      }
+      assert(kind != null);
+      privateNamespace.add(typedef.name,
+          new _Meaning(unitNum, kind, 0, typedef.typeParameters.length));
     }
     for (UnlinkedVariable variable in unit.variables) {
       privateNamespace.add(variable.name,

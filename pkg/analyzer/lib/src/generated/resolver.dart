@@ -8466,31 +8466,18 @@ class TypeNameResolver {
       return undefinedType;
     } else if (type is FunctionType) {
       Element element = type.element;
-      if (annotation is TypeName && element is GenericTypeAliasElement) {
-        List<TypeParameterElement> parameterElements = element.typeParameters;
-        FunctionType functionType = element.function.type;
-        if (parameterElements.isNotEmpty) {
-          List<DartType> parameterTypes =
-              TypeParameterTypeImpl.getTypes(parameterElements);
-          int parameterCount = parameterTypes.length;
-          TypeArgumentList argumentList = annotation.typeArguments;
-          List<DartType> typeArguments;
-          if (argumentList != null) {
-            List<TypeAnnotation> arguments = argumentList.arguments;
-            int argumentCount = arguments.length;
-            if (argumentCount == parameterCount) {
-              typeArguments = new List<DartType>(parameterCount);
-              for (int i = 0; i < parameterCount; i++) {
-                typeArguments[i] = _getType(arguments[i]);
-              }
-            }
+      if (annotation is TypeName && element is GenericTypeAliasElementImpl) {
+        TypeArgumentList argumentList = annotation.typeArguments;
+        List<DartType> typeArguments = null;
+        if (argumentList != null) {
+          List<TypeAnnotation> arguments = argumentList.arguments;
+          int argumentCount = arguments.length;
+          typeArguments = new List<DartType>(argumentCount);
+          for (int i = 0; i < argumentCount; i++) {
+            typeArguments[i] = _getType(arguments[i]);
           }
-          typeArguments ??=
-              new List<DartType>.filled(parameterCount, dynamicType);
-          functionType =
-              functionType.substitute2(typeArguments, parameterTypes);
         }
-        return functionType;
+        return element.typeAfterSubstitution(typeArguments);
       }
     }
     return type;

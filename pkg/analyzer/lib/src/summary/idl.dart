@@ -1132,7 +1132,12 @@ enum ReferenceKind {
   /**
    * The entity being referred to does not exist.
    */
-  unresolved
+  unresolved,
+
+  /**
+   * The entity is a typedef expressed using generic function type syntax.
+   */
+  genericFunctionTypedef
 }
 
 /**

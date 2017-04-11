@@ -5233,6 +5233,27 @@ class GenericTypeAliasElementImpl extends ElementImpl
     return null;
   }
 
+  /**
+   * Return the type of the function defined by this typedef after substituting
+   * the given [typeArguments] for the type parameters defined for this typedef
+   * (but not the type parameters defined by the function). If the number of
+   * [typeArguments] does not match the number of type parameters, then
+   * `dynamic` will be used in place of each of the type arguments.
+   */
+  FunctionType typeAfterSubstitution(List<DartType> typeArguments) {
+    FunctionType functionType = function.type;
+    List<TypeParameterElement> parameterElements = typeParameters;
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(parameterElements);
+    int parameterCount = parameterTypes.length;
+    if (typeArguments == null ||
+        parameterElements.length != typeArguments.length) {
+      DartType dynamicType = DynamicElementImpl.instance.type;
+      typeArguments = new List<DartType>.filled(parameterCount, dynamicType);
+    }
+    return functionType.substitute2(typeArguments, parameterTypes);
+  }
+
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);

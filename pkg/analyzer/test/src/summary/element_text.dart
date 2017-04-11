@@ -442,13 +442,26 @@ class _ElementWriter {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
 
-    buffer.write('typedef ');
-    writeType2(e.returnType);
+    if (e is GenericTypeAliasElement) {
+      buffer.write('typedef ');
+      writeName(e);
+      writeTypeParameterElements(e.typeParameters);
 
-    writeName(e);
+      buffer.write(' = ');
 
-    writeTypeParameterElements(e.typeParameters);
-    writeParameterElements(e.parameters);
+      writeType(e.function.returnType);
+      buffer.write(' Function');
+      writeTypeParameterElements(e.function.typeParameters);
+      writeParameterElements(e.function.parameters);
+    } else {
+      buffer.write('typedef ');
+      writeType2(e.returnType);
+
+      writeName(e);
+
+      writeTypeParameterElements(e.typeParameters);
+      writeParameterElements(e.parameters);
+    }
 
     buffer.writeln(';');
   }

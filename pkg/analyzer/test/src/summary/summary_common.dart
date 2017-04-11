@@ -6455,6 +6455,14 @@ class B extends A {}
         linked.exportNames[0], absUri('/a.dart'), 'F', ReferenceKind.typedef);
   }
 
+  test_export_typedef_genericFunction() {
+    addNamedSource('/a.dart', 'typedef F<S> = S Function<T>(T x);');
+    serializeLibraryText('export "a.dart";');
+    expect(linked.exportNames, hasLength(1));
+    checkExportName(linked.exportNames[0], absUri('/a.dart'), 'F',
+        ReferenceKind.genericFunctionTypedef);
+  }
+
   test_export_uri() {
     addNamedSource('/a.dart', 'library my.lib;');
     String uriString = '"a.dart"';
@@ -10133,6 +10141,60 @@ typedef F();''';
     UnlinkedTypedef typedef = serializeTypedefText(text);
     expect(typedef.documentationComment, isNotNull);
     checkDocumentationComment(typedef.documentationComment, text);
+  }
+
+  test_typedef_genericFunction_reference() {
+    EntityRef typeRef = serializeTypeText('F',
+        otherDeclarations: 'typedef F<S> = S Function<T>(T x);');
+    checkTypeRef(typeRef, null, 'F',
+        numTypeParameters: 1,
+        expectedKind: ReferenceKind.genericFunctionTypedef);
+  }
+
+  test_typedef_genericFunction_typeNames() {
+    UnlinkedTypedef typedef =
+        serializeTypedefText('typedef F<S> = S Function(int x, String y);');
+    expect(typedef.style, TypedefStyle.genericFunctionType);
+    expect(typedef.typeParameters, hasLength(1));
+    expect(typedef.typeParameters[0].name, 'S');
+    expect(typedef.parameters, isEmpty);
+
+    EntityRef genericFunction = typedef.returnType;
+    expect(genericFunction.entityKind, EntityRefKind.genericFunctionType);
+    expect(genericFunction.typeParameters, isEmpty);
+
+    List<UnlinkedParam> functionParameters = genericFunction.syntheticParams;
+    expect(functionParameters, hasLength(2));
+    expect(functionParameters[0].name, 'x');
+    expect(functionParameters[1].name, 'y');
+    checkLinkedTypeRef(functionParameters[0].type, 'dart:core', 'int');
+    checkLinkedTypeRef(functionParameters[1].type, 'dart:core', 'String');
+
+    checkParamTypeRef(genericFunction.syntheticReturnType, 1);
+  }
+
+  test_typedef_genericFunction_typeParameters() {
+    UnlinkedTypedef typedef =
+        serializeTypedefText('typedef F<S> = S Function<T1, T2>(T1 x, T2 y);');
+    expect(typedef.style, TypedefStyle.genericFunctionType);
+    expect(typedef.typeParameters, hasLength(1));
+    expect(typedef.typeParameters[0].name, 'S');
+    expect(typedef.parameters, isEmpty);
+
+    EntityRef genericFunction = typedef.returnType;
+    expect(genericFunction.entityKind, EntityRefKind.genericFunctionType);
+
+    expect(genericFunction.typeParameters, hasLength(2));
+    expect(genericFunction.typeParameters[0].name, 'T1');
+    expect(genericFunction.typeParameters[1].name, 'T2');
+
+    expect(genericFunction.syntheticParams, hasLength(2));
+    expect(genericFunction.syntheticParams[0].name, 'x');
+    expect(genericFunction.syntheticParams[1].name, 'y');
+    checkParamTypeRef(genericFunction.syntheticParams[0].type, 2);
+    checkParamTypeRef(genericFunction.syntheticParams[1].type, 1);
+
+    checkParamTypeRef(genericFunction.syntheticReturnType, 3);
   }
 
   test_typedef_name() {

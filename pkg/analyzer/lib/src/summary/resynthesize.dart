@@ -938,6 +938,9 @@ class _LibraryResynthesizer {
       case ReferenceKind.typedef:
         return new FunctionTypeAliasElementHandle(
             summaryResynthesizer, location);
+      case ReferenceKind.genericFunctionTypedef:
+        return new GenericTypeAliasElementHandle(
+            summaryResynthesizer, location);
       case ReferenceKind.topLevelFunction:
         return new FunctionElementHandle(summaryResynthesizer, location);
       case ReferenceKind.topLevelPropertyAccessor:
@@ -1314,6 +1317,11 @@ class _ReferenceInfo {
       }
       // Done.
       return type;
+    } else if (element is GenericTypeAliasElementHandle) {
+      GenericTypeAliasElementImpl actualElement = element.actualElement;
+      List<DartType> argumentTypes =
+          new List.generate(numTypeArguments, getTypeArgument);
+      return actualElement.typeAfterSubstitution(argumentTypes);
     } else if (element is FunctionTypedElement) {
       if (element is FunctionTypeAliasElementHandle) {
         List<DartType> typeArguments;
@@ -1836,6 +1844,11 @@ class _UnitResynthesizer {
             break;
           case ReferenceKind.typedef:
             element = new FunctionTypeAliasElementHandle(
+                summaryResynthesizer, location);
+            isDeclarableType = true;
+            break;
+          case ReferenceKind.genericFunctionTypedef:
+            element = new GenericTypeAliasElementHandle(
                 summaryResynthesizer, location);
             isDeclarableType = true;
             break;
