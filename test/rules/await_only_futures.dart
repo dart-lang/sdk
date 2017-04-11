@@ -48,3 +48,7 @@ class CancellableFuture<T> implements Future<T> {
 Future awaitCancellableFuture(dynamic future) async {
   return await new CancellableFuture(); // OK
 }
+
+Future<String> awaitFutureOr(FutureOr<String> callback()) async {
+  return await callback(); // OK
+}
