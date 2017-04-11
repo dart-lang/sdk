@@ -145,9 +145,6 @@ class SsaBuilder extends ast.Visitor
   // code-analysis too.
   final CodegenRegistry registry;
 
-  /// All results from the global type-inference analysis.
-  final GlobalTypeInferenceResults inferenceResults;
-
   /// Results from the global type-inference analysis corresponding to the
   /// current element being visited.
   ///
@@ -205,8 +202,7 @@ class SsaBuilder extends ast.Visitor
       : this.infoReporter = backend.compiler.dumpInfoTask,
         this.backend = backend,
         this.constantSystem = backend.constantSystem,
-        this.rtiSubstitutions = backend.rtiSubstitutions,
-        this.inferenceResults = backend.compiler.globalInference.results {
+        this.rtiSubstitutions = backend.rtiSubstitutions {
     assert(target.isImplementation);
     compiler = backend.compiler;
     elementInferenceResults = _resultOf(target);
@@ -217,7 +213,8 @@ class SsaBuilder extends ast.Visitor
         sourceInformationFactory.createBuilderForContext(resolvedAst);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
-    localsHandler = new LocalsHandler(this, target, null, compiler);
+    localsHandler = new LocalsHandler(
+        this, target, null, backend.nativeData, backend.interceptorData);
     loopHandler = new SsaLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
   }
@@ -260,7 +257,7 @@ class SsaBuilder extends ast.Visitor
   /// context were we don't expect to see a constructor body element, we
   /// directly fetch the data from the global inference results.
   GlobalTypeInferenceElementResult _resultOf(MemberElement element) =>
-      inferenceResults.resultOfMember(
+      globalInferenceResults.resultOfMember(
           element is ConstructorBodyElementX ? element.constructor : element);
 
   /// Build the graph for [target].
@@ -457,7 +454,7 @@ class SsaBuilder extends ast.Visitor
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!function.isGenerativeConstructorBody) {
-        if (inferenceResults.resultOfMember(function).throwsAlways) {
+        if (globalInferenceResults.resultOfMember(function).throwsAlways) {
           isReachable = false;
           return false;
         }
@@ -591,7 +588,7 @@ class SsaBuilder extends ast.Visitor
   bool isFunctionCalledOnce(MethodElement element) {
     // ConstructorBodyElements are not in the type inference graph.
     if (element is ConstructorBodyElement) return false;
-    return inferenceResults.resultOfMember(element).isCalledOnce;
+    return globalInferenceResults.resultOfMember(element).isCalledOnce;
   }
 
   bool isCalledOnce(MethodElement element) {
@@ -798,9 +795,10 @@ class SsaBuilder extends ast.Visitor
       {ResolutionInterfaceType instanceType}) {
     ResolvedAst resolvedAst = function.resolvedAst;
     assert(resolvedAst != null);
-    localsHandler = new LocalsHandler(this, function, instanceType, compiler);
+    localsHandler = new LocalsHandler(this, function, instanceType,
+        backend.nativeData, backend.interceptorData);
     localsHandler.closureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
+        closureToClassMapper.getClosureToClassMapping(resolvedAst);
     returnLocal = new SyntheticLocal("result", function);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
 
@@ -964,10 +962,10 @@ class SsaBuilder extends ast.Visitor
       ResolvedAst oldResolvedAst = resolvedAst;
       resolvedAst = callee.resolvedAst;
       final oldElementInferenceResults = elementInferenceResults;
-      elementInferenceResults = inferenceResults.resultOfMember(callee);
+      elementInferenceResults = globalInferenceResults.resultOfMember(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
       ClosureClassMap newClosureData =
-          compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
+          closureToClassMapper.getClosureToClassMapping(resolvedAst);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(resolvedAst.node, callee);
@@ -1139,10 +1137,11 @@ class SsaBuilder extends ast.Visitor
           ResolvedAst savedResolvedAst = resolvedAst;
           resolvedAst = fieldResolvedAst;
           final oldElementInferenceResults = elementInferenceResults;
-          elementInferenceResults = inferenceResults.resultOfMember(member);
+          elementInferenceResults =
+              globalInferenceResults.resultOfMember(member);
           // In case the field initializer uses closures, run the
           // closure to class mapper.
-          compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
+          closureToClassMapper.getClosureToClassMapping(resolvedAst);
           inlinedFrom(fieldResolvedAst, () => right.accept(this));
           resolvedAst = savedResolvedAst;
           elementInferenceResults = oldElementInferenceResults;
@@ -1304,8 +1303,8 @@ class SsaBuilder extends ast.Visitor
       }
       bodyCallInputs.add(newObject);
       ast.Node node = constructorResolvedAst.node;
-      ClosureClassMap parameterClosureData = compiler.closureToClassMapper
-          .getClosureToClassMapping(constructorResolvedAst);
+      ClosureClassMap parameterClosureData =
+          closureToClassMapper.getClosureToClassMapping(constructorResolvedAst);
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
@@ -2995,7 +2994,8 @@ class SsaBuilder extends ast.Visitor
       graph.addConstantString(new ast.DartString.literal(loadId), closedWorld)
     ];
     push(new HInvokeStatic(loadFunction, inputs, commonMasks.nonNullType,
-        targetCanThrow: false)..sourceInformation = sourceInformation);
+        targetCanThrow: false)
+      ..sourceInformation = sourceInformation);
   }
 
   generateSuperNoSuchMethodSend(
@@ -3431,7 +3431,7 @@ class SsaBuilder extends ast.Visitor
               ? native.NativeThrowBehavior.MAY
               : native.NativeThrowBehavior.NEVER);
       push(foreign);
-      if (inferenceResults.isFixedArrayCheckedForGrowable(send)) {
+      if (globalInferenceResults.isFixedArrayCheckedForGrowable(send)) {
         js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
@@ -4096,7 +4096,8 @@ class SsaBuilder extends ast.Visitor
     nativeBehavior.codeTemplate = codeTemplate;
 
     return new HForeignCode(codeTemplate, commonMasks.dynamicType, inputs,
-        nativeBehavior: nativeBehavior)..sourceInformation = sourceInformation;
+        nativeBehavior: nativeBehavior)
+      ..sourceInformation = sourceInformation;
   }
 
   void pushInvokeStatic(

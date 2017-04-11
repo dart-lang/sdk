@@ -149,7 +149,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationFactory.createBuilderForContext(resolvedAst);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
-    this.localsHandler = new LocalsHandler(this, targetElement, null, compiler);
+    this.localsHandler = new LocalsHandler(
+        this, targetElement, null, backend.nativeData, backend.interceptorData);
     this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
     target = astAdapter.getInitialKernelNode(targetElement);
@@ -293,7 +294,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // arguments.
 
       ConstructorElement constructorElement = astAdapter.getElement(body);
-      ClosureClassMap parameterClosureData = compiler.closureToClassMapper
+      ClosureClassMap parameterClosureData = closureToClassMapper
           .getClosureToClassMapping(constructorElement.resolvedAst);
 
       var functionSignature = astAdapter.getFunctionSignature(body.function);
@@ -554,14 +555,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // 'call' method of the class that represents the closure.
     if (target is ir.FunctionExpression) {
       LocalFunctionElement element = astAdapter.getElement(target);
-      ClosureClassMap classMap = compiler.closureToClassMapper
-          .getClosureToClassMapping(element.resolvedAst);
+      ClosureClassMap classMap =
+          closureToClassMapper.getClosureToClassMapping(element.resolvedAst);
       return classMap.callElement;
     }
     if (target is ir.FunctionDeclaration) {
       LocalFunctionElement element = astAdapter.getElement(target);
-      ClosureClassMap classMap = compiler.closureToClassMapper
-          .getClosureToClassMapping(element.resolvedAst);
+      ClosureClassMap classMap =
+          closureToClassMapper.getClosureToClassMapping(element.resolvedAst);
       return classMap.callElement;
     }
     Element element = astAdapter.getElement(target);
@@ -2504,7 +2505,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
         isStatement: !nativeBehavior.codeTemplate.isExpression,
         effects: nativeBehavior.sideEffects,
-        nativeBehavior: nativeBehavior)..sourceInformation = sourceInformation);
+        nativeBehavior: nativeBehavior)
+      ..sourceInformation = sourceInformation);
   }
 
   void handleJsStringConcat(ir.StaticInvocation invocation) {
@@ -2560,7 +2562,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   visitFunctionNode(ir.FunctionNode node) {
     LocalFunctionElement methodElement = astAdapter.getElement(node);
-    ClosureClassMap nestedClosureData = compiler.closureToClassMapper
+    ClosureClassMap nestedClosureData = closureToClassMapper
         .getClosureToClassMapping(methodElement.resolvedAst);
     assert(nestedClosureData != null);
     assert(nestedClosureData.closureClassElement != null);
@@ -2608,9 +2610,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _pushDynamicInvocation(
         invocation,
         astAdapter.typeOfInvocation(invocation, closedWorld),
-        <HInstruction>[receiver]
-          ..addAll(
-              _visitArgumentsForDynamicTarget(selector, invocation.arguments)));
+        <HInstruction>[receiver]..addAll(
+            _visitArgumentsForDynamicTarget(selector, invocation.arguments)));
   }
 
   bool _handleEqualsNull(ir.MethodInvocation invocation) {

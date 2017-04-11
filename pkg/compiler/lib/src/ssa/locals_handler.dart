@@ -4,13 +4,13 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
+import '../js_backend/native_data.dart';
+import '../js_backend/interceptor_data.dart';
 import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
@@ -62,10 +62,16 @@ class LocalsHandler {
   ///
   final ResolutionInterfaceType instanceType;
 
-  final Compiler _compiler;
+  final NativeData _nativeData;
 
-  LocalsHandler(this.builder, this.executableContext,
-      ResolutionInterfaceType instanceType, this._compiler)
+  final InterceptorData _interceptorData;
+
+  LocalsHandler(
+      this.builder,
+      this.executableContext,
+      ResolutionInterfaceType instanceType,
+      this._nativeData,
+      this._interceptorData)
       : this.instanceType =
             instanceType == null || instanceType.containsTypeVariables
                 ? null
@@ -76,7 +82,9 @@ class LocalsHandler {
   CommonMasks get commonMasks => closedWorld.commonMasks;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
-      _compiler.globalInference.results;
+      builder.globalInferenceResults;
+
+  ClosureTask get _closureToClassMapper => builder.closureToClassMapper;
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -103,7 +111,8 @@ class LocalsHandler {
         instanceType = other.instanceType,
         builder = other.builder,
         closureData = other.closureData,
-        _compiler = other._compiler,
+        _nativeData = other._nativeData,
+        _interceptorData = other._interceptorData,
         activationVariables = other.activationVariables,
         cachedTypeOfThis = other.cachedTypeOfThis,
         cachedTypesOfCapturedVariables = other.cachedTypesOfCapturedVariables;
@@ -191,8 +200,8 @@ class LocalsHandler {
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
-    closureData = _compiler.closureToClassMapper
-        .getClosureToClassMapping(element.resolvedAst);
+    closureData =
+        _closureToClassMapper.getClosureToClassMapping(element.resolvedAst);
 
     if (element is MethodElement) {
       MethodElement functionElement = element;
@@ -224,7 +233,6 @@ class LocalsHandler {
     closureData.forEachFreeVariable((Local from, CapturedVariable to) {
       redirectElement(from, to);
     });
-    JavaScriptBackend backend = _compiler.backend;
     if (closureData.isClosure) {
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
@@ -252,10 +260,10 @@ class LocalsHandler {
     // Instead of allocating and initializing the object, the constructor
     // 'upgrades' the native subclass object by initializing the Dart fields.
     bool isNativeUpgradeFactory = element.isGenerativeConstructor &&
-        backend.nativeData.isNativeOrExtendsNative(cls);
-    if (backend.interceptorData.isInterceptedMethod(element)) {
+        _nativeData.isNativeOrExtendsNative(cls);
+    if (_interceptorData.isInterceptedMethod(element)) {
       bool isInterceptedClass =
-          backend.interceptorData.isInterceptedClass(cls.declaration);
+          _interceptorData.isInterceptedClass(cls.declaration);
       String name = isInterceptedClass ? 'receiver' : '_';
       SyntheticLocal parameter = new SyntheticLocal(name, executableContext);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
@@ -318,10 +326,10 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
         if (local is TypeVariableElement) {
-          _compiler.reporter.internalError(_compiler.currentElement,
+          throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
               "Runtime type information not available for $local.");
         } else {
-          _compiler.reporter.internalError(
+          throw new SpannableAssertionFailure(
               local, "Cannot find value $local in ${directLocals.keys}.");
         }
       }
