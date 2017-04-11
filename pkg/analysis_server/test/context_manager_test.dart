@@ -440,9 +440,8 @@ test_pack:lib/''');
       expect(contextsInAnalysisRoot, hasLength(1));
       expect(contextsInAnalysisRoot[0], isNotNull);
     }
-    Source result = sourceFactory.forUri('package:foo/foo.dart');
+    Source result = sourceFactory.forUri('dart:async');
     expect(result, isNotNull);
-    expect(result.exists(), isFalse);
   }
 
   void test_setRoots_addFolderWithDartFileInSubfolder() {
