@@ -97,19 +97,29 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
     if (components.length == 1) {
       return getLibraryElement(libraryUri);
     } else if (components.length == 2) {
-      Map<String, CompilationUnitElement> libraryMap =
-          _resynthesizedUnits[libraryUri];
-      if (libraryMap == null) {
-        getLibraryElement(libraryUri);
-        libraryMap = _resynthesizedUnits[libraryUri];
+      LibraryElement libraryElement = getLibraryElement(libraryUri);
+      // Try to find the unit element.
+      {
+        Map<String, CompilationUnitElement> libraryMap =
+            _resynthesizedUnits[libraryUri];
         assert(libraryMap != null);
+        String unitUri = components[1];
+        CompilationUnitElement unitElement = libraryMap[unitUri];
+        if (unitElement != null) {
+          return unitElement;
+        }
       }
-      String unitUri = components[1];
-      CompilationUnitElement element = libraryMap[unitUri];
-      if (element == null) {
-        throw new Exception('Unit element not found in summary: $location');
+      // Try to find the prefix element.
+      {
+        String name = components[1];
+        for (PrefixElement prefix in libraryElement.prefixes) {
+          if (prefix.name == name) {
+            return prefix;
+          }
+        }
       }
-      return element;
+      // Fail.
+      throw new Exception('The element not found in summary: $location');
     } else if (components.length == 3 || components.length == 4) {
       String unitUri = components[1];
       // Prepare elements-in-units in the library.
@@ -1802,6 +1812,12 @@ class _UnitResynthesizer {
           locationComponents =
               libraryResynthesizer.getReferencedLocationComponents(
                   linkedReference.dependency, linkedReference.unit, identifier);
+          if (linkedReference.kind == ReferenceKind.prefix) {
+            locationComponents = <String>[
+              locationComponents[0],
+              locationComponents[2]
+            ];
+          }
         }
         if (!_resynthesizerContext.isStrongMode &&
             locationComponents.length == 3 &&
@@ -1875,6 +1891,8 @@ class _UnitResynthesizer {
             }
             break;
           case ReferenceKind.prefix:
+            element = new PrefixElementHandle(summaryResynthesizer, location);
+            break;
           case ReferenceKind.unresolved:
             break;
         }

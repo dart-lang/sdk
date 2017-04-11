@@ -3740,7 +3740,7 @@ const V = const p.C.named();
           r'''
 import 'a.dart' as p;
 const C V = const
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         named/*location: null*/();
 ''');
@@ -3750,7 +3750,7 @@ const C V = const
           r'''
 import 'a.dart' as p;
 const dynamic V = const
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         named/*location: null*/();
 ''');
@@ -3771,7 +3771,7 @@ const V = const p.C.named();
           r'''
 import 'a.dart' as p;
 const dynamic V = const
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: null*/.
         named/*location: null*/();
 ''');
@@ -3781,7 +3781,7 @@ const dynamic V = const
           r'''
 import 'a.dart' as p;
 const dynamic V = const
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: null*/.
         named/*location: null*/();
 ''');
@@ -3961,6 +3961,7 @@ const dynamic V = const
   }
 
   test_const_invokeConstructor_unnamed_unresolved2() {
+    shouldCompareLibraryElements = false;
     addLibrarySource('/a.dart', '');
     var library = checkLibrary(
         r'''
@@ -3974,7 +3975,7 @@ const V = const p.C();
           r'''
 import 'a.dart' as p;
 const dynamic V = const
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: null*/();
 ''');
     } else {
@@ -3983,7 +3984,7 @@ const dynamic V = const
           r'''
 import 'a.dart' as p;
 const dynamic V = const
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: null*/();
 ''');
     }
@@ -4101,7 +4102,7 @@ const int v = p.C.F.length;
           r'''
 import 'a.dart' as p;
 const int v =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         F/*location: a.dart;C;F?*/.
         length/*location: dart:core;String;length?*/;
@@ -4112,7 +4113,7 @@ const int v =
           r'''
 import 'a.dart' as p;
 const int v =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         F/*location: a.dart;C;F?*/.
         length/*location: dart:core;String;length?*/;
@@ -4214,7 +4215,7 @@ const v = p.S.length;
           r'''
 import 'a.dart' as p;
 const dynamic v/*error: instanceGetter*/ =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
@@ -4224,7 +4225,7 @@ const dynamic v/*error: instanceGetter*/ =
           r'''
 import 'a.dart' as p;
 const dynamic v =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         S/*location: a.dart;S?*/.
         length/*location: dart:core;String;length?*/;
 ''');
@@ -4473,7 +4474,7 @@ const V = p.C.F;
           r'''
 import 'a.dart' as p;
 const int V =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         F/*location: a.dart;C;F?*/;
 ''');
@@ -4483,7 +4484,7 @@ const int V =
           r'''
 import 'a.dart' as p;
 const dynamic V =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         F/*location: a.dart;C;F?*/;
 ''');
@@ -4573,7 +4574,7 @@ const V = p.C.m;
           r'''
 import 'a.dart' as p;
 const (int, String) → int V =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         m/*location: a.dart;C;m*/;
 ''');
@@ -4583,7 +4584,7 @@ const (int, String) → int V =
           r'''
 import 'a.dart' as p;
 const dynamic V =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         m/*location: a.dart;C;m*/;
 ''');
@@ -4659,7 +4660,7 @@ const V = p.foo;
           r'''
 import 'a.dart' as p;
 const () → dynamic V =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         foo/*location: a.dart;foo*/;
 ''');
     } else {
@@ -4668,7 +4669,7 @@ const () → dynamic V =
           r'''
 import 'a.dart' as p;
 const dynamic V =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         foo/*location: a.dart;foo*/;
 ''');
     }
@@ -4743,7 +4744,7 @@ const B = p.A + 2;
           r'''
 import 'a.dart' as p;
 const int B =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         A/*location: a.dart;A?*/ + 2;
 ''');
     } else {
@@ -4752,7 +4753,7 @@ const int B =
           r'''
 import 'a.dart' as p;
 const dynamic B =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         A/*location: a.dart;A?*/ + 2;
 ''');
     }
@@ -4928,13 +4929,13 @@ const vFunctionTypeAlias = p.F;
           r'''
 import 'a.dart' as p;
 const Type vClass =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/;
 const Type vEnum =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         E/*location: a.dart;E*/;
 const Type vFunctionTypeAlias =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         F/*location: a.dart;F*/;
 ''');
     } else {
@@ -4943,13 +4944,13 @@ const Type vFunctionTypeAlias =
           r'''
 import 'a.dart' as p;
 const dynamic vClass =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: a.dart;C*/;
 const dynamic vEnum =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         E/*location: a.dart;E*/;
 const dynamic vFunctionTypeAlias =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         F/*location: a.dart;F*/;
 ''');
     }
@@ -5053,7 +5054,7 @@ const v = p.C.foo;
           r'''
 import 'foo.dart' as p;
 const dynamic v =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: foo.dart;C*/.
         foo/*location: null*/;
 ''');
@@ -5063,7 +5064,7 @@ const dynamic v =
           r'''
 import 'foo.dart' as p;
 const dynamic v =
-        p/*location: null*/.
+        p/*location: test.dart;p*/.
         C/*location: foo.dart;C*/.
         foo/*location: null*/;
 ''');
@@ -9903,7 +9904,7 @@ class D {}
           r'''
 import 'a.dart' as a;
 @
-        a/*location: null*/.
+        a/*location: test.dart;a*/.
         C/*location: a.dart;C*/.
         named/*location: a.dart;C;named*/
 class D {
@@ -9915,7 +9916,7 @@ class D {
           r'''
 import 'a.dart' as a;
 @
-        a/*location: null*/.
+        a/*location: test.dart;a*/.
         C/*location: a.dart;C*/.
         named/*location: a.dart;C;named*/
 class D {
@@ -11632,7 +11633,7 @@ unit: foo.dart
           r'''
 import 'a.dart' as a;
 @
-        a/*location: null*/.
+        a/*location: test.dart;a*/.
         b/*location: a.dart;b?*/
 class C {
 }
@@ -11643,7 +11644,7 @@ class C {
           r'''
 import 'a.dart' as a;
 @
-        a/*location: null*/.
+        a/*location: test.dart;a*/.
         b/*location: a.dart;b?*/
 class C {
 }
@@ -14446,7 +14447,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         bar/*location: null*/
 class C {
 }
@@ -14457,7 +14458,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         bar/*location: null*/
 class C {
 }
@@ -14502,7 +14503,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         bar/*location: null*/.
         baz/*location: null*/()
 class C {
@@ -14514,7 +14515,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         bar/*location: null*/.
         baz/*location: null*/()
 class C {
@@ -14533,7 +14534,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         Future/*location: dart:async;Future*/.
         bar/*location: null*/()
 class C {
@@ -14545,7 +14546,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         Future/*location: dart:async;Future*/.
         bar/*location: null*/()
 class C {
@@ -14589,7 +14590,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         bar/*location: null*/()
 class C {
 }
@@ -14600,7 +14601,7 @@ class C {
           r'''
 import 'dart:async' as foo;
 @
-        foo/*location: null*/.
+        foo/*location: test.dart;foo*/.
         bar/*location: null*/()
 class C {
 }

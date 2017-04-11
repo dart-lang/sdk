@@ -807,8 +807,10 @@ class _ElementWriter {
 
     ElementLocation location = element.location;
     List<String> components = location.components.toList();
-    if (components.length > 2) {
+    if (components.length >= 1) {
       components[0] = onlyName(components[0]);
+    }
+    if (components.length >= 2) {
       components[1] = onlyName(components[1]);
       if (components[0] == components[1]) {
         components.removeAt(0);

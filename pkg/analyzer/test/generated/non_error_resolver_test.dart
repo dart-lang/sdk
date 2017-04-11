@@ -1311,6 +1311,32 @@ const Type d = dynamic;
     verify([source]);
   }
 
+  test_const_imported_defaultParameterValue_withImportPrefix() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addNamedSource(
+        "/a.dart",
+        r'''
+import 'b.dart';
+const b = const B();
+''');
+    addNamedSource(
+        "/b.dart",
+        r'''
+import 'c.dart' as ccc;
+class B {
+  const B([p = ccc.value]);
+}
+''');
+    addNamedSource(
+        "/c.dart",
+        r'''
+const int value = 12345;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_constConstructorWithNonConstSuper_explicit() async {
     Source source = addSource(r'''
 class A {
