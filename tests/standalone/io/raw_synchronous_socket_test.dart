@@ -24,6 +24,7 @@ void testArguments() {
       RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, 0, backlog: -1));
 }
 
+/*
 void testInvalidConnect() {
   // Connect to an unknown DNS name.
   try {
@@ -42,6 +43,7 @@ void testInvalidConnect() {
   }
   ;
 }
+*/
 
 void testSimpleConnect() {
   asyncStart();
@@ -475,7 +477,7 @@ void testClosedError() {
 main() async {
   asyncStart();
   testArguments();
-  testInvalidConnect();
+  // testInvalidConnect(); Long timeout for bad lookups, so disable for bots.
   await testShutdown();
   testSimpleConnect();
   testServerListenAfterConnect();

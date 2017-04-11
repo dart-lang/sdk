@@ -7,6 +7,8 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
+#include "bin/sync_socket.h"
+
 #include "bin/builtin.h"
 #include "bin/log.h"
 #include "bin/utils.h"
