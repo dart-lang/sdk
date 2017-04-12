@@ -35,6 +35,7 @@ main() {
         expect(options.enableStrictCallChecks, isFalse);
         expect(options.enableSuperMixins, isFalse);
         expect(options.enableTypeChecks, isFalse);
+        expect(options.enableAssertInitializer, isFalse);
         expect(options.hintsAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);
@@ -84,6 +85,12 @@ main() {
         CommandLineOptions options = CommandLineOptions
             .parse(['--dart-sdk', '.', '--enable_type_checks', 'foo.dart']);
         expect(options.enableTypeChecks, isTrue);
+      });
+
+      test('enable assert initializers', () {
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--enable-assert-initializers', 'foo.dart']);
+        expect(options.enableAssertInitializer, isTrue);
       });
 
       test('hintsAreFatal', () {

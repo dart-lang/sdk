@@ -36,6 +36,10 @@ typedef void ExitHandler(int code);
 class CommandLineOptions {
   final bool enableNewAnalysisDriver = true;
 
+  /// Return `true` if the parser is to parse asserts in the initializer list of
+  /// a constructor.
+  final bool enableAssertInitializer;
+
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -170,6 +174,7 @@ class CommandLineOptions {
         disableHints = args['no-hints'],
         displayVersion = args['version'],
         enableTypeChecks = args['enable_type_checks'],
+        enableAssertInitializer = args['enable-assert-initializers'],
         hintsAreFatal = args['fatal-hints'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args[lintsFlag],
@@ -465,6 +470,11 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('enable_type_checks',
           help: 'Check types in constant evaluation.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('enable-assert-initializers',
+          help: 'Enable parsing of asserts in constructor initializers.',
           defaultsTo: false,
           negatable: false,
           hide: hide)

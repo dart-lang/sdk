@@ -89,6 +89,12 @@ main() {
         expect(exitCode, 3);
       });
 
+      test('not parse enableAssertInitializer', () async {
+        await drive('data/file_with_assert_initializers.dart',
+            args: ['--enable-assert-initializers']);
+        expect(exitCode, 0);
+      });
+
       test('missing options file', () async {
         await drive('data/test_file.dart', options: 'data/NO_OPTIONS_HERE');
         expect(exitCode, 3);
