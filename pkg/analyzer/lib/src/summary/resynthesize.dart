@@ -594,8 +594,7 @@ class _ConstExprBuilder {
    */
   TypeAnnotation _newTypeName() {
     EntityRef typeRef = uc.references[refPtr++];
-    DartType type =
-        resynthesizer.buildType(typeRef, context?.typeParameterContext);
+    DartType type = resynthesizer.buildType(context, typeRef);
     return _buildTypeAst(type);
   }
 
@@ -643,7 +642,7 @@ class _ConstExprBuilder {
         return;
       }
       InterfaceType definingType = resynthesizer._createConstructorDefiningType(
-          context?.typeParameterContext, info, ref.typeArguments);
+          context, info, ref.typeArguments);
       constructorElement =
           resynthesizer._getConstructorForInfo(definingType, info);
       typeNode = _buildTypeAst(definingType);
@@ -1439,24 +1438,21 @@ class _ResynthesizerContext implements ResynthesizerContext {
 
   @override
   ConstructorElement resolveConstructorRef(
-      TypeParameterizedElementMixin typeParameterContext, EntityRef entry) {
-    return _unitResynthesizer._getConstructorForEntry(
-        typeParameterContext, entry);
+      ElementImpl context, EntityRef entry) {
+    return _unitResynthesizer._getConstructorForEntry(context, entry);
   }
 
   @override
-  DartType resolveLinkedType(
-      int slot, TypeParameterizedElementMixin typeParameterContext) {
-    return _unitResynthesizer.buildLinkedType(slot, typeParameterContext);
+  DartType resolveLinkedType(ElementImpl context, int slot) {
+    return _unitResynthesizer.buildLinkedType(context, slot);
   }
 
   @override
-  DartType resolveTypeRef(
-      EntityRef type, TypeParameterizedElementMixin typeParameterContext,
+  DartType resolveTypeRef(ElementImpl context, EntityRef type,
       {bool defaultVoid: false,
       bool instantiateToBoundsAllowed: true,
       bool declaredType: false}) {
-    return _unitResynthesizer.buildType(type, typeParameterContext,
+    return _unitResynthesizer.buildType(context, type,
         defaultVoid: defaultVoid,
         instantiateToBoundsAllowed: instantiateToBoundsAllowed,
         declaredType: declaredType);
@@ -1625,8 +1621,7 @@ class _UnitResynthesizer {
    * Build the appropriate [DartType] object corresponding to a slot id in the
    * [LinkedUnit.types] table.
    */
-  DartType buildLinkedType(
-      int slot, TypeParameterizedElementMixin typeParameterContext) {
+  DartType buildLinkedType(ElementImpl context, int slot) {
     if (slot == 0) {
       // A slot id of 0 means there is no [DartType] object to build.
       return null;
@@ -1637,7 +1632,7 @@ class _UnitResynthesizer {
       // stored in this slot.
       return null;
     }
-    return buildType(type, typeParameterContext);
+    return buildType(context, type);
   }
 
   /**
@@ -1646,8 +1641,7 @@ class _UnitResynthesizer {
    * deserialized, so handles are used to avoid having to deserialize other
    * libraries in the process.
    */
-  DartType buildType(
-      EntityRef type, TypeParameterizedElementMixin typeParameterContext,
+  DartType buildType(ElementImpl context, EntityRef type,
       {bool defaultVoid: false,
       bool instantiateToBoundsAllowed: true,
       bool declaredType: false}) {
@@ -1659,20 +1653,20 @@ class _UnitResynthesizer {
       }
     }
     if (type.paramReference != 0) {
-      return typeParameterContext.getTypeParameterType(type.paramReference);
+      return context.typeParameterContext
+          .getTypeParameterType(type.paramReference);
     } else if (type.entityKind == EntityRefKind.genericFunctionType) {
       GenericFunctionTypeElement element =
-          new GenericFunctionTypeElementImpl.forSerialized(
-              type, typeParameterContext);
+          new GenericFunctionTypeElementImpl.forSerialized(context, type);
       return element.type;
     } else if (type.syntheticReturnType != null) {
-      FunctionElementImpl element =
-          new FunctionElementImpl_forLUB(unit, typeParameterContext, type);
+      FunctionElementImpl element = new FunctionElementImpl_forLUB(
+          unit, context.typeParameterContext, type);
       return element.type;
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
-          return buildType(type.typeArguments[i], typeParameterContext,
+          return buildType(context, type.typeArguments[i],
               declaredType: declaredType);
         } else {
           return DynamicTypeImpl.instance;
@@ -1929,18 +1923,15 @@ class _UnitResynthesizer {
    * [typeArgumentRefs] to the given linked [info].  Return [DynamicTypeImpl]
    * if the [info] is unresolved.
    */
-  DartType _createConstructorDefiningType(
-      TypeParameterizedElementMixin typeParameterContext,
-      _ReferenceInfo info,
-      List<EntityRef> typeArgumentRefs) {
+  DartType _createConstructorDefiningType(ElementImpl context,
+      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
     bool isClass = info.element is ClassElement;
     _ReferenceInfo classInfo = isClass ? info : info.enclosing;
     if (classInfo == null) {
       return DynamicTypeImpl.instance;
     }
-    List<DartType> typeArguments = typeArgumentRefs
-        .map((t) => buildType(t, typeParameterContext))
-        .toList();
+    List<DartType> typeArguments =
+        typeArgumentRefs.map((t) => buildType(context, t)).toList();
     return classInfo.buildType(true, typeArguments.length, (i) {
       if (i < typeArguments.length) {
         return typeArguments[i];
@@ -1954,10 +1945,10 @@ class _UnitResynthesizer {
    * Return the [ConstructorElement] corresponding to the given [entry].
    */
   ConstructorElement _getConstructorForEntry(
-      TypeParameterizedElementMixin typeParameterContext, EntityRef entry) {
+      ElementImpl context, EntityRef entry) {
     _ReferenceInfo info = getReferenceInfo(entry.reference);
-    DartType type = _createConstructorDefiningType(
-        typeParameterContext, info, entry.typeArguments);
+    DartType type =
+        _createConstructorDefiningType(context, info, entry.typeArguments);
     if (type is InterfaceType) {
       return _getConstructorForInfo(type, info);
     }
