@@ -7,6 +7,7 @@ library dart2js.world.class_set;
 import 'dart:collection' show IterableBase;
 
 import '../elements/elements.dart' show ClassElement;
+import '../elements/entities.dart' show ClassEntity;
 import '../util/enumset.dart' show EnumSet;
 import '../util/util.dart' show Link;
 
@@ -94,9 +95,11 @@ class ClassHierarchyNode {
   }
 
   final ClassHierarchyNode parentNode;
-  final ClassElement cls;
+  final ClassEntity cls;
   final EnumSet<Instantiation> _mask = new EnumSet<Instantiation>.fromValues(
       const <Instantiation>[Instantiation.UNINSTANTIATED]);
+
+  final int hierarchyDepth;
 
   ClassElement _leastUpperInstantiatedSubclass;
   int _instantiatedSubclassCount = 0;
@@ -199,7 +202,7 @@ class ClassHierarchyNode {
   /// The nodes for the direct subclasses of [cls].
   Link<ClassHierarchyNode> _directSubclasses = const Link<ClassHierarchyNode>();
 
-  ClassHierarchyNode(this.parentNode, this.cls) {
+  ClassHierarchyNode(this.parentNode, this.cls, this.hierarchyDepth) {
     if (parentNode != null) {
       parentNode.addDirectSubclass(this);
     }
@@ -207,7 +210,6 @@ class ClassHierarchyNode {
 
   /// Adds [subclass] as a direct subclass of [cls].
   void addDirectSubclass(ClassHierarchyNode subclass) {
-    assert(subclass.cls.superclass == cls);
     assert(!_directSubclasses.contains(subclass));
     _directSubclasses = _directSubclasses.prepend(subclass);
   }
@@ -217,11 +219,11 @@ class ClassHierarchyNode {
   /// Returns `true` if [other] is contained in the subtree of this node.
   ///
   /// This means that [other] is a subclass of [cls].
-  bool contains(ClassElement other) {
+  bool contains(ClassHierarchyNode other) {
     while (other != null) {
-      if (cls == other) return true;
-      if (cls.hierarchyDepth >= other.hierarchyDepth) return false;
-      other = other.superclass;
+      if (cls == other.cls) return true;
+      if (hierarchyDepth >= other.hierarchyDepth) return false;
+      other = other.parentNode;
     }
     return false;
   }
@@ -633,17 +635,17 @@ class ClassSet {
 
   /// Adds [subtype] as a subtype of [cls].
   void addSubtype(ClassHierarchyNode subtype) {
-    if (node.contains(subtype.cls)) {
+    if (node.contains(subtype)) {
       return;
     }
     if (_subtypes == null) {
       _subtypes = <ClassHierarchyNode>[subtype];
     } else {
-      int hierarchyDepth = subtype.cls.hierarchyDepth;
+      int hierarchyDepth = subtype.hierarchyDepth;
       List<ClassHierarchyNode> newSubtypes = <ClassHierarchyNode>[];
       bool added = false;
       for (ClassHierarchyNode otherSubtype in _subtypes) {
-        int otherHierarchyDepth = otherSubtype.cls.hierarchyDepth;
+        int otherHierarchyDepth = otherSubtype.hierarchyDepth;
         if (hierarchyDepth == otherHierarchyDepth) {
           if (subtype == otherSubtype) {
             return;
@@ -651,9 +653,9 @@ class ClassSet {
             // [otherSubtype] is unrelated to [subtype].
             newSubtypes.add(otherSubtype);
           }
-        } else if (hierarchyDepth > otherSubtype.cls.hierarchyDepth) {
+        } else if (hierarchyDepth > otherSubtype.hierarchyDepth) {
           // [otherSubtype] could be a superclass of [subtype].
-          if (otherSubtype.contains(subtype.cls)) {
+          if (otherSubtype.contains(subtype)) {
             // [subtype] is already in this set.
             return;
           } else {
@@ -667,7 +669,7 @@ class ClassSet {
             added = true;
           }
           // [subtype] could be a superclass of [otherSubtype].
-          if (subtype.contains(otherSubtype.cls)) {
+          if (subtype.contains(otherSubtype)) {
             // Replace [otherSubtype].
           } else {
             newSubtypes.add(otherSubtype);

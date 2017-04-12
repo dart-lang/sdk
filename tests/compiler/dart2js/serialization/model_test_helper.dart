@@ -318,13 +318,15 @@ void checkClassHierarchyNodes(
   if (verbose) {
     print('Checking $node1 vs $node2');
   }
-  Expect.isTrue(areElementsEquivalent(node1.cls, node2.cls),
-      "Element identity mismatch for ${node1.cls} vs ${node2.cls}.");
+  ClassElement cls1 = node1.cls;
+  ClassElement cls2 = node2.cls;
+  Expect.isTrue(areElementsEquivalent(cls1, cls2),
+      "Element identity mismatch for ${cls1} vs ${cls2}.");
   Expect.equals(
       node1.isDirectlyInstantiated,
       node2.isDirectlyInstantiated,
       "Value mismatch for 'isDirectlyInstantiated' "
-      "for ${node1.cls} vs ${node2.cls}.");
+      "for ${cls1} vs ${cls2}.");
   Expect.equals(
       node1.isIndirectlyInstantiated,
       node2.isIndirectlyInstantiated,
@@ -335,7 +337,9 @@ void checkClassHierarchyNodes(
   for (ClassHierarchyNode child in node1.directSubclasses) {
     bool found = false;
     for (ClassHierarchyNode other in node2.directSubclasses) {
-      if (areElementsEquivalent(child.cls, other.cls)) {
+      ClassElement child1 = child.cls;
+      ClassElement child2 = other.cls;
+      if (areElementsEquivalent(child1, child2)) {
         checkClassHierarchyNodes(closedWorld1, closedWorld2, child, other,
             verbose: verbose);
         found = true;

@@ -129,7 +129,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       if (cls.superclass != null) {
         parentNode = _ensureClassHierarchyNode(cls.superclass);
       }
-      return new ClassHierarchyNode(parentNode, cls);
+      return new ClassHierarchyNode(parentNode, cls, cls.hierarchyDepth);
     });
   }
 

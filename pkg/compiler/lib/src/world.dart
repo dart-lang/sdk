@@ -1022,8 +1022,8 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
   void registerClosureClass(ClosureClassElement cls) {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
-    ClassHierarchyNode node =
-        _classHierarchyNodes[cls] = new ClassHierarchyNode(parentNode, cls);
+    ClassHierarchyNode node = _classHierarchyNodes[cls] =
+        new ClassHierarchyNode(parentNode, cls, cls.hierarchyDepth);
     for (ResolutionInterfaceType type in cls.allSupertypes) {
       ClassSet subtypeSet = getClassSet(type.element);
       subtypeSet.addSubtype(node);
