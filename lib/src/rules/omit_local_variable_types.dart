@@ -87,12 +87,12 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   _visitVariableDeclarationList(VariableDeclarationList node) {
-    final staticType = node.type;
-    if (staticType?.type == null) {
+    final staticType = node?.type?.type;
+    if (staticType == null) {
       return;
     }
     for (final child in node.variables) {
-      if (child.initializer?.bestType != staticType.type) {
+      if (child.initializer?.bestType != staticType) {
         return;
       }
     }
