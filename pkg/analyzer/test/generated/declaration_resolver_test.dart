@@ -468,6 +468,58 @@ void set zzz(_) {}
     expect(getterName.staticElement, same(setterElement));
   }
 
+  test_genericFunction_asFunctionReturnType() async {
+    String code = r'''
+Function(int, String) f() => null;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asGenericFunctionReturnType() async {
+    String code = r'''
+typedef F<T> = int Function(T t, S s) Function<S>(int);
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asMethodReturnType() async {
+    String code = r'''
+class C {
+  Function(int, String) m() => null;
+}
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asParameterReturnType() async {
+    String code = r'''
+f(Function(int, String) p) => null;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTopLevelVariableType() async {
+    String code = r'''
+int Function(int, String) v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   test_invalid_functionDeclaration_getter_inFunction() async {
     String code = r'''
 var v = (() {
