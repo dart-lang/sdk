@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Compiles code with DDC and runs the resulting code in node.js with devtool,
+# an Electron-based debugger and browser environment.
+#
+# The first script supplied should be the one with `main()`.
+#
+# Saves the output in the same directory as the sources for convenient
+# inspection, modification or rerunning the code.
+#
+set -e
+DDC_PATH=$( cd $( dirname "${BASH_SOURCE[0]}" )/.. && pwd )
+BASENAME=$( basename "${1%.*}")
+LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
+export NODE_PATH=$DDC_PATH/lib/js/common:$LIBROOT:$NODE_PATH
+dart -c $DDC_PATH/bin/dartdevc.dart --modules=node --library-root=$LIBROOT \
+    --dart-sdk-summary=$DDC_PATH/lib/sdk/ddc_sdk.sum \
+    -o $LIBROOT/$BASENAME.js $*
+pushd $LIBROOT > /dev/null
+echo "
+    // Fix the node.js search paths that Electron cleared out.
+    const Module = require('module');
+    const originalResolveFilename = Module._resolveFilename;
+    Module._resolveFilename = function (request, parent, isMain) {
+      let paths = parent.paths;
+      const ddcPath = \"$DDC_PATH/lib/js/common\";
+      if (paths[0] != ddcPath) {
+        paths.splice(0, 0, ddcPath, \"$LIBROOT\");
+      }
+      return originalResolveFilename(request, parent, isMain);
+    };
+    let sdk = require(\"dart_sdk\");
+    let main = require(\"$BASENAME\").$BASENAME.main;
+    sdk._isolate_helper.startRootIsolate(main, []);" \
+    > $LIBROOT/$BASENAME.run.js
+devtool $LIBROOT/$BASENAME.run.js
+popd > /dev/null
