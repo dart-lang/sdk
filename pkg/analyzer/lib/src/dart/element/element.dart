@@ -4237,7 +4237,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isEnumConstant =>
-      enclosingElement != null ? enclosingElement.isEnum : false;
+      enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
 
   @override
   bool get isStatic {

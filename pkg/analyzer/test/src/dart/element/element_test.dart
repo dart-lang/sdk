@@ -1323,6 +1323,25 @@ enum B {B1, B2, B3}''');
       expect(nodeB.element, same(elementB));
     }
   }
+
+  void test_isEnumConstant() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource(
+        "/test.dart",
+        r'''
+enum B {B1, B2, B3}
+''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+
+    FieldElement b2Element = unitElement.getEnum("B").getField('B2');
+    expect(b2Element.isEnumConstant, isTrue);
+
+    FieldElement indexElement = unitElement.getEnum("B").getField('index');
+    expect(indexElement.isEnumConstant, isFalse);
+  }
 }
 
 @reflectiveTest
