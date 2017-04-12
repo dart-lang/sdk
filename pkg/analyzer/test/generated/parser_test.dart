@@ -10040,6 +10040,26 @@ class SimpleParserTest extends ParserTestCase {
     expect(arguments, hasLength(3));
   }
 
+  void test_parseClassMember_method_gftReturnType() {
+    createParser('''
+void Function<A>(core.List<core.int> x) m() => null;
+''');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    expect((member as MethodDeclaration).body,
+        new isInstanceOf<ExpressionFunctionBody>());
+  }
+
+  void test_parseClassMember_method_noReturnType() {
+    createParser('''
+Function<A>(core.List<core.int> x) m() => null;
+''');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    expect((member as MethodDeclaration).body,
+        new isInstanceOf<ExpressionFunctionBody>());
+  }
+
   void test_parseCombinator_hide() {
     createParser('hide a;');
     Combinator combinator = parser.parseCombinator();
@@ -10638,6 +10658,24 @@ void''');
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
     expect(reference.offset, 15);
+  }
+
+  void test_parseCompilationUnitMember_function_gftReturnType() {
+    createParser('''
+void Function<A>(core.List<core.int> x) f() => null;
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnitMember_function_noReturnType() {
+    createParser('''
+Function<A>(core.List<core.int> x) f() => null;
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseConfiguration_noOperator_dottedIdentifier() {
@@ -11301,6 +11339,34 @@ void''');
     listener.assertNoErrors();
     expect(typeName.name, isNotNull);
     expect(typeName.typeArguments, isNull);
+  }
+
+  void test_parseStatement_function_gftReturnType() {
+    createParser('''
+void Function<A>(core.List<core.int> x) m() => null;
+''');
+    Statement statement = parser.parseStatement2();
+    expect(statement, new isInstanceOf<FunctionDeclarationStatement>());
+    expect(
+        (statement as FunctionDeclarationStatement)
+            .functionDeclaration
+            .functionExpression
+            .body,
+        new isInstanceOf<ExpressionFunctionBody>());
+  }
+
+  void test_parseStatement_function_noReturnType() {
+    createParser('''
+Function<A>(core.List<core.int> x) m() => null;
+''');
+    Statement statement = parser.parseStatement2();
+    expect(statement, new isInstanceOf<FunctionDeclarationStatement>());
+    expect(
+        (statement as FunctionDeclarationStatement)
+            .functionDeclaration
+            .functionExpression
+            .body,
+        new isInstanceOf<ExpressionFunctionBody>());
   }
 
   void test_parseStatements_multiple() {
