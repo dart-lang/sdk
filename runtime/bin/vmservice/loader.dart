@@ -93,6 +93,9 @@ class IsolateLoaderState extends IsolateEmbedderData {
   }
 
   void updatePackageMap(String packagesConfigFlag) {
+    if (packagesConfigFlag == null) {
+      return;
+    }
     _packageMap = null;
     _setPackagesConfig(packagesConfigFlag);
   }
