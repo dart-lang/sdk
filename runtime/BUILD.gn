@@ -29,8 +29,6 @@ declare_args() {
   # Available options are: arm, arm64, mips, x64 and ia32
   dart_target_arch = ""
 
-  dart_experimental_interpreter = false
-
   # The optimization level to use for debug builds.
   dart_debug_optimization_level = "2"
 }
@@ -58,33 +56,6 @@ config("dart_maybe_product_config") {
   }
 }
 
-# Adds the DART_PRECOMPILED_RUNTIME define if Flutter has specified "profile" or
-# "release" for dart_runtime_mode.
-config("dart_maybe_precompiled_runtime_config") {
-  defines = []
-
-  if (dart_runtime_mode != "develop" && dart_runtime_mode != "profile" &&
-      dart_runtime_mode != "release") {
-    print("Invalid |dart_runtime_mode|")
-    assert(false)
-  }
-
-  if (dart_runtime_mode == "release") {
-    if (dart_debug) {
-      print("Debug and release mode are mutually exclusive.")
-    }
-    assert(!dart_debug)
-
-    if (!dart_experimental_interpreter) {
-      defines += [ "DART_PRECOMPILED_RUNTIME" ]
-    }
-  } else if (dart_runtime_mode == "profile") {
-    if (!dart_experimental_interpreter) {
-      defines += [ "DART_PRECOMPILED_RUNTIME" ]
-    }
-  }
-}
-
 config("dart_precompiled_runtime_config") {
   defines = []
   defines += [ "DART_PRECOMPILED_RUNTIME" ]
@@ -103,10 +74,6 @@ config("dart_no_snapshot_config") {
 
 config("dart_config") {
   defines = []
-
-  if (dart_experimental_interpreter) {
-    dart_target_arch = "dbc"
-  }
 
   if (target_os == "android") {
     defines += [ "TARGET_OS_ANDROID" ]
@@ -248,16 +215,6 @@ template("libdart_library") {
     ]
     defines = [ "DART_SHARED_LIB" ]
   }
-}
-
-# TODO(rmacnak): Remove after updating all clients to use libdart_jit
-# or libdart_precompiled_runtime.
-libdart_library("libdart") {
-  extra_configs = [ ":dart_maybe_precompiled_runtime_config" ]
-  extra_deps = [
-    "vm:libdart_lib",
-    "vm:libdart_vm",
-  ]
 }
 
 libdart_library("libdart_jit") {

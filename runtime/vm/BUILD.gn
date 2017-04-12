@@ -41,23 +41,6 @@ static_library("libdart_platform") {
 
 vm_sources_list = processed_gypis.vm_sources
 
-# TODO(rmacnak): Remove after updating all clients of libdart to use
-# libdart_jit or libdart_precompiled_runtime.
-static_library("libdart_vm") {
-  configs += [
-    "..:dart_config",
-    "..:dart_maybe_product_config",
-    "..:dart_maybe_precompiled_runtime_config",
-  ]
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list
-  include_dirs = [ ".." ]
-}
-
 static_library("libdart_vm_jit") {
   configs += [
     "..:dart_config",
@@ -238,6 +221,7 @@ template("generate_core_libraries") {
     sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
     include_dirs = [ ".." ]
   }
+
   static_library("libdart_lib_with_precompiler") {
     configs += [
       "..:dart_config",
@@ -249,17 +233,6 @@ template("generate_core_libraries") {
     include_dirs = [ ".." ]
   }
 
-  # TODO(rmacnak): Remove after updating all clients of libdart to use
-  # libdart_jit or libdart_precompiled_runtime.
-  static_library("libdart_lib") {
-    configs += [
-      "..:dart_config",
-      "..:dart_maybe_product_config",
-      "..:dart_maybe_precompiled_runtime_config",
-    ]
-    sources = all_libsources + [ "bootstrap_nocore.cc" ]
-    include_dirs = [ ".." ]
-  }
   static_library("libdart_lib_jit") {
     configs += [
       "..:dart_config",
@@ -268,6 +241,7 @@ template("generate_core_libraries") {
     sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
   }
+
   static_library("libdart_lib_precompiled_runtime") {
     configs += [
       "..:dart_config",
