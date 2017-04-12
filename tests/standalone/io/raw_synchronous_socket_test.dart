@@ -20,8 +20,6 @@ void testArguments() {
       () => RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, 65536));
   Expect.throws(
       () => RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, -1));
-  Expect.throws(() =>
-      RawSynchronousSocket.connectSync(LOOPBACK_IP_V4_STRING, 0, backlog: -1));
 }
 
 // The connection attempt happens on the main Dart thread and the OS timeout can
@@ -189,7 +187,7 @@ Future echoServer(var sendPort) async {
     }, onDone: () {
       // Let the client know we're shutting down then kill the isolate.
       sendPort.send(null);
-      kill();
+      Isolate.current.kill();
     });
   });
 }
