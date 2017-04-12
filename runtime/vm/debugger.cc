@@ -939,7 +939,17 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
                      var_info.index());
       }
-      ctx_ ^= GetStackVar(var_info.index());
+      const Object& obj = Object::Handle(GetStackVar(var_info.index()));
+      if (obj.IsClosure()) {
+        ASSERT(function().name() == Symbols::Call().raw());
+        ASSERT(function().IsInvokeFieldDispatcher());
+        // Closure.call frames.
+        ctx_ ^= Closure::Cast(obj).context();
+      } else if (obj.IsContext()) {
+        ctx_ ^= Context::Cast(obj).raw();
+      } else {
+        ASSERT(obj.IsNull());
+      }
       return ctx_;
     }
   }
@@ -1975,7 +1985,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
-  if (!FLAG_causal_async_stacks) {
+  if (!FLAG_async_debugger) {
     return NULL;
   }
   // Causal async stacks are not supported in the AOT runtime.
@@ -1996,7 +2006,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   Object& next_async_activation = Object::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
   class StackTrace& async_stack_trace = StackTrace::Handle(zone);
-
+  bool stack_has_async_function = false;
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
@@ -2025,6 +2035,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
                 deopt_frame_offset, ActivationFrame::kAsyncActivation);
             ASSERT(activation != NULL);
             stack_trace->AddActivation(activation);
+            stack_has_async_function = true;
             // Grab the awaiter.
             async_activation ^= activation->GetAsyncAwaiter();
             found_async_awaiter = true;
@@ -2047,8 +2058,10 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
               ActivationFrame::kAsyncActivation);
           ASSERT(activation != NULL);
           stack_trace->AddActivation(activation);
+          stack_has_async_function = true;
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
+          async_stack_trace ^= activation->GetCausalStack();
           break;
         } else {
           stack_trace->AddActivation(CollectDartFrame(
@@ -2058,9 +2071,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
     }
   }
 
-  // Return NULL to indicate that there is no useful information in this stack
-  // trace because we never found an awaiter.
-  if (async_activation.IsNull()) {
+  // If the stack doesn't have any async functions on it, return NULL.
+  if (!stack_has_async_function) {
     return NULL;
   }
 
