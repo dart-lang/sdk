@@ -17,8 +17,7 @@ import 'elements/elements.dart'
         FunctionElement,
         MemberElement,
         MixinApplicationElement,
-        TypedefElement,
-        FieldElement;
+        TypedefElement;
 import 'elements/resolution_types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
@@ -121,11 +120,11 @@ abstract class ClosedWorld implements World {
 
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
-  Iterable<ClassElement> subtypesOf(ClassEntity cls);
+  Iterable<ClassEntity> subtypesOf(ClassEntity cls);
 
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
-  Iterable<ClassElement> strictSubtypesOf(ClassEntity cls);
+  Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls);
 
   /// Returns the number of live classes that implement [cls] _not_
   /// including [cls] itself.
@@ -183,8 +182,8 @@ abstract class ClosedWorld implements World {
   ///     commonSubclasses(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE)
   ///
   /// return the set {C} because [D] is implied by [C].
-  Iterable<ClassEntity> commonSubclasses(ClassElement cls1, ClassQuery query1,
-      ClassElement cls2, ClassQuery query2);
+  Iterable<ClassEntity> commonSubclasses(
+      ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
 
   /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
@@ -388,7 +387,7 @@ enum ClassQuery {
   SUBTYPE,
 }
 
-class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
+abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final JavaScriptBackend _backend;
   BackendClasses get backendClasses => _backend.backendClasses;
   InterceptorData get interceptorData => _backend.interceptorData;
@@ -425,7 +424,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
 
   final ResolutionWorldBuilder _resolverWorld;
 
-  ClosedWorldImpl(
+  ClosedWorldBase(
       {JavaScriptBackend backend,
       this.commonElements,
       ResolutionWorldBuilder resolutionWorldBuilder,
@@ -470,47 +469,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return cachedMasks.putIfAbsent(base, createMask);
   }
 
-  bool _checkClass(ClassElement cls) => cls.isDeclaration;
-
-  bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
-    return invariant(cls, cls.isDeclaration,
-                message: '$cls must be the declaration.') &&
-            invariant(cls, cls.isResolved,
-                message:
-                    '$cls must be resolved.') /* &&
-      // TODO(johnniwinther): Reinsert this or similar invariant.
-      (!mustBeInstantiated ||
-       invariant(cls, isInstantiated(cls),
-                 message: '$cls is not instantiated.'))*/
-        ;
-  }
-
-  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
-  /// instance of [y].
-  bool isSubtypeOf(ClassElement x, ClassElement y) {
-    assert(checkInvariants(x));
-    assert(checkInvariants(y, mustBeInstantiated: false));
-
-    if (y == commonElements.objectClass) return true;
-    if (x == commonElements.objectClass) return false;
-    if (x.asInstanceOf(y) != null) return true;
-    if (y != commonElements.functionClass) return false;
-    return x.callType != null;
-  }
-
-  /// Return `true` if [x] is a (non-strict) subclass of [y].
-  bool isSubclassOf(ClassElement x, ClassElement y) {
-    assert(checkInvariants(x));
-    assert(checkInvariants(y));
-
-    if (y == commonElements.objectClass) return true;
-    if (x == commonElements.objectClass) return false;
-    while (x != null && x.hierarchyDepth >= y.hierarchyDepth) {
-      if (x == y) return true;
-      x = x.superclass;
-    }
-    return false;
-  }
+  bool _checkClass(ClassEntity cls);
 
   @override
   bool isInstantiated(ClassEntity cls) {
@@ -732,13 +691,275 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
+  Set<ClassEntity> _commonContainedClasses(ClassEntity cls1, ClassQuery query1,
+      ClassEntity cls2, ClassQuery query2) {
+    Iterable<ClassEntity> xSubset = _containedSubset(cls1, query1);
+    if (xSubset == null) return null;
+    Iterable<ClassEntity> ySubset = _containedSubset(cls2, query2);
+    if (ySubset == null) return null;
+    return xSubset.toSet().intersection(ySubset.toSet());
+  }
+
+  Iterable<ClassEntity> _containedSubset(ClassEntity cls, ClassQuery query) {
+    switch (query) {
+      case ClassQuery.EXACT:
+        return null;
+      case ClassQuery.SUBCLASS:
+        return strictSubclassesOf(cls);
+      case ClassQuery.SUBTYPE:
+        return strictSubtypesOf(cls);
+    }
+    throw new ArgumentError('Unexpected query: $query.');
+  }
+
+  /// Returns `true` if [cls] is mixed into a live class.
+  bool isUsedAsMixin(ClassEntity cls) {
+    return !mixinUsesOf(cls).isEmpty;
+  }
+
+  /// Returns `true` if any live class that mixes in [cls] implements [type].
+  bool hasAnySubclassOfMixinUseThatImplements(
+      ClassEntity cls, ClassEntity type) {
+    return mixinUsesOf(cls)
+        .any((use) => hasAnySubclassThatImplements(use, type));
+  }
+
+  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
+  /// of a mixin application of [y].
+  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
+    assert(_checkClass(x));
+    assert(_checkClass(y));
+    Map<ClassEntity, bool> secondMap =
+        _subtypeCoveredByCache[x] ??= <ClassEntity, bool>{};
+    return secondMap[y] ??= subtypesOf(x).every((ClassEntity cls) =>
+        isSubclassOf(cls, y) || isSubclassOfMixinUseOf(cls, y));
+  }
+
+  /// Returns `true` if any subclass of [superclass] implements [type].
+  bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
+    assert(_checkClass(superclass));
+    Set<ClassEntity> subclasses = _typesImplementedBySubclasses[superclass];
+    if (subclasses == null) return false;
+    return subclasses.contains(type);
+  }
+
+  /// Returns whether a [selector] call on an instance of [cls]
+  /// will hit a method at runtime, and not go through [noSuchMethod].
+  bool hasConcreteMatch(ClassEntity cls, Selector selector,
+      {ClassEntity stopAtSuperclass});
+
+  @override
+  bool needsNoSuchMethod(
+      ClassEntity base, Selector selector, ClassQuery query) {
+    /// Returns `true` if subclasses in the [rootNode] tree needs noSuchMethod
+    /// handling.
+    bool subclassesNeedNoSuchMethod(ClassHierarchyNode rootNode) {
+      if (!rootNode.isInstantiated) {
+        // No subclass needs noSuchMethod handling since they are all
+        // uninstantiated.
+        return false;
+      }
+      ClassEntity rootClass = rootNode.cls;
+      if (hasConcreteMatch(rootClass, selector)) {
+        // The root subclass has a concrete implementation so no subclass needs
+        // noSuchMethod handling.
+        return false;
+      } else if (rootNode.isExplicitlyInstantiated) {
+        // The root class need noSuchMethod handling.
+        return true;
+      }
+      IterationStep result = rootNode.forEachSubclass((ClassEntity subclass) {
+        if (hasConcreteMatch(subclass, selector, stopAtSuperclass: rootClass)) {
+          // Found a match - skip all subclasses.
+          return IterationStep.SKIP_SUBCLASSES;
+        } else {
+          // Stop fast - we found a need for noSuchMethod handling.
+          return IterationStep.STOP;
+        }
+      }, ClassHierarchyNode.EXPLICITLY_INSTANTIATED, strict: true);
+      // We stopped fast so we need noSuchMethod handling.
+      return result == IterationStep.STOP;
+    }
+
+    ClassSet classSet = getClassSet(base);
+    ClassHierarchyNode node = classSet.node;
+    if (query == ClassQuery.EXACT) {
+      return node.isExplicitlyInstantiated && !hasConcreteMatch(base, selector);
+    } else if (query == ClassQuery.SUBCLASS) {
+      return subclassesNeedNoSuchMethod(node);
+    } else {
+      if (subclassesNeedNoSuchMethod(node)) return true;
+      for (ClassHierarchyNode subtypeNode in classSet.subtypeNodes) {
+        if (subclassesNeedNoSuchMethod(subtypeNode)) return true;
+      }
+      return false;
+    }
+  }
+
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
+    assert(_checkClass(cls));
+    return _classHierarchyNodes[cls];
+  }
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassSet getClassSet(ClassEntity cls) {
+    assert(_checkClass(cls));
+    return _classSets[cls];
+  }
+
+  Iterable<TypedefElement> get allTypedefs => _allTypedefs;
+
+  bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
+    return allFunctions.filter(selector, mask).any((each) => each.isGetter);
+  }
+
+  FieldEntity locateSingleField(Selector selector, TypeMask mask) {
+    MemberEntity result = locateSingleElement(selector, mask);
+    return (result != null && result.isField) ? result : null;
+  }
+
+  MemberEntity locateSingleElement(Selector selector, TypeMask mask) {
+    mask ??= commonMasks.dynamicType;
+    return mask.locateSingleElement(selector, this);
+  }
+
+  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
+    bool canReachAll = true;
+    if (mask != null) {
+      canReachAll = _backend.backendUsage.isInvokeOnUsed &&
+          mask.needsNoSuchMethodHandling(selector, this);
+    }
+    return canReachAll ? commonMasks.dynamicType : mask;
+  }
+
+  bool fieldNeverChanges(MemberEntity element) {
+    if (!element.isField) return false;
+    if (nativeData.isNativeMember(element)) {
+      // Some native fields are views of data that may be changed by operations.
+      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
+      // TODO(sra): Refine the effect classification so that native effects are
+      // distinct from ordinary Dart effects.
+      return false;
+    }
+
+    if (!element.isAssignable) {
+      return true;
+    }
+    if (element.isInstanceMember) {
+      return !_resolverWorld.hasInvokedSetter(element) &&
+          !_resolverWorld.fieldSetters.contains(element);
+    }
+    return false;
+  }
+
+  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask) {
+    // We're not tracking side effects of closures.
+    if (selector.isClosureCall) return new SideEffects();
+    SideEffects sideEffects = new SideEffects.empty();
+    for (MemberElement e in allFunctions.filter(selector, mask)) {
+      if (e.isField) {
+        if (selector.isGetter) {
+          if (!fieldNeverChanges(e)) {
+            sideEffects.setDependsOnInstancePropertyStore();
+          }
+        } else if (selector.isSetter) {
+          sideEffects.setChangesInstanceProperty();
+        } else {
+          assert(selector.isCall);
+          sideEffects.setAllSideEffects();
+          sideEffects.setDependsOnSomething();
+        }
+      } else {
+        sideEffects.add(getSideEffectsOfElement(e));
+      }
+    }
+    return sideEffects;
+  }
+}
+
+class ClosedWorldImpl extends ClosedWorldBase {
+  ClosedWorldImpl(
+      {JavaScriptBackend backend,
+      CommonElements commonElements,
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      FunctionSetBuilder functionSetBuilder,
+      Iterable<TypedefElement> allTypedefs,
+      Map<ClassEntity, Set<ClassEntity>> mixinUses,
+      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
+      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
+      Map<ClassEntity, ClassSet> classSets})
+      : super(
+            backend: backend,
+            commonElements: commonElements,
+            resolutionWorldBuilder: resolutionWorldBuilder,
+            functionSetBuilder: functionSetBuilder,
+            allTypedefs: allTypedefs,
+            mixinUses: mixinUses,
+            typesImplementedBySubclasses: typesImplementedBySubclasses,
+            classHierarchyNodes: classHierarchyNodes,
+            classSets: classSets);
+
+  bool _checkClass(ClassElement cls) => cls.isDeclaration;
+
+  bool _checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
+    return invariant(cls, cls.isDeclaration,
+                message: '$cls must be the declaration.') &&
+            invariant(cls, cls.isResolved,
+                message:
+                    '$cls must be resolved.') /* &&
+      // TODO(johnniwinther): Reinsert this or similar invariant. Currently
+      // various call sites use uninstantiated classes for isSubtypeOf or
+      // isSubclassOf. Some are valid, some are not. Work out better invariants
+      // to catch the latter.
+      (!mustBeInstantiated ||
+       invariant(cls, isInstantiated(cls),
+                 message: '$cls is not instantiated.'))*/
+        ;
+  }
+
+  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
+  /// instance of [y].
+  bool isSubtypeOf(ClassElement x, ClassElement y) {
+    assert(_checkInvariants(x));
+    assert(_checkInvariants(y, mustBeInstantiated: false));
+
+    if (y == commonElements.objectClass) return true;
+    if (x == commonElements.objectClass) return false;
+    if (x.asInstanceOf(y) != null) return true;
+    if (y != commonElements.functionClass) return false;
+    return x.callType != null;
+  }
+
+  /// Return `true` if [x] is a (non-strict) subclass of [y].
+  bool isSubclassOf(ClassElement x, ClassElement y) {
+    assert(_checkInvariants(x));
+    assert(_checkInvariants(y));
+
+    if (y == commonElements.objectClass) return true;
+    if (x == commonElements.objectClass) return false;
+    while (x != null && x.hierarchyDepth >= y.hierarchyDepth) {
+      if (x == y) return true;
+      x = x.superclass;
+    }
+    return false;
+  }
+
   /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes) {
     Iterator<ClassElement> iterator = classes.iterator;
     if (!iterator.moveNext()) return const <ClassElement>[];
 
     ClassElement cls = iterator.current;
-    assert(checkInvariants(cls));
+    assert(_checkInvariants(cls));
     OrderedTypeSet typeSet = cls.allSupertypesAndSelf;
     if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
 
@@ -746,7 +967,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
     do {
       ClassElement otherClass = iterator.current;
-      assert(checkInvariants(otherClass));
+      assert(_checkInvariants(otherClass));
       OrderedTypeSet otherTypeSet = otherClass.allSupertypesAndSelf;
       otherTypeSets = otherTypeSets.prepend(otherTypeSet);
       if (otherTypeSet.maxDepth < depth) {
@@ -804,27 +1025,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     });
   }
 
-  Set<ClassEntity> _commonContainedClasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    Iterable<ClassEntity> xSubset = _containedSubset(cls1, query1);
-    if (xSubset == null) return null;
-    Iterable<ClassEntity> ySubset = _containedSubset(cls2, query2);
-    if (ySubset == null) return null;
-    return xSubset.toSet().intersection(ySubset.toSet());
-  }
-
-  Iterable<ClassEntity> _containedSubset(ClassEntity cls, ClassQuery query) {
-    switch (query) {
-      case ClassQuery.EXACT:
-        return null;
-      case ClassQuery.SUBCLASS:
-        return strictSubclassesOf(cls);
-      case ClassQuery.SUBTYPE:
-        return strictSubtypesOf(cls);
-    }
-    throw new ArgumentError('Unexpected query: $query.');
-  }
-
   /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
@@ -853,18 +1053,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return uses != null ? uses : const <ClassEntity>[];
   }
 
-  /// Returns `true` if [cls] is mixed into a live class.
-  bool isUsedAsMixin(ClassEntity cls) {
-    return !mixinUsesOf(cls).isEmpty;
-  }
-
-  /// Returns `true` if any live class that mixes in [cls] implements [type].
-  bool hasAnySubclassOfMixinUseThatImplements(
-      ClassEntity cls, ClassEntity type) {
-    return mixinUsesOf(cls)
-        .any((use) => hasAnySubclassThatImplements(use, type));
-  }
-
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
   /// of [superclass].
   bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin) {
@@ -888,25 +1076,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
       }
     }
     return false;
-  }
-
-  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
-  /// of a mixin application of [y].
-  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
-    assert(_checkClass(x));
-    assert(_checkClass(y));
-    Map<ClassEntity, bool> secondMap =
-        _subtypeCoveredByCache[x] ??= <ClassEntity, bool>{};
-    return secondMap[y] ??= subtypesOf(x).every((ClassEntity cls) =>
-        isSubclassOf(cls, y) || isSubclassOfMixinUseOf(cls, y));
-  }
-
-  /// Returns `true` if any subclass of [superclass] implements [type].
-  bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
-    assert(_checkClass(superclass));
-    Set<ClassEntity> subclasses = _typesImplementedBySubclasses[superclass];
-    if (subclasses == null) return false;
-    return subclasses.contains(type);
   }
 
   @override
@@ -943,74 +1112,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     return selector.appliesUntyped(element);
   }
 
-  @override
-  bool needsNoSuchMethod(
-      ClassElement base, Selector selector, ClassQuery query) {
-    /// Returns `true` if subclasses in the [rootNode] tree needs noSuchMethod
-    /// handling.
-    bool subclassesNeedNoSuchMethod(ClassHierarchyNode rootNode) {
-      if (!rootNode.isInstantiated) {
-        // No subclass needs noSuchMethod handling since they are all
-        // uninstantiated.
-        return false;
-      }
-      ClassElement rootClass = rootNode.cls;
-      if (hasConcreteMatch(rootClass, selector)) {
-        // The root subclass has a concrete implementation so no subclass needs
-        // noSuchMethod handling.
-        return false;
-      } else if (rootNode.isExplicitlyInstantiated) {
-        // The root class need noSuchMethod handling.
-        return true;
-      }
-      IterationStep result = rootNode.forEachSubclass((ClassElement subclass) {
-        if (hasConcreteMatch(subclass, selector, stopAtSuperclass: rootClass)) {
-          // Found a match - skip all subclasses.
-          return IterationStep.SKIP_SUBCLASSES;
-        } else {
-          // Stop fast - we found a need for noSuchMethod handling.
-          return IterationStep.STOP;
-        }
-      }, ClassHierarchyNode.EXPLICITLY_INSTANTIATED, strict: true);
-      // We stopped fast so we need noSuchMethod handling.
-      return result == IterationStep.STOP;
-    }
-
-    ClassSet classSet = getClassSet(base);
-    ClassHierarchyNode node = classSet.node;
-    if (query == ClassQuery.EXACT) {
-      return node.isExplicitlyInstantiated && !hasConcreteMatch(base, selector);
-    } else if (query == ClassQuery.SUBCLASS) {
-      return subclassesNeedNoSuchMethod(node);
-    } else {
-      if (subclassesNeedNoSuchMethod(node)) return true;
-      for (ClassHierarchyNode subtypeNode in classSet.subtypeNodes) {
-        if (subclassesNeedNoSuchMethod(subtypeNode)) return true;
-      }
-      return false;
-    }
-  }
-
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
-    assert(_checkClass(cls));
-    return _classHierarchyNodes[cls];
-  }
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
-  ClassSet getClassSet(ClassEntity cls) {
-    assert(_checkClass(cls));
-    return _classSets[cls];
-  }
-
   void registerClosureClass(ClosureClassElement cls) {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
     ClassHierarchyNode node = _classHierarchyNodes[cls] =
@@ -1038,8 +1139,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     }
   }
 
-  Iterable<TypedefElement> get allTypedefs => _allTypedefs;
-
   @override
   String dump([ClassElement cls]) {
     StringBuffer sb = new StringBuffer();
@@ -1051,57 +1150,6 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     getClassHierarchyNode(commonElements.objectClass)
         .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
-  }
-
-  bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
-    return allFunctions.filter(selector, mask).any((each) => each.isGetter);
-  }
-
-  FieldElement locateSingleField(Selector selector, TypeMask mask) {
-    Element result = locateSingleElement(selector, mask);
-    return (result != null && result.isField) ? result : null;
-  }
-
-  MemberElement locateSingleElement(Selector selector, TypeMask mask) {
-    mask ??= commonMasks.dynamicType;
-    return mask.locateSingleElement(selector, this);
-  }
-
-  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
-    bool canReachAll = true;
-    if (mask != null) {
-      canReachAll = _backend.backendUsage.isInvokeOnUsed &&
-          mask.needsNoSuchMethodHandling(selector, this);
-    }
-    return canReachAll ? commonMasks.dynamicType : mask;
-  }
-
-  void addFunctionCalledInLoop(Element element) {
-    functionsCalledInLoop.add(element.declaration);
-  }
-
-  bool isCalledInLoop(Element element) {
-    return functionsCalledInLoop.contains(element.declaration);
-  }
-
-  bool fieldNeverChanges(MemberElement element) {
-    if (!element.isField) return false;
-    if (nativeData.isNativeMember(element)) {
-      // Some native fields are views of data that may be changed by operations.
-      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
-      // TODO(sra): Refine the effect classification so that native effects are
-      // distinct from ordinary Dart effects.
-      return false;
-    }
-
-    if (element.isFinal || element.isConst) {
-      return true;
-    }
-    if (element.isInstanceMember) {
-      return !_resolverWorld.hasInvokedSetter(element) &&
-          !_resolverWorld.fieldSetters.contains(element);
-    }
-    return false;
   }
 
   SideEffects getSideEffectsOfElement(Element element) {
@@ -1133,28 +1181,12 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     sideEffectsFreeElements.add(element);
   }
 
-  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask) {
-    // We're not tracking side effects of closures.
-    if (selector.isClosureCall) return new SideEffects();
-    SideEffects sideEffects = new SideEffects.empty();
-    for (MemberElement e in allFunctions.filter(selector, mask)) {
-      if (e.isField) {
-        if (selector.isGetter) {
-          if (!fieldNeverChanges(e)) {
-            sideEffects.setDependsOnInstancePropertyStore();
-          }
-        } else if (selector.isSetter) {
-          sideEffects.setChangesInstanceProperty();
-        } else {
-          assert(selector.isCall);
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
-        }
-      } else {
-        sideEffects.add(getSideEffectsOfElement(e));
-      }
-    }
-    return sideEffects;
+  void addFunctionCalledInLoop(Element element) {
+    functionsCalledInLoop.add(element.declaration);
+  }
+
+  bool isCalledInLoop(Element element) {
+    return functionsCalledInLoop.contains(element.declaration);
   }
 
   void registerCannotThrow(Element element) {
