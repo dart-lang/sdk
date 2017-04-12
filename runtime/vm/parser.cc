@@ -8248,10 +8248,17 @@ bool Parser::TryParseTypeArguments() {
     } else if (ct == Token::kSHR) {
       nesting_level -= 2;
     } else if (ct == Token::kIDENT) {
-      // Check to see if it is a qualified identifier.
-      if (LookaheadToken(1) == Token::kPERIOD) {
-        // Consume the identifier, the period will be consumed below.
-        ConsumeToken();
+      if (IsFunctionTypeSymbol()) {
+        if (!TryParseType(false)) {
+          return false;
+        }
+        continue;
+      } else {
+        // Check to see if it is a qualified identifier.
+        if (LookaheadToken(1) == Token::kPERIOD) {
+          // Consume the identifier, the period will be consumed below.
+          ConsumeToken();
+        }
       }
     } else if (ct != Token::kCOMMA) {
       return false;
@@ -8384,7 +8391,7 @@ bool Parser::TryParseType(bool allow_void) {
     if (!TryParseQualIdent()) {
       return false;
     }
-    if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
+    if ((CurrentToken() == Token::kLT) && !TryParseTypeArguments()) {
       return false;
     }
     found = true;

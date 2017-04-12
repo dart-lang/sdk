@@ -292,6 +292,7 @@ regress_22438_test: RuntimeError
 regress_27617_test/1: MissingCompileTimeError
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
+regress_29243_test: Crash
 runtime_type_function_test: RuntimeError
 scope_variable_test/01: MissingCompileTimeError
 static_field3_test/03: CompileTimeError
