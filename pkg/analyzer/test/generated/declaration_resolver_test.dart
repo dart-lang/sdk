@@ -520,6 +520,57 @@ int Function(int, String) v;
     // no other validations than built into DeclarationResolver
   }
 
+  test_genericFunction_asTypeArgument() async {
+    String code = r'''
+List<Function(int)> v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_lessNodes() async {
+    String code = r'''
+Map<Function<int>> v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_moreNodes() async {
+    String code = r'''
+List<Function<int>, Function<String>> v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_noNodes() async {
+    String code = r'''
+List v;
+''';
+    CompilationUnit unit = await resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  test_genericFunction_asTypeArgument_ofInitializer() async {
+    String code = r'''
+var v = <Function(int)>[];
+''';
+    CompilationUnit unit = await resolveSource(code);
+    CompilationUnit newUnit = _cloneResolveUnit(unit);
+    var v = newUnit.declarations[0] as TopLevelVariableDeclaration;
+    var initializer = v.variables.variables[0].initializer as ListLiteral;
+    expect(initializer.typeArguments.arguments[0].type, isNotNull);
+  }
+
   test_invalid_functionDeclaration_getter_inFunction() async {
     String code = r'''
 var v = (() {

@@ -279,11 +279,20 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElement element = node.type.element;
-    _setGenericFunctionType(node.returnType, element.returnType);
-    _walk(new ElementWalker.forGenericFunctionType(element), () {
-      super.visitGenericFunctionType(node);
-    });
+    if (_walker.elementBuilder != null) {
+      _walker.elementBuilder.visitGenericFunctionType(node);
+    } else {
+      DartType type = node.type;
+      if (type != null) {
+        Element element = type.element;
+        if (element is GenericFunctionTypeElement) {
+          _setGenericFunctionType(node.returnType, element.returnType);
+          _walk(new ElementWalker.forGenericFunctionType(element), () {
+            super.visitGenericFunctionType(node);
+          });
+        }
+      }
+    }
     return null;
   }
 
@@ -546,6 +555,18 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   void _setGenericFunctionType(TypeAnnotation typeNode, DartType type) {
     if (typeNode is GenericFunctionTypeImpl) {
       typeNode.type = type;
+    } else if (typeNode is NamedType) {
+      typeNode.type = type;
+      if (type is ParameterizedType) {
+        List<TypeAnnotation> nodes =
+            typeNode.typeArguments?.arguments ?? const [];
+        List<DartType> types = type.typeArguments;
+        if (nodes.length == types.length) {
+          for (int i = 0; i < nodes.length; i++) {
+            _setGenericFunctionType(nodes[i], types[i]);
+          }
+        }
+      }
     }
   }
 
