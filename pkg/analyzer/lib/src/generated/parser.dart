@@ -430,6 +430,10 @@ class Parser {
       return true;
     }
     Token afterReturnType = skipTypeName(_currentToken);
+    if (afterReturnType != null &&
+        _tokenMatchesKeyword(afterReturnType, Keyword.FUNCTION)) {
+      afterReturnType = skipGenericFunctionTypeAfterReturnType(afterReturnType);
+    }
     if (afterReturnType == null) {
       // There was no return type, but it is optional, so go back to where we
       // started.
@@ -543,6 +547,9 @@ class Parser {
     if (token == null) {
       // There was no type name, so this can't be a declaration.
       return false;
+    }
+    if (_tokenMatchesKeyword(token, Keyword.FUNCTION)) {
+      token = skipGenericFunctionTypeAfterReturnType(token);
     }
     if (token.type != TokenType.IDENTIFIER) {
       allowAdditionalTokens = false;
@@ -1277,28 +1284,25 @@ class Parser {
         _validateModifiersForGetterOrSetterOrMethod(modifiers);
         return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
             modifiers.externalKeyword, modifiers.staticKeyword, returnType);
-      } else {
-        //
-        // We have found an error of some kind. Try to recover.
-        //
-        if (_matchesIdentifier()) {
-          if (_peek().matchesAny(const <TokenType>[
+      } else if (_matchesIdentifier() &&
+          _peek().matchesAny(const <TokenType>[
             TokenType.EQ,
             TokenType.COMMA,
             TokenType.SEMICOLON
           ])) {
-            //
-            // We appear to have a variable declaration with a type of "void".
-            //
-            _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
-            return parseInitializedIdentifierList(
-                commentAndMetadata,
-                modifiers.staticKeyword,
-                modifiers.covariantKeyword,
-                _validateModifiersForField(modifiers),
-                returnType);
-          }
+        if (returnType is! GenericFunctionType) {
+          _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
         }
+        return parseInitializedIdentifierList(
+            commentAndMetadata,
+            modifiers.staticKeyword,
+            modifiers.covariantKeyword,
+            _validateModifiersForField(modifiers),
+            returnType);
+      } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
         if (_isOperator(_currentToken)) {
           //
           // We appear to have found an operator declaration without the
@@ -2083,28 +2087,25 @@ class Parser {
         _validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(
             commentAndMetadata, modifiers.externalKeyword, returnType);
-      } else {
-        //
-        // We have found an error of some kind. Try to recover.
-        //
-        if (_matchesIdentifier()) {
-          if (next.matchesAny(const <TokenType>[
+      } else if (_matchesIdentifier() &&
+          next.matchesAny(const <TokenType>[
             TokenType.EQ,
             TokenType.COMMA,
             TokenType.SEMICOLON
           ])) {
-            //
-            // We appear to have a variable declaration with a type of "void".
-            //
-            _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
-            return astFactory.topLevelVariableDeclaration(
-                commentAndMetadata.comment,
-                commentAndMetadata.metadata,
-                parseVariableDeclarationListAfterType(null,
-                    _validateModifiersForTopLevelVariable(modifiers), null),
-                _expect(TokenType.SEMICOLON));
-          }
+        if (returnType is! GenericFunctionType) {
+          _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
         }
+        return astFactory.topLevelVariableDeclaration(
+            commentAndMetadata.comment,
+            commentAndMetadata.metadata,
+            parseVariableDeclarationListAfterType(
+                null, _validateModifiersForTopLevelVariable(modifiers), null),
+            _expect(TokenType.SEMICOLON));
+      } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
         _reportErrorForToken(
             ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
         return null;
@@ -4143,24 +4144,22 @@ class Parser {
           ])) {
         return _parseFunctionDeclarationStatementAfterReturnType(
             commentAndMetadata, returnType);
-      } else {
-        //
-        // We have found an error of some kind. Try to recover.
-        //
-        if (_matchesIdentifier()) {
-          if (next.matchesAny(const <TokenType>[
+      } else if (_matchesIdentifier() &&
+          next.matchesAny(const <TokenType>[
             TokenType.EQ,
             TokenType.COMMA,
             TokenType.SEMICOLON
           ])) {
-            //
-            // We appear to have a variable declaration with a type of "void".
-            //
-            _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
-            return parseVariableDeclarationStatementAfterMetadata(
-                commentAndMetadata);
-          }
-        } else if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+        if (returnType is! GenericFunctionType) {
+          _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
+        }
+        return _parseVariableDeclarationStatementAfterType(
+            commentAndMetadata, null, returnType);
+      } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
+        if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
           //
           // We appear to have found an incomplete statement at the end of a
           // block. Parse it as a variable declaration.
@@ -5489,7 +5488,7 @@ class Parser {
     if (!_tokenMatches(startToken, TokenType.OPEN_PAREN)) {
       return null;
     }
-    return (startToken as BeginToken).endToken;
+    return (startToken as BeginToken).endToken.next;
   }
 
   /**
@@ -7609,7 +7608,9 @@ class Parser {
    *         variableDeclarationList ';'
    */
   VariableDeclarationStatement _parseVariableDeclarationStatementAfterType(
-      CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
+      CommentAndMetadata commentAndMetadata,
+      Token keyword,
+      TypeAnnotation type) {
     VariableDeclarationList variableList =
         parseVariableDeclarationListAfterType(
             commentAndMetadata, keyword, type);
