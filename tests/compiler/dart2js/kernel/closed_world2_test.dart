@@ -74,8 +74,8 @@ main(List<String> args) {
 
     KernelWorldBuilder worldBuilder = new KernelWorldBuilder(
         compiler.reporter, compiler.backend.kernelTask.program);
-    List list = createKernelResolutionEnqueuerListener(
-        compiler.options, compiler.deferredLoadTask, worldBuilder);
+    List list = createKernelResolutionEnqueuerListener(compiler.options,
+        compiler.reporter, compiler.deferredLoadTask, worldBuilder);
     ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
     ImpactTransformer impactTransformer = list[1];
     ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
@@ -97,8 +97,11 @@ main(List<String> args) {
   });
 }
 
-List createKernelResolutionEnqueuerListener(CompilerOptions options,
-    DeferredLoadTask deferredLoadTask, KernelWorldBuilder worldBuilder) {
+List createKernelResolutionEnqueuerListener(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    DeferredLoadTask deferredLoadTask,
+    KernelWorldBuilder worldBuilder) {
   ElementEnvironment elementEnvironment = worldBuilder.elementEnvironment;
   CommonElements commonElements = worldBuilder.commonElements;
   BackendImpacts impacts = new BackendImpacts(options, commonElements);
@@ -109,11 +112,11 @@ List createKernelResolutionEnqueuerListener(CompilerOptions options,
   MirrorsDataBuilder mirrorsDataBuilder = new MirrorsDataBuilderImpl();
   CustomElementsResolutionAnalysis customElementsResolutionAnalysis =
       new CustomElementsResolutionAnalysisImpl();
-  LookupMapResolutionAnalysis lookupMapResolutionAnalysis =
-      new LookupMapResolutionAnalysisImpl();
   MirrorsResolutionAnalysis mirrorsResolutionAnalysis =
       new MirrorsResolutionAnalysisImpl();
 
+  LookupMapResolutionAnalysis lookupMapResolutionAnalysis =
+      new LookupMapResolutionAnalysis(reporter, elementEnvironment);
   BackendClasses backendClasses = new JavaScriptBackendClasses(
       elementEnvironment, commonElements, nativeBasicData);
   InterceptorDataBuilder interceptorDataBuilder =
@@ -264,22 +267,6 @@ class CustomElementsResolutionAnalysisImpl
 
   @override
   void registerTypeLiteral(DartType type) {}
-}
-
-class LookupMapResolutionAnalysisImpl implements LookupMapResolutionAnalysis {
-  @override
-  FieldEntity lookupMapVersionVariable;
-  @override
-  LibraryEntity lookupMapLibrary;
-
-  @override
-  WorldImpact flush() {
-    // TODO(johnniwinther): Implement this.
-    return const WorldImpact();
-  }
-
-  @override
-  void init(LibraryEntity library) {}
 }
 
 class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
