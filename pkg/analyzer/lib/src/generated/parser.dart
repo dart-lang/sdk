@@ -1239,9 +1239,19 @@ class Parser {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     Modifiers modifiers = parseModifiers();
     Keyword keyword = _currentToken.keyword;
-    if (keyword == Keyword.VOID) {
-      TypeName returnType = astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
+    if (keyword == Keyword.VOID ||
+        _atGenericFunctionTypeAfterReturnType(_currentToken)) {
+      TypeAnnotation returnType;
+      if (keyword == Keyword.VOID) {
+        if (_atGenericFunctionTypeAfterReturnType(_peek())) {
+          returnType = parseTypeAnnotation(false);
+        } else {
+          returnType = astFactory.typeName(
+              astFactory.simpleIdentifier(getAndAdvance()), null);
+        }
+      } else {
+        returnType = parseTypeAnnotation(false);
+      }
       keyword = _currentToken.keyword;
       Token next = _peek();
       bool isFollowedByIdentifier = _tokenMatchesIdentifier(next);
@@ -2036,9 +2046,19 @@ class Parser {
     } else if (keyword == Keyword.ENUM) {
       _validateModifiersForEnum(modifiers);
       return parseEnumDeclaration(commentAndMetadata);
-    } else if (keyword == Keyword.VOID) {
-      TypeName returnType = astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
+    } else if (keyword == Keyword.VOID ||
+        _atGenericFunctionTypeAfterReturnType(_currentToken)) {
+      TypeAnnotation returnType;
+      if (keyword == Keyword.VOID) {
+        if (_atGenericFunctionTypeAfterReturnType(next)) {
+          returnType = parseTypeAnnotation(false);
+        } else {
+          returnType = astFactory.typeName(
+              astFactory.simpleIdentifier(getAndAdvance()), null);
+        }
+      } else {
+        returnType = parseTypeAnnotation(false);
+      }
       keyword = _currentToken.keyword;
       next = _peek();
       if ((keyword == Keyword.GET || keyword == Keyword.SET) &&
@@ -4024,8 +4044,13 @@ class Parser {
         return parseVariableDeclarationStatementAfterMetadata(
             commentAndMetadata);
       } else if (keyword == Keyword.VOID) {
-        TypeName returnType = astFactory.typeName(
-            astFactory.simpleIdentifier(getAndAdvance()), null);
+        TypeAnnotation returnType;
+        if (_atGenericFunctionTypeAfterReturnType(_peek())) {
+          returnType = parseTypeAnnotation(false);
+        } else {
+          returnType = astFactory.typeName(
+              astFactory.simpleIdentifier(getAndAdvance()), null);
+        }
         Token next = _currentToken.next;
         if (_matchesIdentifier() &&
             next.matchesAny(const <TokenType>[
@@ -4106,7 +4131,49 @@ class Parser {
         return astFactory
             .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (_inGenerator && _matchesString(_YIELD)) {
+    } else if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
+      TypeAnnotation returnType = parseTypeAnnotation(false);
+      Token next = _currentToken.next;
+      if (_matchesIdentifier() &&
+          next.matchesAny(const <TokenType>[
+            TokenType.OPEN_PAREN,
+            TokenType.OPEN_CURLY_BRACKET,
+            TokenType.FUNCTION,
+            TokenType.LT
+          ])) {
+        return _parseFunctionDeclarationStatementAfterReturnType(
+            commentAndMetadata, returnType);
+      } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
+        if (_matchesIdentifier()) {
+          if (next.matchesAny(const <TokenType>[
+            TokenType.EQ,
+            TokenType.COMMA,
+            TokenType.SEMICOLON
+          ])) {
+            //
+            // We appear to have a variable declaration with a type of "void".
+            //
+            _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
+            return parseVariableDeclarationStatementAfterMetadata(
+                commentAndMetadata);
+          }
+        } else if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+          //
+          // We appear to have found an incomplete statement at the end of a
+          // block. Parse it as a variable declaration.
+          //
+          return _parseVariableDeclarationStatementAfterType(
+              commentAndMetadata, null, returnType);
+        }
+        _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
+        // TODO(brianwilkerson) Recover from this error.
+        return astFactory
+            .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
+      }
+    } else if (_inGenerator && _matchesKeyword(Keyword.YIELD)) {
       return parseYieldStatement();
     } else if (_inAsync && _matchesString(_AWAIT)) {
       if (_tokenMatchesKeyword(_peek(), Keyword.FOR)) {
@@ -4623,8 +4690,12 @@ class Parser {
    */
   TypeAnnotation parseReturnType(bool inExpression) {
     if (_currentToken.keyword == Keyword.VOID) {
-      return astFactory.typeName(
-          astFactory.simpleIdentifier(getAndAdvance()), null);
+      if (_atGenericFunctionTypeAfterReturnType(_peek())) {
+        return parseTypeAnnotation(false);
+      } else {
+        return astFactory.typeName(
+            astFactory.simpleIdentifier(getAndAdvance()), null);
+      }
     } else {
       return parseTypeAnnotation(inExpression);
     }
@@ -5485,6 +5556,9 @@ class Parser {
    */
   Token skipReturnType(Token startToken) {
     if (_tokenMatchesKeyword(startToken, Keyword.VOID)) {
+      if (_atGenericFunctionTypeAfterReturnType(_peek())) {
+        return skipTypeAnnotation(startToken);
+      }
       return startToken.next;
     } else {
       return skipTypeAnnotation(startToken);
@@ -7160,6 +7234,9 @@ class Parser {
     }
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.VOID) {
+      if (_atGenericFunctionTypeAfterReturnType(_peek())) {
+        return parseTypeAnnotation(false);
+      }
       return astFactory.typeName(
           astFactory.simpleIdentifier(getAndAdvance()), null);
     } else if (_matchesIdentifier()) {
