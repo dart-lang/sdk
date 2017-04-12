@@ -436,9 +436,8 @@ typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
 void ProgramVisitor::DedupLists() {
   class DedupListsVisitor : public FunctionVisitor {
    public:
-    DedupListsVisitor(Isolate* isolate, Zone* zone)
-        : isolate_(isolate),
-          zone_(zone),
+    explicit DedupListsVisitor(Zone* zone)
+        : zone_(zone),
           canonical_lists_(),
           code_(Code::Handle(zone)),
           list_(Array::Handle(zone)) {}
@@ -477,10 +476,10 @@ void ProgramVisitor::DedupLists() {
 
       list_ = function.parameter_types();
       if (!list_.IsNull()) {
-        // Preserve parameter types in case of recompilation in JIT checked
-        // mode, or if available to mirrors.
-        if (FLAG_precompiled_mode ||
-            (!FLAG_enable_mirrors && !isolate_->type_checks())) {
+        // Preserve parameter types in the JIT. Needed in case of recompilation
+        // in checked mode, or if available to mirrors, or for copied types to
+        // lazily generated tear offs.
+        if (FLAG_precompiled_mode) {
           if (!function.IsSignatureFunction() &&
               !function.IsClosureFunction() &&
               (function.name() != Symbols::Call().raw()) && !list_.InVMHeap()) {
@@ -521,15 +520,13 @@ void ProgramVisitor::DedupLists() {
     }
 
    private:
-    Isolate* isolate_;
     Zone* zone_;
     ArraySet canonical_lists_;
     Code& code_;
     Array& list_;
   };
 
-  Thread* thread = Thread::Current();
-  DedupListsVisitor visitor(thread->isolate(), thread->zone());
+  DedupListsVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
 }
 
@@ -566,7 +563,6 @@ void ProgramVisitor::DedupInstructions() {
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
-        ASSERT(function.HasImplicitClosureFunction());
         return;
       }
       code_ = function.CurrentCode();
