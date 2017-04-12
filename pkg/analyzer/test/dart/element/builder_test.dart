@@ -1114,6 +1114,19 @@ main() {
     expect(variableElement.initializer, isNotNull);
   }
 
+  void test_genericFunction_isExpression() {
+    buildElementsForText('main(p) { p is Function(int a, String); }');
+    var main = compilationUnit.declarations[0] as FunctionDeclaration;
+    var body = main.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IsExpression;
+    var typeNode = expression.type as GenericFunctionType;
+    var typeElement = typeNode.type.element as GenericFunctionTypeElementImpl;
+    expect(typeElement.parameters, hasLength(2));
+    expect(typeElement.parameters[0].name, 'a');
+    expect(typeElement.parameters[1].name, '');
+  }
+
   void test_visitDefaultFormalParameter_local() {
     CompilationUnit unit = parseCompilationUnit('''
 main() {
@@ -1220,6 +1233,16 @@ abstract class _ApiElementBuilderTestMixin {
    * [ElementAnnotationImpl] is unresolved.
    */
   void checkMetadata(Element element);
+
+  void test_genericFunction_asTopLevelVariableType() {
+    buildElementsForText('int Function(int a, String) v;');
+    var v = compilationUnit.declarations[0] as TopLevelVariableDeclaration;
+    var typeNode = v.variables.type as GenericFunctionType;
+    var typeElement = typeNode.type.element as GenericFunctionTypeElementImpl;
+    expect(typeElement.parameters, hasLength(2));
+    expect(typeElement.parameters[0].name, 'a');
+    expect(typeElement.parameters[1].name, '');
+  }
 
   void test_metadata_fieldDeclaration() {
     List<FieldElement> fields =
