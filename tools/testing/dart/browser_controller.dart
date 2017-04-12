@@ -1907,7 +1907,13 @@ Future captureInternetExplorerScreenshot(String message) async {
   final screenshotFile =
       Platform.script.resolve('../$screenshotName').toFilePath();
 
-  final args = [powerShellScript, screenshotFile];
+  final args = [
+    '-ExecutionPolicy',
+    'ByPass',
+    '-File',
+    powerShellScript,
+    screenshotFile
+  ];
   final ProcessResult result =
       await Process.run('powershell.exe', args, runInShell: true);
   if (result.exitCode != 0) {
