@@ -8542,6 +8542,82 @@ class C<T, U> {
     }
   }
 
+  test_genericFunction_asFunctionReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+int Function(int a, String b) f() => null;
+''');
+    checkElementText(
+        library,
+        r'''
+(int, String) → int f() {}
+''');
+  }
+
+  test_genericFunction_asFunctionTypedParameterReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+void f(int Function(int a, String b) p(num c)) => null;
+''');
+    checkElementText(
+        library,
+        r'''
+void f((num) → (int, String) → int p) {}
+''');
+  }
+
+  test_genericFunction_asGenericFunctionReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+typedef F = void Function(String a) Function(int b);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = (String) → void Function(int b);
+''');
+  }
+
+  test_genericFunction_asMethodReturnType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+class C {
+  int Function(int a, String b) m() => null;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  (int, String) → int m() {}
+}
+''');
+  }
+
+  test_genericFunction_asParameterType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+void f(int Function(int a, String b) p) => null;
+''');
+    checkElementText(
+        library,
+        r'''
+void f((int, String) → int p) {}
+''');
+  }
+
+  test_genericFunction_asTopLevelVariableType() {
+    shouldCompareLibraryElements = false;
+    var library = checkLibrary(r'''
+int Function(int a, String b) v;
+''');
+    checkElementText(
+        library,
+        r'''
+(int, String) → int v;
+''');
+  }
+
   test_getElement_constructor_named() {
     String text = 'class C { C.named(); }';
     Source source = addLibrarySource('/test.dart', text);

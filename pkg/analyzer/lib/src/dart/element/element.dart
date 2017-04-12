@@ -724,7 +724,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_unlinkedClass != null && _interfaces == null) {
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _interfaces = _unlinkedClass.interfaces
-          .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .map((EntityRef t) => context.resolveTypeRef(this, t))
           .where(_isClassInterfaceType)
           .toList(growable: false);
     }
@@ -831,7 +831,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_unlinkedClass != null && _mixins == null) {
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _mixins = _unlinkedClass.mixins
-          .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .map((EntityRef t) => context.resolveTypeRef(this, t))
           .where(_isClassInterfaceType)
           .toList(growable: false);
     }
@@ -865,7 +865,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_unlinkedClass != null && _supertype == null) {
       if (_unlinkedClass.supertype != null) {
         DartType type = enclosingUnit.resynthesizerContext
-            .resolveTypeRef(_unlinkedClass.supertype, this);
+            .resolveTypeRef(this, _unlinkedClass.supertype);
         if (_isClassInterfaceType(type)) {
           _supertype = type;
         } else {
@@ -3879,10 +3879,10 @@ abstract class ExecutableElementImpl extends ElementImpl
         _returnType == null) {
       bool isSetter =
           serializedExecutable.kind == UnlinkedExecutableKind.setter;
-      _returnType = enclosingUnit.resynthesizerContext.resolveLinkedType(
-          serializedExecutable.inferredReturnTypeSlot, typeParameterContext);
+      _returnType = enclosingUnit.resynthesizerContext
+          .resolveLinkedType(this, serializedExecutable.inferredReturnTypeSlot);
       _declaredReturnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          serializedExecutable.returnType, typeParameterContext,
+          this, serializedExecutable.returnType,
           defaultVoid: isSetter && context.analysisOptions.strongMode,
           declaredType: true);
     }
@@ -4572,7 +4572,7 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
   @override
   DartType get returnType {
     return _returnType ??= enclosingUnit.resynthesizerContext
-        .resolveTypeRef(_entityRef.syntheticReturnType, typeParameterContext);
+        .resolveTypeRef(this, _entityRef.syntheticReturnType);
   }
 
   @override
@@ -4736,7 +4736,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   DartType get returnType {
     if (_unlinkedTypedef != null && _returnType == null) {
       _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          _unlinkedTypedef.returnType, this,
+          this, _unlinkedTypedef.returnType,
           declaredType: true);
     }
     return _returnType;
@@ -4859,11 +4859,6 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   EntityRef _entityRef;
 
   /**
-   * The enclosing type parameter context.
-   */
-  TypeParameterizedElementMixin _typeParameterContext;
-
-  /**
    * The declared return type of the function.
    */
   DartType _returnType;
@@ -4889,13 +4884,13 @@ class GenericFunctionTypeElementImpl extends ElementImpl
    * Initialize from serialized information.
    */
   GenericFunctionTypeElementImpl.forSerialized(
-      this._entityRef, this._typeParameterContext)
-      : super.forSerialized(null);
+      ElementImpl enclosingElement, this._entityRef)
+      : super.forSerialized(enclosingElement);
 
   @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
-      _typeParameterContext ??
-      (enclosingElement as ElementImpl).typeParameterContext;
+  TypeParameterizedElementMixin get enclosingTypeParameterContext {
+    return _enclosingElement.typeParameterContext;
+  }
 
   @override
   String get identifier => '-';
@@ -4928,7 +4923,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   DartType get returnType {
     if (_entityRef != null && _returnType == null) {
       _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          _entityRef.syntheticReturnType, typeParameterContext,
+          this, _entityRef.syntheticReturnType,
           defaultVoid: false, declaredType: true);
     }
     return _returnType;
@@ -5102,7 +5097,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   GenericFunctionTypeElement get function {
     if (_function == null && _unlinkedTypedef != null) {
       DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          _unlinkedTypedef.returnType, this,
+          this, _unlinkedTypedef.returnType,
           declaredType: true);
       if (type is FunctionType) {
         Element element = type.element;
@@ -7290,11 +7285,10 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   DartType get type {
     if (_unlinkedVariable != null && _declaredType == null && _type == null) {
-      _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
-          _unlinkedVariable.inferredTypeSlot, typeParameterContext);
-      declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-          _unlinkedVariable.type, typeParameterContext,
-          declaredType: true);
+      _type = enclosingUnit.resynthesizerContext
+          .resolveLinkedType(this, _unlinkedVariable.inferredTypeSlot);
+      declaredType = enclosingUnit.resynthesizerContext
+          .resolveTypeRef(this, _unlinkedVariable.type, declaredType: true);
     }
     return super.type;
   }
@@ -7796,18 +7790,17 @@ class ParameterElementImpl extends VariableElementImpl
           parameterTypeElement.shareParameters(subParameters);
         }
         parameterTypeElement.returnType = enclosingUnit.resynthesizerContext
-            .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+            .resolveTypeRef(this, _unlinkedParam.type);
         FunctionTypeImpl parameterType =
             new FunctionTypeImpl.elementWithNameAndArgs(parameterTypeElement,
                 null, typeParameterContext.allTypeParameterTypes, false);
         parameterTypeElement.type = parameterType;
         _type = parameterType;
       } else {
-        _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
-            _unlinkedParam.inferredTypeSlot, typeParameterContext);
-        declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
-            _unlinkedParam.type, typeParameterContext,
-            declaredType: true);
+        _type = enclosingUnit.resynthesizerContext
+            .resolveLinkedType(this, _unlinkedParam.inferredTypeSlot);
+        declaredType = enclosingUnit.resynthesizerContext
+            .resolveTypeRef(this, _unlinkedParam.type, declaredType: true);
       }
     }
   }
@@ -8304,8 +8297,8 @@ abstract class PropertyInducingElementImpl
   @override
   DartType get propagatedType {
     if (_unlinkedVariable != null && _propagatedType == null) {
-      _propagatedType = enclosingUnit.resynthesizerContext.resolveLinkedType(
-          _unlinkedVariable.propagatedTypeSlot, typeParameterContext);
+      _propagatedType = enclosingUnit.resynthesizerContext
+          .resolveLinkedType(this, _unlinkedVariable.propagatedTypeSlot);
     }
     return _propagatedType;
   }
@@ -8380,14 +8373,13 @@ abstract class ResynthesizerContext {
    * unresolved, return `null`.
    */
   ConstructorElement resolveConstructorRef(
-      TypeParameterizedElementMixin typeParameterContext, EntityRef entry);
+      ElementImpl context, EntityRef entry);
 
   /**
    * Build the appropriate [DartType] object corresponding to a slot id in the
    * [LinkedUnit.types] table.
    */
-  DartType resolveLinkedType(
-      int slot, TypeParameterizedElementMixin typeParameterContext);
+  DartType resolveLinkedType(ElementImpl context, int slot);
 
   /**
    * Resolve an [EntityRef] into a type.  If the reference is
@@ -8396,8 +8388,7 @@ abstract class ResynthesizerContext {
    * TODO(paulberry): or should we have a class representing an
    * unresolved type, for consistency with the full element model?
    */
-  DartType resolveTypeRef(
-      EntityRef type, TypeParameterizedElementMixin typeParameterContext,
+  DartType resolveTypeRef(ElementImpl context, EntityRef type,
       {bool defaultVoid: false,
       bool instantiateToBoundsAllowed: true,
       bool declaredType: false});
@@ -8599,7 +8590,7 @@ class TypeParameterElementImpl extends ElementImpl
         return null;
       }
       return _bound ??= enclosingUnit.resynthesizerContext.resolveTypeRef(
-          _unlinkedTypeParam.bound, enclosingElement,
+          this, _unlinkedTypeParam.bound,
           instantiateToBoundsAllowed: false, declaredType: true);
     }
     return _bound;
