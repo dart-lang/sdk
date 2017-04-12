@@ -10,7 +10,7 @@ Element _getLeftElement(AssignmentExpression assignment) => DartTypeUtilities
     .getCanonicalElementFromIdentifier(assignment.leftHandSide);
 
 List<Expression> _splitConjunctions(Expression rawExpression) {
-  final expression = rawExpression.unParenthesized;
+  final expression = rawExpression?.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.AMPERSAND_AMPERSAND) {
     return _splitConjunctions(expression.leftOperand)
