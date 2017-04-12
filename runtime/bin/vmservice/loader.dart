@@ -90,9 +90,11 @@ class IsolateLoaderState extends IsolateEmbedderData {
     if (packagesConfigFlag != null) {
       _setPackagesConfig(packagesConfigFlag);
     }
-    if (_fileRequestQueue == null) {
-      _fileRequestQueue = new List<FileRequest>();
-    }
+  }
+
+  void updatePackageMap(String packagesConfigFlag) {
+    _packageMap = null;
+    _setPackagesConfig(packagesConfigFlag);
   }
 
   void cleanup() {
@@ -134,7 +136,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
   // _fileRequestQueue and are processed when we can safely issue them.
   static const int _maxFileRequests = 16;
   int currentFileRequests = 0;
-  List<FileRequest> _fileRequestQueue;
+  final List<FileRequest> _fileRequestQueue = new List<FileRequest>();
 
   bool get shouldIssueFileRequest => currentFileRequests < _maxFileRequests;
   void enqueueFileRequest(FileRequest fr) {
@@ -1034,7 +1036,9 @@ _processLoadRequest(request) {
           loaderState = new IsolateLoaderState(isolateId);
           isolateEmbedderData[isolateId] = loaderState;
           loaderState.init(
-              packageRoot, packagesFile, workingDirectory, rootScript);
+            packageRoot, packagesFile, workingDirectory, rootScript);
+        } else {
+          loaderState.updatePackageMap(packagesFile);
         }
         loaderState.sp = sp;
         assert(isolateEmbedderData[isolateId] == loaderState);
