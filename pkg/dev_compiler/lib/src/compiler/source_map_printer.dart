@@ -42,7 +42,7 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
   void enterNode(JS.Node jsNode) {
     AstNode node = jsNode.sourceInformation;
-    if (node == null || node.offset == -1) return;
+    if (node == null || node.offset == -1 || node.isSynthetic) return;
     if (unit == null) {
       // This is a top-level declaration.  Note: consecutive top-level
       // declarations may come from different compilation units due to
@@ -52,7 +52,9 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       sourcePath =
           resolutionMap.elementDeclaredByCompilationUnit(unit).source.fullName;
     }
-
+    // Skip MethodDeclarations - in the case of a one line function it finds the
+    // declaration rather than the body and confuses devtools.
+    if (node is MethodDeclaration) return;
     _mark(node.offset, _getIdentifier(node));
   }
 
@@ -61,7 +63,11 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     if (unit == null || node == null || node.offset == -1) return;
 
     // TODO(jmesserly): in many cases marking the end will be unnecessary.
-    _mark(node.end);
+    // Skip MethodDeclarations - in the case of a one line function it finds the
+    // declaration rather than the body and confuses devtools.
+    if (node is! MethodDeclaration) {
+      _mark(node.end);
+    }
 
     if (identical(node, _currentTopLevelDeclaration)) {
       unit = null;
@@ -76,6 +82,13 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
   void _mark(int offset, [String identifier]) {
     var loc = unit.lineInfo.getLocation(offset);
+    // Chrome Devtools wants a mapping for the beginning of
+    // a line, so bump locations at the end of a line to the beginning of
+    // the next line.
+    var next = unit.lineInfo.getLocation(offset + 1);
+    if (next.lineNumber == loc.lineNumber + 1) {
+      loc = next;
+    }
     sourceMap.addLocation(
         new SourceLocation(offset,
             sourceUrl: sourcePath,

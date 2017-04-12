@@ -3445,9 +3445,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     var savedFunction = _currentFunction;
     _currentFunction = node;
     var initArgs = _emitArgumentInitializers(node.parent);
-    var ret = new JS.Return(_visit(node.expression));
+    var ret = annotate(new JS.Return(_visit(node.expression)), node.expression);
     _currentFunction = savedFunction;
-    return new JS.Block(initArgs != null ? [initArgs, ret] : [ret]);
+    var _statements = initArgs != null ? [initArgs, ret] : [ret];
+    var block = annotate(new JS.Block(_statements), node);
+    return block;
   }
 
   @override
