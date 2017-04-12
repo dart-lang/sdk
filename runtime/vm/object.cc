@@ -15178,6 +15178,13 @@ RawApiError* ApiError::New() {
 
 
 RawApiError* ApiError::New(const String& message, Heap::Space space) {
+#ifndef PRODUCT
+  if (FLAG_print_stacktrace_at_api_error) {
+    OS::PrintErr("ApiError: %s\n", message.ToCString());
+    Profiler::DumpStackTrace(false /* for_crash */);
+  }
+#endif  // !PRODUCT
+
   ASSERT(Object::api_error_class() != Class::null());
   ApiError& result = ApiError::Handle();
   {
