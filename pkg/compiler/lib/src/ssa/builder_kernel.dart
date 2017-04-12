@@ -115,6 +115,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   HInstruction rethrowableException;
 
+  final Compiler compiler;
+
   @override
   JavaScriptBackend get backend => compiler.backend;
 
@@ -136,12 +138,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   KernelSsaBuilder(
       this.targetElement,
       this.resolvedAst,
-      Compiler compiler,
+      this.compiler,
       this.closedWorld,
       this.registry,
       SourceInformationStrategy sourceInformationFactory,
       Kernel kernel) {
-    this.compiler = compiler;
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
     graph.element = targetElement;

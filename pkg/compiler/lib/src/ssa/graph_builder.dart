@@ -7,6 +7,7 @@ import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
 import '../compiler.dart';
+import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local;
@@ -38,7 +39,7 @@ abstract class GraphBuilder {
 
   // TODO(het): remove this
   /// A reference to the compiler.
-  Compiler compiler;
+  Compiler get compiler;
 
   /// True if the builder is processing nodes inside a try statement. This is
   /// important for generating control flow out of a try block like returns or
@@ -91,6 +92,10 @@ abstract class GraphBuilder {
   MirrorsData get mirrorsData => backend.mirrorsData;
 
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
+
+  DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
+
+  Types get types => compiler.types;
 
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;

@@ -11,6 +11,7 @@ import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
@@ -150,6 +151,9 @@ class SsaBuilder extends ast.Visitor
   GlobalTypeInferenceElementResult elementInferenceResults;
 
   final JavaScriptBackend backend;
+
+  Compiler get compiler => backend.compiler;
+
   final ConstantSystem constantSystem;
   final RuntimeTypesSubstitutions rtiSubstitutions;
 
@@ -202,7 +206,6 @@ class SsaBuilder extends ast.Visitor
         this.constantSystem = backend.constantSystem,
         this.rtiSubstitutions = backend.rtiSubstitutions {
     assert(target.isImplementation);
-    compiler = backend.compiler;
     elementInferenceResults = _resultOf(target);
     assert(elementInferenceResults != null);
     graph.element = target;
@@ -490,7 +493,7 @@ class SsaBuilder extends ast.Visitor
 
       // Don't inline across deferred import to prevent leaking code. The only
       // exception is an empty function (which does not contain code).
-      bool hasOnlyNonDeferredImportPaths = compiler.deferredLoadTask
+      bool hasOnlyNonDeferredImportPaths = deferredLoadTask
           .hasOnlyNonDeferredImportPaths(compiler.currentElement, function);
 
       if (!hasOnlyNonDeferredImportPaths) {
@@ -1212,7 +1215,7 @@ class SsaBuilder extends ast.Visitor
         // Uninitialized native fields are pre-initialized by the native
         // implementation.
         assert(invariant(
-            member, isNativeUpgradeFactory || compiler.compilationFailed));
+            member, isNativeUpgradeFactory || reporter.hasReportedError));
       } else {
         fields.add(member);
         ResolutionDartType type = localsHandler.substInContext(member.type);
@@ -1792,7 +1795,7 @@ class SsaBuilder extends ast.Visitor
 
   visitFunctionExpression(ast.FunctionExpression node) {
     LocalFunctionElement methodElement = elements[node];
-    ClosureClassMap nestedClosureData = compiler.closureToClassMapper
+    ClosureClassMap nestedClosureData = closureToClassMapper
         .getClosureToClassMapping(methodElement.resolvedAst);
     assert(nestedClosureData != null);
     assert(nestedClosureData.closureClassElement != null);
@@ -2024,7 +2027,7 @@ class SsaBuilder extends ast.Visitor
       PrefixElement prefixElement, ast.Node location) {
     if (prefixElement == null) return;
     String loadId =
-        compiler.deferredLoadTask.getImportDeferName(location, prefixElement);
+        deferredLoadTask.getImportDeferName(location, prefixElement);
     HInstruction loadIdConstant = addConstantString(loadId);
     String uri = prefixElement.deferredImport.uri.toString();
     HInstruction uriConstant = addConstantString(uri);
@@ -2037,7 +2040,7 @@ class SsaBuilder extends ast.Visitor
   /// resolves to a deferred library.
   void generateIsDeferredLoadedCheckOfSend(ast.Send node) {
     generateIsDeferredLoadedCheckIfNeeded(
-        compiler.deferredLoadTask.deferredPrefixElement(node, elements), node);
+        deferredLoadTask.deferredPrefixElement(node, elements), node);
   }
 
   void handleInvalidStaticGet(ast.Send node, Element element) {
@@ -2071,7 +2074,7 @@ class SsaBuilder extends ast.Visitor
     // Constants that are referred via a deferred prefix should be referred
     // by reference.
     PrefixElement prefix =
-        compiler.deferredLoadTask.deferredPrefixElement(node, elements);
+        deferredLoadTask.deferredPrefixElement(node, elements);
     if (prefix != null) {
       instruction = graph.addDeferredConstant(
           value, prefix, sourceInformation, compiler, closedWorld);
@@ -2980,8 +2983,7 @@ class SsaBuilder extends ast.Visitor
     invariant(node, deferredLoader.isDeferredLoaderGetter);
     FunctionEntity loadFunction = commonElements.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
-    String loadId =
-        compiler.deferredLoadTask.getImportDeferName(node, prefixElement);
+    String loadId = deferredLoadTask.getImportDeferName(node, prefixElement);
     var inputs = [
       graph.addConstantString(new ast.DartString.literal(loadId), closedWorld)
     ];
@@ -3505,8 +3507,7 @@ class SsaBuilder extends ast.Visitor
         ResolutionDartType bound) {
       if (definitelyFails) return;
 
-      int subtypeRelation =
-          compiler.types.computeSubtypeRelation(typeArgument, bound);
+      int subtypeRelation = types.computeSubtypeRelation(typeArgument, bound);
       if (subtypeRelation == Types.IS_SUBTYPE) return;
 
       String message = "Can't create an instance of malbounded type '$type': "
@@ -3531,14 +3532,13 @@ class SsaBuilder extends ast.Visitor
       }
     }
 
-    compiler.types.checkTypeVariableBounds(type, addTypeVariableBoundCheck);
+    types.checkTypeVariableBounds(type, addTypeVariableBoundCheck);
     if (definitelyFails) {
       return true;
     }
     for (ResolutionInterfaceType supertype in type.element.allSupertypes) {
       ResolutionDartType instance = type.asInstanceOf(supertype.element);
-      compiler.types
-          .checkTypeVariableBounds(instance, addTypeVariableBoundCheck);
+      types.checkTypeVariableBounds(instance, addTypeVariableBoundCheck);
       if (definitelyFails) {
         return true;
       }
