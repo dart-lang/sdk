@@ -548,8 +548,12 @@ class Parser {
       // There was no type name, so this can't be a declaration.
       return false;
     }
-    if (_tokenMatchesKeyword(token, Keyword.FUNCTION)) {
+    if (_atGenericFunctionTypeAfterReturnType(token)) {
       token = skipGenericFunctionTypeAfterReturnType(token);
+      if (token == null) {
+        // There was no type name, so this can't be a declaration.
+        return false;
+      }
     }
     if (token.type != TokenType.IDENTIFIER) {
       allowAdditionalTokens = false;
