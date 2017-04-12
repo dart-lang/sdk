@@ -96,6 +96,7 @@
     'sync_socket_fuchsia.cc',
     'sync_socket_linux.cc',
     'sync_socket_macos.cc',
+    'sync_socket_unsupported.cc',
     'sync_socket_win.cc',
   ],
 }
