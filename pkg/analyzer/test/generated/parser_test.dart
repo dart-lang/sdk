@@ -10040,6 +10040,17 @@ class SimpleParserTest extends ParserTestCase {
     expect(arguments, hasLength(3));
   }
 
+  void test_parseClassMember_field_gftType_gftReturnType() {
+    createParser('''
+Function(int) Function(String) v;
+''');
+    ClassMember member = parser.parseClassMember('C');
+    listener.assertNoErrors();
+    expect(member, new isInstanceOf<FieldDeclaration>());
+    VariableDeclarationList fields = (member as FieldDeclaration).fields;
+    expect(fields.type, new isInstanceOf<GenericFunctionType>());
+  }
+
   void test_parseClassMember_field_gftType_noReturnType() {
     createParser('''
 Function(int, String) v;
@@ -10693,6 +10704,19 @@ Function<A>(core.List<core.int> x) f() => null;
     expect(unit.declarations, hasLength(1));
   }
 
+  void test_parseCompilationUnitMember_variable_gftType_gftReturnType() {
+    createParser('''
+Function(int) Function(String) v;
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(1));
+    TopLevelVariableDeclaration declaration =
+        unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.variables.type, new isInstanceOf<GenericFunctionType>());
+  }
+
   void test_parseCompilationUnitMember_variable_gftType_noReturnType() {
     createParser('''
 Function(int, String) v;
@@ -11319,6 +11343,14 @@ Function(int, String) v;
 
   void test_parseNonLabeledStatement_variableDeclaration_gftType() {
     createParser('int Function(int) v;');
+    Statement statement = parser.parseNonLabeledStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+  }
+
+  void
+      test_parseNonLabeledStatement_variableDeclaration_gftType_gftReturnType() {
+    createParser('Function(int) Function(int) v;');
     Statement statement = parser.parseNonLabeledStatement();
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();

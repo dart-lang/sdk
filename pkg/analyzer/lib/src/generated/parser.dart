@@ -2094,8 +2094,8 @@ class Parser {
         return astFactory.topLevelVariableDeclaration(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
-            parseVariableDeclarationListAfterType(
-                null, _validateModifiersForTopLevelVariable(modifiers), null),
+            parseVariableDeclarationListAfterType(null,
+                _validateModifiersForTopLevelVariable(modifiers), returnType),
             _expect(TokenType.SEMICOLON));
       } else {
         //
