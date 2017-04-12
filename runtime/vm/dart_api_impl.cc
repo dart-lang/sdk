@@ -6811,6 +6811,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   }
   I->StopBackgroundCompiler();
 
+  ProgramVisitor::Dedup();
   Symbols::Compact(I);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),

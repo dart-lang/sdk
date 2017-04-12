@@ -565,7 +565,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
           }
           await_to_token_map.SetAt(i, token_pos_value);
         }
-        code.SetAwaitTokenPositions(await_to_token_map);
+        code.set_await_token_positions(await_to_token_map);
       }
     }
   }

@@ -26,6 +26,17 @@ class ProgramVisitor : public AllStatic {
  public:
   static void VisitFunctions(FunctionVisitor* visitor);
   static void VisitClasses(ClassVisitor* visitor);
+
+  static void Dedup();
+
+ private:
+  static void ShareMegamorphicBuckets();
+  static void DedupStackMaps();
+  static void DedupPcDescriptors();
+  static void DedupDeoptEntries();
+  static void DedupCodeSourceMaps();
+  static void DedupLists();
+  static void DedupInstructions();
 };
 
 }  // namespace dart

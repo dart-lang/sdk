@@ -4390,12 +4390,20 @@ class PcDescriptors : public Object {
     intptr_t cur_try_index_;
   };
 
+  intptr_t Length() const;
+  bool Equals(const PcDescriptors& other) const {
+    if (Length() != other.Length()) {
+      return false;
+    }
+    NoSafepointScope no_safepoint;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Length())) == 0;
+  }
+
  private:
   static const char* KindAsStr(RawPcDescriptors::Kind kind);
 
   static RawPcDescriptors* New(intptr_t length);
 
-  intptr_t Length() const;
   void SetLength(intptr_t value) const;
   void CopyData(GrowableArray<uint8_t>* data);
 
@@ -4698,7 +4706,7 @@ class Code : public Object {
   }
 
   RawArray* await_token_positions() const;
-  void SetAwaitTokenPositions(const Array& await_token_positions) const;
+  void set_await_token_positions(const Array& await_token_positions) const;
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code object.
@@ -5034,7 +5042,7 @@ class Code : public Object {
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
   friend class CodePatcher;  // for set_instructions
-  friend class Precompiler;  // for set_instructions
+  friend class ProgramVisitor;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
@@ -5221,7 +5229,7 @@ class MegamorphicCache : public Object {
  private:
   friend class Class;
   friend class MegamorphicCacheTable;
-  friend class Precompiler;
+  friend class ProgramVisitor;
 
   static RawMegamorphicCache* New();
 
