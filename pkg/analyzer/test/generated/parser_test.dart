@@ -10040,11 +10040,23 @@ class SimpleParserTest extends ParserTestCase {
     expect(arguments, hasLength(3));
   }
 
+  void test_parseClassMember_field_gftType_noReturnType() {
+    createParser('''
+Function(int, String) v;
+''');
+    ClassMember member = parser.parseClassMember('C');
+    listener.assertNoErrors();
+    expect(member, new isInstanceOf<FieldDeclaration>());
+    VariableDeclarationList fields = (member as FieldDeclaration).fields;
+    expect(fields.type, new isInstanceOf<GenericFunctionType>());
+  }
+
   void test_parseClassMember_method_gftReturnType() {
     createParser('''
 void Function<A>(core.List<core.int> x) m() => null;
 ''');
     ClassMember member = parser.parseClassMember('C');
+    listener.assertNoErrors();
     expect(member, new isInstanceOf<MethodDeclaration>());
     expect((member as MethodDeclaration).body,
         new isInstanceOf<ExpressionFunctionBody>());
@@ -10055,6 +10067,7 @@ void Function<A>(core.List<core.int> x) m() => null;
 Function<A>(core.List<core.int> x) m() => null;
 ''');
     ClassMember member = parser.parseClassMember('C');
+    listener.assertNoErrors();
     expect(member, new isInstanceOf<MethodDeclaration>());
     expect((member as MethodDeclaration).body,
         new isInstanceOf<ExpressionFunctionBody>());
@@ -10665,6 +10678,7 @@ void''');
 void Function<A>(core.List<core.int> x) f() => null;
 ''');
     CompilationUnit unit = parser.parseCompilationUnit2();
+    listener.assertNoErrors();
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
   }
@@ -10674,6 +10688,17 @@ void Function<A>(core.List<core.int> x) f() => null;
 Function<A>(core.List<core.int> x) f() => null;
 ''');
     CompilationUnit unit = parser.parseCompilationUnit2();
+    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnitMember_variable_gftType_noReturnType() {
+    createParser('''
+Function(int, String) v;
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    listener.assertNoErrors();
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
   }
@@ -11278,8 +11303,30 @@ Function<A>(core.List<core.int> x) f() => null;
     expect(modifiers.varKeyword, isNotNull);
   }
 
+  void test_parseNonLabeledStatement_localFunction_gftReturnType() {
+    createParser('int Function(int) f(String s) => null;');
+    Statement statement = parser.parseNonLabeledStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+  }
+
   void test_parseNonLabeledStatement_variableDeclaration_final_namedFunction() {
     createParser('final int Function = 0;');
+    Statement statement = parser.parseNonLabeledStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+  }
+
+  void test_parseNonLabeledStatement_variableDeclaration_gftType() {
+    createParser('int Function(int) v;');
+    Statement statement = parser.parseNonLabeledStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+  }
+
+  void
+      test_parseNonLabeledStatement_variableDeclaration_gftType_noReturnType() {
+    createParser('Function(int) v;');
     Statement statement = parser.parseNonLabeledStatement();
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
