@@ -1130,7 +1130,7 @@ class BrowserTestRunner {
     }
   }
 
-  void handleTimeout(BrowserStatus status) {
+  Future handleTimeout(BrowserStatus status) async {
     // We simply kill the browser and starts up a new one!
     // We could be smarter here, but it does not seems like it is worth it.
     if (status.timeout) {
@@ -1142,33 +1142,39 @@ class BrowserTestRunner {
     var id = status.browser.id;
 
     status.currentTest.stopwatch.stop();
-    status.browser.close().then((_) {
-      var lastKnownMessage =
-          'Dom could not be fetched, since the test timed out.';
-      if (status.currentTest.lastKnownMessage.length > 0) {
-        lastKnownMessage = status.currentTest.lastKnownMessage;
-      }
-      if (status.lastTest != null) {
-        lastKnownMessage += '\nPrevious test was ${status.lastTest.url}';
-      }
-      // Wait until the browser is closed before reporting the test as timeout.
-      // This will enable us to capture stdout/stderr from the browser
-      // (which might provide us with information about what went wrong).
-      var browserTestOutput = new BrowserTestOutput(
-          status.currentTest.delayUntilTestStarted,
-          status.currentTest.stopwatch.elapsed,
-          lastKnownMessage,
-          status.browser.testBrowserOutput,
-          didTimeout: true);
-      status.currentTest.doneCallback(browserTestOutput);
-      status.lastTest = status.currentTest;
-      status.currentTest = null;
 
-      // We don't want to start a new browser if we are terminating.
-      if (underTermination) return;
-      removeBrowser(id);
-      requestBrowser();
-    });
+    // Before closing the browser, we'll try to capture a screenshot on
+    // windows when using IE (to debug flakiness).
+    if (status.browser is IE) {
+      await captureInternetExplorerScreenshot(
+          'IE screenshot for ${status.currentTest.url}');
+    }
+    await status.browser.close();
+    var lastKnownMessage =
+        'Dom could not be fetched, since the test timed out.';
+    if (status.currentTest.lastKnownMessage.length > 0) {
+      lastKnownMessage = status.currentTest.lastKnownMessage;
+    }
+    if (status.lastTest != null) {
+      lastKnownMessage += '\nPrevious test was ${status.lastTest.url}';
+    }
+    // Wait until the browser is closed before reporting the test as timeout.
+    // This will enable us to capture stdout/stderr from the browser
+    // (which might provide us with information about what went wrong).
+    var browserTestOutput = new BrowserTestOutput(
+        status.currentTest.delayUntilTestStarted,
+        status.currentTest.stopwatch.elapsed,
+        lastKnownMessage,
+        status.browser.testBrowserOutput,
+        didTimeout: true);
+    status.currentTest.doneCallback(browserTestOutput);
+    status.lastTest = status.currentTest;
+    status.currentTest = null;
+
+    // We don't want to start a new browser if we are terminating.
+    if (underTermination) return;
+    removeBrowser(id);
+    requestBrowser();
   }
 
   /// Remove a browser that has closed from our data structures that track
@@ -1883,4 +1889,52 @@ body div {
 """;
     return driverContent;
   }
+}
+
+Future captureInternetExplorerScreenshot(String message) async {
+  if (Platform.environment['USERNAME'] != 'chrome-bot') {
+    return;
+  }
+
+  print('--------------------------------------------------------------------');
+  final String date =
+      new DateTime.now().toUtc().toIso8601String().replaceAll(':', '_');
+  final screenshotName = 'ie_screenshot_${date}.png';
+
+  // The "capture_screen.ps1" script is next to "test.dart" in "tools/"
+  final powerShellScript =
+      Platform.script.resolve('capture_screenshot.ps1').toFilePath();
+  final screenshotFile =
+      Platform.script.resolve('../$screenshotName').toFilePath();
+
+  final args = [powerShellScript, screenshotFile];
+  final ProcessResult result =
+      await Process.run('powershell.exe', args, runInShell: true);
+  if (result.exitCode != 0) {
+    print('[$message] Failed to capture IE screenshot on windows: '
+        'powershell.exe "${args.join(' ')}" returned with:\n'
+        'exit code: ${result.exitCode}\n'
+        'stdout: ${result.stdout}\n'
+        'stderr: ${result.stderr}');
+  } else {
+    final storageUrl = 'gs://dart-temp-crash-archive/$screenshotName';
+    final args = [
+      r'e:\b\depot_tools\gsutil.py',
+      'cp',
+      screenshotFile,
+      storageUrl,
+    ];
+    final ProcessResult result = await Process.run('python', args);
+    if (result.exitCode != 0) {
+      print('[$message] Failed upload captured IE screenshot to cloud storage: '
+          '"${args.join(' ')}" returned with:\n'
+          'exit code: ${result.exitCode}\n'
+          'stdout: ${result.stdout}\n'
+          'stderr: ${result.stderr}');
+    } else {
+      print('[$message] Successfully uploaded screenshot to $storageUrl');
+    }
+    new File(screenshotFile).deleteSync();
+  }
+  print('--------------------------------------------------------------------');
 }
