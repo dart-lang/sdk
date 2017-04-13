@@ -11349,25 +11349,8 @@ Function(int, String) v;
   }
 
   void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_functionReturnType() {
-    createParser(
-        'Function Function(int x1, {Function x}) Function<B extends core.int>(int x) l771;');
-    Statement statement = parser.parseNonLabeledStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-  }
-
-  void
       test_parseNonLabeledStatement_variableDeclaration_gftType_gftReturnType() {
     createParser('Function(int) Function(int) v;');
-    Statement statement = parser.parseNonLabeledStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-  }
-
-  void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_gftReturnType2() {
-    createParser('int Function(int) Function(int) v;');
     Statement statement = parser.parseNonLabeledStatement();
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
@@ -11383,14 +11366,6 @@ Function(int, String) v;
 
   void test_parseNonLabeledStatement_variableDeclaration_gftType_returnType() {
     createParser('int Function<T>() v;');
-    Statement statement = parser.parseNonLabeledStatement();
-    expectNotNullIfNoErrors(statement);
-    listener.assertNoErrors();
-  }
-
-  void
-      test_parseNonLabeledStatement_variableDeclaration_gftType_voidReturnType() {
-    createParser('void Function() v;');
     Statement statement = parser.parseNonLabeledStatement();
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();

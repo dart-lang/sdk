@@ -542,7 +542,7 @@ class Parser {
       // There was no type name, so this can't be a declaration.
       return false;
     }
-    while (_atGenericFunctionTypeAfterReturnType(token)) {
+    if (_atGenericFunctionTypeAfterReturnType(token)) {
       token = skipGenericFunctionTypeAfterReturnType(token);
       if (token == null) {
         // There was no type name, so this can't be a declaration.
@@ -4061,22 +4061,24 @@ class Parser {
             ])) {
           return _parseFunctionDeclarationStatementAfterReturnType(
               commentAndMetadata, returnType);
-        } else if (_matchesIdentifier() &&
-            next.matchesAny(const <TokenType>[
-              TokenType.EQ,
-              TokenType.COMMA,
-              TokenType.SEMICOLON
-            ])) {
-          if (returnType is! GenericFunctionType) {
-            _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
-          }
-          return _parseVariableDeclarationStatementAfterType(
-              commentAndMetadata, null, returnType);
         } else {
           //
           // We have found an error of some kind. Try to recover.
           //
-          if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
+          if (_matchesIdentifier()) {
+            if (next.matchesAny(const <TokenType>[
+              TokenType.EQ,
+              TokenType.COMMA,
+              TokenType.SEMICOLON
+            ])) {
+              //
+              // We appear to have a variable declaration with a type of "void".
+              //
+              _reportErrorForNode(ParserErrorCode.VOID_VARIABLE, returnType);
+              return parseVariableDeclarationStatementAfterMetadata(
+                  commentAndMetadata);
+            }
+          } else if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
             //
             // We appear to have found an incomplete statement at the end of a
             // block. Parse it as a variable declaration.
