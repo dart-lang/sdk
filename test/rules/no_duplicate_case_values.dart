@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N no_adjacent_strings_in_list`
+// test w/ `pub run test -N no_duplicate_case_values`
 
 void switchInt() {
   const int A = 1;
@@ -66,4 +66,3 @@ void switchConstClass() {
     default:
   }
 }
-

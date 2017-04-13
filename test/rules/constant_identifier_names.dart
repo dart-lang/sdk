@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// test w/ `pub run test -N constant_identifier_names`
+
 library linter.test.rules.constant_identifier_names;
 
 const DEFALT_TIMEOUT = 1000; //LINT
