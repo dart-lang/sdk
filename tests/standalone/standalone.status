@@ -9,6 +9,7 @@
 
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 io/http_close_test: Pass, RuntimeError # Issue 28380
+io/raw_synchronous_socket_test: Pass, RuntimeError # Issue 29343
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
