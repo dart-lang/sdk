@@ -61,6 +61,15 @@ class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
   String getText() => buffer.toString();
 }
 
+String DebugPrint(Node node) {
+  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
+  SimpleJavaScriptPrintingContext context =
+      new SimpleJavaScriptPrintingContext();
+  Printer printer = new Printer(options, context);
+  printer.visit(node);
+  return context.getText();
+}
+
 class Printer implements NodeVisitor {
   final JavaScriptPrintingOptions options;
   final JavaScriptPrintingContext context;

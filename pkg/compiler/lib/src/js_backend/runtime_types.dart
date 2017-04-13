@@ -878,6 +878,8 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
 
+  Map<ResolutionTypeVariableType, jsAst.Expression> typedefBindings;
+
   TypeRepresentationGenerator(this.namer, this.emitter);
 
   /**
@@ -888,6 +890,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
       ResolutionDartType type,
       OnVariableCallback onVariable,
       ShouldEncodeTypedefCallback encodeTypedef) {
+    assert(typedefBindings == null);
     this.onVariable = onVariable;
     this.shouldEncodeTypedef = (encodeTypedef != null)
         ? encodeTypedef
@@ -906,6 +909,10 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   visit(ResolutionDartType type, [_]) => type.accept(this, null);
 
   visitTypeVariableType(ResolutionTypeVariableType type, _) {
+    if (typedefBindings != null) {
+      assert(typedefBindings[type] != null);
+      return typedefBindings[type];
+    }
     return onVariable(type);
   }
 
@@ -1001,6 +1008,42 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   visitTypedefType(ResolutionTypedefType type, _) {
     bool shouldEncode = shouldEncodeTypedef(type);
     ResolutionDartType unaliasedType = type.unaliased;
+
+    var oldBindings = typedefBindings;
+    if (typedefBindings == null) {
+      // First level typedef - capture arguments for re-use within typedef body.
+      //
+      // The type `Map<T, Foo<Set<T>>>` contains one type variable referenced
+      // twice, so there are two inputs into the HTypeInfoExpression
+      // instruction.
+      //
+      // If Foo is a typedef, T can be reused, e.g.
+      //
+      //     typedef E Foo<E>(E a, E b);
+      //
+      // As the typedef is expanded (to (Set<T>, Set<T>) => Set<T>) it should
+      // not consume additional types from the to-level input.  We prevent this
+      // by capturing the types and using the captured type expressions inside
+      // the typedef expansion.
+      //
+      // TODO(sra): We should make the type subexpression Foo<...> be a second
+      // HTypeInfoExpression, with Set<T> as its input (a third
+      // HTypeInfoExpression). This would share all the Set<T> subexpressions
+      // instead of duplicating them. This would require HTypeInfoExpression
+      // inputs to correspond to type variables AND typedefs.
+      typedefBindings = <ResolutionTypeVariableType, jsAst.Expression>{};
+      type.forEachTypeVariable((variable) {
+        if (variable is! MethodTypeVariableType) {
+          typedefBindings[variable] = onVariable(variable);
+        }
+      });
+    }
+
+    jsAst.Expression finish(jsAst.Expression result) {
+      typedefBindings = oldBindings;
+      return result;
+    }
+
     if (shouldEncode) {
       jsAst.ObjectInitializer initializer = unaliasedType.accept(this, null);
       // We have to encode the aliased type.
@@ -1011,9 +1054,9 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
       // Add it to the function-type object.
       jsAst.LiteralString tag = js.string(namer.typedefTag);
       initializer.properties.add(new jsAst.Property(tag, encodedTypedef));
-      return initializer;
+      return finish(initializer);
     } else {
-      return unaliasedType.accept(this, null);
+      return finish(unaliasedType.accept(this, null));
     }
   }
 }
