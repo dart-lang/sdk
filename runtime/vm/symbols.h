@@ -429,6 +429,8 @@ class ObjectPointerVisitor;
   V(_name, "_name")                                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
+  V(_classRangeAssert, "_classRangeAssert")                                    \
+  V(_classIdEqualsAssert, "_classIdEqualsAssert")                              \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
