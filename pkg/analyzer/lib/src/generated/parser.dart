@@ -5724,7 +5724,7 @@ class Parser {
       } else if (_tokenMatches(next, TokenType.GT)) {
         depth--;
         if (depth == 0) {
-          return next;
+          return next.next;
         }
       }
       previous = next;

@@ -11364,6 +11364,13 @@ Function(int, String) v;
     listener.assertNoErrors();
   }
 
+  void test_parseNonLabeledStatement_variableDeclaration_gftType_returnType() {
+    createParser('int Function<T>() v;');
+    Statement statement = parser.parseNonLabeledStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+  }
+
   void test_parseOptionalReturnType() {
     // TODO(brianwilkerson) Implement tests for this method.
   }
