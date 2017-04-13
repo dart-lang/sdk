@@ -22732,7 +22732,7 @@ class HttpRequest extends HttpRequestEventTarget {
   }
 
   /**
-   * Sets the value of an HTTP requst header.
+   * Sets the value of an HTTP request header.
    *
    * This method should be called after the request is opened, but before
    * the request is sent.
