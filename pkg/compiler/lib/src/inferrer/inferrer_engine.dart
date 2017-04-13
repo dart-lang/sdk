@@ -919,6 +919,18 @@ class InferrerEngine {
   }
 
   /**
+   * Registers a call to yield with an expression of type [argumentType] as
+   * argument.
+   */
+  TypeInformation registerYield(ast.Node node, TypeInformation argument) {
+    YieldTypeInformation info =
+        new YieldTypeInformation(types.currentMember, node);
+    info.addAssignment(argument);
+    types.allocatedTypes.add(info);
+    return info;
+  }
+
+  /**
    * Registers that [caller] calls [closure] with [arguments].
    *
    * [sideEffects] will be updated to incorporate the potential

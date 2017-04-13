@@ -2289,6 +2289,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     return inferrer.registerAwait(node, futureType);
   }
 
+  TypeInformation visitYield(ast.Yield node) {
+    TypeInformation operandType = node.expression.accept(this);
+    return inferrer.registerYield(node, operandType);
+  }
+
   TypeInformation handleTypeLiteralInvoke(ast.NodeList arguments) {
     // This is reached when users forget to put a `new` in front of a type
     // literal. The emitter will generate an actual call (even though it is

@@ -1710,6 +1710,21 @@ class AwaitTypeInformation extends TypeInformation {
   }
 }
 
+class YieldTypeInformation extends TypeInformation {
+  final ast.Node node;
+
+  YieldTypeInformation(MemberTypeInformation context, this.node)
+      : super(context);
+
+  TypeMask computeType(InferrerEngine inferrer) => safeType(inferrer);
+
+  String toString() => 'Yield';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitYieldTypeInformation(this);
+  }
+}
+
 abstract class TypeInformationVisitor<T> {
   T visitNarrowTypeInformation(NarrowTypeInformation info);
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
@@ -1729,6 +1744,7 @@ abstract class TypeInformationVisitor<T> {
   T visitParameterTypeInformation(ParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
   T visitAwaitTypeInformation(AwaitTypeInformation info);
+  T visitYieldTypeInformation(YieldTypeInformation info);
 }
 
 TypeMask _narrowType(

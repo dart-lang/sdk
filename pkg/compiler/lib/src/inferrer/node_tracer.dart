@@ -157,6 +157,14 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     bailout("Passed through await");
   }
 
+  void visitYieldTypeInformation(YieldTypeInformation info) {
+    // TODO(29344): The enclosing sync*/async/async* method could have a
+    // tracable TypeInformation for the Iterable / Future / Stream with an
+    // element TypeInformation. Then YieldTypeInformation could connect the
+    // source type information to the tracable element.
+    bailout("Passed through yield");
+  }
+
   void visitNarrowTypeInformation(NarrowTypeInformation info) {
     addNewEscapeInformation(info);
   }

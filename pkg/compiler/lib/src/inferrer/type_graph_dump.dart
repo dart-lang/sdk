@@ -417,6 +417,11 @@ class _GraphGenerator extends TypeInformationVisitor {
     String text = shorten('${info.node}');
     addNode(info, 'Await\n$text');
   }
+
+  void visitYieldTypeInformation(YieldTypeInformation info) {
+    String text = shorten('${info.node}');
+    addNode(info, 'Yield\n$text');
+  }
 }
 
 /// Convert the given TypeMask to a compact string format.
