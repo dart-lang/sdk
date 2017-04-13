@@ -955,7 +955,6 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
     }
   }
   return ctx_;
-  return Context::ZoneHandle(Context::null());
 }
 
 
