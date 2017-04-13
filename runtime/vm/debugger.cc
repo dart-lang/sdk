@@ -930,6 +930,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
   if (!ctx_.IsNull()) return ctx_;
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
+  Object& obj = Object::Handle();
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
@@ -939,7 +940,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
                      var_info.index());
       }
-      const Object& obj = Object::Handle(GetStackVar(var_info.index()));
+      obj = GetStackVar(var_info.index());
       if (obj.IsClosure()) {
         ASSERT(function().name() == Symbols::Call().raw());
         ASSERT(function().IsInvokeFieldDispatcher());
@@ -953,6 +954,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       return ctx_;
     }
   }
+  return ctx_;
   return Context::ZoneHandle(Context::null());
 }
 

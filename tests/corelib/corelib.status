@@ -218,6 +218,7 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
+big_integer_huge_mul_vm_test: Pass, Slow # Slow
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
