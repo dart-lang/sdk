@@ -905,8 +905,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return inputType.isInMask(checkedType, _closedWorld) ? input : node;
   }
 
-  HInstruction removeCheck(HCheck node) => node.checkedInput;
-
   FieldEntity findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {
     TypeMask receiverType = receiver.instructionType;
@@ -2200,6 +2198,17 @@ class SsaTypeConversionInserter extends HBaseVisitor
       HBasicBlock dominator, HInstruction input, TypeMask convertedType) {
     DominatedUses dominatedUses = DominatedUses.of(input, dominator.first);
     if (dominatedUses.isEmpty) return;
+
+    // Check to avoid adding a duplicate HTypeKnown node.
+    if (dominatedUses.isSingleton) {
+      HInstruction user = dominatedUses.single;
+      if (user is HTypeKnown &&
+          user.isPinned &&
+          user.knownType == convertedType &&
+          user.checkedInput == input) {
+        return;
+      }
+    }
 
     HTypeKnown newInput = new HTypeKnown.pinned(convertedType, input);
     dominator.addBefore(dominator.first, newInput);

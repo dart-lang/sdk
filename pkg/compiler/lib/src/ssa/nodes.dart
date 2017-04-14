@@ -1417,6 +1417,10 @@ class DominatedUses {
     }
   }
 
+  bool get isSingleton => _instructions.length == 1;
+
+  HInstruction get single => _instructions.single;
+
   void _addUse(HInstruction user, int inputIndex) {
     _instructions.add(user);
     _indexes.add(inputIndex);
@@ -3046,7 +3050,7 @@ class HTypeConversion extends HCheck {
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
   TypeMask knownType;
-  bool _isMovable;
+  final bool _isMovable;
 
   HTypeKnown.pinned(TypeMask knownType, HInstruction input)
       : this.knownType = knownType,
@@ -3065,6 +3069,8 @@ class HTypeKnown extends HCheck {
   bool isJsStatement() => false;
   bool isControlFlow() => false;
   bool canThrow() => false;
+
+  bool get isPinned => inputs.length == 1;
 
   HInstruction get witness => inputs.length == 2 ? inputs[1] : null;
 
