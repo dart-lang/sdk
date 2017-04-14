@@ -5,7 +5,6 @@
 library dart2js.constants.evaluation;
 
 import '../common.dart';
-import '../common/backend_api.dart' show BackendClasses;
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -15,11 +14,7 @@ import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.
 abstract class Environment {
-  // TODO(johnniwinther): Replace this with [CommonElements] and maybe
-  // [Backend].
   CommonElements get commonElements;
-
-  BackendClasses get backendClasses;
 
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);

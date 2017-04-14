@@ -4,7 +4,6 @@
 
 library dart2js.constant_system.dart;
 
-import 'common/backend_api.dart' show BackendClasses;
 import 'constants/constant_system.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
@@ -449,28 +448,19 @@ class DartConstantSystem extends ConstantSystem {
   }
 
   @override
-  MapConstantValue createMap(
-      CommonElements commonElements,
-      BackendClasses backendClasses,
-      InterfaceType type,
-      List<ConstantValue> keys,
-      List<ConstantValue> values) {
+  MapConstantValue createMap(CommonElements commonElements, InterfaceType type,
+      List<ConstantValue> keys, List<ConstantValue> values) {
     return new MapConstantValue(type, keys, values);
   }
 
   @override
-  ConstantValue createType(CommonElements commonElements,
-      BackendClasses backendClasses, DartType type) {
-    // TODO(johnniwinther): Change the `Type` type to
-    // `compiler.commonElements.typeType` and check the backend specific value
-    // in [checkConstMapKeysDontOverrideEquals] in 'members.dart'.
-    InterfaceType implementationType = backendClasses.typeType;
+  ConstantValue createType(CommonElements commonElements, DartType type) {
+    InterfaceType implementationType = commonElements.typeLiteralType;
     return new TypeConstantValue(type, implementationType);
   }
 
   @override
-  ConstantValue createSymbol(CommonElements commonElements,
-      BackendClasses backendClasses, String text) {
+  ConstantValue createSymbol(CommonElements commonElements, String text) {
     throw new UnsupportedError('DartConstantSystem.createSymbol');
   }
 

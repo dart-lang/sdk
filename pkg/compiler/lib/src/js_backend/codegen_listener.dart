@@ -4,7 +4,6 @@
 
 library js_backend.backend.codegen_listener;
 
-import '../common/backend_api.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
@@ -29,7 +28,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
-  final BackendClasses _backendClasses;
 
   final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
@@ -47,7 +45,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._elementEnvironment,
       this._commonElements,
       this._impacts,
-      this._backendClasses,
       this._backendUsage,
       this._rtiNeed,
       this._customElementsAnalysis,
@@ -197,7 +194,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       _computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
     } else if (constant.isType) {
       impactBuilder
-          .registerTypeUse(new TypeUse.instantiation(_backendClasses.typeType));
+          .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
       TypeConstantValue type = constant;
@@ -220,7 +217,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
             _commonElements.setRuntimeTypeInfo,
             null));
       }
-      if (type.element == _backendClasses.typeClass) {
+      if (type.element == _commonElements.typeLiteralClass) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.

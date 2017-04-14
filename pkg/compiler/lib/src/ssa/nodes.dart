@@ -4,7 +4,7 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/backend_api.dart' show BackendClasses;
+import '../common_elements.dart' show CommonElements;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
@@ -1012,78 +1012,79 @@ abstract class HInstruction implements Spannable {
   }
 
   bool canBePrimitiveNumber(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
+    CommonElements commonElements = closedWorld.commonElements;
     // TODO(sra): It should be possible to test only jsDoubleClass and
     // jsUInt31Class, since all others are superclasses of these two.
     return containsType(
-            instructionType, backendClasses.numClass, closedWorld) ||
-        containsType(instructionType, backendClasses.intClass, closedWorld) ||
+            instructionType, commonElements.jsNumberClass, closedWorld) ||
+        containsType(instructionType, commonElements.jsIntClass, closedWorld) ||
         containsType(
-            instructionType, backendClasses.positiveIntClass, closedWorld) ||
+            instructionType, commonElements.jsPositiveIntClass, closedWorld) ||
         containsType(
-            instructionType, backendClasses.uint32Class, closedWorld) ||
+            instructionType, commonElements.jsUInt32Class, closedWorld) ||
         containsType(
-            instructionType, backendClasses.uint31Class, closedWorld) ||
-        containsType(instructionType, backendClasses.doubleClass, closedWorld);
+            instructionType, commonElements.jsUInt31Class, closedWorld) ||
+        containsType(
+            instructionType, commonElements.jsDoubleClass, closedWorld);
   }
 
   bool canBePrimitiveBoolean(ClosedWorld closedWorld) {
     return containsType(
-        instructionType, closedWorld.backendClasses.boolClass, closedWorld);
+        instructionType, closedWorld.commonElements.jsBoolClass, closedWorld);
   }
 
   bool canBePrimitiveArray(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
+    CommonElements commonElements = closedWorld.commonElements;
     return containsType(
-            instructionType, backendClasses.listClass, closedWorld) ||
+            instructionType, commonElements.jsArrayClass, closedWorld) ||
         containsType(
-            instructionType, backendClasses.fixedListClass, closedWorld) ||
-        containsType(
-            instructionType, backendClasses.growableListClass, closedWorld) ||
-        containsType(
-            instructionType, backendClasses.constListClass, closedWorld);
+            instructionType, commonElements.jsFixedArrayClass, closedWorld) ||
+        containsType(instructionType, commonElements.jsExtendableArrayClass,
+            closedWorld) ||
+        containsType(instructionType, commonElements.jsUnmodifiableArrayClass,
+            closedWorld);
   }
 
   bool isIndexablePrimitive(ClosedWorld closedWorld) {
     return instructionType.containsOnlyString(closedWorld) ||
-        isInstanceOf(instructionType, closedWorld.backendClasses.indexableClass,
-            closedWorld);
+        isInstanceOf(instructionType,
+            closedWorld.commonElements.jsIndexableClass, closedWorld);
   }
 
   bool isFixedArray(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
+    CommonElements commonElements = closedWorld.commonElements;
     // TODO(sra): Recognize the union of these types as well.
     return containsOnlyType(
-            instructionType, backendClasses.fixedListClass, closedWorld) ||
-        containsOnlyType(
-            instructionType, backendClasses.constListClass, closedWorld);
+            instructionType, commonElements.jsFixedArrayClass, closedWorld) ||
+        containsOnlyType(instructionType,
+            commonElements.jsUnmodifiableArrayClass, closedWorld);
   }
 
   bool isExtendableArray(ClosedWorld closedWorld) {
     return containsOnlyType(instructionType,
-        closedWorld.backendClasses.growableListClass, closedWorld);
+        closedWorld.commonElements.jsExtendableArrayClass, closedWorld);
   }
 
   bool isMutableArray(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.mutableListClass, closedWorld);
+        closedWorld.commonElements.jsMutableArrayClass, closedWorld);
   }
 
   bool isReadableArray(ClosedWorld closedWorld) {
     return isInstanceOf(
-        instructionType, closedWorld.backendClasses.listClass, closedWorld);
+        instructionType, closedWorld.commonElements.jsArrayClass, closedWorld);
   }
 
   bool isMutableIndexable(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.mutableIndexableClass, closedWorld);
+        closedWorld.commonElements.jsMutableIndexableClass, closedWorld);
   }
 
   bool isArray(ClosedWorld closedWorld) => isReadableArray(closedWorld);
 
   bool canBePrimitiveString(ClosedWorld closedWorld) {
     return containsType(
-        instructionType, closedWorld.backendClasses.stringClass, closedWorld);
+        instructionType, closedWorld.commonElements.jsStringClass, closedWorld);
   }
 
   bool isInteger(ClosedWorld closedWorld) {
@@ -1093,25 +1094,25 @@ abstract class HInstruction implements Spannable {
 
   bool isUInt32(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, closedWorld.backendClasses.uint32Class,
+        isInstanceOf(instructionType, closedWorld.commonElements.jsUInt32Class,
             closedWorld);
   }
 
   bool isUInt31(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, closedWorld.backendClasses.uint31Class,
+        isInstanceOf(instructionType, closedWorld.commonElements.jsUInt31Class,
             closedWorld);
   }
 
   bool isPositiveInteger(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
         isInstanceOf(instructionType,
-            closedWorld.backendClasses.positiveIntClass, closedWorld);
+            closedWorld.commonElements.jsPositiveIntClass, closedWorld);
   }
 
   bool isPositiveIntegerOrNull(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.positiveIntClass, closedWorld);
+        closedWorld.commonElements.jsPositiveIntClass, closedWorld);
   }
 
   bool isIntegerOrNull(ClosedWorld closedWorld) {

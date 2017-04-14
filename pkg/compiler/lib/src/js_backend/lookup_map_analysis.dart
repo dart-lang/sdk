@@ -9,7 +9,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../common/backend_api.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart'
@@ -127,7 +126,6 @@ class LookupMapAnalysis {
       ConstantEnvironment constants,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
-      BackendClasses backendClasses,
       LookupMapResolutionAnalysis analysis) {
     /// Checks if the version of lookup_map is valid, and if so, enable this
     /// analysis during codegen.
@@ -167,8 +165,8 @@ class LookupMapAnalysis {
         elementEnvironment.lookupClassMember(typeLookupMapClass, '_value');
     // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
 
-    return new _LookupMapAnalysis(constantSystem, commonElements,
-        backendClasses, entriesField, keyField, valueField, typeLookupMapClass);
+    return new _LookupMapAnalysis(constantSystem, commonElements, entriesField,
+        keyField, valueField, typeLookupMapClass);
   }
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
@@ -204,8 +202,6 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   final ConstantSystem _constantSystem;
 
   final CommonElements _commonElements;
-
-  final BackendClasses _backendClasses;
 
   /// The resolved [ClassElement] associated with `LookupMap`.
   final ClassElement _typeLookupMapClass;
@@ -250,7 +246,6 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   _LookupMapAnalysis(
       this._constantSystem,
       this._commonElements,
-      this._backendClasses,
       this._entriesField,
       this._keyField,
       this._valueField,
@@ -295,9 +290,7 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
 
   void _addClassUse(ClassElement cls) {
     ConstantValue key = _typeConstants.putIfAbsent(
-        cls,
-        () => _constantSystem.createType(
-            _commonElements, _backendClasses, cls.rawType));
+        cls, () => _constantSystem.createType(_commonElements, cls.rawType));
     _addUse(key);
   }
 

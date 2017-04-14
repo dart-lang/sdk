@@ -607,7 +607,7 @@ void test() {
   });
   runTest(TEST_15, <String, TestCallback>{
     'f': (closedWorld) {
-      ClassElement cls = closedWorld.backendClasses.indexableClass;
+      ClassElement cls = closedWorld.commonElements.jsIndexableClass;
       return new TypeMask.nonNullSubtype(cls, closedWorld);
     }
   });

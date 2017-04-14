@@ -8,7 +8,7 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
 import '../common.dart';
 import '../common/backend_api.dart'
-    show BackendClasses, ForeignResolver, NativeRegistry, ImpactTransformer;
+    show ForeignResolver, NativeRegistry, ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart'
@@ -18,7 +18,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common_elements.dart' show CommonElements;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
@@ -450,9 +450,6 @@ class JavaScriptBackend {
 
   BackendImpacts impacts;
 
-  /// Common classes used by the backend.
-  BackendClasses _backendClasses;
-
   /// Backend access to the front-end.
   final JSFrontendAccess frontend;
 
@@ -553,13 +550,6 @@ class JavaScriptBackend {
         NO_LOCATION_SPANNABLE, _customElementsCodegenAnalysis != null,
         message: "CustomElementsCodegenAnalysis has not been created yet."));
     return _customElementsCodegenAnalysis;
-  }
-
-  /// Common classes used by the backend.
-  BackendClasses get backendClasses {
-    assert(invariant(NO_LOCATION_SPANNABLE, _backendClasses != null,
-        message: "BackendClasses has not been created yet."));
-    return _backendClasses;
   }
 
   NativeBasicData get nativeBasicData {
@@ -844,13 +834,10 @@ class JavaScriptBackend {
       CompilerTask task, Compiler compiler) {
     _nativeBasicData =
         nativeBasicDataBuilder.close(compiler.elementEnvironment);
-    _backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, commonElements, nativeBasicData);
     _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
-        backendClasses,
         backendUsageBuilder,
         new NativeClassResolverImpl(
             compiler.resolution, reporter, commonElements, nativeBasicData));
@@ -859,7 +846,6 @@ class JavaScriptBackend {
         compiler.resolution,
         constantSystem,
         commonElements,
-        backendClasses,
         nativeBasicData,
         backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
@@ -887,7 +873,6 @@ class JavaScriptBackend {
             compiler.elementEnvironment,
             commonElements,
             impacts,
-            backendClasses,
             nativeBasicData,
             interceptorDataBuilder,
             backendUsageBuilder,
@@ -917,20 +902,14 @@ class JavaScriptBackend {
         constants,
         compiler.elementEnvironment,
         commonElements,
-        backendClasses,
         lookupMapResolutionAnalysis);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        compiler.resolution,
-        constantSystem,
-        commonElements,
-        backendClasses,
-        nativeBasicData);
+        compiler.resolution, constantSystem, commonElements, nativeBasicData);
     _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
-        backendClasses,
         emitter,
         _nativeResolutionEnqueuer,
         nativeData);
@@ -945,7 +924,6 @@ class JavaScriptBackend {
             compiler.elementEnvironment,
             commonElements,
             impacts,
-            backendClasses,
             backendUsage,
             rtiNeed,
             customElementsCodegenAnalysis,
@@ -1470,81 +1448,6 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       // performed.
       resolution.emptyCache();
     }
-  }
-}
-
-// TODO(efortuna): Merge with commonElements.
-class JavaScriptBackendClasses implements BackendClasses {
-  final ElementEnvironment _env;
-  final CommonElements _commonElements;
-  final NativeBasicData _nativeData;
-
-  JavaScriptBackendClasses(this._env, this._commonElements, this._nativeData);
-
-  ClassEntity get intClass => _commonElements.jsIntClass;
-  ClassEntity get uint32Class => _commonElements.jsUInt32Class;
-  ClassEntity get uint31Class => _commonElements.jsUInt31Class;
-  ClassEntity get positiveIntClass => _commonElements.jsPositiveIntClass;
-  ClassEntity get doubleClass => _commonElements.jsDoubleClass;
-  ClassEntity get numClass => _commonElements.jsNumberClass;
-  ClassEntity get stringClass => _commonElements.jsStringClass;
-  ClassEntity get listClass => _commonElements.jsArrayClass;
-  ClassEntity get mutableListClass => _commonElements.jsMutableArrayClass;
-  ClassEntity get constListClass => _commonElements.jsUnmodifiableArrayClass;
-  ClassEntity get fixedListClass => _commonElements.jsFixedArrayClass;
-  ClassEntity get growableListClass => _commonElements.jsExtendableArrayClass;
-  ClassEntity get mapClass => _commonElements.mapLiteralClass;
-  ClassEntity get constMapClass => _commonElements.constMapLiteralClass;
-  ClassEntity get typeClass => _commonElements.typeLiteralClass;
-  InterfaceType get typeType => _env.getRawType(typeClass);
-
-  ClassEntity get boolClass => _commonElements.jsBoolClass;
-  ClassEntity get nullClass => _commonElements.jsNullClass;
-  ClassEntity get syncStarIterableClass => _commonElements.syncStarIterable;
-  ClassEntity get asyncFutureClass => _commonElements.futureImplementation;
-  ClassEntity get asyncStarStreamClass => _commonElements.controllerStream;
-  ClassEntity get functionClass => _commonElements.functionClass;
-  ClassEntity get indexableClass => _commonElements.jsIndexableClass;
-  ClassEntity get mutableIndexableClass =>
-      _commonElements.jsMutableIndexableClass;
-  ClassEntity get indexingBehaviorClass =>
-      _commonElements.jsIndexingBehaviorInterface;
-  ClassEntity get interceptorClass => _commonElements.jsInterceptorClass;
-
-  bool isDefaultEqualityImplementation(MemberEntity element) {
-    assert(element.name == '==');
-    ClassEntity classElement = element.enclosingClass;
-    return classElement == _commonElements.objectClass ||
-        classElement == _commonElements.jsInterceptorClass ||
-        classElement == _commonElements.jsNullClass;
-  }
-
-  @override
-  bool isNativeClass(ClassEntity element) {
-    return _nativeData.isNativeClass(element);
-  }
-
-  InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
-      {bool hasProtoKey: false, bool onlyStringKeys: false}) {
-    ClassEntity classElement = onlyStringKeys
-        ? (hasProtoKey
-            ? _commonElements.constantProtoMapClass
-            : _commonElements.constantStringMapClass)
-        : _commonElements.generalConstantMapClass;
-    List<DartType> typeArgument = sourceType.typeArguments;
-    if (sourceType.treatAsRaw) {
-      return _env.getRawType(classElement);
-    } else {
-      return _env.createInterfaceType(classElement, typeArgument);
-    }
-  }
-
-  @override
-  FieldEntity get symbolField => _commonElements.symbolImplementationField;
-
-  @override
-  InterfaceType get symbolType {
-    return _env.getRawType(_commonElements.symbolImplementationClass);
   }
 }
 

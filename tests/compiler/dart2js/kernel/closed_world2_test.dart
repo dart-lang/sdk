@@ -114,11 +114,8 @@ List createKernelResolutionEnqueuerListener(
       new CustomElementsResolutionAnalysisImpl();
   MirrorsResolutionAnalysis mirrorsResolutionAnalysis =
       new MirrorsResolutionAnalysisImpl();
-
   LookupMapResolutionAnalysis lookupMapResolutionAnalysis =
       new LookupMapResolutionAnalysis(reporter, elementEnvironment);
-  BackendClasses backendClasses = new JavaScriptBackendClasses(
-      elementEnvironment, commonElements, nativeBasicData);
   InterceptorDataBuilder interceptorDataBuilder =
       new InterceptorDataBuilderImpl(
           nativeBasicData, elementEnvironment, commonElements);
@@ -127,20 +124,14 @@ List createKernelResolutionEnqueuerListener(
   NoSuchMethodRegistry noSuchMethodRegistry = new NoSuchMethodRegistry(
       commonElements, new KernelNoSuchMethodResolver(worldBuilder));
   NativeResolutionEnqueuer nativeResolutionEnqueuer =
-      new NativeResolutionEnqueuer(
-          options,
-          elementEnvironment,
-          commonElements,
-          backendClasses,
-          backendUsageBuilder,
-          new KernelNativeClassResolver(worldBuilder));
+      new NativeResolutionEnqueuer(options, elementEnvironment, commonElements,
+          backendUsageBuilder, new KernelNativeClassResolver(worldBuilder));
 
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       options,
       elementEnvironment,
       commonElements,
       impacts,
-      backendClasses,
       nativeBasicData,
       interceptorDataBuilder,
       backendUsageBuilder,

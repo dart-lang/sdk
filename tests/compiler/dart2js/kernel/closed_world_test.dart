@@ -151,7 +151,6 @@ EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
       compiler.elementEnvironment,
       compiler.commonElements,
       backend.impacts,
-      backend.backendClasses,
       backend.nativeBasicData,
       backend.interceptorDataBuilder,
       backend.backendUsageBuilder,

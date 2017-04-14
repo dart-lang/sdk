@@ -60,8 +60,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
       this._nodeToAst, this._nodeToElement)
-      : nativeBehaviorBuilder =
-            new native.ResolverBehaviorBuilder(_backend.compiler) {
+      : nativeBehaviorBuilder = new native.ResolverBehaviorBuilder(
+            _backend.compiler, _backend.nativeData) {
     KernelJumpTarget.index = 0;
     // TODO(het): Maybe just use all of the kernel maps directly?
     for (FieldElement fieldElement in kernel.fields.keys) {
@@ -147,8 +147,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
-      return _backend.constantSystem.createSymbol(
-          _compiler.commonElements, _backend.backendClasses, node.value);
+      return _backend.constantSystem
+          .createSymbol(_compiler.commonElements, node.value);
     }
     ast.Node astNode = getNode(node);
     ConstantValue constantValue = _backend.constants
@@ -292,8 +292,9 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
       return true;
     }
     // TODO(sra): Recognize any combination of fixed length indexables.
-    if (mask.containsOnly(closedWorld.backendClasses.fixedListClass) ||
-        mask.containsOnly(closedWorld.backendClasses.constListClass) ||
+    if (mask.containsOnly(closedWorld.commonElements.jsFixedArrayClass) ||
+        mask.containsOnly(
+            closedWorld.commonElements.jsUnmodifiableArrayClass) ||
         mask.containsOnlyString(closedWorld) ||
         closedWorld.commonMasks.isTypedArray(mask)) {
       return true;
@@ -348,8 +349,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   ConstantValue getConstantForType(ir.DartType irType) {
     ResolutionDartType type = getDartType(irType);
-    return _backend.constantSystem.createType(
-        _compiler.commonElements, _backend.backendClasses, type.asRaw());
+    return _backend.constantSystem
+        .createType(_compiler.commonElements, type.asRaw());
   }
 
   bool isIntercepted(ir.Node node) {

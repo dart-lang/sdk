@@ -405,7 +405,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    */
   bool isParameterOfListAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.backend.backendClasses.listClass) {
+    if (element.enclosingClass != compiler.commonElements.jsArrayClass) {
       return false;
     }
     String name = element.enclosingElement.name;
@@ -419,7 +419,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    */
   bool isParameterOfMapAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.backend.backendClasses.mapClass) {
+    if (element.enclosingClass != compiler.commonElements.mapLiteralClass) {
       return false;
     }
     String name = element.enclosingElement.name;

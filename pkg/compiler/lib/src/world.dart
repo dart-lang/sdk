@@ -5,7 +5,6 @@
 library dart2js.world;
 
 import 'closure.dart' show ClosureClassElement, SynthesizedCallMethodElementX;
-import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'common_elements.dart' show CommonElements;
@@ -43,9 +42,6 @@ abstract class World {}
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
 abstract class ClosedWorld implements World {
-  /// Access to core classes used by the backend.
-  BackendClasses get backendClasses;
-
   NativeData get nativeData;
 
   InterceptorData get interceptorData;
@@ -389,7 +385,6 @@ enum ClassQuery {
 
 abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final JavaScriptBackend _backend;
-  BackendClasses get backendClasses => _backend.backendClasses;
   InterceptorData get interceptorData => _backend.interceptorData;
   FunctionSet _allFunctions;
 

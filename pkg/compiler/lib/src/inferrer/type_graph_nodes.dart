@@ -874,7 +874,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, InferrerEngine inferrer) {
     ClosedWorld closedWorld = inferrer.closedWorld;
-    ClassElement intClass = closedWorld.backendClasses.intClass;
+    ClassElement intClass = closedWorld.commonElements.jsIntClass;
     if (!intClass.isResolved) return null;
     if (mask == null) return null;
     if (!mask.containsOnlyInt(closedWorld)) {
@@ -884,7 +884,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    ClassElement uint31Implementation = closedWorld.backendClasses.uint31Class;
+    ClassElement uint31Implementation =
+        closedWorld.commonElements.jsUInt31Class;
     bool isInt(info) => info.type.containsOnlyInt(closedWorld);
     bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
@@ -892,8 +893,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
 
     bool isPositiveInt(info) {
-      return info.type
-          .satisfies(closedWorld.backendClasses.positiveIntClass, closedWorld);
+      return info.type.satisfies(
+          closedWorld.commonElements.jsPositiveIntClass, closedWorld);
     }
 
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;

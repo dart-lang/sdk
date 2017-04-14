@@ -7,7 +7,6 @@ library dart2js.kernel.world_builder;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
@@ -20,6 +19,7 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/constant_system_javascript.dart';
+import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/no_such_method_registry.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -864,7 +864,10 @@ class KernelBehaviorBuilder extends native.BehaviorBuilder {
   final CommonElements commonElements;
   final ConstantEnvironment constants;
 
-  KernelBehaviorBuilder(this.commonElements, this.constants);
+  KernelBehaviorBuilder(
+    this.commonElements,
+    this.constants,
+  );
 
   @override
   bool get trustJSInteropTypeAnnotations {
@@ -878,8 +881,8 @@ class KernelBehaviorBuilder extends native.BehaviorBuilder {
   }
 
   @override
-  BackendClasses get backendClasses {
-    throw new UnimplementedError("KernelNativeBehaviorComputer.backendClasses");
+  NativeData get nativeData {
+    throw new UnimplementedError("KernelNativeBehaviorComputer.nativeData");
   }
 }
 
@@ -925,11 +928,6 @@ class _EvaluationEnvironment implements Environment {
   @override
   CommonElements get commonElements {
     throw new UnimplementedError("_EvaluationEnvironment.commonElements");
-  }
-
-  @override
-  BackendClasses get backendClasses {
-    throw new UnimplementedError("_EvaluationEnvironment.backendClasses");
   }
 
   @override

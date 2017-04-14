@@ -297,7 +297,7 @@ class FullFunctionSetQuery implements FunctionSetQuery {
           ClassEntity cls = element.enclosingClass;
           return [cls]..addAll(closedWorld.mixinUsesOf(cls));
         }).map((cls) {
-          if (closedWorld.backendClasses.nullClass == cls) {
+          if (closedWorld.commonElements.jsNullClass == cls) {
             return const TypeMask.empty();
           } else if (closedWorld.isInstantiated(cls)) {
             return new TypeMask.nonNullSubclass(cls, closedWorld);

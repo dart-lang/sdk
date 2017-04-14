@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart';
@@ -93,11 +92,10 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
       Resolution resolution,
       ConstantSystem constantSystem,
       CommonElements commonElements,
-      BackendClasses backendClasses,
       NativeBasicData nativeData,
       BackendUsageBuilder backendUsageBuilder)
-      : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
-            commonElements, backendClasses, nativeData,
+      : join = new CustomElementsAnalysisJoin(
+            resolution, constantSystem, commonElements, nativeData,
             backendUsageBuilder: backendUsageBuilder),
         super(resolution, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
@@ -130,10 +128,9 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
       Resolution resolution,
       ConstantSystem constantSystem,
       CommonElements commonElements,
-      BackendClasses backendClasses,
       NativeBasicData nativeData)
-      : join = new CustomElementsAnalysisJoin(resolution, constantSystem,
-            commonElements, backendClasses, nativeData),
+      : join = new CustomElementsAnalysisJoin(
+            resolution, constantSystem, commonElements, nativeData),
         super(resolution, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
@@ -161,7 +158,6 @@ class CustomElementsAnalysisJoin {
   final Resolution _resolution;
   final ConstantSystem _constantSystem;
   final CommonElements _commonElements;
-  final BackendClasses _backendClasses;
   final NativeBasicData _nativeData;
   final BackendUsageBuilder _backendUsageBuilder;
 
@@ -186,7 +182,7 @@ class CustomElementsAnalysisJoin {
   final activeClasses = new Set<ClassElement>();
 
   CustomElementsAnalysisJoin(this._resolution, this._constantSystem,
-      this._commonElements, this._backendClasses, this._nativeData,
+      this._commonElements, this._nativeData,
       {BackendUsageBuilder backendUsageBuilder})
       : this._backendUsageBuilder = backendUsageBuilder,
         this.forResolution = backendUsageBuilder != null;
@@ -228,8 +224,7 @@ class CustomElementsAnalysisJoin {
 
   TypeConstantValue _makeTypeConstant(ClassElement element) {
     ResolutionDartType elementType = element.rawType;
-    return _constantSystem.createType(
-        _commonElements, _backendClasses, elementType);
+    return _constantSystem.createType(_commonElements, elementType);
   }
 
   List<ConstructorElement> computeEscapingConstructors(

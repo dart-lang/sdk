@@ -262,6 +262,8 @@ class CommonElements {
   /// The `Type` type defined in 'dart:core'.
   InterfaceType get typeType => _getRawType(typeClass);
 
+  InterfaceType get typeLiteralType => _getRawType(typeLiteralClass);
+
   /// The `StackTrace` type defined in 'dart:core';
   InterfaceType get stackTraceType => _getRawType(stackTraceClass);
 
@@ -374,6 +376,32 @@ class CommonElements {
   InterfaceType _createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments) {
     return _env.createInterfaceType(cls, typeArguments);
+  }
+
+  InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
+      {bool hasProtoKey: false, bool onlyStringKeys: false}) {
+    ClassEntity classElement = onlyStringKeys
+        ? (hasProtoKey ? constantProtoMapClass : constantStringMapClass)
+        : generalConstantMapClass;
+    List<DartType> typeArgument = sourceType.typeArguments;
+    if (sourceType.treatAsRaw) {
+      return _env.getRawType(classElement);
+    } else {
+      return _env.createInterfaceType(classElement, typeArgument);
+    }
+  }
+
+  FieldEntity get symbolField => symbolImplementationField;
+
+  InterfaceType get symbolImplementationType =>
+      _env.getRawType(symbolImplementationClass);
+
+  bool isDefaultEqualityImplementation(MemberEntity element) {
+    assert(element.name == '==');
+    ClassEntity classElement = element.enclosingClass;
+    return classElement == objectClass ||
+        classElement == jsInterceptorClass ||
+        classElement == jsNullClass;
   }
 
   // From dart:core

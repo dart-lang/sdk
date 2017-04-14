@@ -936,7 +936,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     // implemented because if the selector matches by subtype, it still will be
     // a regular object or an interceptor.
     if (matches
-        .every(closedWorld.backendClasses.isDefaultEqualityImplementation)) {
+        .every(closedWorld.commonElements.isDefaultEqualityImplementation)) {
       return newBuiltinVariant(instruction, closedWorld);
     }
     return null;
