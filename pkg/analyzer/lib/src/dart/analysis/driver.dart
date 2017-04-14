@@ -238,6 +238,29 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   FileTracker _fileTracker;
 
   /**
+   * When this flag is set to `true`, the set of analyzed files must not change,
+   * and all [AnalysisResult]s are cached infinitely.
+   *
+   * The flag is intended to be used for non-interactive clients, like DDC,
+   * which start a new analysis session, load a set of files, resolve all of
+   * them, process the resolved units, and then throw away that whole session.
+   *
+   * The key problem that this flag is solving is that the driver analyzes the
+   * whole library when the result for a unit of the library is requested. So,
+   * when the client requests sequentially the defining unit, then the first
+   * part, then the second part, the driver has to perform analysis of the
+   * library three times and every time throw away all the units except the one
+   * which was requested. With this flag set to `true`, the driver can analyze
+   * once and cache all the resolved units.
+   */
+  final bool disableChangesAndCacheAllResults;
+
+  /**
+   * The cache to use with [disableChangesAndCacheAllResults].
+   */
+  final Map<String, AnalysisResult> _allCachedResults = {};
+
+  /**
    * Create a new instance of [AnalysisDriver].
    *
    * The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -252,7 +275,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {PackageBundle sdkBundle})
+      {PackageBundle sdkBundle,
+      this.disableChangesAndCacheAllResults: false})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle {
@@ -459,6 +483,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
+    _throwIfChangesAreNotAllowed();
     _fileTracker.changeFile(path);
     _priorityResults.clear();
   }
@@ -591,6 +616,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Return the cached result.
     {
       AnalysisResult result = _priorityResults[path];
+      if (disableChangesAndCacheAllResults) {
+        result ??= _allCachedResults[path];
+      }
       if (result != null) {
         return new Future.value(result);
       }
@@ -887,6 +915,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * but does not guarantee this.
    */
   void removeFile(String path) {
+    _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
     _priorityResults.clear();
   }
@@ -956,6 +985,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       try {
         LibraryContext libraryContext = _createLibraryContext(library);
         try {
+          _testView.numOfAnalyzedLibraries++;
           LibraryAnalyzer analyzer = new LibraryAnalyzer(
               analysisOptions,
               declaredVariables,
@@ -977,6 +1007,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             if (unitFile == file) {
               bytes = unitBytes;
               resolvedUnit = unitResult.unit;
+            }
+            if (disableChangesAndCacheAllResults) {
+              AnalysisResult result = _getAnalysisResultFromBytes(
+                  unitFile, unitSignature, unitBytes,
+                  content: unitFile.content, resolvedUnit: unitResult.unit);
+              _allCachedResults[unitFile.path] = result;
             }
           }
 
@@ -1237,6 +1273,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * If the driver is used in the read-only mode with infinite cache,
+   * we should not allow invocations that change files.
+   */
+  void _throwIfChangesAreNotAllowed() {
+    if (disableChangesAndCacheAllResults) {
+      throw new StateError('Changing files is not allowed for this driver.');
+    }
+  }
+
+  /**
    * Given the list of [errors] for the [file], update the [file]'s
    * [FileState.hasErrorOrWarning] flag.
    */
@@ -1477,6 +1523,8 @@ class AnalysisDriverScheduler {
 @visibleForTesting
 class AnalysisDriverTestView {
   final AnalysisDriver driver;
+
+  int numOfAnalyzedLibraries = 0;
 
   AnalysisDriverTestView(this.driver);
 

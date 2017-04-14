@@ -39,8 +39,9 @@ import 'base.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDriverTest);
     defineReflectiveTests(AnalysisDriverSchedulerTest);
+    defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(CacheAllAnalysisDriverTest);
   });
 }
 
@@ -2601,6 +2602,99 @@ class F extends X {}
   static String _md5(String content) {
     return hex.encode(md5.convert(UTF8.encode(content)).bytes);
   }
+}
+
+@reflectiveTest
+class CacheAllAnalysisDriverTest extends BaseAnalysisDriverTest {
+  bool get disableChangesAndCacheAllResults => true;
+
+  test_addFile() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    driver.addFile(a);
+    driver.addFile(b);
+  }
+
+  test_changeFile() async {
+    var path = _p('/test.dart');
+    expect(() {
+      driver.changeFile(path);
+    }, throwsStateError);
+  }
+
+  test_getResult_libraryUnits() async {
+    var lib = _p('/lib.dart');
+    var part1 = _p('/part1.dart');
+    var part2 = _p('/part2.dart');
+
+    provider.newFile(
+        lib,
+        r'''
+library test;
+part 'part1.dart';
+part 'part2.dart';
+''');
+    provider.newFile(part1, 'part of test; class A {}');
+    provider.newFile(part2, 'part of test; class B {}');
+
+    driver.addFile(lib);
+    driver.addFile(part1);
+    driver.addFile(part2);
+
+    // No analyzed libraries initially.
+    expect(driver.test.numOfAnalyzedLibraries, 0);
+
+    AnalysisResult libResult = await driver.getResult(lib);
+    AnalysisResult partResult1 = await driver.getResult(part1);
+    AnalysisResult partResult2 = await driver.getResult(part2);
+
+    // Just one library was analyzed, results for parts are cached.
+    expect(driver.test.numOfAnalyzedLibraries, 1);
+
+    expect(libResult.path, lib);
+    expect(partResult1.path, part1);
+    expect(partResult2.path, part2);
+
+    expect(libResult.unit, isNotNull);
+    expect(partResult1.unit, isNotNull);
+    expect(partResult2.unit, isNotNull);
+
+    // The parts uses the same resynthesized library element.
+    var libLibrary = libResult.unit.element.library;
+    var partLibrary1 = partResult1.unit.element.library;
+    var partLibrary2 = partResult2.unit.element.library;
+    expect(partLibrary1, same(libLibrary));
+    expect(partLibrary2, same(libLibrary));
+  }
+
+  test_getResult_singleFile() async {
+    var path = _p('/test.dart');
+    provider.newFile(path, 'main() {}');
+    driver.addFile(path);
+
+    AnalysisResult result1 = await driver.getResult(path);
+    expect(driver.test.numOfAnalyzedLibraries, 1);
+    var unit1 = result1.unit;
+    var unitElement1 = unit1.element;
+    expect(result1.path, path);
+    expect(unit1, isNotNull);
+    expect(unitElement1, isNotNull);
+
+    AnalysisResult result2 = await driver.getResult(path);
+    expect(driver.test.numOfAnalyzedLibraries, 1);
+    expect(result2.path, path);
+    expect(result2.unit, same(unit1));
+    expect(result2.unit.element, same(unitElement1));
+  }
+
+  test_removeFile() async {
+    var path = _p('/test.dart');
+    expect(() {
+      driver.removeFile(path);
+    }, throwsStateError);
+  }
+
+  String _p(String path) => provider.convertPath(path);
 }
 
 class _SourceMock extends TypedMock implements Source {}
