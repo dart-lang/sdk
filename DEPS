@@ -61,7 +61,7 @@ vars = {
   "dart_style_tag": "@1.0.3",
   "dartdoc_tag" : "@v0.9.14-dev",
   "fixnum_tag": "@0.10.5",
-  "func_tag": "@0.1.1",
+  "func_tag": "@1.0.0",
   "glob_tag": "@1.1.3",
   "html_tag" : "@0.13.1",
   "http_multi_server_tag" : "@2.0.3",
