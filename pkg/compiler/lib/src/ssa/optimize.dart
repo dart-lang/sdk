@@ -1459,6 +1459,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   final ClosedWorld closedWorld;
   final SsaOptimizerTask optimizer;
+  HGraph _graph;
   SsaLiveBlockAnalyzer analyzer;
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
@@ -1596,15 +1597,17 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void visitGraph(HGraph graph) {
+    _graph = graph;
     analyzer = new SsaLiveBlockAnalyzer(graph, closedWorld, optimizer);
     analyzer.analyze();
     visitPostDominatorTree(graph);
-    cleanPhis(graph);
+    cleanPhis();
   }
 
   void visitBasicBlock(HBasicBlock block) {
     bool isDeadBlock = analyzer.isDeadBlock(block);
     block.isLive = !isDeadBlock;
+    simplifyControlFlow(block);
     // Start from the last non-control flow instruction in the block.
     HInstruction instruction = block.last.previous;
     while (instruction != null) {
@@ -1619,11 +1622,89 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       }
       instruction = previous;
     }
+    block.forEachPhi(simplifyPhi);
   }
 
-  void cleanPhis(HGraph graph) {
+  void simplifyPhi(HPhi phi) {
+    // If the phi is of the form `phi(x, HTypeKnown(x))`, it does not strengthen
+    // `x`.  We can replace the phi with `x` to potentially make the HTypeKnown
+    // refinement node dead and potentially make a HIf control no HPhis.
+
+    // TODO(sra): Implement version of this test that works for a subgraph of
+    // HPhi nodes.
+    HInstruction base = null;
+    bool seenUnrefinedBase = false;
+    for (HInstruction input in phi.inputs) {
+      HInstruction value = input;
+      while (value is HTypeKnown) {
+        HTypeKnown refinement = value;
+        value = refinement.checkedInput;
+      }
+      if (value == input) seenUnrefinedBase = true;
+      base ??= value;
+      if (base != value) return;
+    }
+
+    if (seenUnrefinedBase) {
+      HBasicBlock block = phi.block;
+      block.rewrite(phi, base);
+      block.removePhi(phi);
+    }
+  }
+
+  void simplifyControlFlow(HBasicBlock block) {
+    HControlFlow instruction = block.last;
+    if (instruction is HIf) {
+      HInstruction condition = instruction.condition;
+      if (condition.isConstant()) return;
+
+      // We want to remove an if-then-else diamond when the then- and else-
+      // branches are empty and the condition does not control a HPhi. We cannot
+      // change the CFG structure so we replace the HIf condition with a
+      // constant. This may leave the original condition unused. i.e. a
+      // candidate for being dead code.
+
+      List<HBasicBlock> dominated = block.dominatedBlocks;
+      // Diamond-like control flow dominates the then-, else- and join- blocks.
+      if (dominated.length != 3) return;
+      HBasicBlock join = dominated.last;
+      if (!join.phis.isEmpty) return; // condition controls a phi.
+      // Ignore exit block - usually the join in `if (...) return ...`
+      if (join.isExitBlock()) return;
+
+      int thenSize = measureEmptyInterval(instruction.thenBlock, join);
+      if (thenSize == null) return;
+      int elseSize = measureEmptyInterval(instruction.elseBlock, join);
+      if (elseSize == null) return;
+
+      // Pick the 'live' branch to be the smallest subgraph.
+      bool value = thenSize <= elseSize;
+      HInstruction newCondition = _graph.addConstantBool(value, closedWorld);
+      instruction.inputs[0] = newCondition;
+      condition.usedBy.remove(instruction);
+      newCondition.usedBy.add(instruction);
+    }
+  }
+
+  /// Returns the number of blocks from [start] up to but not including [end].
+  /// Returns `null` if any of the blocks is non-empty (other than control
+  /// flow).  Returns `null` if there is an exit from the region other than
+  /// [end] or via control flow other than HGoto and HIf.
+  int measureEmptyInterval(HBasicBlock start, HBasicBlock end) {
+    if (start.first != start.last) return null; // start is not empty.
+    // Do a simple single-block region test first.
+    if (start.last is HGoto &&
+        start.successors.length == 1 &&
+        start.successors.single == end) {
+      return 1;
+    }
+    // TODO(sra): Implement fuller test.
+    return null;
+  }
+
+  void cleanPhis() {
     L:
-    for (HBasicBlock block in graph.blocks) {
+    for (HBasicBlock block in _graph.blocks) {
       List<HBasicBlock> predecessors = block.predecessors;
       // Zap all inputs to phis that correspond to dead blocks.
       block.forEachPhi((HPhi phi) {
