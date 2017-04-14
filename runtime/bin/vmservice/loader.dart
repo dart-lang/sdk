@@ -1131,34 +1131,36 @@ _processLoadRequest(request) {
       }
       break;
     case _Dart_kResolveAsFilePath:
-      String uri = request[4];
-      Uri resolvedUri = Uri.parse(_sanitizeWindowsPath(uri));
-      try {
-        if (resolvedUri.scheme == 'package') {
-          resolvedUri = loaderState._resolvePackageUri(resolvedUri);
-        }
-        if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
-          resolvedUri = loaderState._workingDirectory.resolveUri(resolvedUri);
+      loaderState._triggerPackageResolution(() {
+        String uri = request[4];
+        Uri resolvedUri = Uri.parse(_sanitizeWindowsPath(uri));
+        try {
+          if (resolvedUri.scheme == 'package') {
+            resolvedUri = loaderState._resolvePackageUri(resolvedUri);
+          }
+          if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
+            resolvedUri = loaderState._workingDirectory.resolveUri(resolvedUri);
+            var msg = new List(5);
+            msg[0] = tag;
+            msg[1] = uri;
+            msg[2] = resolvedUri.toString();
+            msg[3] = null;
+            msg[4] = resolvedUri.toFilePath();
+            sp.send(msg);
+          } else {
+            throw "Cannot resolve scheme (${resolvedUri.scheme}) to file path"
+                " for $resolvedUri";
+          }
+        } catch (e) {
           var msg = new List(5);
-          msg[0] = tag;
+          msg[0] = -tag;
           msg[1] = uri;
           msg[2] = resolvedUri.toString();
           msg[3] = null;
-          msg[4] = resolvedUri.toFilePath();
+          msg[4] = e.toString();
           sp.send(msg);
-        } else {
-          throw "Cannot resolve scheme (${resolvedUri.scheme}) to file path"
-              " for $resolvedUri";
         }
-      } catch (e) {
-        var msg = new List(5);
-        msg[0] = -tag;
-        msg[1] = uri;
-        msg[2] = resolvedUri.toString();
-        msg[3] = null;
-        msg[4] = e.toString();
-        sp.send(msg);
-      }
+      });
       break;
     default:
       _log('Unknown loader request tag=$tag from $isolateId');
