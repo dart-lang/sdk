@@ -739,13 +739,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => new RegExpLiteral(node.pattern);
 
   Instantiator visitTemplateString(TemplateString node) {
-    Iterable makeElements =
-        node.elements.map((e) => e is String ? e : visit(e));
-    return (arguments) {
-      return new TemplateString(makeElements
-          .map((m) => m is String ? m : m(arguments))
-          .toList(growable: false));
-    };
+    Iterable<Instantiator> makeElements = node.interpolations.map(visit);
+    return (arguments) => new TemplateString(node.strings,
+        makeElements.map((m) => m(arguments)).toList(growable: false));
   }
 
   Instantiator visitTaggedTemplate(TaggedTemplate node) {

@@ -53,8 +53,23 @@ import 'reify_coercions.dart' show CoercionReifier;
 import 'side_effect_analysis.dart' show ConstFieldVisitor, isStateless;
 import 'type_utilities.dart';
 
-class CodeGenerator extends GeneralizingAstVisitor
-    with ClosureAnnotator, JsTypeRefCodegen, NullableTypeInference {
+/// The code generator for Dart Dev Compiler.
+///
+/// Takes as input resolved Dart ASTs for every compilation unit in every
+/// library in the module. Produces a single JavaScript AST for the module as
+/// output, along with its source map.
+///
+/// This class attempts to preserve identifier names and structure of the input
+/// Dart code, whenever this is possible to do in the generated code.
+//
+// TODO(jmesserly): we should use separate visitors for statements and
+// expressions. Declarations are handled directly, and many minor component
+// AST nodes aren't visited, so the visitor pattern isn't helping except for
+// expressions (which result in JS.Expression) and statements
+// (which result in (JS.Statement).
+class CodeGenerator extends Object
+    with ClosureAnnotator, JsTypeRefCodegen, NullableTypeInference
+    implements AstVisitor<JS.Node> {
   final AnalysisContext context;
   final SummaryDataStore summaryData;
 
@@ -239,11 +254,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     assembler.recordDependencies(summaryData);
 
     var uriToUnit = new Map<String, UnlinkedUnit>.fromIterable(units,
-        key: (u) => u.element.source.uri.toString(), value: (unit) {
-      var unlinked = serializeAstUnlinked(unit);
-      assembler.addUnlinkedUnit(unit.element.source, unlinked);
-      return unlinked;
-    });
+        key: (u) => u.element.source.uri.toString(),
+        value: (unit) {
+          var unlinked = serializeAstUnlinked(unit);
+          assembler.addUnlinkedUnit(unit.element.source, unlinked);
+          return unlinked;
+        });
 
     summary_link
         .link(
@@ -329,7 +345,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // NOTE: declarations are not necessarily emitted in this order.
     // Order will be changed as needed so the resulting code can execute.
     // This is done by forward declaring items.
-    compilationUnits.forEach(_emitCompilationUnit);
+    compilationUnits.forEach(visitCompilationUnit);
     assert(_deferredProperties.isEmpty);
 
     // Visit directives (for exports)
@@ -565,7 +581,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  void _emitCompilationUnit(CompilationUnit unit) {
+  @override
+  visitCompilationUnit(CompilationUnit unit) {
     // NOTE: this method isn't the right place to initialize
     // per-compilation-unit state. Declarations can be visited out of order,
     // this is only to catch things that haven't been emitted yet.
@@ -621,10 +638,10 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   @override
-  void visitLibraryDirective(LibraryDirective node) {}
+  visitLibraryDirective(LibraryDirective node) => null;
 
   @override
-  void visitImportDirective(ImportDirective node) {
+  visitImportDirective(ImportDirective node) {
     // We don't handle imports here.
     //
     // Instead, we collect imports whenever we need to generate a reference
@@ -633,16 +650,17 @@ class CodeGenerator extends GeneralizingAstVisitor
     //
     // TODO(jmesserly): if this is a prefixed import, consider adding the prefix
     // as an alias?
+    return null;
   }
 
   @override
-  void visitPartDirective(PartDirective node) {}
+  visitPartDirective(PartDirective node) => null;
 
   @override
-  void visitPartOfDirective(PartOfDirective node) {}
+  visitPartOfDirective(PartOfDirective node) => null;
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     var currentLibrary = element.library;
 
@@ -659,7 +677,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     if (export is FunctionElement) {
       // Don't allow redefining names from this library.
-      if (currentNames.containsKey(export.name)) return;
+      if (currentNames.containsKey(export.name)) return null;
 
       var name = _emitTopLevelName(export);
       _moduleItems.add(js.statement(
@@ -755,6 +773,12 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   @override
+  visitGenericTypeAlias(GenericTypeAlias node) {
+    throw new UnimplementedError('Generic type aliases are not implemented. '
+        'See https://github.com/dart-lang/sdk/issues/27971');
+  }
+
+  @override
   JS.Expression visitTypeName(TypeName node) {
     if (node.type == null) {
       // TODO(jmesserly): if the type fails to resolve, should we generate code
@@ -796,8 +820,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var className = isGeneric ? element.name : _emitTopLevelName(element);
     JS.Statement declareInterfaces(JS.Statement decl) {
       if (element.interfaces.isNotEmpty) {
-        var body = [decl]
-          ..add(js.statement('#[#.implements] = () => #;', [
+        var body = [decl]..add(js.statement('#[#.implements] = () => #;', [
             className,
             _runtimeModule,
             new JS.ArrayInitializer(
@@ -2073,18 +2096,18 @@ class CodeGenerator extends GeneralizingAstVisitor
       // TODO(jmesserly): we'll need something different once we have
       // rest/spread support, but this should work for now.
       var params =
-          visitFormalParameterList(node.parameters, destructure: false);
+          _emitFormalParameterList(node.parameters, destructure: false);
 
       var fun = new JS.Fun(
           params,
-          js.statement('{ return $newKeyword #(#); }',
-              [_visit(redirect) as JS.Node, params]),
+          js.statement(
+              '{ return $newKeyword #(#); }', [_visit(redirect), params]),
           returnType: returnType);
       return annotate(
           new JS.Method(name, fun, isStatic: true), node, node.element);
     }
 
-    var params = visitFormalParameterList(node.parameters);
+    var params = _emitFormalParameterList(node.parameters);
 
     // Factory constructors are essentially static methods.
     if (node.factoryKeyword != null) {
@@ -2177,7 +2200,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return js.statement('#.prototype.#.call(this, #);', [
       new JS.Identifier(cls.name),
       _constructorName(ctor),
-      _visit(node.argumentList)
+      _emitArgumentList(node.argumentList)
     ]);
   }
 
@@ -2209,7 +2232,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     var name = _constructorName(superCtor);
-    var args = node != null ? _visit(node.argumentList) : [];
+    var args = node != null ? _emitArgumentList(node.argumentList) : [];
     return annotate(js.statement('super.#(#);', [name, args]), node);
   }
 
@@ -2269,6 +2292,10 @@ class CodeGenerator extends GeneralizingAstVisitor
         if (init is ConstructorFieldInitializer) {
           var element = init.fieldName.staticElement as FieldElement;
           fields[element] = _visit(init.expression);
+        } else if (init is AssertInitializer) {
+          throw new UnimplementedError(
+              'Assert initializers are not implemented. '
+              'See https://github.com/dart-lang/sdk/issues/27809');
         }
       }
     }
@@ -2390,7 +2417,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       return new JS.Fun([], js.statement('{ return this.#; }', [name]));
     } else if (node.isSetter) {
       var params =
-          visitFormalParameterList(node.parameters, destructure: false);
+          _emitFormalParameterList(node.parameters, destructure: false);
       return new JS.Fun(
           params, js.statement('{ this.# = #; }', [name, params.last]));
     } else {
@@ -2450,8 +2477,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Rewrite the function to include the return.
     return new JS.Fun(
         fn.params, new JS.Block([body, new JS.Return(fn.params.last)]),
-        typeParams: fn.typeParams,
-        returnType: fn.returnType)..sourceInformation = fn.sourceInformation;
+        typeParams: fn.typeParams, returnType: fn.returnType)
+      ..sourceInformation = fn.sourceInformation;
   }
 
   @override
@@ -2656,7 +2683,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // normal function (sync), vs (sync*, async, async*)
     var stdFn = !(element.isAsynchronous || element.isGenerator);
-    var formals = visitFormalParameterList(parameters, destructure: stdFn);
+    var formals = _emitFormalParameterList(parameters, destructure: stdFn);
     var code = (stdFn)
         ? _visit(body)
         : new JS.Block(
@@ -2709,7 +2736,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // `await` is generated as `yield`.
     // runtime/_generators.js has an example of what the code is generated as.
     var savedController = _asyncStarController;
-    var jsParams = visitFormalParameterList(parameters);
+    var jsParams = _emitFormalParameterList(parameters);
     if (kind == 'asyncStar') {
       _asyncStarController = new JS.TemporaryId('stream');
       jsParams.insert(0, _asyncStarController);
@@ -2733,7 +2760,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var T = _emitType(returnType);
     return _callHelper('#(#)', [
       kind,
-      [gen, T]..addAll(visitFormalParameterList(parameters, destructure: false))
+      [gen, T]..addAll(_emitFormalParameterList(parameters, destructure: false))
     ]);
   }
 
@@ -3381,13 +3408,14 @@ class CodeGenerator extends GeneralizingAstVisitor
       target = new JS.Identifier(element.name);
     }
 
-    return _visit(rhs).toAssignExpression(annotate(target, node));
+    return _visit<JS.Expression>(rhs)
+        .toAssignExpression(annotate(target, node));
   }
 
   /// Emits assignment to library scope element [element].
   JS.Expression _emitSetTopLevel(
       Expression lhs, Element element, Expression rhs) {
-    return _visit(rhs)
+    return _visit<JS.Expression>(rhs)
         .toAssignExpression(annotate(_emitTopLevelName(element), lhs));
   }
 
@@ -3402,7 +3430,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var dynType = _emitStaticAccess(type);
     var member = _emitMemberName(element.name,
         isStatic: true, type: type, element: element);
-    return _visit(rhs).toAssignExpression(
+    return _visit<JS.Expression>(rhs).toAssignExpression(
         annotate(new JS.PropertyAccess(dynType, member), lhs));
   }
 
@@ -3421,7 +3449,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       SimpleIdentifier id, Expression rhs) {
     // TODO(sra): Determine whether and access helper is required for the
     // setter. For now fall back on the r-value path.
-    return _visit(rhs).toAssignExpression(_visit(lhs));
+    return _visit<JS.Expression>(rhs).toAssignExpression(_visit(lhs));
   }
 
   JS.Expression _emitNullSafeSet(PropertyAccess node, Expression right) {
@@ -3498,8 +3526,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       if (targetType.isDartCoreFunction || targetType.isDynamic) {
         // TODO(vsm): Can a call method take generic type parameters?
-        return _emitDynamicInvoke(node, _visit(target),
-            _visit(node.argumentList) as List<JS.Expression>);
+        return _emitDynamicInvoke(
+            node, _visit(target), _emitArgumentList(node.argumentList));
       }
     }
 
@@ -3507,7 +3535,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   JS.Expression _emitMethodCall(Expression target, MethodInvocation node) {
-    var args = _visit(node.argumentList) as List<JS.Expression>;
+    var args = _emitArgumentList(node.argumentList);
     var typeArgs = _emitInvokeTypeArguments(node);
 
     if (target is SuperExpression && !_superAllowed) {
@@ -3647,7 +3675,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       function = node.function;
     }
     var fn = _visit(function);
-    var args = _visit(node.argumentList) as List<JS.Expression>;
+    var args = _emitArgumentList(node.argumentList);
     if (isDynamicInvoke(function)) {
       return _emitDynamicInvoke(node, fn, args);
     } else {
@@ -3795,8 +3823,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           FunctionExpressionInvocation node) =>
       _emitFunctionCall(node);
 
-  @override
-  List<JS.Expression> visitArgumentList(ArgumentList node) {
+  List<JS.Expression> _emitArgumentList(ArgumentList node) {
     var args = <JS.Expression>[];
     var named = <JS.Property>[];
     for (var arg in node.arguments) {
@@ -3822,8 +3849,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         _propertyName(node.name.label.name), _visit(node.expression));
   }
 
-  @override
-  List<JS.Parameter> visitFormalParameterList(FormalParameterList node,
+  List<JS.Parameter> _emitFormalParameterList(FormalParameterList node,
       {bool destructure: true}) {
     if (node == null) return [];
 
@@ -3980,10 +4006,10 @@ class CodeGenerator extends GeneralizingAstVisitor
       var v = variables[0];
       if (v.initializer != null) {
         var name = new JS.Identifier(v.name.name);
-        return _visit(v.initializer).toVariableDeclaration(name);
+        return _visit<JS.Expression>(v.initializer).toVariableDeclaration(name);
       }
     }
-    return _visit(node.variables).toStatement();
+    return _visit<JS.Expression>(node.variables).toStatement();
   }
 
   @override
@@ -4122,7 +4148,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         var classElem = element.enclosingElement;
         isNative = _isJSNative(classElem);
       }
-      var args = _visit(argumentList) as List<JS.Expression>;
+      var args = _emitArgumentList(argumentList);
       // Native factory constructors are JS constructors - use new here.
       return isFactory && !isNative
           ? new JS.Call(ctor, args)
@@ -4145,7 +4171,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       findAnnotation(classElem, isPublicJSAnnotation) != null;
 
   JS.Expression _emitObjectLiteral(ArgumentList argumentList) {
-    var args = _visit(argumentList) as List<JS.Expression>;
+    var args = _emitArgumentList(argumentList);
     if (args.isEmpty) {
       return js.call('{}');
     }
@@ -4742,7 +4768,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   // [PropertyAccess]. The code generation for those is handled in their
   // respective visit methods.
   @override
-  JS.Node visitCascadeExpression(CascadeExpression node) {
+  visitCascadeExpression(CascadeExpression node) {
     var savedCascadeTemp = _cascadeTarget;
 
     var vars = <JS.MetaLetVariable, JS.Expression>{};
@@ -4760,11 +4786,27 @@ class CodeGenerator extends GeneralizingAstVisitor
       _visit(node.expression);
 
   @override
-  visitFormalParameter(FormalParameter node) {
+  visitDefaultFormalParameter(DefaultFormalParameter node) {
+    return _emitParameter(node.element, declaration: true);
+  }
+
+  JS.Parameter _emitNormalFormalParameter(NormalFormalParameter node) {
     var id = _emitParameter(node.element, declaration: true);
     var isRestArg = findAnnotation(node.element, isJsRestAnnotation) != null;
     return isRestArg ? new JS.RestParameter(id) : id;
   }
+
+  @override
+  visitSimpleFormalParameter(SimpleFormalParameter node) =>
+      _emitNormalFormalParameter(node);
+
+  @override
+  visitFieldFormalParameter(FieldFormalParameter node) =>
+      _emitNormalFormalParameter(node);
+
+  @override
+  visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+      _emitNormalFormalParameter(node);
 
   @override
   JS.This visitThisExpression(ThisExpression node) => new JS.This();
@@ -5414,15 +5456,27 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   JS.Expression visitStringInterpolation(StringInterpolation node) {
-    return new JS.TaggedTemplate(
-        _callHelper('str'), new JS.TemplateString(_visitList(node.elements)));
-  }
+    var strings = <String>[];
+    var interpolations = <JS.Expression>[];
 
-  @override
-  String visitInterpolationString(InterpolationString node) {
-    // TODO(jmesserly): this call adds quotes, and then we strip them off.
-    var str = js.escapedString(node.value, '`').value;
-    return str.substring(1, str.length - 1);
+    var expectString = true;
+    for (var e in node.elements) {
+      if (e is InterpolationString) {
+        assert(expectString);
+        expectString = false;
+
+        // Escape the string as necessary for use in the eventual `` quotes.
+        // TODO(jmesserly): this call adds quotes, and then we strip them off.
+        var str = js.escapedString(e.value, '`').value;
+        strings.add(str.substring(1, str.length - 1));
+      } else {
+        assert(!expectString);
+        expectString = true;
+        interpolations.add(_visit(e));
+      }
+    }
+    return new JS.TaggedTemplate(
+        _callHelper('str'), new JS.TemplateString(strings, interpolations));
   }
 
   @override
@@ -5432,24 +5486,10 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   visitBooleanLiteral(BooleanLiteral node) => js.boolean(node.value);
 
-  @override
-  JS.Expression visitExpression(Expression node) =>
-      _unimplementedCall('Unimplemented ${node.runtimeType}: $node');
-
-  JS.Expression _unimplementedCall(String comment) {
-    return _callHelper('throw(#)', [js.escapedString(comment)]);
-  }
-
-  @override
-  visitNode(AstNode node) {
-    // TODO(jmesserly): verify this is unreachable.
-    throw 'Unimplemented ${node.runtimeType}: $node';
-  }
-
-  _visit(AstNode node) {
+  T _visit<T extends JS.Node>(AstNode node) {
     if (node == null) return null;
     var result = node.accept(this);
-    return result is JS.Node ? annotate(result, node) : result;
+    return result != null ? annotate(result, node) : null;
   }
 
   // TODO(jmesserly): we should make sure this only returns JS AST nodes.
@@ -5610,6 +5650,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   var _forwardingCache = new HashMap<Element, Map<String, ExecutableElement>>();
+
   Element _lookupForwardedMember(ClassElement element, String name) {
     // We only care about public methods.
     if (name.startsWith('_')) return null;
@@ -5837,6 +5878,133 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     return path.endsWith(".template.dart");
   }
+
+  _unreachable(AstNode node) {
+    throw new UnsupportedError(
+        'tried to generate an unreachable node: `$node`');
+  }
+
+  /// Unused, see methods for emitting declarations.
+  @override
+  visitAnnotation(node) => _unreachable(node);
+
+  /// Unused, see [_emitArgumentList].
+  @override
+  visitArgumentList(ArgumentList node) => _unreachable(node);
+
+  /// Unused, see [_emitFieldInitializers].
+  @override
+  visitAssertInitializer(node) => _unreachable(node);
+
+  /// Not visited, but maybe they should be?
+  /// See <https://github.com/dart-lang/sdk/issues/29347>
+  @override
+  visitComment(node) => _unreachable(node);
+
+  /// Not visited, but maybe they should be?
+  /// See <https://github.com/dart-lang/sdk/issues/29347>
+  @override
+  visitCommentReference(node) => _unreachable(node);
+
+  /// Unused, handled by imports/exports.
+  @override
+  visitConfiguration(node) => _unreachable(node);
+
+  /// Unusued, see [_emitConstructor].
+  @override
+  visitConstructorDeclaration(node) => _unreachable(node);
+
+  /// Unusued, see [_emitFieldInitializers].
+  @override
+  visitConstructorFieldInitializer(node) => _unreachable(node);
+
+  /// Unusued. Handled in [visitForEachStatement].
+  @override
+  visitDeclaredIdentifier(node) => _unreachable(node);
+
+  /// Unused, handled by imports/exports.
+  @override
+  visitDottedName(node) => _unreachable(node);
+
+  /// Unused, handled by [visitEnumDeclaration].
+  @override
+  visitEnumConstantDeclaration(node) => _unreachable(node); // see
+
+  /// Unused, see [_emitClassHeritage].
+  @override
+  visitExtendsClause(node) => _unreachable(node);
+
+  /// Unused, see [_emitFormalParameterList].
+  @override
+  visitFormalParameterList(node) => _unreachable(node);
+
+  /// Unused, handled by imports/exports.
+  @override
+  visitShowCombinator(node) => _unreachable(node);
+
+  /// Unused, handled by imports/exports.
+  @override
+  visitHideCombinator(node) => _unreachable(node);
+
+  /// Unused, see [_emitClassHeritage].
+  @override
+  visitImplementsClause(node) => _unreachable(node);
+
+  /// Unused, handled by [visitStringInterpolation].
+  @override
+  visitInterpolationString(node) => _unreachable(node);
+
+  /// Unused, labels are handled by containing statements.
+  @override
+  visitLabel(node) => _unreachable(node);
+
+  /// Unused, handled by imports/exports.
+  @override
+  visitLibraryIdentifier(node) => _unreachable(node);
+
+  /// Unused, see [visitMapLiteral].
+  @override
+  visitMapLiteralEntry(node) => _unreachable(node);
+
+  /// Unused, see [_emitMethodDeclaration].
+  @override
+  visitMethodDeclaration(node) => _unreachable(node);
+
+  /// Unused, these are not visited.
+  @override
+  visitNativeClause(node) => _unreachable(node);
+
+  /// Unused, these are not visited.
+  @override
+  visitNativeFunctionBody(node) => _unreachable(node);
+
+  /// Unused, handled by [_emitConstructor].
+  @override
+  visitSuperConstructorInvocation(node) => _unreachable(node);
+
+  /// Unused, this can be handled when emitting the module if needed.
+  @override
+  visitScriptTag(node) => _unreachable(node);
+
+  /// Unused, see [_emitType].
+  @override
+  visitTypeArgumentList(node) => _unreachable(node);
+
+  /// Unused, see [_emitType].
+  @override
+  visitTypeParameter(node) => _unreachable(node);
+
+  /// Unused, see [_emitType].
+  @override
+  visitGenericFunctionType(node) => _unreachable(node);
+
+  /// Unused, see [_emitType].
+  @override
+  visitTypeParameterList(node) => _unreachable(node);
+
+  /// Unused, see [_emitClassHeritage].
+  @override
+  visitWithClause(node) => _unreachable(node);
 }
 
 /// Choose a canonical name from the [library] element.
