@@ -63,7 +63,7 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitIfStatement(IfStatement node) {
     _checkNodeOnNextLine(node.thenStatement, node.rightParenthesis.end);
-    if (node.elseKeyword != null)
+    if (node.elseKeyword != null && node.elseStatement is! IfStatement)
       _checkNodeOnNextLine(node.elseStatement, node.elseKeyword.end);
   }
 
