@@ -6,10 +6,8 @@ library dart2js.backend_api;
 
 import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart' show ConstantExpression;
-import '../elements/types.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../elements/entities.dart';
 import '../serialization/serialization.dart'
     show DeserializerPlugin, SerializerPlugin;
 import '../tree/tree.dart' show Node;
