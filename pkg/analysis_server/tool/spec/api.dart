@@ -24,7 +24,7 @@ class Api extends ApiNode {
   Api(this.version, this.domains, this.types, this.refactorings,
       dom.Element html,
       {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 }
 
 /**
@@ -37,12 +37,18 @@ class ApiNode {
   final bool experimental;
 
   /**
+   * A flag to indicate if this API is deprecated.
+   */
+  final bool deprecated;
+
+  /**
    * Html element representing this part of the API.
    */
   final dom.Element html;
 
-  ApiNode(this.html, bool experimental)
-      : this.experimental = experimental ?? false;
+  ApiNode(this.html, bool experimental, bool deprecated)
+      : this.experimental = experimental ?? false,
+        this.deprecated = deprecated ?? false;
 }
 
 /**
@@ -71,8 +77,8 @@ class Domain extends ApiNode {
   final List<Notification> notifications;
 
   Domain(this.name, this.requests, this.notifications, dom.Element html,
-      {bool experimental})
-      : super(html, experimental);
+      {bool experimental, bool deprecated})
+      : super(html, experimental, deprecated);
 }
 
 /**
@@ -205,7 +211,7 @@ class Notification extends ApiNode {
 
   Notification(this.domainName, this.event, this.params, dom.Element html,
       {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 
   /**
    * Get the name of the notification, including the domain prefix.
@@ -251,7 +257,7 @@ class Refactoring extends ApiNode {
 
   Refactoring(this.kind, this.feedback, this.options, dom.Element html,
       {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 }
 
 /**
@@ -261,7 +267,7 @@ class Refactorings extends ApiNode with IterableMixin<Refactoring> {
   final List<Refactoring> refactorings;
 
   Refactorings(this.refactorings, dom.Element html, {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 
   @override
   Iterator<Refactoring> get iterator => refactorings.iterator;
@@ -295,8 +301,8 @@ class Request extends ApiNode {
 
   Request(
       this.domainName, this.method, this.params, this.result, dom.Element html,
-      {bool experimental})
-      : super(html, experimental);
+      {bool experimental, bool deprecated})
+      : super(html, experimental, deprecated);
 
   /**
    * Get the name of the request, including the domain prefix.
@@ -341,7 +347,8 @@ class Request extends ApiNode {
  * Base class for all possible types.
  */
 abstract class TypeDecl extends ApiNode {
-  TypeDecl(dom.Element html, bool experimental) : super(html, experimental);
+  TypeDecl(dom.Element html, bool experimental)
+      : super(html, experimental, false);
 
   accept(ApiVisitor visitor);
 }
@@ -353,8 +360,9 @@ class TypeDefinition extends ApiNode {
   final String name;
   final TypeDecl type;
 
-  TypeDefinition(this.name, this.type, dom.Element html, {bool experimental})
-      : super(html, experimental);
+  TypeDefinition(this.name, this.type, dom.Element html,
+      {bool experimental, bool deprecated})
+      : super(html, experimental, deprecated);
 }
 
 /**
@@ -376,8 +384,9 @@ class TypeEnum extends TypeDecl {
 class TypeEnumValue extends ApiNode {
   final String value;
 
-  TypeEnumValue(this.value, dom.Element html, {bool experimental})
-      : super(html, experimental);
+  TypeEnumValue(this.value, dom.Element html,
+      {bool experimental, bool deprecated})
+      : super(html, experimental, deprecated);
 }
 
 /**
@@ -452,8 +461,8 @@ class TypeObjectField extends ApiNode {
   final Object value;
 
   TypeObjectField(this.name, this.type, dom.Element html,
-      {this.optional: false, this.value, bool experimental})
-      : super(html, experimental);
+      {this.optional: false, this.value, bool experimental, bool deprecated})
+      : super(html, experimental, deprecated);
 }
 
 /**
@@ -480,7 +489,7 @@ class Types extends ApiNode with IterableMixin<TypeDefinition> {
   final Map<String, TypeDefinition> types;
 
   Types(this.types, dom.Element html, {bool experimental})
-      : super(html, experimental);
+      : super(html, experimental, false);
 
   @override
   Iterator<TypeDefinition> get iterator => types.values.iterator;

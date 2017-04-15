@@ -118,22 +118,19 @@
     </p>
     <h3>Eventual Consistency</h3>
     <p>
-      TODO: TBD
+      The analysis server satisfies requests under the principle of
+      <a href="https://en.wikipedia.org/wiki/Eventual_consistency">eventual consistency</a>.
+      That is, in some cases it may return responses with the currently available
+      results while it's catching up with unprocessed changes.
     </p>
     <h3>Domains</h3>
     <p>
-      For convenience, the API is divided into domains. Each domain is
-      specified in a separate section below:
-    </p>
-    <toc></toc>
-    <p>
-      The specifications of the API’s refer to data structures beyond
-      the standard JSON primitives. These data structures are
+      For convenience, the API is divided into domains. Each domain is specified
+      in a separate section below. The specifications of the API’s refer to data
+      structures beyond the standard JSON primitives. These data structures are
       documented in the section titled <a href="#types">Types</a>.
     </p>
-    <p>
-      To get an overview of the API, you can consult the <a href="#index">index</a>.
-    </p>
+    <toc></toc>
     <h3>Command-line Arguments</h3>
     <p>
       The command-line arguments that can be passed to the server.
@@ -169,9 +166,9 @@
       </dd>
     </dl>
     <dl>
-      <dt>--no-error-notification</dt>
+      <dt class="deprecated">--no-error-notification</dt>
       <dd>
-        <p><b>Deprecated</b></p>
+        <p><b>Deprecated:</b> clients should no longer pass this option in</p>
         Disable notifications about errors (see analysis.error). If this
         flag is not specified then notifications will be sent for all
         errors produced for all files in the actual analysis roots.
@@ -188,9 +185,9 @@
       </dd>
     </dl>
     <dl>
-      <dt>--file-read-mode</dt>
+      <dt class="deprecated">--file-read-mode</dt>
       <dd>
-        <p><b>Deprecated</b></p>
+        <p><b>Deprecated:</b> clients should no longer pass this option in</p>
         An enumeration of the ways files can be read from disk. Some clients
         normalize end of line characters which would make the file offset and
         range information incorrect. The default option is <tt>as-is</tt>, but
@@ -205,6 +202,7 @@
       </dd>
     </dl>
     </blockquote>
+    <domains></domains>
     <domain name="server">
       <p>
         The server domain contains API’s related to the execution of
@@ -811,8 +809,8 @@
         <result>
         </result>
       </request>
-      <request method="updateOptions">
-        <p><b><i>Deprecated</i></b>: all of the options can be set by users in
+      <request method="updateOptions" deprecated="true">
+        <p><b>Deprecated:</b> all of the options can be set by users in
           an analysis options file.</p>
         <p>
           Update the options controlling analysis based on the given
@@ -2022,9 +2020,9 @@
           </field>
         </result>
       </request>
-      <request method="setSubscriptions">
+      <request method="setSubscriptions" deprecated="true">
         <p>
-          <b><i>Deprecated</i></b>: the analysis server no longer fires
+          <b>Deprecated:</b> the analysis server no longer fires
           <tt>LAUNCH_DATA</tt> events.
         </p>
         <p>
@@ -2242,8 +2240,8 @@
           <value><code>TODO</code></value>
         </enum>
       </type>
-      <type name="AnalysisOptions">
-        <p><b><i>Deprecated</i></b>: the only reference to this type has been
+      <type name="AnalysisOptions" deprecated="true">
+        <p><b>Deprecated:</b> the only reference to this type has been
           deprecated.</p>
         <p>
           A set of options controlling what kind of analysis is to be
@@ -2251,33 +2249,33 @@
           option will not be changed.
         </p>
         <object>
-          <field name="enableAsync" optional="true">
+          <field name="enableAsync" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
             </p>
           </field>
-          <field name="enableDeferredLoading" optional="true">
+          <field name="enableDeferredLoading" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
             </p>
           </field>
-          <field name="enableEnums" optional="true">
+          <field name="enableEnums" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
             </p>
           </field>
-          <field name="enableNullAwareOperators" optional="true">
+          <field name="enableNullAwareOperators" optional="true" deprecated="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
+            <p><b>Deprecated:</b> this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed "null aware operators" feature.
@@ -2745,13 +2743,13 @@
           <value><code>SETTER</code></value>
           <value><code>TOP_LEVEL_VARIABLE</code></value>
           <value><code>TYPE_PARAMETER</code></value>
-          <value>
+          <value deprecated="true">
             <code>UNIT_TEST_GROUP</code>
-            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+            <p><b>Deprecated:</b> support for tests was removed.</p>
           </value>
-          <value>
+          <value deprecated="true">
             <code>UNIT_TEST_TEST</code>
-            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+            <p><b>Deprecated:</b> support for tests was removed.</p>
           </value>
           <value><code>UNKNOWN</code></value>
         </enum>

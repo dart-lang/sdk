@@ -84,6 +84,7 @@ abstract class C extends B {
   }
 }
 ''');
+    // ignore: deprecated_member_use
     await sendAnalysisUpdateOptions(
         new AnalysisOptions()..enableSuperMixins = true);
     standardAnalysisSetup();

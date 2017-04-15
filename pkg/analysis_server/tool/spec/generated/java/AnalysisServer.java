@@ -279,6 +279,8 @@ public interface AnalysisServer {
    * options that are not valid, they will be silently ignored.
    *
    * @param options The options that are to be used to control analysis.
+   *
+   * @deprecated
    */
   public void analysis_updateOptions(AnalysisOptions options);
 
@@ -491,6 +493,8 @@ public interface AnalysisServer {
    * then the current subscriptions will remain unchanged.
    *
    * @param subscriptions A list of the services being subscribed to.
+   *
+   * @deprecated
    */
   public void execution_setSubscriptions(List<String> subscriptions);
 

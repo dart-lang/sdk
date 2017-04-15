@@ -34,10 +34,6 @@ body {
   -webkit-font-smoothing: auto;
 }
 
-h1 {
-  text-align: center;
-}
-
 h2, h3, h4, h5 {
   margin-bottom: 0;
 }
@@ -111,6 +107,10 @@ a {
 
 a:focus, a:hover {
   text-decoration: underline;
+}
+
+.deprecated {
+  text-decoration: line-through;
 }
 
 /* Styles for index */
