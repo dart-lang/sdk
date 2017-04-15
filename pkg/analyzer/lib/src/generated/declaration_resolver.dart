@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -225,6 +226,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: functionName.name + '=');
       }
     }
+    _setGenericFunctionType(node.returnType, element.returnType);
     node.functionExpression.element = element;
     _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
@@ -277,10 +279,20 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElement element = node.type.element;
-    _walk(new ElementWalker.forGenericFunctionType(element), () {
-      super.visitGenericFunctionType(node);
-    });
+    if (_walker.elementBuilder != null) {
+      _walker.elementBuilder.visitGenericFunctionType(node);
+    } else {
+      DartType type = node.type;
+      if (type != null) {
+        Element element = type.element;
+        if (element is GenericFunctionTypeElement) {
+          _setGenericFunctionType(node.returnType, element.returnType);
+          _walk(new ElementWalker.forGenericFunctionType(element), () {
+            super.visitGenericFunctionType(node);
+          });
+        }
+      }
+    }
     return null;
   }
 
@@ -288,8 +300,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Object visitGenericTypeAlias(GenericTypeAlias node) {
     GenericTypeAliasElementImpl element =
         _match(node.name, _walker.getTypedef());
-    (node.functionType as GenericFunctionTypeImpl)?.type =
-        element.function?.type;
+    _setGenericFunctionType(node.functionType, element.function?.type);
     _walk(new ElementWalker.forGenericTypeAlias(element), () {
       super.visitGenericTypeAlias(node);
     });
@@ -357,6 +368,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: nameOfMethod + '=');
       }
     }
+    _setGenericFunctionType(node.returnType, element.returnType);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
     });
@@ -393,10 +405,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
       (node as SimpleFormalParameterImpl).element = element;
-      TypeAnnotation type = node.type;
-      if (type is GenericFunctionTypeImpl) {
-        type.type = element.type;
-      }
+      _setGenericFunctionType(node.type, element.type);
       _walk(new ElementWalker.forParameter(element), () {
         super.visitSimpleFormalParameter(node);
       });
@@ -463,10 +472,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (_walker.elementBuilder != null) {
       return _walker.elementBuilder.visitVariableDeclarationList(node);
     } else {
-      super.visitVariableDeclarationList(node);
+      node.variables.accept(this);
+      VariableElement firstVariable = node.variables[0].element;
+      _setGenericFunctionType(node.type, firstVariable.type);
+      node.type?.accept(this);
       if (node.parent is! FieldDeclaration &&
           node.parent is! TopLevelVariableDeclaration) {
-        _resolveMetadata(node, node.metadata, node.variables[0].element);
+        _resolveMetadata(node, node.metadata, firstVariable);
       }
       return null;
     }
@@ -534,6 +546,27 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       AstNode parent, NodeList<Annotation> nodes, Element element) {
     if (element != null) {
       _resolveAnnotations(parent, nodes, element.metadata);
+    }
+  }
+
+  /**
+   * If the given [typeNode] is a [GenericFunctionType], set its [type].
+   */
+  void _setGenericFunctionType(TypeAnnotation typeNode, DartType type) {
+    if (typeNode is GenericFunctionTypeImpl) {
+      typeNode.type = type;
+    } else if (typeNode is NamedType) {
+      typeNode.type = type;
+      if (type is ParameterizedType) {
+        List<TypeAnnotation> nodes =
+            typeNode.typeArguments?.arguments ?? const [];
+        List<DartType> types = type.typeArguments;
+        if (nodes.length == types.length) {
+          for (int i = 0; i < nodes.length; i++) {
+            _setGenericFunctionType(nodes[i], types[i]);
+          }
+        }
+      }
     }
   }
 

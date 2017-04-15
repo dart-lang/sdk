@@ -427,22 +427,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   @override
-  Object visitGenericFunctionType(GenericFunctionType node) {
-    ElementHolder holder = new ElementHolder();
-    _visitChildren(holder, node);
-    GenericFunctionTypeElementImpl element =
-        new GenericFunctionTypeElementImpl.forOffset(node.beginToken.offset);
-    _setCodeRange(element, node);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
-    FunctionType type = new FunctionTypeImpl(element);
-    element.type = type;
-    (node as GenericFunctionTypeImpl).type = type;
-    holder.validate();
-    return null;
-  }
-
-  @override
   Object visitGenericTypeAlias(GenericTypeAlias node) {
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
@@ -1476,6 +1460,22 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     element.metadata = _createElementAnnotations(node.metadata);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    GenericFunctionTypeElementImpl element =
+        new GenericFunctionTypeElementImpl.forOffset(node.beginToken.offset);
+    _setCodeRange(element, node);
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+    FunctionType type = new FunctionTypeImpl(element);
+    element.type = type;
+    (node as GenericFunctionTypeImpl).type = type;
     holder.validate();
     return null;
   }

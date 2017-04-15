@@ -83,24 +83,26 @@ const char* commandline_root_certs_cache = NULL;
 // Get the error messages from BoringSSL, and put them in buffer as a
 // null-terminated string.
 static void FetchErrorString(const SSL* ssl, TextBuffer* text_buffer) {
-  uint32_t error = 0;
-  const char* path = NULL;
-  int line = -1;
   const char* sep = File::PathSeparator();
-  do {
-    error = ERR_get_error_line(&path, &line);
-    const char* file = strrchr(path, sep[0]);
-    path = file ? file + 1 : path;
+  while (true) {
+    const char* path = NULL;
+    int line = -1;
+    uint32_t error = ERR_get_error_line(&path, &line);
+    if (error == 0) {
+      break;
+    }
+    text_buffer->Printf("\n\t%s", ERR_reason_error_string(error));
     if ((ssl != NULL) && (ERR_GET_LIB(error) == ERR_LIB_SSL) &&
         (ERR_GET_REASON(error) == SSL_R_CERTIFICATE_VERIFY_FAILED)) {
       intptr_t result = SSL_get_verify_result(ssl);
-      text_buffer->Printf("\n\t%s: %s (%s:%d)", ERR_reason_error_string(error),
-                          X509_verify_cert_error_string(result), path, line);
-    } else if (error != 0) {
-      text_buffer->Printf("\n\t%s (%s:%d)", ERR_reason_error_string(error),
-                          path, line);
+      text_buffer->Printf(": %s", X509_verify_cert_error_string(result));
     }
-  } while (error != 0);
+    if ((path != NULL) && (line >= 0)) {
+      const char* file = strrchr(path, sep[0]);
+      path = file ? file + 1 : path;
+      text_buffer->Printf("(%s:%d)", path, line);
+    }
+  }
 }
 
 
