@@ -42,6 +42,7 @@ import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/invariant_booleans.dart';
 import 'package:linter/src/rules/iterable_contains_unrelated_type.dart';
+import 'package:linter/src/rules/join_return_with_assignment.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/list_remove_unrelated_type.dart';
@@ -133,6 +134,7 @@ void registerLintRules() {
     ..register(new ImplementationImports())
     ..register(new InvariantBooleans())
     ..register(new IterableContainsUnrelatedType())
+    ..register(new JoinReturnWithAssignment())
     ..registerDefault(new LibraryNames())
     ..registerDefault(new LibraryPrefixes())
     ..register(new ListRemoveUnrelatedType())
