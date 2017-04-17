@@ -1076,7 +1076,8 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddServiceId(*this);
   if (IsClosure()) {
-    // TODO(regis): How about closureInstantiator?
+    // TODO(regis): How about closureInstantiatorTypeArguments and
+    // closureFunctionTypeArguments?
     jsobj.AddProperty("closureFunction",
                       Function::Handle(Closure::Cast(*this).function()));
     jsobj.AddProperty("closureContext",

@@ -764,8 +764,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       const Instance& instance = Instance::Cast(value);
       const AbstractType& checked_type = instr->type();
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
-          instr->function_type_arguments()->BindsToConstantNull() &&
-          checked_type.IsInstantiated(kParentFunctions)) {
+          instr->function_type_arguments()->BindsToConstantNull()) {
         Error& bound_error = Error::Handle();
         bool is_instance =
             instance.IsInstanceOf(checked_type, Object::null_type_arguments(),

@@ -1471,8 +1471,12 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
 
     Type& instantiator = Type::Handle();
     if (closure.IsClosure()) {
-      const TypeArguments& arguments =
-          TypeArguments::Handle(Closure::Cast(closure).instantiator());
+      const TypeArguments& arguments = TypeArguments::Handle(
+          Closure::Cast(closure).instantiator_type_arguments());
+      // TODO(regis): Mirrors need work to properly support generic functions.
+      // The 'instantiator' created below should not be a type, but two type
+      // argument vectors: instantiator_type_arguments and
+      // function_type_arguments.
       const Class& cls =
           Class::Handle(Isolate::Current()->object_store()->object_class());
       instantiator = Type::New(cls, arguments, TokenPosition::kNoSource);

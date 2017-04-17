@@ -925,7 +925,6 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           // Example: class B<T>; class D<T> extends B<D<T>>;
           // While finalizing D<T>, the super type arg D<T> (a typeref) gets
           // instantiated from vector [T], yielding itself.
-          //
           if (super_type_arg.IsTypeRef() && super_type_arg.IsBeingFinalized() &&
               (super_type_arg.arguments() == arguments.raw())) {
             arguments.SetTypeAt(i, super_type_arg);
@@ -1174,25 +1173,28 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     const TypeParameter& type_parameter = TypeParameter::Cast(type);
     const Class& parameterized_class =
         Class::Handle(zone, type_parameter.parameterized_class());
+    intptr_t offset;
     if (!parameterized_class.IsNull()) {
       // The index must reflect the position of this type parameter in the type
       // arguments vector of its parameterized class. The offset to add is the
       // number of type arguments in the super type, which is equal to the
       // difference in number of type arguments and type parameters of the
       // parameterized class.
-      const intptr_t offset = parameterized_class.NumTypeArguments() -
-                              parameterized_class.NumTypeParameters();
-      // Calling NumTypeParameters() may finalize this type parameter if it
-      // belongs to a mixin application class.
-      if (!type_parameter.IsFinalized()) {
-        type_parameter.set_index(type_parameter.index() + offset);
-        type_parameter.SetIsFinalized();
-      } else {
-        ASSERT(cls.IsMixinApplication());
-      }
+      offset = parameterized_class.NumTypeArguments() -
+               parameterized_class.NumTypeParameters();
     } else {
-      // A function type parameter is always finalized.
-      ASSERT(type_parameter.IsFinalized());
+      const Function& function =
+          Function::Handle(zone, type_parameter.parameterized_function());
+      ASSERT(!function.IsNull());
+      offset = function.NumParentTypeParameters();
+    }
+    // Calling NumTypeParameters() may finalize this type parameter if it
+    // belongs to a mixin application class.
+    if (!type_parameter.IsFinalized()) {
+      type_parameter.set_index(type_parameter.index() + offset);
+      type_parameter.SetIsFinalized();
+    } else {
+      ASSERT(cls.IsMixinApplication());
     }
 
     if (FLAG_trace_type_finalization) {
@@ -1345,7 +1347,8 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
                                        FinalizationKind finalization) {
   AbstractType& type = AbstractType::Handle();
   AbstractType& finalized_type = AbstractType::Handle();
-  // Finalize upper bounds of function type parameters.
+  // Finalize function type parameters and their upper bounds.
+  const intptr_t num_parent_type_params = function.NumParentTypeParameters();
   const intptr_t num_type_params = function.NumTypeParameters();
   if (num_type_params > 0) {
     TypeParameter& type_param = TypeParameter::Handle();
@@ -1353,6 +1356,10 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
         TypeArguments::Handle(function.type_parameters());
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
+      if (!type_param.IsFinalized()) {
+        type_param.set_index(num_parent_type_params + i);
+        type_param.SetIsFinalized();
+      }
       type = type_param.bound();
       finalized_type = FinalizeType(cls, type, finalization);
       if (finalized_type.raw() != type.raw()) {
@@ -1822,7 +1829,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
         param_name =
             Symbols::FromConcat(thread, param_name, Symbols::Backtick());
         cloned_param =
-            TypeParameter::New(mixin_app_class, null_function, cloned_index, 0,
+            TypeParameter::New(mixin_app_class, null_function, cloned_index,
                                param_name, param_bound, param.token_pos());
         cloned_type_params.SetTypeAt(cloned_index, cloned_param);
         // Change the type arguments of the super type to refer to the
@@ -1860,7 +1867,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
         cloned_param =
             TypeParameter::New(mixin_app_class, null_function,
                                cloned_index,  // Unfinalized index.
-                               0, param_name, param_bound, param.token_pos());
+                               param_name, param_bound, param.token_pos());
         cloned_type_params.SetTypeAt(cloned_index, cloned_param);
         mixin_type_args.SetTypeAt(i, cloned_param);  // Unfinalized length.
         instantiator.SetTypeAt(offset + i, cloned_param);  // Finalized length.
@@ -2434,8 +2441,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     FinalizeTypesInClass(super_class);
   }
   // Finalize type parameters before finalizing the super type.
-  FinalizeTypeParameters(cls);  // May change super type.
-  super_class = cls.SuperClass();
+  FinalizeTypeParameters(cls);  // May change super type while applying mixin.
+  super_class = cls.SuperClass();  // Get again possibly changed super class.
   ASSERT(super_class.IsNull() || super_class.is_type_finalized());
   // Only resolving rather than finalizing the upper bounds here would result in
   // instantiated type parameters of the super type to temporarily have

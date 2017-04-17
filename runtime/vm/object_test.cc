@@ -2620,7 +2620,8 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
   const Closure& closure = Closure::Handle(
-      Closure::New(Object::null_type_arguments(), function, context));
+      Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
+                   function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());

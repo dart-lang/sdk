@@ -2214,7 +2214,7 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
       } else {
         instructions += NullConstant();
       }
-      if (!type_arguments.IsInstantiated(kCurrentFunction)) {
+      if (!type_arguments.IsInstantiated(kFunctions)) {
         instructions += LoadFunctionTypeArguments();
       } else {
         instructions += NullConstant();
@@ -3839,7 +3839,7 @@ Fragment FlowGraphBuilder::AssertAssignable(const dart::AbstractType& dst_type,
   }
   Value* instantiator_type_args = Pop();
 
-  if (!dst_type.IsInstantiated(kCurrentFunction)) {
+  if (!dst_type.IsInstantiated(kFunctions)) {
     instructions += LoadFunctionTypeArguments();
   } else {
     instructions += NullConstant();
@@ -4688,7 +4688,7 @@ void FlowGraphBuilder::VisitTypeLiteral(TypeLiteral* node) {
     } else {
       instructions += NullConstant();
     }
-    if (!type.IsInstantiated(kCurrentFunction)) {
+    if (!type.IsInstantiated(kFunctions)) {
       instructions += LoadFunctionTypeArguments();
     } else {
       instructions += NullConstant();
@@ -5125,7 +5125,7 @@ void FlowGraphBuilder::VisitIsExpression(IsExpression* node) {
     }
     instructions += PushArgument();  // Instantiator type arguments.
 
-    if (!type.IsInstantiated(kCurrentFunction)) {
+    if (!type.IsInstantiated(kFunctions)) {
       instructions += LoadFunctionTypeArguments();
     } else {
       instructions += NullConstant();
@@ -5173,7 +5173,7 @@ void FlowGraphBuilder::VisitAsExpression(AsExpression* node) {
     }
     instructions += PushArgument();  // Instantiator type arguments.
 
-    if (!type.IsInstantiated(kCurrentFunction)) {
+    if (!type.IsInstantiated(kFunctions)) {
       instructions += LoadFunctionTypeArguments();
     } else {
       instructions += NullConstant();

@@ -66,7 +66,7 @@ class ObjectPointerVisitor;
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
-  V(FunctionInstantiatorVar, ":function_instantiator_var")                     \
+  V(FunctionTypeArgumentsVar, ":function_type_arguments_var")                  \
   V(AssertionError, "_AssertionError")                                         \
   V(CastError, "_CastError")                                                   \
   V(TypeError, "_TypeError")                                                   \

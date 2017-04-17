@@ -1108,8 +1108,10 @@ void Precompiler::AddConstObject(const Instance& instance) {
         Function::Handle(Z, Closure::Cast(instance).function());
     ASSERT(func.is_static());
     AddFunction(func);
-    AddTypeArguments(
-        TypeArguments::Handle(Z, Closure::Cast(instance).instantiator()));
+    AddTypeArguments(TypeArguments::Handle(
+        Z, Closure::Cast(instance).instantiator_type_arguments()));
+    AddTypeArguments(TypeArguments::Handle(
+        Z, Closure::Cast(instance).function_type_arguments()));
     return;
   }
 

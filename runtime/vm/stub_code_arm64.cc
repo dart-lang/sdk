@@ -1835,7 +1835,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ SmiTag(R6);
   __ CompareImmediate(R6, Smi::RawValue(kClosureCid));
   __ b(&loop, NE);
-  __ LoadFieldFromOffset(R4, R0, Closure::instantiator_offset());
+  __ LoadFieldFromOffset(R4, R0, Closure::function_type_arguments_offset());
+  __ CompareObject(R4, Object::null_object());
+  __ b(&not_found, NE);  // Cache cannot be used for generic closures.
+  __ LoadFieldFromOffset(R4, R0, Closure::instantiator_type_arguments_offset());
   __ LoadFieldFromOffset(R6, R0, Closure::function_offset());
   // R6: instance class id as Smi or function.
   __ Bind(&loop);

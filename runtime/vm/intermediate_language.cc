@@ -2064,16 +2064,11 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
       value()->Type()->IsAssignableTo(dst_type())) {
     return value()->definition();
   }
-
-  // For uninstantiated target types: If the instantiator and function
-  // type arguments are constant, instantiate the target type here.
-  // If the uninstantiated type refers to parent function type parameters, we
-  // cannot instantiated it here.
-  if (dst_type().IsInstantiated() ||
-      !dst_type().IsInstantiated(kParentFunctions)) {
+  if (dst_type().IsInstantiated()) {
     return this;
   }
-
+  // For uninstantiated target types: If the instantiator and function
+  // type arguments are constant, instantiate the target type here.
   ConstantInstr* constant_instantiator_type_args =
       instantiator_type_arguments()->definition()->AsConstant();
   ConstantInstr* constant_function_type_args =

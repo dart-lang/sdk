@@ -1722,7 +1722,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ SmiTag(ECX);
   __ cmpl(ECX, Immediate(Smi::RawValue(kClosureCid)));
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ movl(EBX, FieldAddress(EAX, Closure::instantiator_offset()));
+  __ movl(EBX, FieldAddress(EAX, Closure::function_type_arguments_offset()));
+  __ cmpl(EBX, raw_null);  // Cache cannot be used for generic closures.
+  __ j(NOT_EQUAL, &not_found, Assembler::kNearJump);
+  __ movl(EBX,
+          FieldAddress(EAX, Closure::instantiator_type_arguments_offset()));
   __ movl(ECX, FieldAddress(EAX, Closure::function_offset()));
   // ECX: instance class id as Smi or function.
   __ Bind(&loop);

@@ -1769,7 +1769,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ SmiTag(R10);
   __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ movq(R13, FieldAddress(RAX, Closure::instantiator_offset()));
+  __ movq(R13, FieldAddress(RAX, Closure::function_type_arguments_offset()));
+  __ cmpq(R13, R9);  // Cache cannot be used for generic closures.
+  __ j(NOT_EQUAL, &not_found, Assembler::kNearJump);
+  __ movq(R13,
+          FieldAddress(RAX, Closure::instantiator_type_arguments_offset()));
   __ movq(R10, FieldAddress(RAX, Closure::function_offset()));
   // R10: instance class id as Smi or function.
   __ Bind(&loop);

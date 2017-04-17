@@ -1233,7 +1233,7 @@ void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
     instantiator_type_arguments = BuildInstantiatorTypeArguments(token_pos);
   }
   Value* function_type_arguments = NULL;
-  if (type.IsInstantiated(kCurrentFunction)) {
+  if (type.IsInstantiated(kFunctions)) {
     function_type_arguments = BuildNullValue(token_pos);
   } else {
     function_type_arguments = BuildFunctionTypeArguments(token_pos);
@@ -1433,7 +1433,7 @@ PushArgumentInstr* EffectGraphVisitor::PushInstantiatorTypeArguments(
 PushArgumentInstr* EffectGraphVisitor::PushFunctionTypeArguments(
     const AbstractType& type,
     TokenPosition token_pos) {
-  if (type.IsInstantiated(kCurrentFunction)) {
+  if (type.IsInstantiated(kFunctions)) {
     return PushArgument(BuildNullValue(token_pos));
   } else {
     Value* function_type_args = BuildFunctionTypeArguments(token_pos);
@@ -1445,6 +1445,13 @@ PushArgumentInstr* EffectGraphVisitor::PushFunctionTypeArguments(
 Value* EffectGraphVisitor::BuildNullValue(TokenPosition token_pos) {
   return Bind(
       new (Z) ConstantInstr(Object::ZoneHandle(Z, Object::null()), token_pos));
+}
+
+
+Value* EffectGraphVisitor::BuildEmptyTypeArguments(TokenPosition token_pos) {
+  return Bind(new (Z) ConstantInstr(
+      TypeArguments::ZoneHandle(Z, Object::empty_type_arguments().raw()),
+      token_pos));
 }
 
 
@@ -1462,7 +1469,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
   } else {
     instantiator_type_arguments = BuildInstantiatorTypeArguments(token_pos);
   }
-  if (dst_type.IsInstantiated(kCurrentFunction)) {
+  if (dst_type.IsInstantiated(kFunctions)) {
     function_type_arguments = BuildNullValue(token_pos);
   } else {
     function_type_arguments = BuildFunctionTypeArguments(token_pos);
@@ -2344,14 +2351,24 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   Value* closure_val = Bind(alloc);
   {
     LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val);
-    // Store instantiator type arguments if signature is uninstantiated.
+    // Store instantiator type arguments if signature is class-uninstantiated.
     if (!function.HasInstantiatedSignature(kCurrentClass)) {
       Value* closure_tmp_val =
           Bind(new (Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
       Value* type_arguments = BuildInstantiatorTypeArguments(node->token_pos());
-      Do(new (Z) StoreInstanceFieldInstr(Closure::instantiator_offset(),
-                                         closure_tmp_val, type_arguments,
-                                         kEmitStoreBarrier, node->token_pos()));
+      Do(new (Z) StoreInstanceFieldInstr(
+          Closure::instantiator_type_arguments_offset(), closure_tmp_val,
+          type_arguments, kEmitStoreBarrier, node->token_pos()));
+    }
+
+    // Store function type arguments if signature is function-uninstantiated.
+    if (!function.HasInstantiatedSignature(kFunctions)) {
+      Value* closure_tmp_val =
+          Bind(new (Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
+      Value* type_arguments = BuildFunctionTypeArguments(node->token_pos());
+      Do(new (Z) StoreInstanceFieldInstr(
+          Closure::function_type_arguments_offset(), closure_tmp_val,
+          type_arguments, kEmitStoreBarrier, node->token_pos()));
     }
 
     // Store function.
@@ -2715,8 +2732,28 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
 
 
 Value* EffectGraphVisitor::BuildFunctionTypeArguments(TokenPosition token_pos) {
-  UNIMPLEMENTED();
-  return NULL;
+  LocalVariable* function_type_arguments_var =
+      owner()->parsed_function().function_type_arguments();
+  if (function_type_arguments_var == NULL) {
+    // We encountered an uninstantiated type referring to type parameters of a
+    // signature that is local to the function being compiled. The type remains
+    // uninstantiated. Example: Foo(f<T>(T t)) => null;
+    // Foo is non-generic, but takes a generic function f as argument.
+    // The uninstantiated function type of f cannot be instantiated from within
+    // Foo and should not be instantiated. It is used in uninstantiated form to
+    // check incoming closures for assignability. We pass an empty function
+    // type argument vector.
+    return BuildEmptyTypeArguments(token_pos);
+
+    // Note that the function type could also get partially instantiated:
+    // Bar<B>(B g<T>(T t)) => null;
+    // In this case, function_type_arguments_var will not be null, since Bar
+    // is generic, and will be used to partially instantiate the type of g, more
+    // specifically the result type of g. Note that the instantiator vector will
+    // have length 1, and type parameters with indices above 0, e.g. T, must
+    // remain uninstantiated.
+  }
+  return Bind(BuildLoadLocal(*function_type_arguments_var, token_pos));
 }
 
 
@@ -2729,15 +2766,20 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   // The type arguments are uninstantiated.
   const Class& instantiator_class =
       Class::ZoneHandle(Z, owner()->function().Owner());
-  Value* instantiator_type_args = BuildInstantiatorTypeArguments(token_pos);
-  const bool use_instantiator_type_args =
-      type_arguments.IsUninstantiatedIdentity() ||
-      type_arguments.CanShareInstantiatorTypeArguments(instantiator_class);
-  if (use_instantiator_type_args) {
-    return instantiator_type_args;
+  Value* instantiator_type_args = NULL;
+  if (type_arguments.IsInstantiated(kCurrentClass)) {
+    instantiator_type_args = BuildNullValue(token_pos);
+  } else {
+    instantiator_type_args = BuildInstantiatorTypeArguments(token_pos);
+    const bool use_instantiator_type_args =
+        type_arguments.IsUninstantiatedIdentity() ||
+        type_arguments.CanShareInstantiatorTypeArguments(instantiator_class);
+    if (use_instantiator_type_args) {
+      return instantiator_type_args;
+    }
   }
   Value* function_type_args = NULL;
-  if (type_arguments.IsInstantiated(kCurrentFunction)) {
+  if (type_arguments.IsInstantiated(kFunctions)) {
     function_type_args = BuildNullValue(token_pos);
   } else {
     function_type_args = BuildFunctionTypeArguments(token_pos);

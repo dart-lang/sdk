@@ -3015,7 +3015,11 @@ RawObject* Simulator::Call(const Code& code,
       RawObject* instance_cid_or_function;
       if (cid == kClosureCid) {
         RawClosure* closure = static_cast<RawClosure*>(instance);
-        instance_type_arguments = closure->ptr()->instantiator_;
+        if (closure->ptr()->function_type_arguments_ != TypeArguments::null()) {
+          // Cache cannot be used for generic closures.
+          goto InstanceOfCallRuntime;
+        }
+        instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
         instance_cid_or_function = closure->ptr()->function_;
       } else {
         instance_cid_or_function = Smi::New(cid);
@@ -3108,7 +3112,13 @@ RawObject* Simulator::Call(const Code& code,
         RawObject* instance_cid_or_function;
         if (cid == kClosureCid) {
           RawClosure* closure = static_cast<RawClosure*>(instance);
-          instance_type_arguments = closure->ptr()->instantiator_;
+          if (closure->ptr()->function_type_arguments_ !=
+              TypeArguments::null()) {
+            // Cache cannot be used for generic closures.
+            goto AssertAssignableCallRuntime;
+          }
+          instance_type_arguments =
+              closure->ptr()->instantiator_type_arguments_;
           instance_cid_or_function = closure->ptr()->function_;
         } else {
           instance_cid_or_function = Smi::New(cid);

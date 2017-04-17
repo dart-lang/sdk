@@ -414,13 +414,15 @@ static void UpdateTypeTestCache(
     return;
   }
   // If the type is uninstantiated and refers to parent function type
-  // parameters, the context is required in the type test and the cache
-  // therefore cannot be used.
-  if (!type.IsInstantiated(kParentFunctions)) {
+  // parameters, the function_type_arguments may not have been canonicalized
+  // when concatenated. The optimization still works, but the cache could grow
+  // uncontrollably. For now, do not update the cache in this case.
+  // TODO(regis): Revisit.
+  if (!function_type_arguments.IsNull() &&
+      !function_type_arguments.IsCanonical()) {
     if (FLAG_trace_type_checks) {
       OS::Print(
-          "UpdateTypeTestCache: type refers to parent function's type "
-          "parameters\n");
+          "UpdateTypeTestCache: function_type_arguments is not canonical\n");
     }
     return;
   }
@@ -428,8 +430,26 @@ static void UpdateTypeTestCache(
   Object& instance_class_id_or_function = Object::Handle();
   TypeArguments& instance_type_arguments = TypeArguments::Handle();
   if (instance_class.IsClosureClass()) {
+    // If the closure instance is generic, we cannot perform the optimization,
+    // because one more input (function_type_arguments) would need to be
+    // considered. For now, only perform the optimization if the closure's
+    // function_type_arguments is null, meaning the closure function is not
+    // generic.
+    // TODO(regis): In addition to null (non-generic closure), we should also
+    // accept Object::empty_type_arguments() (non-nested generic closure).
+    // In that case, update stubs and simulator_dbc accordingly.
+    if (Closure::Cast(instance).function_type_arguments() !=
+        TypeArguments::null()) {
+      if (FLAG_trace_type_checks) {
+        OS::Print(
+            "UpdateTypeTestCache: closure function_type_arguments is "
+            "not null\n");
+      }
+      return;
+    }
     instance_class_id_or_function = Closure::Cast(instance).function();
-    instance_type_arguments = Closure::Cast(instance).instantiator();
+    instance_type_arguments =
+        Closure::Cast(instance).instantiator_type_arguments();
   } else {
     instance_class_id_or_function = Smi::New(instance_class.id());
     if (instance_class.NumTypeArguments() > 0) {

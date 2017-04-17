@@ -364,6 +364,10 @@ class Object {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
   }
+  static const TypeArguments& empty_type_arguments() {
+    ASSERT(empty_type_arguments_ != NULL);
+    return *empty_type_arguments_;
+  }
 
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
@@ -788,6 +792,7 @@ class Object {
   static String* null_string_;
   static Instance* null_instance_;
   static TypeArguments* null_type_arguments_;
+  static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
   static Context* empty_context_;
@@ -1559,8 +1564,6 @@ enum Genericity {
   kAny,              // Consider type params of current class and functions.
   kCurrentClass,     // Consider type params of current class only.
   kFunctions,        // Consider type params of current and parent functions.
-  kCurrentFunction,  // Consider type params of current function only.
-  kParentFunctions   // Consider type params of parent functions only.
 };
 
 
@@ -1772,6 +1775,7 @@ class TypeArguments : public Object {
   friend class AbstractType;
   friend class Class;
   friend class ClearTypeHashVisitor;
+  friend class Object;
 };
 
 
@@ -2277,6 +2281,9 @@ class Function : public Object {
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
   }
+
+  // Return the number of type parameters declared in parent generic functions.
+  intptr_t NumParentTypeParameters() const;
 
   // Return a TypeParameter if the type_name is a type parameter of this
   // function or of one of its parent functions.
@@ -6138,7 +6145,6 @@ class TypeParameter : public AbstractType {
   RawString* name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
-  intptr_t parent_level() const { return raw_ptr()->parent_level_; }
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
   // Returns true if bounded_type is below upper_bound, otherwise return false
@@ -6184,7 +6190,6 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New(const Class& parameterized_class,
                                const Function& parameterized_function,
                                intptr_t index,
-                               intptr_t parent_level,
                                const String& name,
                                const AbstractType& bound,
                                TokenPosition token_pos);
@@ -6197,7 +6202,6 @@ class TypeParameter : public AbstractType {
   void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
-  void set_parent_level(intptr_t value) const;
   void set_type_state(int8_t state) const;
 
   static RawTypeParameter* New();
@@ -8355,9 +8359,18 @@ class LinkedHashMap : public Instance {
 
 class Closure : public Instance {
  public:
-  RawTypeArguments* instantiator() const { return raw_ptr()->instantiator_; }
-  static intptr_t instantiator_offset() {
-    return OFFSET_OF(RawClosure, instantiator_);
+  RawTypeArguments* instantiator_type_arguments() const {
+    return raw_ptr()->instantiator_type_arguments_;
+  }
+  static intptr_t instantiator_type_arguments_offset() {
+    return OFFSET_OF(RawClosure, instantiator_type_arguments_);
+  }
+
+  RawTypeArguments* function_type_arguments() const {
+    return raw_ptr()->function_type_arguments_;
+  }
+  static intptr_t function_type_arguments_offset() {
+    return OFFSET_OF(RawClosure, function_type_arguments_);
   }
 
   RawFunction* function() const { return raw_ptr()->function_; }
@@ -8377,7 +8390,8 @@ class Closure : public Instance {
     return true;
   }
 
-  static RawClosure* New(const TypeArguments& instantiator,
+  static RawClosure* New(const TypeArguments& instantiator_type_arguments,
+                         const TypeArguments& function_type_arguments,
                          const Function& function,
                          const Context& context,
                          Heap::Space space = Heap::kNew);

@@ -764,6 +764,7 @@ class RawTypeArguments : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->types()[length - 1]);
   }
 
+  friend class Object;
   friend class SnapshotReader;
 };
 
@@ -1738,7 +1739,6 @@ class RawTypeParameter : public RawAbstractType {
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
-  uint8_t parent_level_;  // Max 255 levels of nested generic functions is OK.
   int8_t type_state_;
 
   friend class CidRewriteVisitor;
@@ -1780,14 +1780,15 @@ class RawClosure : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->instantiator_);
+    return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
   }
 
   // No instance fields should be declared before the following 3 fields whose
   // offsets must be identical in Dart and C++.
 
-  // These 3 fields are also declared in the Dart source of class _Closure.
-  RawTypeArguments* instantiator_;
+  // These 4 fields are also declared in the Dart source of class _Closure.
+  RawTypeArguments* instantiator_type_arguments_;
+  RawTypeArguments* function_type_arguments_;
   RawFunction* function_;
   RawContext* context_;
 
