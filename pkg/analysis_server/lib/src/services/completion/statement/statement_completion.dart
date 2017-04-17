@@ -33,6 +33,8 @@ class DartStatementCompletion {
       'SIMPLE_ENTER', "Insert a newline at the end of the current line");
   static const SIMPLE_SEMICOLON = const StatementCompletionKind(
       'SIMPLE_SEMICOLON', "Add a semicolon and newline");
+  static const COMPLETE_DO_STMT = const StatementCompletionKind(
+      'COMPLETE_DO_STMT', "Complete do-statement");
   static const COMPLETE_IF_STMT = const StatementCompletionKind(
       'COMPLETE_IF_STMT', "Complete if-statement");
   static const COMPLETE_WHILE_STMT = const StatementCompletionKind(
@@ -162,6 +164,9 @@ class StatementCompletionProcessor {
     }
     // TODO(messick): This needs to work for declarations.
     node = node.getAncestor((n) => n is Statement);
+    if (_isEmptyStatement(node)) {
+      node = node.parent;
+    }
     for (engine.AnalysisError error in statementContext.errors) {
       if (error.offset >= node.offset &&
           error.offset <= node.offset + node.length) {
@@ -173,6 +178,7 @@ class StatementCompletionProcessor {
 
     // TODO(messick) Consider changing (some of) this to a visitor.
     if (_complete_ifStatement() ||
+        _complete_doStatement() ||
         _complete_whileStatement() ||
         _complete_simpleSemicolon() ||
         _complete_simpleEnter()) {
@@ -197,12 +203,12 @@ class StatementCompletionProcessor {
   }
 
   void _appendEmptyBraces(SourceBuilder sb, [bool needsExitMark = false]) {
-    sb.append(' {');
+    sb.append('{');
     sb.append(eol);
     String indent = utils.getLinePrefix(selectionOffset);
     sb.append(indent);
     sb.append(utils.getIndent(1));
-    if (needsExitMark) {
+    if (needsExitMark && sb.exitOffset == null) {
       sb.setExitOffset();
     }
     sb.append(eol);
@@ -219,41 +225,96 @@ class StatementCompletionProcessor {
     return loc + indent.length;
   }
 
-  bool _complete_ifOrWhileStatement(
-      _IfWhileStructure statement, StatementCompletionKind kind) {
-    String text = utils.getNodeText(node);
+  String _baseNodeText(AstNode astNode) {
+    String text = utils.getNodeText(astNode);
     if (text.endsWith(eol)) {
       text = text.substring(0, text.length - eol.length);
     }
-    SourceBuilder sb;
-    bool needsExit = false;
-    if (statement.leftParenthesis.lexeme.isEmpty) {
-      if (!statement.rightParenthesis.lexeme.isEmpty) {
-        // Quite unlikely to see this so don't try to fix it.
-        return false;
-      }
-      int len = statement.keyword.length;
-      if (text.length == len ||
-          !text.substring(len, len + 1).contains(new RegExp(r'\s'))) {
-        sb = new SourceBuilder(file, statement.offset + len);
-        sb.append(' ');
-      } else {
-        sb = new SourceBuilder(file, statement.offset + len + 1);
-      }
-      sb.append('(');
-      sb.setExitOffset();
-      sb.append(')');
-    } else {
-      if (_isEmptyExpression(statement.condition)) {
-        exitPosition = _newPosition(statement.leftParenthesis.offset + 1);
-        sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
-      } else {
-        sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
-        needsExit = true;
-      }
+    return text;
+  }
+
+  bool _complete_doStatement() {
+    if (errors.isEmpty || node is! DoStatement) {
+      return false;
     }
+    DoStatement statement = node;
+    var stmt = new _DoIfWhileStructure(
+        statement.whileKeyword,
+        statement.leftParenthesis,
+        statement.condition,
+        statement.rightParenthesis,
+        null);
+    SourceBuilder sb = _sourceBuilderAfterKeyword(statement.doKeyword);
+    bool hasWhileKeyword = statement.whileKeyword.lexeme == "while";
+    int exitDelta = 0;
+    if (statement.body is EmptyStatement) {
+      String text = utils.getNodeText(statement.body);
+      int delta = 0;
+      if (text.startsWith(';')) {
+        delta = 1;
+        _addReplaceEdit(rangeStartLength(statement.body.offset, delta), '');
+        if (hasWhileKeyword) {
+          text = utils.getNodeText(statement);
+          if (text.indexOf(new RegExp(r'do\s*;\s*while')) == 0) {
+            int end = text.indexOf('while');
+            int start = text.indexOf(';') + 1;
+            delta += end - start - 1;
+            _addReplaceEdit(
+                rangeStartLength(start + statement.offset, end - start), ' ');
+          }
+        }
+        sb = new SourceBuilder(file, sb.offset + delta);
+        sb.append(' ');
+      }
+      _appendEmptyBraces(
+          sb, !(hasWhileKeyword && _isEmptyExpression(statement.condition)));
+      if (delta != 0) {
+        exitDelta = sb.length - delta;
+      }
+    } else if (_isEmptyBlock(statement.body)) {
+      sb = new SourceBuilder(sb.file, statement.body.end);
+    }
+    SourceBuilder sb2;
+    if (hasWhileKeyword) {
+      sb2 = _complete_keywordCondition(stmt);
+      if (sb2.length == 0) {
+        // true if condition is '()'
+        if (exitPosition != null) {
+          if (statement.semicolon.lexeme.isEmpty) {
+            _insertBuilder(sb);
+            sb = new SourceBuilder(file, exitPosition.offset + 1);
+            sb.append(';');
+          }
+        }
+      } else {
+        if (sb.exitOffset == null && sb2?.exitOffset != null) {
+          _insertBuilder(sb);
+          sb = sb2;
+          sb.append(';');
+        } else {
+          sb.append(sb2.toString());
+        }
+      }
+    } else {
+      sb.append(" while (");
+      sb.setExitOffset();
+      sb.append(");");
+    }
+    _insertBuilder(sb);
+    if (exitDelta != 0) {
+      exitPosition =
+          new Position(exitPosition.file, exitPosition.offset + exitDelta);
+    }
+    _setCompletion(DartStatementCompletion.COMPLETE_DO_STMT);
+    return true;
+  }
+
+  bool _complete_ifOrWhileStatement(
+      _DoIfWhileStructure statement, StatementCompletionKind kind) {
+    SourceBuilder sb = _complete_keywordCondition(statement);
     if (statement.block is EmptyStatement) {
-      _appendEmptyBraces(sb, needsExit);
+      sb.append(' ');
+      _appendEmptyBraces(sb, exitPosition == null);
     }
     _insertBuilder(sb);
     _setCompletion(kind);
@@ -269,12 +330,39 @@ class StatementCompletionProcessor {
       if (ifNode.elseKeyword != null) {
         return false;
       }
-      var stmt = new _IfWhileStructure(ifNode.ifKeyword, ifNode.leftParenthesis,
-          ifNode.condition, ifNode.rightParenthesis, ifNode.thenStatement);
+      var stmt = new _DoIfWhileStructure(
+          ifNode.ifKeyword,
+          ifNode.leftParenthesis,
+          ifNode.condition,
+          ifNode.rightParenthesis,
+          ifNode.thenStatement);
       return _complete_ifOrWhileStatement(
           stmt, DartStatementCompletion.COMPLETE_IF_STMT);
     }
     return false;
+  }
+
+  SourceBuilder _complete_keywordCondition(_DoIfWhileStructure statement) {
+    SourceBuilder sb;
+    String text = _baseNodeText(node);
+    if (statement.leftParenthesis.lexeme.isEmpty) {
+      if (!statement.rightParenthesis.lexeme.isEmpty) {
+        // Quite unlikely to see this so don't try to fix it.
+        return null;
+      }
+      sb = _sourceBuilderAfterKeyword(statement.keyword);
+      sb.append('(');
+      sb.setExitOffset();
+      sb.append(')');
+    } else {
+      if (_isEmptyExpression(statement.condition)) {
+        exitPosition = _newPosition(statement.leftParenthesis.offset + 1);
+        sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
+      } else {
+        sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
+      }
+    }
+    return sb;
   }
 
   bool _complete_simpleEnter() {
@@ -312,7 +400,7 @@ class StatementCompletionProcessor {
     }
     WhileStatement whileNode = node;
     if (whileNode != null) {
-      var stmt = new _IfWhileStructure(
+      var stmt = new _DoIfWhileStructure(
           whileNode.whileKeyword,
           whileNode.leftParenthesis,
           whileNode.condition,
@@ -370,12 +458,20 @@ class StatementCompletionProcessor {
     }
   }
 
+  bool _isEmptyBlock(AstNode stmt) {
+    return stmt is Block && stmt.statements.isEmpty;
+  }
+
   bool _isEmptyExpression(Expression expr) {
     if (expr is! SimpleIdentifier) {
       return false;
     }
     SimpleIdentifier id = expr as SimpleIdentifier;
     return id.length == 0;
+  }
+
+  bool _isEmptyStatement(AstNode stmt) {
+    return stmt is EmptyStatement || _isEmptyBlock(stmt);
   }
 
   Position _newPosition(int offset) {
@@ -395,16 +491,31 @@ class StatementCompletionProcessor {
     exitPosition = _newPosition(offset);
     _setCompletion(kind, args);
   }
+
+  SourceBuilder _sourceBuilderAfterKeyword(Token keyword) {
+    SourceBuilder sb;
+    String text = _baseNodeText(node);
+    text = text.substring(keyword.offset - node.offset);
+    int len = keyword.length;
+    if (text.length == len ||
+        !text.substring(len, len + 1).contains(new RegExp(r'\s'))) {
+      sb = new SourceBuilder(file, keyword.offset + len);
+      sb.append(' ');
+    } else {
+      sb = new SourceBuilder(file, keyword.offset + len + 1);
+    }
+    return sb;
+  }
 }
 
 // Encapsulate common structure of if-statement and while-statement.
-class _IfWhileStructure {
+class _DoIfWhileStructure {
   final Token keyword;
   final Token leftParenthesis, rightParenthesis;
   final Expression condition;
   final Statement block;
 
-  _IfWhileStructure(this.keyword, this.leftParenthesis, this.condition,
+  _DoIfWhileStructure(this.keyword, this.leftParenthesis, this.condition,
       this.rightParenthesis, this.block);
 
   int get offset => keyword.offset;

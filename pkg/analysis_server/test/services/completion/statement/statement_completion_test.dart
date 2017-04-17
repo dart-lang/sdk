@@ -24,6 +24,138 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
 
   bool get enableNewAnalysisDriver => true;
 
+  test_completeDoEmptyCondition() async {
+    await _prepareCompletion(
+        'while ()',
+        '''
+main() {
+  do {
+  } while ()
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete do-statement',
+        '''
+main() {
+  do {
+  } while ();
+}
+''',
+        (s) => s.indexOf('while (') + 'while ('.length);
+  }
+
+  test_completeDoKeywordOnly() async {
+    await _prepareCompletion(
+        'do',
+        '''
+main() {
+  do ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete do-statement',
+        '''
+main() {
+  do {
+    ////
+  } while ();
+}
+''',
+        (s) => s.indexOf('while (') + 'while ('.length);
+  }
+
+  test_completeDoNoBody() async {
+    await _prepareCompletion(
+        'do',
+        '''
+main() {
+  do;
+  while
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete do-statement',
+        '''
+main() {
+  do {
+    ////
+  } while ();
+}
+''',
+        (s) => s.indexOf('while (') + 'while ('.length);
+  }
+
+  test_completeDoNoCondition() async {
+    await _prepareCompletion(
+        'while',
+        '''
+main() {
+  do {
+  } while
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete do-statement',
+        '''
+main() {
+  do {
+  } while ();
+}
+''',
+        (s) => s.indexOf('while (') + 'while ('.length);
+  }
+
+  test_completeDoNoWhile() async {
+    await _prepareCompletion(
+        '}',
+        '''
+main() {
+  do {
+  }
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete do-statement',
+        '''
+main() {
+  do {
+  } while ();
+}
+''',
+        (s) => s.indexOf('while (') + 'while ('.length);
+  }
+
+  test_completeIfAfterCondition_BAD() async {
+    // TODO(messick): Fix the code to make this like test_completeIfWithCondition.
+    // Recap: Finding the node at the selectionOffset returns the block, not the
+    // if-statement. Need to understand if that only happens when the if-statement
+    // is the only statement in the block, or perhaps first or last? And what
+    // happens when it is in the middle of other statements?
+    await _prepareCompletion(
+        'if (true) ', // Trigger completion after space.
+        '''
+main() {
+  if (true) ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        // Note: This is not what we want.
+        'Insert a newline at the end of the current line',
+        '''
+main() {
+  if (true) ////
+  }
+}
+''',
+        (s) => s.indexOf('if (true) ') + 'if (true) '.length);
+  }
+
   test_completeIfEmptyCondition() async {
     await _prepareCompletion(
         'if ()',
@@ -85,32 +217,6 @@ main() {
 }
 ''',
         (s) => s.indexOf('    ') + '    '.length);
-  }
-
-  test_completeIfAfterCondition_BAD() async {
-    // TODO(messick): Fix the code to make this like test_completeIfWithCondition.
-    // Recap: Finding the node at the selectionOffset returns the block, not the
-    // if-statement. Need to understand if that only happens when the if-statement
-    // is the only statement in the block, or perhaps first or last? And what
-    // happens when it is in the middle of other statements?
-    await _prepareCompletion(
-        'if (true) ', // Trigger completion after space.
-        '''
-main() {
-  if (true) ////
-}
-''',
-        atEnd: true);
-    _assertHasChange(
-        // Note: This is not what we want.
-        'Insert a newline at the end of the current line',
-        '''
-main() {
-  if (true) ////
-  }
-}
-''',
-        (s) => s.indexOf('if (true) ') + 'if (true) '.length);
   }
 
   test_completeIfWithElse_BAD() async {
