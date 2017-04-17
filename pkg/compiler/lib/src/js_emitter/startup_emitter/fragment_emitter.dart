@@ -843,52 +843,72 @@ class FragmentEmitter {
   /// In this section prototype chains are updated and mixin functions are
   /// copied.
   js.Statement emitInheritance(Fragment fragment) {
-    List<js.Expression> inheritCalls = <js.Expression>[];
-    List<js.Expression> mixinCalls = <js.Expression>[];
+    List<js.Statement> inheritCalls = <js.Statement>[];
+    List<js.Statement> mixinCalls = <js.Statement>[];
 
     Set<Class> classesInFragment = new Set<Class>();
     for (Library library in fragment.libraries) {
       classesInFragment.addAll(library.classes);
     }
 
-    Set<Class> emittedClasses = new Set<Class>();
+    Map<Class, List<Class>> subclasses = <Class, List<Class>>{};
+    Set<Class> seen = new Set<Class>();
 
-    void emitInheritanceForClass(cls) {
-      if (cls == null || emittedClasses.contains(cls)) return;
+    void collect(cls) {
+      if (cls == null || seen.contains(cls)) return;
 
       Class superclass = cls.superclass;
       if (classesInFragment.contains(superclass)) {
-        emitInheritanceForClass(superclass);
+        collect(superclass);
       }
 
-      js.Expression superclassReference = (superclass == null)
-          ? new js.LiteralNull()
-          : classReference(superclass);
+      subclasses.putIfAbsent(superclass, () => <Class>[]).add(cls);
 
-      inheritCalls.add(
-          js.js('inherit(#, #)', [classReference(cls), superclassReference]));
-
-      emittedClasses.add(cls);
+      seen.add(cls);
     }
 
     for (Library library in fragment.libraries) {
       for (Class cls in library.classes) {
-        emitInheritanceForClass(cls);
+        collect(cls);
 
         if (cls.isMixinApplication) {
           MixinApplication mixin = cls;
-          mixinCalls.add(js.js('mixin(#, #)',
+          mixinCalls.add(js.js.statement('mixin(#, #)',
               [classReference(cls), classReference(mixin.mixinClass)]));
         }
       }
     }
 
+    js.Expression temp = null;
+    for (Class superclass in subclasses.keys) {
+      List<Class> list = subclasses[superclass];
+      js.Expression superclassReference = (superclass == null)
+          ? new js.LiteralNull()
+          : classReference(superclass);
+      if (list.length == 1) {
+        inheritCalls.add(js.js.statement('inherit(#, #)',
+            [classReference(list.single), superclassReference]));
+      } else {
+        // Hold common superclass in temporary for sequence of calls.
+        if (temp == null) {
+          String tempName = '_';
+          temp = new js.VariableUse(tempName);
+          var declaration = new js.VariableDeclaration(tempName);
+          inheritCalls.add(
+              js.js.statement('var # = #', [declaration, superclassReference]));
+        } else {
+          inheritCalls
+              .add(js.js.statement('# = #', [temp, superclassReference]));
+        }
+        for (Class cls in list) {
+          inheritCalls.add(
+              js.js.statement('inherit(#, #)', [classReference(cls), temp]));
+        }
+      }
+    }
+
     return wrapPhase(
-        'inheritance',
-        js.js.statement('{#; #;}', [
-          inheritCalls.map((e) => new js.ExpressionStatement(e)),
-          mixinCalls.map((e) => new js.ExpressionStatement(e))
-        ]));
+        'inheritance', js.js.statement('{#; #;}', [inheritCalls, mixinCalls]));
   }
 
   /// Emits the setup of method aliases.
