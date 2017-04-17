@@ -526,14 +526,13 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   {
     JSONArray jsarr(&jsobj, "dependencies");
 
-    Array& ports = Array::Handle();
     Namespace& ns = Namespace::Handle();
     Library& target = Library::Handle();
 
     // Unprefixed imports.
-    ports = imports();
-    for (intptr_t i = 0; i < ports.Length(); i++) {
-      ns ^= ports.At(i);
+    Array& imports = Array::Handle(this->imports());
+    for (intptr_t i = 0; i < imports.Length(); i++) {
+      ns ^= imports.At(i);
       if (ns.IsNull()) continue;
 
       JSONObject jsdep(&jsarr);
@@ -545,9 +544,9 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
     }
 
     // Exports.
-    ports = exports();
-    for (intptr_t i = 0; i < ports.Length(); i++) {
-      ns ^= ports.At(i);
+    const Array& exports = Array::Handle(this->exports());
+    for (intptr_t i = 0; i < exports.Length(); i++) {
+      ns ^= exports.At(i);
       if (ns.IsNull()) continue;
 
       JSONObject jsdep(&jsarr);
@@ -567,20 +566,22 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       entry = entries.GetNext();
       if (entry.IsLibraryPrefix()) {
         prefix ^= entry.raw();
-        ports = prefix.imports();
-        for (intptr_t i = 0; i < ports.Length(); i++) {
-          ns ^= ports.At(i);
-          if (ns.IsNull()) continue;
+        imports = prefix.imports();
+        if (!imports.IsNull()) {
+          for (intptr_t i = 0; i < imports.Length(); i++) {
+            ns ^= imports.At(i);
+            if (ns.IsNull()) continue;
 
-          JSONObject jsdep(&jsarr);
-          jsdep.AddProperty("isDeferred", prefix.is_deferred_load());
-          jsdep.AddProperty("isExport", false);
-          jsdep.AddProperty("isImport", true);
-          prefixName = prefix.name();
-          ASSERT(!prefixName.IsNull());
-          jsdep.AddProperty("prefix", prefixName.ToCString());
-          target = ns.library();
-          jsdep.AddProperty("target", target);
+            JSONObject jsdep(&jsarr);
+            jsdep.AddProperty("isDeferred", prefix.is_deferred_load());
+            jsdep.AddProperty("isExport", false);
+            jsdep.AddProperty("isImport", true);
+            prefixName = prefix.name();
+            ASSERT(!prefixName.IsNull());
+            jsdep.AddProperty("prefix", prefixName.ToCString());
+            target = ns.library();
+            jsdep.AddProperty("target", target);
+          }
         }
       }
     }

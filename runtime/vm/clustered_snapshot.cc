@@ -2860,7 +2860,7 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
     objects_.Add(prefix);
 
     RawObject** from = prefix->from();
-    RawObject** to = prefix->to();
+    RawObject** to = prefix->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -2877,11 +2877,12 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
+    Snapshot::Kind kind = s->kind();
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawLibraryPrefix* prefix = objects_[i];
       RawObject** from = prefix->from();
-      RawObject** to = prefix->to();
+      RawObject** to = prefix->to_snapshot(kind);
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
@@ -2913,6 +2914,7 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
+    Snapshot::Kind kind = d->kind();
     bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -2922,10 +2924,15 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
                                      LibraryPrefix::InstanceSize(),
                                      is_vm_object);
       RawObject** from = prefix->from();
+      RawObject** to_snapshot = prefix->to_snapshot(kind);
       RawObject** to = prefix->to();
-      for (RawObject** p = from; p <= to; p++) {
+      for (RawObject** p = from; p <= to_snapshot; p++) {
         *p = d->ReadRef();
       }
+      for (RawObject** p = to_snapshot + 1; p <= to; p++) {
+        *p = Object::null();
+      }
+
       prefix->ptr()->num_imports_ = d->Read<uint16_t>();
       prefix->ptr()->is_deferred_load_ = d->Read<bool>();
       prefix->ptr()->is_loaded_ = !prefix->ptr()->is_deferred_load_;
