@@ -1,17 +1,19 @@
 language: dart
+sudo: false
 dart:
   - dev
-
-script: ./tool/travis.sh
-
-# Speed up builds by using containerization. Disable this if you need to use
-# sudo in your scripts.
-sudo: false
-
-branches:
-  only:
-    - master
-
+  - stable
+  - 1.22.1
+  - 1.21.1
 cache:
   directories:
-  - $HOME/.pub-cache
+    - $HOME/.pub-cache
+dart_task:
+  - test: --platform vm
+  - dartanalyzer
+matrix:
+  include:
+    # Only validate formatting using the dev release
+    # Formatted with 1.23.0-dev.10.0 which has (good) changes since 1.22.1
+    - dart: dev
+      dart_task: dartfmt
