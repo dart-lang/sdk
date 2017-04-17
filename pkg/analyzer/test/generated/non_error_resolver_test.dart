@@ -2158,6 +2158,42 @@ class B extends A implements Function {
     verify([source]);
   }
 
+  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
+    Source source = addSource('''
+typedef Foo<S> = S Function<T>(T x);
+
+main(Object p) {
+  (p as Foo)<int>(3);
+  if (p is Foo) {
+    p<int>(3);
+  }
+  (p as Foo<String>)<int>(3);
+  if (p is Foo<String>) {
+    p<int>(3);
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
+    Source source = addSource('''
+typedef Foo = T Function<T>(T x);
+
+main(Object p) {
+  (p as Foo)<int>(3);
+  if (p is Foo) {
+    p<int>(3);
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
     Source source = addSource(r'''
 typedef Foo = int Function<T>(T x);
@@ -2218,6 +2254,19 @@ class A {
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericTypeAlias_invalidGenericFunctionType() async {
+    Source source = addSource('''
+typedef F = int;
+main(p) {
+  p is F;
+}
+''');
+    await computeAnalysisResult(source);
+    // There is a parse error, but no crashes.
+    assertErrors(source, [ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE]);
     verify([source]);
   }
 

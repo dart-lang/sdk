@@ -5236,6 +5236,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
    * `dynamic` will be used in place of each of the type arguments.
    */
   FunctionType typeAfterSubstitution(List<DartType> typeArguments) {
+    GenericFunctionTypeElement function = this.function;
+    if (function == null) {
+      return null;
+    }
     FunctionType functionType = function.type;
     List<TypeParameterElement> parameterElements = typeParameters;
     List<DartType> parameterTypes =
