@@ -61,10 +61,9 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
   // the outputUnits whose list of 'imports' contains a single import. If the
   // part is shared, it will have more than one import since it will include the
   // imports of all the top-level deferred parts that will load the shared part.
-  List<String> validParts = ['main']
-    ..addAll(info.outputUnits
-        .where((unit) => unit.imports.length == 1)
-        .map((unit) => unit.imports.single));
+  List<String> validParts = ['main']..addAll(info.outputUnits
+      .where((unit) => unit.imports.length == 1)
+      .map((unit) => unit.imports.single));
   List<String> mentionedParts = []
     ..addAll(includedPackages.keys)
     ..addAll(excludedPackages.keys);

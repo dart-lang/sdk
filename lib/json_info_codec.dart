@@ -339,7 +339,8 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       if (info.uses.isEmpty) return;
       map[info.serializedId] = info.uses
           .map((u) => _visitDependencyInfo(u))
-          .toList()..sort((Map a, Map b) => compareNatural(a['id'], b['id']));
+          .toList()
+            ..sort((Map a, Map b) => compareNatural(a['id'], b['id']));
     }
 
     allInfo.functions.forEach(helper);
