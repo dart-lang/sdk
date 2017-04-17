@@ -132,6 +132,9 @@ main() {
     final greetingSummary = new File('test/worker/greeting.api.ds').absolute;
     final helloJS = new File('test/worker/hello_world.js').absolute;
 
+    final greeting2JS = new File('test/worker/greeting2.js').absolute;
+    final greeting2Summary = new File('test/worker/greeting2.api.ds').absolute;
+
     setUp(() {
       greetingDart.writeAsStringSync('String greeting = "hello";');
       helloDart.writeAsStringSync('import "greeting.dart";'
@@ -143,6 +146,8 @@ main() {
       if (helloDart.existsSync()) helloDart.deleteSync();
       if (greetingJS.existsSync()) greetingJS.deleteSync();
       if (greetingSummary.existsSync()) greetingSummary.deleteSync();
+      if (greeting2JS.existsSync()) greeting2JS.deleteSync();
+      if (greeting2Summary.existsSync()) greeting2Summary.deleteSync();
       if (helloJS.existsSync()) helloJS.deleteSync();
     });
 
@@ -181,6 +186,61 @@ main() {
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
       expect(helloJS.existsSync(), isTrue);
+    });
+
+    test('reports error on overlapping summaries', () {
+      final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
+      var result = Process.runSync(Platform.executable, [
+        'bin/dartdevc.dart',
+        '--summary-extension=api.ds',
+        '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        '-o',
+        greetingJS.path,
+        greetingDart.path,
+      ]);
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(greetingJS.existsSync(), isTrue);
+      expect(greetingSummary.existsSync(), isTrue);
+
+      result = Process.runSync(Platform.executable, [
+        'bin/dartdevc.dart',
+        '--summary-extension=api.ds',
+        '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        '-o',
+        greeting2JS.path,
+        greetingDart.path,
+      ]);
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(greeting2JS.existsSync(), isTrue);
+      expect(greeting2Summary.existsSync(), isTrue);
+
+      result = Process.runSync(Platform.executable, [
+        'bin/dartdevc.dart',
+        '--no-source-map',
+        '--no-summarize',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        '--summary-extension=api.ds',
+        '-s',
+        greetingSummary.path,
+        '-s',
+        greeting2Summary.path,
+        '-o',
+        helloJS.path,
+        helloDart.path,
+      ]);
+      expect(result.exitCode, 65);
+      expect(result.stdout, contains("conflict"));
+      expect(result.stdout, contains(greetingDart.path));
+      expect(helloJS.existsSync(), isFalse);
     });
   });
 

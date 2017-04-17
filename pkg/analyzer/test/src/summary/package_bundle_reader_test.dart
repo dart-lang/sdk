@@ -249,7 +249,9 @@ class SummaryDataStoreTest {
     when(bundle.linkedLibraries)
         .thenReturn(<LinkedLibrary>[linkedLibrary2, linkedLibrary1]);
     when(bundle.apiSignature).thenReturn('signature');
-    dataStore.addBundle('/p3.ds', bundle);
+    // p3 conflicts (overlaps) with existing summaries.
+    expect(() => dataStore.addBundle('/p3.ds', bundle),
+        throwsA(isConflictingSummaryException));
     expect(dataStore.dependencies.last.includedPackageNames, ['p1', 'p2']);
   }
 
@@ -316,3 +318,12 @@ class _UnlinkedPublicNamespaceMock extends TypedMock
     implements UnlinkedPublicNamespace {}
 
 class _UnlinkedUnitMock extends TypedMock implements UnlinkedUnit {}
+
+/// A matcher for ConflictingSummaryException.
+const Matcher isConflictingSummaryException =
+    const _ConflictingSummaryException();
+
+class _ConflictingSummaryException extends TypeMatcher {
+  const _ConflictingSummaryException() : super("ConflictingSummaryException");
+  bool matches(item, Map matchState) => item is ConflictingSummaryException;
+}

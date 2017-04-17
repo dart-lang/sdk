@@ -89,6 +89,7 @@ class ModuleCompiler {
     // Read the summaries.
     summaryData ??= new SummaryDataStore(options.summaryPaths,
         resourceProvider: resourceProvider, recordDependencyInfo: true);
+
     var sdkSummaryBundle = sdk.getLinkedBundle();
     if (sdkSummaryBundle != null) {
       summaryData.addBundle(null, sdkSummaryBundle);

@@ -10,7 +10,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
         ignoreUnrecognizedFlagsFlag;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show InSummarySource;
+    show ConflictingSummaryException, InSummarySource;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
@@ -63,6 +63,10 @@ int compile(List<String> args, {void printFn(Object obj)}) {
     // Incorrect usage, input file not found, etc.
     printFn(error);
     return 64;
+  } on ConflictingSummaryException catch (error) {
+    // Same input file appears in multiple provided summaries.
+    printFn(error);
+    return 65;
   } on CompileErrorException catch (error) {
     // Code has error(s) and failed to compile.
     printFn(error);
