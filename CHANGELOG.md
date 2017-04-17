@@ -1,3 +1,9 @@
+## 0.5.5-dev
+
+- Updated minimum SDK dependency to align with package dependencies.
+- Allowed the latest version of `pkg/quiver`.
+- Updated the homepage.
+
 ## 0.5.4+1
 
 - Remove files published accidentally.
