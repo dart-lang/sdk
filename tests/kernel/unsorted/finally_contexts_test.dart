@@ -21,15 +21,18 @@ test(list) {
         addem() {
           for (var x in list) sum += x;
         }
+
         addem();
         Expect.isTrue(sum == 15);
-        L: if (sum != 15) {
+        L:
+        if (sum != 15) {
           // Unreachable.
           do {
             var product = 1;
             multiplyem() {
               for (var x in list) product *= x;
             }
+
             multiplyem();
             Expect.isTrue(false);
             break L;
@@ -40,7 +43,6 @@ test(list) {
   } while (false);
   Expect.isTrue(list.length == 5);
 }
-
 
 main() {
   test([1, 2, 3, 4, 5]);

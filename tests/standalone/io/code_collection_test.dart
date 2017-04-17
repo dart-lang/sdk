@@ -8,7 +8,6 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
-
 int foo(int x) {
   x = x + 1;
   // Print marker message while foo is on the stack so the code cannot be
@@ -17,17 +16,15 @@ int foo(int x) {
   return x;
 }
 
-
 List<int> bar() {
   // A couple of big allocations trigger GC.
   var l = new List.filled(700000, 7);
   return l;
 }
 
-
 doTest() {
   var i = 0;
-  var ret = foo(1);  // Initial call to compile.
+  var ret = foo(1); // Initial call to compile.
   // Time passes, GC runs, foo's code is dropped.
   var ms = const Duration(milliseconds: 100);
   var t = new Timer.periodic(ms, (timer) {
@@ -60,14 +57,16 @@ main(List<String> arguments) {
   } else {
     // Run the test and capture stdout.
     var args = packageOptions();
-    args.addAll(["--verbose-gc",
-         "--collect-code",
-         "--code-collection-interval-in-us=0",
-         "--old_gen_growth_rate=10",
-         "--log-code-drop",
-         "--optimization-counter-threshold=-1",
-         Platform.script.toFilePath(),
-         "--run"]);
+    args.addAll([
+      "--verbose-gc",
+      "--collect-code",
+      "--code-collection-interval-in-us=0",
+      "--old_gen_growth_rate=10",
+      "--log-code-drop",
+      "--optimization-counter-threshold=-1",
+      Platform.script.toFilePath(),
+      "--run"
+    ]);
     var pr = Process.runSync(Platform.executable, args);
 
     Expect.equals(0, pr.exitCode);

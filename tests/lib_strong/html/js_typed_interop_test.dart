@@ -279,13 +279,14 @@ main() {
       // Calling with extra bogus arguments has no impact for JavaScript
       // methods.
       expect(untypedFunction(6, 6, "ignored", "ignored"), equals(36));
-      expect(untypedFunction(6, 6, "ignored", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), equals(36));
+      expect(
+          untypedFunction(6, 6, "ignored", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+          equals(36));
       // Calling a JavaScript method with too few arguments is also fine and
       // defaults to JavaScript behavior of setting all unspecified arguments
       // to undefined resulting in multiplying undefined by 2 == NAN.
       expect(untypedFunction(), double.NAN);
-
     });
   });
 
@@ -317,8 +318,7 @@ main() {
       localClosure(x) => x * 10;
       var wrappedLocalClosure = allowInterop(localClosure);
       var wrappedLocalClosure2 = allowInterop(localClosure);
-      expect(
-          identical(wrappedLocalClosure2, wrappedLocalClosure), isTrue);
+      expect(identical(wrappedLocalClosure2, wrappedLocalClosure), isTrue);
       expect(foo.callClosureWithArg1(wrappedLocalClosure, 10), equals(100));
       expect(foo.callClosureWithArg1(wrappedLocalClosure, "a"),
           equals("aaaaaaaaaa"));

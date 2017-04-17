@@ -37,7 +37,7 @@ main() {
       } on TypeError {
         return 'Error';
       } on ArgumentError {
-        return 'Error';  // Checked mode.
+        return 'Error'; // Checked mode.
       }
     } else {
       try {
@@ -58,7 +58,7 @@ main() {
       } on TypeError {
         return 'Error';
       } on ArgumentError {
-        return 'Error';  // Checked mode.
+        return 'Error'; // Checked mode.
       }
     } else {
       try {
@@ -79,7 +79,7 @@ main() {
       } on TypeError {
         return 'Error';
       } on ArgumentError {
-        return 'Error';  // Checked mode.
+        return 'Error'; // Checked mode.
       }
     } else {
       try {

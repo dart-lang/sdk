@@ -17,7 +17,8 @@ class B {
 }
 
 int bar(o) {
-  if (o.x > 0) {  // <-- Deoptimize from inner frame.
+  if (o.x > 0) {
+    // <-- Deoptimize from inner frame.
     return 1;
   } else {
     return 0;
@@ -25,7 +26,7 @@ int bar(o) {
 }
 
 int foo(o) {
-  bar(o);  // <-- Used in an effect context.
+  bar(o); // <-- Used in an effect context.
   return 1;
 }
 
@@ -34,6 +35,6 @@ main() {
   int sum = 0;
   for (int i = 0; i < 20; i++) sum += foo(o);
   o = new B();
-  sum += foo(o);  // <-- Cause deoptimization of bar within foo.
+  sum += foo(o); // <-- Cause deoptimization of bar within foo.
   Expect.equals(21, sum);
 }

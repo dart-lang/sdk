@@ -15,7 +15,6 @@ class D {
     await def.loadLibrary();
     result = def.foo(result += "Here");
   }
-
 }
 
 main() async {
@@ -24,4 +23,3 @@ main() async {
   await d.m();
   Expect.equals("HereHelloHereHello", result);
 }
-

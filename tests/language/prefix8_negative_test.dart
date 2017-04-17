@@ -15,6 +15,6 @@ class Test {
 
 main() {
   var Test;
-  var i = new Test.named(10);  // This should be an error.
+  var i = new Test.named(10); // This should be an error.
   Expect.equals(10, i.fld);
 }

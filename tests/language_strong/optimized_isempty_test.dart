@@ -14,8 +14,7 @@ main() {
   var y = [123, 12345, 765];
   Expect.equals(false, test(x));
   Expect.equals(false, test(y));
-  for (var i=0; i<20; i++) test(x);
+  for (var i = 0; i < 20; i++) test(x);
   Expect.equals(false, test(x));
   Expect.equals(false, test(y));
 }
-

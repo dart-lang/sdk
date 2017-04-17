@@ -24,8 +24,7 @@ class Cheese {
     this.name = s;
   }
 
-  Cheese.initFieldParam(this.name, this.smell) {
-  }
+  Cheese.initFieldParam(this.name, this.smell) {}
 
   // Test that static const field Cheese.mild is not shadowed
   // by the parameter mild when compiling the field initializer

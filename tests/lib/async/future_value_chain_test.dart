@@ -6,7 +6,6 @@ import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
 
-
 main() {
   asyncStart();
   var errorFuture = new Future.error(499);

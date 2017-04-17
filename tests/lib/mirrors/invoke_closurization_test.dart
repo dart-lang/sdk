@@ -13,6 +13,7 @@ class C {
   instanceMethod(x, y, z) => '$x+$y+$z';
   static staticFunction(x, y, z) => '$x-$y-$z';
 }
+
 libraryFunction(x, y, z) => '$x:$y:$z';
 
 testSync() {

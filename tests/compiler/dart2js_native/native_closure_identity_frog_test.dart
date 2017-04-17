@@ -8,12 +8,12 @@ typedef void MyFunctionType();
 
 @Native("A")
 class A {
-  setClosure(MyFunctionType f) native ;
-  check(MyFunctionType f) native ;
-  invoke() native ;
+  setClosure(MyFunctionType f) native;
+  check(MyFunctionType f) native;
+  invoke() native;
 }
 
-makeA() native ;
+makeA() native;
 
 void setup() native """
 function A() {}

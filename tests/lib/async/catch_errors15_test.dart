@@ -24,33 +24,35 @@ main() {
       });
       throw "catch error";
     }).listen((x) {
-                events.add("i $x");
-                if (x == "delayed error") done.complete(true);
-              },
-              onDone: () { Expect.fail("Unexpected callback"); });
+      events.add("i $x");
+      if (x == "delayed error") done.complete(true);
+    }, onDone: () {
+      Expect.fail("Unexpected callback");
+    });
     events.add("after inner");
     throw "inner throw";
   }).listen((x) {
-      events.add("o $x");
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add("o $x");
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
   done.future.whenComplete(() {
     // Give some time to run the handlers.
     Timer.run(() {
-      Expect.listEquals(["catch error entry",
-                         "catch error entry2",
-                         "after inner",
-                         "main exit",
-                         "i catch error",
-                         // We guarantee the order of one stream but not any
-                         // global order.
-                         "o inner throw",
-                         "i future error",
-                         "i future error2",
-                         "i 499",
-                         "i delayed error",
-                         ],
-                         events);
+      Expect.listEquals([
+        "catch error entry",
+        "catch error entry2",
+        "after inner",
+        "main exit",
+        "i catch error",
+        // We guarantee the order of one stream but not any
+        // global order.
+        "o inner throw",
+        "i future error",
+        "i future error2",
+        "i 499",
+        "i delayed error",
+      ], events);
       asyncEnd();
     });
   });

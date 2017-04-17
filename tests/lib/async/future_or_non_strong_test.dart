@@ -7,7 +7,6 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 
-
 typedef void FunTakes<T>(T x);
 typedef T FunReturns<T>();
 
@@ -19,7 +18,6 @@ main() {
   Expect.isTrue(new Future.value(499) is FutureOr);
   Expect.isTrue(new Future.value(499) is FutureOr<int>);
   Expect.isTrue(new Future.value(499) is FutureOr<String>);
-
 
   void foo(FutureOr x) {}
 
@@ -36,7 +34,6 @@ main() {
   Expect.isTrue(foo is FunTakes<FutureOr<FutureOr<int>>>);
   Expect.isTrue(foo is FunTakes<FutureOr<FutureOr<String>>>);
 
-
   FutureOr bar() => 499;
 
   Expect.isTrue(bar is FunReturns<dynamic>);
@@ -51,7 +48,6 @@ main() {
   Expect.isTrue(bar is FunReturns<FutureOr<FutureOr<Object>>>);
   Expect.isTrue(bar is FunReturns<FutureOr<FutureOr<int>>>);
   Expect.isTrue(bar is FunReturns<FutureOr<FutureOr<String>>>);
-
 
   void foo2(FutureOr<String> x) {}
 
@@ -68,7 +64,6 @@ main() {
   Expect.isTrue(foo2 is FunTakes<FutureOr<FutureOr<int>>>);
   Expect.isTrue(foo2 is FunTakes<FutureOr<FutureOr<String>>>);
 
-
   FutureOr<int> bar2() => 499;
 
   Expect.isTrue(bar2 is FunReturns<dynamic>);
@@ -84,7 +79,6 @@ main() {
   Expect.isTrue(bar2 is FunReturns<FutureOr<FutureOr<int>>>);
   Expect.isTrue(bar2 is FunReturns<FutureOr<FutureOr<String>>>);
 
-
   void foo3(String x) {}
 
   Expect.isTrue(foo3 is FunTakes<dynamic>);
@@ -99,7 +93,6 @@ main() {
   Expect.isTrue(foo3 is FunTakes<FutureOr<FutureOr<Object>>>);
   Expect.isTrue(foo3 is FunTakes<FutureOr<FutureOr<int>>>);
   Expect.isTrue(foo3 is FunTakes<FutureOr<FutureOr<String>>>);
-
 
   int bar3() => 499;
 

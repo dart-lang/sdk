@@ -7,8 +7,11 @@ import "package:expect/expect.dart";
 
 class Helper {
   static int f0(bool b) {
-    if (b);
-    if (b); else;
+    if (b) ;
+    if (b)
+      ;
+    else
+      ;
     if (b) {}
     if (b) {} else {}
     return 0;
@@ -86,7 +89,6 @@ class IfTest {
     Expect.equals(2, Helper.f7(false, false));
   }
 }
-
 
 main() {
   IfTest.testMain();

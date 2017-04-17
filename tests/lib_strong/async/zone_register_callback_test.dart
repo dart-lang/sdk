@@ -15,16 +15,16 @@ main() {
   Expect.identical(Zone.ROOT, Zone.current);
   Zone forked = Zone.current.fork(specification: new ZoneSpecification(
       registerCallback: (Zone self, ZoneDelegate parent, Zone origin, f()) {
-        // The zone is still the same as when origin.run was invoked, which
-        // is the root zone. (The origin zone hasn't been set yet).
-        Expect.identical(Zone.current, Zone.ROOT);
-        // Note that not forwarding is completely legal, though not encouraged.
-        var capturedValue = valueToCapture;
-        return parent.registerCallback(origin, () {
-          restoredValue = capturedValue;
-          return f();
-        });
-      }));
+    // The zone is still the same as when origin.run was invoked, which
+    // is the root zone. (The origin zone hasn't been set yet).
+    Expect.identical(Zone.current, Zone.ROOT);
+    // Note that not forwarding is completely legal, though not encouraged.
+    var capturedValue = valueToCapture;
+    return parent.registerCallback(origin, () {
+      restoredValue = capturedValue;
+      return f();
+    });
+  }));
 
   valueToCapture = 499;
   var fun = () => 99;

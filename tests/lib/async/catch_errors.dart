@@ -19,18 +19,17 @@ Stream catchErrors(void body()) {
 }
 
 runZonedScheduleMicrotask(body(),
-                          { void onScheduleMicrotask(void callback()),
-                            Function onError }) {
+    {void onScheduleMicrotask(void callback()), Function onError}) {
   if (onScheduleMicrotask == null) {
     return runZoned(body, onError: onError);
   }
   HandleUncaughtErrorHandler errorHandler;
   if (onError != null) {
-    errorHandler = (Zone self, ZoneDelegate parent, Zone zone,
-                    error, StackTrace stackTrace) {
+    errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error,
+        StackTrace stackTrace) {
       try {
         return self.parent.runUnary(onError, error);
-      } catch(e, s) {
+      } catch (e, s) {
         if (identical(e, error)) {
           return parent.handleUncaughtError(zone, error, stackTrace);
         } else {
@@ -45,9 +44,8 @@ runZonedScheduleMicrotask(body(),
       self.parent.runUnary(onScheduleMicrotask, () => zone.runGuarded(f));
     };
   }
-  ZoneSpecification specification =
-      new ZoneSpecification(handleUncaughtError: errorHandler,
-                            scheduleMicrotask: asyncHandler);
+  ZoneSpecification specification = new ZoneSpecification(
+      handleUncaughtError: errorHandler, scheduleMicrotask: asyncHandler);
   Zone zone = Zone.current.fork(specification: specification);
   if (onError != null) {
     return zone.runGuarded(body);

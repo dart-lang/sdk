@@ -1,4 +1,5 @@
 library IndexedDB3Test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:async';
@@ -11,14 +12,13 @@ const String DB_NAME = 'Test3';
 const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
-
 Future<Database> createAndOpenDb() {
   return html.window.indexedDB.deleteDatabase(DB_NAME).then((_) {
     return html.window.indexedDB.open(DB_NAME, version: VERSION,
         onUpgradeNeeded: (e) {
-          var db = e.target.result;
-          db.createObjectStore(STORE_NAME);
-        });
+      var db = e.target.result;
+      db.createObjectStore(STORE_NAME);
+    });
   });
 }
 
@@ -50,20 +50,18 @@ Future<Database> readAllViaCursor(Database db) {
   var lastKey = null;
 
   var cursors = objectStore.openCursor().asBroadcastStream();
-  cursors.listen(
-    (cursor) {
-      ++itemCount;
-      lastKey = cursor.key;
-      sumKeys += cursor.key;
-      expect(cursor.value, 'Item ${cursor.key}');
-      cursor.next();
-    });
-  cursors.last.then(
-    (cursor) {
-      expect(lastKey, 99);
-      expect(sumKeys, (100 * 99) ~/ 2);
-      expect(itemCount, 100);
-    });
+  cursors.listen((cursor) {
+    ++itemCount;
+    lastKey = cursor.key;
+    sumKeys += cursor.key;
+    expect(cursor.value, 'Item ${cursor.key}');
+    cursor.next();
+  });
+  cursors.last.then((cursor) {
+    expect(lastKey, 99);
+    expect(sumKeys, (100 * 99) ~/ 2);
+    expect(itemCount, 100);
+  });
 
   return cursors.last.then((_) => db);
 }
@@ -76,20 +74,18 @@ Future<Database> readAllReversedViaCursor(Database db) {
   var lastKey = null;
 
   var cursors = objectStore.openCursor(direction: 'prev').asBroadcastStream();
-  cursors.listen(
-    (cursor) {
-      ++itemCount;
-      lastKey = cursor.key;
-      sumKeys += cursor.key;
-      expect(cursor.value, 'Item ${cursor.key}');
-      cursor.next();
-    });
-  cursors.last.then(
-    (cursor) {
-      expect(lastKey, 0);
-      expect(sumKeys, (100 * 99) ~/ 2);
-      expect(itemCount, 100);
-    });
+  cursors.listen((cursor) {
+    ++itemCount;
+    lastKey = cursor.key;
+    sumKeys += cursor.key;
+    expect(cursor.value, 'Item ${cursor.key}');
+    cursor.next();
+  });
+  cursors.last.then((cursor) {
+    expect(lastKey, 0);
+    expect(sumKeys, (100 * 99) ~/ 2);
+    expect(itemCount, 100);
+  });
   return cursors.last.then((_) => db);
 }
 
@@ -101,7 +97,9 @@ main() {
   if (IdbFactory.supported) {
     var db;
     test('prepare', () {
-      return setupDb().then((result) { db = result; });
+      return setupDb().then((result) {
+        db = result;
+      });
     });
     test('readAll1', () {
       return readAllViaCursor(db);

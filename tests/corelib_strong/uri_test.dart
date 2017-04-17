@@ -21,10 +21,9 @@ testUri(String uriText, bool isAbsolute) {
   // Test that removeFragment doesn't change anything else.
   if (uri.hasFragment) {
     Expect.equals(Uri.parse(uriText.substring(0, uriText.indexOf('#'))),
-                  uri.removeFragment());
+        uri.removeFragment());
   } else {
-    Expect.equals(uri,
-                  Uri.parse(uriText + "#fragment").removeFragment());
+    Expect.equals(uri, Uri.parse(uriText + "#fragment").removeFragment());
   }
 }
 
@@ -42,10 +41,8 @@ testEncodeDecodeComponent(String orig, String encoded) {
   Expect.stringEquals(orig, d);
 }
 
-testEncodeDecodeQueryComponent(String orig,
-                               String encodedUTF8,
-                               String encodedLatin1,
-                               String encodedAscii) {
+testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
+    String encodedLatin1, String encodedAscii) {
   var e, d;
   e = Uri.encodeQueryComponent(orig);
   Expect.stringEquals(encodedUTF8, e);
@@ -69,7 +66,7 @@ testEncodeDecodeQueryComponent(String orig,
     Expect.stringEquals(orig, d);
   } else {
     Expect.throws(() => Uri.encodeQueryComponent(orig, encoding: ASCII),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
   }
 }
 
@@ -81,51 +78,51 @@ testUriPerRFCs() {
   }
 
   // From RFC 3986.
-  testResolve("g:h",                   "g:h");
-  testResolve("http://a/b/c/g",        "g");
-  testResolve("http://a/b/c/g",        "./g");
-  testResolve("http://a/b/c/g/",       "g/");
-  testResolve("http://a/g",            "/g");
-  testResolve("http://g",              "//g");
-  testResolve("http://a/b/c/d;p?y",    "?y");
-  testResolve("http://a/b/c/g?y",      "g?y");
-  testResolve("http://a/b/c/d;p?q#s",  "#s");
-  testResolve("http://a/b/c/g#s",      "g#s");
-  testResolve("http://a/b/c/g?y#s",    "g?y#s");
-  testResolve("http://a/b/c/;x",       ";x");
-  testResolve("http://a/b/c/g;x",      "g;x");
-  testResolve("http://a/b/c/g;x?y#s",  "g;x?y#s");
-  testResolve("http://a/b/c/d;p?q",    "");
-  testResolve("http://a/b/c/",         ".");
-  testResolve("http://a/b/c/",         "./");
-  testResolve("http://a/b/",           "..");
-  testResolve("http://a/b/",           "../");
-  testResolve("http://a/b/g",          "../g");
-  testResolve("http://a/",             "../..");
-  testResolve("http://a/",             "../../");
-  testResolve("http://a/g",            "../../g");
-  testResolve("http://a/g",            "../../../g");
-  testResolve("http://a/g",            "../../../../g");
-  testResolve("http://a/g",            "/./g");
-  testResolve("http://a/g",            "/../g");
-  testResolve("http://a/b/c/g.",       "g.");
-  testResolve("http://a/b/c/.g",       ".g");
-  testResolve("http://a/b/c/g..",      "g..");
-  testResolve("http://a/b/c/..g",      "..g");
-  testResolve("http://a/b/g",          "./../g");
-  testResolve("http://a/b/c/g/",       "./g/.");
-  testResolve("http://a/b/c/g/h",      "g/./h");
-  testResolve("http://a/b/c/h",        "g/../h");
-  testResolve("http://a/b/c/g;x=1/y",  "g;x=1/./y");
-  testResolve("http://a/b/c/y",        "g;x=1/../y");
-  testResolve("http://a/b/c/g?y/./x",  "g?y/./x");
+  testResolve("g:h", "g:h");
+  testResolve("http://a/b/c/g", "g");
+  testResolve("http://a/b/c/g", "./g");
+  testResolve("http://a/b/c/g/", "g/");
+  testResolve("http://a/g", "/g");
+  testResolve("http://g", "//g");
+  testResolve("http://a/b/c/d;p?y", "?y");
+  testResolve("http://a/b/c/g?y", "g?y");
+  testResolve("http://a/b/c/d;p?q#s", "#s");
+  testResolve("http://a/b/c/g#s", "g#s");
+  testResolve("http://a/b/c/g?y#s", "g?y#s");
+  testResolve("http://a/b/c/;x", ";x");
+  testResolve("http://a/b/c/g;x", "g;x");
+  testResolve("http://a/b/c/g;x?y#s", "g;x?y#s");
+  testResolve("http://a/b/c/d;p?q", "");
+  testResolve("http://a/b/c/", ".");
+  testResolve("http://a/b/c/", "./");
+  testResolve("http://a/b/", "..");
+  testResolve("http://a/b/", "../");
+  testResolve("http://a/b/g", "../g");
+  testResolve("http://a/", "../..");
+  testResolve("http://a/", "../../");
+  testResolve("http://a/g", "../../g");
+  testResolve("http://a/g", "../../../g");
+  testResolve("http://a/g", "../../../../g");
+  testResolve("http://a/g", "/./g");
+  testResolve("http://a/g", "/../g");
+  testResolve("http://a/b/c/g.", "g.");
+  testResolve("http://a/b/c/.g", ".g");
+  testResolve("http://a/b/c/g..", "g..");
+  testResolve("http://a/b/c/..g", "..g");
+  testResolve("http://a/b/g", "./../g");
+  testResolve("http://a/b/c/g/", "./g/.");
+  testResolve("http://a/b/c/g/h", "g/./h");
+  testResolve("http://a/b/c/h", "g/../h");
+  testResolve("http://a/b/c/g;x=1/y", "g;x=1/./y");
+  testResolve("http://a/b/c/y", "g;x=1/../y");
+  testResolve("http://a/b/c/g?y/./x", "g?y/./x");
   testResolve("http://a/b/c/g?y/../x", "g?y/../x");
-  testResolve("http://a/b/c/g#s/./x",  "g#s/./x");
+  testResolve("http://a/b/c/g#s/./x", "g#s/./x");
   testResolve("http://a/b/c/g#s/../x", "g#s/../x");
-  testResolve("http:g",                "http:g");
+  testResolve("http:g", "http:g");
 
   // Additional tests (not from RFC 3986).
-  testResolve("http://a/b/g;p/h;s",    "../g;p/h;s");
+  testResolve("http://a/b/g;p/h;s", "../g;p/h;s");
 
   // Test non-URI base (no scheme, no authority, relative path).
   base = Uri.parse("a/b/c?_#_");
@@ -139,10 +136,9 @@ testUriPerRFCs() {
 }
 
 void testResolvePath(String expected, String path) {
-  Expect.equals(expected,
-                new Uri(path: '/').resolveUri(new Uri(path: path)).path);
   Expect.equals(
-      "http://localhost$expected",
+      expected, new Uri(path: '/').resolveUri(new Uri(path: path)).path);
+  Expect.equals("http://localhost$expected",
       Uri.parse("http://localhost").resolveUri(new Uri(path: path)).toString());
 }
 
@@ -164,15 +160,21 @@ void testValidCharacters() {
   // test that all valid characters are accepted.
 
   for (var scheme in ["", "$SCHEMECHAR$SCHEMECHAR:"]) {
-    for (var userinfo in ["", "@", "$USERINFOCHAR$USERINFOCHAR@",
-                          "$USERINFOCHAR:$DIGIT@"]) {
-      for (var host in ["", "$REGNAMECHAR$REGNAMECHAR",
-                        "255.255.255.256",  // valid reg-name.
-                        "[ffff::ffff:ffff]", "[ffff::255.255.255.255]"]) {
+    for (var userinfo in [
+      "",
+      "@",
+      "$USERINFOCHAR$USERINFOCHAR@",
+      "$USERINFOCHAR:$DIGIT@"
+    ]) {
+      for (var host in [
+        "", "$REGNAMECHAR$REGNAMECHAR",
+        "255.255.255.256", // valid reg-name.
+        "[ffff::ffff:ffff]", "[ffff::255.255.255.255]"
+      ]) {
         for (var port in ["", ":", ":$DIGIT$DIGIT"]) {
           var auth = "$userinfo$host$port";
           if (auth.isNotEmpty) auth = "//$auth";
-          var paths = ["", "/", "/$PCHAR", "/$PCHAR/"];  // Absolute or empty.
+          var paths = ["", "/", "/$PCHAR", "/$PCHAR/"]; // Absolute or empty.
           if (auth.isNotEmpty) {
             // Initial segment may be empty.
             paths..add("//$PCHAR");
@@ -180,13 +182,12 @@ void testValidCharacters() {
             // Path may begin with non-slash.
             if (scheme.isEmpty) {
               // Initial segment must not contain colon.
-              paths..add(PCHAR_NC)
-                   ..add("$PCHAR_NC/$PCHAR")
-                   ..add("$PCHAR_NC/$PCHAR/");
+              paths
+                ..add(PCHAR_NC)
+                ..add("$PCHAR_NC/$PCHAR")
+                ..add("$PCHAR_NC/$PCHAR/");
             } else {
-              paths..add(PCHAR)
-                   ..add("$PCHAR/$PCHAR")
-                   ..add("$PCHAR/$PCHAR/");
+              paths..add(PCHAR)..add("$PCHAR/$PCHAR")..add("$PCHAR/$PCHAR/");
             }
           }
           for (var path in paths) {
@@ -213,6 +214,7 @@ void testInvalidUrls() {
       // Success.
     }
   }
+
   checkInvalid("s%41://x.x/"); //      No escapes in scheme,
   //                                   and no colon before slash in path.
   checkInvalid("1a://x.x/"); //        Scheme must start with letter,
@@ -232,28 +234,28 @@ void testInvalidUrls() {
   }
 
   // Regression test for http://dartbug.com/16081
-  checkInvalidReplaced("http://www.example.org/red%09ros{}#red)",
-                       "\u00e9", "%C3%A9");
+  checkInvalidReplaced(
+      "http://www.example.org/red%09ros{}#red)", "\u00e9", "%C3%A9");
   checkInvalidReplaced("http://r{}sum\{}.example.org", "\u00E9", "%C3%A9");
 
   // Invalid characters. The characters must be rejected, even if normalizing
   // the input would cause them to be valid (normalization happens after
   // validation).
   var invalidCharsAndReplacements = [
-    "\xe7",      "%C3%A7", //       Arbitrary non-ASCII letter
-    " ",         "%20", //          Space, not allowed anywhere.
-    '"',         "%22", //          Quote, not allowed anywhere
-    "<>",        "%3C%3E", //       Less/greater-than, not allowed anywhere.
-    "\x7f",      "%7F", //          DEL, not allowed anywhere
-    "\xdf",      "%C3%9F", //       German lower-case scharf-S.
+    "\xe7", "%C3%A7", //       Arbitrary non-ASCII letter
+    " ", "%20", //          Space, not allowed anywhere.
+    '"', "%22", //          Quote, not allowed anywhere
+    "<>", "%3C%3E", //       Less/greater-than, not allowed anywhere.
+    "\x7f", "%7F", //          DEL, not allowed anywhere
+    "\xdf", "%C3%9F", //       German lower-case scharf-S.
     //                              Becomes ASCII when upper-cased.
-    "\u0130",    "%C4%B0", //       Latin capital dotted I,
+    "\u0130", "%C4%B0", //       Latin capital dotted I,
     //                              becomes ASCII lower-case in Turkish.
-    "%\uFB03",   "%25%EF%AC%83", // % + Ligature ffi,
+    "%\uFB03", "%25%EF%AC%83", // % + Ligature ffi,
     //                              becomes ASCII when upper-cased,
     //                              should not be read as "%FFI".
-    "\u212a",    "%E2%84%AA", //    Kelvin sign. Becomes ASCII when lower-cased.
-    "%1g",       "%251g", //        Invalid escape.
+    "\u212a", "%E2%84%AA", //    Kelvin sign. Becomes ASCII when lower-cased.
+    "%1g", "%251g", //        Invalid escape.
     "\u{10000}", "%F0%90%80%80", // Non-BMP character as surrogate pair.
   ];
   for (int i = 0; i < invalidCharsAndReplacements.length; i += 2) {
@@ -316,10 +318,10 @@ void testNormalization() {
   // subject to case normalization in reg-name.
   for (var i = 0; i < UNRESERVED.length; i++) {
     var char = UNRESERVED[i];
-    var escape = "%" + char.codeUnitAt(0).toRadixString(16);  // all > 0xf.
+    var escape = "%" + char.codeUnitAt(0).toRadixString(16); // all > 0xf.
 
     uri = Uri.parse("s://xX${escape}xX@yY${escape}yY/zZ${escape}zZ"
-                    "?vV${escape}vV#wW${escape}wW");
+        "?vV${escape}vV#wW${escape}wW");
     Expect.equals("xX${char}xX", uri.userInfo);
     Expect.equals("yY${char}yY".toLowerCase(), uri.host);
     Expect.equals("/zZ${char}zZ", uri.path);
@@ -330,7 +332,7 @@ void testNormalization() {
   // Escapes of reserved characters are kept, but upper-cased.
   for (var escape in ["%00", "%1f", "%7F", "%fF"]) {
     uri = Uri.parse("s://xX${escape}xX@yY${escape}yY/zZ${escape}zZ"
-                    "?vV${escape}vV#wW${escape}wW");
+        "?vV${escape}vV#wW${escape}wW");
     var normalizedEscape = escape.toUpperCase();
     Expect.equals("xX${normalizedEscape}xX", uri.userInfo);
     Expect.equals("yy${normalizedEscape}yy", uri.host);
@@ -378,13 +380,13 @@ void testNormalization() {
   // Empty host/query/fragment ensures the delimiter is there.
   // Different from not being there.
   Expect.equals("scheme:/", Uri.parse("scheme:/").toString());
-  Expect.equals("scheme:/",
-                new Uri(scheme: "scheme", path: "/").toString());
+  Expect.equals("scheme:/", new Uri(scheme: "scheme", path: "/").toString());
 
   Expect.equals("scheme:///?#", Uri.parse("scheme:///?#").toString());
-  Expect.equals("scheme:///#",
-                new Uri(scheme: "scheme", host: "", path: "/",
-                        query: "", fragment: "").toString());
+  Expect.equals(
+      "scheme:///#",
+      new Uri(scheme: "scheme", host: "", path: "/", query: "", fragment: "")
+          .toString());
 }
 
 void testReplace() {
@@ -393,7 +395,7 @@ void testReplace() {
     Uri.parse("a://@:/?#"),
     Uri.parse("a://b@c:4/e/f?g#h"),
     Uri.parse("$SCHEMECHAR://$USERINFOCHAR@$REGNAMECHAR:$DIGIT/$PCHAR/$PCHAR"
-              "?$QUERYCHAR#$QUERYCHAR"),
+        "?$QUERYCHAR#$QUERYCHAR"),
   ];
   for (var uri1 in uris) {
     for (var uri2 in uris) {
@@ -409,11 +411,15 @@ void testReplace() {
       var tmp1 = uri1;
 
       void test() {
-        var tmp2 = new Uri(scheme: scheme, userInfo: userInfo, host: host,
-                           port: port, path: path,
-                           query: query == "" ? null : query,
-                           queryParameters: query == "" ? {} : null,
-                           fragment: fragment);
+        var tmp2 = new Uri(
+            scheme: scheme,
+            userInfo: userInfo,
+            host: host,
+            port: port,
+            path: path,
+            query: query == "" ? null : query,
+            queryParameters: query == "" ? {} : null,
+            fragment: fragment);
         Expect.equals(tmp1, tmp2);
       }
 
@@ -455,8 +461,10 @@ void testReplace() {
   Expect.isFalse(uri.hasAuthority);
 
   uri = new Uri(scheme: "foo", path: "bar");
-  uri = uri.replace(
-      queryParameters: {"x": ["42", "37"], "y": ["43", "38"]});
+  uri = uri.replace(queryParameters: {
+    "x": ["42", "37"],
+    "y": ["43", "38"]
+  });
   var params = uri.queryParametersAll;
   Expect.equals(2, params.length);
   Expect.listEquals(["42", "37"], params["x"]);
@@ -468,26 +476,30 @@ main() {
   testUri("file:///", true);
   testUri("file", false);
   testUri("http://user@example.com:8080/fisk?query=89&hest=silas", true);
-  testUri("http://user@example.com:8080/fisk?query=89&hest=silas#fragment",
-          false);
-  Expect.stringEquals("http://user@example.com/a/b/c?query#fragment",
-                      new Uri(
-                          scheme: "http",
-                          userInfo: "user",
-                          host: "example.com",
-                          port: 80,
-                          path: "/a/b/c",
-                          query: "query",
-                          fragment: "fragment").toString());
-  Expect.stringEquals("/a/b/c/",
-                      new Uri(
-                          scheme: null,
-                          userInfo: null,
-                          host: null,
-                          port: 0,
-                          path: "/a/b/c/",
-                          query: null,
-                          fragment: null).toString());
+  testUri(
+      "http://user@example.com:8080/fisk?query=89&hest=silas#fragment", false);
+  Expect.stringEquals(
+      "http://user@example.com/a/b/c?query#fragment",
+      new Uri(
+              scheme: "http",
+              userInfo: "user",
+              host: "example.com",
+              port: 80,
+              path: "/a/b/c",
+              query: "query",
+              fragment: "fragment")
+          .toString());
+  Expect.stringEquals(
+      "/a/b/c/",
+      new Uri(
+              scheme: null,
+              userInfo: null,
+              host: null,
+              port: 0,
+              path: "/a/b/c/",
+              query: null,
+              fragment: null)
+          .toString());
   Expect.stringEquals("file:///", Uri.parse("file:").toString());
 
   testResolvePath("/a/g", "/a/b/c/./../../g");
@@ -505,62 +517,58 @@ main() {
   testUriPerRFCs();
 
   Expect.stringEquals(
-      "http://example.com",
-      Uri.parse("http://example.com/a/b/c").origin);
+      "http://example.com", Uri.parse("http://example.com/a/b/c").origin);
   Expect.stringEquals(
-      "https://example.com",
-      Uri.parse("https://example.com/a/b/c").origin);
-  Expect.stringEquals(
-      "http://example.com:1234",
+      "https://example.com", Uri.parse("https://example.com/a/b/c").origin);
+  Expect.stringEquals("http://example.com:1234",
       Uri.parse("http://example.com:1234/a/b/c").origin);
-  Expect.stringEquals(
-      "https://example.com:1234",
+  Expect.stringEquals("https://example.com:1234",
       Uri.parse("https://example.com:1234/a/b/c").origin);
-  Expect.throws(
-      () => Uri.parse("http:").origin,
-      (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
-  Expect.throws(
-      () => new Uri(
-          scheme: "http",
-          userInfo: null,
-          host: "",
-          port: 80,
-          path: "/a/b/c",
-          query: "query",
-          fragment: "fragment").origin,
-      (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
+  Expect.throws(() => Uri.parse("http:").origin, (e) {
+    return e is StateError;
+  }, "origin for uri with empty host should fail");
   Expect.throws(
       () => new Uri(
-          scheme: null,
-          userInfo: null,
-          host: "",
-          port: 80,
-          path: "/a/b/c",
-          query: "query",
-          fragment: "fragment").origin,
-      (e) { return e is StateError; },
-      "origin for uri with empty scheme should fail");
+              scheme: "http",
+              userInfo: null,
+              host: "",
+              port: 80,
+              path: "/a/b/c",
+              query: "query",
+              fragment: "fragment")
+          .origin, (e) {
+    return e is StateError;
+  }, "origin for uri with empty host should fail");
   Expect.throws(
       () => new Uri(
-          scheme: "http",
-          userInfo: null,
-          host: null,
-          port: 80,
-          path: "/a/b/c",
-          query: "query",
-          fragment: "fragment").origin,
-      (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
+              scheme: null,
+              userInfo: null,
+              host: "",
+              port: 80,
+              path: "/a/b/c",
+              query: "query",
+              fragment: "fragment")
+          .origin, (e) {
+    return e is StateError;
+  }, "origin for uri with empty scheme should fail");
   Expect.throws(
-      () => Uri.parse("http://:80").origin,
-      (e) { return e is StateError; },
-      "origin for uri with empty host should fail");
-  Expect.throws(
-      () => Uri.parse("file://localhost/test.txt").origin,
-      (e) { return e is StateError; },
-      "origin for non-http/https uri should fail");
+      () => new Uri(
+              scheme: "http",
+              userInfo: null,
+              host: null,
+              port: 80,
+              path: "/a/b/c",
+              query: "query",
+              fragment: "fragment")
+          .origin, (e) {
+    return e is StateError;
+  }, "origin for uri with empty host should fail");
+  Expect.throws(() => Uri.parse("http://:80").origin, (e) {
+    return e is StateError;
+  }, "origin for uri with empty host should fail");
+  Expect.throws(() => Uri.parse("file://localhost/test.txt").origin, (e) {
+    return e is StateError;
+  }, "origin for non-http/https uri should fail");
 
   // URI encode tests
   // Create a string with code point 0x10000 encoded as a surrogate pair.
@@ -577,8 +585,7 @@ main() {
   testEncodeDecode("\x80", "%C2%80");
   testEncodeDecode("\u0800", "%E0%A0%80");
   // All characters not escaped by encodeFull.
-  var unescapedFull =
-      r"abcdefghijklmnopqrstuvwxyz"
+  var unescapedFull = r"abcdefghijklmnopqrstuvwxyz"
       r"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       r"0123456789!#$&'()*+,-./:;=?@_~";
   // ASCII characters escaped by encodeFull:
@@ -587,16 +594,14 @@ main() {
       "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
       r' "%<>[\]^`{|}'
       "\x7f";
-  var escapedTo =
-      "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F"
+  var escapedTo = "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F"
       "%10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F"
       "%20%22%25%3C%3E%5B%5C%5D%5E%60%7B%7C%7D%7F";
   testEncodeDecode(unescapedFull, unescapedFull);
   testEncodeDecode(escapedFull, escapedTo);
   var nonAscii =
       "\x80-\xff-\u{100}-\u{7ff}-\u{800}-\u{ffff}-\u{10000}-\u{10ffff}";
-  var nonAsciiEncoding =
-      "%C2%80-%C3%BF-%C4%80-%DF%BF-%E0%A0%80-%EF%BF%BF-"
+  var nonAsciiEncoding = "%C2%80-%C3%BF-%C4%80-%DF%BF-%E0%A0%80-%EF%BF%BF-"
       "%F0%90%80%80-%F4%8F%BF%BF";
   testEncodeDecode(nonAscii, nonAsciiEncoding);
   testEncodeDecode(s, "%F0%90%80%80");
@@ -616,8 +621,7 @@ main() {
   testEncodeDecodeComponent(nonAscii, nonAsciiEncoding);
 
   // Invalid URI - : and @ is swapped, port ("host") should be numeric.
-  Expect.throws(
-      () => Uri.parse("file://user@password:host/path"),
+  Expect.throws(() => Uri.parse("file://user@password:host/path"),
       (e) => e is FormatException);
 
   testValidCharacters();

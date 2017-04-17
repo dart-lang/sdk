@@ -5,27 +5,20 @@
 import "package:expect/expect.dart";
 import 'dart:convert';
 
-var latin1Strings = [
-  "pure ascii",
-  "blåbærgrød",
-  "\x00 edge cases \xff"
-];
+var latin1Strings = ["pure ascii", "blåbærgrød", "\x00 edge cases \xff"];
 
-var nonLatin1Strings = [
-  "Edge case \u{100}",
-  "Edge case super-BMP \u{10000}"
-];
+var nonLatin1Strings = ["Edge case \u{100}", "Edge case super-BMP \u{10000}"];
 
 void main() {
   // Build longer versions of the example strings.
-  for (int i = 0, n = latin1Strings.length; i < n ; i++) {
+  for (int i = 0, n = latin1Strings.length; i < n; i++) {
     var string = latin1Strings[i];
     while (string.length < 1024) {
       string += string;
     }
     latin1Strings.add(string);
   }
-  for (int i = 0, n = nonLatin1Strings.length; i < n ; i++) {
+  for (int i = 0, n = nonLatin1Strings.length; i < n; i++) {
     var string = nonLatin1Strings[i];
     while (string.length < 1024) {
       string += string;
@@ -57,23 +50,47 @@ void testDirectConversions() {
     Expect.listEquals([0x42, 0xff, 0x44], encode("AB\xffDE", 1, 4));
     Expect.listEquals([0x42, 0xff, 0x44, 0x45], encode("AB\xffDE", 1));
     Expect.listEquals([0x42, 0xff, 0x44], encode("\u3000B\xffD\u3000", 1, 4));
-    Expect.throws(() { encode("\u3000B\xffD\u3000", 0, 4); });
-    Expect.throws(() { encode("\u3000B\xffD\u3000", 1); });
-    Expect.throws(() { encode("\u3000B\xffD\u3000", 1, 5); });
-    Expect.throws(() { encode("\u3000B\xffD\u3000", -1, 4); });
-    Expect.throws(() { encode("\u3000B\xffD\u3000", 1, -1); });
-    Expect.throws(() { encode("\u3000B\xffD\u3000", 3, 2); });
+    Expect.throws(() {
+      encode("\u3000B\xffD\u3000", 0, 4);
+    });
+    Expect.throws(() {
+      encode("\u3000B\xffD\u3000", 1);
+    });
+    Expect.throws(() {
+      encode("\u3000B\xffD\u3000", 1, 5);
+    });
+    Expect.throws(() {
+      encode("\u3000B\xffD\u3000", -1, 4);
+    });
+    Expect.throws(() {
+      encode("\u3000B\xffD\u3000", 1, -1);
+    });
+    Expect.throws(() {
+      encode("\u3000B\xffD\u3000", 3, 2);
+    });
 
     var decode = codec.decoder.convert;
     Expect.equals("B\xffD", decode([0x41, 0x42, 0xff, 0x44, 0x45], 1, 4));
     Expect.equals("B\xffDE", decode([0x41, 0x42, 0xff, 0x44, 0x45], 1));
     Expect.equals("B\xffD", decode([0xFF, 0x42, 0xff, 0x44, 0xFF], 1, 4));
-    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 0, 4); });
-    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1); });
-    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1, 5); });
-    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], -1, 4); });
-    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1, -1); });
-    Expect.throws(() { decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 3, 2); });
+    Expect.throws(() {
+      decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 0, 4);
+    });
+    Expect.throws(() {
+      decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1);
+    });
+    Expect.throws(() {
+      decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1, 5);
+    });
+    Expect.throws(() {
+      decode([0x3000, 0x42, 0xff, 0x44, 0x3000], -1, 4);
+    });
+    Expect.throws(() {
+      decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 1, -1);
+    });
+    Expect.throws(() {
+      decode([0x3000, 0x42, 0xff, 0x44, 0x3000], 3, 2);
+    });
   }
 
   var allowInvalidCodec = new Latin1Codec(allowInvalid: true);
@@ -86,8 +103,8 @@ void testDirectConversions() {
   Expect.equals("\x00\x01\xFF\uFFFD\x00", decoded);
 }
 
-List<int> encode(String str, int chunkSize,
-                 Converter<String, List<int>> converter) {
+List<int> encode(
+    String str, int chunkSize, Converter<String, List<int>> converter) {
   List<int> bytes = <int>[];
   ChunkedConversionSink byteSink =
       new ByteConversionSink.withCallback(bytes.addAll);
@@ -103,11 +120,10 @@ List<int> encode(String str, int chunkSize,
   return bytes;
 }
 
-String decode(List<int> bytes, int chunkSize,
-              Converter<List<int>, String> converter) {
+String decode(
+    List<int> bytes, int chunkSize, Converter<List<int>, String> converter) {
   StringBuffer buf = new StringBuffer();
-  var stringSink =
-      new StringConversionSink.fromStringSink(buf);
+  var stringSink = new StringConversionSink.fromStringSink(buf);
   var byteConversionSink = converter.startChunkedConversion(stringSink);
   for (int i = 0; i < bytes.length; i += chunkSize) {
     if (i + chunkSize <= bytes.length) {
@@ -122,9 +138,11 @@ String decode(List<int> bytes, int chunkSize,
 
 void testChunkedConversions() {
   // Check encoding.
-  for (var converter in [LATIN1.encoder,
-                         new Latin1Codec().encoder,
-                         new Latin1Encoder()]) {
+  for (var converter in [
+    LATIN1.encoder,
+    new Latin1Codec().encoder,
+    new Latin1Encoder()
+  ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var latin1String in latin1Strings) {
         var units = latin1String.codeUnits.toList();
@@ -139,9 +157,11 @@ void testChunkedConversions() {
     }
   }
   // Check decoding.
-  for (var converter in [LATIN1.decoder,
-                         new Latin1Codec().decoder,
-                         new Latin1Decoder()]) {
+  for (var converter in [
+    LATIN1.decoder,
+    new Latin1Codec().decoder,
+    new Latin1Decoder()
+  ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var latin1String in latin1Strings) {
         var units = latin1String.codeUnits.toList();

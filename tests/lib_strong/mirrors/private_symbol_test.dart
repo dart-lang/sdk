@@ -64,7 +64,6 @@ main() {
 
   Expect.equals(test_foo, #_foo);
 
-
   // Test interactions with the manglings for getters and setters, etc.
   ClassMirror cm = reflectClass(_C);
   Expect.equals(#_C, cm.simpleName);
@@ -119,15 +118,14 @@ main() {
   Expect.equals(#_p, pm.simpleName);
   Expect.equals('_p', MirrorSystem.getName(pm.simpleName));
 
-
   // Private symbol without a library.
-  Expect.throws(() => MirrorSystem.getSymbol('_private'),
-                (e) => e is ArgumentError);
+  Expect.throws(
+      () => MirrorSystem.getSymbol('_private'), (e) => e is ArgumentError);
 
   var notALibraryMirror = 7;
   Expect.throws(() => MirrorSystem.getSymbol('_private', notALibraryMirror),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
 
   Expect.throws(() => MirrorSystem.getSymbol('public', notALibraryMirror),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
 }

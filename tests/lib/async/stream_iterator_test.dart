@@ -39,8 +39,8 @@ main() {
     expect(await iterator.moveNext(), isTrue);
     expect(iterator.current, 42);
     var hasNext = iterator.moveNext();
-    expect(hasNext, throwsA("BAD"));  // This is an async expectation,
-    await hasNext.catchError((_){});  // so we have to wait for the future too.
+    expect(hasNext, throwsA("BAD")); // This is an async expectation,
+    await hasNext.catchError((_) {}); // so we have to wait for the future too.
     expect(iterator.current, isNull);
     expect(await iterator.moveNext(), isFalse);
     expect(iterator.current, isNull);
@@ -63,13 +63,12 @@ main() {
       expect(await iterator.moveNext(), isTrue);
       expect(iterator.current, i);
     }
-    var hasNext = iterator.moveNext();  // active moveNext will be completed.
+    var hasNext = iterator.moveNext(); // active moveNext will be completed.
     var cancel = iterator.cancel();
     expect(cancel, throwsA("BAD"));
     expect(await hasNext, isFalse);
-      expect(await iterator.moveNext(), isFalse);
+    expect(await iterator.moveNext(), isFalse);
   });
-
 }
 
 Stream createStream() async* {

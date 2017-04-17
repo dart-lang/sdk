@@ -16,7 +16,7 @@ main() {
 // Create a situation where method 'call' is optimized for using class A
 // when calling foo.
 warmup() {
-  List a = [ new A(), new A(), new A(), new A()];
+  List a = [new A(), new A(), new A(), new A()];
   var res = 0;
   for (int i = 0; i < 20; i++) {
     res = call(a, 0);
@@ -24,13 +24,12 @@ warmup() {
   Expect.equals(10, res);
 }
 
-
 // Create a situation where several optimized frames of 'call' are on stack
 // when deoptimization occurs because B.foo is called. After the first
 // deoptimization, several optimized frames of 'call' are still on stack and
 // some of them will be deoptimized.
 runTest() {
-  List a = [ new A(), new A(), new B(), new A(), new B(), new B()];
+  List a = [new A(), new A(), new B(), new A(), new B(), new B()];
   var res = call(a, 0);
   Expect.equals(35, res);
 }
@@ -48,12 +47,14 @@ call(List a, int n) {
   return 0;
 }
 
-
 class A {
-  foo() { return 1; }
+  foo() {
+    return 1;
+  }
 }
 
-
 class B {
-  foo() { return 2; }
+  foo() {
+    return 2;
+  }
 }

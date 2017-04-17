@@ -62,7 +62,7 @@ var x = 0;
 
 @NoInline()
 switcher3(val) {
-  switch(val) {
+  switch (val) {
     case 1:
     default:
       incrementX();

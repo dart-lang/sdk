@@ -13,7 +13,9 @@ class A {
 
 class B extends A {
   int get x => super.y;
-  void set x(val) { super.y = val; }
+  void set x(val) {
+    super.y = val;
+  }
 }
 
 void main() {

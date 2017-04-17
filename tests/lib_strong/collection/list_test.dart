@@ -140,7 +140,7 @@ void testRetainWhere() {
   }
 
   {
-    dynamic indexable = new MyIndexableNoSuchMethod<int>([1,2,3]);
+    dynamic indexable = new MyIndexableNoSuchMethod<int>([1, 2, 3]);
     Expect.equals(3, indexable.length);
     Expect.equals(1, indexable[0]);
     Expect.equals(3, indexable[2]);

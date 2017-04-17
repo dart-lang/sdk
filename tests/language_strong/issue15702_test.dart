@@ -13,4 +13,3 @@ class Amount {
   num value;
   Amount(this.value);
 }
-

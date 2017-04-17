@@ -26,7 +26,9 @@ foo1() {
   }
 }
 
-doThrow() { throw 2; }
+doThrow() {
+  throw 2;
+}
 
 foo2() {
   var b = false;
@@ -38,7 +40,7 @@ foo2() {
       a = 8;
       doThrow();
       return;
-    } catch(e) {
+    } catch (e) {
       b = 8 == a;
       entered = true;
       continue;
@@ -54,7 +56,7 @@ foo3() {
     b = 8 == a; // This expression should not be GVN'ed.
     try {
       doThrow();
-    } catch(e) {
+    } catch (e) {
       a = 8;
       entered = true;
       return;
@@ -93,7 +95,7 @@ foo5() {
       a = 8;
       doThrow();
       break;
-    } catch(e) {
+    } catch (e) {
       b = 8 == a;
       entered = true;
       continue;
@@ -109,7 +111,7 @@ foo6() {
     b = 8 == a; // This expression should not be GVN'ed.
     try {
       doThrow();
-    } catch(e) {
+    } catch (e) {
       a = 8;
       entered = true;
       break;
@@ -148,7 +150,7 @@ foo8() {
       a = 8;
       doThrow();
       continue;
-    } catch(e) {
+    } catch (e) {
       b = 8 == a;
       entered = true;
       continue;
@@ -164,7 +166,7 @@ foo9() {
     b = 8 == a; // This expression should not be GVN'ed.
     try {
       doThrow();
-    } catch(e) {
+    } catch (e) {
       a = 8;
       entered = true;
       continue;

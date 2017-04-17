@@ -7,7 +7,9 @@
 
 import "package:expect/expect.dart";
 
-foo() { throw 42; }
+foo() {
+  throw 42;
+}
 
 main() {
   var exception;

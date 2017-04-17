@@ -14,9 +14,7 @@ main() {
   Set<int> set1 = new Set<int>();
   set1..add(22);
   Set set2 = new Set();
-  set2..add(11)
-      ..add(12)
-      ..add(13);
+  set2..add(11)..add(12)..add(13);
   Set set3 = new Set();
 
   Expect.equals(1, list1a.single);

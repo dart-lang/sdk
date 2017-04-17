@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library created_callback_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -81,12 +82,14 @@ main() {
   test('unresolved and created callback timing', () {
     var div = new DivElement();
     C.div = div;
-    div.setInnerHtml("""
+    div.setInnerHtml(
+        """
 <x-c id="t"></x-c>
 <x-b id="u"></x-b>
 <x-c id="v"></x-c>
 <x-b id="w"></x-b>
-""", treeSanitizer: NodeTreeSanitizer.trusted);
+""",
+        treeSanitizer: NodeTreeSanitizer.trusted);
 
     upgradeCustomElements(div);
 
@@ -107,8 +110,8 @@ main() {
 
   test('cannot register without created', () {
     expect(() {
-      document.registerElement(MissingCreatedElement.tag,
-          MissingCreatedElement);
+      document.registerElement(
+          MissingCreatedElement.tag, MissingCreatedElement);
     }, throws);
   });
 
@@ -150,19 +153,17 @@ main() {
 
   test('cannot register created with params', () {
     expect(() {
-      document.registerElement('x-created-with-params',
-          CreatedWithParametersElement);
+      document.registerElement(
+          'x-created-with-params', CreatedWithParametersElement);
     }, throws);
   });
 
   test('created cannot be called from nested constructor',
       NestedCreatedConstructorElement.test);
 
-
   // TODO(vsm): Port additional test from upstream here:
   // http://src.chromium.org/viewvc/blink/trunk/LayoutTests/fast/dom/custom/created-callback.html?r1=156141&r2=156185
 }
-
 
 class NestedElement extends HtmlElement {
   static final tag = 'x-nested';
@@ -185,7 +186,6 @@ class NestedElement extends HtmlElement {
     expect(e is NestedElement, isTrue);
   }
 }
-
 
 class AccessWhileUpgradingElement extends HtmlElement {
   static final tag = 'x-access-while-upgrading';
@@ -289,7 +289,7 @@ void expectGlobalError(Function test) {
   js.context['testExpectsGlobalError'] = true;
   try {
     test();
-  } catch(e) {
+  } catch (e) {
     rethrow;
   } finally {
     js.context['testExpectsGlobalError'] = false;

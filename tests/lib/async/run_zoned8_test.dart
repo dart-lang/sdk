@@ -24,14 +24,18 @@ main() {
       events.add(counter);
       throw counter;
     });
-  }, onError: (e) { events.add("error: $e"); });
+  }, onError: (e) {
+    events.add("error: $e");
+  });
 
   done.future.whenComplete(() {
     Expect.listEquals([
-                      "main exit",
-                      1, "error: 1", 2, "error: 2",
-                      ],
-                      events);
+      "main exit",
+      1,
+      "error: 1",
+      2,
+      "error: 2",
+    ], events);
     asyncEnd();
   });
   events.add("main exit");

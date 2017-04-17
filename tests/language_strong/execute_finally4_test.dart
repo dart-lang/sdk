@@ -6,9 +6,8 @@
 
 import "package:expect/expect.dart";
 
-
 class Helper {
-  Helper() : i = 0 { }
+  Helper() : i = 0 {}
 
   int f1() {
     try {
@@ -18,12 +17,12 @@ class Helper {
     } finally {
       i = i + 10;
     }
-    return i + 200;  // Should return here with i = 211.
+    return i + 200; // Should return here with i = 211.
     try {
       int j;
       j = func();
     } finally {
-      i = i + 10;  // Should not get executed as part of return above.
+      i = i + 10; // Should not get executed as part of return above.
     }
   }
 

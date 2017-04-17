@@ -12,17 +12,16 @@ import "package:expect/expect.dart";
 
 main() {
   testStream("singlesub", () => new StreamController(), (c) => c.stream);
-  testStream("broadcast", () => new StreamController.broadcast(),
-                          (c) => c.stream);
+  testStream(
+      "broadcast", () => new StreamController.broadcast(), (c) => c.stream);
   testStream("asBroadcast", () => new StreamController(),
-                            (c) => c.stream.asBroadcastStream());
+      (c) => c.stream.asBroadcastStream());
   testStream("broadcast.asBroadcast", () => new StreamController.broadcast(),
-                                      (c) => c.stream.asBroadcastStream());
+      (c) => c.stream.asBroadcastStream());
 }
 
-void testStream(String name,
-                StreamController create(),
-                Stream getStream(controller)) {
+void testStream(
+    String name, StreamController create(), Stream getStream(controller)) {
   test("$name-map", () {
     var c = create();
     var s = getStream(c);
@@ -77,9 +76,10 @@ void testStream(String name,
     var c = create();
     var s = getStream(c);
     // TODO: find name of default transformer
-    var t = new StreamTransformer.fromHandlers(
-        handleData: (value, EventSink sink) { sink.add(value); }
-    );
+    var t =
+        new StreamTransformer.fromHandlers(handleData: (value, EventSink sink) {
+      sink.add(value);
+    });
     Stream newStream = s.transform(t);
     Expect.equals(s.isBroadcast, newStream.isBroadcast);
     newStream.single.then(expectAsync((v) {
@@ -187,13 +187,12 @@ void testStream(String name,
   if (name.startsWith("singlesub")) return;
 
   test("$name-skip-multilisten", () {
-    if (name.startsWith("singlesub") ||
-        name.startsWith("asBroadcast")) return;
+    if (name.startsWith("singlesub") || name.startsWith("asBroadcast")) return;
     var c = create();
     var s = getStream(c);
     Stream newStream = s.skip(5);
     // Listen immediately, to ensure that an asBroadcast stream is started.
-    var sub = newStream.listen((_){});
+    var sub = newStream.listen((_) {});
     int i = 0;
     var expect1 = 11;
     var expect2 = 21;
@@ -234,7 +233,7 @@ void testStream(String name,
     var s = getStream(c);
     Stream newStream = s.take(10);
     // Listen immediately, to ensure that an asBroadcast stream is started.
-    var sub = newStream.listen((_){});
+    var sub = newStream.listen((_) {});
     int i = 0;
     var expect1 = 6;
     var expect2 = 11;
@@ -273,13 +272,12 @@ void testStream(String name,
   });
 
   test("$name-skipWhile-multilisten", () {
-    if (name.startsWith("singlesub") ||
-        name.startsWith("asBroadcast")) return;
+    if (name.startsWith("singlesub") || name.startsWith("asBroadcast")) return;
     var c = create();
     var s = getStream(c);
     Stream newStream = s.skipWhile((x) => (x % 10) != 1);
     // Listen immediately, to ensure that an asBroadcast stream is started.
-    var sub = newStream.listen((_){});
+    var sub = newStream.listen((_) {});
     int i = 0;
     var expect1 = 11;
     var expect2 = 21;
@@ -320,9 +318,9 @@ void testStream(String name,
     var s = getStream(c);
     Stream newStream = s.takeWhile((x) => (x % 10) != 5);
     // Listen immediately, to ensure that an asBroadcast stream is started.
-    var sub = newStream.listen((_){});
+    var sub = newStream.listen((_) {});
     int i = 0;
-    // Non-overlapping ranges means the test must not remember its first 
+    // Non-overlapping ranges means the test must not remember its first
     // failure.
     var expect1 = 6;
     var expect2 = 16;

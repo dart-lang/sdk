@@ -29,28 +29,28 @@ main() {
 
     void timeoutHandler1() {
       expect(_stopwatch1.elapsedMilliseconds + safetyMargin,
-             greaterThanOrEqualTo(TIMEOUT1.inMilliseconds));
+          greaterThanOrEqualTo(TIMEOUT1.inMilliseconds));
       expect(_order[_message], 0);
       _message++;
     }
 
     void timeoutHandler2() {
       expect(_stopwatch2.elapsedMilliseconds + safetyMargin,
-             greaterThanOrEqualTo(TIMEOUT2.inMilliseconds));
+          greaterThanOrEqualTo(TIMEOUT2.inMilliseconds));
       expect(_order[_message], 1);
       _message++;
     }
 
     void timeoutHandler3() {
       expect(_stopwatch3.elapsedMilliseconds + safetyMargin,
-             greaterThanOrEqualTo(TIMEOUT3.inMilliseconds));
+          greaterThanOrEqualTo(TIMEOUT3.inMilliseconds));
       expect(_order[_message], 2);
       _message++;
     }
 
     void timeoutHandler4() {
       expect(_stopwatch4.elapsedMilliseconds + safetyMargin,
-             greaterThanOrEqualTo(TIMEOUT4.inMilliseconds));
+          greaterThanOrEqualTo(TIMEOUT4.inMilliseconds));
       expect(_order[_message], 3);
       _message++;
     }

@@ -9,18 +9,40 @@ import "package:expect/expect.dart";
 
 // With return type.
 class A {
-  int get() {return 1;}
-  int set() {return 2;}
-  int operator() {return 3;}
-  int factory() { return 4; }
+  int get() {
+    return 1;
+  }
+
+  int set() {
+    return 2;
+  }
+
+  int operator() {
+    return 3;
+  }
+
+  int factory() {
+    return 4;
+  }
 }
 
 // Without return types.
 class B {
-  get() {return 1;}
-  set() {return 2;}
-  operator() {return 3;}
-  factory() { return 4; }
+  get() {
+    return 1;
+  }
+
+  set() {
+    return 2;
+  }
+
+  operator() {
+    return 3;
+  }
+
+  factory() {
+    return 4;
+  }
 }
 
 main() {

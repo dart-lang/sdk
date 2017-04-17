@@ -7,8 +7,7 @@ import "package:expect/expect.dart";
 
 class Helper {
   static int f1(bool b) {
-    while (b)
-      return 1;
+    while (b) return 1;
 
     return 2;
   }

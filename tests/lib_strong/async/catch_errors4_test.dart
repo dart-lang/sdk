@@ -17,17 +17,18 @@ main() {
     events.add("catch error entry");
     throw "catch error";
   }).listen((x) {
-      events.add(x);
-      done.complete(true);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+    done.complete(true);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
-    Expect.listEquals(["catch error entry",
-                        "main exit",
-                        "catch error",
-                        ],
-                        events);
+    Expect.listEquals([
+      "catch error entry",
+      "main exit",
+      "catch error",
+    ], events);
     asyncEnd();
   });
   events.add("main exit");

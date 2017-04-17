@@ -10,7 +10,6 @@ import "package:async_helper/async_helper.dart";
 
 final JSON_UTF8 = JSON.fuse(UTF8);
 
-
 Stream<List<int>> encode(Object o) {
   var controller;
   controller = new StreamController(onListen: () {

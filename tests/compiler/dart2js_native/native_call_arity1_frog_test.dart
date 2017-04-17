@@ -14,19 +14,19 @@ import "native_testing.dart";
 
 @Native("A")
 class A {
-  int foo(int x) native ;
+  int foo(int x) native;
 }
 
 @Native("B")
 class B {
-  int foo([x, y, z]) native ;
+  int foo([x, y, z]) native;
 }
 
 // TODO(sra): Add a case where the parameters have default values.  Wait until
 // dart:html need non-null default values.
 
-A makeA() native ;
-B makeB() native ;
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function A() {}

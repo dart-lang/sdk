@@ -20,6 +20,7 @@ main() {
       Expect.isTrue(a is int);
     }
   }
+
   closure('s');
   new A(closure)._do();
   Expect.equals(2, invokeCount);

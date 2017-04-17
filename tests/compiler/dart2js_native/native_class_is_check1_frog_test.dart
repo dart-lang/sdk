@@ -16,11 +16,11 @@ abstract class I {
 @Native("A")
 class A implements I {
   // The native class accepts only other native instances.
-  A read() native ;
-  write(A x) native ;
+  A read() native;
+  write(A x) native;
 }
 
-makeA() native ;
+makeA() native;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

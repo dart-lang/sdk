@@ -9,8 +9,7 @@ import "package:expect/expect.dart";
 
 import 'dart:collection';
 
-class Foo extends Expando {
-}
+class Foo extends Expando {}
 
 main() {
   Expect.isNull(new Foo()[new Object()]);

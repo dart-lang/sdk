@@ -21,35 +21,31 @@ main() {
     }
 
     server.listen((request) {
-      request.listen(
-          (_) {},
-          onDone: () {
-            request.response.done.then((_) {
-              serverOnClosed = true;
-              checkDone();
-            });
-            request.response.write("hello!");
-            request.response.close();
-          });
-      });
-
-    client.postUrl(Uri.parse("http://127.0.0.1:${server.port}"))
-        .then((request) {
-          request.contentLength = "hello!".length;
-          request.done.then((_) {
-            clientOnClosed = true;
-            checkDone();
-          });
-          request.write("hello!");
-          return request.close();
-        })
-        .then((response) {
-          response.listen(
-              (_) {},
-              onDone: () {
-                requestOnClosed = true;
-                checkDone();
-              });
+      request.listen((_) {}, onDone: () {
+        request.response.done.then((_) {
+          serverOnClosed = true;
+          checkDone();
         });
+        request.response.write("hello!");
+        request.response.close();
+      });
+    });
+
+    client
+        .postUrl(Uri.parse("http://127.0.0.1:${server.port}"))
+        .then((request) {
+      request.contentLength = "hello!".length;
+      request.done.then((_) {
+        clientOnClosed = true;
+        checkDone();
+      });
+      request.write("hello!");
+      return request.close();
+    }).then((response) {
+      response.listen((_) {}, onDone: () {
+        requestOnClosed = true;
+        checkDone();
+      });
+    });
   });
 }

@@ -8,18 +8,18 @@ import 'native_testing.dart';
 
 @Native("A")
 class A {
-  int foo(int x) native ;
-  int cmp(A other) native ;
+  int foo(int x) native;
+  int cmp(A other) native;
 }
 
 @Native("B")
 class B {
-  String foo(String x) native ;
-  int cmp(B other) native ;
+  String foo(String x) native;
+  int cmp(B other) native;
 }
 
-A makeA() native ;
-B makeB() native ;
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function A() {}

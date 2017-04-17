@@ -29,7 +29,7 @@ class G extends F with B {
   toString() => 'G{' + super.toString() + '}';
 }
 
-main(){
+main() {
   check(object, String expected) {
     Expect.equals(expected, object.toString());
   }

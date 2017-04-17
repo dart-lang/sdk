@@ -10,20 +10,18 @@ maythrow(x) {
   return 99;
 }
 
-
 f1(x) {
   var result = 123;
   try {
     result = maythrow(x);
     if (result > 100) throw 42;
-  } catch(e) {
+  } catch (e) {
     Expect.equals(result, 123);
     Expect.equals(42, e);
     result = 0;
   }
   return result;
 }
-
 
 class A {
   maythrow(x) {
@@ -32,20 +30,18 @@ class A {
   }
 }
 
-
 f2(x) {
   var result = 123;
   var a = new A();
   try {
     result++;
     result = a.maythrow(x);
-  } catch(e) {
+  } catch (e) {
     Expect.equals(124, result);
     result = x;
   }
   return result;
 }
-
 
 f3(x, y) {
   var result = 123;
@@ -53,17 +49,16 @@ f3(x, y) {
   try {
     result++;
     result = a.maythrow(x);
-  } catch(e) {
+  } catch (e) {
     result = y + 1; // Deopt on overflow
   }
   return result;
 }
 
-
 f4(x) {
   try {
     maythrow(x);
-  } catch(e) {
+  } catch (e) {
     check_f4(e, "abc");
   }
 }
@@ -73,17 +68,16 @@ check_f4(e, s) {
   if (s != "abc") throw "ERROR";
 }
 
-
 f5(x) {
   try {
     maythrow(x);
-  } catch(e) {
+  } catch (e) {
     check_f5(e, "abc");
   }
 
   try {
     maythrow(x);
-  } catch(e) {
+  } catch (e) {
     check_f5(e, "abc");
   }
 }
@@ -93,7 +87,6 @@ check_f5(e, s) {
   if (s != "abc") throw "ERROR";
 }
 
-
 f6(x, y) {
   var a = x;
   var b = y;
@@ -101,7 +94,7 @@ f6(x, y) {
   check_f6(42, null, 1, 123, null, 1);
   try {
     maythrow(x);
-  } catch(e) {
+  } catch (e) {
     check_f6(e, a, b, c, x, y);
   }
 }
@@ -115,7 +108,6 @@ check_f6(e, a, b, c, x, y) {
   if (y != 1) throw "ERROR";
 }
 
-
 bool f7(String str) {
   double d = double.parse(str);
   var t = d;
@@ -128,13 +120,12 @@ bool f7(String str) {
   }
 }
 
-
 f8(x, [a = 3, b = 4]) {
   var c = 123;
   var y = a;
   try {
     maythrow(x);
-  } catch(e, s) {
+  } catch (e, s) {
     check_f8(e, s, a, b, c, x, y);
   }
 }
@@ -142,13 +133,15 @@ f8(x, [a = 3, b = 4]) {
 check_f8(e, s, a, b, c, x, y) {
   if (e != 42) throw "ERROR";
   if (s is! StackTrace) throw "ERROR";
-  if (a != 3)  { print(a); throw "ERROR"; }
+  if (a != 3) {
+    print(a);
+    throw "ERROR";
+  }
   if (b != 4) throw "ERROR";
   if (c != 123) throw "ERROR";
   if (x != null) throw "ERROR";
   if (y != a) throw "ERROR";
 }
-
 
 f9(x, [a = 3, b = 4]) {
   var c = 123;
@@ -156,28 +149,29 @@ f9(x, [a = 3, b = 4]) {
   try {
     if (x < a) maythrow(null);
     maythrow(x);
-  } catch(e, s) {
+  } catch (e, s) {
     check_f9(e, s, a, b, c, x, y);
   }
 }
 
-
 check_f9(e, s, a, b, c, x, y) {
   if (e != 42) throw "ERROR";
   if (s is! StackTrace) throw "ERROR";
-  if (a != 3)  { print(a); throw "ERROR"; }
+  if (a != 3) {
+    print(a);
+    throw "ERROR";
+  }
   if (b != 4) throw "ERROR";
   if (c != 123) throw "ERROR";
   if (x != null) throw "ERROR";
   if (y != a) throw "ERROR";
 }
 
-
 f10(x, y) {
   var result = 123;
   try {
     result = maythrow(x);
-  } catch(e) {
+  } catch (e) {
     Expect.equals(123, result);
     Expect.equals(0.5, y / 2.0);
     result = 0;
@@ -185,14 +179,13 @@ f10(x, y) {
   return result;
 }
 
-
 f11(x) {
   var result = 123;
   var tmp = x;
   try {
     result = maythrow(x);
     if (result > 100) throw 42;
-  } catch(e, s) {
+  } catch (e, s) {
     Expect.equals(123, result);
     Expect.equals(true, identical(tmp, x));
     Expect.equals(true, s is StackTrace);
@@ -201,11 +194,10 @@ f11(x) {
   return result;
 }
 
-
 f12([x = null]) {
   try {
     maythrow(x);
-  } catch(e) {
+  } catch (e) {
     check_f12(e, x);
   }
 }
@@ -215,24 +207,22 @@ check_f12(e, x) {
   if (x != null) throw "ERROR";
 }
 
-
 f13(x) {
   var result = 123;
   try {
     try {
       result = maythrow(x);
       if (result > 100) throw 42;
-    } catch(e) {
+    } catch (e) {
       Expect.equals(123, result);
       result = 0;
     }
     maythrow(x);
-  } catch(e) {
+  } catch (e) {
     result++;
   }
   return result;
 }
-
 
 main() {
   for (var i = 0; i < 20; i++) f1("abc");
@@ -267,7 +257,7 @@ main() {
   Expect.equals(false, f7("1.2"));
   Expect.equals(true, f7("Infinity"));
   Expect.equals(true, f7("-Infinity"));
-  Expect.equals(false, f7("123456789012345"));  // Deopt.
+  Expect.equals(false, f7("123456789012345")); // Deopt.
   for (var i = 0; i < 20; i++) f7("123456789012345");
   Expect.equals(true, f7("Infinity"));
   Expect.equals(true, f7("-Infinity"));

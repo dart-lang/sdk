@@ -41,6 +41,6 @@ test(n) {
   Expect.isFalse(n is Expect);
 }
 
-testNegative(n){
+testNegative(n) {
   Expect.isFalse(n is Null);
 }

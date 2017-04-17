@@ -11,7 +11,7 @@ import "dart:async";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-main(){
+main() {
   asyncStart();
 
   // Capture errors from other isolate as raw messages.
@@ -23,10 +23,9 @@ main(){
     errorPort.close();
     asyncEnd();
   };
-  
-  Isolate.spawnUri(Uri.parse("error_at_spawnuri_iso.dart"), [],
-                   null,
-                   // Setup handler as part of spawn.
-                   errorsAreFatal: false,
-                   onError: errorPort.sendPort);
+
+  Isolate.spawnUri(Uri.parse("error_at_spawnuri_iso.dart"), [], null,
+      // Setup handler as part of spawn.
+      errorsAreFatal: false,
+      onError: errorPort.sendPort);
 }

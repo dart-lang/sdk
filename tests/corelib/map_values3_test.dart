@@ -5,9 +5,9 @@
 import "package:expect/expect.dart";
 
 main() {
-  var map1 = <int, String>{ 1: "42", 2: "499" };
+  var map1 = <int, String>{1: "42", 2: "499"};
   var map2 = <int, String>{};
-  var map3 = const <int, String>{ 3: "42", 4: "499" };
+  var map3 = const <int, String>{3: "42", 4: "499"};
   var map4 = const <int, String>{};
   var map5 = new Map<int, String>();
   map5[5] = "43";

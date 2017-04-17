@@ -12,20 +12,27 @@ main() {
     // Compare the results of the following two futures.
     Future f1 = new Future(func);
     Future f2 = new Future.value().then((_) => func());
-    f2.catchError((_){});  // I'll get the error later.
-    f1.then((v1) { f2.then((v2) { Expect.equals(v1, v2); }); },
-            onError: (e1) {
-              f2.then((_) { Expect.fail("Expected error"); },
-                      onError: (e2) {
-                         Expect.equals(e1, e2);
-                      });
-            });
+    f2.catchError((_) {}); // I'll get the error later.
+    f1.then((v1) {
+      f2.then((v2) {
+        Expect.equals(v1, v2);
+      });
+    }, onError: (e1) {
+      f2.then((_) {
+        Expect.fail("Expected error");
+      }, onError: (e2) {
+        Expect.equals(e1, e2);
+      });
+    });
   }
+
   Future val = new Future.value(42);
-  Future err1 = new Future.error("Error")..catchError((_){});
+  Future err1 = new Future.error("Error")..catchError((_) {});
   compare(() => 42);
   compare(() => val);
-  compare(() { throw "Flif"; });
+  compare(() {
+    throw "Flif";
+  });
   compare(() => err1);
   bool hasExecuted = false;
   compare(() {
@@ -34,4 +41,3 @@ main() {
   });
   Expect.isFalse(hasExecuted);
 }
-

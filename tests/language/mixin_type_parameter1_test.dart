@@ -4,19 +4,15 @@
 
 import "package:expect/expect.dart";
 
-abstract class Mixin1<T> {
-}
+abstract class Mixin1<T> {}
 
-abstract class Mixin2<T> {
-}
+abstract class Mixin2<T> {}
 
-class A {
-}
+class A {}
 
 class MyTypedef<K, V> = A with Mixin1<K>, Mixin2<V>;
 
-class B<K, V> extends MyTypedef<K, V> {
-}
+class B<K, V> extends MyTypedef<K, V> {}
 
 main() {
   var b = new B<num, String>();

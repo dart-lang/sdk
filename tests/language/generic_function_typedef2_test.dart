@@ -13,20 +13,23 @@ typedef G = F; //# 00: compile-time error
 typedef H = int; //# 01: compile-time error
 typedef I = A; //# 02: compile-time error
 typedef J = List<int>; //# 03: compile-time error
-typedef K = Function(Function<A>(A
+typedef K = Function(
+    Function<A>(A
     <int> // //# 04: static type warning
-    ));
-typedef L = Function({
+        ));
+typedef L = Function(
+    {
   /* //  //# 05: compile-time error
-  bool
+    bool
   */ //  //# 05: compile-time error
-  x});
+        x});
 
-typedef M = Function({
+typedef M = Function(
+    {
   /* //  //# 06: compile-time error
-  bool
+    bool
   */ //  //# 06: compile-time error
-  int});
+        int});
 
 foo({bool int}) {}
 main() {

@@ -6,8 +6,13 @@ import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-class A { const A(); }
-class B extends A { const B(); }
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+}
 
 /// Stream which emits an error if it's not canceled at the correct time.
 ///
@@ -38,7 +43,9 @@ Stream makeStream(int maxEvents) {
 
 main() {
   asyncStart();
-  tests().then((_) { asyncEnd(); });
+  tests().then((_) {
+    asyncEnd();
+  });
 }
 
 tests() async {
@@ -59,5 +66,5 @@ tests() async {
 Future expectThrowsAsync(Future computation, String name) {
   return computation.then((_) {
     Expect.fail("$name: Did not throw");
-  }, onError: (e, s){});
+  }, onError: (e, s) {});
 }

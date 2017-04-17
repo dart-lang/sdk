@@ -9,9 +9,7 @@ import 'dart:collection' show Queue;
 
 main() {
   Queue<int> queue1 = new Queue<int>();
-  queue1..add(11)
-      ..add(12)
-      ..add(13);
+  queue1..add(11)..add(12)..add(13);
   Queue queue2 = new Queue();
 
   Expect.equals(11, queue1.first);

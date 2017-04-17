@@ -10,6 +10,7 @@ import 'catch_errors.dart';
 class A {
   add(x) => print(x);
 }
+
 var events = [];
 
 body() {
@@ -36,19 +37,18 @@ main() {
 
   // Test that runZonedScheduleMicrotask works when async, error and done
   // are used.
-  var result = runZonedScheduleMicrotask(
-      body,
-      onScheduleMicrotask: onAsyncHandler,
-      onError: onErrorHandler);
+  var result = runZonedScheduleMicrotask(body,
+      onScheduleMicrotask: onAsyncHandler, onError: onErrorHandler);
   events.add("after");
   Timer.run(() {
-    Expect.listEquals(
-        ["body entry",
-         "async handler", "async handler done",
-         "after",
-         "run async body",
-         "error: foo"],
-        events);
+    Expect.listEquals([
+      "body entry",
+      "async handler",
+      "async handler done",
+      "after",
+      "run async body",
+      "error: foo"
+    ], events);
     asyncEnd();
- });
+  });
 }

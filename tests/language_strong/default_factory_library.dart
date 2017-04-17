@@ -5,6 +5,7 @@
 // Dart test program for testing default factories defined across libraries
 
 library lib;
+
 import "default_factory_library_test.dart" as test;
 
 // References a factory class in another library

@@ -4,11 +4,8 @@
 
 library implements;
 
-class A {
-}
+class A {}
 
-class B<T> {
-}
+class B<T> {}
 
-class C<T, S> {
-}
+class C<T, S> {}

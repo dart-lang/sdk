@@ -28,7 +28,7 @@ void timeoutHandler(Timer timer) {
     // each iteration doesn't work because the timeoutHandler runs
     // concurrently with the periodic timer.
     expect(stopwatch.elapsedMilliseconds + safetyMargin,
-           greaterThanOrEqualTo(ITERATIONS * TIMEOUT.inMilliseconds));
+        greaterThanOrEqualTo(ITERATIONS * TIMEOUT.inMilliseconds));
     timer.cancel();
   }
 }
@@ -37,7 +37,7 @@ main() {
   test("timer_repeat", () {
     iteration = 0;
     stopwatch.start();
-    timer = new Timer.periodic(TIMEOUT,
-        expectAsync(timeoutHandler, count: ITERATIONS));
+    timer = new Timer.periodic(
+        TIMEOUT, expectAsync(timeoutHandler, count: ITERATIONS));
   });
 }

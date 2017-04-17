@@ -13,7 +13,9 @@ main() {
   // Make sure `catchErrors` does not execute the error callback.
   catchErrors(() {
     return 'allDone';
-  }).listen((x) { Expect.fail("Unexpected callback"); });
+  }).listen((x) {
+    Expect.fail("Unexpected callback");
+  });
 
   // Wait one cycle before shutting down the test.
   Timer.run(asyncEnd);

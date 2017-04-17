@@ -16,18 +16,18 @@ main() {
   var win = dom.window;
 
   test('windowMethod', () {
-      final message = navigator;
-      final x = win.navigator;
-      expect(x, notEquals(message));
-    });
+    final message = navigator;
+    final x = win.navigator;
+    expect(x, notEquals(message));
+  });
 
   test('windowEquals', () {
-      expect($eq(win, win), isFalse);
-      expect(win == win, isTrue);
-    });
+    expect($eq(win, win), isFalse);
+    expect(win == win, isTrue);
+  });
 
   test('windowEquals', () {
-      expect($eq$(win, win), isFalse);
-      expect(win == win, isTrue);
-    });
+    expect($eq$(win, win), isFalse);
+    expect(win == win, isTrue);
+  });
 }

@@ -14,13 +14,13 @@ main() {
   Expect.identical(Zone.ROOT, Zone.current);
   Zone forked = Zone.current.fork(specification: new ZoneSpecification(
       runUnary: (Zone self, ZoneDelegate parent, Zone origin, f(arg), arg) {
-        // The zone is still the same as when origin.run was invoked, which
-        // is the root zone. (The origin zone hasn't been set yet).
-        Expect.identical(Zone.current, Zone.ROOT);
-        events.add("forked.run1");
-        if (shouldForward) return parent.runUnary(origin, f, arg + 1);
-        return 42;
-      }));
+    // The zone is still the same as when origin.run was invoked, which
+    // is the root zone. (The origin zone hasn't been set yet).
+    Expect.identical(Zone.current, Zone.ROOT);
+    events.add("forked.run1");
+    if (shouldForward) return parent.runUnary(origin, f, arg + 1);
+    return 42;
+  }));
 
   events.add("zone forked");
   Zone expectedZone = forked;
@@ -55,11 +55,18 @@ main() {
   Expect.equals(-499, result);
 
   done.future.whenComplete(() {
-    Expect.listEquals(
-        ["zone forked", "forked.run1", "run closure", "executed run",
-         "forked.run1", "executed run2", "forked.run1", "run closure 2",
-          "after nested scheduleMicrotask", "run closure 3"],
-        events);
+    Expect.listEquals([
+      "zone forked",
+      "forked.run1",
+      "run closure",
+      "executed run",
+      "forked.run1",
+      "executed run2",
+      "forked.run1",
+      "run closure 2",
+      "after nested scheduleMicrotask",
+      "run closure 3"
+    ], events);
     asyncEnd();
   });
 }

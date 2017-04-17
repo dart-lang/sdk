@@ -5,11 +5,11 @@
 // Regression test for http://dartbug.com/18942
 
 library LeakTest;
+
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'dart:isolate';
 import 'dart:async';
-
 
 class A {
   var x = 0;

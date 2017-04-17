@@ -37,13 +37,15 @@ class M<T> {
   }
 }
 
-class S {
-}
+class S {}
 
-class C0<T> extends S with M { }
-class C1<T> extends S with M<T> { }
-class C2<T> extends S with M<int> { }
-class C3 extends S with M<String> { }
+class C0<T> extends S with M {}
+
+class C1<T> extends S with M<T> {}
+
+class C2<T> extends S with M<int> {}
+
+class C3 extends S with M<String> {}
 
 main() {
   var c0 = new C0();

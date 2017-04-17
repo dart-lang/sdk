@@ -15,6 +15,6 @@ doNothing42() {}
 main() {
   // Regression test for http://www.dartbug.com/6335
   var closureMirror = reflect(doNothing42);
-  Expect.equals(stringifySymbol(closureMirror.function.simpleName),
-                "s(doNothing42)");
+  Expect.equals(
+      stringifySymbol(closureMirror.function.simpleName), "s(doNothing42)");
 }

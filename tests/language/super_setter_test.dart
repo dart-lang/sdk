@@ -9,12 +9,14 @@ class Base {
   Base() {}
   String value_;
 
-  String get value { return value_; }
+  String get value {
+    return value_;
+  }
+
   String set value(String newValue) {
     value_ = 'Base:$newValue';
   }
 }
-
 
 class Derived extends Base {
   Derived() : super() {}
@@ -22,9 +24,11 @@ class Derived extends Base {
   String set value(String newValue) {
     super.value = 'Derived:$newValue';
   }
-  String get value { return super.value; }
-}
 
+  String get value {
+    return super.value;
+  }
+}
 
 class SuperSetterTest {
   static void testMain() {

@@ -12,4 +12,3 @@ main() {
 }
 
 abstract class AbstractListEditor<D, S extends AbstractListEditorState<D, S>> {}
-

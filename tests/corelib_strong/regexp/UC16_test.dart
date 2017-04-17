@@ -33,21 +33,38 @@ void main() {
   // UC16
   // Characters used:
   // "\u03a3\u03c2\u03c3\u039b\u03bb" - Sigma, final sigma, sigma, Lambda, lamda
-  shouldBe(new RegExp(r"x(.)\1x", caseSensitive: false).firstMatch("x\u03a3\u03c3x"),
-      ["x\u03a3\u03c3x", "\u03a3"], "backref-UC16");
-  assertFalse(new RegExp(r"x(...)\1", caseSensitive: false).hasMatch("x\u03a3\u03c2\u03c3\u03c2\u03c3"),
-              "\1 ASCII, string short");
-  assertTrue(new RegExp(r"\u03a3((?:))\1\1x", caseSensitive: false).hasMatch("\u03c2x"), "backref-UC16-empty");
-  assertTrue(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false).hasMatch("x\u03a3\u03c2\u03c3x"),
-            "backref-UC16-uncaptured");
-  assertTrue(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false).hasMatch("x\u03c2\u03c3\u039b\u03a3\u03c2\u03bbx"),
-            "backref-UC16-backtrack");
-  var longUC16String = "x\u03a3\u03c2\u039b\u03c2\u03c3\u03bb\u03c3\u03a3\u03bb";
-  shouldBe(new RegExp(r"x(...)\1\1", caseSensitive: false).firstMatch(longUC16String),
-          [longUC16String, longUC16String.substring(1,4)],
-          "backref-UC16-twice");
+  shouldBe(
+      new RegExp(r"x(.)\1x", caseSensitive: false).firstMatch("x\u03a3\u03c3x"),
+      ["x\u03a3\u03c3x", "\u03a3"],
+      "backref-UC16");
+  assertFalse(
+      new RegExp(r"x(...)\1", caseSensitive: false)
+          .hasMatch("x\u03a3\u03c2\u03c3\u03c2\u03c3"),
+      "\1 ASCII, string short");
+  assertTrue(
+      new RegExp(r"\u03a3((?:))\1\1x", caseSensitive: false)
+          .hasMatch("\u03c2x"),
+      "backref-UC16-empty");
+  assertTrue(
+      new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)
+          .hasMatch("x\u03a3\u03c2\u03c3x"),
+      "backref-UC16-uncaptured");
+  assertTrue(
+      new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)
+          .hasMatch("x\u03c2\u03c3\u039b\u03a3\u03c2\u03bbx"),
+      "backref-UC16-backtrack");
+  var longUC16String =
+      "x\u03a3\u03c2\u039b\u03c2\u03c3\u03bb\u03c3\u03a3\u03bb";
+  shouldBe(
+      new RegExp(r"x(...)\1\1", caseSensitive: false)
+          .firstMatch(longUC16String),
+      [longUC16String, longUC16String.substring(1, 4)],
+      "backref-UC16-twice");
 
-  assertFalse(new RegExp(r"\xc1", caseSensitive: false).hasMatch('fooA'), "quickcheck-uc16-pattern-ascii-subject");
-  assertFalse(new RegExp(r"[\xe9]").hasMatch('i'), "charclass-uc16-pattern-ascii-subject");
-  assertFalse(new RegExp(r"\u5e74|\u6708").hasMatch('t'), "alternation-uc16-pattern-ascii-subject");
+  assertFalse(new RegExp(r"\xc1", caseSensitive: false).hasMatch('fooA'),
+      "quickcheck-uc16-pattern-ascii-subject");
+  assertFalse(new RegExp(r"[\xe9]").hasMatch('i'),
+      "charclass-uc16-pattern-ascii-subject");
+  assertFalse(new RegExp(r"\u5e74|\u6708").hasMatch('t'),
+      "alternation-uc16-pattern-ascii-subject");
 }

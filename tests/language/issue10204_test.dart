@@ -17,7 +17,7 @@ class Tupe {
 
 class Node {
   final selector = null;
-  var inputs = {"a": const Tupe(), "b": const Tupe() };
+  var inputs = {"a": const Tupe(), "b": const Tupe()};
   bool isCallOnInterceptor = false;
 
   getDartReceiver() {
@@ -33,6 +33,6 @@ class A {
 }
 
 main() {
-  Expect.equals('nullnull',
-                [new A()].last.visitInvokeDynamicMethod(new Node()));
+  Expect.equals(
+      'nullnull', [new A()].last.visitInvokeDynamicMethod(new Node()));
 }

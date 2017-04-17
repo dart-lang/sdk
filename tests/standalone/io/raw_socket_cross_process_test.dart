@@ -29,7 +29,7 @@ Future makeServer() {
     server.listen((connection) {
       connection.writeEventsEnabled = false;
       connection.listen((event) {
-        switch(event) {
+        switch (event) {
           case RawSocketEvent.READ:
             Expect.fail("No read event expected");
             break;
@@ -47,11 +47,15 @@ Future makeServer() {
 }
 
 Future runClientProcess(int port) {
-  return Process.run(Platform.executable,
-                     []..addAll(Platform.executableArguments)
-                       ..add(Platform.script.toFilePath())
-                       ..add('--client')
-                       ..add(port.toString())).then((ProcessResult result) {
+  return Process
+      .run(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..add(Platform.script.toFilePath())
+            ..add('--client')
+            ..add(port.toString()))
+      .then((ProcessResult result) {
     if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {
       print("Client failed, exit code ${result.exitCode}");
       print("  stdout:");
@@ -65,7 +69,7 @@ Future runClientProcess(int port) {
 
 runClient(int port) {
   RawSocket.connect(InternetAddress.LOOPBACK_IP_V4, port).then((connection) {
-    connection.listen((_) { }, onDone: () => print('SUCCESS'));
+    connection.listen((_) {}, onDone: () => print('SUCCESS'));
     connection.shutdown(SocketDirection.SEND);
   });
 }

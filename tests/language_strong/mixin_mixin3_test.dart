@@ -5,7 +5,9 @@
 import "package:expect/expect.dart";
 
 class M<T> {
-  t() { return T; }
+  t() {
+    return T;
+  }
 }
 
 class A<U> = Object with M<List<U>>;
@@ -14,9 +16,9 @@ class B0 = Object with A<Set<bool>>;
 
 class B1 = Object with A<Set<int>>;
 
-class C0 extends B0 { }
+class C0 extends B0 {}
 
-class C1 extends B1 { }
+class C1 extends B1 {}
 
 class A2<K, V> = Object with M<Map<K, V>>;
 
@@ -24,19 +26,21 @@ class B2<V> = Object with A2<Set<V>, List<V>>;
 
 class B3<K, V> = Object with A2<Set<K>, List<V>>;
 
-class C2<T> extends B2<T> { }
+class C2<T> extends B2<T> {}
 
-class C3<T> extends B3<T, int> { }
+class C3<T> extends B3<T, int> {}
 
 class N {
-  q() { return 42; }
+  q() {
+    return 42;
+  }
 }
 
 class O<U> = Object with N;
 
 class P<K, V> = Object with O<V>;
 
-class Q<K, V> extends P<K, V> { }
+class Q<K, V> extends P<K, V> {}
 
 main() {
   Expect.equals("List<Set<bool>>", new C0().t().toString());

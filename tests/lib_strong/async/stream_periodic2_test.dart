@@ -10,8 +10,8 @@ import 'package:unittest/unittest.dart';
 
 main() {
   test("stream-periodic2", () {
-    Stream stream = new Stream.periodic(const Duration(milliseconds: 1),
-                                        (x) => x);
+    Stream stream =
+        new Stream.periodic(const Duration(milliseconds: 1), (x) => x);
     int receivedCount = 0;
     var subscription;
     subscription = stream.listen(expectAsync((data) {

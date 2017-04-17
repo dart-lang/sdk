@@ -71,7 +71,6 @@ main() {
   Expect.equals(21, c.mutableWithInheritedSetter);
   Expect.equals(0, c.sideEffect);
 
-
   c = new C();
   im = reflect(c);
   Expect.equals(22, im.setField(#finalWithInheritedMutable, 22).reflectee);
@@ -82,7 +81,7 @@ main() {
   c = new C();
   im = reflect(c);
   Expect.throws(() => im.setField(#finalWithInheritedFinal, 23),
-                (e) => e is NoSuchMethodError);
+      (e) => e is NoSuchMethodError);
   Expect.equals(14, c.finalWithInheritedFinal);
   Expect.equals(5, c.superFinalWithInheritedFinal);
   Expect.equals(0, c.sideEffect);
@@ -92,7 +91,6 @@ main() {
   Expect.equals(24, im.setField(#finalWithInheritedSetter, 24).reflectee);
   Expect.equals(15, c.finalWithInheritedSetter);
   Expect.equals(6, c.sideEffect);
-
 
   c = new C();
   im = reflect(c);

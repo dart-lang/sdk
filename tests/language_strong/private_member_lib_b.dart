@@ -9,6 +9,9 @@ import 'private_member_test.dart';
 class B extends A {
   bool _instanceField;
   static bool _staticField;
-  bool _fun1(bool b) { return true; }
-  void _fun2() { }
+  bool _fun1(bool b) {
+    return true;
+  }
+
+  void _fun2() {}
 }

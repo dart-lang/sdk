@@ -15,7 +15,7 @@ class RuntimeMirrorsReader extends MirrorsReader {
   final String mirrorSystemType;
 
   RuntimeMirrorsReader(MirrorSystem mirrorSystem,
-                      {bool verbose: false, bool includeStackTrace: false})
+      {bool verbose: false, bool includeStackTrace: false})
       : this.mirrorSystem = mirrorSystem,
         this.mirrorSystemType = '${mirrorSystem.runtimeType}',
         super(verbose: verbose, includeStackTrace: includeStackTrace);
@@ -39,7 +39,7 @@ class RuntimeMirrorsReader extends MirrorsReader {
     } else if (mirrorSystemType == 'JsMirrorSystem') {
       // Dart2js runtime mirror system.
       if (tag.endsWith('.metadata')) {
-        return true;// Issue 10905.
+        return true; // Issue 10905.
       }
     }
     return false;

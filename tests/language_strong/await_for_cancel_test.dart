@@ -12,7 +12,8 @@ test1() async {
   canceled = false;
   try {
     StreamController controller = infiniteStreamController();
-    outer: while(true) {
+    outer:
+    while (true) {
       await for (var x in controller.stream) {
         for (int j = 0; j < 10; j++) {
           if (j == 5) break outer;
@@ -29,7 +30,8 @@ test2() async {
   try {
     StreamController controller = infiniteStreamController();
     bool first = true;
-    outer: while(true) {
+    outer:
+    while (true) {
       if (first) {
         first = false;
       } else {
@@ -57,7 +59,6 @@ main() {
     asyncEnd();
   });
 }
-
 
 // Create a stream that produces numbers [1, 2, ... ]
 StreamController infiniteStreamController() {

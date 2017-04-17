@@ -6,6 +6,7 @@
 // Type parameters can shadow a library prefix.
 
 library Prefix10NegativeTest.dart;
+
 import "package:expect/expect.dart";
 import "library10.dart" as T;
 
@@ -13,7 +14,7 @@ class P<T> {
   P.named(T this.fld);
   T fld;
   main() {
-    var i = new T.Library10(10);  // This should be an error.
+    var i = new T.Library10(10); // This should be an error.
     Expect.equals(10, i.fld);
   }
 }

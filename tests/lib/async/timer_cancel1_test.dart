@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library timer_cancel1_test;
+
 import 'dart:async';
 import 'package:unittest/unittest.dart';
 
@@ -20,9 +21,9 @@ main() {
       canceleeTimer.cancel();
     }
 
-    cancelerTimer = new Timer(const Duration(milliseconds: 1),
-                              expectAsync(handler));
-    canceleeTimer = new Timer(const Duration(milliseconds: 1000),
-                              expectAsync(unreachable, count: 0));
+    cancelerTimer =
+        new Timer(const Duration(milliseconds: 1), expectAsync(handler));
+    canceleeTimer = new Timer(
+        const Duration(milliseconds: 1000), expectAsync(unreachable, count: 0));
   });
 }

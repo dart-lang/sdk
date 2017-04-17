@@ -4,5 +4,4 @@
 
 part of top_level_entry_test.dart;
 
-main() {
-}
+main() {}

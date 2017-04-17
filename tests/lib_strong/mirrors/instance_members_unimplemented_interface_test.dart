@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 class I {
   implementMe() {}
 }
+
 abstract class C implements I {}
 
 selectKeys(map, predicate) {
@@ -20,12 +21,7 @@ main() {
   ClassMirror cm = reflectClass(C);
 
   // N.B.: Does not include #implementMe.
-  Expect.setEquals(
-    [#hashCode,
-     #runtimeType,
-     #==,
-     #noSuchMethod,
-     #toString],
-    selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
+  Expect.setEquals([#hashCode, #runtimeType, #==, #noSuchMethod, #toString],
+      selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library XHRCrossOriginTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -13,8 +14,8 @@ import "dart:convert";
  * [window.location] to determine what the cross-origin port is for
  * this test.
  */
- // TODO(efortuna): If we need to use this function frequently, make a
- // url_analyzer library that is part of test.dart that these tests can import.
+// TODO(efortuna): If we need to use this function frequently, make a
+// url_analyzer library that is part of test.dart that these tests can import.
 int get crossOriginPort {
   var searchUrl = window.location.search;
   var crossOriginStr = 'crossOriginPort=';
@@ -34,7 +35,6 @@ main() {
   });
 
   group('functional', () {
-
     var port = crossOriginPort;
     var host = '${window.location.protocol}//${window.location.hostname}:$port';
 
@@ -81,7 +81,7 @@ main() {
     }
 
     test('XHR Cross-domain', () {
-      var url =  '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
+      var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
       var xhr = new HttpRequest();
       xhr.open('GET', url, async: true);
       var validate = expectAsync((data) {

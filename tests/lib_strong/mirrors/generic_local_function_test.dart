@@ -20,7 +20,9 @@ class C<T> {
     enclosing() {
       T closure2(T t) {}
       return closure2;
-    };
+    }
+
+    ;
     return enclosing();
   }
 }

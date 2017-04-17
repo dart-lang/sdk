@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import"dart:async";
+import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
@@ -12,7 +12,7 @@ import "package:async_helper/async_helper.dart";
 foo() async* {
   try {
     int i = 0;
-    while(true) {
+    while (true) {
       yield i++;
     }
   } finally {
@@ -28,7 +28,7 @@ test() async {
     try {
       await s.cancel();
       Expect.fail("Did not throw");
-    } catch(e) {
+    } catch (e) {
       Expect.equals("Error", e);
       completer.complete();
     }

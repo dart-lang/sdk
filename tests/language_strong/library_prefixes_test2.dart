@@ -15,13 +15,17 @@ class A {
   A() : x = 2 {}
   A.named() : x = 4 {}
   A.superC(x) : x = x + 11 {}
-  factory A.fac() { return new A.named(); }
+  factory A.fac() {
+    return new A.named();
+  }
 }
 
 class B extends A {
   B() : super() {}
   B.named() : super.superC(2) {}
-  factory B.fac() { return new B.named(); }
+  factory B.fac() {
+    return new B.named();
+  }
 }
 
 class C {
@@ -29,21 +33,43 @@ class C {
   const C() : x = 2;
   const C.named() : x = 4;
   const C.superC(x) : x = x + 11;
-  factory C.fac() { return const C.named(); }
+  factory C.fac() {
+    return const C.named();
+  }
 }
 
 class D extends C {
   const D() : super();
   const D.named() : super.superC(2);
-  factory D.fac() { return const D.named(); }
+  factory D.fac() {
+    return const D.named();
+  }
 }
 
 class E {
   var f;
   E() {}
-  E.fun(x) : f = (() { return x + 13; }) {}
-  static foo() { return 3; }
-  static fooo(x) { return () { return x + 1024; }; }
-  bar() { return 4; }
-  toto(x) { return () { return x + 5; }; }
+  E.fun(x)
+      : f = (() {
+          return x + 13;
+        }) {}
+  static foo() {
+    return 3;
+  }
+
+  static fooo(x) {
+    return () {
+      return x + 1024;
+    };
+  }
+
+  bar() {
+    return 4;
+  }
+
+  toto(x) {
+    return () {
+      return x + 5;
+    };
+  }
 }

@@ -15,11 +15,11 @@ class A {
     global = 54;
     return this;
   }
+
   moveNext() => false;
 
   bar(a) {
-    for (var a in this) {
-    }
+    for (var a in this) {}
   }
 }
 

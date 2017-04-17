@@ -11,8 +11,8 @@ typedef T F<T>(T x);
 typedef R G<T, R>(T x);
 
 class C<T> {
-  get f => (T x) => 2*x;
-  T g(T x) => 3*x;
+  get f => (T x) => 2 * x;
+  T g(T x) => 3 * x;
 }
 
 main() {

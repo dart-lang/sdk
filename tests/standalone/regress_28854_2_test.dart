@@ -6,9 +6,7 @@ library regress;
 
 import 'dart:isolate';
 
-abstract class N<T> {
-
-}
+abstract class N<T> {}
 
 class J extends N<String> {
   final String s;
@@ -22,7 +20,7 @@ class K extends N<int> {
 
 void isolate(SendPort port) {
   port.send(new J("8" * 4));
-  for (int i=0; i<80000; i++) {
+  for (int i = 0; i < 80000; i++) {
     port.send(new K(i));
   }
   port.send('done');
@@ -39,4 +37,3 @@ main() async {
   };
   var iso = await Isolate.spawn(isolate, recv.sendPort);
 }
-

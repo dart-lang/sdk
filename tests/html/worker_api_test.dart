@@ -26,7 +26,7 @@ main() {
   test('Use Worker API in Worker', () {
     var response = new ReceivePort();
     var remote = Isolate.spawn(worker, ['', response.sendPort]);
-    remote.then((_) => response.first)
-        .then(expectAsync((reply) => expect(reply, equals('Hello from Worker'))));
+    remote.then((_) => response.first).then(
+        expectAsync((reply) => expect(reply, equals('Hello from Worker'))));
   });
 }

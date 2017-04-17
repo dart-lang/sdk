@@ -35,7 +35,7 @@ makeA = function() { return new A; };
 self.nativeConstructor(A);
 """;
 
-A makeA() native ;
+A makeA() native;
 
 class B {
   void a() {}

@@ -26,7 +26,7 @@ class C {
 var _libraryField = 'a priori';
 get _libraryGetter => 'lget $_libraryField';
 set _librarySetter(v) => _libraryField = 'lset $v';
-_libraryFunction(x,y) => '$x$y';
+_libraryFunction(x, y) => '$x$y';
 
 main() {
   var result;
@@ -34,7 +34,7 @@ main() {
   // InstanceMirror.
   C c = new C();
   InstanceMirror im = reflect(c);
-  result = im.invoke(#_method, [2,4,8]);
+  result = im.invoke(#_method, [2, 4, 8]);
   Expect.equals('2+4+8', result.reflectee);
 
   result = im.getField(#_getter);
@@ -47,10 +47,9 @@ main() {
   im.setField(#_field, 'bar');
   Expect.equals('bar', c._field);
 
-
   // ClassMirror.
   ClassMirror cm = reflectClass(C);
-  result = cm.invoke(#_staticFunction, [3,4]);
+  result = cm.invoke(#_staticFunction, [3, 4]);
   Expect.equals('(3,4)', result.reflectee);
 
   result = cm.getField(#_staticGetter);
@@ -67,10 +66,9 @@ main() {
   Expect.isTrue(result.reflectee is C);
   Expect.equals('my value', result.reflectee._field);
 
-
   // LibraryMirror.
   LibraryMirror lm = cm.owner;
-  result = lm.invoke(#_libraryFunction, [':',')']);
+  result = lm.invoke(#_libraryFunction, [':', ')']);
   Expect.equals(':)', result.reflectee);
 
   result = lm.getField(#_libraryGetter);

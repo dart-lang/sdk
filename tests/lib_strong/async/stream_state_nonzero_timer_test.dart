@@ -22,81 +22,104 @@ main() {
 
   test("$p-sub-data/pause/resume/pause/resume-done", () {
     var t = new StreamProtocolTest();
-    t..expectListen()
-     ..expectData(42, () {
-         t.pause();
-       })
-     ..expectPause(() { t.resume(); })
-     ..expectResume(() { t.pause(); })
-     ..expectPause(() { t.resume(); })
-     ..expectResume(() { t.close(); })
-     ..expectCancel()
-     ..expectDone(t.terminate);
-    t..listen()..add(42);
+    t
+      ..expectListen()
+      ..expectData(42, () {
+        t.pause();
+      })
+      ..expectPause(() {
+        t.resume();
+      })
+      ..expectResume(() {
+        t.pause();
+      })
+      ..expectPause(() {
+        t.resume();
+      })
+      ..expectResume(() {
+        t.close();
+      })
+      ..expectCancel()
+      ..expectDone(t.terminate);
+    t
+      ..listen()
+      ..add(42);
   });
 
   test("$p-sub-data/pause-done", () {
     var t = new StreamProtocolTest();
-    t..expectListen()
-     ..expectData(42, () {
-         t.pause(new Future.delayed(ms5, () => null));
-       })
-     ..expectPause()
-     ..expectCancel()
-     ..expectDone(t.terminate);
-     // We are calling "close" while the controller is actually paused,
-     // and it will stay paused until the pending events are sent.
-    t..listen()..add(42)..close();
+    t
+      ..expectListen()
+      ..expectData(42, () {
+        t.pause(new Future.delayed(ms5, () => null));
+      })
+      ..expectPause()
+      ..expectCancel()
+      ..expectDone(t.terminate);
+    // We are calling "close" while the controller is actually paused,
+    // and it will stay paused until the pending events are sent.
+    t
+      ..listen()
+      ..add(42)
+      ..close();
   });
 
   test("$p-sub-data/pause-resume/done", () {
     var t = new StreamProtocolTest();
-    t..expectListen()
-     ..expectData(42, () {
-         t.pause(new Future.delayed(ms5, () => null));
-       })
-     ..expectPause()
-     ..expectResume(t.close)
-     ..expectCancel()
-     ..expectDone(t.terminate);
-    t..listen()..add(42);
+    t
+      ..expectListen()
+      ..expectData(42, () {
+        t.pause(new Future.delayed(ms5, () => null));
+      })
+      ..expectPause()
+      ..expectResume(t.close)
+      ..expectCancel()
+      ..expectDone(t.terminate);
+    t
+      ..listen()
+      ..add(42);
   });
 
   test("$p-sub-data/data+pause-data-resume-done", () {
     var t = new StreamProtocolTest();
-    t..expectListen()
-     ..expectData(42, () {
-         t.add(43);
-         t.pause(new Future.delayed(ms5, () => null));
-         // Should now be paused until the future finishes.
-         // After that, the controller stays paused until the pending queue
-         // is empty.
-       })
-     ..expectPause()
-     ..expectData(43)
-     ..expectResume(t.close)
-     ..expectCancel()
-     ..expectDone(t.terminate);
-    t..listen()..add(42);
+    t
+      ..expectListen()
+      ..expectData(42, () {
+        t.add(43);
+        t.pause(new Future.delayed(ms5, () => null));
+        // Should now be paused until the future finishes.
+        // After that, the controller stays paused until the pending queue
+        // is empty.
+      })
+      ..expectPause()
+      ..expectData(43)
+      ..expectResume(t.close)
+      ..expectCancel()
+      ..expectDone(t.terminate);
+    t
+      ..listen()
+      ..add(42);
   });
 
   test("$p-pause-during-callback", () {
     var t = new StreamProtocolTest();
-    t..expectListen()
-     ..expectData(42, () {
-       t.pause();
-     })
-     ..expectPause(() {
-       t.resume();
-     })
-     ..expectResume(() {
-       t.pause();
-       t.resume();
-       t.close();
-     })
-     ..expectCancel()
-     ..expectDone(t.terminate);
-    t..listen()
-     ..add(42);
+    t
+      ..expectListen()
+      ..expectData(42, () {
+        t.pause();
+      })
+      ..expectPause(() {
+        t.resume();
+      })
+      ..expectResume(() {
+        t.pause();
+        t.resume();
+        t.close();
+      })
+      ..expectCancel()
+      ..expectDone(t.terminate);
+    t
+      ..listen()
+      ..add(42);
   });
 }

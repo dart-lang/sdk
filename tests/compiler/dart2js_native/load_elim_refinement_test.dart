@@ -13,7 +13,10 @@ class B extends A {
 }
 
 @NoInline()
-escape(v) { g = v; }
+escape(v) {
+  g = v;
+}
+
 var g;
 
 main() {
@@ -22,7 +25,7 @@ main() {
 
   a.a = 1;
   if (a is B) {
-    escape(a);  // Here we need to escape 'a' not the refinement of a to B.
+    escape(a); // Here we need to escape 'a' not the refinement of a to B.
     g.a = 2;
     Expect.equals(2, a.a);
   }

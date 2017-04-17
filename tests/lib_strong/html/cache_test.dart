@@ -30,11 +30,12 @@ String cacheStatusToString(int status) {
       return 'CHECKING';
     case ApplicationCache.DOWNLOADING: // DOWNLOADING == 3
       return 'DOWNLOADING';
-    case ApplicationCache.UPDATEREADY:  // UPDATEREADY == 4
+    case ApplicationCache.UPDATEREADY: // UPDATEREADY == 4
       return 'UPDATEREADY';
     case ApplicationCache.OBSOLETE: // OBSOLETE == 5
       return 'OBSOLETE';
     default:
       return 'UNKNOWN CACHE STATUS';
-  };
+  }
+  ;
 }

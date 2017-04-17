@@ -39,9 +39,7 @@ class A {
   }
 }
 
-class Aa extends A {
-
-}
+class Aa extends A {}
 
 class B extends Aa {
   foo() => -2;

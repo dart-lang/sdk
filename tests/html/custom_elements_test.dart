@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library custom_elements_test;
+
 import 'dart:async';
 import 'dart:html';
 import 'package:unittest/html_individual_config.dart';
@@ -17,11 +18,11 @@ class CustomMixin {
   }
 }
 
-class CustomType extends HtmlElement with CustomMixin{
+class CustomType extends HtmlElement with CustomMixin {
   bool createdCalled = false;
 
   factory CustomType() => null;
-  CustomType.created(): super.created() {
+  CustomType.created() : super.created() {
     createdCalled = true;
     customCreatedCount++;
   }
@@ -136,7 +137,7 @@ main() {
       var element = new DivElement();
       element.setInnerHtml('<$tag></$tag>',
           treeSanitizer: new NullTreeSanitizer());
-	  upgradeCustomElements(element);
+      upgradeCustomElements(element);
       document.body.nodes.add(element);
       var queried = query(tag);
 
@@ -151,7 +152,7 @@ main() {
       var element = new DivElement();
       element.setInnerHtml('<$tag id="someid"></$tag>',
           treeSanitizer: new NullTreeSanitizer());
-	  upgradeCustomElements(element);
+      upgradeCustomElements(element);
       document.body.nodes.add(element);
       var queried = query('#someid');
 

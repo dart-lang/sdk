@@ -13,14 +13,14 @@ main() {
     controller.close();
   });
   asyncStart();
-  controller.stream
-    .map((e) { throw "error"; })
-    .listen((_) { throw "should never be reached"; },
-      onError: (e, st) {
-        Expect.equals("error", e);
-        Expect.isNotNull(st);
-      },
-      onDone: () {
-        asyncEnd();
-      });
+  controller.stream.map((e) {
+    throw "error";
+  }).listen((_) {
+    throw "should never be reached";
+  }, onError: (e, st) {
+    Expect.equals("error", e);
+    Expect.isNotNull(st);
+  }, onDone: () {
+    asyncEnd();
+  });
 }

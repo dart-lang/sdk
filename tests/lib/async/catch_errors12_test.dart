@@ -16,8 +16,12 @@ main() {
   // Timers are still caught by `catchErrors`.
   catchErrors(() {
     events.add("catch error entry");
-    Timer.run(() { throw "timer error"; });
-    new Timer(const Duration(milliseconds: 100), () { throw "timer2 error"; });
+    Timer.run(() {
+      throw "timer error";
+    });
+    new Timer(const Duration(milliseconds: 100), () {
+      throw "timer2 error";
+    });
     new Future.value(499).then((x) {
       new Timer(const Duration(milliseconds: 200), () {
         done.complete(499);
@@ -26,21 +30,21 @@ main() {
     });
     throw "catch error";
   }).listen((x) {
-      events.add(x);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
   done.future.whenComplete(() {
     // Give time to execute the callbacks.
     Timer.run(() {
       Expect.listEquals([
-            "catch error entry",
-            "main exit",
-            "catch error",
-            "timer error",
-            "timer2 error",
-            499,
-          ],
-          events);
+        "catch error entry",
+        "main exit",
+        "catch error",
+        "timer error",
+        "timer2 error",
+        499,
+      ], events);
       asyncEnd();
     });
   });

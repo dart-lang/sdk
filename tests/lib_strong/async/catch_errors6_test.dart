@@ -13,15 +13,16 @@ main() {
   var errorHandlerOrDoneHasBeenExecuted = false;
   // Test that `catchErrors` doesn't shut down if a future is never completed.
   catchErrors(() {
-    completer.future.then((x) { Expect.fail("should not be executed"); });
-  }).listen((x) {
-      errorHandlerOrDoneHasBeenExecuted = true;
-      Expect.fail("should not be executed (listen)");
-    },
-    onDone: () {
-      errorHandlerOrDoneHasBeenExecuted = true;
-      Expect.fail("should not be executed (onDone)");
+    completer.future.then((x) {
+      Expect.fail("should not be executed");
     });
+  }).listen((x) {
+    errorHandlerOrDoneHasBeenExecuted = true;
+    Expect.fail("should not be executed (listen)");
+  }, onDone: () {
+    errorHandlerOrDoneHasBeenExecuted = true;
+    Expect.fail("should not be executed (onDone)");
+  });
   Timer.run(() {
     Expect.isFalse(errorHandlerOrDoneHasBeenExecuted);
     asyncEnd();

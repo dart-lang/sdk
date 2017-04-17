@@ -32,8 +32,8 @@ class B extends A {
   int method(int z) => _field2 + z;
 }
 
-A makeA() native ;
-B makeB() native ;
+A makeA() native;
+B makeB() native;
 
 void setup() native r"""
 function inherits(child, parent) {

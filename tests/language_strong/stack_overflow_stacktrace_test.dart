@@ -6,7 +6,6 @@
 import "package:expect/expect.dart";
 
 class StackOverflowTest {
-
   static void curseTheRecurse(a, b, c) {
     curseTheRecurse(b, c, a);
   }

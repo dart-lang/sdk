@@ -54,11 +54,12 @@ main() {
       expect(childCallCount, 0);
     });
 
-    Element.focusEvent.forTarget(helper.element, useCapture: true).listen(
-        (Event e) {
-          ++childCallCount;
-          expect(parentCallCount, 1);
-        });
+    Element.focusEvent
+        .forTarget(helper.element, useCapture: true)
+        .listen((Event e) {
+      ++childCallCount;
+      expect(parentCallCount, 1);
+    });
 
     helper.pulse();
     expect(childCallCount, 1);

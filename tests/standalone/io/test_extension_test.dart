@@ -33,7 +33,7 @@ List<String> getExtensionNames(String arch) {
     case 'macos':
       return ['libtest_extension.dylib', 'libtest_extension$arch.dylib'];
     case 'windows':
-      return ['test_extension.dll','test_extension$arch.dll'];
+      return ['test_extension.dll', 'test_extension$arch.dll'];
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
@@ -84,7 +84,7 @@ Future testExtension(bool withArchSuffix) {
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_tester.dart to the temporary test directory.
   return copyFileToDirectory(getExtensionPath(buildDirectory, fileNames[0]),
-                      join(testDirectory, fileNames[1])).then((_) {
+      join(testDirectory, fileNames[1])).then((_) {
     var extensionDartFile = join(scriptDirectory, 'test_extension.dart');
     return copyFileToDirectory(extensionDartFile, testDirectory);
   }).then((_) {
@@ -94,19 +94,21 @@ Future testExtension(bool withArchSuffix) {
   }).then((_) {
     var script = join(testDirectory, 'test_extension_tester.dart');
     return Process.run(Platform.executable, [script]);
-  })..then((ProcessResult result) {
-    if (result.exitCode != 0) {
-      print('Subprocess failed with exit code ${result.exitCode}');
-      print('stdout:');
-      print('${result.stdout}');
-      print('stderr:');
-      print('${result.stderr}');
-    }
-    Expect.equals(0, result.exitCode);
-    tempDirectory.deleteSync(recursive: true);
-  })..catchError((_) {
-    tempDirectory.deleteSync(recursive: true);
-  });
+  })
+    ..then((ProcessResult result) {
+      if (result.exitCode != 0) {
+        print('Subprocess failed with exit code ${result.exitCode}');
+        print('stdout:');
+        print('${result.stdout}');
+        print('stderr:');
+        print('${result.stderr}');
+      }
+      Expect.equals(0, result.exitCode);
+      tempDirectory.deleteSync(recursive: true);
+    })
+    ..catchError((_) {
+      tempDirectory.deleteSync(recursive: true);
+    });
 }
 
 Future testWithArchSuffix() {

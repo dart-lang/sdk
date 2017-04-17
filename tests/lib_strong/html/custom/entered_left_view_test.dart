@@ -12,6 +12,7 @@ import 'package:unittest/unittest.dart';
 import '../utils.dart';
 
 var invocations = [];
+
 class Foo extends HtmlElement {
   factory Foo() => null;
   Foo.created() : super.created() {
@@ -40,7 +41,6 @@ class Foo extends HtmlElement {
     invocations.add('attribute changed');
   }
 }
-
 
 // Test that the deprecated callbacks still work.
 class FooOldCallbacks extends HtmlElement {
@@ -75,11 +75,11 @@ main() {
 
   var registeredTypes = false;
   setUp(() => customElementsReady.then((_) {
-    if (registeredTypes) return;
-    registeredTypes = true;
-    document.registerElement('x-a', Foo);
-    document.registerElement('x-a-old', FooOldCallbacks);
-  }));
+        if (registeredTypes) return;
+        registeredTypes = true;
+        document.registerElement('x-a', Foo);
+        document.registerElement('x-a-old', FooOldCallbacks);
+      }));
 
   group('standard_events', () {
     var a;
@@ -123,7 +123,6 @@ main() {
       expect(invocations, ['detached']);
     });
   });
-
 
   // TODO(jmesserly): remove after deprecation period.
   group('standard_events_old_callback_names', () {
@@ -169,7 +168,6 @@ main() {
     });
   });
 
-
   group('viewless_document', () {
     var a;
     setUp(() {
@@ -179,8 +177,8 @@ main() {
     test('Created, owned by a document without a view', () {
       a = docB.createElement('x-a');
       expect(a.ownerDocument, docB,
-          reason:'new instance should be owned by the document the definition '
-          'was registered with');
+          reason: 'new instance should be owned by the document the definition '
+              'was registered with');
       expect(invocations, ['created'],
           reason: 'calling the constructor should invoke the created callback');
     });
@@ -189,22 +187,23 @@ main() {
       docB.body.append(a);
       expect(invocations, [],
           reason: 'attached callback should not be invoked when entering a '
-          'document without a view');
+              'document without a view');
     });
 
     test('Attribute changed in document without a view', () {
       a.setAttribute('data-foo', 'bar');
       expect(invocations, ['attribute changed'],
           reason: 'changing an attribute should invoke the callback, even in a '
-          'document without a view');
+              'document without a view');
     });
 
     test('Entered document with a view', () {
       document.body.append(a);
       customElementsTakeRecords();
       expect(invocations, ['attached'],
-          reason: 'attached callback should be invoked when entering a document '
-          'with a view');
+          reason:
+              'attached callback should be invoked when entering a document '
+              'with a view');
     });
 
     test('Left document with a view', () {
@@ -212,7 +211,7 @@ main() {
       customElementsTakeRecords();
       expect(invocations, ['detached'],
           reason: 'detached callback should be invoked when leaving a document '
-          'with a view');
+              'with a view');
     });
 
     test('Created in a document without a view', () {
@@ -221,7 +220,7 @@ main() {
 
       expect(invocations, ['created'],
           reason: 'only created callback should be invoked when parsing a '
-          'custom element in a document without a view');
+              'custom element in a document without a view');
     });
   });
 
@@ -244,14 +243,14 @@ main() {
 
       expect(invocations, ['created'],
           reason: 'the attached callback should not be invoked when entering a '
-          'Shadow DOM subtree not in the document');
+              'Shadow DOM subtree not in the document');
     });
 
     test('Leaves Shadow DOM that is not in a document', () {
       s.innerHtml = '';
       expect(invocations, [],
           reason: 'the detached callback should not be invoked when leaving a '
-          'Shadow DOM subtree not in the document');
+              'Shadow DOM subtree not in the document');
     });
 
     test('Enters a document with a view as a constituent of Shadow DOM', () {
@@ -261,18 +260,17 @@ main() {
       document.body.append(div);
       customElementsTakeRecords();
       expect(invocations, ['created', 'attached'],
-            reason: 'the attached callback should be invoked when inserted into '
-            'a document with a view as part of Shadow DOM');
+          reason: 'the attached callback should be invoked when inserted into '
+              'a document with a view as part of Shadow DOM');
 
       div.remove();
       customElementsTakeRecords();
 
       expect(invocations, ['created', 'attached', 'detached'],
           reason: 'the detached callback should be invoked when removed from a '
-          'document with a view as part of Shadow DOM');
+              'document with a view as part of Shadow DOM');
     });
   });
-
 
   group('disconnected_subtree', () {
     var div = new DivElement();
@@ -287,14 +285,15 @@ main() {
 
       expect(invocations, ['created'],
           reason: 'the attached callback should not be invoked when inserted '
-          'into a disconnected subtree');
+              'into a disconnected subtree');
     });
 
     test('Leaves a disconnected subtree of DOM', () {
       div.innerHtml = '';
       expect(invocations, [],
-          reason: 'the detached callback should not be invoked when removed from a '
-          'disconnected subtree');
+          reason:
+              'the detached callback should not be invoked when removed from a '
+              'disconnected subtree');
     });
 
     test('Enters a document with a view as a constituent of a subtree', () {
@@ -304,8 +303,9 @@ main() {
       document.body.append(div);
       customElementsTakeRecords();
       expect(invocations, ['attached'],
-          reason: 'the attached callback should be invoked when inserted into a '
-          'document with a view as part of a subtree');
+          reason:
+              'the attached callback should be invoked when inserted into a '
+              'document with a view as part of a subtree');
     });
   });
 }

@@ -14,18 +14,19 @@ class AssertTest {
       Expect.fail("Assertion 'false' didn't fail.");
     } on AssertionError catch (error) {
       Expect.isTrue(error.toString().contains("'false'"));
-      Expect.isTrue(error.stackTrace.toString().contains(
-          "assert_test.dart:13:14"));
+      Expect.isTrue(
+          error.stackTrace.toString().contains("assert_test.dart:13:14"));
     }
   }
+
   static testClosure() {
     try {
       assert(() => false);
       Expect.fail("Assertion '() => false' didn't fail.");
     } on AssertionError catch (error) {
       Expect.isTrue(error.toString().contains("'() => false'"));
-      Expect.isTrue(error.stackTrace.toString().contains(
-          "assert_test.dart:23:14"));
+      Expect.isTrue(
+          error.stackTrace.toString().contains("assert_test.dart:24:14"));
     }
   }
 

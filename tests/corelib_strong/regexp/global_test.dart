@@ -41,29 +41,28 @@ void main() {
 
   // Test zero-length matches that have non-zero-length sub-captures.
   str = "It was a pleasure to burn.";
-  str = str.replaceAllMapped(new RegExp(r"(?=(\w+))\b"), (Match m) => m.group(1).length.toString());
+  str = str.replaceAllMapped(
+      new RegExp(r"(?=(\w+))\b"), (Match m) => m.group(1).length.toString());
   assertEquals("2It 3was 1a 8pleasure 2to 4burn.", str);
 
   // Test multiple captures.
   str = "Try not. Do, or do not. There is no try.";
-  str = str.replaceAllMapped(new RegExp(r"(not?)|(do)|(try)", caseSensitive: false),
-                    (m) { 
-                      if (m.group(1) != null) return "-";
-                      if (m.group(2) != null) return "+";
-                      if (m.group(3) != null) return "=";
-                    });
+  str = str.replaceAllMapped(
+      new RegExp(r"(not?)|(do)|(try)", caseSensitive: false), (m) {
+    if (m.group(1) != null) return "-";
+    if (m.group(2) != null) return "+";
+    if (m.group(3) != null) return "=";
+  });
   assertEquals("= -. +, or + -. There is - =.", str);
 
   // Test multiple alternate captures.
   str = "FOUR LEGS GOOD, TWO LEGS BAD!";
-  str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) LEGS (GOOD|BAD)"),
-                    (m) {
-                      if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
-                      if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-                      return m.group(0).length - 10;
-                    });
+  str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) LEGS (GOOD|BAD)"), (m) {
+    if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
+    if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
+    return m.group(0).length - 10;
+  });
   assertEquals("4, 2!", str);
-
 
   // The same tests with UC16.
 
@@ -78,27 +77,27 @@ void main() {
 
   // Test zero-length matches that have non-zero-length sub-captures.
   str = "It was a pleasure to \u70e7.";
-  str = str.replaceAllMapped(new RegExp(r"(?=(\w+))\b"), (m) => "${m.group(1).length}");
+  str = str.replaceAllMapped(
+      new RegExp(r"(?=(\w+))\b"), (m) => "${m.group(1).length}");
   assertEquals("2It 3was 1a 8pleasure 2to \u70e7.", str);
 
   // Test multiple captures.
   str = "Try not. D\u26aa, or d\u26aa not. There is no try.";
-  str = str.replaceAllMapped(new RegExp(r"(not?)|(d\u26aa)|(try)", caseSensitive: false),
-                    (m) { 
-                      if (m.group(1) != null) return "-";
-                      if (m.group(2) != null) return "+";
-                      if (m.group(3) != null) return "=";
-                    });
+  str = str.replaceAllMapped(
+      new RegExp(r"(not?)|(d\u26aa)|(try)", caseSensitive: false), (m) {
+    if (m.group(1) != null) return "-";
+    if (m.group(2) != null) return "+";
+    if (m.group(3) != null) return "=";
+  });
   assertEquals("= -. +, or + -. There is - =.", str);
 
   // Test multiple alternate captures.
   str = "FOUR \u817f GOOD, TWO \u817f BAD!";
-  str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) \u817f (GOOD|BAD)"),
-                    (m) {
-                      if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
-                      if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
-                      return m.group(0).length - 7;
-                    });
+  str = str.replaceAllMapped(new RegExp(r"(FOUR|TWO) \u817f (GOOD|BAD)"), (m) {
+    if (m.group(1) == "FOUR") assertTrue(m.group(2) == "GOOD");
+    if (m.group(1) == "TWO") assertTrue(m.group(2) == "BAD");
+    return m.group(0).length - 7;
+  });
   assertEquals("4, 2!", str);
 
   // Test capture that is a real substring.
@@ -109,10 +108,10 @@ void main() {
   // Test zero-length matches that have non-zero-length sub-captures that do not
   // start at the match start position.
   str = "up up up up";
-  str = str.replaceAllMapped(new RegExp(r"\b(?=u(p))"), (m) => "${m.group(1).length}");
+  str = str.replaceAllMapped(
+      new RegExp(r"\b(?=u(p))"), (m) => "${m.group(1).length}");
 
   assertEquals("1up 1up 1up 1up", str);
-
 
   // Create regexp that has a *lot* of captures.
   var re_string = "(a)";
@@ -143,16 +142,13 @@ void main() {
   last_match_expectations.add("a1");
   first_capture_expectations.add("a");
 
-  dynamic test_replace(result_expectation,
-                        subject,
-                        regexp,
-                        replacement) {
+  dynamic test_replace(result_expectation, subject, regexp, replacement) {
     for (var i = 0; i < regexps.length; i++) {
       // Conduct tests.
-      assertEquals(result_expectation, subject.replaceAll(regexps[i], replacement));
+      assertEquals(
+          result_expectation, subject.replaceAll(regexps[i], replacement));
     }
   }
-
 
   // Test for different number of matches.
   for (var m = 0; m < 33; m++) {
@@ -175,15 +171,14 @@ void main() {
     test_replace(test_2_expectation, subject, new RegExp(r"a1"), "");
   }
 
-
   // Test String hashing (compiling regular expression includes hashing).
   var crosscheck = "\x80";
   for (var i = 0; i < 12; i++) crosscheck += crosscheck;
-    new RegExp(crosscheck);
+  new RegExp(crosscheck);
 
   var subject = "ascii~only~string~here~";
   var replacement = "\x80";
   var result = subject.replaceAll(new RegExp(r"~"), replacement);
   for (var i = 0; i < 5; i++) result += result;
-    new RegExp(result);
+  new RegExp(result);
 }

@@ -11,6 +11,7 @@ class A {
   incrField() {
     field++;
   }
+
   timesX(v) {
     return v * 2;
   }

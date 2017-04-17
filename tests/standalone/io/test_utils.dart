@@ -7,7 +7,7 @@ import 'dart:io';
 
 Future<int> freeIPv4AndIPv6Port() async {
   var socket =
-    await ServerSocket.bind(InternetAddress.ANY_IP_V6, 0, v6Only: false);
+      await ServerSocket.bind(InternetAddress.ANY_IP_V6, 0, v6Only: false);
   int port = socket.port;
   await socket.close();
   return port;
@@ -24,7 +24,7 @@ Future retry(Future fun(), {int maxCount: 10}) async {
       return await fun();
     } catch (e, stack) {
       print("Failed to execute test closure (retry id: ${id}) in attempt $i "
-            "(${maxCount - i} retries left).");
+          "(${maxCount - i} retries left).");
       print("Exception: ${e}");
       print("Stacktrace: ${stack}");
     }

@@ -17,7 +17,8 @@ void testNow() {
   var t1 = new DateTime.now();
   bool timeMovedForward = false;
   const int N = 1000000;
-  outer: while (true) {
+  outer:
+  while (true) {
     for (int i = N; i > 0; i--) {
       var t2 = new DateTime.now();
       if (t1.millisecondsSinceEpoch < t2.millisecondsSinceEpoch) {
@@ -103,8 +104,8 @@ void testFarAwayDates() {
   Expect.equals(40, dt.second);
   Expect.equals(0, dt.millisecond);
   Expect.equals(1, dt.microsecond);
-  dt = new DateTime.fromMicrosecondsSinceEpoch(
-      -1000000000000000001, isUtc: true);
+  dt = new DateTime.fromMicrosecondsSinceEpoch(-1000000000000000001,
+      isUtc: true);
   Expect.equals(-29719, dt.year);
   Expect.equals(4, dt.month);
   Expect.equals(5, dt.day);
@@ -142,7 +143,8 @@ void testEquivalentYears() {
   // All hardcoded values come from V8. This means that the values are not
   // necessarily correct (see limitations of DateTime object in
   // EcmaScript 15.9.1 and in particular 15.9.1.8/9).
-  DateTime dt = new DateTime.fromMillisecondsSinceEpoch(-31485600000, isUtc: true);
+  DateTime dt =
+      new DateTime.fromMillisecondsSinceEpoch(-31485600000, isUtc: true);
   Expect.equals(1969, dt.year);
   Expect.equals(1, dt.month);
   Expect.equals(1, dt.day);
@@ -252,7 +254,7 @@ void testEquivalentYears() {
   Expect.equals(0, dt.microsecond);
   final int SECONDS_YEAR_2035 = 2051222400;
   dt = new DateTime.fromMillisecondsSinceEpoch(SECONDS_YEAR_2035 * 1000 + 1,
-                                           isUtc: true);
+      isUtc: true);
   Expect.equals(2035, dt.year);
   Expect.equals(1, dt.month);
   Expect.equals(1, dt.day);
@@ -262,7 +264,7 @@ void testEquivalentYears() {
   Expect.equals(1, dt.millisecond);
   Expect.equals(0, dt.microsecond);
   dt = new DateTime.fromMillisecondsSinceEpoch(SECONDS_YEAR_2035 * 1000 - 1,
-                                           isUtc: true);
+      isUtc: true);
   Expect.equals(2034, dt.year);
   Expect.equals(12, dt.month);
   Expect.equals(31, dt.day);
@@ -277,24 +279,26 @@ void testEquivalentYears() {
   dt = new DateTime.utc(2034, 12, 31, 23, 59, 59, 999);
   Expect.equals(SECONDS_YEAR_2035 * 1000 - 1, dt.millisecondsSinceEpoch);
   dt = new DateTime.fromMillisecondsSinceEpoch(SECONDS_YEAR_2035 * 1000 + 1);
-  Expect.equals(true, (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
-                      (2034 == dt.year && 12 == dt.month && 31 == dt.day));
+  Expect.equals(
+      true,
+      (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
+          (2034 == dt.year && 12 == dt.month && 31 == dt.day));
   Expect.equals(0, dt.second);
   Expect.equals(1, dt.millisecond);
   DateTime dt2 = new DateTime(
-      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
-      dt.millisecond);
+      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond);
   Expect.equals(dt.millisecondsSinceEpoch, dt2.millisecondsSinceEpoch);
   dt = new DateTime.fromMillisecondsSinceEpoch(SECONDS_YEAR_2035 * 1000 - 1);
-  Expect.equals(true, (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
-                      (2034 == dt.year && 12 == dt.month && 31 == dt.day));
+  Expect.equals(
+      true,
+      (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
+          (2034 == dt.year && 12 == dt.month && 31 == dt.day));
   Expect.equals(59, dt.second);
   Expect.equals(999, dt.millisecond);
   Expect.equals(0, dt.microsecond);
 
   dt2 = new DateTime(
-      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
-      dt.millisecond);
+      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond);
   Expect.equals(dt.millisecondsSinceEpoch, dt2.millisecondsSinceEpoch);
   dt = new DateTime.fromMillisecondsSinceEpoch(2100000000 * 1000, isUtc: true);
   Expect.equals(2036, dt.year);
@@ -325,24 +329,26 @@ void testEquivalentYears() {
   dt = new DateTime.utc(2034, 12, 31, 23, 59, 59, 999, 999);
   Expect.equals(SECONDS_YEAR_2035 * 1000000 - 1, dt.microsecondsSinceEpoch);
   dt = new DateTime.fromMicrosecondsSinceEpoch(SECONDS_YEAR_2035 * 1000000 + 1);
-  Expect.equals(true, (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
-                      (2034 == dt.year && 12 == dt.month && 31 == dt.day));
+  Expect.equals(
+      true,
+      (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
+          (2034 == dt.year && 12 == dt.month && 31 == dt.day));
   Expect.equals(0, dt.second);
   Expect.equals(0, dt.millisecond);
   Expect.equals(1, dt.microsecond);
-  dt2 = new DateTime(
-      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
+  dt2 = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
       dt.millisecond, dt.microsecond);
   Expect.equals(dt.microsecondsSinceEpoch, dt2.microsecondsSinceEpoch);
   dt = new DateTime.fromMicrosecondsSinceEpoch(SECONDS_YEAR_2035 * 1000000 - 1);
-  Expect.equals(true, (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
-                      (2034 == dt.year && 12 == dt.month && 31 == dt.day));
+  Expect.equals(
+      true,
+      (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
+          (2034 == dt.year && 12 == dt.month && 31 == dt.day));
   Expect.equals(59, dt.second);
   Expect.equals(999, dt.millisecond);
   Expect.equals(999, dt.microsecond);
 
-  dt2 = new DateTime(
-      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
+  dt2 = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
       dt.millisecond, dt.microsecond);
   Expect.equals(dt.millisecondsSinceEpoch, dt2.millisecondsSinceEpoch);
   dt = new DateTime.fromMicrosecondsSinceEpoch(2100000000 * 1000000,
@@ -385,25 +391,27 @@ void testExtremes() {
   dt = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
   Expect.equals(-_MAX_MILLISECONDS, dt.millisecondsSinceEpoch);
   Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
-      _MAX_MILLISECONDS + 1, isUtc: true));
+      _MAX_MILLISECONDS + 1,
+      isUtc: true));
   Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
-      -_MAX_MILLISECONDS - 1, isUtc: true));
-  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
-      _MAX_MILLISECONDS + 1));
-  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
-      -_MAX_MILLISECONDS - 1));
+      -_MAX_MILLISECONDS - 1,
+      isUtc: true));
+  Expect.throws(
+      () => new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS + 1));
+  Expect.throws(
+      () => new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS - 1));
   dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS);
-  Expect.throws(() => new DateTime(dt.year, dt.month, dt.day,
-                               dt.hour, dt.minute, 0, 1));
+  Expect.throws(
+      () => new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 1));
   dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS, isUtc: true);
-  Expect.throws(() => new DateTime.utc(dt.year, dt.month, dt.day,
-                                   dt.hour, dt.minute, 0, 1));
+  Expect.throws(() =>
+      new DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 1));
   dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS);
-  Expect.throws(() => new DateTime(dt.year, dt.month, dt.day,
-                               dt.hour, dt.minute, 0, -1));
+  Expect.throws(
+      () => new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, -1));
   dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
-  Expect.throws(() => new DateTime.utc(dt.year, dt.month, dt.day,
-                                   dt.hour, dt.minute, 0, -1));
+  Expect.throws(() =>
+      new DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, -1));
 
   if (!supportsMicroseconds) return;
 
@@ -414,25 +422,27 @@ void testExtremes() {
   dt = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
   Expect.equals(-_MAX_MILLISECONDS * 1000, dt.microsecondsSinceEpoch);
   Expect.throws(() => new DateTime.fromMicrosecondsSinceEpoch(
-      _MAX_MILLISECONDS * 1000 + 1, isUtc: true));
+      _MAX_MILLISECONDS * 1000 + 1,
+      isUtc: true));
   Expect.throws(() => new DateTime.fromMicrosecondsSinceEpoch(
-      -_MAX_MILLISECONDS * 1000 - 1, isUtc: true));
-  Expect.throws(() => new DateTime.fromMicrosecondsSinceEpoch(
-      _MAX_MILLISECONDS * 1000 + 1));
-  Expect.throws(() => new DateTime.fromMicrosecondsSinceEpoch(
-      -_MAX_MILLISECONDS * 1000 - 1));
+      -_MAX_MILLISECONDS * 1000 - 1,
+      isUtc: true));
+  Expect.throws(() =>
+      new DateTime.fromMicrosecondsSinceEpoch(_MAX_MILLISECONDS * 1000 + 1));
+  Expect.throws(() =>
+      new DateTime.fromMicrosecondsSinceEpoch(-_MAX_MILLISECONDS * 1000 - 1));
   dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS);
-  Expect.throws(() => new DateTime(dt.year, dt.month, dt.day,
-                               dt.hour, dt.minute, 0, 0, 1));
+  Expect.throws(() =>
+      new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, 1));
   dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS, isUtc: true);
-  Expect.throws(() => new DateTime.utc(dt.year, dt.month, dt.day,
-                                   dt.hour, dt.minute, 0, 0, 1));
+  Expect.throws(() =>
+      new DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, 1));
   dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS);
-  Expect.throws(() => new DateTime(dt.year, dt.month, dt.day,
-                               dt.hour, dt.minute, 0, 0, -1));
+  Expect.throws(() =>
+      new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, -1));
   dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
-  Expect.throws(() => new DateTime.utc(dt.year, dt.month, dt.day,
-                                   dt.hour, dt.minute, 0, 0, -1));
+  Expect.throws(() => new DateTime.utc(
+      dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, -1));
 }
 
 void testUTCGetters() {
@@ -472,9 +482,8 @@ void testUTCGetters() {
 
 void testLocalGetters() {
   var dt1 = new DateTime.fromMillisecondsSinceEpoch(1305140315000);
-  var dt2 = new DateTime.utc(dt1.year, dt1.month, dt1.day,
-                         dt1.hour, dt1.minute, dt1.second, dt1.millisecond,
-                         dt1.microsecond);
+  var dt2 = new DateTime.utc(dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
+      dt1.second, dt1.millisecond, dt1.microsecond);
   Duration zoneOffset = dt1.difference(dt2);
   Expect.equals(true, zoneOffset.inDays == 0);
   Expect.equals(true, zoneOffset.inHours.abs() <= 12);
@@ -483,10 +492,11 @@ void testLocalGetters() {
   Expect.equals(true, (dt1.day - dt2.day).abs() <= 1);
   Expect.equals(true, dt1.hour < 24);
   // There are timezones with 0.5 or 0.25 hour offsets.
-  Expect.equals(true,
-                (dt1.minute == dt2.minute) ||
-                ((dt1.minute - dt2.minute).abs() == 30) ||
-                ((dt1.minute - dt2.minute).abs() == 15));
+  Expect.equals(
+      true,
+      (dt1.minute == dt2.minute) ||
+          ((dt1.minute - dt2.minute).abs() == 30) ||
+          ((dt1.minute - dt2.minute).abs() == 15));
   Expect.equals(dt1.second, dt2.second);
   Expect.equals(dt1.millisecond, dt2.millisecond);
   Expect.equals(dt1.microsecond, dt2.microsecond);
@@ -502,13 +512,12 @@ void testConstructors() {
   Expect.equals(false, dt1 == dt0);
   Expect.equals(true, dt1 == dt0b);
   var dt3 = new DateTime(dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
-                     dt1.second, dt1.millisecond, dt1.microsecond);
+      dt1.second, dt1.millisecond, dt1.microsecond);
   Expect.equals(dt1.millisecondsSinceEpoch, dt3.millisecondsSinceEpoch);
   Expect.equals(dt1.microsecondsSinceEpoch, dt3.microsecondsSinceEpoch);
   Expect.equals(false, dt3 == dt0);
   Expect.equals(true, dt1 == dt3);
-  dt3 = new DateTime(
-      dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
+  dt3 = new DateTime(dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
       dt1.second, dt1.millisecond, dt1.microsecond);
   Expect.equals(dt1.millisecondsSinceEpoch, dt3.millisecondsSinceEpoch);
   Expect.equals(dt1.microsecondsSinceEpoch, dt3.microsecondsSinceEpoch);
@@ -520,7 +529,7 @@ void testConstructors() {
   Expect.equals(true, dt2 == dt3);
   dt1 = new DateTime.fromMillisecondsSinceEpoch(-9999999, isUtc: true);
   dt3 = new DateTime.utc(dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
-                     dt1.second, dt1.millisecond);
+      dt1.second, dt1.millisecond);
   Expect.equals(dt1.millisecondsSinceEpoch, dt3.millisecondsSinceEpoch);
   Expect.equals(dt1.microsecondsSinceEpoch, dt3.microsecondsSinceEpoch);
   dt3 = new DateTime.utc(99, 1, 2, 10, 11, 12, 0);
@@ -602,8 +611,8 @@ void testChangeTimeZone() {
 
 void testSubAdd() {
   var dt1 = new DateTime.fromMillisecondsSinceEpoch(1305140315000, isUtc: true);
-  var dt2 = dt1.add(new Duration(milliseconds:
-      3 * Duration.MILLISECONDS_PER_SECOND + 5));
+  var dt2 = dt1.add(
+      new Duration(milliseconds: 3 * Duration.MILLISECONDS_PER_SECOND + 5));
   Expect.equals(dt1.year, dt2.year);
   Expect.equals(dt1.month, dt2.month);
   Expect.equals(dt1.day, dt2.day);
@@ -612,16 +621,16 @@ void testSubAdd() {
   Expect.equals(dt1.second + 3, dt2.second);
   Expect.equals(dt1.millisecond + 5, dt2.millisecond);
   Expect.equals(dt1.microsecond, dt2.microsecond);
-  var dt3 = dt2.subtract(new Duration(milliseconds:
-      3 * Duration.MILLISECONDS_PER_SECOND + 5));
+  var dt3 = dt2.subtract(
+      new Duration(milliseconds: 3 * Duration.MILLISECONDS_PER_SECOND + 5));
   Expect.equals(true, dt1 == dt3);
   Expect.equals(false, dt1 == dt2);
 
   if (!supportsMicroseconds) return;
 
   dt1 = new DateTime.fromMillisecondsSinceEpoch(1305140315000, isUtc: true);
-  dt2 = dt1.add(new Duration(microseconds:
-      3 * Duration.MICROSECONDS_PER_SECOND + 5));
+  dt2 = dt1.add(
+      new Duration(microseconds: 3 * Duration.MICROSECONDS_PER_SECOND + 5));
   Expect.equals(dt1.year, dt2.year);
   Expect.equals(dt1.month, dt2.month);
   Expect.equals(dt1.day, dt2.day);
@@ -630,8 +639,8 @@ void testSubAdd() {
   Expect.equals(dt1.second + 3, dt2.second);
   Expect.equals(dt1.millisecond, dt2.millisecond);
   Expect.equals(dt1.microsecond + 5, dt2.microsecond);
-  dt3 = dt2.subtract(new Duration(microseconds:
-      3 * Duration.MICROSECONDS_PER_SECOND + 5));
+  dt3 = dt2.subtract(
+      new Duration(microseconds: 3 * Duration.MICROSECONDS_PER_SECOND + 5));
   Expect.equals(true, dt1 == dt3);
   Expect.equals(false, dt1 == dt2);
 }
@@ -643,7 +652,7 @@ void testUnderflowAndOverflow() {
   // Millisecond
   print("  >>> Millisecond+");
   var dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                    dtBase.minute, dtBase.second, 1000, dtBase.microsecond);
+      dtBase.minute, dtBase.second, 1000, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -655,7 +664,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Millisecond-");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                dtBase.minute, dtBase.second, -1000, dtBase.microsecond);
+      dtBase.minute, dtBase.second, -1000, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -668,7 +677,7 @@ void testUnderflowAndOverflow() {
   // Second
   print("  >>> Second+");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                dtBase.minute, 60, dtBase.millisecond, dtBase.microsecond);
+      dtBase.minute, 60, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -680,7 +689,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Second-");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                dtBase.minute, -60, dtBase.millisecond, dtBase.microsecond);
+      dtBase.minute, -60, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -693,7 +702,7 @@ void testUnderflowAndOverflow() {
   // Minute
   print("  >>> Minute+");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour, 60,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -705,7 +714,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Minute-");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour, -60,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -718,7 +727,7 @@ void testUnderflowAndOverflow() {
   // Hour
   print("  >>> Hour+");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, 24, dtBase.minute,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day + 1, dt.day);
@@ -730,7 +739,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Hour-");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, -24, dtBase.minute,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day - 1, dt.day);
@@ -743,7 +752,7 @@ void testUnderflowAndOverflow() {
   // Day
   print("  >>> Day+");
   dt = new DateTime(dtBase.year, dtBase.month, 31, dtBase.hour, dtBase.minute,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month + 1, dt.month);
   Expect.equals(1, dt.day);
@@ -755,7 +764,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Day-");
   dt = new DateTime(dtBase.year, dtBase.month, -30, dtBase.hour, dtBase.minute,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month - 1, dt.month);
   Expect.equals(1, dt.day);
@@ -768,7 +777,7 @@ void testUnderflowAndOverflow() {
   // Month
   print("  >>> Month+");
   dt = new DateTime(dtBase.year, 13, dtBase.day, dtBase.hour, dtBase.minute,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year + 1, dt.year);
   Expect.equals(1, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -780,7 +789,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Month-");
   dt = new DateTime(dtBase.year, -11, dtBase.day, dtBase.hour, dtBase.minute,
-                dtBase.second, dtBase.millisecond, dtBase.microsecond);
+      dtBase.second, dtBase.millisecond, dtBase.microsecond);
   Expect.equals(dtBase.year - 1, dt.year);
   Expect.equals(1, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -793,9 +802,15 @@ void testUnderflowAndOverflow() {
   // Flowing all the way up the chain.
   print("  >>> Flow+");
   var dtBase1 = new DateTime(2012, 12, 31, 23, 59, 59, 999, 000);
-  var dtTick = new DateTime(dtBase1.year, dtBase1.month, dtBase1.day,
-                        dtBase1.hour, dtBase1.minute, dtBase1.second,
-                        dtBase1.millisecond + 1, dtBase1.microsecond);
+  var dtTick = new DateTime(
+      dtBase1.year,
+      dtBase1.month,
+      dtBase1.day,
+      dtBase1.hour,
+      dtBase1.minute,
+      dtBase1.second,
+      dtBase1.millisecond + 1,
+      dtBase1.microsecond);
   Expect.equals(dtBase1.year + 1, dtTick.year);
   Expect.equals(1, dtTick.month);
   Expect.equals(1, dtTick.day);
@@ -807,9 +822,15 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Flow-");
   dtBase1 = new DateTime(2012, 1, 1, 0, 0, 0, 0);
-  dtTick = new DateTime(dtBase1.year, dtBase1.month, dtBase1.day, dtBase1.hour,
-                    dtBase1.minute, dtBase1.second, dtBase1.millisecond - 1,
-                    dtBase1.microsecond);
+  dtTick = new DateTime(
+      dtBase1.year,
+      dtBase1.month,
+      dtBase1.day,
+      dtBase1.hour,
+      dtBase1.minute,
+      dtBase1.second,
+      dtBase1.millisecond - 1,
+      dtBase1.microsecond);
   Expect.equals(dtBase1.year - 1, dtTick.year);
   Expect.equals(12, dtTick.month);
   Expect.equals(31, dtTick.day);
@@ -821,8 +842,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> extra underflow");
   dtTick = new DateTime(dtBase1.year, dtBase1.month, dtBase1.day, -17520,
-                    dtBase1.minute, dtBase1.second, dtBase1.millisecond,
-                    dtBase1.microsecond);
+      dtBase1.minute, dtBase1.second, dtBase1.millisecond, dtBase1.microsecond);
   Expect.equals(dtBase1.year - 2, dtTick.year);
   Expect.equals(dtBase1.month, dtTick.month);
   Expect.equals(dtBase1.day, dtTick.day);
@@ -837,7 +857,7 @@ void testUnderflowAndOverflow() {
   // Microsecond
   print("  >>> Microsecond+");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                    dtBase.minute, dtBase.second, dtBase.millisecond, 1000);
+      dtBase.minute, dtBase.second, dtBase.millisecond, 1000);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -849,7 +869,7 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Microsecond-");
   dt = new DateTime(dtBase.year, dtBase.month, dtBase.day, dtBase.hour,
-                dtBase.minute, dtBase.second, dtBase.millisecond, -1000);
+      dtBase.minute, dtBase.second, dtBase.millisecond, -1000);
   Expect.equals(dtBase.year, dt.year);
   Expect.equals(dtBase.month, dt.month);
   Expect.equals(dtBase.day, dt.day);
@@ -862,9 +882,15 @@ void testUnderflowAndOverflow() {
   // Flowing all the way up the chain.
   print("  >>> Flow+ 2");
   dtBase1 = new DateTime(2012, 12, 31, 23, 59, 59, 999, 999);
-  dtTick = new DateTime(dtBase1.year, dtBase1.month, dtBase1.day,
-                        dtBase1.hour, dtBase1.minute, dtBase1.second,
-                        dtBase1.millisecond, dtBase1.microsecond + 1);
+  dtTick = new DateTime(
+      dtBase1.year,
+      dtBase1.month,
+      dtBase1.day,
+      dtBase1.hour,
+      dtBase1.minute,
+      dtBase1.second,
+      dtBase1.millisecond,
+      dtBase1.microsecond + 1);
   Expect.equals(dtBase1.year + 1, dtTick.year);
   Expect.equals(1, dtTick.month);
   Expect.equals(1, dtTick.day);
@@ -876,9 +902,15 @@ void testUnderflowAndOverflow() {
 
   print("  >>> Flow- 2");
   dtBase1 = new DateTime(2012, 1, 1, 0, 0, 0, 0, 0);
-  dtTick = new DateTime(dtBase1.year, dtBase1.month, dtBase1.day, dtBase1.hour,
-                    dtBase1.minute, dtBase1.second, dtBase1.millisecond,
-                    dtBase1.microsecond - 1);
+  dtTick = new DateTime(
+      dtBase1.year,
+      dtBase1.month,
+      dtBase1.day,
+      dtBase1.hour,
+      dtBase1.minute,
+      dtBase1.second,
+      dtBase1.millisecond,
+      dtBase1.microsecond - 1);
   Expect.equals(dtBase1.year - 1, dtTick.year);
   Expect.equals(12, dtTick.month);
   Expect.equals(31, dtTick.day);
@@ -1170,18 +1202,19 @@ void testDateStrings() {
   Expect.equals(true, dt1.isUtc);
 
   Expect.throws(() => DateTime.parse("bad"), (e) => e is FormatException);
-  var bad_year = 1970 + (_MAX_MILLISECONDS ~/ (1000*60*60*24*365.2425)) + 1;
+  var bad_year =
+      1970 + (_MAX_MILLISECONDS ~/ (1000 * 60 * 60 * 24 * 365.2425)) + 1;
   Expect.throws(() => DateTime.parse(bad_year.toString() + "-01-01"),
-                (e) => e is FormatException);
+      (e) => e is FormatException);
   // The last valid time; should not throw.
   dt1 = DateTime.parse("275760-09-13T00:00:00.000Z");
   Expect.throws(() => DateTime.parse("275760-09-14T00:00:00.000Z"),
-                (e) => e is FormatException);
+      (e) => e is FormatException);
   Expect.throws(() => DateTime.parse("275760-09-13T00:00:00.001Z"),
-                (e) => e is FormatException);
+      (e) => e is FormatException);
   if (supportsMicroseconds) {
     Expect.throws(() => DateTime.parse("275760-09-13T00:00:00.000001Z"),
-                  (e) => e is FormatException);
+        (e) => e is FormatException);
   } else {
     dt1 = DateTime.parse("275760-09-13T00:00:00.000001Z");
   }
@@ -1189,11 +1222,11 @@ void testDateStrings() {
   // first valid time; should not throw.
   dt1 = DateTime.parse("-271821-04-20T00:00:00.000Z");
   Expect.throws(() => DateTime.parse("-271821-04-19T23:59:59.999Z"),
-                (e) => e is FormatException);
+      (e) => e is FormatException);
 
   if (supportsMicroseconds) {
     Expect.throws(() => DateTime.parse("-271821-04-19T23:59:59.999999Z"),
-                  (e) => e is FormatException);
+        (e) => e is FormatException);
   }
 }
 
@@ -1230,7 +1263,8 @@ void testWeekday() {
 
 void testToStrings() {
   void test(date, time) {
-    { // UTC time.
+    {
+      // UTC time.
       String source1 = "$date ${time}Z";
       String source2 = "${date}T${time}Z";
       var utcTime1 = DateTime.parse(source1);
@@ -1240,7 +1274,8 @@ void testToStrings() {
       Expect.equals(source1, utcTime1.toString());
       Expect.equals(source2, utcTime1.toIso8601String());
     }
-    {  // Local time
+    {
+      // Local time
       String source1 = "$date $time";
       String source2 = "${date}T$time";
       var utcTime1 = DateTime.parse(source1);
@@ -1251,6 +1286,7 @@ void testToStrings() {
       Expect.equals(source2, utcTime1.toIso8601String());
     }
   }
+
   test("2000-01-01", "12:00:00.000");
   test("-2000-01-01", "12:00:00.000");
   test("1970-01-01", "00:00:00.000");

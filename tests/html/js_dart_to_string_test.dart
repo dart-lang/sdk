@@ -40,7 +40,7 @@ main() {
     test('custom dart', () {
       var x = new ExampleClassWithCustomToString("fooBar");
       expect(jsToStringViaCoercion(x), equals("#fooBar#"));
-      expect(jsToStringViaCoercion({'a' : 1, 'b': 2}), equals("{a: 1, b: 2}"));
+      expect(jsToStringViaCoercion({'a': 1, 'b': 2}), equals("{a: 1, b: 2}"));
     });
   });
 }

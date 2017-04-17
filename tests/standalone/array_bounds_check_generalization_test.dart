@@ -79,7 +79,7 @@ main() {
     Expect.equals(a[a.length - 2], test3(a, b));
     Expect.equals(a[a.length - 2], test4(a, b));
     Expect.equals(a[a.length - 2], test5(a, b, 0));
-    Expect.equals(6 , test6(a, 2, 2));
+    Expect.equals(6, test6(a, 2, 2));
   }
 
   test1(a, 0, 2, a.length ~/ 2);

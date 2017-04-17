@@ -16,6 +16,7 @@ class Class<T> {
       Expect.equals(expectedResult, o is! Foo<T>, "bar is! Foo<$typeName>");
       Expect.isFalse(o is! Bar, "bar is! Bar");
     }
+
     local();
   }
 }

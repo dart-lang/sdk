@@ -33,8 +33,8 @@ main() {
   new IterableTest<int>([1, 2, 3, 4]).run();
   new IterableTest<String>(["one", "two", "three", "four"]).run();
   new IterableTest<int>(new Iterable<int>.generate(1000, (i) => i)).run();
-  new IterableTest<String>(new Iterable<int>.generate(1000, (i) => i)
-                                            .map((i) => "$i")).run();
+  new IterableTest<String>(
+      new Iterable<int>.generate(1000, (i) => i).map((i) => "$i")).run();
 
   Iterable<int> iter = new Iterable.generate(25, (i) => i * 2);
 
@@ -48,12 +48,12 @@ main() {
 
   test("iterable-mapped-toList", () {
     new Stream.fromIterable(iter)
-      .map((i) => i * 3)
-      .toList()
-      .then(expectAsync((actual) {
-         List expected = iter.map((i) => i * 3).toList();
-         Expect.listEquals(expected, actual);
-      }));
+        .map((i) => i * 3)
+        .toList()
+        .then(expectAsync((actual) {
+      List expected = iter.map((i) => i * 3).toList();
+      Expect.listEquals(expected, actual);
+    }));
   });
 
   test("iterable-paused", () {
@@ -76,20 +76,21 @@ main() {
 
   test("iterable-single-subscription", () {
     Stream stream = new Stream.fromIterable(iter);
-    stream.listen((x){});
-    Expect.throws(() { stream.listen((x){}); },
-                  (e) => e is StateError);
+    stream.listen((x) {});
+    Expect.throws(() {
+      stream.listen((x) {});
+    }, (e) => e is StateError);
   });
 
   test("regression-14332", () {
     // Regression test for http://dartbug.com/14332.
     // This should succeede.
-    var from = new Stream.fromIterable([1,2,3,4,5]);
+    var from = new Stream.fromIterable([1, 2, 3, 4, 5]);
 
     var c = new StreamController();
     var sink = c.sink;
 
-    var done = expectAsync((){}, count: 2);
+    var done = expectAsync(() {}, count: 2);
 
     // if this goes first, test failed (hanged). Swapping addStream and toList
     // made failure go away.
@@ -99,13 +100,13 @@ main() {
     });
 
     c.stream.toList().then((x) {
-      Expect.listEquals([1,2,3,4,5], x);
+      Expect.listEquals([1, 2, 3, 4, 5], x);
       done();
     });
   });
 
   test("regression-14334-a", () {
-    var from = new Stream.fromIterable([1,2,3,4,5]);
+    var from = new Stream.fromIterable([1, 2, 3, 4, 5]);
 
     // odd numbers as data events, even numbers as error events
     from = from.map((x) => x.isOdd ? x : throw x);
@@ -113,7 +114,7 @@ main() {
     var c = new StreamController();
     var sink = c.sink;
 
-    var done = expectAsync((){}, count: 2);
+    var done = expectAsync(() {}, count: 2);
 
     var data = [], errors = [];
     c.stream.listen(data.add, onError: errors.add, onDone: () {
@@ -128,14 +129,14 @@ main() {
   });
 
   test("regression-14334-b", () {
-    var from = new Stream.fromIterable([1,2,3,4,5]);
+    var from = new Stream.fromIterable([1, 2, 3, 4, 5]);
 
     // odd numbers as data events, even numbers as error events
     from = from.map((x) => x.isOdd ? x : throw x);
 
     var c = new StreamController();
 
-    var done = expectAsync((){}, count: 2);
+    var done = expectAsync(() {}, count: 2);
 
     var data = [], errors = [];
     c.stream.listen(data.add, onError: errors.add, onDone: () {

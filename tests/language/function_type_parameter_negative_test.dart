@@ -5,13 +5,11 @@
 // Test that we detect that a function literal is not a compile time constant.
 
 class A {
-
   static Function func;
 
   static SetFunc([String fmt(int i) = (i) => "$i"]) {
     func = fmt;
   }
-
 }
 
 main() {

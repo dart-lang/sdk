@@ -9,34 +9,30 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 void testBadArguments() {
-  Expect.throws(() => new Int32x4(null, 2, 3, 4),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Int32x4(1, null, 3, 4),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Int32x4(1, 2, null, 4),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Int32x4(1, 2, 3, null),
-                (e) => e is ArgumentError);
+  Expect.throws(() => new Int32x4(null, 2, 3, 4), (e) => e is ArgumentError);
+  Expect.throws(() => new Int32x4(1, null, 3, 4), (e) => e is ArgumentError);
+  Expect.throws(() => new Int32x4(1, 2, null, 4), (e) => e is ArgumentError);
+  Expect.throws(() => new Int32x4(1, 2, 3, null), (e) => e is ArgumentError);
   // Use a local variable typed as dynamic to avoid static warnings.
   var str = "foo";
   Expect.throws(() => new Int32x4(str, 2, 3, 4),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Int32x4(1, str, 3, 4),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Int32x4(1, 2, str, 4),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Int32x4(1, 2, 3, str),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   // Use a local variable typed as dynamic to avoid static warnings.
   var d = 0.5;
   Expect.throws(() => new Int32x4(d, 2, 3, 4),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Int32x4(1, d, 3, 4),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Int32x4(1, 2, d, 4),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Int32x4(1, 2, 3, d),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
 }
 
 void testBigArguments() {

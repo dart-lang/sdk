@@ -56,15 +56,15 @@ void testToString() {
     for (var message in [null, "THEMESSAGE"]) {
       var value = 37;
       for (var re in [
-          new ArgumentError.value(value, name, message),
-          new RangeError.value(value, name, message),
-          new RangeError.index(value, [], name, message),
-          new RangeError.range(value, 0, 24, name, message)
+        new ArgumentError.value(value, name, message),
+        new RangeError.value(value, name, message),
+        new RangeError.index(value, [], name, message),
+        new RangeError.range(value, 0, 24, name, message)
       ]) {
         var str = re.toString();
         if (name != null) Expect.isTrue(str.contains(name), "$name in $str");
-        if (message != null) Expect.isTrue(str.contains(message),
-                                           "$message in $str");
+        if (message != null)
+          Expect.isTrue(str.contains(message), "$message in $str");
         Expect.isTrue(str.contains("$value"), "$value in $str");
         // No empty ':' separated parts - in that case the colon is omitted too.
         Expect.isFalse(str.contains(new RegExp(":\s*:")));

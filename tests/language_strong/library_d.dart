@@ -4,6 +4,7 @@
 //
 
 library libraryD.dart;
+
 import "library_f.dart";
 
 var fooD = fooC;

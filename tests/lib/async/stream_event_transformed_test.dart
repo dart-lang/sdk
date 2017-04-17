@@ -7,7 +7,6 @@ import 'package:async_helper/async_helper.dart';
 import 'dart:async';
 import 'event_helper.dart';
 
-
 class DecrementingTransformerSink implements EventSink {
   final outSink;
   DecrementingTransformerSink(this.outSink);
@@ -22,17 +21,33 @@ class FutureWaitingTransformerSink implements EventSink {
   final closeFuture;
   FutureWaitingTransformerSink(this.outSink, this.closeFuture);
 
-  void add(Future future) { future.then(outSink.add); }
-  void addError(Future e, [st]) { e.then((val) { outSink.addError(val, st); }); }
-  void close() { closeFuture.whenComplete(outSink.close); }
+  void add(Future future) {
+    future.then(outSink.add);
+  }
+
+  void addError(Future e, [st]) {
+    e.then((val) {
+      outSink.addError(val, st);
+    });
+  }
+
+  void close() {
+    closeFuture.whenComplete(outSink.close);
+  }
 }
 
 class ZoneTransformerSink implements EventSink {
   final outSink;
   ZoneTransformerSink(this.outSink);
 
-  void add(_) { outSink.add(Zone.current); }
-  void addError(_, [st]) { outSink.add(Zone.current); }
+  void add(_) {
+    outSink.add(Zone.current);
+  }
+
+  void addError(_, [st]) {
+    outSink.add(Zone.current);
+  }
+
   void close() {
     outSink.add(Zone.current);
     outSink.close();
@@ -43,9 +58,17 @@ class TypeChangingSink implements EventSink<int> {
   final EventSink<String> outSink;
   TypeChangingSink(this.outSink);
 
-  void add(int data) { outSink.add(data.toString()); }
-  void addError(error, [st]) { outSink.addError(error, st); }
-  void close() { outSink.close(); }
+  void add(int data) {
+    outSink.add(data.toString());
+  }
+
+  void addError(error, [st]) {
+    outSink.addError(error, st);
+  }
+
+  void close() {
+    outSink.close();
+  }
 }
 
 class SinkTransformer<S, T> implements StreamTransformer<S, T> {
@@ -85,13 +108,13 @@ main() {
     // similar to a map.
     asyncStart();
     new Stream.fromIterable([1, 2, 3])
-      .transform(
-          new SinkTransformer((sink) => new DecrementingTransformerSink(sink)))
-      .toList()
-      .then((list) {
-        Expect.listEquals([0, 1, 2], list);
-        asyncEnd();
-      });
+        .transform(new SinkTransformer(
+            (sink) => new DecrementingTransformerSink(sink)))
+        .toList()
+        .then((list) {
+      Expect.listEquals([0, 1, 2], list);
+      asyncEnd();
+    });
   }
 
   {
@@ -107,17 +130,17 @@ main() {
       controller.close();
     });
     controller.stream
-      .transform(
-          new SinkTransformer((sink) => new DecrementingTransformerSink(sink)))
-      .listen((data) {
-        events.add(data);
-      }, onError: (e, st) {
-        events.add(e);
-        events.add(st);
-      }, onDone: () {
-        Expect.listEquals([498, 41, stackTrace], events);
-        asyncEnd();
-      });
+        .transform(new SinkTransformer(
+            (sink) => new DecrementingTransformerSink(sink)))
+        .listen((data) {
+      events.add(data);
+    }, onError: (e, st) {
+      events.add(e);
+      events.add(st);
+    }, onDone: () {
+      Expect.listEquals([498, 41, stackTrace], events);
+      asyncEnd();
+    });
   }
 
   {
@@ -137,18 +160,17 @@ main() {
       controller.close();
     });
     controller.stream
-      .transform(
-        new SinkTransformer((sink) =>
+        .transform(new SinkTransformer((sink) =>
             new FutureWaitingTransformerSink(sink, closeCompleter.future)))
-      .listen((data) {
-        events.add(data);
-      }, onError: (e, st) {
-        events.add(e);
-        events.add(st);
-      }, onDone: () {
-        Expect.listEquals(["error2", stackTrace, "future3", "future1"], events);
-        asyncEnd();
-      });
+        .listen((data) {
+      events.add(data);
+    }, onError: (e, st) {
+      events.add(e);
+      events.add(st);
+    }, onDone: () {
+      Expect.listEquals(["error2", stackTrace, "future3", "future1"], events);
+      asyncEnd();
+    });
     Timer.run(() {
       completer2.complete("error2");
       Timer.run(() {
@@ -179,23 +201,28 @@ main() {
       controller.close();
     });
     var subscription;
-    completer1.future.then((_) { Expect.isTrue(subscription.isPaused); });
-    completer2.future.then((_) { Expect.isTrue(subscription.isPaused); });
-    completer3.future.then((_) { Expect.isTrue(subscription.isPaused); });
+    completer1.future.then((_) {
+      Expect.isTrue(subscription.isPaused);
+    });
+    completer2.future.then((_) {
+      Expect.isTrue(subscription.isPaused);
+    });
+    completer3.future.then((_) {
+      Expect.isTrue(subscription.isPaused);
+    });
     subscription = controller.stream
-      .transform(
-        new SinkTransformer((sink) =>
+        .transform(new SinkTransformer((sink) =>
             new FutureWaitingTransformerSink(sink, closeCompleter.future)))
-      .listen((data) {
-        Expect.isFalse(subscription.isPaused);
-        events.add(data);
-      }, onError: (e, st) {
-        events.add(e);
-        events.add(st);
-      }, onDone: () {
-        Expect.listEquals(["error2", stackTrace, "future3", "future1"], events);
-        asyncEnd();
-      });
+        .listen((data) {
+      Expect.isFalse(subscription.isPaused);
+      events.add(data);
+    }, onError: (e, st) {
+      events.add(e);
+      events.add(st);
+    }, onDone: () {
+      Expect.listEquals(["error2", stackTrace, "future3", "future1"], events);
+      asyncEnd();
+    });
     Timer.run(() {
       subscription.pause();
       completer2.complete("error2");
@@ -242,18 +269,17 @@ main() {
     int errorCount = 0;
     runZoned(() {
       controller.stream
-        .transform(
-          new SinkTransformer((sink) =>
+          .transform(new SinkTransformer((sink) =>
               new FutureWaitingTransformerSink(sink, closeCompleter.future)))
-        .listen((data) {
-          events.add(data);
-        }, onError: (e, st) {
-          events.add(e);
-          events.add(st);
-        }, onDone: () {
-          Expect.listEquals([], events);
-          streamIsDone = true;
-        });
+          .listen((data) {
+        events.add(data);
+      }, onError: (e, st) {
+        events.add(e);
+        events.add(st);
+      }, onDone: () {
+        Expect.listEquals([], events);
+        streamIsDone = true;
+      });
     }, onError: (e) {
       Expect.isTrue(e is StateError);
       errorCount++;
@@ -263,9 +289,15 @@ main() {
       Expect.isTrue(streamIsDone);
       // Each of the delayed completions should trigger an unhandled error
       // in the zone the stream was listened to.
-      Timer.run(() { completer1.complete(499); });
-      Timer.run(() { completer2.complete(42); });
-      Timer.run(() { completer3.complete(99); });
+      Timer.run(() {
+        completer1.complete(499);
+      });
+      Timer.run(() {
+        completer2.complete(42);
+      });
+      Timer.run(() {
+        completer3.complete(99);
+      });
       delayCycles(() {
         Expect.equals(3, errorCount);
         asyncEnd();
@@ -289,12 +321,12 @@ main() {
     var stream = controller.stream.transform(
         new SinkTransformer((sink) => new ZoneTransformerSink(sink)));
     zone.run(() {
-        stream.listen((data) {
-          events.add(data);
-        }, onDone: () {
-          Expect.listEquals([zone, zone, zone], events);
-          delayCycles(asyncEnd, 3);
-        });
+      stream.listen((data) {
+        events.add(data);
+      }, onDone: () {
+        Expect.listEquals([zone, zone, zone], events);
+        delayCycles(asyncEnd, 3);
+      });
     });
   }
 
@@ -302,12 +334,12 @@ main() {
     // Just make sure that the generic types are correct everywhere.
     asyncStart();
     new Stream.fromIterable([1, 2, 3])
-      .transform(new SinkTransformer<int, String>(
-          (sink) => new TypeChangingSink(sink)))
-      .toList()
-      .then((list) {
-        Expect.listEquals(["1", "2", "3"], list);
-        asyncEnd();
-      });
+        .transform(new SinkTransformer<int, String>(
+            (sink) => new TypeChangingSink(sink)))
+        .toList()
+        .then((list) {
+      Expect.listEquals(["1", "2", "3"], list);
+      asyncEnd();
+    });
   }
 }

@@ -5,4 +5,4 @@
 
 library library3.dart;
 
-import "library2.dart";  // defines "foo" and "foo1".
+import "library2.dart"; // defines "foo" and "foo1".

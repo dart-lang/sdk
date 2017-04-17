@@ -22,7 +22,6 @@ class NativeTest {
   }
 }
 
-
 main() {
   NativeTest.testMain();
 }

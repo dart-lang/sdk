@@ -48,7 +48,7 @@ class A9 {
 }
 
 // Class with no test method.
-class B { }
+class B {}
 
 test(obj) {
   return obj.test();
@@ -56,8 +56,18 @@ test(obj) {
 
 main() {
   // Trigger optimization of 'test' function.
-  List list = [new A0(), new A1(), new A2(), new A3(), new A4(),
-               new A5(), new A6(), new A7(), new A8(), new A9()];
+  List list = [
+    new A0(),
+    new A1(),
+    new A2(),
+    new A3(),
+    new A4(),
+    new A5(),
+    new A6(),
+    new A7(),
+    new A8(),
+    new A9()
+  ];
   for (int i = 0; i < 20; i++) {
     for (var obj in list) {
       test(obj);

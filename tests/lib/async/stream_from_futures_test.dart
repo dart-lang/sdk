@@ -94,6 +94,7 @@ void testOrdering() {
     cs[n2].complete(2);
     cs[n3].complete(3);
   }
+
   test(0, 1, 2);
   test(0, 2, 1);
   test(1, 0, 2);

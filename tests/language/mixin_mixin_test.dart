@@ -4,10 +4,14 @@
 
 import "package:expect/expect.dart";
 
-class M1 { foo() => 42; }
+class M1 {
+  foo() => 42;
+}
+
 class M2 = Object with M1;
 
-class S { }
+class S {}
+
 class C = S with M2;
 
 main() {

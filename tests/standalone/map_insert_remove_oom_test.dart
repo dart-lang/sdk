@@ -6,10 +6,9 @@
 // Test that compaction does occur on repeated add/remove.
 
 main() {
- var x = {};
- for (int i = 0; i < 1000000; i++) {
+  var x = {};
+  for (int i = 0; i < 1000000; i++) {
     x[i] = 10;
     x.remove(i);
   }
 }
-

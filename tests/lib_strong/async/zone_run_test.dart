@@ -14,13 +14,13 @@ main() {
   Expect.identical(Zone.ROOT, Zone.current);
   Zone forked = Zone.current.fork(specification: new ZoneSpecification(
       run: (Zone self, ZoneDelegate parent, Zone origin, f()) {
-        // The zone is still the same as when origin.run was invoked, which
-        // is the root zone. (The origin zone hasn't been set yet).
-        Expect.identical(Zone.ROOT, Zone.current);
-        events.add("forked.run");
-        if (shouldForward) return parent.run(origin, f);
-        return 42;
-      }));
+    // The zone is still the same as when origin.run was invoked, which
+    // is the root zone. (The origin zone hasn't been set yet).
+    Expect.identical(Zone.ROOT, Zone.current);
+    events.add("forked.run");
+    if (shouldForward) return parent.run(origin, f);
+    return 42;
+  }));
 
   events.add("zone forked");
   Zone expectedZone = forked;
@@ -55,11 +55,19 @@ main() {
   Expect.equals(1234, result);
 
   done.future.whenComplete(() {
-    Expect.listEquals(
-        ["zone forked", "forked.run", "run closure", "executed run",
-        "forked.run", "executed run2", "forked.run", "run closure 2",
-        "after nested scheduleMicrotask", "forked.run", "run closure 3"],
-        events);
+    Expect.listEquals([
+      "zone forked",
+      "forked.run",
+      "run closure",
+      "executed run",
+      "forked.run",
+      "executed run2",
+      "forked.run",
+      "run closure 2",
+      "after nested scheduleMicrotask",
+      "forked.run",
+      "run closure 3"
+    ], events);
     asyncEnd();
   });
 

@@ -13,7 +13,7 @@ class B {
   var foo;
 }
 
-nativeId(x) native ;
+nativeId(x) native;
 
 void setup() native """
 nativeId = function(x) { return x; }

@@ -1,10 +1,10 @@
 library CssRuleListTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
 
 main() {
-
   var isCssRuleList =
       predicate((x) => x is List<CssRule>, 'is a List<CssRule>');
 

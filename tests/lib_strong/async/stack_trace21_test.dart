@@ -22,13 +22,12 @@ main() {
     controller.close();
   });
   asyncStart();
-  controller.stream
-    .listen((_) { throw "should never be reached"; },
-      onError: (e, st) {
-        Expect.equals("error", e);
-        Expect.identical(trace, st);
-      },
-      onDone: () {
-        asyncEnd();
-      });
+  controller.stream.listen((_) {
+    throw "should never be reached";
+  }, onError: (e, st) {
+    Expect.equals("error", e);
+    Expect.identical(trace, st);
+  }, onDone: () {
+    asyncEnd();
+  });
 }

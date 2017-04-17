@@ -15,13 +15,15 @@ u(a, b, c) => {"a": a, "b": b, "c": c};
 _v(a, b) => a + b;
 
 class Class<T> {
-  Class() { this.field = "default value"; }
+  Class() {
+    this.field = "default value";
+  }
   Class.withInitialValue(this.field);
   var field;
 
   Class.generative(this.field);
-  Class.redirecting(y) : this.generative(y*2);
-  factory Class.faktory(y) => new Class.withInitialValue(y*3);
+  Class.redirecting(y) : this.generative(y * 2);
+  factory Class.faktory(y) => new Class.withInitialValue(y * 3);
   factory Class.redirectingFactory(y) = Class.faktory;
 
   m(a, b, c) => {"a": a, "b": b, "c": c};
@@ -40,27 +42,21 @@ testInvoke(mirrors) {
   var instMirror = reflect(instance);
 
   expect(instMirror.invoke(#m, ['A', 'B', instance]).reflectee,
-         equals({"a": 'A', "b":'B', "c": instance}));
-  expect(instMirror.invoke(#notDefined, []).reflectee,
-         equals("DNU"));
-  expect(instMirror.invoke(#m, []).reflectee,
-         equals("DNU"));  // Wrong arity.
+      equals({"a": 'A', "b": 'B', "c": instance}));
+  expect(instMirror.invoke(#notDefined, []).reflectee, equals("DNU"));
+  expect(instMirror.invoke(#m, []).reflectee, equals("DNU")); // Wrong arity.
 
   var classMirror = instMirror.type;
   expect(classMirror.invoke(#s, ['A', 'B', instance]).reflectee,
-         equals({"a": 'A', "b":'B', "c": instance}));
-  expect(() => classMirror.invoke(#notDefined, []).reflectee,
-         throws);
-  expect(() => classMirror.invoke(#s, []).reflectee,
-         throws);  // Wrong arity.
+      equals({"a": 'A', "b": 'B', "c": instance}));
+  expect(() => classMirror.invoke(#notDefined, []).reflectee, throws);
+  expect(() => classMirror.invoke(#s, []).reflectee, throws); // Wrong arity.
 
   var libMirror = classMirror.owner;
   expect(libMirror.invoke(#u, ['A', 'B', instance]).reflectee,
-         equals({"a": 'A', "b":'B', "c": instance}));
-  expect(() => libMirror.invoke(#notDefined, []).reflectee,
-         throws);
-  expect(() => libMirror.invoke(#u, []).reflectee,
-         throws);  // Wrong arity.
+      equals({"a": 'A', "b": 'B', "c": instance}));
+  expect(() => libMirror.invoke(#notDefined, []).reflectee, throws);
+  expect(() => libMirror.invoke(#u, []).reflectee, throws); // Wrong arity.
 }
 
 /// In dart2js, lists, numbers, and other objects are treated special
@@ -69,8 +65,7 @@ testIntercepted(mirrors) {
   var instance = 1;
   var instMirror = reflect(instance);
 
-  expect(instMirror.invoke(#toString, []).reflectee,
-         equals('1'));
+  expect(instMirror.invoke(#toString, []).reflectee, equals('1'));
 
   instance = [];
   instMirror = reflect(instance);
@@ -79,12 +74,13 @@ testIntercepted(mirrors) {
   expect(resultMirror.reflectee, equals(44));
   expect(instance.length, equals(44));
 
-  expect(instMirror.invoke(#toString, []).reflectee,
-         equals('[null, null, null, null, null, null, null, null, null, null,'
-                ' null, null, null, null, null, null, null, null, null, null,'
-                ' null, null, null, null, null, null, null, null, null, null,'
-                ' null, null, null, null, null, null, null, null, null, null,'
-                ' null, null, null, null]'));
+  expect(
+      instMirror.invoke(#toString, []).reflectee,
+      equals('[null, null, null, null, null, null, null, null, null, null,'
+          ' null, null, null, null, null, null, null, null, null, null,'
+          ' null, null, null, null, null, null, null, null, null, null,'
+          ' null, null, null, null, null, null, null, null, null, null,'
+          ' null, null, null, null]'));
 }
 
 testFieldAccess(mirrors) {
@@ -100,14 +96,15 @@ testFieldAccess(mirrors) {
   expect(fieldMirror.type, equals(mirrors.dynamicType));
 
   libMirror.setField(#topLevelField, [91]);
-  expect(libMirror.getField(#topLevelField).reflectee,
-         equals([91]));
+  expect(libMirror.getField(#topLevelField).reflectee, equals([91]));
   expect(topLevelField, equals([91]));
 }
 
 testClosureMirrors(mirrors) {
   // TODO(ahe): Test optional parameters (named or not).
-  var closure = (x, y, z) { return x + y + z; };
+  var closure = (x, y, z) {
+    return x + y + z;
+  };
 
   var mirror = reflect(closure);
   expect(mirror is ClosureMirror, equals(true));
@@ -122,33 +119,27 @@ testClosureMirrors(mirrors) {
 testInvokeConstructor(mirrors) {
   var classMirror = reflectClass(Class);
 
-  var instanceMirror = classMirror.newInstance(const Symbol(''),[]);
+  var instanceMirror = classMirror.newInstance(const Symbol(''), []);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals("default value"));
 
-  instanceMirror = classMirror.newInstance(#withInitialValue,
-                                           [45]);
+  instanceMirror = classMirror.newInstance(#withInitialValue, [45]);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(45));
 
-
-  instanceMirror = classMirror.newInstance(#generative,
-                                           [7]);
+  instanceMirror = classMirror.newInstance(#generative, [7]);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(7));
 
-  instanceMirror = classMirror.newInstance(#redirecting,
-                                           [8]);
+  instanceMirror = classMirror.newInstance(#redirecting, [8]);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(16));
 
-  instanceMirror = classMirror.newInstance(#faktory,
-                                           [9]);
+  instanceMirror = classMirror.newInstance(#faktory, [9]);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(27));
 
-  instanceMirror = classMirror.newInstance(#redirectingFactory,
-                                           [10]);
+  instanceMirror = classMirror.newInstance(#redirectingFactory, [10]);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(30));
 }
@@ -157,9 +148,9 @@ testReflectClass(mirrors) {
   var classMirror = reflectClass(Class);
   expect(classMirror is ClassMirror, equals(true));
   var symbolClassMirror = reflectClass(Symbol);
-  var symbolMirror = symbolClassMirror.newInstance(const Symbol(''),
-                                                   ['withInitialValue']);
-  var objectMirror = classMirror.newInstance(symbolMirror.reflectee,[1234]);
+  var symbolMirror =
+      symbolClassMirror.newInstance(const Symbol(''), ['withInitialValue']);
+  var objectMirror = classMirror.newInstance(symbolMirror.reflectee, [1234]);
   expect(objectMirror.reflectee is Class, equals(true));
   expect(objectMirror.reflectee.field, equals(1234));
 }
@@ -179,27 +170,28 @@ testNames(mirrors) {
 
   TypeVariableMirror typeVariable = classMirror.typeVariables.single;
   expect(typeVariable.simpleName, equals(#T));
-  expect(typeVariable.qualifiedName,
-      equals(const Symbol('MirrorsTest.Class.T')));
+  expect(
+      typeVariable.qualifiedName, equals(const Symbol('MirrorsTest.Class.T')));
 
-  if (!isDart2js) { // TODO(ahe): Implement this in dart2js.
+  if (!isDart2js) {
+    // TODO(ahe): Implement this in dart2js.
     expect(typedefMirror.simpleName, equals(#Typedef));
     expect(typedefMirror.qualifiedName,
-           equals(const Symbol('MirrorsTest.Typedef')));
+        equals(const Symbol('MirrorsTest.Typedef')));
 
     var typedefMirrorDeNovo = reflectType(Typedef);
     expect(typedefMirrorDeNovo.simpleName, equals(#Typedef));
     expect(typedefMirrorDeNovo.qualifiedName,
-           equals(const Symbol('MirrorsTest.Typedef')));
+        equals(const Symbol('MirrorsTest.Typedef')));
   }
 
   expect(methodMirror.simpleName, equals(#testNames));
   expect(methodMirror.qualifiedName,
-         equals(const Symbol('MirrorsTest.testNames')));
+      equals(const Symbol('MirrorsTest.testNames')));
 
   expect(variableMirror.simpleName, equals(#field));
   expect(variableMirror.qualifiedName,
-         equals(const Symbol('MirrorsTest.Class.field')));
+      equals(const Symbol('MirrorsTest.Class.field')));
 }
 
 testLibraryUri(var value, bool check(Uri)) {
@@ -216,26 +208,40 @@ testLibraryUri(var value, bool check(Uri)) {
 
 main() {
   var mirrors = currentMirrorSystem();
-  test("Test reflective method invocation", () { testInvoke(mirrors); });
-  test('Test intercepted objects', () { testIntercepted(mirrors); });
-  test("Test field access", () { testFieldAccess(mirrors); });
-  test("Test closure mirrors", () { testClosureMirrors(mirrors); });
-  test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
+  test("Test reflective method invocation", () {
+    testInvoke(mirrors);
+  });
+  test('Test intercepted objects', () {
+    testIntercepted(mirrors);
+  });
+  test("Test field access", () {
+    testFieldAccess(mirrors);
+  });
+  test("Test closure mirrors", () {
+    testClosureMirrors(mirrors);
+  });
+  test("Test invoke constructor", () {
+    testInvokeConstructor(mirrors);
+  });
   test("Test current library uri", () {
-    testLibraryUri(new Class(),
-      // TODO(floitsch): change this to "/mirrors_test.dart" when
-      // dart2js_mirrors_test.dart has been removed.
-      (Uri uri) => uri.path.endsWith('mirrors_test.dart'));
+    testLibraryUri(
+        new Class(),
+        // TODO(floitsch): change this to "/mirrors_test.dart" when
+        // dart2js_mirrors_test.dart has been removed.
+        (Uri uri) => uri.path.endsWith('mirrors_test.dart'));
   });
   test("Test dart library uri", () {
-    testLibraryUri("test",
-                   (Uri uri) {
-                     if (uri == Uri.parse('dart:core')) return true;
-                     // TODO(floitsch): do we want to fake the interceptors to
-                     // be in dart:core?
-                     return (uri == Uri.parse('dart:_interceptors'));
-                   });
+    testLibraryUri("test", (Uri uri) {
+      if (uri == Uri.parse('dart:core')) return true;
+      // TODO(floitsch): do we want to fake the interceptors to
+      // be in dart:core?
+      return (uri == Uri.parse('dart:_interceptors'));
+    });
   });
-  test("Test simple and qualifiedName", () { testNames(mirrors); });
-  test("Test reflect type", () { testReflectClass(mirrors); });
+  test("Test simple and qualifiedName", () {
+    testNames(mirrors);
+  });
+  test("Test reflect type", () {
+    testReflectClass(mirrors);
+  });
 }

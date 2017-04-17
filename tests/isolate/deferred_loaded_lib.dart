@@ -6,4 +6,3 @@ class FromChildIsolate {
   String toString() => 'from child isolate';
   int get fld => 10;
 }
-

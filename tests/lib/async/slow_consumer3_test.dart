@@ -31,29 +31,27 @@ class SlowConsumer extends StreamConsumer {
   Future addStream(Stream stream) {
     Completer result = new Completer();
     var subscription;
-    subscription = stream.listen(
-      (List<int> data) {
-        receivedCount += data.length;
-        usedBufferSize += data.length;
-        bufferedData.add(data);
-        int currentBufferedDataLength = bufferedData.length;
-        if (usedBufferSize > bufferSize) {
-          subscription.pause();
-          usedBufferSize = 0;
-          int ms = data.length * 1000 ~/ bytesPerSecond;
-          Duration duration = new Duration(milliseconds: ms);
-          new Timer(duration, () {
-            for (int i = 0; i < currentBufferedDataLength; i++) {
-              bufferedData[i] = null;
-            }
-            subscription.resume();
-          });
-        }
-      },
-      onDone: () {
-        finalCount = receivedCount;
-        result.complete(receivedCount);
-      });
+    subscription = stream.listen((List<int> data) {
+      receivedCount += data.length;
+      usedBufferSize += data.length;
+      bufferedData.add(data);
+      int currentBufferedDataLength = bufferedData.length;
+      if (usedBufferSize > bufferSize) {
+        subscription.pause();
+        usedBufferSize = 0;
+        int ms = data.length * 1000 ~/ bytesPerSecond;
+        Duration duration = new Duration(milliseconds: ms);
+        new Timer(duration, () {
+          for (int i = 0; i < currentBufferedDataLength; i++) {
+            bufferedData[i] = null;
+          }
+          subscription.resume();
+        });
+      }
+    }, onDone: () {
+      finalCount = receivedCount;
+      result.complete(receivedCount);
+    });
     return result.future;
   }
 
@@ -86,9 +84,9 @@ main() {
   // heap-space.
 
   dataGenerator(100 * MB, 512 * KB)
-    .pipe(new SlowConsumer(200 * MB, 3 * MB))
-    .then((count) {
-      Expect.equals(100 * MB, count);
-      asyncEnd();
-    });
+      .pipe(new SlowConsumer(200 * MB, 3 * MB))
+      .then((count) {
+    Expect.equals(100 * MB, count);
+    asyncEnd();
+  });
 }

@@ -17,32 +17,37 @@ main() {
   catchErrors(() {
     catchErrors(() {
       controller = new StreamController();
-      controller.stream
-        .map((x) {
-          events.add("map $x");
-          return x + 100;
-        })
-        .transform(new StreamTransformer.fromHandlers(
-            handleError: (e, st, sink) { sink.add("error $e"); }))
-        .listen((x) { events.add("stream $x"); });
-    }).listen((x) { events.add(x); });
+      controller.stream.map((x) {
+        events.add("map $x");
+        return x + 100;
+      }).transform(
+          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
+        sink.add("error $e");
+      })).listen((x) {
+        events.add("stream $x");
+      });
+    }).listen((x) {
+      events.add(x);
+    });
     controller.add(1);
     controller.addError(2);
     new Future.error("outer error");
     controller.close();
   }).listen((x) {
-              events.add("outer: $x");
-              if (x == "outer error") done.complete(true);
-            }, onDone: () { Expect.fail("Unexpected callback"); });
+    events.add("outer: $x");
+    if (x == "outer error") done.complete(true);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     Timer.run(() {
-      Expect.listEquals(["map 1",
-                         "stream 101",
-                         "stream error 2",
-                         "outer: outer error",
-                        ],
-                        events);
+      Expect.listEquals([
+        "map 1",
+        "stream 101",
+        "stream error 2",
+        "outer: outer error",
+      ], events);
       asyncEnd();
     });
   });

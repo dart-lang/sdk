@@ -15,7 +15,7 @@ main() {
   // Work around bug that makes scheduleMicrotask use Timers. By invoking
   // `scheduleMicrotask` here we make sure that asynchronous non-timer events
   // are executed before any Timer events.
-  scheduleMicrotask(() { });
+  scheduleMicrotask(() {});
 
   // Test that errors are caught by nested `catchErrors`. Also uses
   // `scheduleMicrotask` in the body of a Timer.
@@ -25,7 +25,9 @@ main() {
     events.add("catch error entry");
     catchErrors(() {
       events.add("catch error entry2");
-      Timer.run(() { throw "timer error"; });
+      Timer.run(() {
+        throw "timer error";
+      });
 
       // We want this timer to run after the timer below. When the machine is
       // slow we saw that the timer below was scheduled more than 50ms after
@@ -36,16 +38,17 @@ main() {
       // This way we could reduce the timeout (to 10ms now), while still
       // allowing for more time, in case the machine is slow.
       void runDelayed() {
-        new Timer(const Duration(milliseconds: 10),
-                  () {
-                    if (outerTimerRan) {
-                      scheduleMicrotask(() { throw "scheduleMicrotask"; });
-                      throw "delayed error";
-                    } else if (outerTimerCounterDelayCount < 100) {
-                      outerTimerCounterDelayCount++;
-                      runDelayed();
-                    }
-                  });
+        new Timer(const Duration(milliseconds: 10), () {
+          if (outerTimerRan) {
+            scheduleMicrotask(() {
+              throw "scheduleMicrotask";
+            });
+            throw "delayed error";
+          } else if (outerTimerCounterDelayCount < 100) {
+            outerTimerCounterDelayCount++;
+            runDelayed();
+          }
+        });
       }
 
       runDelayed();
@@ -62,27 +65,27 @@ main() {
     });
     throw "inner throw";
   }).listen((x) {
-      events.add(x);
-      if (x == "inner done throw") done.complete(true);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+    if (x == "inner done throw") done.complete(true);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give callbacks time to run.
     Timer.run(() {
       Expect.listEquals([
-                         "catch error entry",
-                         "catch error entry2",
-                         "after inner",
-                         "main exit",
-                         "inner throw",
-                         "timer error",
-                         "timer outer",
-                         "delayed error",
-                         "scheduleMicrotask",
-                         "inner done throw"
-                         ],
-                         events);
+        "catch error entry",
+        "catch error entry2",
+        "after inner",
+        "main exit",
+        "inner throw",
+        "timer error",
+        "timer outer",
+        "delayed error",
+        "scheduleMicrotask",
+        "inner done throw"
+      ], events);
       asyncEnd();
     });
   });

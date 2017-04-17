@@ -7,41 +7,44 @@ import "package:expect/expect.dart";
 var global = 0;
 
 effect() {
-    global = 1;
+  global = 1;
 }
-baz(b) { return b; }
+
+baz(b) {
+  return b;
+}
 
 foo(b) {
-    if (b) {
-        // do nothing
-    } else {
-        effect();
-    }
-    return baz(b);
+  if (b) {
+    // do nothing
+  } else {
+    effect();
+  }
+  return baz(b);
 }
 
 foo2(b) {
-    if (b) {
-        // do nothing (but implicit return may get inlined up here)
-    } else {
-        effect();
-    }
+  if (b) {
+    // do nothing (but implicit return may get inlined up here)
+  } else {
+    effect();
+  }
 }
 
 main() {
-    global = 0;
-    Expect.equals(true, foo(true));
-    Expect.equals(0, global);
+  global = 0;
+  Expect.equals(true, foo(true));
+  Expect.equals(0, global);
 
-    global = 0;
-    Expect.equals(false, foo(false));
-    Expect.equals(1, global);
+  global = 0;
+  Expect.equals(false, foo(false));
+  Expect.equals(1, global);
 
-    global = 0;
-    foo2(true);
-    Expect.equals(0, global);
+  global = 0;
+  foo2(true);
+  Expect.equals(0, global);
 
-    global = 0;
-    foo2(false);
-    Expect.equals(1, global);
+  global = 0;
+  foo2(false);
+  Expect.equals(1, global);
 }

@@ -12,7 +12,7 @@ class A {
   var array;
 
   initArray() {
-    return global[0] == null ? [null] : new Map(); 
+    return global[0] == null ? [null] : new Map();
   }
 
   bar() {
@@ -35,7 +35,6 @@ class A {
     return global[0]; // bailout here
   }
 }
-
 
 void main() {
   global = [1];

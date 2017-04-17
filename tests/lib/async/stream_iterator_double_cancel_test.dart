@@ -18,6 +18,7 @@ Stream timedStream(int n) {
     i++;
     new Future.delayed(new Duration(milliseconds: 0), tick);
   }
+
   controller = new StreamController(onListen: tick);
   return controller.stream;
 }
@@ -34,5 +35,6 @@ void main() {
       iterator.moveNext().then(helper);
     }
   }
+
   iterator.moveNext().then(helper);
 }

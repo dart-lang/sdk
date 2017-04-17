@@ -21,20 +21,20 @@ main() {
       throw "timer error";
     });
   }).listen((x) {
-      events.add(x);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give the handler time to execute.
     Timer.run(() {
       Expect.listEquals([
-                         "catch error entry",
-                         "main exit",
-                         "future error",
-                         "timer error",
-                         ],
-                         events);
+        "catch error entry",
+        "main exit",
+        "future error",
+        "timer error",
+      ], events);
       asyncEnd();
     });
   });

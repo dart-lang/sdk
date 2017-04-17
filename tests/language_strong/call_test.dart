@@ -31,13 +31,13 @@ main() {
   for (var i = 0; i < 20; i++) {
     Expect.equals("1122", named_arg());
     Expect.equals("1122", named_arg.call());
-    Expect.equals("4455", named_arg(y:55, x:44));
-    Expect.equals("4455", named_arg.call(y:55, x:44));
-    Expect.equals("4455", named_arg(x:44, y:55));
-    Expect.equals("4455", named_arg.call(x:44, y:55));
+    Expect.equals("4455", named_arg(y: 55, x: 44));
+    Expect.equals("4455", named_arg.call(y: 55, x: 44));
+    Expect.equals("4455", named_arg(x: 44, y: 55));
+    Expect.equals("4455", named_arg.call(x: 44, y: 55));
   }
 
   Expect.throws(() => bar.call(), (e) => e is NoSuchMethodError);
-  Expect.throws(() => opt_arg.call(x:"p"), (e) => e is NoSuchMethodError);
+  Expect.throws(() => opt_arg.call(x: "p"), (e) => e is NoSuchMethodError);
   Expect.throws(() => named_arg.call("p", "q"), (e) => e is NoSuchMethodError);
 }

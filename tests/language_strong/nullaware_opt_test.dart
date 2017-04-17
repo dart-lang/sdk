@@ -32,7 +32,11 @@ test() {
   Expect.equals(null, c?.v);
   Expect.equals(10, c ?? 10);
   Expect.equals(d, d ?? bomb());
-  Expect.equals(3, [[3]]?.expand((i) => i).toList()[0]);
+  Expect.equals(
+      3,
+      [
+        [3]
+      ]?.expand((i) => i).toList()[0]);
   Expect.equals(null, (null as List<List<int>>)?.expand((i) => i)?.toList());
 
   var e;

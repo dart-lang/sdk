@@ -19,7 +19,9 @@ Future testGoogleUrl(SecurityContext context, String outcome) async {
     request.followRedirects = false;
     var response = await request.close();
     Expect.equals('pass', outcome, 'Unexpected successful connection');
-    try { await response.drain(); } catch (e) { }
+    try {
+      await response.drain();
+    } catch (e) {}
   } on HandshakeException {
     Expect.equals('fail', outcome, 'Unexpected failed connection');
   } on SocketException {
@@ -28,7 +30,6 @@ Future testGoogleUrl(SecurityContext context, String outcome) async {
     client.close();
   }
 }
-
 
 main() async {
   asyncStart();

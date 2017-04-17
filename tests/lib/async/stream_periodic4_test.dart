@@ -9,7 +9,7 @@ import "dart:async";
 import 'package:unittest/unittest.dart';
 
 void runTest(period, maxElapsed, pauseDuration) {
-  Function done = expectAsync(() { });
+  Function done = expectAsync(() {});
 
   Stopwatch watch = new Stopwatch()..start();
   Stream stream = new Stream.periodic(period, (x) => x);
@@ -43,8 +43,7 @@ void runTest(period, maxElapsed, pauseDuration) {
 
 main() {
   test("stream-periodic4", () {
-    runTest(const Duration(milliseconds: 2),
-            const Duration(milliseconds: 8),
-            const Duration(milliseconds: 10));
+    runTest(const Duration(milliseconds: 2), const Duration(milliseconds: 8),
+        const Duration(milliseconds: 10));
   });
 }

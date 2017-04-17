@@ -27,8 +27,9 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test for rdar:/68455379, a case-insensitive regex containing a character class containing a range with an upper bound of \uFFFF can lead to an infinite-loop.'
-  );
+      'Test for rdar:/68455379, a case-insensitive regex containing a character class containing a range with an upper bound of \uFFFF can lead to an infinite-loop.');
 
-  shouldBe(firstMatch("A", new RegExp(r"[\u0001-\uFFFF]", caseSensitive: false)), ["A"]);
+  shouldBe(
+      firstMatch("A", new RegExp(r"[\u0001-\uFFFF]", caseSensitive: false)),
+      ["A"]);
 }

@@ -22,14 +22,14 @@ void main() {
   String filename = getFilename("readline_test1.dat");
   File file = new File(filename);
   file.open().then((input) {
-      try {
-        input.readIntoSync(a, 0, 1);
-        Expect.fail("no exception thrown");
-      } catch (e) {
-        Expect.isTrue(e is UnsupportedError);
-      }
-      Expect.equals(0, a[0]);
-      Expect.equals(0, b[0]);
-      input.closeSync();
-    });
+    try {
+      input.readIntoSync(a, 0, 1);
+      Expect.fail("no exception thrown");
+    } catch (e) {
+      Expect.isTrue(e is UnsupportedError);
+    }
+    Expect.equals(0, a[0]);
+    Expect.equals(0, b[0]);
+    input.closeSync();
+  });
 }

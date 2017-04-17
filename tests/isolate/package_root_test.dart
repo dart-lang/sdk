@@ -13,10 +13,8 @@ main([args, port]) async {
     return;
   }
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script,
-                   [],
-                   p.sendPort,
-                   packageRoot: Uri.parse(SPAWN_PACKAGE_ROOT));
+  Isolate.spawnUri(Platform.script, [], p.sendPort,
+      packageRoot: Uri.parse(SPAWN_PACKAGE_ROOT));
   p.handler = (msg) {
     p.close();
     if (msg != SPAWN_PACKAGE_ROOT) {

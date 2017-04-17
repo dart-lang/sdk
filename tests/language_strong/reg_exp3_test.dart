@@ -10,7 +10,7 @@ class RegExp3Test {
     var i = 2000;
     try {
       RegExp exp = new RegExp("[");
-      i = 100;  // Should not reach here.
+      i = 100; // Should not reach here.
     } on FormatException catch (e) {
       i = 0;
     }

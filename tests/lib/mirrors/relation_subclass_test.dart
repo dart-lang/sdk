@@ -9,7 +9,9 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class Superclass {}
+
 class Subclass1 extends Superclass {}
+
 class Subclass2 extends Superclass {}
 
 typedef bool NumberPredicate(num x);

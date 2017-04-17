@@ -7,8 +7,7 @@ library test.superclass;
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-class MyClass {
-}
+class MyClass {}
 
 main() {
   var cls = reflectClass(MyClass);

@@ -20,7 +20,8 @@ class A {
 class B {
   var a;
   B() {
-    try { // Defeat inlining.
+    try {
+      // Defeat inlining.
       // An inlined generative constructor call used to confuse
       // dart2js.
       a = new A(42);
@@ -42,7 +43,8 @@ main() {
 }
 
 analyzeAfterB() {
-  try { // Defeat inlining.
+  try {
+    // Defeat inlining.
     return new A.fromOther(array[0]);
   } catch (e) {
     rethrow;

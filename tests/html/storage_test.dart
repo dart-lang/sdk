@@ -1,4 +1,5 @@
 library StorageTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -19,8 +20,8 @@ main() {
 
   test('event', () {
     // Bug 8076 that not all optional params are optional in Dartium.
-    var event = new StorageEvent('something', oldValue: 'old', newValue: 'new',
-        url: 'url', key: 'key');
+    var event = new StorageEvent('something',
+        oldValue: 'old', newValue: 'new', url: 'url', key: 'key');
     expect(event is StorageEvent, isTrue);
     expect(event.oldValue, 'old');
     expect(event.newValue, 'new');

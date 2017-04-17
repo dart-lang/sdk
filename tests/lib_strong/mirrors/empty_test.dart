@@ -7,5 +7,5 @@ import 'empty.dart';
 
 main() {
   var empty = currentMirrorSystem().findLibrary(#empty);
-  print(empty.location);  // Used to crash VM.
+  print(empty.location); // Used to crash VM.
 }

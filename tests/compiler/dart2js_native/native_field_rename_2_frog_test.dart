@@ -27,14 +27,14 @@ class B implements I {
 @Native("X")
 class X {
   @JSName('key')
-  int native_key_method() native ;
+  int native_key_method() native;
   // This should cause B.key to be renamed, but not A.key.
   @JSName('key')
-  int key() native ;
+  int key() native;
 }
 
-A makeA() native ;
-X makeX() native ;
+A makeA() native;
+X makeX() native;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

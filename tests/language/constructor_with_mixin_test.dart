@@ -17,12 +17,14 @@ class A {
   }
 }
 
-class I { }
+class I {}
 
 class B extends A with I {
   int y;
 
-  B(int xx) : super(xx), y = 13 {
+  B(int xx)
+      : super(xx),
+        y = 13 {
     b_count++;
   }
 }
@@ -32,4 +34,3 @@ void main() {
   Expect.equals(1, a_count);
   Expect.equals(1, b_count);
 }
-

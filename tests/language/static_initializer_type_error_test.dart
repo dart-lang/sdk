@@ -13,7 +13,7 @@ bool readXThrows() {
     return false;
   } catch (e) {
     inCheckedMode = true;
-    x = 5;  // Make sure we do not throw exception a second time.
+    x = 5; // Make sure we do not throw exception a second time.
     return true;
   }
 }
@@ -26,5 +26,5 @@ main() {
     }
   }
   // In checked mode throw only one exception.
-  Expect.equals(inCheckedMode ? 1 : 0, numExceptions); 
+  Expect.equals(inCheckedMode ? 1 : 0, numExceptions);
 }

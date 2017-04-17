@@ -1369,7 +1369,6 @@ void testShuffle33() {
   Expect.equals(4.0, c.w);
 }
 
-
 void testShuffleNonConstant(mask) {
   var m = new Float32x4(1.0, 2.0, 3.0, 4.0);
   var c;

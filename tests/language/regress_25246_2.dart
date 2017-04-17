@@ -5,7 +5,7 @@
 import 'regress_25246_3.dart';
 
 class MixIn {
-  var test3 = new Test3(() { });
+  var test3 = new Test3(() {});
   void test() {
     test3.test();
   }

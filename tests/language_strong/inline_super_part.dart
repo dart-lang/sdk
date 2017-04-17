@@ -5,5 +5,5 @@
 part of inline_super_test;
 
 class Player extends LivingActor {
-  Player () : super();
+  Player() : super();
 }

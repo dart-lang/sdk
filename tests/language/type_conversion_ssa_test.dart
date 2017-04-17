@@ -19,12 +19,14 @@ expect(a, b) {
   if (a != b) throw 'Failed';
 }
 
-var array =
-    [new SelectorGroup(
-      [new Selector([new SimpleSelectorSequence(new ClassSelector())]),
-       new Selector([new SimpleSelectorSequence(new ClassSelector())]),
-       new Selector([new SimpleSelectorSequence(new ClassSelector())])]),
-     new Object()];
+var array = [
+  new SelectorGroup([
+    new Selector([new SimpleSelectorSequence(new ClassSelector())]),
+    new Selector([new SimpleSelectorSequence(new ClassSelector())]),
+    new Selector([new SimpleSelectorSequence(new ClassSelector())])
+  ]),
+  new Object()
+];
 
 class RuleSet {
   final SelectorGroup _selectorGroup;
@@ -52,8 +54,8 @@ class SimpleSelectorSequence {
 }
 
 class SimpleSelector {}
-class ClassSelector extends SimpleSelector {}
 
+class ClassSelector extends SimpleSelector {}
 
 void testSelectorGroups() {
   // Fetch the rule set from an array to trick the type inferrer.

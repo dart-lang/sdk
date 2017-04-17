@@ -26,7 +26,8 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description("This test checks expressions with alternative lengths of appox. 2^31.");
+  description(
+      "This test checks expressions with alternative lengths of appox. 2^31.");
 
   var regexp1 = new RegExp(r"(?:(?=g))|(?:m).{2147483648,}");
   shouldBeNull(regexp1.firstMatch(''));
@@ -34,7 +35,8 @@ void main() {
   var regexp2 = new RegExp(r"(?:(?=g)).{2147483648,}");
   shouldBeNull(regexp2.firstMatch(''));
 
-  var s3 = r"&{6}u4a64YfQP{C}u88c4u5772Qu8693{4294967167}u85f2u7f3fs((uf202){4})u5bc6u1947";
+  var s3 =
+      r"&{6}u4a64YfQP{C}u88c4u5772Qu8693{4294967167}u85f2u7f3fs((uf202){4})u5bc6u1947";
   var regexp3 = new RegExp(s3);
   shouldBeNull(regexp3.firstMatch(s3));
 

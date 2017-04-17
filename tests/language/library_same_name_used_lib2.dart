@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library lib2;
-import 'library_same_name_used_lib1.dart' as lib1;  // for abstract class X.
+
+import 'library_same_name_used_lib1.dart' as lib1; // for abstract class X.
 
 class X implements lib1.X {
   X();

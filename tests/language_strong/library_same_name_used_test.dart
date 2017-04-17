@@ -6,6 +6,7 @@
 // abstract class in lib2.  Use of import prefixes should allow this.
 
 library main;
+
 import "package:expect/expect.dart";
 import "library_same_name_used_lib1.dart";
 

@@ -5,11 +5,15 @@
 import "package:expect/expect.dart";
 
 class C {
-  foo(int y) { return y; }
+  foo(int y) {
+    return y;
+  }
 }
 
 main() {
-  for (var b in [[false, 'pig']]) {
+  for (var b in [
+    [false, 'pig']
+  ]) {
     var c;
     if (b[0]) c = new C();
     Expect.throws(() => print(c.foo(b[1])), (e) => e is NoSuchMethodError);

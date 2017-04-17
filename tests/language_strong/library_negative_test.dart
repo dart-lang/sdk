@@ -5,8 +5,8 @@
 // library spec file that does not exist.
 
 library LibraryNegativeTest.dart;
-import "nonexisting_library.lib";
 
+import "nonexisting_library.lib";
 
 main(args) {
   LibraryNegativeTest.testMain(args);

@@ -16,8 +16,8 @@ class TestClass {
 
   psycho({$, $$, $$$, $$$$}) => [$, $$, $$$, $$$$];
 }
-globalMethod({a, b, a$b, a$$b}) => [a, b, a$b, a$$b];
 
+globalMethod({a, b, a$b, a$$b}) => [a, b, a$b, a$$b];
 
 format(thing) {
   if (thing == null) return '-';
@@ -39,8 +39,13 @@ format(thing) {
 makeTestClass(n) => [new TestClass(), new Decoy(), 'string'][n % 3];
 
 class Decoy {
-  method([a$b, b, a]) { throw new UnimplementedError(); }
-  psycho([$$$, $$, $])  { throw new UnimplementedError(); }
+  method([a$b, b, a]) {
+    throw new UnimplementedError();
+  }
+
+  psycho([$$$, $$, $]) {
+    throw new UnimplementedError();
+  }
 }
 
 testDollar() {
@@ -52,7 +57,7 @@ testDollar() {
   Expect.equals('[-, -, 3, -]', format(globalMethod(a$b: 3)));
   Expect.equals('[-, -, -, 4]', format(globalMethod(a$$b: 4)));
 
-  TestClass t = new TestClass();  // Statically typed.
+  TestClass t = new TestClass(); // Statically typed.
 
   Expect.equals('[-, -, -, -]', format(t.method()));
   Expect.equals('[1, 2, -, -]', format(t.method(a: 1, b: 2)));
@@ -70,17 +75,17 @@ testDollar() {
 }
 
 testPsycho() {
-  TestClass t = new TestClass();  // Statically typed.
+  TestClass t = new TestClass(); // Statically typed.
 
-  Expect.equals('[1, 2, 3, -]', format(t.psycho($:1, $$:2, $$$:3)));
-  Expect.equals('[1, 2, 3, -]', format(t.psycho($$$:3, $$:2, $:1)));
-  Expect.equals('[1, 2, -, -]', format(t.psycho($:1, $$:2)));
+  Expect.equals('[1, 2, 3, -]', format(t.psycho($: 1, $$: 2, $$$: 3)));
+  Expect.equals('[1, 2, 3, -]', format(t.psycho($$$: 3, $$: 2, $: 1)));
+  Expect.equals('[1, 2, -, -]', format(t.psycho($: 1, $$: 2)));
   Expect.equals('[-, -, -, 4]', format(t.psycho($$$$: 4)));
 
   var obj = makeTestClass(0);
 
-  Expect.equals('[1, 2, -, -]', format(obj.psycho($:1, $$:2)));
+  Expect.equals('[1, 2, -, -]', format(obj.psycho($: 1, $$: 2)));
   Expect.equals('[-, -, -, 4]', format(obj.psycho($$$$: 4)));
-  Expect.equals('[1, 2, 3, -]', format(obj.psycho($:1, $$:2, $$$:3)));
-  Expect.equals('[1, 2, 3, -]', format(obj.psycho($$$:3, $$:2, $:1)));
+  Expect.equals('[1, 2, 3, -]', format(obj.psycho($: 1, $$: 2, $$$: 3)));
+  Expect.equals('[1, 2, 3, -]', format(obj.psycho($$$: 3, $$: 2, $: 1)));
 }

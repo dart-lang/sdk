@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library CssStyleDeclarationTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -17,7 +18,9 @@ main() {
       color: blue;
       width: 2px !important;
     """);
-  };
+  }
+
+  ;
 
   test('default constructor is empty', () {
     var style = new CssStyleDeclaration();
@@ -44,8 +47,7 @@ main() {
   test('removeProperty is wrapped', () {
     var style = createTestStyle();
     style.removeProperty("width");
-    expect(style.cssText.trim(),
-      equals("color: blue;"));
+    expect(style.cssText.trim(), equals("color: blue;"));
   });
 
   test('CSS property empty getters and setters', () {
@@ -104,11 +106,13 @@ main() {
   });
 
   test('css multi get', () {
-    var listElement = new Element.html('<ul class="foo">'
+    var listElement = new Element.html(
+        '<ul class="foo">'
         '<li class="bar" style="background-color: red; border-left: 10px;">'
         '<li class="baz" style="background-color: black;>'
         '<li class="baz classy" style="background-color: blue; ">'
-        '</ul>', treeSanitizer: new NullTreeSanitizer());
+        '</ul>',
+        treeSanitizer: new NullTreeSanitizer());
     document.documentElement.children.add(listElement);
 
     var elements = document.queryAll('li');
@@ -122,11 +126,13 @@ main() {
   });
 
   test('css multi set', () {
-    var listElement = new Element.html('<ul class="foo">'
+    var listElement = new Element.html(
+        '<ul class="foo">'
         '<li class="bar" style="background-color: red; border-left: 10px;">'
         '<li class="baz" style="background-color: black;>'
         '<li class="baz" id="wat" style="background-color: blue; ">'
-        '</ul>', treeSanitizer: new NullTreeSanitizer());
+        '</ul>',
+        treeSanitizer: new NullTreeSanitizer());
     document.documentElement.children.add(listElement);
 
     var elements = document.queryAll('li');

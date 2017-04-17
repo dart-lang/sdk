@@ -12,7 +12,6 @@ var reachedGetX = 0;
 var reachedM = 0;
 
 class A {
-
   set x(val) {
     reachedSetX = val;
   }
@@ -21,7 +20,9 @@ class A {
     reachedGetX = 1;
   }
 
-  m() { reachedM = 1; }
+  m() {
+    reachedM = 1;
+  }
 }
 
 class B {
@@ -29,7 +30,7 @@ class B {
   noSuchMethod(mirror) => reflect(a).delegate(mirror);
 }
 
-main () {
+main() {
   var b = new B();
   b.x = 10;
   Expect.equals(10, reachedSetX);

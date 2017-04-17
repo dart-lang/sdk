@@ -7,8 +7,7 @@ import 'dart:html';
 import 'package:expect/minitest.dart';
 
 main() {
-  var isShadowRoot =
-      predicate((x) => x is ShadowRoot, 'is a ShadowRoot');
+  var isShadowRoot = predicate((x) => x is ShadowRoot, 'is a ShadowRoot');
 
   test('ShadowRoot supported', () {
     var isSupported = ShadowRoot.supported;

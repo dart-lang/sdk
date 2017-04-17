@@ -11,19 +11,28 @@ abstract class TestException {
 
 class MyException implements TestException {
   const MyException([String message = ""]) : message_ = message;
-  String getMessage() { return message_; }
+  String getMessage() {
+    return message_;
+  }
+
   final String message_;
 }
 
 class MyException2 implements TestException {
   const MyException2([String message = ""]) : message_ = message;
-  String getMessage() { return message_; }
+  String getMessage() {
+    return message_;
+  }
+
   final String message_;
 }
 
 class MyException3 implements TestException {
   const MyException3([String message = ""]) : message_ = message;
-  String getMessage() { return message_; }
+  String getMessage() {
+    return message_;
+  }
+
   final String message_;
 }
 

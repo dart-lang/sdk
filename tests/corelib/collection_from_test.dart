@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library collection.from.test;
+
 import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
@@ -20,7 +21,6 @@ class CollectionFromTest {
     check(set, new Set.from(set));
   }
 
-
   static check(Iterable initial, Iterable other) {
     Expect.equals(3, initial.length);
     Expect.equals(initial.length, other.length);
@@ -28,8 +28,12 @@ class CollectionFromTest {
     int initialSum = 0;
     int otherSum = 0;
 
-    initial.forEach((e) { initialSum += e; });
-    other.forEach((e) { otherSum += e; });
+    initial.forEach((e) {
+      initialSum += e;
+    });
+    other.forEach((e) {
+      otherSum += e;
+    });
     Expect.equals(4 + 2 + 1, otherSum);
     Expect.equals(otherSum, initialSum);
   }

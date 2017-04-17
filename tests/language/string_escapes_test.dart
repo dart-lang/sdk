@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 
 class StringEscapesTest {
-
   static testMain() {
     testDelimited();
     testFixed2();

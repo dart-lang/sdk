@@ -22,11 +22,13 @@ void main() {
 void doSwitch(int target) {
   List list = [];
   switch (target) {
-    l0: case 0:
+    l0:
+    case 0:
       if (list.length > 10) throw list;
       list.add(0);
       continue l1;
-    l1: case 1:
+    l1:
+    case 1:
       if (list.length > 10) throw list;
       list.add(1);
       continue l0;

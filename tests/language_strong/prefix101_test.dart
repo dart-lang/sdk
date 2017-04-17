@@ -24,6 +24,7 @@ class Prefix101Test {
     result += lib101.Library10.static_fld;
     Expect.equals(10, result);
   }
+
   static Test2() {
     var result = 0;
     var obj = new lib101.Library11(4);
@@ -36,10 +37,12 @@ class Prefix101Test {
     result += lib101.Library11.static_fld;
     Expect.equals(10, result);
   }
+
   static Test3() {
     Expect.equals(10, lib101.top_level10);
     Expect.equals(20, lib101.top_level_func10());
   }
+
   static Test4() {
     Expect.equals(100, lib101.top_level11);
     Expect.equals(200, lib101.top_level_func11());

@@ -5,6 +5,7 @@
 // We used to have an issue in dart2js where calling a top-level or
 // static field wouldn't register the 'call' selector correctly.
 var caller = new Caller();
+
 class Caller {
   call(a, b) => a + b;
 }

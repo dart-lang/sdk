@@ -21,9 +21,13 @@ class Sub extends Super {
   var subField;
 
   // Test for a bug when super() is the first initializer.
-  Sub.first() : super(), subField = [];
+  Sub.first()
+      : super(),
+        subField = [];
 
-  Sub.last() : subField = [], super();
+  Sub.last()
+      : subField = [],
+        super();
 }
 
 main() {

@@ -11,7 +11,7 @@ void test1() {
   try {
     throw x = 10;
     x = 0;
-  } catch(e) {
+  } catch (e) {
     Expect.equals(10, e);
     Expect.equals(10, x);
     x = 15;
@@ -21,7 +21,7 @@ void test1() {
   try {
     throw x++;
     x = 0;
-  } catch(e) {
+  } catch (e) {
     Expect.equals(100, e);
     Expect.equals(101, x);
     x = 150;
@@ -33,7 +33,7 @@ void test2() {
   var x = 6;
   try {
     throw x + 4;
-  } catch(e) {
+  } catch (e) {
     Expect.equals(10, e);
     Expect.equals(6, x);
     x = 15;
@@ -47,21 +47,24 @@ bar(x, y) => throw "foo" "${throw x}";
 
 class Q {
   var qqq;
-  f(x) { qqq = x; }
+  f(x) {
+    qqq = x;
+  }
+
   Q get nono => throw "nono";
 }
 
 void test3() {
   try {
     throw throw throw "up";
-  } catch(e) {
+  } catch (e) {
     Expect.equals("up", e);
   }
 
   var x = 10;
   try {
     foo(x = 12, throw 7);
-  } catch(e) {
+  } catch (e) {
     Expect.equals(7, e);
     Expect.equals(12, x);
   }
@@ -69,7 +72,7 @@ void test3() {
   x = 10;
   try {
     foo(x++, 10);
-  } catch(e) {
+  } catch (e) {
     Expect.equals("foo10", e);
     Expect.equals(11, x);
   }
@@ -77,7 +80,7 @@ void test3() {
   x = 100;
   try {
     bar(++x, 10);
-  } catch(e) {
+  } catch (e) {
     Expect.equals(101, e);
     Expect.equals(101, x);
   }
@@ -85,8 +88,11 @@ void test3() {
   x = null;
   try {
     x = new Q();
-    x..f(11) ..qqq = throw 77 ..f(22);
-  } catch(e) {
+    x
+      ..f(11)
+      ..qqq = throw 77
+      ..f(22);
+  } catch (e) {
     Expect.equals(77, e);
     Expect.equals(11, x.qqq);
   }

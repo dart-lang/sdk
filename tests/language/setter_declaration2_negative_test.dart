@@ -5,9 +5,8 @@
 // Test that a setter has a single argument
 
 // too few arguments
-set m() { }
+set m() {}
 
 main() {
   m = 1;
 }
-

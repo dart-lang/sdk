@@ -16,11 +16,13 @@ int E(int i) {
 }
 
 class A {
-  A({arg1: 100, arg2: 200}) : a1 = E(arg1++), a2 = E(arg2++) {
+  A({arg1: 100, arg2: 200})
+      : a1 = E(arg1++),
+        a2 = E(arg2++) {
     // b2 should be initialized between the above initializers and the following
     // statements.
-    E(arg1);  // 101
-    E(arg2);  // 51
+    E(arg1); // 101
+    E(arg2); // 51
   }
   var a1;
   var a2;
@@ -28,10 +30,13 @@ class A {
 
 class B extends A {
   // Initializers in order: b1, super, b2.
-  B(x, y) : b1 = E(x++), super(arg2: 50), b2 = E(y++) {
+  B(x, y)
+      : b1 = E(x++),
+        super(arg2: 50),
+        b2 = E(y++) {
     // Implicit super call to A's body happens here.
-    E(x);  // 11
-    E(y);  // 21
+    E(x); // 11
+    E(y); // 21
   }
   var b1;
   var b2;

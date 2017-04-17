@@ -4,6 +4,7 @@
 // Test that instanceof works correctly with type variables.
 
 library GenericInstanceofTest.dart;
+
 import "package:expect/expect.dart";
 part "generic_instanceof.dart";
 

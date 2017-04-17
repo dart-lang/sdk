@@ -7,14 +7,12 @@ import "package:expect/expect.dart";
 
 main() {
   var v = 1.0;
-  Expect.throws(() => v.toStringAsExponential(-1),
-                (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsExponential(21),
-                (e) => e is RangeError);
+  Expect.throws(() => v.toStringAsExponential(-1), (e) => e is RangeError);
+  Expect.throws(() => v.toStringAsExponential(21), (e) => e is RangeError);
   Expect.throws(() => v.toStringAsExponential(1.5),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => v.toStringAsExponential("string"),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => v.toStringAsExponential("3"),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
 }

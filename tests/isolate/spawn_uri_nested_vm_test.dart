@@ -7,14 +7,17 @@
 // other isolate's code.
 // OtherScripts=spawn_uri_nested_child1_vm_isolate.dart spawn_uri_nested_child2_vm_isolate.dart
 library NestedSpawnUriLibrary;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 
 main() {
   test('isolate fromUri - nested send and reply', () {
     ReceivePort port = new ReceivePort();
-    Isolate.spawnUri(Uri.parse('spawn_uri_nested_child1_vm_isolate.dart'),
-                     [], [[1, 2], port.sendPort]);
+    Isolate.spawnUri(Uri.parse('spawn_uri_nested_child1_vm_isolate.dart'), [], [
+      [1, 2],
+      port.sendPort
+    ]);
     port.first.then(expectAsync((result) => print(result)));
   });
 }

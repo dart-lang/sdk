@@ -22,6 +22,7 @@ class C {
   static void set staticSetter(val) {
     staticField = val;
   }
+
   static int staticFoo(int param) => param;
 
   int field = 1;
@@ -29,6 +30,7 @@ class C {
   void set setter(val) {
     field = val;
   }
+
   int foo(int param) => param;
 }
 
@@ -46,10 +48,10 @@ staticMembers() async {
   var d = C.staticFoo(2) + await dummy();
   Expect.equals(d, 3);
   var e = C.staticField +
-          C.staticGetter +
-          (C.staticSetter = 1) +
-          C.staticFoo(1) +
-          await dummy();
+      C.staticGetter +
+      (C.staticSetter = 1) +
+      C.staticFoo(1) +
+      await dummy();
   Expect.equals(e, 5);
 }
 
@@ -63,10 +65,10 @@ topLevelMembers() async {
   var d = topLevelFoo(1) + await dummy();
   Expect.equals(d, 2);
   var e = globalVariable +
-          topLevelGetter +
-          (topLevelSetter = 1) +
-          topLevelFoo(1) +
-          await dummy();
+      topLevelGetter +
+      (topLevelSetter = 1) +
+      topLevelFoo(1) +
+      await dummy();
   Expect.equals(e, 5);
 }
 
@@ -81,10 +83,10 @@ instanceMembers() async {
   var d = inst.foo(1) + await dummy();
   Expect.equals(d, 2);
   var e = inst.field +
-          inst.getter +
-          (inst.setter = 1) +
-          inst.foo(1) +
-          await dummy();
+      inst.getter +
+      (inst.setter = 1) +
+      inst.foo(1) +
+      await dummy();
   Expect.equals(e, 5);
 }
 
@@ -99,7 +101,7 @@ others() async {
     var d = c.nooooo() + await dummy();
   } catch (e) {}
   var cnt = 2;
-  var b = [1,2,3];
+  var b = [1, 2, 3];
   b[cnt] = await dummy();
   Expect.equals(b[cnt], 1);
   var e = b[0] + await dummy();
@@ -118,7 +120,7 @@ conditionals() async {
   Expect.equals(e, 2);
   try {
     var f = (a is int) ? await dummy() : 2;
-  } catch(e) {}
+  } catch (e) {}
 }
 
 main() {
@@ -130,4 +132,3 @@ main() {
     others();
   }
 }
-

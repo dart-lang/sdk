@@ -34,11 +34,15 @@ Future makeServer() {
 }
 
 Future runClientProcess(int port) {
-  return Process.run(Platform.executable,
-                     []..addAll(Platform.executableArguments)
-                       ..add(Platform.script.toFilePath())
-                       ..add('--client')
-                       ..add(port.toString())).then((ProcessResult result) {
+  return Process
+      .run(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..add(Platform.script.toFilePath())
+            ..add('--client')
+            ..add(port.toString()))
+      .then((ProcessResult result) {
     if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {
       print("Client failed, exit code ${result.exitCode}");
       print("  stdout:");
@@ -52,7 +56,8 @@ Future runClientProcess(int port) {
 
 runClient(int port) {
   var client = new HttpClient();
-  client.get('127.0.0.1', port, "/")
+  client
+      .get('127.0.0.1', port, "/")
       .then((request) => request.close())
       .then((response) => response.drain())
       .then((_) => client.close())

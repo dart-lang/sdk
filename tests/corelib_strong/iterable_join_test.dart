@@ -35,14 +35,19 @@ testCollections() {
   testJoin("a,b,c,d", ["a", "b", "c", "d"], ",");
   testJoin("abcd", ["a", "b", "c", "d"], "");
   testJoin("abcd", ["a", "b", "c", "d"]);
-  testJoin("null,b,c,d", [null,"b","c","d"], ",");
+  testJoin("null,b,c,d", [null, "b", "c", "d"], ",");
   testJoin("1,2,3,4", [1, 2, 3, 4], ",");
   var ic = new IC();
   testJoin("0,1,2,3", [ic, ic, ic, ic], ",");
 
   var set = new Set()..add(1)..add(2)..add(3);
-  var perm = new Set()..add("123")..add("132")..add("213")
-                      ..add("231")..add("312")..add("321");
+  var perm = new Set()
+    ..add("123")
+    ..add("132")
+    ..add("213")
+    ..add("231")
+    ..add("312")
+    ..add("321");
   var setString = set.join();
   Expect.isTrue(perm.contains(setString), "set: $setString");
 
@@ -54,6 +59,7 @@ testCollections() {
     testJoin("0,1,2,3,4", array.take(5), ",");
     testJoin("0,1,2,3,4", array.takeWhile((i) => i < 5), ",");
   }
+
   testArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   var fixedArray = new List(10);
   for (int i = 0; i < 10; i++) {
@@ -65,7 +71,7 @@ testCollections() {
   testJoin("a,b,c,d", ["a", "b", "c", "d"].map((x) => x), ",");
   testJoin("abcd", ["a", "b", "c", "d"].map((x) => x), "");
   testJoin("abcd", ["a", "b", "c", "d"].map((x) => x));
-  testJoin("null,b,c,d", [null,"b","c","d"].map((x) => x), ",");
+  testJoin("null,b,c,d", [null, "b", "c", "d"].map((x) => x), ",");
   testJoin("1,2,3,4", [1, 2, 3, 4].map((x) => x), ",");
   testJoin("4,5,6,7", [ic, ic, ic, ic].map((x) => x), ",");
 }
@@ -87,8 +93,8 @@ void testStringVariants() {
   // Long-Non-ASCII
   testJoin("a\u2000" * 255 + "a", new List.generate(256, (_) => "a"), "\u2000");
   testJoin("\u2000" * 256, new List.generate(256, (_) => "\u2000"));
-  testJoin("\u2000x" * 255 + "\u2000",
-           new List.generate(256, (_) => "\u2000"), "x");
+  testJoin(
+      "\u2000x" * 255 + "\u2000", new List.generate(256, (_) => "\u2000"), "x");
 
   var o1 = new Stringable("x");
   var o2 = new Stringable("\ufeff");

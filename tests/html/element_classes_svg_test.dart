@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ElementTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:collection';
@@ -13,8 +14,7 @@ import 'dart:svg' as svg;
 // Html and Svg elements.
 
 Element makeElementsContainer() {
-  var e = new Element.html(
-      '<ul class="yes foo">'
+  var e = new Element.html('<ul class="yes foo">'
       '<li class="yes quux qux">'
       '</ul>');
   final svgContent = r"""
@@ -71,7 +71,7 @@ main() {
   });
 
   test('listClasses=', () {
-    var elements =  elementsSetup();
+    var elements = elementsSetup();
 
     elements.classes = ['foo', 'qux'];
     expect(view(elements.classes), '[foo, qux]');
@@ -103,14 +103,14 @@ main() {
     expect(elements.classes.contains('troll'), isFalse);
   });
 
-
   test('listAdd', () {
-    var elements =  elementsSetup();
+    var elements = elementsSetup();
     var added = elements.classes.add('lassie');
     expect(added, isNull);
 
     expect(view(elements.classes), '[classy, foo, lassie, quux, qux, yes]');
-    expect(view(elements),
+    expect(
+        view(elements),
         '[[foo, lassie, yes], [lassie, quux, qux, yes], '
         '[lassie, qux, yes], [classy, lassie, yes]]');
   });
@@ -124,8 +124,7 @@ main() {
 
     expect(elements.classes.remove('qux'), isTrue);
     expect(view(elements.classes), '[classy, foo, quux, yes]');
-    expect(view(elements),
-        '[[foo, yes], [quux, yes], [yes], [classy, yes]]');
+    expect(view(elements), '[[foo, yes], [quux, yes], [yes], [classy, yes]]');
   });
 
   test('listToggle', () {
@@ -139,9 +138,10 @@ main() {
   test('listAddAll', () {
     var elements = elementsSetup();
     elements.classes.addAll(['qux', 'lassi', 'sassy']);
-    expect(view(elements.classes),
-        '[classy, foo, lassi, quux, qux, sassy, yes]');
-    expect(view(elements),
+    expect(
+        view(elements.classes), '[classy, foo, lassi, quux, qux, sassy, yes]');
+    expect(
+        view(elements),
         '[[foo, lassi, qux, sassy, yes], [lassi, quux, qux, sassy, yes], '
         '[lassi, qux, sassy, yes], [classy, lassi, qux, sassy, yes]]');
   });
@@ -150,23 +150,21 @@ main() {
     var elements = elementsSetup();
     elements.classes.removeAll(['qux', 'classy', 'mumble']);
     expect(view(elements.classes), '[foo, quux, yes]');
-    expect(view(elements),
-        '[[foo, yes], [quux, yes], [yes], [yes]]');
+    expect(view(elements), '[[foo, yes], [quux, yes], [yes], [yes]]');
 
     elements.classes.removeAll(['foo', 'yes']);
     expect(view(elements.classes), '[quux]');
-    expect(view(elements),
-        '[[], [quux], [], []]');
+    expect(view(elements), '[[], [quux], [], []]');
   });
 
   test('listToggleAll', () {
     var elements = elementsSetup();
     elements.classes.toggleAll(['qux', 'mornin']);
     expect(view(elements.classes), '[classy, foo, mornin, quux, qux, yes]');
-    expect(view(elements),
+    expect(
+        view(elements),
         '[[foo, mornin, qux, yes], [mornin, quux, yes], '
         '[mornin, yes], [classy, mornin, qux, yes]]');
-
   });
 
   test('listRetainAll', () {
@@ -180,16 +178,14 @@ main() {
     var elements = elementsSetup();
     elements.classes.removeWhere((s) => s.startsWith('q'));
     expect(view(elements.classes), '[classy, foo, yes]');
-    expect(view(elements),
-        '[[foo, yes], [yes], [yes], [classy, yes]]');
+    expect(view(elements), '[[foo, yes], [yes], [yes], [classy, yes]]');
   });
 
   test('listRetainWhere', () {
     var elements = elementsSetup();
     elements.classes.retainWhere((s) => s.startsWith('q'));
     expect(view(elements.classes), '[quux, qux]');
-    expect(view(elements),
-        '[[], [quux, qux], [qux], []]');
+    expect(view(elements), '[[], [quux, qux], [qux], []]');
   });
 
   test('listContainsAll', () {

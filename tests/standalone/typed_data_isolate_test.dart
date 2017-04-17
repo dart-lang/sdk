@@ -21,14 +21,13 @@ second(message) {
 }
 
 main() {
- asyncStart();
- new File(Platform.script.toFilePath()).readAsBytes().then((List<int> data) {
-   var response = new ReceivePort();
-   var remote = Isolate.spawn(second, [data, response.sendPort]);
-   response.first.then((reply) {
-     print('got reply');
-     asyncEnd();
-   });
- });
+  asyncStart();
+  new File(Platform.script.toFilePath()).readAsBytes().then((List<int> data) {
+    var response = new ReceivePort();
+    var remote = Isolate.spawn(second, [data, response.sendPort]);
+    response.first.then((reply) {
+      print('got reply');
+      asyncEnd();
+    });
+  });
 }
-

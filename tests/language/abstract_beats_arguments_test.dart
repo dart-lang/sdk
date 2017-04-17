@@ -8,11 +8,11 @@ import "package:expect/expect.dart";
 // AbstractClassInstantiationError is thrown, not a NoSuchMethodError.
 
 abstract class A {
-  A() { }
+  A() {}
 }
 
 class B {
-  B() { }
+  B() {}
 }
 
 bool isAbstractClassInstantiationError(e) =>

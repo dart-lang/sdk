@@ -31,7 +31,7 @@ Stream yieldStream(Stream s) async* {
 }
 
 Stream mkStream() {
-  var s = new StreamController(sync:true);
+  var s = new StreamController(sync: true);
   // The close event has to be sent and received between
   // the pause and resume above.
   // Using a sync controller and a Timer.run(sub.resume) ensures this.

@@ -11,7 +11,7 @@ import "dart:async";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-main(){
+main() {
   asyncStart();
 
   RawReceivePort exitPort = new RawReceivePort();
@@ -20,10 +20,9 @@ main(){
     exitPort.close();
     asyncEnd();
   };
-  
-  Isolate.spawnUri(Uri.parse("exit_at_spawnuri_iso.dart"), [],
-                   null,
-                   // Setup handler as part of spawn.
-                   errorsAreFatal: false,
-                   onExit: exitPort.sendPort);
+
+  Isolate.spawnUri(Uri.parse("exit_at_spawnuri_iso.dart"), [], null,
+      // Setup handler as part of spawn.
+      errorsAreFatal: false,
+      onExit: exitPort.sendPort);
 }

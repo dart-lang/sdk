@@ -6,20 +6,19 @@
 
 import "package:expect/expect.dart";
 
-
 class Helper {
-  Helper() : i = 0 { }
+  Helper() : i = 0 {}
 
   int f1() {
     try {
       int j;
       j = func();
       i = 1;
-      return i;  // Value of i on return is 1.
+      return i; // Value of i on return is 1.
     } finally {
-      i = i + 800;  // Should get executed on return.
+      i = i + 800; // Should get executed on return.
     }
-    return i + 200;  // Should not get executed.
+    return i + 200; // Should not get executed.
   }
 
   static int func() {

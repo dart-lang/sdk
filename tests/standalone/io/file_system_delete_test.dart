@@ -7,10 +7,9 @@ import "dart:async";
 import "dart:io";
 
 Future throws(callback()) {
-  return new Future.value()
-    .then((_) => callback())
-    .then((_) { throw "Expected error"; },
-          onError: (_) {});
+  return new Future.value().then((_) => callback()).then((_) {
+    throw "Expected error";
+  }, onError: (_) {});
 }
 
 void testDeleteFileSync() {
@@ -51,29 +50,24 @@ void testDeleteFile() {
   Directory.systemTemp.createTemp('dart_file_system_delete').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
-    return file.create()
-      .then((_) => file.exists().then(Expect.isTrue))
-      .then((_) => new File(file.path).delete())
-      .then((_) => file.exists().then(Expect.isFalse))
-
-      .then((_) => file.create())
-
-      .then((_) => file.exists().then(Expect.isTrue))
-      .then((_) => new Directory(file.path).delete(recursive: true))
-      .then((_) => file.exists().then(Expect.isFalse))
-
-      .then((_) => file.create())
-
-      .then((_) => file.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Directory(file.path).delete()))
-      .then((_) => file.exists().then(Expect.isTrue))
-
-      .then((_) => file.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Link(file.path).delete()))
-      .then((_) => file.exists().then(Expect.isTrue))
-
-      .then((_) => file.delete())
-      .then((_) => tmp.delete());
+    return file
+        .create()
+        .then((_) => file.exists().then(Expect.isTrue))
+        .then((_) => new File(file.path).delete())
+        .then((_) => file.exists().then(Expect.isFalse))
+        .then((_) => file.create())
+        .then((_) => file.exists().then(Expect.isTrue))
+        .then((_) => new Directory(file.path).delete(recursive: true))
+        .then((_) => file.exists().then(Expect.isFalse))
+        .then((_) => file.create())
+        .then((_) => file.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new Directory(file.path).delete()))
+        .then((_) => file.exists().then(Expect.isTrue))
+        .then((_) => file.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new Link(file.path).delete()))
+        .then((_) => file.exists().then(Expect.isTrue))
+        .then((_) => file.delete())
+        .then((_) => tmp.delete());
   });
 }
 
@@ -115,29 +109,24 @@ void testDeleteDirectory() {
   Directory.systemTemp.createTemp('dart_file_system_delete').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDirectory");
-    return dir.create()
-      .then((_) => dir.exists().then(Expect.isTrue))
-      .then((_) => new Directory(dir.path).delete())
-      .then((_) => dir.exists().then(Expect.isFalse))
-
-      .then((_) => dir.create())
-
-      .then((_) => dir.exists().then(Expect.isTrue))
-      .then((_) => new Directory(dir.path).delete(recursive: true))
-      .then((_) => dir.exists().then(Expect.isFalse))
-
-      .then((_) => dir.create())
-
-      .then((_) => dir.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new File(dir.path).delete()))
-      .then((_) => dir.exists().then(Expect.isTrue))
-
-      .then((_) => dir.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Link(dir.path).delete()))
-      .then((_) => dir.exists().then(Expect.isTrue))
-
-      .then((_) => dir.delete())
-      .then((_) => tmp.delete());
+    return dir
+        .create()
+        .then((_) => dir.exists().then(Expect.isTrue))
+        .then((_) => new Directory(dir.path).delete())
+        .then((_) => dir.exists().then(Expect.isFalse))
+        .then((_) => dir.create())
+        .then((_) => dir.exists().then(Expect.isTrue))
+        .then((_) => new Directory(dir.path).delete(recursive: true))
+        .then((_) => dir.exists().then(Expect.isFalse))
+        .then((_) => dir.create())
+        .then((_) => dir.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new File(dir.path).delete()))
+        .then((_) => dir.exists().then(Expect.isTrue))
+        .then((_) => dir.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new Link(dir.path).delete()))
+        .then((_) => dir.exists().then(Expect.isTrue))
+        .then((_) => dir.delete())
+        .then((_) => tmp.delete());
   });
 }
 
@@ -189,39 +178,30 @@ void testDeleteFileLink() {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
     var link = new Link("${path}myLink");
-    return file.create()
-      .then((_) => link.create(file.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new File(link.path).delete())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => link.create(file.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new Link(link.path).delete())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => link.create(file.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new Directory(link.path).delete(recursive: true))
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => link.create(file.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Directory(link.path).delete()))
-      .then((_) => link.exists().then(Expect.isTrue))
-
-      .then((_) => link.deleteSync())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => file.exists().then(Expect.isTrue))
-      .then((_) => file.delete())
-      .then((_) => file.exists().then(Expect.isFalse))
-
-      .then((_) => tmp.delete());
+    return file
+        .create()
+        .then((_) => link.create(file.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new File(link.path).delete())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => link.create(file.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new Link(link.path).delete())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => link.create(file.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new Directory(link.path).delete(recursive: true))
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => link.create(file.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new Directory(link.path).delete()))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => link.deleteSync())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => file.exists().then(Expect.isTrue))
+        .then((_) => file.delete())
+        .then((_) => file.exists().then(Expect.isFalse))
+        .then((_) => tmp.delete());
   });
 }
 
@@ -273,39 +253,30 @@ void testDeleteDirectoryLink() {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");
-    return dir.create()
-      .then((_) => link.create(dir.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new Directory(link.path).delete())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => link.create(dir.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new Directory(link.path).delete(recursive: true))
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => link.create(dir.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new Link(link.path).delete())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => link.create(dir.path))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new File(link.path).delete()))
-      .then((_) => link.exists().then(Expect.isTrue))
-
-      .then((_) => link.deleteSync())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => dir.exists().then(Expect.isTrue))
-      .then((_) => dir.delete())
-      .then((_) => dir.exists().then(Expect.isFalse))
-
-      .then((_) => tmp.delete());
+    return dir
+        .create()
+        .then((_) => link.create(dir.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new Directory(link.path).delete())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => link.create(dir.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new Directory(link.path).delete(recursive: true))
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => link.create(dir.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new Link(link.path).delete())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => link.create(dir.path))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new File(link.path).delete()))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => link.deleteSync())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => dir.exists().then(Expect.isTrue))
+        .then((_) => dir.delete())
+        .then((_) => dir.exists().then(Expect.isFalse))
+        .then((_) => tmp.delete());
   });
 }
 
@@ -356,38 +327,31 @@ void testDeleteBrokenLink() {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");
-    return dir.create()
-      .then((_) => link.create(dir.path))
-      .then((_) => dir.delete())
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new Link(link.path).delete())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => dir.create())
-      .then((_) => link.create(dir.path))
-      .then((_) => dir.delete())
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => new Directory(link.path).delete(recursive: true))
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => dir.create())
-      .then((_) => link.create(dir.path))
-      .then((_) => dir.delete())
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Directory(link.path).delete()))
-      .then((_) => link.exists().then(Expect.isTrue))
-
-      .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new File(link.path).delete()))
-      .then((_) => link.exists().then(Expect.isTrue))
-
-      .then((_) => link.deleteSync())
-      .then((_) => link.exists().then(Expect.isFalse))
-
-      .then((_) => tmp.delete());
+    return dir
+        .create()
+        .then((_) => link.create(dir.path))
+        .then((_) => dir.delete())
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new Link(link.path).delete())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => dir.create())
+        .then((_) => link.create(dir.path))
+        .then((_) => dir.delete())
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => new Directory(link.path).delete(recursive: true))
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => dir.create())
+        .then((_) => link.create(dir.path))
+        .then((_) => dir.delete())
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new Directory(link.path).delete()))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => throws(() => new File(link.path).delete()))
+        .then((_) => link.exists().then(Expect.isTrue))
+        .then((_) => link.deleteSync())
+        .then((_) => link.exists().then(Expect.isFalse))
+        .then((_) => tmp.delete());
   });
 }
 

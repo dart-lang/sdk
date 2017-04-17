@@ -9,12 +9,14 @@ import 'dart:async';
 main() {
   StackTrace trace;
   asyncStart();
-  var f = new Future(() { throw "foo"; });
-  f.then((_) => 499)
-    .then((_) { throw "Unreachable"; },
-      onError: (e, st) {
-        Expect.equals("foo", e);
-        Expect.isNotNull(st);
-        asyncEnd();
-      });
+  var f = new Future(() {
+    throw "foo";
+  });
+  f.then((_) => 499).then((_) {
+    throw "Unreachable";
+  }, onError: (e, st) {
+    Expect.equals("foo", e);
+    Expect.isNotNull(st);
+    asyncEnd();
+  });
 }

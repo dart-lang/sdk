@@ -8,5 +8,4 @@ library empty_packages_file_option_test;
 
 import 'package:foo/foo.dart';
 
-main() {
-}
+main() {}

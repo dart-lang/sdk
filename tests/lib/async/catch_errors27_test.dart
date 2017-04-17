@@ -22,18 +22,18 @@ main() {
       controller = new StreamController();
 
       // Assignment to "global" `stream`.
-      stream = controller.stream
-        .map((x) {
-          events.add("map $x");
-          return x + 100;
-        })
-        .asBroadcastStream();
+      stream = controller.stream.map((x) {
+        events.add("map $x");
+        return x + 100;
+      }).asBroadcastStream();
 
       // Consume stream in the nested zone.
-      stream
-        .transform(new StreamTransformer.fromHandlers(
-            handleError: (e, st, sink) { sink.add("error $e"); }))
-        .listen((x) { events.add("stream $x"); });
+      stream.transform(
+          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
+        sink.add("error $e");
+      })).listen((x) {
+        events.add("stream $x");
+      });
 
       // Feed the controller in the nested zone.
       scheduleMicrotask(() {
@@ -42,29 +42,37 @@ main() {
         controller.close();
         new Future.error("done");
       });
-
-    }).listen((x) {
-                events.add("listen: $x");
-                if (x == "done") done.complete(true);
-              })
-      .asFuture().then((_) { Expect.fail("Unexpected callback"); });
+    })
+        .listen((x) {
+          events.add("listen: $x");
+          if (x == "done") done.complete(true);
+        })
+        .asFuture()
+        .then((_) {
+          Expect.fail("Unexpected callback");
+        });
 
     // Listen to stream in outer zone.
-    stream.listen((x) { events.add("stream2 $x"); });
-  }).listen((x) { events.add("outer: $x"); },
-            onDone: () { Expect.fail("Unexpected callback"); });
+    stream.listen((x) {
+      events.add("stream2 $x");
+    });
+  }).listen((x) {
+    events.add("outer: $x");
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give handlers time to run.
     Timer.run(() {
-      Expect.listEquals(["map 1",
-                         "stream 101",
-                         "stream2 101",
-                         "stream error 2",
-                         "listen: done",
-                         "outer: 2",
-                        ],
-                        events);
+      Expect.listEquals([
+        "map 1",
+        "stream 101",
+        "stream2 101",
+        "stream error 2",
+        "listen: done",
+        "outer: 2",
+      ], events);
       asyncEnd();
     });
   });

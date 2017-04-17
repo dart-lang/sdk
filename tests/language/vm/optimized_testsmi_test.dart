@@ -42,7 +42,7 @@ test4(a, bool b) {
 run(test) {
   Expect.equals("odd", test(0, true));
   Expect.equals("even", test(0, false));
-  for (var i=0; i<20; i++) test(0, false);
+  for (var i = 0; i < 20; i++) test(0, false);
   Expect.equals("odd", test(0, true));
   Expect.equals("even", test(0, false));
 }
@@ -53,4 +53,3 @@ main() {
   run(test3);
   run(test4);
 }
-

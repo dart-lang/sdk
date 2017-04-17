@@ -5,9 +5,8 @@
 // Regression test for issue 11792.
 
 null_() => null;
-final Undeclared x = null_();  // null is assignable to x of malformed type.
+final Undeclared x = null_(); // null is assignable to x of malformed type.
 
 main() {
   print(x);
 }
-

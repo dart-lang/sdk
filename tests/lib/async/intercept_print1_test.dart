@@ -31,7 +31,9 @@ main() {
   zone1.run(() {
     print("1");
     print(2);
-    print({3: [4]});
+    print({
+      3: [4]
+    });
   });
   zone2.run(() {
     print("5");

@@ -17,7 +17,6 @@ class A {
   static SetFunc([String fmt(int i) = null]) {
     func = fmt;
   }
-
 }
 
 main() {

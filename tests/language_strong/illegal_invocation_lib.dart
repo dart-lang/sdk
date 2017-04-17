@@ -1,2 +1,3 @@
 library foo;
-foo() { }
+
+foo() {}

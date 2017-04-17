@@ -11,10 +11,10 @@ main() {
   // Start sub-process when receiving data.
   var subscription;
   subscription = stdin.listen((data) {
-    Process.start(Platform.executable,
-                  [Platform.script.toFilePath()]).then((p) {
-      p.stdout.listen((_) { });
-      p.stderr.listen((_) { });
+    Process
+        .start(Platform.executable, [Platform.script.toFilePath()]).then((p) {
+      p.stdout.listen((_) {});
+      p.stderr.listen((_) {});
       // When receiving data again, kill sub-process and exit.
       subscription.onData((data) {
         // If a SIGTERM is sent before the child-process's main is invoked,

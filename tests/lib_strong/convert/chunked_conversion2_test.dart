@@ -14,6 +14,7 @@ class MyByteSink extends ByteConversionSinkBase {
   add(List<int> bytes) {
     accumulator.add(bytes);
   }
+
   close() {}
 }
 
@@ -32,6 +33,7 @@ class MyChunkedSink extends ChunkedConversionSink<List<int>> {
   add(List<int> bytes) {
     accumulator.add(bytes);
   }
+
   close() {}
 }
 

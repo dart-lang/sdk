@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 var X = 0;
 
 foo() async {
-  Expect.equals(X, 10);  // foo runs after main returns.
+  Expect.equals(X, 10); // foo runs after main returns.
   return await 5;
 }
 
@@ -18,4 +18,3 @@ main() {
   f.then((res) => print("f completed with $res"));
   X = 10;
 }
-

@@ -15,7 +15,7 @@ isNoSuchMethodError(e) => e is NoSuchMethodError;
 
 variablesOf(ClassMirror cm) {
   var result = new Map();
-  cm.declarations.forEach((k,v) {
+  cm.declarations.forEach((k, v) {
     if (v is VariableMirror) result[k] = v;
   });
   return result;
@@ -23,7 +23,7 @@ variablesOf(ClassMirror cm) {
 
 gettersOf(ClassMirror cm) {
   var result = new Map();
-  cm.declarations.forEach((k,v) {
+  cm.declarations.forEach((k, v) {
     if (v is MethodMirror && v.isGetter) result[k] = v;
   });
   return result;
@@ -31,7 +31,7 @@ gettersOf(ClassMirror cm) {
 
 settersOf(ClassMirror cm) {
   var result = new Map();
-  cm.declarations.forEach((k,v) {
+  cm.declarations.forEach((k, v) {
     if (v is MethodMirror && v.isSetter) result[k] = v;
   });
   return result;
@@ -39,7 +39,7 @@ settersOf(ClassMirror cm) {
 
 methodsOf(ClassMirror cm) {
   var result = new Map();
-  cm.declarations.forEach((k,v) {
+  cm.declarations.forEach((k, v) {
     if (v is MethodMirror && v.isRegularMethod) result[k] = v;
   });
   return result;
@@ -78,23 +78,26 @@ main() {
   Expect.equals('B:get field', c.getField(field).reflectee);
   Expect.equals(89, fieldC);
 
-  expect('{accessor: Method(s(accessor) in s(A), getter)'
-         '}',
-         gettersOf(aClass));
-  expect('{accessor: Method(s(accessor) in s(B), getter)'
-         ', field: Method(s(field) in s(B), getter)}',
-         gettersOf(bClass));
-  expect('{accessor: Method(s(accessor) in s(C), getter)}',
-         gettersOf(cClass));
+  expect(
+      '{accessor: Method(s(accessor) in s(A), getter)'
+      '}',
+      gettersOf(aClass));
+  expect(
+      '{accessor: Method(s(accessor) in s(B), getter)'
+      ', field: Method(s(field) in s(B), getter)}',
+      gettersOf(bClass));
+  expect('{accessor: Method(s(accessor) in s(C), getter)}', gettersOf(cClass));
 
-  expect('{accessor=: Method(s(accessor=) in s(A), setter)'
-         '}',
-         settersOf(aClass));
-  expect('{accessor=: Method(s(accessor=) in s(B), setter)}',
-         settersOf(bClass));
-  expect('{accessor=: Method(s(accessor=) in s(C), setter)'
-         ', field=: Method(s(field=) in s(C), setter)}',
-         settersOf(cClass));
+  expect(
+      '{accessor=: Method(s(accessor=) in s(A), setter)'
+      '}',
+      settersOf(aClass));
+  expect(
+      '{accessor=: Method(s(accessor=) in s(B), setter)}', settersOf(bClass));
+  expect(
+      '{accessor=: Method(s(accessor=) in s(C), setter)'
+      ', field=: Method(s(field=) in s(C), setter)}',
+      settersOf(cClass));
 
   Expect.equals('A:instanceMethod(7)', a.invoke(instanceMethod, [7]).reflectee);
   Expect.equals('B:instanceMethod(9)', b.invoke(instanceMethod, [9]).reflectee);
@@ -131,11 +134,17 @@ main() {
   Expect.equals('aMethod', b.invoke(aMethod, []).reflectee);
   Expect.equals('aMethod', c.invoke(aMethod, []).reflectee);
 
-  Expect.throws(() { a.invoke(bMethod, []); }, isNoSuchMethodError);
+  Expect.throws(() {
+    a.invoke(bMethod, []);
+  }, isNoSuchMethodError);
   Expect.equals('bMethod', b.invoke(bMethod, []).reflectee);
   Expect.equals('bMethod', c.invoke(bMethod, []).reflectee);
 
-  Expect.throws(() { a.invoke(cMethod, []); }, isNoSuchMethodError);
-  Expect.throws(() { b.invoke(cMethod, []); }, isNoSuchMethodError);
+  Expect.throws(() {
+    a.invoke(cMethod, []);
+  }, isNoSuchMethodError);
+  Expect.throws(() {
+    b.invoke(cMethod, []);
+  }, isNoSuchMethodError);
   Expect.equals('cMethod', c.invoke(cMethod, []).reflectee);
 }

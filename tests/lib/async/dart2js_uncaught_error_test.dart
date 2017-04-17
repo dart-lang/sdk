@@ -25,6 +25,7 @@ main() {
     Expect.equals(expect[0].toString(), message);
     Expect.equals(expect[1].toString(), error["stack"].toString());
   }
+
   context["onerror"] = new JsFunction.withThis(errorHandler);
 
   void throwit() {

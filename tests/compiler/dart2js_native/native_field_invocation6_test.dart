@@ -4,8 +4,8 @@
 
 import "native_testing.dart";
 
-makeA() native ;
-nativeFirst(x, y) native ;
+makeA() native;
+nativeFirst(x, y) native;
 
 void setup() native """
 nativeFirst = function(x, y) { return x; }

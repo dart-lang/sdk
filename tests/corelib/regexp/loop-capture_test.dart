@@ -30,6 +30,7 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  shouldBe(new RegExp(r"(?:(a)|(b)|(c))+").firstMatch("abc"), ["abc",null,null,"c"]);
-  shouldBe(new RegExp(r"(?:(a)|b)*").firstMatch("ab"), ["ab",null]);
+  shouldBe(new RegExp(r"(?:(a)|(b)|(c))+").firstMatch("abc"),
+      ["abc", null, null, "c"]);
+  shouldBe(new RegExp(r"(?:(a)|b)*").firstMatch("ab"), ["ab", null]);
 }

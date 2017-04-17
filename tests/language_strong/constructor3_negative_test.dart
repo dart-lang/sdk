@@ -5,11 +5,9 @@
 // Check that there's no crash when constructor called with wrong
 // number of args.
 
-
 class Klass {
   Klass(var v) {}
 }
-
 
 main() {
   var k = new Klass();

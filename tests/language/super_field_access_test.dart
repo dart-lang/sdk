@@ -15,8 +15,12 @@ class A {
 class B extends A {
   int foo;
   B.b1(x, this.foo) : super(x);
-  B.b2(x, y) : this.foo = y, super(x);
-  B.b3(x, y) : super(x), this.foo = y;  
+  B.b2(x, y)
+      : this.foo = y,
+        super(x);
+  B.b3(x, y)
+      : super(x),
+        this.foo = y;
 
   super$foo() => super.foo;
   sum() => foo + super.foo;
@@ -25,7 +29,7 @@ class B extends A {
 test(b) {
   Expect.equals(10, b.foo);
   Expect.equals(10, b.raw$foo());
-  Expect.equals(10, b.this$foo());  
+  Expect.equals(10, b.this$foo());
   Expect.equals(100, b.super$foo());
   Expect.equals(110, b.sum());
 }
@@ -33,5 +37,5 @@ test(b) {
 main() {
   test(new B.b1(100, 10));
   test(new B.b2(100, 10));
-  test(new B.b3(100, 10));  
+  test(new B.b3(100, 10));
 }

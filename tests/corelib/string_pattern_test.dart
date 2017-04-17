@@ -49,8 +49,7 @@ testTwoMatches() {
   for (var match in matches) {
     count++;
     Expect.equals(str.indexOf('hello', start), match.start);
-    Expect.equals(
-        str.indexOf('hello', start) + helloPattern.length, match.end);
+    Expect.equals(str.indexOf('hello', start) + helloPattern.length, match.end);
     Expect.equals(helloPattern, match.pattern);
     Expect.equals(str, match.input);
     Expect.equals(helloPattern, match[0]);

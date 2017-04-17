@@ -55,27 +55,31 @@ class MNA3<U, V, W> extends S<List<U>> with SM<U, V>, N<W> {
   }
 }
 
-main(){
-  Expect.equals("MS<List<double>>.foo\n"
-                "M<double>.foo\n",
-                new M<double>().foo());
-  Expect.equals("S<List<int>>.foo\n"
-                "M<Map<int, String>>.foo\n",
-                new SM<int, String>().foo());
-  Expect.equals("S<List<int>>.foo\n"
-                "M<Map<int, String>>.foo\n"
-                "N<bool>.foo\n"
-                "MNA1<int, String, bool>.foo\n",
-                new MNA1<int, String, bool>().foo());
-  Expect.equals("S<List<int>>.foo\n"
-                "M<Map<int, String>>.foo\n"
-                "N<bool>.foo\n"
-                "MNA2<int, String, bool>.foo\n",
-                new MNA2<int, String, bool>().foo());
-  Expect.equals("S<List<int>>.foo\n"
-                "M<Map<int, String>>.foo\n"
-                "N<bool>.foo\n"
-                "MNA3<int, String, bool>.foo\n",
-                new MNA3<int, String, bool>().foo());
+main() {
+  Expect.equals(
+      "MS<List<double>>.foo\n"
+      "M<double>.foo\n",
+      new M<double>().foo());
+  Expect.equals(
+      "S<List<int>>.foo\n"
+      "M<Map<int, String>>.foo\n",
+      new SM<int, String>().foo());
+  Expect.equals(
+      "S<List<int>>.foo\n"
+      "M<Map<int, String>>.foo\n"
+      "N<bool>.foo\n"
+      "MNA1<int, String, bool>.foo\n",
+      new MNA1<int, String, bool>().foo());
+  Expect.equals(
+      "S<List<int>>.foo\n"
+      "M<Map<int, String>>.foo\n"
+      "N<bool>.foo\n"
+      "MNA2<int, String, bool>.foo\n",
+      new MNA2<int, String, bool>().foo());
+  Expect.equals(
+      "S<List<int>>.foo\n"
+      "M<Map<int, String>>.foo\n"
+      "N<bool>.foo\n"
+      "MNA3<int, String, bool>.foo\n",
+      new MNA3<int, String, bool>().foo());
 }
-

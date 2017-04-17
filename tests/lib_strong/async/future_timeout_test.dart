@@ -10,8 +10,8 @@ import 'package:unittest/unittest.dart';
 main() {
   test("timeoutNoComplete", () {
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () => 42);
+    Future timedOut = completer.future
+        .timeout(const Duration(milliseconds: 5), onTimeout: () => 42);
     timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
@@ -19,8 +19,8 @@ main() {
 
   test("timeoutCompleteAfterTimeout", () {
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () => 42);
+    Future timedOut = completer.future
+        .timeout(const Duration(milliseconds: 5), onTimeout: () => 42);
     Timer timer = new Timer(const Duration(seconds: 1), () {
       completer.complete(-1);
     });
@@ -34,8 +34,8 @@ main() {
     Timer timer = new Timer(const Duration(milliseconds: 5), () {
       completer.complete(42);
     });
-    Future timedOut = completer.future.timeout(
-        const Duration(seconds: 1), onTimeout: () => -1);
+    Future timedOut = completer.future
+        .timeout(const Duration(seconds: 1), onTimeout: () => -1);
     timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
@@ -44,8 +44,8 @@ main() {
   test("timeoutCompleteBeforeCreate", () {
     Completer completer = new Completer.sync();
     completer.complete(42);
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () => -1);
+    Future timedOut = completer.future
+        .timeout(const Duration(milliseconds: 5), onTimeout: () => -1);
     timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
@@ -53,8 +53,10 @@ main() {
 
   test("timeoutThrows", () {
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () { throw "EXN1"; });
+    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5),
+        onTimeout: () {
+      throw "EXN1";
+    });
     timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN1");
     }));
@@ -62,8 +64,8 @@ main() {
 
   test("timeoutThrowAfterTimeout", () {
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () => 42);
+    Future timedOut = completer.future
+        .timeout(const Duration(milliseconds: 5), onTimeout: () => 42);
     Timer timer = new Timer(const Duration(seconds: 1), () {
       completer.completeError("EXN2");
     });
@@ -77,8 +79,8 @@ main() {
     Timer timer = new Timer(const Duration(milliseconds: 5), () {
       completer.completeError("EXN3");
     });
-    Future timedOut = completer.future.timeout(
-        const Duration(seconds: 1), onTimeout: () => -1);
+    Future timedOut = completer.future
+        .timeout(const Duration(seconds: 1), onTimeout: () => -1);
     timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN3");
     }));
@@ -86,10 +88,10 @@ main() {
 
   test("timeoutThrowBeforeCreate", () {
     // Prevent uncaught error when we create the error.
-    Completer completer = new Completer.sync()..future.catchError((e){});
+    Completer completer = new Completer.sync()..future.catchError((e) {});
     completer.completeError("EXN4");
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () => -1);
+    Future timedOut = completer.future
+        .timeout(const Duration(milliseconds: 5), onTimeout: () => -1);
     timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN4");
     }));
@@ -98,18 +100,18 @@ main() {
   test("timeoutReturnFutureValue", () {
     Future result = new Future.value(42);
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () => result);
+    Future timedOut = completer.future
+        .timeout(const Duration(milliseconds: 5), onTimeout: () => result);
     timedOut.then(expectAsync((v) {
       expect(v, 42);
     }));
   });
 
   test("timeoutReturnFutureError", () {
-    Future result = new Future.error("EXN5")..catchError((e){});
+    Future result = new Future.error("EXN5")..catchError((e) {});
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () => result);
+    Future timedOut = completer.future
+        .timeout(const Duration(milliseconds: 5), onTimeout: () => result);
     timedOut.catchError(expectAsync((e, s) {
       expect(e, "EXN5");
     }));
@@ -118,8 +120,8 @@ main() {
   test("timeoutReturnFutureValueLater", () {
     Completer result = new Completer();
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () {
+    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5),
+        onTimeout: () {
       result.complete(42);
       return result.future;
     });
@@ -131,8 +133,8 @@ main() {
   test("timeoutReturnFutureErrorLater", () {
     Completer result = new Completer();
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5), onTimeout: () {
+    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5),
+        onTimeout: () {
       result.completeError("EXN6");
       return result.future;
     });
@@ -154,18 +156,20 @@ main() {
     };
     forked = Zone.current.fork(specification: new ZoneSpecification(
         registerCallback: (Zone self, ZoneDelegate parent, Zone origin, f()) {
-          if (!identical(f, callback)) return f;
-          registerCallDelta++;  // Increment calls to register.
-          expect(origin, forked);
-          expect(self, forked);
-          return expectAsync(() { registerCallDelta--; return f(); });
-        }
-    ));
+      if (!identical(f, callback)) return f;
+      registerCallDelta++; // Increment calls to register.
+      expect(origin, forked);
+      expect(self, forked);
+      return expectAsync(() {
+        registerCallDelta--;
+        return f();
+      });
+    }));
     Completer completer = new Completer();
     Future timedOut;
     forked.run(() {
-      timedOut = completer.future.timeout(const Duration(milliseconds: 5),
-                                          onTimeout: callback);
+      timedOut = completer.future
+          .timeout(const Duration(milliseconds: 5), onTimeout: callback);
     });
     timedOut.then(expectAsync((v) {
       expect(callbackCalled, true);
@@ -177,8 +181,7 @@ main() {
 
   test("timeoutNoFunction", () {
     Completer completer = new Completer();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5));
+    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5));
     timedOut.catchError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(e.duration, const Duration(milliseconds: 5));
@@ -188,8 +191,7 @@ main() {
 
   test("timeoutType", () {
     Completer completer = new Completer<int>();
-    Future timedOut = completer.future.timeout(
-        const Duration(milliseconds: 5));
+    Future timedOut = completer.future.timeout(const Duration(milliseconds: 5));
     expect(timedOut, new isInstanceOf<Future<int>>());
     expect(timedOut, isNot(new isInstanceOf<Future<String>>()));
     timedOut.catchError((_) {});

@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library line_splitter_test;
+
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as MATH;
-
 
 const lineTerminators = const ['\n', '\r', '\r\n'];
 
@@ -36,11 +36,9 @@ void testManyLines() {
     return buff;
   });
 
-
   var foo = _getLinesSliced(buffer.toString());
   Expect.equals(inputs.join(), foo);
 }
-
 
 String _getLinesSliced(String str) {
   String lines;
@@ -50,7 +48,7 @@ String _getLinesSliced(String str) {
 
   const chunkSize = 3;
   var index = 0;
-  while(index < str.length) {
+  while (index < str.length) {
     var end = MATH.min(str.length, index + chunkSize);
 
     sink.addSlice(str, index, end, false);
@@ -75,15 +73,13 @@ void testSimpleConvert() {
   var result = decoder.convert(test);
 
   Expect.listEquals(
-      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],
-      result);
+      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''], result);
 }
 
 void testReadLine1() {
   var controller = new StreamController(sync: true);
-  var stream = controller.stream
-      .transform(UTF8.decoder)
-      .transform(const LineSplitter());
+  var stream =
+      controller.stream.transform(UTF8.decoder).transform(const LineSplitter());
 
   var stage = 0;
   var done = false;
@@ -99,9 +95,7 @@ void testReadLine1() {
     done = true;
   }
 
-  stream.listen(
-      stringData,
-      onDone: streamClosed);
+  stream.listen(stringData, onDone: streamClosed);
 
   // Note: codeUnits is fine. Text is ASCII.
   controller.add("Line".codeUnits);
@@ -112,13 +106,23 @@ void testReadLine1() {
 void testReadLine2() {
   var controller = new StreamController(sync: true);
 
-  var stream = controller.stream
-    .transform(UTF8.decoder)
-    .transform(const LineSplitter());
+  var stream =
+      controller.stream.transform(UTF8.decoder).transform(const LineSplitter());
 
-  var expectedLines = ['Line1', 'Line2','Line3', 'Line4',
-                       '', '', '', '', '', '',
-                       'Line5', 'Line6'];
+  var expectedLines = [
+    'Line1',
+    'Line2',
+    'Line3',
+    'Line4',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    'Line5',
+    'Line6'
+  ];
 
   var index = 0;
 
@@ -136,7 +140,6 @@ void testReadLine2() {
   Expect.equals(expectedLines.length, index);
 }
 
-
 void testSplit() {
   for (var lf in lineTerminators) {
     var test = "line1${lf}line2${lf}line3";
@@ -148,14 +151,13 @@ void testSplit() {
   var result = LineSplitter.split(test).toList();
 
   Expect.listEquals(
-      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],
-      result);
+      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''], result);
 }
 
 void testSplitWithOffsets() {
   for (var lf in lineTerminators) {
     var test = "line1${lf}line2${lf}line3";
-    var i2 = 5 + lf.length;  // index of "line2".
+    var i2 = 5 + lf.length; // index of "line2".
     Expect.equals(5 + lf.length, i2);
 
     var result = LineSplitter.split(test, 4).toList();
@@ -179,8 +181,7 @@ void testSplitWithOffsets() {
   var result = LineSplitter.split(test).toList();
 
   Expect.listEquals(
-      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],
-      result);
+      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''], result);
 
   test = "a\n\nb\r\nc\n\rd\r\re\r\n\nf\r\n";
   result = LineSplitter.split(test).toList();
@@ -190,7 +191,7 @@ void testSplitWithOffsets() {
 void testChunkedConversion() {
   // Test any split of this complex string.
   var test = "a\n\nb\r\nc\n\rd\r\re\r\n\nf\rg\nh\r\n";
-  var result = ["a", "", "b","c", "", "d", "", "e", "", "f", "g", "h"];
+  var result = ["a", "", "b", "c", "", "d", "", "e", "", "f", "g", "h"];
   for (int i = 0; i < test.length; i++) {
     var output = [];
     var splitter = new LineSplitter();

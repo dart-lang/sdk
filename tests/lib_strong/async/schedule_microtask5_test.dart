@@ -17,7 +17,9 @@ main() {
       Expect.isFalse(timerCallbackExecuted);
     }));
 
-    Timer.run(expectAsync(() { timerCallbackExecuted = true; }));
+    Timer.run(expectAsync(() {
+      timerCallbackExecuted = true;
+    }));
 
     scheduleMicrotask(expectAsync(() {
       Expect.isFalse(timerCallbackExecuted);
@@ -30,7 +32,7 @@ main() {
       while (sw.elapsedMilliseconds < 5) {
         sum++;
       }
-      if (sum == 0) throw "bad";  // Just to use the result.
+      if (sum == 0) throw "bad"; // Just to use the result.
       scheduleMicrotask(expectAsync(() {
         Expect.isFalse(timerCallbackExecuted);
       }));

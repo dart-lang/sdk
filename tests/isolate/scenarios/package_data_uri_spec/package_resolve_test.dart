@@ -13,7 +13,6 @@ final PACKAGE_SPEC = """
 foo:file:///no/such/directory/
 """;
 
-
 main([args, port]) async {
   if (port != null) {
     testPackageResolution(port);
@@ -21,10 +20,7 @@ main([args, port]) async {
   }
   var data = new Uri.dataFromString(PACKAGE_SPEC);
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script,
-                   [],
-                   p.sendPort,
-                   packageConfig: data);
+  Isolate.spawnUri(Platform.script, [], p.sendPort, packageConfig: data);
   p.handler = (msg) {
     p.close();
     if (msg is! List) {
@@ -33,7 +29,7 @@ main([args, port]) async {
     }
     if (msg[0] != data.toString()) {
       throw "Bad package config in child isolate: ${msg[0]}\n"
-            "Expected: $data";
+          "Expected: $data";
     }
     if (msg[1] != PACKAGE_PATH) {
       throw "Package path not matching: ${msg[1]}";

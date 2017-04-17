@@ -15,7 +15,6 @@ main() {
   checkList(growable);
 }
 
-
 checkList(var list) {
   // Check unoptimized.
   Expect.isFalse(checkCatch(getIt, list, 1));
@@ -24,8 +23,8 @@ checkList(var list) {
   Expect.isTrue(checkCatch(putIt, list, "hi"));
   // Optimize 'getIt' and 'putIt'.
   for (int i = 0; i < 2000; i++) {
-     putIt(list, 1);
-     getIt(list, 1);
+    putIt(list, 1);
+    getIt(list, 1);
   }
   Expect.isTrue(checkCatch(getIt, list, "hi"));
   Expect.isTrue(checkCatch(putIt, list, "hi"));
@@ -37,16 +36,14 @@ checkCatch(var f, var list, var index) {
   } on ArgumentError catch (e) {
     return true;
   } on TypeError catch (t) {
-    return true;  // thrown in type checked mode.
+    return true; // thrown in type checked mode.
   }
   return false;
 }
 
-
 getIt(var a, var i) {
   return a[i];
 }
-
 
 putIt(var a, var i) {
   a[i] = null;

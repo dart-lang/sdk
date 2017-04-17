@@ -55,7 +55,7 @@ main() {
   changeState(node3, graph.NodeState.UnableToRun);
 
   dgraph.events.take(numberOfEvents).toList().then((events) {
-    for (var i=0; i<events.length; i++) {
+    for (var i = 0; i < events.length; i++) {
       eventAssertions[i](events[i]);
     }
   });

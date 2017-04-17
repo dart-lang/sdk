@@ -6,14 +6,16 @@
 library library12.dart;
 
 import "library11.dart";
+
 class Library12 {
   Library12(this.fld);
   Library12.other(fld, multiplier) {
-    this.fld = fld*multiplier;
+    this.fld = fld * multiplier;
   }
   func() {
     return 2;
   }
+
   var fld;
   static static_func() {
     var result = 0;
@@ -30,6 +32,7 @@ class Library12 {
     Expect.equals(200, top_level_func11());
     return 3;
   }
+
   static var static_fld = 4;
 }
 

@@ -12,12 +12,12 @@ import "package:expect/expect.dart";
 import 'dart:math';
 
 void main() {
-  var n = (2 * (1<<32)) ~/ 3;
+  var n = (2 * (1 << 32)) ~/ 3;
   var n2 = n ~/ 2;
-  
+
   var iterations = 200000;
 
-  var seed = new Random().nextInt(1<<16);
+  var seed = new Random().nextInt(1 << 16);
   print("low_test seed: $seed");
   var prng = new Random(seed);
 
@@ -27,8 +27,8 @@ void main() {
       low++;
     }
   }
-  
+
   var diff = (low - (iterations ~/ 2)).abs();
   print("$low, $diff");
-  Expect.isTrue(diff < (iterations ~/ 20)); 
+  Expect.isTrue(diff < (iterations ~/ 20));
 }

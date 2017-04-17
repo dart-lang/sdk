@@ -15,6 +15,6 @@ main() {
   ClassMirror a = reflectClass(A);
   TypeVariableMirror t = a.typeVariables[0];
   MethodMirror m = a.declarations[#m];
-  
+
   Expect.equals(t, m.returnType);
 }

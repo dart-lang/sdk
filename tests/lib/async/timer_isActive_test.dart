@@ -6,12 +6,11 @@ import 'dart:async';
 import 'package:unittest/unittest.dart';
 
 main() {
-
   test("timer isActive test", () {
     Timer t;
 
     t = new Timer(const Duration(seconds: 1),
-                  expectAsync(() => expect(t.isActive, equals(false))));
+        expectAsync(() => expect(t.isActive, equals(false))));
     expect(t.isActive, equals(true));
   });
 
@@ -28,14 +27,14 @@ main() {
       i++;
     }
 
-    t = new Timer.periodic(new Duration(milliseconds: 1),
-                           expectAsync(checkActive, count: 3));
+    t = new Timer.periodic(
+        new Duration(milliseconds: 1), expectAsync(checkActive, count: 3));
     expect(t.isActive, equals(true));
   });
 
   test("timer cancel test", () {
-    Timer timer = new Timer(const Duration(seconds: 15),
-                            () => fail("Should not be reached."));
+    Timer timer = new Timer(
+        const Duration(seconds: 15), () => fail("Should not be reached."));
     Timer.run(expectAsync(() {
       expect(timer.isActive, equals(true));
       timer.cancel();

@@ -1,4 +1,5 @@
 library TypingTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -18,7 +19,9 @@ main() {
     }
     expect(counter, 1);
     counter = 0;
-    window.document.queryAll('body').forEach((e) { counter++; });
+    window.document.queryAll('body').forEach((e) {
+      counter++;
+    });
     expect(counter, 1);
   });
 

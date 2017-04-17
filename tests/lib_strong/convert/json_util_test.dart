@@ -82,16 +82,16 @@ void testParse() {
   // Maps.
   Expect.mapEquals({}, JSON.decode(' {} '));
   Expect.mapEquals({"key": "value"}, JSON.decode(' {"key": "value" } '));
-  Expect.mapEquals({"key1": 1, "key2": 2},
-                   JSON.decode(' {"key1": 1, "key2": 2} '));
-  Expect.mapEquals({"key1": 1},
-                   JSON.decode(' { "key1" : 1 } '));
+  Expect.mapEquals(
+      {"key1": 1, "key2": 2}, JSON.decode(' {"key1": 1, "key2": 2} '));
+  Expect.mapEquals({"key1": 1}, JSON.decode(' { "key1" : 1 } '));
 }
 
 void testParseInvalid() {
   void testString(String s) {
     Expect.throws(() => JSON.decode(s), (e) => e is FormatException);
   }
+
   // Scalars
   testString("");
   testString("-");
@@ -174,5 +174,5 @@ void testEscaping() {
   Expect.stringEquals('"Got \\b, \\f, \\n, \\r, \\t, \\u0000, \\\\, and \\"."',
       JSON.encode('Got \b, \f, \n, \r, \t, \u0000, \\, and ".'));
   Expect.stringEquals('"Got \\b\\f\\n\\r\\t\\u0000\\\\\\"."',
-    JSON.encode('Got \b\f\n\r\t\u0000\\".'));
+      JSON.encode('Got \b\f\n\r\t\u0000\\".'));
 }

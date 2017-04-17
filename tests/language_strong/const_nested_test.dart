@@ -16,7 +16,7 @@ class ConstFoo {
 getClosure() {
   const MIN = 2 - 1;
   const MAX = N * 2;
-  const MASK = (1 << (MAX - MIN + 1)) - 1;  // 65535.
+  const MASK = (1 << (MAX - MIN + 1)) - 1; // 65535.
 
   void foo() {
     Expect.equals(1, MIN);
@@ -36,11 +36,7 @@ getClosure() {
   return foo;
 }
 
-
 main() {
   var f = getClosure();
   f();
 }
-
-
-

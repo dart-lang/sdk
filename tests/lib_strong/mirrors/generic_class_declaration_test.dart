@@ -31,53 +31,64 @@ class A<T> {
 
 main() {
   ClassMirror cm = reflect(new A<String>()).type;
-  Expect.setEquals(
-      ['Variable(s(_instanceVariable) in s(A), private)',
-       'Variable(s(_staticVariable) in s(A), private, static)',
-       'Variable(s(instanceVariable) in s(A))',
-       'Variable(s(staticVariable) in s(A), static)'],
-       cm.declarations.values
-         .where((dm) => dm is VariableMirror).map(stringify),
-  'variables');
+  Expect.setEquals([
+    'Variable(s(_instanceVariable) in s(A), private)',
+    'Variable(s(_staticVariable) in s(A), private, static)',
+    'Variable(s(instanceVariable) in s(A))',
+    'Variable(s(staticVariable) in s(A), static)'
+  ], cm.declarations.values.where((dm) => dm is VariableMirror).map(stringify),
+      'variables');
 
   Expect.setEquals(
-      ['Method(s(_instanceGetter) in s(A), private, getter)',
-       'Method(s(_staticGetter) in s(A), private, static, getter)',
-       'Method(s(instanceGetter) in s(A), getter)',
-       'Method(s(staticGetter) in s(A), static, getter)'],
-       cm.declarations.values
-         .where((dm) => dm is MethodMirror && dm.isGetter).map(stringify),
-  'getters');
+      [
+        'Method(s(_instanceGetter) in s(A), private, getter)',
+        'Method(s(_staticGetter) in s(A), private, static, getter)',
+        'Method(s(instanceGetter) in s(A), getter)',
+        'Method(s(staticGetter) in s(A), static, getter)'
+      ],
+      cm.declarations.values
+          .where((dm) => dm is MethodMirror && dm.isGetter)
+          .map(stringify),
+      'getters');
 
   Expect.setEquals(
-      ['Method(s(_instanceSetter=) in s(A), private, setter)',
-       'Method(s(_staticSetter=) in s(A), private, static, setter)',
-       'Method(s(instanceSetter=) in s(A), setter)',
-       'Method(s(staticSetter=) in s(A), static, setter)'],
-       cm.declarations.values
-         .where((dm) => dm is MethodMirror && dm.isSetter).map(stringify),
-  'setters');
+      [
+        'Method(s(_instanceSetter=) in s(A), private, setter)',
+        'Method(s(_staticSetter=) in s(A), private, static, setter)',
+        'Method(s(instanceSetter=) in s(A), setter)',
+        'Method(s(staticSetter=) in s(A), static, setter)'
+      ],
+      cm.declarations.values
+          .where((dm) => dm is MethodMirror && dm.isSetter)
+          .map(stringify),
+      'setters');
 
   Expect.setEquals(
-      ['Method(s(_instanceMethod) in s(A), private)',
-       'Method(s(_staticMethod) in s(A), private, static)',
-       'Method(s(instanceMethod) in s(A))',
-       'Method(s(staticMethod) in s(A), static)'],
-       cm.declarations.values
-         .where((dm) => dm is MethodMirror && dm.isRegularMethod)
-           .map(stringify), 'methods');
+      [
+        'Method(s(_instanceMethod) in s(A), private)',
+        'Method(s(_staticMethod) in s(A), private, static)',
+        'Method(s(instanceMethod) in s(A))',
+        'Method(s(staticMethod) in s(A), static)'
+      ],
+      cm.declarations.values
+          .where((dm) => dm is MethodMirror && dm.isRegularMethod)
+          .map(stringify),
+      'methods');
 
   Expect.setEquals(
       ['Method(s(A) in s(A), constructor)'],
-       cm.declarations.values
-         .where((dm) => dm is MethodMirror && dm.isConstructor).map(stringify),
-  'constructors');
+      cm.declarations.values
+          .where((dm) => dm is MethodMirror && dm.isConstructor)
+          .map(stringify),
+      'constructors');
 
   Expect.setEquals(
-      ['TypeVariable(s(T) in s(A), upperBound = Class(s(Object) in '
-       's(dart.core), top-level))'],
-       cm.declarations.values
-         .where((dm) => dm is TypeVariableMirror).map(stringify),
-  'type variables');
-
+      [
+        'TypeVariable(s(T) in s(A), upperBound = Class(s(Object) in '
+            's(dart.core), top-level))'
+      ],
+      cm.declarations.values
+          .where((dm) => dm is TypeVariableMirror)
+          .map(stringify),
+      'type variables');
 }

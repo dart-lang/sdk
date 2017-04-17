@@ -21,20 +21,24 @@ main() {
         events.add(42);
         done.complete(true);
       });
-    }).listen(events.add,
-              onDone: () { events.add("done"); });
+    }).listen(events.add, onDone: () {
+      events.add("done");
+    });
     throw "foo";
-  }).listen((x) { events.add("outer: $x"); },
-            onDone: () { Expect.fail("Unexpected callback"); });
+  }).listen((x) {
+    events.add("outer: $x");
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give handlers time to run.
     Timer.run(() {
-      Expect.listEquals(["outer: foo",
-                          499,
-                          42,
-                        ],
-                        events);
+      Expect.listEquals([
+        "outer: foo",
+        499,
+        42,
+      ], events);
       asyncEnd();
     });
   });

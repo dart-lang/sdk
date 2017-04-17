@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library LibraryPrivateInConstructorB;
+
 import "library_private_in_constructor_a.dart";
 
 class PrivateB {

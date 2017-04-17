@@ -31,7 +31,7 @@ Future testWriteAsBytes(dir) {
   var completer = new Completer();
   var f = new File('${dir.path}/bytes.txt');
   var data = [50, 50, 50];
-  f.writeAsBytes(data).then((file){
+  f.writeAsBytes(data).then((file) {
     Expect.equals(f, file);
     f.readAsBytes().then((bytes) {
       Expect.listEquals(data, bytes);
@@ -52,7 +52,7 @@ Future testWriteAsString(dir) {
   var completer = new Completer();
   var f = new File('${dir.path}/strings.txt');
   var data = 'asdf';
-  f.writeAsString(data).then((file){
+  f.writeAsString(data).then((file) {
     Expect.equals(f, file);
     f.readAsString().then((str) {
       Expect.equals(data, str);

@@ -14,19 +14,18 @@ main() {
   Zone forked;
   forked = Zone.current.fork(specification: new ZoneSpecification(
       createPeriodicTimer: (Zone self, ZoneDelegate parent, Zone origin,
-                            Duration period, f(Timer timer)) {
-        events.add("forked.createPeriodicTimer");
-        return parent.createPeriodicTimer(origin, period, (Timer timer) {
-          events.add("wrapped function ${period.inMilliseconds}");
-          f(timer);
-        });
-      }));
+          Duration period, f(Timer timer)) {
+    events.add("forked.createPeriodicTimer");
+    return parent.createPeriodicTimer(origin, period, (Timer timer) {
+      events.add("wrapped function ${period.inMilliseconds}");
+      f(timer);
+    });
+  }));
 
   asyncStart();
   int tickCount = 0;
   forked.run(() {
-    new Timer.periodic(const Duration(milliseconds: 5),
-        (Timer timer) {
+    new Timer.periodic(const Duration(milliseconds: 5), (Timer timer) {
       events.add("periodic Timer $tickCount");
       Expect.identical(forked, Zone.current);
       tickCount++;
@@ -42,13 +41,18 @@ main() {
   events.add("after createPeriodicTimer");
 
   done.future.whenComplete(() {
-    Expect.listEquals(
-      [ "forked.createPeriodicTimer", "after createPeriodicTimer",
-        "wrapped function 5", "periodic Timer 0",
-        "wrapped function 5", "periodic Timer 1",
-        "wrapped function 5", "periodic Timer 2",
-        "wrapped function 5", "periodic Timer 3" ],
-      events);
+    Expect.listEquals([
+      "forked.createPeriodicTimer",
+      "after createPeriodicTimer",
+      "wrapped function 5",
+      "periodic Timer 0",
+      "wrapped function 5",
+      "periodic Timer 1",
+      "wrapped function 5",
+      "periodic Timer 2",
+      "wrapped function 5",
+      "periodic Timer 3"
+    ], events);
     asyncEnd();
   });
 }

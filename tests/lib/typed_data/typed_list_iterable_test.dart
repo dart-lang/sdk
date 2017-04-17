@@ -78,7 +78,9 @@ void testIterableFunctions(list, first, last) {
     int reduceResult = 1;
     Expect.equals(list.length, list.reduce((x, y) => ++reduceResult));
   } else {
-    Expect.equals(first, list.reduce((x, y) { throw "should not be called"; }));
+    Expect.equals(first, list.reduce((x, y) {
+      throw "should not be called";
+    }));
   }
 
   Expect.isTrue(list.skip(list.length).isEmpty);
@@ -116,7 +118,10 @@ void emptyChecks(list) {
   Expect.listEquals([], list.expand((x) => []).toList());
   Expect.listEquals([], list.expand((x) => [x, x]).toList());
   Expect.listEquals(
-      [], list.expand((x) { throw "should not be reached"; }).toList());
+      [],
+      list.expand((x) {
+        throw "should not be reached";
+      }).toList());
   Expect.listEquals([], list.fold([], (result, x) => result..add(x)));
   Expect.equals(list.toList().join("*"), list.join("*"));
   Expect.listEquals(list, list.map((x) => x).toList());

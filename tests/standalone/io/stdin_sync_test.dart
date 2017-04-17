@@ -13,9 +13,9 @@ import "package:expect/expect.dart";
 void testReadByte() {
   void test(String line, List<String> expected) {
     var script = Platform.script.resolve("stdin_sync_script.dart").toFilePath();
-    Process.start(Platform.executable,
-                  [script]..addAll(
-                      expected.map(JSON.encode))).then((process) {
+    Process
+        .start(Platform.executable, [script]..addAll(expected.map(JSON.encode)))
+        .then((process) {
       process.stdin.write(line);
       process.stdin.flush().then((_) => process.stdin.close());
       process.stderr
@@ -23,15 +23,15 @@ void testReadByte() {
           .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
-            if (data.toString() != '') throw "Bad output: '$data'";
-          });
+        if (data.toString() != '') throw "Bad output: '$data'";
+      });
       process.stdout
           .transform(UTF8.decoder)
           .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
-            if (data.toString() != 'true') throw "Bad output: '$data'";
-          });
+        if (data.toString() != 'true') throw "Bad output: '$data'";
+      });
     });
   }
 
@@ -46,7 +46,6 @@ void testReadByte() {
   test("hej", ['hej']);
 }
 
-
 void testEchoMode() {
   stdin.echoMode = true;
   Expect.isTrue(stdin.echoMode);
@@ -58,7 +57,6 @@ void testEchoMode() {
   }
 }
 
-
 void testLineMode() {
   stdin.lineMode = true;
   Expect.isTrue(stdin.lineMode);
@@ -69,7 +67,6 @@ void testLineMode() {
     print("You typed: $char");
   }
 }
-
 
 void main() {
   testReadByte();

@@ -10,6 +10,7 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class C<T> {}
+
 typedef bool Predicate<T>(T t);
 
 main() {

@@ -14,7 +14,7 @@ test() async {
   try {
     await foo();
   } catch (e) {
-    print(await(e));
+    print(await (e));
     await (exception = await e);
   }
   Expect.equals(42, exception);

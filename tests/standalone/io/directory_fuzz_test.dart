@@ -48,8 +48,7 @@ fuzzAsyncMethods() {
       Directory.systemTemp.createTempSync(v).deleteSync();
     }));
     if (v is! String) {
-      Expect.throws(() => new Directory(v),
-                    (e) => e is ArgumentError);
+      Expect.throws(() => new Directory(v), (e) => e is ArgumentError);
       return;
     }
     var d = new Directory(v);

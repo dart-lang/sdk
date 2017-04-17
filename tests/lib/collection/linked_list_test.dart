@@ -13,7 +13,6 @@ class MyEntry extends LinkedListEntry<MyEntry> {
   String toString() => value.toString();
 }
 
-
 testPreviousNext() {
   var list = new LinkedList<MyEntry>();
   Expect.throws(() => list.first);
@@ -132,7 +131,6 @@ testInsert() {
   list.clear();
 }
 
-
 testRemove() {
   var list = new LinkedList<MyEntry>();
   for (int i = 0; i < 10; i++) {
@@ -152,8 +150,8 @@ testRemove() {
     i++;
   }
 
-  Expect.listEquals([0, 1, 2, 3, 4, 6, 7, 8, 9],
-                    list.map((e) => e.value).toList());
+  Expect.listEquals(
+      [0, 1, 2, 3, 4, 6, 7, 8, 9], list.map((e) => e.value).toList());
 
   for (int i = 0; i < 9; i++) {
     list.first.unlink();
@@ -163,7 +161,6 @@ testRemove() {
 
   Expect.equals(0, list.length);
 }
-
 
 testBadAdd() {
   var list1 = new LinkedList<MyEntry>();
@@ -176,7 +173,6 @@ testBadAdd() {
 }
 
 testConcurrentModificationError() {
-
   test(function(LinkedList ll)) {
     var ll = new LinkedList<MyEntry>();
     for (int i = 0; i < 10; i++) {
@@ -184,19 +180,71 @@ testConcurrentModificationError() {
     }
     Expect.throws(() => function(ll), (e) => e is ConcurrentModificationError);
   }
-  test((ll) { for(var x in ll) { ll.remove(x); } });
-  test((ll) { ll.forEach((x) { ll.remove(x); }); });
-  test((ll) { ll.any((x) { ll.remove(x); return false; }); });
-  test((ll) { ll.every((x) { ll.remove(x); return true; }); });
-  test((ll) { ll.fold(0, (x, y) { ll.remove(y); return x; }); });
-  test((ll) { ll.reduce((x, y) { ll.remove(y); return x; }); });
-  test((ll) { ll.where((x) { ll.remove(x); return true; }).forEach((_) {}); });
-  test((ll) { ll.map((x) { ll.remove(x); return x; }).forEach((_) {}); });
-  test((ll) { ll.expand((x) { ll.remove(x); return[x];}).forEach((_) {}); });
-  test((ll) { ll.takeWhile((x) {
-      ll.remove(x); return true;}).forEach((_) {}); });
-  test((ll) { ll.skipWhile((x) {
-      ll.remove(x); return true;}).forEach((_) {}); });
+
+  test((ll) {
+    for (var x in ll) {
+      ll.remove(x);
+    }
+  });
+  test((ll) {
+    ll.forEach((x) {
+      ll.remove(x);
+    });
+  });
+  test((ll) {
+    ll.any((x) {
+      ll.remove(x);
+      return false;
+    });
+  });
+  test((ll) {
+    ll.every((x) {
+      ll.remove(x);
+      return true;
+    });
+  });
+  test((ll) {
+    ll.fold(0, (x, y) {
+      ll.remove(y);
+      return x;
+    });
+  });
+  test((ll) {
+    ll.reduce((x, y) {
+      ll.remove(y);
+      return x;
+    });
+  });
+  test((ll) {
+    ll.where((x) {
+      ll.remove(x);
+      return true;
+    }).forEach((_) {});
+  });
+  test((ll) {
+    ll.map((x) {
+      ll.remove(x);
+      return x;
+    }).forEach((_) {});
+  });
+  test((ll) {
+    ll.expand((x) {
+      ll.remove(x);
+      return [x];
+    }).forEach((_) {});
+  });
+  test((ll) {
+    ll.takeWhile((x) {
+      ll.remove(x);
+      return true;
+    }).forEach((_) {});
+  });
+  test((ll) {
+    ll.skipWhile((x) {
+      ll.remove(x);
+      return true;
+    }).forEach((_) {});
+  });
   test((ll) {
     bool first = true;
     ll.firstWhere((x) {
@@ -205,7 +253,12 @@ testConcurrentModificationError() {
       return first = false;
     });
   });
-  test((ll) { ll.lastWhere((x) { ll.remove(x); return true;}); });
+  test((ll) {
+    ll.lastWhere((x) {
+      ll.remove(x);
+      return true;
+    });
+  });
   test((ll) {
     bool first = true;
     ll.singleWhere((x) {

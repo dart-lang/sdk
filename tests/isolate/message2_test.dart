@@ -6,6 +6,7 @@
 // VMOptions=--enable_type_checks --enable_asserts
 
 library Message2Test;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import "remote_unittest_helper.dart";
@@ -26,6 +27,7 @@ class MessageTest {
         expect(actual[key], value);
       }
     }
+
     expected.forEach(testForEachMap);
   }
 

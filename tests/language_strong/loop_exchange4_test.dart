@@ -11,7 +11,7 @@ main() {
 
   int foo;
   for (var i = 0; i < 10; foo = i, i++) {
-    if(i > 0) {
+    if (i > 0) {
       Expect.equals(i - 1, foo);
     }
   }

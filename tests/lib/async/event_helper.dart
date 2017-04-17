@@ -15,11 +15,13 @@ class DataEvent implements Event {
 
   DataEvent(this.data);
 
-  void replay(EventSink sink) { sink.add(data); }
+  void replay(EventSink sink) {
+    sink.add(data);
+  }
 
   int get hashCode => data.hashCode;
 
-  bool operator==(Object other) {
+  bool operator ==(Object other) {
     if (other is! DataEvent) return false;
     DataEvent otherEvent = other;
     return data == otherEvent.data;
@@ -33,11 +35,13 @@ class ErrorEvent implements Event {
 
   ErrorEvent(this.error);
 
-  void replay(EventSink sink) { sink.addError(error); }
+  void replay(EventSink sink) {
+    sink.addError(error);
+  }
 
   int get hashCode => error.error.hashCode;
 
-  bool operator==(Object other) {
+  bool operator ==(Object other) {
     if (other is! ErrorEvent) return false;
     ErrorEvent otherEvent = other;
     return error == otherEvent.error;
@@ -49,11 +53,13 @@ class ErrorEvent implements Event {
 class DoneEvent implements Event {
   const DoneEvent();
 
-  void replay(EventSink sink) { sink.close(); }
+  void replay(EventSink sink) {
+    sink.close();
+  }
 
   int get hashCode => 42;
 
-  bool operator==(Object other) => other is DoneEvent;
+  bool operator ==(Object other) => other is DoneEvent;
 
   String toString() => "DoneEvent";
 }
@@ -72,8 +78,7 @@ class Events implements EventSink {
   }
 
   /** Capture events from a stream into a new [Events] object. */
-  factory Events.capture(Stream stream,
-                         { bool cancelOnError }) = CaptureEvents;
+  factory Events.capture(Stream stream, {bool cancelOnError}) = CaptureEvents;
 
   // EventSink interface.
   void add(var value) {
@@ -149,13 +154,10 @@ class CaptureEvents extends Events {
   StreamSubscription subscription;
   bool cancelOnError = false;
 
-  CaptureEvents(Stream stream,
-                { bool cancelOnError: false }) {
+  CaptureEvents(Stream stream, {bool cancelOnError: false}) {
     this.cancelOnError = cancelOnError;
     subscription = stream.listen(add,
-                                 onError: addError,
-                                 onDone: close,
-                                 cancelOnError: cancelOnError);
+        onError: addError, onDone: close, cancelOnError: cancelOnError);
   }
 
   void addError(error, [stackTrace]) {

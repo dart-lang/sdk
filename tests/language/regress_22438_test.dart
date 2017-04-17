@@ -10,8 +10,7 @@ main() async {
   try {
     try {
       await new Future.error("error");
-    } on MissingType catch(e) {
-    }
+    } on MissingType catch (e) {}
   } catch (e) {
     error = e;
   }

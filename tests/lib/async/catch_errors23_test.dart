@@ -22,22 +22,31 @@ main() {
       controller = new StreamController();
 
       // Assign to "global" `stream`.
-      stream = controller.stream
-        .map((x) {
-          events.add("map $x");
-          return x + 100;
-        })
-        .transform(new StreamTransformer.fromHandlers(
-            handleError: (e, st, sink) { sink.add("error $e"); }))
-        .asBroadcastStream();
+      stream = controller.stream.map((x) {
+        events.add("map $x");
+        return x + 100;
+      }).transform(
+          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
+        sink.add("error $e");
+      })).asBroadcastStream();
 
       // Listen to `stream` in the inner zone.
-      stream.listen((x) { events.add("stream $x"); });
-    }).listen((x) { events.add(x); })
-      .asFuture().then((_) { Expect.fail("Unexpected callback"); });
+      stream.listen((x) {
+        events.add("stream $x");
+      });
+    })
+        .listen((x) {
+          events.add(x);
+        })
+        .asFuture()
+        .then((_) {
+          Expect.fail("Unexpected callback");
+        });
 
     // Listen to `stream` in the outer zone.
-    stream.listen((x) { events.add("stream2 $x"); });
+    stream.listen((x) {
+      events.add("stream2 $x");
+    });
 
     // Feed the controller from the outer zone.
     controller.add(1);
@@ -47,22 +56,23 @@ main() {
     new Future.error("caught by outer");
     controller.close();
   }).listen((x) {
-                  events.add("outer: $x");
-                  if (x == "caught by outer") done.complete(true);
-                },
-            onDone: () { Expect.fail("Unexpected callback"); });
+    events.add("outer: $x");
+    if (x == "caught by outer") done.complete(true);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give handlers time to run.
     Timer.run(() {
-      Expect.listEquals(["map 1",
-                         "stream 101",
-                         "stream2 101",
-                         "stream error inner error",
-                         "stream2 error inner error",
-                         "outer: caught by outer",
-                        ],
-                        events);
+      Expect.listEquals([
+        "map 1",
+        "stream 101",
+        "stream2 101",
+        "stream error inner error",
+        "stream2 error inner error",
+        "outer: caught by outer",
+      ], events);
       asyncEnd();
     });
   });

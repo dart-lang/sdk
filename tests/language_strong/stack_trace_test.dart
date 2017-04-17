@@ -61,7 +61,8 @@ class Helper {
     try {
       func();
     } on MyException catch (exception) {
-      throw new MyException("Exception Test for stack trace being printed");;
+      throw new MyException("Exception Test for stack trace being printed");
+      ;
     }
     return 10;
   }
@@ -74,7 +75,6 @@ class Helper {
     }
     return 10;
   }
-
 }
 
 class StackTraceTest {
@@ -82,7 +82,6 @@ class StackTraceTest {
     Expect.equals(850, Helper.f1(1));
   }
 }
-
 
 // Test that the full stack trace is generated for rethrow.
 class RethrowStacktraceTest {
@@ -131,7 +130,6 @@ class RethrowStacktraceTest {
     test.testBoth();
   }
 }
-
 
 main() {
   StackTraceTest.testMain();

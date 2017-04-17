@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 typedef F(
     List
               <F> // //# 00: compile-time error
-    x);
+        x);
 
 typedef D C();
 

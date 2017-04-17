@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-bar(x,y) {}
+bar(x, y) {}
 
 foo(b) {
   var x, y;
@@ -15,12 +15,12 @@ foo(b) {
     x = 2;
     y = 1;
   }
-  bar(x,y);
-  bar(x,y);
+  bar(x, y);
+  bar(x, y);
   return x;
 }
 
 main() {
-    Expect.equals(1, foo(true));
-    Expect.equals(2, foo(false));
+  Expect.equals(1, foo(true));
+  Expect.equals(2, foo(false));
 }

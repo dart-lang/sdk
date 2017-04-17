@@ -1,4 +1,5 @@
 library ElementTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -60,11 +61,11 @@ main() {
     expect(div.dataset.putIfAbsent('bar', f), 'bar-value');
     expect(hasBeenInvoked, isFalse);
 
-    final keys = <String> [];
-    final values = <String> [];
+    final keys = <String>[];
+    final values = <String>[];
     div.dataset.forEach((String key, String value) {
-        keys.add(key);
-        values.add(value);
+      keys.add(key);
+      values.add(value);
     });
     expect(keys, unorderedEquals(['foo', 'bar']));
     expect(values, unorderedEquals(['foo-value', 'bar-value']));

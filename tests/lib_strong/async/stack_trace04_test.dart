@@ -18,10 +18,9 @@ main() {
   StackTrace trace = captureStackTrace();
   asyncStart();
   var f = new Future(() => 499);
-  f.then((_) => new Future.error("e", trace))
-    .catchError((e, st) {
-      Expect.equals("e", e);
-      Expect.identical(trace, st);
-      asyncEnd();
-    });
+  f.then((_) => new Future.error("e", trace)).catchError((e, st) {
+    Expect.equals("e", e);
+    Expect.identical(trace, st);
+    asyncEnd();
+  });
 }

@@ -5,6 +5,7 @@
 library PrefixTest1.dart;
 
 import "prefix_test2.dart" as prefix;
+
 class Prefix {
   static const int foo = 43;
 

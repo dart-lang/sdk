@@ -9,7 +9,6 @@ import "dart:typed_data";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-
 main() {
   asyncStart();
   var address = InternetAddress.LOOPBACK_IP_V4;
@@ -39,4 +38,3 @@ main() {
     });
   });
 }
-

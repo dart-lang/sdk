@@ -9,8 +9,7 @@ import 'dart:io';
 
 bar() {
   // Keep the 'throw' and its argument on separate lines.
-  throw
-  "Hello, Dwarf!";
+  throw "Hello, Dwarf!";
 }
 
 foo() {
@@ -78,11 +77,8 @@ main() {
     var frameDSO = frameMatch[2];
     print(framePC);
     print(frameDSO);
-    result = Process.runSync("addr2line",
-                             ["--exe", frameDSO,
-                              "--functions",
-                              "--inlines",
-                              framePC]);
+    result = Process.runSync(
+        "addr2line", ["--exe", frameDSO, "--functions", "--inlines", framePC]);
     if (result.exitCode != 0) {
       print(result.stdout);
       print(result.stderr);
@@ -95,13 +91,16 @@ main() {
   print(symbolizedStack);
   var symbolizedLines = symbolizedStack.toString().split("\n");
   expect(symbolizedLines.length, greaterThan(8));
-  expect(symbolizedStack.toString(),
-         stringContainsInOrder(["bar",
-                                "dwarf_stack_trace_test.dart:12",
-                                "foo",
-                                "dwarf_stack_trace_test.dart:17",
-                                "main",
-                                "dwarf_stack_trace_test.dart:23",
-                                "main", // dispatcher
-                                "dwarf_stack_trace_test.dart:20"]));
+  expect(
+      symbolizedStack.toString(),
+      stringContainsInOrder([
+        "bar",
+        "dwarf_stack_trace_test.dart:12",
+        "foo",
+        "dwarf_stack_trace_test.dart:17",
+        "main",
+        "dwarf_stack_trace_test.dart:23",
+        "main", // dispatcher
+        "dwarf_stack_trace_test.dart:20"
+      ]));
 }

@@ -47,12 +47,10 @@ void testConstAsMap(List list) {
 
   testListMapCorrespondence(list, map);
 
-  Expect.throws(() => map[0] = 499,
-                (e) => e is UnsupportedError);
-  Expect.throws(() => map.putIfAbsent(0, () => 499),
-                (e) => e is UnsupportedError);
-  Expect.throws(() => map.clear(),
-                (e) => e is UnsupportedError);
+  Expect.throws(() => map[0] = 499, (e) => e is UnsupportedError);
+  Expect.throws(
+      () => map.putIfAbsent(0, () => 499), (e) => e is UnsupportedError);
+  Expect.throws(() => map.clear(), (e) => e is UnsupportedError);
 }
 
 void testFixedAsMap(List list) {

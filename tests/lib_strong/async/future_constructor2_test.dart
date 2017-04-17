@@ -14,8 +14,7 @@ Future<int> createIntFuture() {
 
 unnamed() {
   asyncStart();
-  new Future<int>(createIntFuture)
-      .then((x) {
+  new Future<int>(createIntFuture).then((x) {
     Expect.equals(499, x);
     asyncEnd();
   });
@@ -32,8 +31,7 @@ delayed() {
 
 microtask() {
   asyncStart();
-  new Future<int>.microtask(createIntFuture)
-      .then((x) {
+  new Future<int>.microtask(createIntFuture).then((x) {
     Expect.equals(499, x);
     asyncEnd();
   });
@@ -41,8 +39,7 @@ microtask() {
 
 sync() {
   asyncStart();
-  new Future<int>.sync(createIntFuture)
-      .then((x) {
+  new Future<int>.sync(createIntFuture).then((x) {
     Expect.equals(499, x);
     asyncEnd();
   });

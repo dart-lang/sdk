@@ -12,11 +12,11 @@ class A {
     while (true) {
       if (true) {
         return 42;
-      } else {
-      }
+      } else {}
       x = bar();
     }
   }
+
   bar() => 1;
 }
 

@@ -4,6 +4,7 @@
 // VMOptions=--optimization-counter-threshold=10
 
 library GenericInstanceofTest.dart;
+
 import "package:expect/expect.dart";
 part "generic_instanceof.dart";
 

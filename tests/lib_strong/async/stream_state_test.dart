@@ -19,147 +19,186 @@ main() {
 
 void terminateWithDone(t, asBroadcast) {
   if (asBroadcast) {
-    t..expectCancel()
-     ..expectDone()
-     ..expectBroadcastCancel((_) => t.terminate());
+    t
+      ..expectCancel()
+      ..expectDone()
+      ..expectBroadcastCancel((_) => t.terminate());
   } else {
-    t..expectCancel()
-     ..expectDone(t.terminate);
+    t
+      ..expectCancel()
+      ..expectDone(t.terminate);
   }
 }
 
 mainTest({bool sync, bool asBroadcast}) {
   var p = (sync ? "S" : "AS") + (asBroadcast ? "BC" : "SC");
   test("$p-sub-data-done", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42);
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectData(42);
     terminateWithDone(t, asBroadcast);
-    t..listen()..add(42)..close();
+    t
+      ..listen()
+      ..add(42)
+      ..close();
   });
 
   test("$p-data-done-sub-sync", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42);
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectData(42);
     terminateWithDone(t, asBroadcast);
-    t..add(42)..close()..listen();
+    t
+      ..add(42)
+      ..close()
+      ..listen();
   });
 
   test("$p-data-done-sub-async", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42);
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectData(42);
     terminateWithDone(t, asBroadcast);
-    t..add(42)..close()..listen();
+    t
+      ..add(42)
+      ..close()
+      ..listen();
   });
 
   test("$p-sub-data/pause+resume-done", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42, () {
-         t.pause();
-         t.resume();
-         t.close();
-       });
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectData(42, () {
+        t.pause();
+        t.resume();
+        t.close();
+      });
     terminateWithDone(t, asBroadcast);
-    t..listen()..add(42);
+    t
+      ..listen()
+      ..add(42);
   });
 
   test("$p-sub-data-unsubonerror", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
     if (asBroadcast) {
-      t..expectListen()
-       ..expectBroadcastListen()
-       ..expectData(42)
-       ..expectError("bad")
-       ..expectBroadcastCancel()
-       ..expectCancel(t.terminate);
+      t
+        ..expectListen()
+        ..expectBroadcastListen()
+        ..expectData(42)
+        ..expectError("bad")
+        ..expectBroadcastCancel()
+        ..expectCancel(t.terminate);
     } else {
-      t..expectListen()
-       ..expectData(42)
-       ..expectCancel()
-       ..expectError("bad", t.terminate);
+      t
+        ..expectListen()
+        ..expectData(42)
+        ..expectCancel()
+        ..expectError("bad", t.terminate);
     }
-    t..listen(cancelOnError: true)
-     ..add(42)
-     ..error("bad")
-     ..add(43)
-     ..close();
+    t
+      ..listen(cancelOnError: true)
+      ..add(42)
+      ..error("bad")
+      ..add(43)
+      ..close();
   });
 
   test("$p-sub-data-no-unsubonerror", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42)
-     ..expectError("bad")
-     ..expectData(43);
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectData(42)
+      ..expectError("bad")
+      ..expectData(43);
     terminateWithDone(t, asBroadcast);
-    t..listen(cancelOnError: false)
-     ..add(42)
-     ..error("bad")
-     ..add(43)
-     ..close();
+    t
+      ..listen(cancelOnError: false)
+      ..add(42)
+      ..error("bad")
+      ..add(43)
+      ..close();
   });
 
   test("$p-pause-resume-during-event", () {
-    var t = asBroadcast ? new StreamProtocolTest.broadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42, () {
-       t.pause();
-       t.resume();
-     });
+    var t = asBroadcast
+        ? new StreamProtocolTest.broadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectData(42, () {
+        t.pause();
+        t.resume();
+      });
     if (!asBroadcast && !sync) {
       t..expectPause();
     }
     if (asBroadcast && sync) {
-      t..expectDone()
-       ..expectCancel(t.terminate);
+      t
+        ..expectDone()
+        ..expectCancel(t.terminate);
     } else {
-      t..expectCancel()
-       ..expectDone(t.terminate);
+      t
+        ..expectCancel()
+        ..expectDone(t.terminate);
     }
-    t..listen()
-     ..add(42)
-     ..close();
+    t
+      ..listen()
+      ..add(42)
+      ..close();
   });
 
   test("$p-cancel-on-data", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42, t.cancel)
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
-    t..listen(cancelOnError: false)
-     ..add(42)
-     ..close();
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectData(42, t.cancel)
+      ..expectBroadcastCancelOpt()
+      ..expectCancel(t.terminate);
+    t
+      ..listen(cancelOnError: false)
+      ..add(42)
+      ..close();
   });
 
   test("$p-cancel-on-error", () {
-    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
-                        : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectError(42, t.cancel)
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
-    t..listen(cancelOnError: false)
-     ..error(42)
-     ..close();
+    var t = asBroadcast
+        ? new StreamProtocolTest.asBroadcast(sync: sync)
+        : new StreamProtocolTest(sync: sync);
+    t
+      ..expectListen()
+      ..expectBroadcastListenOpt()
+      ..expectError(42, t.cancel)
+      ..expectBroadcastCancelOpt()
+      ..expectCancel(t.terminate);
+    t
+      ..listen(cancelOnError: false)
+      ..error(42)
+      ..close();
   });
 }

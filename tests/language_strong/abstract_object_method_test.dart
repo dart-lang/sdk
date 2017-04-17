@@ -14,8 +14,7 @@ class B extends A {
   operator ==(other);
 }
 
-class C extends B {
-}
+class C extends B {}
 
 var a = [new C()];
 

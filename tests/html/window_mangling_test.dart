@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library WindowManglingTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html' as dom;
@@ -18,18 +19,18 @@ main() {
   var win = dom.window;
 
   test('windowMethod', () {
-      final message = navigator;
-      final x = win.navigator;
-      expect(x, isNot(equals(message)));
-    });
+    final message = navigator;
+    final x = win.navigator;
+    expect(x, isNot(equals(message)));
+  });
 
   test('windowEquals', () {
-      expect($eq(win, win), isFalse);
-      expect(win == win, isTrue);
-    });
+    expect($eq(win, win), isFalse);
+    expect(win == win, isTrue);
+  });
 
   test('windowEquals', () {
-      expect($eq$(win, win), isFalse);
-      expect(win == win, isTrue);
-    });
+    expect($eq$(win, win), isFalse);
+    expect(win == win, isTrue);
+  });
 }

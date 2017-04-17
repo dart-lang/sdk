@@ -26,9 +26,15 @@ class MyList extends ListBase {
   List list;
   MyList(this.list);
   get length => list.length;
-  set length(value) { list.length = value; }
+  set length(value) {
+    list.length = value;
+  }
+
   operator [](index) => list[index];
-  operator []=(index, val) { list[index] = val; }
+  operator []=(index, val) {
+    list[index] = val;
+  }
+
   toString() => list.toString();
 }
 

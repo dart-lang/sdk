@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 
-
 class Conster {
   const Conster(this.value);
 
@@ -72,27 +71,47 @@ testInterpolation() {
 }
 
 testMultiline() {
-  Expect.equals("abe",
-                (const Conster("a"
-                "b"
-                "e")).toString());
-  Expect.equals("a b e",
-                (const Conster("a "
-                "b "
-                "e")).toString());
-  Expect.equals("a b e",
-                (const Conster("a"
-                " b"
-                " e")).toString());
+  Expect.equals(
+      "abe",
+      (const Conster("a"
+              "b"
+              "e"))
+          .toString());
+  Expect.equals(
+      "a b e",
+      (const Conster("a "
+              "b "
+              "e"))
+          .toString());
+  Expect.equals(
+      "a b e",
+      (const Conster("a"
+              " b"
+              " e"))
+          .toString());
 
-  Expect.equals("abe", (const Conster("""
-a""" "b" "e")).toString());
-  Expect.equals("a b e", (const Conster("""
-a""" " b" " e")).toString());
+  Expect.equals(
+      "abe",
+      (const Conster("""
+a"""
+              "b"
+              "e"))
+          .toString());
+  Expect.equals(
+      "a b e",
+      (const Conster("""
+a"""
+              " b"
+              " e"))
+          .toString());
 
-  Expect.equals("abe", (const Conster("""
-a""" """
-b""" """
-e""")).toString());
+  Expect.equals(
+      "abe",
+      (const Conster("""
+a"""
+              """
+b"""
+              """
+e"""))
+          .toString());
 }
-

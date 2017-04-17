@@ -36,27 +36,28 @@ main() {
     events.add("after inner");
     throw "inner throw";
   }).listen((x) {
-      events.add(x);
-      if (x == "inner done throw") {
-        done.complete(true);
-      }
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+    if (x == "inner done throw") {
+      done.complete(true);
+    }
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
-    Expect.listEquals(["catch error entry",
-                        "catch error entry2",
-                        "after inner",
-                        "main exit",
-                        "catch error",
-                        "inner throw",
-                        "future error",
-                        "future error2",
-                        499,
-                        "delayed error",
-                        "inner done throw"
-                        ],
-                        events);
+    Expect.listEquals([
+      "catch error entry",
+      "catch error entry2",
+      "after inner",
+      "main exit",
+      "catch error",
+      "inner throw",
+      "future error",
+      "future error2",
+      499,
+      "delayed error",
+      "inner done throw"
+    ], events);
     asyncEnd();
   });
   events.add("main exit");

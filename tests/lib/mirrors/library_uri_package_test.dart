@@ -25,7 +25,7 @@ testLibraryUri(var value, Uri expectedUri) {
 main() {
   var mirrors = currentMirrorSystem();
   test("Test package library uri", () {
-    testLibraryUri(new ArgParser(),
-        Uri.parse('package:args/src/arg_parser.dart'));
+    testLibraryUri(
+        new ArgParser(), Uri.parse('package:args/src/arg_parser.dart'));
   });
 }

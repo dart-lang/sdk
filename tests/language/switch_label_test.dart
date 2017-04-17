@@ -6,10 +6,9 @@
 import "package:expect/expect.dart";
 
 class Switcher {
+  Switcher() {}
 
-  Switcher() { }
-
-  say1 (sound) {
+  say1(sound) {
     var x = 0;
     switch (sound) {
       MOO:
@@ -26,7 +25,7 @@ class Switcher {
     return x;
   }
 
-  say2 (sound) {
+  say2(sound) {
     var x = 0;
     switch (sound) {
       WOOF:
@@ -44,15 +43,17 @@ class Switcher {
   }
 
   // forward label to outer switch
-  say3 (animal, sound) {
+  say3(animal, sound) {
     var x = 0;
     switch (animal) {
       case "cow":
         switch (sound) {
           case "moo":
-            x = 100; break;
+            x = 100;
+            break;
           case "muh":
-            x = 200; break;
+            x = 200;
+            break;
           default:
             continue NIX_UNDERSTAND;
         }
@@ -85,13 +86,13 @@ class SwitchLabelTest {
 
     Expect.equals(200, s.say2("moo"));
     Expect.equals(200, s.say2("woof"));
-    Expect.equals(300, s.say2(""));  // Dead unicorn says nothing.
+    Expect.equals(300, s.say2("")); // Dead unicorn says nothing.
 
     Expect.equals(100, s.say3("cow", "moo"));
     Expect.equals(200, s.say3("cow", "muh"));
     Expect.equals(400, s.say3("cow", "boeh")); // Don't ask.
     Expect.equals(300, s.say3("dog", "woof"));
-    Expect.equals(400, s.say3("dog", "boj"));  // Ĉu vi parolas Esperanton?
+    Expect.equals(400, s.say3("dog", "boj")); // Ĉu vi parolas Esperanton?
     Expect.equals(400, s.say3("unicorn", "")); // Still dead.
     Expect.equals(500, s.say3("angry bird", "whoooo"));
   }

@@ -10,8 +10,13 @@ import 'package:unittest/unittest.dart';
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
-class A { const A(); }
-class B extends A { const B(); }
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+}
 
 main() {
   Events sentEvents = new Events()..close();
@@ -21,7 +26,9 @@ main() {
   test("lastWhere with super class", () {
     StreamController c = new StreamController<B>();
     Future f = c.stream.lastWhere((x) => false, defaultValue: () => const A());
-    f.then(expectAsync((v) { Expect.equals(const A(), v); }));
+    f.then(expectAsync((v) {
+      Expect.equals(const A(), v);
+    }));
     sentEvents.replay(c);
   });
 }

@@ -8,20 +8,20 @@
 import 'package:expect/expect.dart';
 
 import 'config_import_lib1a.dart'
-  if (id) 'config_import_lib1b.dart'
-  if (not.set.id) 'config_import_lib1c.dart';
+    if (id) 'config_import_lib1b.dart'
+    if (not.set.id) 'config_import_lib1c.dart';
 
 import 'config_import_lib2a.dart'
-  if (not.set.id) 'config_import_lib2b.dart'
-  if (not.set.either) 'config_import_lib2c.dart';
+    if (not.set.id) 'config_import_lib2b.dart'
+    if (not.set.either) 'config_import_lib2c.dart';
 
 import 'config_import_lib3a.dart'
-  if (dotted.id == "some_string") 'config_import_lib3b.dart'
-  if (id) 'config_import_lib3c.dart';
+    if (dotted.id == "some_string") 'config_import_lib3b.dart'
+    if (id) 'config_import_lib3c.dart';
 
 import 'config_import_lib4a.dart'
-  if (lots.of.dots.In.id == "other") 'config_import_lib4b.dart'
-  if (lots.of.dots.In.id == "false") 'config_import_lib4c.dart';
+    if (lots.of.dots.In.id == "other") 'config_import_lib4b.dart'
+    if (lots.of.dots.In.id == "false") 'config_import_lib4c.dart';
 
 main() {
   Expect.equals("b", lib1());

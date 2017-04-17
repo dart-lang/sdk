@@ -7,14 +7,17 @@ import "dart:typed_data";
 
 main() {
   iter(count, [values]) => values is List
-                               ? new Iterable.generate(count, (x) => values[x])
-                               : new Iterable.generate(count, (x) => values);
+      ? new Iterable.generate(count, (x) => values[x])
+      : new Iterable.generate(count, (x) => values);
   test(expect, iter, [start = 0, end]) {
     var actual = new String.fromCharCodes(iter, start, end);
     Expect.equals(expect, actual);
   }
+
   testThrows(iterable, [start = 0, end]) {
-    Expect.throws(() { new String.fromCharCodes(iterable, start, end); });
+    Expect.throws(() {
+      new String.fromCharCodes(iterable, start, end);
+    });
   }
 
   test("", iter(0));
@@ -29,7 +32,7 @@ main() {
   test("\x00", iter(1, 0));
   test("\x00", [0]);
   test("\x00", const [0]);
-  test("\x00", new List(1)..[0]=0);
+  test("\x00", new List(1)..[0] = 0);
   test("\x00", new Uint8List(1));
   test("\x00", new Uint16List(1));
   test("\x00", new Uint32List(1));
@@ -38,7 +41,7 @@ main() {
   test("\xff", iter(1, 255));
   test("\xFF", [255]);
   test("\xFF", const [255]);
-  test("\xFF", new List(1)..[0]=255);
+  test("\xFF", new List(1)..[0] = 255);
   test("\xFF", new Uint8List(1)..[0] = 255);
   test("\xFF", new Uint16List(1)..[0] = 255);
   test("\xFF", new Uint32List(1)..[0] = 255);
@@ -47,7 +50,7 @@ main() {
   test("\u0100", iter(1, 256));
   test("\u0100", [256]);
   test("\u0100", const [256]);
-  test("\u0100", new List(1)..[0]=256);
+  test("\u0100", new List(1)..[0] = 256);
   test("\u0100", new Uint16List(1)..[0] = 256);
   test("\u0100", new Uint32List(1)..[0] = 256);
   test("\u0100", "\u0100".codeUnits);
@@ -55,7 +58,7 @@ main() {
   test("\uffff", iter(1, 65535));
   test("\uffff", [65535]);
   test("\uffff", const [65535]);
-  test("\uffff", new List(1)..[0]=65535);
+  test("\uffff", new List(1)..[0] = 65535);
   test("\uffff", new Uint16List(1)..[0] = 65535);
   test("\uffff", new Uint32List(1)..[0] = 65535);
   test("\uffff", "\uffff".codeUnits);
@@ -63,29 +66,41 @@ main() {
   test("\u{10000}", iter(1, 65536));
   test("\u{10000}", [65536]);
   test("\u{10000}", const [65536]);
-  test("\u{10000}", new List(1)..[0]=65536);
-  test("\u{10000}", new Uint32List(1)..[0]=65536);
+  test("\u{10000}", new List(1)..[0] = 65536);
+  test("\u{10000}", new Uint32List(1)..[0] = 65536);
   test("\u{10000}", "\u{10000}".codeUnits);
 
   test("\u{10FFFF}", iter(1, 0x10FFFF));
   test("\u{10FFFF}", [0x10FFFF]);
   test("\u{10FFFF}", const [0x10FFFF]);
-  test("\u{10FFFF}", new List(1)..[0]=0x10FFFF);
+  test("\u{10FFFF}", new List(1)..[0] = 0x10FFFF);
   test("\u{10FFFF}", new Uint32List(1)..[0] = 0x10FFFF);
 
   test("\u{10ffff}", iter(2, [0xDBFF, 0xDFFF]));
   test("\u{10ffff}", [0xDBFF, 0xDFFF]);
   test("\u{10ffff}", const [0xDBFF, 0xDFFF]);
-  test("\u{10ffff}", new List(2)..[0] = 0xDBFF..[1] = 0xDFFF);
-  test("\u{10ffff}", new Uint16List(2)..[0] = 0xDBFF..[1] = 0xDFFF);
-  test("\u{10ffff}", new Uint32List(2)..[0] = 0xDBFF..[1] = 0xDFFF);
+  test(
+      "\u{10ffff}",
+      new List(2)
+        ..[0] = 0xDBFF
+        ..[1] = 0xDFFF);
+  test(
+      "\u{10ffff}",
+      new Uint16List(2)
+        ..[0] = 0xDBFF
+        ..[1] = 0xDFFF);
+  test(
+      "\u{10ffff}",
+      new Uint32List(2)
+        ..[0] = 0xDBFF
+        ..[1] = 0xDFFF);
   test("\u{10FFFF}", "\u{10FFFF}".codeUnits);
 
   var leadSurrogate = "\u{10ffff}"[0];
   test(leadSurrogate, iter(1, 0xDBFF));
   test(leadSurrogate, [0xDBFF]);
   test(leadSurrogate, const [0xDBFF]);
-  test(leadSurrogate, new List(1)..[0]=0xDBFF);
+  test(leadSurrogate, new List(1)..[0] = 0xDBFF);
   test(leadSurrogate, new Uint16List(1)..[0] = 0xDBFF);
   test(leadSurrogate, new Uint32List(1)..[0] = 0xDBFF);
   test(leadSurrogate, leadSurrogate.codeUnits);
@@ -94,7 +109,7 @@ main() {
   test(tailSurrogate, iter(1, 0xDFFF));
   test(tailSurrogate, [0xDFFF]);
   test(tailSurrogate, const [0xDFFF]);
-  test(tailSurrogate, new List(1)..[0]=0xDFFF);
+  test(tailSurrogate, new List(1)..[0] = 0xDFFF);
   test(tailSurrogate, new Uint16List(1)..[0] = 0xDFFF);
   test(tailSurrogate, new Uint32List(1)..[0] = 0xDFFF);
   test(tailSurrogate, tailSurrogate.codeUnits);
@@ -114,17 +129,17 @@ main() {
   testThrows(new Int32List(1)..[0] = 0x110000);
 
   // Check start/end
-  var list = const[0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48];
+  var list = const [0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48];
   for (var iterable in [
-           iter(list.length, list),
-           list.toList(growable: true),
-           list.toList(growable: false),
-           list,
-           new Uint8List(8)..setRange(0, 8, list),
-           new Uint16List(8)..setRange(0, 8, list),
-           new Uint32List(8)..setRange(0, 8, list),
-           "ABCDEFGH".codeUnits,
-       ]) {
+    iter(list.length, list),
+    list.toList(growable: true),
+    list.toList(growable: false),
+    list,
+    new Uint8List(8)..setRange(0, 8, list),
+    new Uint16List(8)..setRange(0, 8, list),
+    new Uint32List(8)..setRange(0, 8, list),
+    "ABCDEFGH".codeUnits,
+  ]) {
     test("ABCDEFGH", iterable);
     // start varies, end is null.
     test("ABCDEFGH", iterable, 0);
@@ -152,7 +167,7 @@ main() {
 
   void testThrowsRange(iterable, [start = 0, end]) {
     Expect.throws(() => new String.fromCharCodes(iterable, start, end),
-                  (e) => e is RangeError);
+        (e) => e is RangeError);
   }
 
   // Test varying slices of the code units of a string.
@@ -160,14 +175,14 @@ main() {
     var codes = string.codeUnits;
     int length = string.length;
     for (var iterable in [
-            iter(length, codes),
-            codes.toList(growable: true),
-            codes.toList(growable: false),
-            new Uint16List(length)..setRange(0, length, codes),
-            new Int32List(length)..setRange(0, length, codes),
-            new Uint32List(length)..setRange(0, length, codes),
-            codes,
-        ]) {
+      iter(length, codes),
+      codes.toList(growable: true),
+      codes.toList(growable: false),
+      new Uint16List(length)..setRange(0, length, codes),
+      new Int32List(length)..setRange(0, length, codes),
+      new Uint32List(length)..setRange(0, length, codes),
+      codes,
+    ]) {
       var newString = new String.fromCharCodes(iterable);
       Expect.equals(string, newString);
       for (int i = 0; i < length; i = i * 2 + 1) {
@@ -201,43 +216,38 @@ main() {
   // Large Uint8List.
   test("abcde" * 199998, new Uint8List.fromList(megaList), 5, 999995);
 
-  const cLatin1       = const [0x00, 0xff];
-  const cUtf16        = const [0x00, 0xffff, 0xdfff, 0xdbff, 0xdfff, 0xdbff];
-  const cCodepoints   = const [0x00, 0xffff, 0xdfff, 0x10ffff, 0xdbff];
-  List  gLatin1       = cLatin1.toList(growable: true);
-  List  gUtf16        = cUtf16.toList(growable: true);
-  List  gCodepoints   = cCodepoints.toList(growable: true);
-  List  fLatin1       = cLatin1.toList(growable: false);
-  List  fUtf16        = cUtf16.toList(growable: false);
-  List  fCodepoints   = cCodepoints.toList(growable: false);
-  Uint8List  bLatin1  = new Uint8List(2)..setRange(0, 2, cLatin1);
-  Uint16List wLatin1  = new Uint16List(2)..setRange(0, 2, cLatin1);
-  Uint16List wUtf16   = new Uint16List(6)..setRange(0, 6, cUtf16);
-  Uint32List lLatin1  = new Uint32List(2)..setRange(0, 2, cLatin1);
-  Uint32List lUtf16   = new Uint32List(6)..setRange(0, 6, cUtf16);
+  const cLatin1 = const [0x00, 0xff];
+  const cUtf16 = const [0x00, 0xffff, 0xdfff, 0xdbff, 0xdfff, 0xdbff];
+  const cCodepoints = const [0x00, 0xffff, 0xdfff, 0x10ffff, 0xdbff];
+  List gLatin1 = cLatin1.toList(growable: true);
+  List gUtf16 = cUtf16.toList(growable: true);
+  List gCodepoints = cCodepoints.toList(growable: true);
+  List fLatin1 = cLatin1.toList(growable: false);
+  List fUtf16 = cUtf16.toList(growable: false);
+  List fCodepoints = cCodepoints.toList(growable: false);
+  Uint8List bLatin1 = new Uint8List(2)..setRange(0, 2, cLatin1);
+  Uint16List wLatin1 = new Uint16List(2)..setRange(0, 2, cLatin1);
+  Uint16List wUtf16 = new Uint16List(6)..setRange(0, 6, cUtf16);
+  Uint32List lLatin1 = new Uint32List(2)..setRange(0, 2, cLatin1);
+  Uint32List lUtf16 = new Uint32List(6)..setRange(0, 6, cUtf16);
   Uint32List lCodepoints = new Uint32List(5)..setRange(0, 5, cCodepoints);
-  Uint8List bvLatin1  = new Uint8List.view(bLatin1.buffer);
+  Uint8List bvLatin1 = new Uint8List.view(bLatin1.buffer);
   Uint16List wvLatin1 = new Uint16List.view(wLatin1.buffer);
-  Uint16List wvUtf16  = new Uint16List.view(wUtf16.buffer);
+  Uint16List wvUtf16 = new Uint16List.view(wUtf16.buffer);
   Uint32List lvLatin1 = new Uint32List.view(lLatin1.buffer);
-  Uint32List lvUtf16  = new Uint32List.view(lUtf16.buffer);
+  Uint32List lvUtf16 = new Uint32List.view(lUtf16.buffer);
   Uint32List lvCodepoints = new Uint32List.view(lCodepoints.buffer);
   var buffer = new Uint8List(200).buffer;
-  Uint8List bbLatin1  =
-      new Uint8List.view(buffer, 3, 2)..setAll(0, bLatin1);
-  Uint16List wbLatin1 =
-      new Uint16List.view(buffer, 8, 2)..setAll(0, wLatin1);
-  Uint16List wbUtf16  =
-      new Uint16List.view(buffer, 16, 6)..setAll(0, wUtf16);
-  Uint32List lbLatin1 =
-      new Uint32List.view(buffer, 32, 2)..setAll(0, lLatin1);
-  Uint32List lbUtf16  =
-      new Uint32List.view(buffer, 64, 6)..setAll(0, lUtf16);
-  Uint32List lbCodepoints =
-      new Uint32List.view(buffer, 128, 5)..setAll(0, lCodepoints);
+  Uint8List bbLatin1 = new Uint8List.view(buffer, 3, 2)..setAll(0, bLatin1);
+  Uint16List wbLatin1 = new Uint16List.view(buffer, 8, 2)..setAll(0, wLatin1);
+  Uint16List wbUtf16 = new Uint16List.view(buffer, 16, 6)..setAll(0, wUtf16);
+  Uint32List lbLatin1 = new Uint32List.view(buffer, 32, 2)..setAll(0, lLatin1);
+  Uint32List lbUtf16 = new Uint32List.view(buffer, 64, 6)..setAll(0, lUtf16);
+  Uint32List lbCodepoints = new Uint32List.view(buffer, 128, 5)
+    ..setAll(0, lCodepoints);
 
-  String sLatin1     = "\x00\xff";
-  String sUnicode    =
+  String sLatin1 = "\x00\xff";
+  String sUnicode =
       "\x00\uffff$tailSurrogate$leadSurrogate$tailSurrogate$leadSurrogate";
   for (int i = 0; i < 2; i++) {
     for (int j = i + 1; j < 2; j++) {

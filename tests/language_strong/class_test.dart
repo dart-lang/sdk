@@ -18,7 +18,9 @@ class ClassTest {
     test.testFactory();
     test.testNamedConstructors();
     test.testDefaultImplementation();
-    test.testFunctionParameter((int a) { return a;});
+    test.testFunctionParameter((int a) {
+      return a;
+    });
   }
 
   testFunctionParameter(int func(int a)) {
@@ -44,7 +46,7 @@ class ClassTest {
   }
 
   testInheritedField() {
-    var sub  = new Sub();
+    var sub = new Sub();
     Expect.equals(42, sub.method6());
   }
 
@@ -158,7 +160,10 @@ class Sub extends Sup {
   }
 
   int closureRef() {
-    var f = () {y_ += 1; return y_;};
+    var f = () {
+      y_ += 1;
+      return y_;
+    };
     return f();
   }
 

@@ -14,15 +14,15 @@ isomain(args) {}
 
 // Isolate exiting after running microtasks.
 isomain2(args) {
-  scheduleMicrotask((){});
+  scheduleMicrotask(() {});
 }
 
 // Isolate exiting after running timers.
 isomain3(args) {
-  new Timer(Duration.ZERO, (){});
+  new Timer(Duration.ZERO, () {});
 }
 
-main(){
+main() {
   asyncStart();
 
   test(isomain);
@@ -42,9 +42,8 @@ void test(mainFunction) {
     asyncEnd();
   };
 
-  Isolate.spawn(mainFunction,
-                null,
-                // Setup handler as part of spawn.
-                errorsAreFatal: false,
-                onExit: exitPort.sendPort);
+  Isolate.spawn(mainFunction, null,
+      // Setup handler as part of spawn.
+      errorsAreFatal: false,
+      onExit: exitPort.sendPort);
 }

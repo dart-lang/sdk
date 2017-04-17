@@ -12,6 +12,7 @@ class A<X> {
 }
 
 class B {}
+
 class C {}
 
 class D<Y> = A<Y> with B, C;

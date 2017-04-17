@@ -10,17 +10,17 @@ main() {
   var x = 0;
   try {
     try {
-      throw x++;  // 1
+      throw x++; // 1
     } on int catch (e) {
       trace += "$e";
       trace += "-$x";
-      x++;  // 2
+      x++; // 2
       try {
-        x++;  // 3
+        x++; // 3
         rethrow;
       } finally {
         trace += "-f";
-        x++;  // 4
+        x++; // 4
       }
     }
   } catch (e) {

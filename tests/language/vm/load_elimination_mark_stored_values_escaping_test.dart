@@ -23,21 +23,20 @@ class A {
   }
 }
 
-
 @noInline
 modify() {
   G.aa.val = 123;
 }
 
 class B {
- A aa;
+  A aa;
 
- @alwaysInline
- poly(p) {
-   G = this;
-   foo2(p, this);
-   modify();
- }
+  @alwaysInline
+  poly(p) {
+    G = this;
+    foo2(p, this);
+    modify();
+  }
 }
 
 @alwaysInline

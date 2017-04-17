@@ -7,13 +7,14 @@ import "package:expect/expect.dart";
 // Test that a case with an empty block does not fall through.
 
 class EmptyBlockCaseTest {
-
   static testMain() {
     var exception = null;
     try {
       switch (1) {
-        case 1: {}
-        case 2: Expect.equals(true, false);
+        case 1:
+          {}
+        case 2:
+          Expect.equals(true, false);
       }
     } on FallThroughError catch (e) {
       exception = e;

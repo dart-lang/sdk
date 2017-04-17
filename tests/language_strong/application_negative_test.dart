@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library application_negative_test.dart;
+
 part 'failing_main.dart';

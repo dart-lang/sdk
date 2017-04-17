@@ -9,17 +9,17 @@ import "native_testing.dart";
 @Native("A")
 class A {
   @JSName('fooA')
-  int foo() native ;
+  int foo() native;
 }
 
 @Native("B")
 class B extends A {
   @JSName('fooB')
-  int foo() native ;
+  int foo() native;
 }
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

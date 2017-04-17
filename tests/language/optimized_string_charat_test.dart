@@ -19,7 +19,6 @@ test_const_str(i) {
   return "abc"[i];
 }
 
-
 test_const_index(s) {
   return s[0];
 }
@@ -63,6 +62,4 @@ main() {
   Expect.equals(new String.fromCharCodes([456]), test_charat(c, 1));
   Expect.equals(new String.fromCharCodes([789]), test_charat(c, 2));
   Expect.throws(() => test_charat(c, 3));
-
-
 }

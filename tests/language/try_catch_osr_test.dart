@@ -11,7 +11,7 @@ maythrow(x) {
   try {
     if (x == null) throw 42;
     return 99;
-  } finally { }
+  } finally {}
 }
 
 f1() {
@@ -43,7 +43,7 @@ f2([x = 1]) {
       Expect.equals(42, e);
       s++;
     }
-  } catch (e) { }
+  } catch (e) {}
   return s;
 }
 

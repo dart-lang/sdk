@@ -16,7 +16,6 @@ import 'recurse/fisk.dart';
 main() {}
 """;
 
-
 main() {
   int count = 0;
   Future<String> provider(Uri uri) {
@@ -30,7 +29,7 @@ main() {
     } else if (uri.scheme == "lib") {
       source = libProvider(uri);
     } else {
-     return new Future.error("unexpected URI $uri");
+      return new Future.error("unexpected URI $uri");
     }
     return new Future.value(source);
   }
@@ -54,11 +53,12 @@ main() {
   }
 
   asyncStart();
-  Future<CompilationResult> result =
-      compile(new Uri(scheme: 'main'),
-              new Uri(scheme: 'lib', path: '/'),
-              new Uri(scheme: 'package', path: '/'),
-              provider, handler);
+  Future<CompilationResult> result = compile(
+      new Uri(scheme: 'main'),
+      new Uri(scheme: 'lib', path: '/'),
+      new Uri(scheme: 'package', path: '/'),
+      provider,
+      handler);
   result.then((CompilationResult result) {
     Expect.isFalse(result.isSuccess);
     Expect.isTrue(10 < count);
@@ -67,6 +67,6 @@ main() {
     Expect.equals(2 * (count - 1), warningCount);
     Expect.equals(1, errorCount);
   }, onError: (e, s) {
-      throw 'Compilation failed: $e\n$s';
+    throw 'Compilation failed: $e\n$s';
   }).then(asyncSuccess);
 }

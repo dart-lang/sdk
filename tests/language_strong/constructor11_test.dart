@@ -11,8 +11,7 @@ class A {
   A([this.x = 499]);
 }
 
-class B extends A {
-}
+class B extends A {}
 
 // ==========
 
@@ -21,8 +20,7 @@ class X {
   X([this.x = 42]);
 }
 
-class Y extends X {
-}
+class Y extends X {}
 
 class Z extends Y {
   Z() : super();
@@ -35,11 +33,9 @@ class F {
   F([this.x = 99]);
 }
 
-class G extends F {
-}
+class G extends F {}
 
-class H extends G {
-}
+class H extends G {}
 
 main() {
   Expect.equals(499, new B().x);

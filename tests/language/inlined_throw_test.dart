@@ -52,7 +52,10 @@ ternary(a, b, c) {
 }
 
 hest() => kast("hest");
-hest2() { return kast("hest2"); }
+hest2() {
+  return kast("hest2");
+}
+
 foo() => true || kast("foo");
 bar() => false || kast("foo");
 barc() => callMeTrue() || kast("foo");
@@ -70,15 +73,19 @@ boo() {
   callMe();
   x = kast("boo");
 }
+
 yo() {
   throw kast("yo");
 }
+
 bin() {
   return 5 * kast("bin");
 }
+
 binCallThrow() {
   return callMe() * kast("binct");
 }
+
 hoo() {
   x[kast("hoo")] = 0;
   x[kast("hoo")];
@@ -94,9 +101,9 @@ switcheroo() {
 }
 
 class ThrowConstructor {
-  ThrowConstructor() :
-    foo = callMeTrue(),
-    bar = kast("ThrowConstructor") {
+  ThrowConstructor()
+      : foo = callMeTrue(),
+        bar = kast("ThrowConstructor") {
     called = false;
   }
 
@@ -155,7 +162,7 @@ dovileBreak() {
     x = 1;
     break;
   } while (kast("vile"));
-  return(x);
+  return (x);
 }
 
 dovileContinue() {
@@ -165,7 +172,7 @@ dovileContinue() {
     x = 1;
     continue;
   } while (kast("vile"));
-  return(x);
+  return (x);
 }
 
 dovileBreakContinue(x) {
@@ -174,7 +181,7 @@ dovileBreakContinue(x) {
     if (x == 1) break;
     continue;
   } while (kast("vile"));
-  return(x);
+  return (x);
 }
 
 faar1() {

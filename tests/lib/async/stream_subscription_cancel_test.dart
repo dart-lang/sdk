@@ -11,12 +11,12 @@ import 'package:unittest/unittest.dart';
 void main() {
   test('subscription.cancel', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     expect(controller.stream.listen(null).cancel().then((_) => done),
-           completion(equals(true)));
+        completion(equals(true)));
 
     Timer.run(() {
       done = true;
@@ -26,11 +26,10 @@ void main() {
 
   test('subscription.cancel after close', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () {
-          completer.complete();
-          return completer.future;
-        });
+    StreamController controller = new StreamController(onCancel: () {
+      completer.complete();
+      return completer.future;
+    });
 
     controller.close();
 
@@ -47,8 +46,8 @@ void main() {
 
   test('subscription.cancel after error', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     controller.addError("error");
 
@@ -61,16 +60,16 @@ void main() {
       done = true;
       completer.complete();
     }
+
     subscription = controller.stream.listen(null, onError: onError);
     expect(doneCompleter.future, completion(equals(true)));
   });
 
   test('subscription.cancel after error (cancelOnError)', () {
     bool called = false;
-    StreamController controller = new StreamController(
-        onCancel: () {
-          called = true;
-        });
+    StreamController controller = new StreamController(onCancel: () {
+      called = true;
+    });
 
     controller.addError("error");
 
@@ -79,35 +78,35 @@ void main() {
       expect(called, equals(true));
       doneCompleter.complete(true);
     }
+
     controller.stream.listen(null, onError: onError, cancelOnError: true);
     expect(doneCompleter.future, completion(equals(true)));
   });
 
   test('subscription.cancel before error (cancelOnError)', () {
     var doneCompleter = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () {
-          doneCompleter.complete(true);
-        });
+    StreamController controller = new StreamController(onCancel: () {
+      doneCompleter.complete(true);
+    });
 
     controller.addError("error");
 
     void onError(e) {
       fail("onError is unexpected");
     }
+
     controller.stream
-      .listen(null, onError: onError, cancelOnError: true)
-      .cancel();
+        .listen(null, onError: onError, cancelOnError: true)
+        .cancel();
     expect(doneCompleter.future, completion(equals(true)));
   });
 
   test('subscription.cancel on error (cancelOnError)', () {
     bool called = false;
-    StreamController controller = new StreamController(
-        onCancel: () {
-          expect(called, isFalse);
-          called = true;
-        });
+    StreamController controller = new StreamController(onCancel: () {
+      expect(called, isFalse);
+      called = true;
+    });
 
     controller.addError("error");
 
@@ -118,33 +117,31 @@ void main() {
       sub.cancel();
       doneCompleter.complete(true);
     }
-    sub = controller.stream
-      .listen(null, onError: onError, cancelOnError: true);
+
+    sub = controller.stream.listen(null, onError: onError, cancelOnError: true);
     expect(doneCompleter.future, completion(equals(true)));
   });
 
   test('subscription.cancel before done', () {
     var doneCompleter = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () {
-          doneCompleter.complete(true);
-        });
+    StreamController controller = new StreamController(onCancel: () {
+      doneCompleter.complete(true);
+    });
 
     controller.close();
 
     void onDone() {
       fail("onDone is unexpected");
     }
-    controller.stream
-      .listen(null, onDone: onDone)
-      .cancel();
+
+    controller.stream.listen(null, onDone: onDone).cancel();
     expect(doneCompleter.future, completion(equals(true)));
   });
 
   test('subscription.cancel through map', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.map((x) => x).listen(null).cancel();
@@ -159,8 +156,8 @@ void main() {
 
   test('subscription.cancel through asyncMap', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.asyncMap((x) => x).listen(null).cancel();
@@ -175,8 +172,8 @@ void main() {
 
   test('subscription.cancel through asyncExpand', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.asyncExpand((x) => x).listen(null).cancel();
@@ -191,8 +188,8 @@ void main() {
 
   test('subscription.cancel through handleError', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.handleError((x) => x).listen(null).cancel();
@@ -207,8 +204,8 @@ void main() {
 
   test('subscription.cancel through skip', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.skip(1).listen(null).cancel();
@@ -223,8 +220,8 @@ void main() {
 
   test('subscription.cancel through take', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.take(1).listen(null).cancel();
@@ -239,8 +236,8 @@ void main() {
 
   test('subscription.cancel through skipWhile', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.skipWhile((x) => true).listen(null).cancel();
@@ -255,8 +252,8 @@ void main() {
 
   test('subscription.cancel through takeWhile', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.takeWhile((x) => true).listen(null).cancel();
@@ -271,8 +268,8 @@ void main() {
 
   test('subscription.cancel through timeOut', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var duration = const Duration(hours: 5);
@@ -288,12 +285,11 @@ void main() {
 
   test('subscription.cancel through transform', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
-    var transformer =
-        new StreamTransformer.fromHandlers(handleData: (x, y) {});
+    var transformer = new StreamTransformer.fromHandlers(handleData: (x, y) {});
     var future = controller.stream.transform(transformer).listen(null).cancel();
 
     expect(future.then((_) => done = true), completion(equals(true)));
@@ -306,8 +302,8 @@ void main() {
 
   test('subscription.cancel through where', () {
     var completer = new Completer();
-    StreamController controller = new StreamController(
-        onCancel: () => completer.future);
+    StreamController controller =
+        new StreamController(onCancel: () => completer.future);
 
     bool done = false;
     var future = controller.stream.where((x) => true).listen(null).cancel();

@@ -37,6 +37,7 @@ bar() {
       return b.hashCode;
     }
   }
+
   return f();
 }
 

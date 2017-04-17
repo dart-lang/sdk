@@ -1,10 +1,10 @@
 library XSLTProcessorTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
 main() {
-
   useHtmlIndividualConfiguration();
 
   group('supported', () {
@@ -15,7 +15,7 @@ main() {
 
   group('functional', () {
     var isXsltProcessor =
-      predicate((x) => x is XsltProcessor, 'is an XsltProcessor');
+        predicate((x) => x is XsltProcessor, 'is an XsltProcessor');
 
     var expectation = XsltProcessor.supported ? returnsNormally : throws;
 
@@ -27,5 +27,4 @@ main() {
       }, expectation);
     });
   });
-
 }

@@ -12,7 +12,6 @@ main() {
   }
 }
 
-
 // VM: temporary double should not be used as result of division,
 // otherwise the function always returns the same object.
 double divide(double a, double b) {
@@ -25,13 +24,11 @@ testBinaryOp() {
   Expect.notEquals(x, y);
 }
 
-
 // VM: temporary double should be used only for "-b", otherwise the
 // function would always return the same object.
 double unary(double a, double b) {
   return -(a * (-b));
 }
-
 
 testUnaryOp() {
   var x = unary(1.0, 2.0);

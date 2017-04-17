@@ -14,13 +14,13 @@ bool inCheckedMode() {
   return false;
 }
 
-class M<U extends V, V> { }
+class M<U extends V, V> {}
 
-class N<U, V extends U> { }
+class N<U, V extends U> {}
 
-class S<T> { }
+class S<T> {}
 
-class MNA<U, V, W> extends S<List<U>> with M<V, U>, N<List<W>, List<W>> { }
+class MNA<U, V, W> extends S<List<U>> with M<V, U>, N<List<W>, List<W>> {}
 
 class MNA2<U, V, W> = S<List<U>> with M<V, U>, N<List<W>, List<W>>;
 
@@ -39,4 +39,3 @@ main() {
     new MNA2<int, num, bool>();
   }
 }
-

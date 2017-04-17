@@ -48,8 +48,8 @@ main() {
     test("appendHtml", () {
       var oldStuff = document.body.innerHtml;
       var newStuff = '<div rumplestiltskin="value">content</div>';
-      document.body.appendHtml(newStuff,
-          treeSanitizer: NodeTreeSanitizer.trusted);
+      document.body
+          .appendHtml(newStuff, treeSanitizer: NodeTreeSanitizer.trusted);
       expect(document.body.innerHtml, oldStuff + newStuff);
     });
   });

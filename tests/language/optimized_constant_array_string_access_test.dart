@@ -18,16 +18,15 @@ int testConstantStringAndIndexCodeUnitAt() {
   Expect.throws(() => test(true));
 }
 
-
 int testConstantArrayAndIndexAt() {
   int testPositive(b) {
-    var a = const [1,2,3,4];
+    var a = const [1, 2, 3, 4];
     if (b) return a[400];
     return a[2];
   }
 
   int testNegative(b) {
-    var a = const [1,2,3,4];
+    var a = const [1, 2, 3, 4];
     if (b) return a[-1];
     return a[2];
   }
@@ -41,19 +40,20 @@ int testConstantArrayAndIndexAt() {
   Expect.throws(() => testNegative(true));
 }
 
-
 foo(a) {
-  if (a == 1) { return 2; }
+  if (a == 1) {
+    return 2;
+  }
   var aa = const [1, 2];
   return aa[2.3];
 }
 
-
 int testNonSmiIndex() {
-  for (int i = 0; i < 20; i++) { foo(1); }
+  for (int i = 0; i < 20; i++) {
+    foo(1);
+  }
   Expect.throws(() => foo(2));
 }
-
 
 main() {
   testConstantStringAndIndexCodeUnitAt();

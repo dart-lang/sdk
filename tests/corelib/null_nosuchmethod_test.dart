@@ -9,16 +9,13 @@ import "package:expect/expect.dart";
 main() {
   var x;
   // Non-existing method calls noSuchMethod.
-  Expect.throws(() => x.foo(),
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => x.foo(), (e) => e is NoSuchMethodError);
 
   // Calling noSuchMethod directly.
-  Expect.throws(() => x.noSuchMethod("foo", []),
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => x.noSuchMethod("foo", []), (e) => e is NoSuchMethodError);
 
   // Closurizing noSuchMethod and calling it.
   var nsm = x.noSuchMethod;
   Expect.notEquals(null, nsm);
-  Expect.throws(() => nsm("foo", []),
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => nsm("foo", []), (e) => e is NoSuchMethodError);
 }

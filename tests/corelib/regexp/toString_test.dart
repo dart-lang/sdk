@@ -26,20 +26,18 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  dynamic testForwardSlash(pattern, _string)
-  {
-      var string = _string;
+  dynamic testForwardSlash(pattern, _string) {
+    var string = _string;
 
-      var re1 = new RegExp(pattern);
+    var re1 = new RegExp(pattern);
 
-      return re1.hasMatch(string);
+    return re1.hasMatch(string);
   }
 
-  dynamic testLineTerminator(pattern)
-  {
-      var re1 = new RegExp(pattern);
+  dynamic testLineTerminator(pattern) {
+    var re1 = new RegExp(pattern);
 
-      return new RegExp(r"\n|\r|\u2028|\u2029").hasMatch(re1.toString());
+    return new RegExp(r"\n|\r|\u2028|\u2029").hasMatch(re1.toString());
   }
 
   // These strings are equivalent, since the '\' is identity escaping the '/' at the string level.

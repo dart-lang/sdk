@@ -53,36 +53,28 @@ class BoolTest {
     if (identical(false, true)) {
       throw "Expect.equals broken";
     }
-    if (true == true) {
-    } else {
+    if (true == true) {} else {
       throw "Expect.equals broken";
     }
-    if (false == false) {
-    } else {
+    if (false == false) {} else {
       throw "Expect.equals broken";
     }
-    if (identical(true, true)) {
-    } else {
+    if (identical(true, true)) {} else {
       throw "Expect.equals broken";
     }
-    if (identical(false, false)) {
-    } else {
+    if (identical(false, false)) {} else {
       throw "Expect.equals broken";
     }
-    if (true != false) {
-    } else {
+    if (true != false) {} else {
       throw "Expect.equals broken";
     }
-    if (false != true) {
-    } else {
+    if (false != true) {} else {
       throw "Expect.equals broken";
     }
-    if (!identical(true, false)) {
-    } else {
+    if (!identical(true, false)) {} else {
       throw "Expect.equals broken";
     }
-    if (!identical(false, true)) {
-    } else {
+    if (!identical(false, true)) {} else {
       throw "Expect.equals broken";
     }
     if (true != true) {
@@ -119,6 +111,7 @@ class BoolTest {
         return onTypeError;
       }
     }
+
     testAnd(a, b, onTypeError) {
       try {
         return a && b;
@@ -147,15 +140,15 @@ class BoolTest {
     Expect.equals(true, testOr(1, isTrue, true));
     Expect.equals(false, testOr(0, isFalse, false));
     Expect.equals(false, testOr(1, isFalse, false));
-    
+
     // Test side effects.
     int trueCount = 0, falseCount = 0;
-      
+
     trueFunc() {
       trueCount++;
       return true;
     }
-    
+
     falseFunc() {
       falseCount++;
       return false;
@@ -163,7 +156,7 @@ class BoolTest {
 
     Expect.equals(0, trueCount);
     Expect.equals(0, falseCount);
-  
+
     trueFunc() && trueFunc();
     Expect.equals(2, trueCount);
     Expect.equals(0, falseCount);
@@ -182,7 +175,7 @@ class BoolTest {
     falseFunc() && falseFunc();
     Expect.equals(0, trueCount);
     Expect.equals(1, falseCount);
-    
+
     trueCount = falseCount = 0;
     trueFunc() || trueFunc();
     Expect.equals(1, trueCount);
@@ -203,7 +196,6 @@ class BoolTest {
     Expect.equals(0, trueCount);
     Expect.equals(2, falseCount);
   }
-  
 
   static void testMain() {
     testEquality();

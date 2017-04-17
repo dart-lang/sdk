@@ -16,9 +16,11 @@ class A<T> extends B {
   var typedList;
 
   // p must be inside a box (in dart2js).
-  A(p) : captured = (() => p), super(p++) {
+  A(p)
+      : captured = (() => p),
+        super(p++) {
     // Make non-inlinable.
-    try {} catch(e) {}
+    try {} catch (e) {}
 
     captured2 = () => p++;
 

@@ -10,7 +10,9 @@ class MyList extends ListBase {
   MyList(this.list);
 
   get length => list.length;
-  set length(val) { list.length = val; }
+  set length(val) {
+    list.length = val;
+  }
 
   operator [](index) => list[index];
   operator []=(index, val) => list[index] = val;
@@ -18,17 +20,22 @@ class MyList extends ListBase {
   String toString() => "[" + join(", ") + "]";
 }
 
-
 main() {
   test(expectation, iterable) {
     Expect.listEquals(expectation, iterable.toList());
   }
 
   // Function not called on empty iterable.
-  test([], [].expand((x) { throw "not called"; }));
+  test(
+      [],
+      [].expand((x) {
+        throw "not called";
+      }));
 
   // Creating the iterable doesn't call the function.
-  [1].expand((x) { throw "not called"; });
+  [1].expand((x) {
+    throw "not called";
+  });
 
   test([1], [1].expand((x) => [x]));
   test([1, 2, 3], [1, 2, 3].expand((x) => [x]));

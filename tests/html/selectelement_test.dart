@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library selectelement_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -58,13 +59,12 @@ main() {
   });
 
   test('optgroup', () {
-    var element = new Element.html(
-      '<select>'
+    var element = new Element.html('<select>'
         '<option>1</option>'
         '<optgroup>'
-          '<option>2</option>'
+        '<option>2</option>'
         '</optgroup>'
-      '</select>');
+        '</select>');
 
     expect(element.options.length, 2);
     element.selectedIndex = 1;

@@ -31,29 +31,27 @@ class SlowConsumer extends StreamConsumer {
   Future addStream(Stream stream) {
     Completer result = new Completer();
     var subscription;
-    subscription = stream.listen(
-      (List<int> data) {
-        receivedCount += data.length;
-        usedBufferSize += data.length;
-        bufferedData.add(data);
-        int currentBufferedDataLength = bufferedData.length;
-        if (usedBufferSize > bufferSize) {
-          subscription.pause();
-          usedBufferSize = 0;
-          int ms = data.length * 1000 ~/ bytesPerSecond;
-          Duration duration = new Duration(milliseconds: ms);
-          new Timer(duration, () {
-            for (int i = 0; i < currentBufferedDataLength; i++) {
-              bufferedData[i] = null;
-            }
-            subscription.resume();
-          });
-        }
-      },
-      onDone: () {
-        finalCount = receivedCount;
-        result.complete(receivedCount);
-      });
+    subscription = stream.listen((List<int> data) {
+      receivedCount += data.length;
+      usedBufferSize += data.length;
+      bufferedData.add(data);
+      int currentBufferedDataLength = bufferedData.length;
+      if (usedBufferSize > bufferSize) {
+        subscription.pause();
+        usedBufferSize = 0;
+        int ms = data.length * 1000 ~/ bytesPerSecond;
+        Duration duration = new Duration(milliseconds: ms);
+        new Timer(duration, () {
+          for (int i = 0; i < currentBufferedDataLength; i++) {
+            bufferedData[i] = null;
+          }
+          subscription.resume();
+        });
+      }
+    }, onDone: () {
+      finalCount = receivedCount;
+      result.complete(receivedCount);
+    });
     return result.future;
   }
 
@@ -71,9 +69,7 @@ class DataProvider {
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
     controller = new StreamController(
-      sync: true,
-      onPause: onPauseStateChange,
-      onResume: onPauseStateChange);
+        sync: true, onPause: onPauseStateChange, onResume: onPauseStateChange);
     Timer.run(send);
   }
 
@@ -115,10 +111,11 @@ main() {
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 
-  new DataProvider(800 * MB, 100 * MB, 1 * MB).stream
-    .pipe(new SlowConsumer(200 * MB, 5 * MB))
-    .then((count) {
-      Expect.equals(100 * MB, count);
-      asyncEnd();
-    });
+  new DataProvider(800 * MB, 100 * MB, 1 * MB)
+      .stream
+      .pipe(new SlowConsumer(200 * MB, 5 * MB))
+      .then((count) {
+    Expect.equals(100 * MB, count);
+    asyncEnd();
+  });
 }

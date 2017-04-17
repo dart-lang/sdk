@@ -18,6 +18,7 @@ class MockStack implements StackTrace {
   const MockStack(this.id);
   String toString() => "MocKStack($id)";
 }
+
 const stack1 = const MockStack(1);
 const stack2 = const MockStack(2);
 
@@ -45,8 +46,8 @@ void expectErrorOnly(e, s) {
 }
 
 AsyncError replace(self, parent, zone, e, s) {
-  if (e == "ignore") return null;  // For testing handleError throwing.
-  Expect.identical(error1, e);  // Ensure replacement only called once
+  if (e == "ignore") return null; // For testing handleError throwing.
+  Expect.identical(error1, e); // Ensure replacement only called once
   return new AsyncError(error2, stack2);
 }
 
@@ -58,7 +59,6 @@ void expectReplaced(e, s) {
   Expect.identical(stack2, s);
   asyncEnd();
 }
-
 
 void testProgrammaticErrors(expectError) {
   {
@@ -99,16 +99,18 @@ void testProgrammaticErrors(expectError) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.asBroadcastStream().listen(
-        null, onError: expectError, cancelOnError: true);
+    controller.stream
+        .asBroadcastStream()
+        .listen(null, onError: expectError, cancelOnError: true);
     controller.addError(error1, stack1);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController(sync: true);
-    controller.stream.asBroadcastStream().listen(
-        null, onError: expectError, cancelOnError: true);
+    controller.stream
+        .asBroadcastStream()
+        .listen(null, onError: expectError, cancelOnError: true);
     controller.addError(error1, stack1);
   }
 
@@ -142,16 +144,18 @@ void testThrownErrors(expectErrorOnly) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.map((x) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .map((x) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.where((x) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .where((x) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.add(null);
   }
 
@@ -165,48 +169,54 @@ void testThrownErrors(expectErrorOnly) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.expand((x) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .expand((x) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.asyncMap((x) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .asyncMap((x) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.asyncExpand((x) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .asyncExpand((x) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.handleError((e, s) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .handleError((e, s) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.addError("ignore", null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.skipWhile((x) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .skipWhile((x) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.takeWhile((x) => throw error1).listen(
-        null, onError: expectErrorOnly, cancelOnError: true);
+    controller.stream
+        .takeWhile((x) => throw error1)
+        .listen(null, onError: expectErrorOnly, cancelOnError: true);
     controller.add(null);
   }
 
@@ -227,32 +237,36 @@ void testThrownErrors(expectErrorOnly) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.firstWhere((x) => throw error1)
-                     .catchError(expectErrorOnly);
+    controller.stream
+        .firstWhere((x) => throw error1)
+        .catchError(expectErrorOnly);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.lastWhere((x) => throw error1)
-                     .catchError(expectErrorOnly);
+    controller.stream
+        .lastWhere((x) => throw error1)
+        .catchError(expectErrorOnly);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.singleWhere((x) => throw error1)
-                     .catchError(expectErrorOnly);
+    controller.stream
+        .singleWhere((x) => throw error1)
+        .catchError(expectErrorOnly);
     controller.add(null);
   }
 
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.reduce((x, y) => throw error1)
-              .catchError(expectErrorOnly);
+    controller.stream
+        .reduce((x, y) => throw error1)
+        .catchError(expectErrorOnly);
     controller.add(null);
     controller.add(null);
   }
@@ -260,12 +274,12 @@ void testThrownErrors(expectErrorOnly) {
   {
     asyncStart();
     StreamController controller = new StreamController();
-    controller.stream.fold(null, (x, y) => throw error1)
-                     .catchError(expectErrorOnly);
+    controller.stream
+        .fold(null, (x, y) => throw error1)
+        .catchError(expectErrorOnly);
     controller.add(null);
   }
 }
-
 
 testNoChange() {
   void testTransparent() {
@@ -278,38 +292,38 @@ testNoChange() {
 
   // Run in a zone that doesn't change callback.
   runZoned(testTransparent,
-           zoneSpecification:
-               new ZoneSpecification(handleUncaughtError: (s,p,z,e,t){}));
+      zoneSpecification:
+          new ZoneSpecification(handleUncaughtError: (s, p, z, e, t) {}));
 
   // Run in zone that delegates to root zone
   runZoned(testTransparent,
-           zoneSpecification: new ZoneSpecification(
-               errorCallback: (s,p,z,e,t) => p.errorCallback(z, e, t)));
+      zoneSpecification: new ZoneSpecification(
+          errorCallback: (s, p, z, e, t) => p.errorCallback(z, e, t)));
 
   // Run in a zone that returns null from the callback.
   runZoned(testTransparent,
-           zoneSpecification:
-               new ZoneSpecification(errorCallback: (s,p,z,e,t) => null));
+      zoneSpecification:
+          new ZoneSpecification(errorCallback: (s, p, z, e, t) => null));
 
   // Run in zone that returns same values.
   runZoned(testTransparent,
-           zoneSpecification: new ZoneSpecification(
-               errorCallback: (s,p,z,e,t) => new AsyncError(e, t)));
+      zoneSpecification: new ZoneSpecification(
+          errorCallback: (s, p, z, e, t) => new AsyncError(e, t)));
 
   // Run in zone that returns null, inside zone that does replacement.
   runZoned(() {
     runZoned(testTransparent,
-             zoneSpecification:
-                 new ZoneSpecification(errorCallback: (s,p,z,e,t)=>null));
+        zoneSpecification:
+            new ZoneSpecification(errorCallback: (s, p, z, e, t) => null));
   }, zoneSpecification: replaceZoneSpec);
 }
-
 
 void testWithReplacement() {
   void testReplaced() {
     testProgrammaticErrors(expectReplaced);
     testThrownErrors(expectReplaced);
   }
+
   // Zone which replaces errors.
   runZoned(testReplaced, zoneSpecification: replaceZoneSpec);
 
@@ -321,7 +335,7 @@ void testWithReplacement() {
   // Use delegation to parent which replaces.
   runZoned(() {
     runZoned(testReplaced,
-             zoneSpecification: new ZoneSpecification(
-                 errorCallback: (s,p,z,e,t) => p.errorCallback(z,e,t)));
+        zoneSpecification: new ZoneSpecification(
+            errorCallback: (s, p, z, e, t) => p.errorCallback(z, e, t)));
   }, zoneSpecification: replaceZoneSpec);
 }

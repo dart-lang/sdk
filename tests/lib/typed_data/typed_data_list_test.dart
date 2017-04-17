@@ -30,14 +30,12 @@ void testListFunctions(list, first, last, toElementType) {
   Expect.throws(() => list.removeAt(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeLast(), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeRange(0, 1), (e) => e is UnsupportedError);
-  Expect.throws(() => list.removeWhere((x) => true),
-                (e) => e is UnsupportedError);
-  Expect.throws(() => list.replaceRange(0, 1, []),
-                (e) => e is UnsupportedError);
-  Expect.throws(() => list.retainWhere((x) => true),
-                (e) => e is UnsupportedError);
-
-
+  Expect.throws(
+      () => list.removeWhere((x) => true), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => list.replaceRange(0, 1, []), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => list.retainWhere((x) => true), (e) => e is UnsupportedError);
 
   var map = list.asMap();
   Expect.equals(list.length, map.length);
@@ -68,8 +66,8 @@ void testListFunctions(list, first, last, toElementType) {
     Expect.equals(0, list[i]);
   }
 
-  list.setAll(1,
-              list.getRange(1, list.length - 1).map((x) => toElementType(2)));
+  list.setAll(
+      1, list.getRange(1, list.length - 1).map((x) => toElementType(2)));
   Expect.equals(copy.first, list.first);
   Expect.equals(copy.last, list.last);
   for (int i = 1; i < list.length - 1; i++) {
@@ -77,26 +75,22 @@ void testListFunctions(list, first, last, toElementType) {
   }
 
   list.setRange(1, list.length - 1,
-               new Iterable.generate(list.length - 2,
-                                     (x) => toElementType(x + 5)));
+      new Iterable.generate(list.length - 2, (x) => toElementType(x + 5)));
   Expect.equals(first, list.first);
   Expect.equals(last, list.last);
   for (int i = 1; i < list.length - 1; i++) {
     Expect.equals(4 + i, list[i]);
   }
   list.setRange(1, list.length - 1,
-                new Iterable.generate(list.length - 1,
-                                      (x) => toElementType(x + 5)),
-                1);
+      new Iterable.generate(list.length - 1, (x) => toElementType(x + 5)), 1);
   Expect.equals(first, list.first);
   Expect.equals(last, list.last);
   for (int i = 1; i < list.length - 1; i++) {
     Expect.equals(5 + i, list[i]);
   }
 
-  Expect.throws(() => list.setRange(1, list.length - 1, []),
-                (e) => e is StateError);
-
+  Expect.throws(
+      () => list.setRange(1, list.length - 1, []), (e) => e is StateError);
 
   for (int i = 0; i < list.length; i++) {
     list[list.length - 1 - i] = toElementType(i);
@@ -107,7 +101,7 @@ void testListFunctions(list, first, last, toElementType) {
   }
 
   Expect.listEquals(list.getRange(1, list.length - 1).toList(),
-                    list.sublist(1, list.length - 1));
+      list.sublist(1, list.length - 1));
   Expect.listEquals(list.getRange(1, list.length).toList(), list.sublist(1));
   Expect.listEquals(list, list.sublist(0));
 
@@ -115,12 +109,9 @@ void testListFunctions(list, first, last, toElementType) {
   Expect.listEquals([], list.sublist(list.length));
   Expect.listEquals([], list.sublist(list.length, list.length));
 
-  Expect.throws(() => list.sublist(list.length + 1),
-      (e) => e is RangeError);
-  Expect.throws(() => list.sublist(0, list.length + 1),
-      (e) => e is RangeError);
-  Expect.throws(() => list.sublist(1, 0),
-      (e) => e is RangeError);
+  Expect.throws(() => list.sublist(list.length + 1), (e) => e is RangeError);
+  Expect.throws(() => list.sublist(0, list.length + 1), (e) => e is RangeError);
+  Expect.throws(() => list.sublist(1, 0), (e) => e is RangeError);
 }
 
 void emptyChecks(list) {
@@ -141,14 +132,12 @@ void emptyChecks(list) {
   Expect.throws(() => list.removeAt(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeLast(), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeRange(0, 1), (e) => e is UnsupportedError);
-  Expect.throws(() => list.removeWhere((x) => true),
-                (e) => e is UnsupportedError);
-  Expect.throws(() => list.replaceRange(0, 1, []),
-                (e) => e is UnsupportedError);
-  Expect.throws(() => list.retainWhere((x) => true),
-                (e) => e is UnsupportedError);
-
-
+  Expect.throws(
+      () => list.removeWhere((x) => true), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => list.replaceRange(0, 1, []), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => list.retainWhere((x) => true), (e) => e is UnsupportedError);
 
   var map = list.asMap();
   Expect.equals(list.length, map.length);
@@ -177,10 +166,10 @@ main() {
   toDouble(x) => x.toDouble();
   toInt(x) => x.toInt();
 
-  testListFunctions(new Float32List.fromList([1.5, 6.3, 9.5]),
-                    1.5, 9.5, toDouble);
-  testListFunctions(new Float64List.fromList([1.5, 6.3, 9.5]),
-                    1.5, 9.5, toDouble);
+  testListFunctions(
+      new Float32List.fromList([1.5, 6.3, 9.5]), 1.5, 9.5, toDouble);
+  testListFunctions(
+      new Float64List.fromList([1.5, 6.3, 9.5]), 1.5, 9.5, toDouble);
   testListFunctions(new Int8List.fromList([3, 5, 9]), 3, 9, toInt);
   testListFunctions(new Int16List.fromList([3, 5, 9]), 3, 9, toInt);
   testListFunctions(new Int32List.fromList([3, 5, 9]), 3, 9, toInt);

@@ -21,7 +21,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -30,11 +30,8 @@ main() async {
   List<int> message = "GET / HTTP/1.0\r\nHost: localhost\r\n\r\n".codeUnits;
   int written = 0;
   List<int> body = <int>[];
-  var server = await HttpServer.bindSecure(
-      "localhost",
-      0,
-      serverContext,
-      backlog: 5);
+  var server =
+      await HttpServer.bindSecure("localhost", 0, serverContext, backlog: 5);
   server.listen((HttpRequest request) async {
     await request.drain();
     request.response.contentLength = 100;
@@ -43,17 +40,15 @@ main() async {
     }
     request.response.close();
   });
-  var socket = await RawSecureSocket.connect("localhost",
-                                             server.port,
-                                             context: clientContext);
+  var socket = await RawSecureSocket.connect("localhost", server.port,
+      context: clientContext);
   socket.listen((RawSocketEvent event) {
     switch (event) {
       case RawSocketEvent.READ:
         body.addAll(socket.read());
         break;
       case RawSocketEvent.WRITE:
-        written +=
-            socket.write(message, written, message.length - written);
+        written += socket.write(message, written, message.length - written);
         if (written < message.length) {
           socket.writeEventsEnabled = true;
         } else {
@@ -66,7 +61,8 @@ main() async {
         Expect.equals(9, body[body.length - 1]);
         server.close();
         break;
-      default: throw "Unexpected event $event";
+      default:
+        throw "Unexpected event $event";
     }
   }, onError: (e, trace) {
     String msg = "onError handler of RawSecureSocket stream hit $e";

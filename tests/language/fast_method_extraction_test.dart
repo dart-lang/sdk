@@ -18,7 +18,7 @@ class B {
   foo() => -40 - f;
 }
 
-class X { }
+class X {}
 
 class C<T> {
   foo(v) => v is T;
@@ -104,4 +104,3 @@ main() {
     extractFromNull();
   }
 }
-

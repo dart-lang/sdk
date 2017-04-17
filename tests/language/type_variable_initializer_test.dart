@@ -17,8 +17,7 @@ class A<T> {
   A() : map = new Map<T, T>();
 }
 
-class B<T> extends A<T> {
-}
+class B<T> extends A<T> {}
 
 main() {
   Expect.isTrue(new B<int>().map is Map<int, int>);

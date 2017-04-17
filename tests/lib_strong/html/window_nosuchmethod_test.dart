@@ -19,21 +19,20 @@ main() {
   var things = <dynamic>[new Unused(), dom.window];
 
   test('windowNonMethod', () {
-      var win = things[inscrutable(1)];
-      final message = foo("Hello World");
-      expect(() => win.foo(message), throwsNoSuchMethodError);
-    });
+    var win = things[inscrutable(1)];
+    final message = foo("Hello World");
+    expect(() => win.foo(message), throwsNoSuchMethodError);
+  });
 
   test('foo', () {
-      var win = things[inscrutable(0)];
-      String x = win.foo('bar');
-      expect(x, 'not bar');
-    });
+    var win = things[inscrutable(0)];
+    String x = win.foo('bar');
+    expect(x, 'not bar');
+  });
 
   // Use dom.window directly in case the compiler does type inference.
   test('windowNonMethod2', () {
-      final message = foo("Hello World");
-      expect(() => (dom.window as dynamic).foo(message),
-          throwsNoSuchMethodError);
-    });
+    final message = foo("Hello World");
+    expect(() => (dom.window as dynamic).foo(message), throwsNoSuchMethodError);
+  });
 }

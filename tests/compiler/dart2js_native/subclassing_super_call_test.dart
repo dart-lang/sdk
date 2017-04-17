@@ -16,7 +16,7 @@ class N1 {}
 class N2 extends N1 {
   N2.init();
   String text;
-  foo() native ;
+  foo() native;
 }
 
 class AA extends N2 {
@@ -37,10 +37,10 @@ class BB extends AA {
   afun() => super.afun();
 }
 
-BB makeBB() native ;
+BB makeBB() native;
 
 @Creates('=Object')
-getBBPrototype() native ;
+getBBPrototype() native;
 
 void setup() native r"""
 function N2() {}

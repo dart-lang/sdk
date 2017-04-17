@@ -9,14 +9,14 @@ import 'native_testing.dart';
 
 @Native("NativeA")
 class A {
-  foo() native ;
+  foo() native;
 }
 
 @Native("NativeB")
 class B extends A {}
 
-A makeA() native ;
-B makeB() native ;
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function inherits(child, parent) {

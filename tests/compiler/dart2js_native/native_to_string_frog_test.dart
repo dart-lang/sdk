@@ -9,7 +9,7 @@ class A {
   toString() => 'AAA';
 }
 
-makeA() native ;
+makeA() native;
 
 void setup() native """
 function A() {}

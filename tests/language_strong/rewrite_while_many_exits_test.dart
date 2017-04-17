@@ -7,42 +7,42 @@ import "package:expect/expect.dart";
 var baz_clicks = 0;
 
 baz() {
-    return ++baz_clicks;
+  return ++baz_clicks;
 }
 
 var global = 0;
 
 increment_global() {
-    ++global;
-    return global <= 10;
+  ++global;
+  return global <= 10;
 }
 
 foo(x, y) {
-    var n = 0;
-    while (true) {
-        baz();
-        if (n >= x) {
-            return n;
-        }
-        baz();
-        if (n >= y) {
-            return n;
-        }
-        n = n + 1;
+  var n = 0;
+  while (true) {
+    baz();
+    if (n >= x) {
+      return n;
     }
+    baz();
+    if (n >= y) {
+      return n;
+    }
+    n = n + 1;
+  }
 }
 
 bar() {
-    while (increment_global()) {
-        baz();
-    }
-    return baz();
+  while (increment_global()) {
+    baz();
+  }
+  return baz();
 }
 
 main() {
-    Expect.equals(10, foo(10, 20));
-    Expect.equals(10, foo(20, 10));
+  Expect.equals(10, foo(10, 20));
+  Expect.equals(10, foo(20, 10));
 
-    baz_clicks = 0;
-    Expect.equals(11, bar());
+  baz_clicks = 0;
+  Expect.equals(11, bar());
 }

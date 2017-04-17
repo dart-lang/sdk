@@ -10,7 +10,9 @@ import "package:expect/expect.dart";
 class A {
   var f;
   var g;
-  A(a) : f = (() => 42 + a), g = (() => ++a) {
+  A(a)
+      : f = (() => 42 + a),
+        g = (() => ++a) {
     a = 4;
   }
 }
@@ -21,7 +23,9 @@ class B extends A {
 
 class C extends A {
   var h;
-  C(a) : super(42), h = (() => ++a);
+  C(a)
+      : super(42),
+        h = (() => ++a);
 }
 
 main() {

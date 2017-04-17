@@ -5,8 +5,9 @@
 
 import "package:expect/expect.dart";
 
-class A { }
-class B { }
+class A {}
+
+class B {}
 
 class ListTest {
   static void TestIterator() {
@@ -60,7 +61,9 @@ class ListTest {
     List a = new List(len);
     Expect.equals(true, a is List);
     Expect.equals(len, a.length);
-    a.forEach((element) { Expect.equals(null, element); });
+    a.forEach((element) {
+      Expect.equals(null, element);
+    });
     a[1] = 1;
     Expect.equals(1, a[1]);
     Expect.throws(() => a[len], (e) => e is RangeError);
@@ -90,6 +93,7 @@ class ListTest {
       if (a > b) return 1;
       return 0;
     }
+
     unsorted.sort(compare);
     Expect.equals(6, unsorted.length);
     Expect.equals(-4, unsorted[0]);
@@ -99,6 +103,7 @@ class ListTest {
       if (a > b) return -1;
       return 0;
     }
+
     unsorted.sort(compare2);
     Expect.equals(12, unsorted[0]);
     Expect.equals(-4, unsorted[unsorted.length - 1]);
@@ -112,16 +117,15 @@ class ListTest {
     int element = unsorted[2];
     Expect.equals(9, element);
 
-    Expect.throws(() => unsorted[2.1],
-                  (e) => e is ArgumentError || e is TypeError);
+    Expect.throws(
+        () => unsorted[2.1], (e) => e is ArgumentError || e is TypeError);
 
     Expect.throws(() => new List(-1));
     Expect.throws(() => new List(99999999999999999999999));
 
     List list = new List();
     // We cannot write just 'list.removeLast' due to issue 3769.
-    Expect.throws(() => list.removeLast(),
-                  (e) => e is RangeError);
+    Expect.throws(() => list.removeLast(), (e) => e is RangeError);
     Expect.equals(0, list.length);
   }
 }

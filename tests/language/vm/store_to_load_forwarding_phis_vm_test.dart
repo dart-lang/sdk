@@ -22,7 +22,7 @@ class A {
 
 foo(obj) {
   var a = obj.foo;
-  return new Future.value().then((val) { });
+  return new Future.value().then((val) {});
 }
 
 main() {

@@ -5,6 +5,7 @@
 // Regression test for http://dartbug.com/7964
 
 library first_regression_test;
+
 import 'dart:async';
 import 'package:unittest/unittest.dart';
 
@@ -12,9 +13,9 @@ class DoubleTransformer<T> implements StreamTransformer<T, T> {
   Stream<T> bind(Stream<T> stream) {
     var transformer = new StreamTransformer<T, T>.fromHandlers(
         handleData: (T data, EventSink<T> sink) {
-          sink.add(data);
-          sink.add(data);
-        });
+      sink.add(data);
+      sink.add(data);
+    });
     return transformer.bind(stream);
   }
 }

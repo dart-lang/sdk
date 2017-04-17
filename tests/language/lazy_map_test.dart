@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-var data = { 'a': 'a' };
+var data = {'a': 'a'};
 main() {
   Expect.equals('a', data['a']);
 }

@@ -13,13 +13,13 @@ typedef int f3<T>({int a, int b, T c});
 typedef int f4<T>({int a, int b, T d});
 
 class A<T> {
-  int baz([int a, int b, T c]) { }
-  int bar({int a, int b, T c}) { }
+  int baz([int a, int b, T c]) {}
+  int bar({int a, int b, T c}) {}
 }
 
-int baz([int a, int b, int c]) { }
+int baz([int a, int b, int c]) {}
 
-int bar({int a, int b, int c}) { }
+int bar({int a, int b, int c}) {}
 
 main() {
   Expect.isTrue(baz is f1);

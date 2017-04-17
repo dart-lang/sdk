@@ -13,7 +13,7 @@ class A {
 
 foo(i) {
   var j = 0x7fffffffffffffff + i;
-  var c = new A(j);  // allocation will be sunk
+  var c = new A(j); // allocation will be sunk
   var r = 0;
   for (var k = 0; k < 10; k++) {
     if ((j & (1 << k)) != 0) {

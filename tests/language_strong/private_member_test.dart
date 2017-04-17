@@ -10,8 +10,11 @@ class A {
   int i;
   int _instanceField;
   static int _staticField;
-  int _fun1() { return 1; }
-  void _fun2(int i) { }
+  int _fun1() {
+    return 1;
+  }
+
+  void _fun2(int i) {}
 }
 
 class Test extends B {

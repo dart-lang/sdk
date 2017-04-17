@@ -9,15 +9,14 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
-
 main() {
   // Try to generate a snapshot.
   File thisscript = new File.fromUri(Platform.script);
   Directory dir = thisscript.parent;
   String snapshot = "${dir.path}/dummy.snapshot";
   String script = "${dir.path}/snapshot_fail_script.dart";
-  var pr = Process.runSync(Platform.executable,
-      ["--snapshot=$snapshot", script]);
+  var pr =
+      Process.runSync(Platform.executable, ["--snapshot=$snapshot", script]);
 
   // There should be no dummy.snapshot file created.
   File dummy = new File(snapshot);

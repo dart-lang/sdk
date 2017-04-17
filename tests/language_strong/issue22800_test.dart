@@ -8,13 +8,9 @@ void main() {
   try {
     print("Starting here");
     throw 0;
-    try {
-    } catch (e) {
-    }
+    try {} catch (e) {}
   } catch (e) {
     print("Caught in here: $e");
   }
-  try {
-  } catch (e) {
-  }
+  try {} catch (e) {}
 }

@@ -23,44 +23,43 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(
-      localFile('certificates/trusted_certs.pem'));
-
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 Future<SecureServerSocket> startEchoServer() {
-  return SecureServerSocket.bind(HOST,
-                                 0,
-                                 serverContext).then((server) {
+  return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((SecureSocket client) {
-      client.fold(<int>[], (message, data) => message..addAll(data))
-          .then((message) {
-            client.add(message);
-            client.close();
-          });
+      client.fold(<int>[], (message, data) => message..addAll(data)).then(
+          (message) {
+        client.add(message);
+        client.close();
+      });
     });
     return server;
   });
 }
 
 Future testClient(server) {
-  return SecureSocket.connect(HOST, server.port, context: clientContext)
-  .then((socket) {
+  return SecureSocket
+      .connect(HOST, server.port, context: clientContext)
+      .then((socket) {
     socket.write("Hello server.");
     socket.close();
-    return socket.fold(<int>[], (message, data) => message..addAll(data))
-        .then((message) {
-          Expect.listEquals("Hello server.".codeUnits, message);
-          return server;
-        });
+    return socket.fold(<int>[], (message, data) => message..addAll(data)).then(
+        (message) {
+      Expect.listEquals("Hello server.".codeUnits, message);
+      return server;
+    });
   });
 }
 
 void main() {
   asyncStart();
-  InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first )
+  InternetAddress
+      .lookup("localhost")
+      .then((hosts) => HOST = hosts.first)
       .then((_) => startEchoServer())
       .then(testClient)
       .then((server) => server.close())

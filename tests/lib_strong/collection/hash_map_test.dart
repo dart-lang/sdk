@@ -13,8 +13,8 @@ void main() {
   bool equals(a, b) => a.toLowerCase() == b.toLowerCase();
 
   for (var m in [
-    new HashMap<String,int>(equals: equals, hashCode: hash),
-    new LinkedHashMap<String,int>(equals: equals, hashCode: hash),
+    new HashMap<String, int>(equals: equals, hashCode: hash),
+    new LinkedHashMap<String, int>(equals: equals, hashCode: hash),
   ]) {
     m["Abel"] = 42;
     for (var key in ["Abel", "abel", "ABEL", "Abel"]) {
@@ -28,8 +28,8 @@ void main() {
   int abshash(n) => n.abs();
   bool abseq(a, b) => a.abs() == b.abs();
   for (var m in [
-    new HashMap<int,int>(equals: abseq, hashCode: abshash),
-    new LinkedHashMap<int,int>(equals: abseq, hashCode: abshash),
+    new HashMap<int, int>(equals: abseq, hashCode: abshash),
+    new LinkedHashMap<int, int>(equals: abseq, hashCode: abshash),
   ]) {
     m[1] = 42;
     for (var key in [1, -1, 1]) {

@@ -8,7 +8,6 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   for (int i = 0; i < 600; i++) {
     Expect.equals(100, foo(100, 1.2));
@@ -21,7 +20,6 @@ main() {
   Expect.equals(36507222016 * 2, foo(2, 36507222016.6));
 }
 
-
 foo(n, a) {
   int k = 0;
   for (int i = 0; i < n; i++) {
@@ -29,7 +27,6 @@ foo(n, a) {
   }
   return k;
 }
-
 
 goo(a) {
   return a.toInt();

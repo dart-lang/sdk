@@ -5,6 +5,7 @@
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 library min_max_test;
+
 import "package:expect/expect.dart";
 import 'dart:math';
 
@@ -16,11 +17,11 @@ class Wrap implements Comparable {
   final value;
   Wrap(this.value);
   int compareTo(Wrap other) => value.compareTo(other.value);
-  bool operator<(Wrap other) => compareTo(other) < 0;
-  bool operator<=(Wrap other) => compareTo(other) <= 0;
-  bool operator>(Wrap other) => compareTo(other) > 0;
-  bool operator>=(Wrap other) => compareTo(other) >= 0;
-  bool operator==(other) => other is Wrap && compareTo(other) == 0;
+  bool operator <(Wrap other) => compareTo(other) < 0;
+  bool operator <=(Wrap other) => compareTo(other) <= 0;
+  bool operator >(Wrap other) => compareTo(other) > 0;
+  bool operator >=(Wrap other) => compareTo(other) >= 0;
+  bool operator ==(other) => other is Wrap && compareTo(other) == 0;
   String toString() => 'Wrap($value)';
   int get hashCode => value.hashCode;
 }

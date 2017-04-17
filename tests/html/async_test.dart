@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:html';
 
-import 'async_oneshot.dart' as oneshot_test show main; 
+import 'async_oneshot.dart' as oneshot_test show main;
 import 'async_periodictimer.dart' as periodictimer_test show main;
 import 'async_cancellingisolate.dart' as cancelling_test show main;
 
@@ -21,22 +21,28 @@ main() {
 
   test('one shot timer in pure isolate', () {
     var response = new ReceivePort();
-    var remote = Isolate.spawn(oneshot,
-                               [['START'], response.sendPort]);
+    var remote = Isolate.spawn(oneshot, [
+      ['START'],
+      response.sendPort
+    ]);
     expect(remote.then((_) => response.first), completion('DONE'));
   });
 
   test('periodic timer in pure isolate', () {
     var response = new ReceivePort();
-    var remote = Isolate.spawn(periodicTimerIsolate,
-                               [['START'], response.sendPort]);
+    var remote = Isolate.spawn(periodicTimerIsolate, [
+      ['START'],
+      response.sendPort
+    ]);
     expect(remote.then((_) => response.first), completion('DONE'));
   });
-  
+
   test('cancellation in pure isolate', () {
     var response = new ReceivePort();
-    var remote = Isolate.spawn(cancellingIsolate,
-                               [['START'], response.sendPort]);
+    var remote = Isolate.spawn(cancellingIsolate, [
+      ['START'],
+      response.sendPort
+    ]);
     expect(remote.then((_) => response.first), completion('DONE'));
   });
 }

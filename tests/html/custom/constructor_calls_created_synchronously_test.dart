@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library constructor_calls_created_synchronously_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';

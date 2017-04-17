@@ -4,7 +4,7 @@
 
 // Regression test for issue 27700.
 
-main(){
+main() {
   var x = new List(0);
   var z = "$x";
 }

@@ -11,6 +11,7 @@ class A {
   foo() {
     new A().field = 42;
   }
+
   A._() : finalField = 42;
   A() : finalField = [new A._(), new B(), new Object()][1];
 }

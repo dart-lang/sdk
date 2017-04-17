@@ -8,6 +8,7 @@ import "package:expect/expect.dart";
 abstract class Comparable<T> {
   int compareTo(T a);
 }
+
 class MI<T extends MI<T>> {}
 
 class _MI extends MI<_MI> {}

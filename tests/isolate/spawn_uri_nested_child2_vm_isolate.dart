@@ -4,6 +4,7 @@
 
 // Child isolate code to be spawned from a URI to this file.
 library NestedSpawnUriChild2Library;
+
 import 'dart:isolate';
 
 void main(List<String> args, SendPort replyTo) {

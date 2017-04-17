@@ -9,4 +9,3 @@ library const_var_helper;
 class Foo<E> {
   const Foo();
 }
-

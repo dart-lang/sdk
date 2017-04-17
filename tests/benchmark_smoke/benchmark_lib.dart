@@ -10,4 +10,3 @@ import 'dart:math' as Math;
 
 import 'smoketest_lib.dart';
 part 'benchmark_base.dart';
-

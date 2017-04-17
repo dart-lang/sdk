@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file
 
 library ElementAddTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'util.dart';
@@ -15,10 +16,9 @@ main() {
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
   var isText = predicate((x) => x is Text, 'is a Text');
 
-  void expectNoSuchMethod(void fn()) =>
-    expect(fn, throwsNoSuchMethodError);
+  void expectNoSuchMethod(void fn()) => expect(fn, throwsNoSuchMethodError);
 
-   group('append', () {
+  group('append', () {
     test('htmlelement', () {
       var el = new DivElement();
       el.append(new SpanElement());

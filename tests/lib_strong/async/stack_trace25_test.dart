@@ -24,10 +24,11 @@ main() {
   asyncStart();
   var iterator = new StreamIterator(controller.stream);
   var future = iterator.moveNext();
-  future.then((_) { throw "unreachable"; },
-    onError: (e, st) {
-      Expect.equals("error", e);
-      Expect.identical(trace, st);
-      asyncEnd();
-    });
+  future.then((_) {
+    throw "unreachable";
+  }, onError: (e, st) {
+    Expect.equals("error", e);
+    Expect.identical(trace, st);
+    asyncEnd();
+  });
 }

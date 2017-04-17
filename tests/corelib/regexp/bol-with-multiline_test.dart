@@ -27,13 +27,14 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test for beginning of line (BOL or ^) matching in a multiline string</a>'
-  );
+      'Test for beginning of line (BOL or ^) matching in a multiline string</a>');
 
   var s = "aced\nabc";
   shouldBeNull(firstMatch(s, new RegExp(r"^abc")));
   shouldBe(firstMatch(s, new RegExp(r"^abc", multiLine: true)), ["abc"]);
   shouldBeNull(firstMatch(s, new RegExp(r"(^|X)abc")));
-  shouldBe(firstMatch(s, new RegExp(r"(^|X)abc", multiLine: true)), ["abc",""]);
-  shouldBe(firstMatch(s, new RegExp(r"(^a|Xa)bc", multiLine: true)), ["abc","a"]);
+  shouldBe(
+      firstMatch(s, new RegExp(r"(^|X)abc", multiLine: true)), ["abc", ""]);
+  shouldBe(
+      firstMatch(s, new RegExp(r"(^a|Xa)bc", multiLine: true)), ["abc", "a"]);
 }

@@ -23,7 +23,6 @@ bar() async* {
   while (true) yield await gee(i++);
 }
 
-
 awaitForTest() async {
   var sum = 0;
   await for (var x in bar().take(100)) {
@@ -103,6 +102,7 @@ registerCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
     return f();
   });
 }
+
 registerUnaryCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
   var oldDepth = depth;
   increaseDepth();
@@ -111,6 +111,7 @@ registerUnaryCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
     return f(x);
   });
 }
+
 registerBinaryCallback(Zone self, ZoneDelegate parent, Zone zone, f) {
   var oldDepth = depth;
   increaseDepth();
@@ -135,8 +136,7 @@ main() {
       registerCallback: registerCallback,
       registerUnaryCallback: registerUnaryCallback,
       registerBinaryCallback: registerBinaryCallback,
-      scheduleMicrotask: sm
-      );
+      scheduleMicrotask: sm);
   var future = runZoned(runTests, zoneSpecification: desc);
   future.then((_) => asyncEnd());
 }

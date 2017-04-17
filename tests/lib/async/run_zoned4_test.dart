@@ -8,7 +8,9 @@ import 'dart:async';
 main() {
   // Make sure `runZoned` returns the result of a synchronous call when an
   // error handler is defined.
-  Expect.equals(499,
-                runZoned(() => 499,
-                         onError: (e) { throw "Unexpected"; }));
+  Expect.equals(
+      499,
+      runZoned(() => 499, onError: (e) {
+        throw "Unexpected";
+      }));
 }

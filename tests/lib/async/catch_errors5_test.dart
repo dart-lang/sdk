@@ -20,19 +20,20 @@ main() {
     errorFuture.whenComplete(() => done.complete(true));
     throw "catch error";
   }).listen((x) {
-      events.add(x);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give some time for the event listener to execute.
     Timer.run(() {
-      Expect.listEquals(["catch error entry",
-                          "main exit",
-                          "catch error",
-                          "future error",
-                          ],
-                          events);
+      Expect.listEquals([
+        "catch error entry",
+        "main exit",
+        "catch error",
+        "future error",
+      ], events);
       asyncEnd();
     });
   });

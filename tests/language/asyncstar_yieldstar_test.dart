@@ -8,7 +8,7 @@ import "package:async_helper/async_helper.dart";
 
 Stream<int> subStream(p) async* {
   yield p;
-  yield p+1;
+  yield p + 1;
 }
 
 Stream foo(Completer<bool> finalized) async* {
@@ -32,24 +32,23 @@ foo2(Stream subStream) async* {
 }
 
 test() async {
-  Expect.listEquals([0, 1],
-      await (subStream(0).toList()));
+  Expect.listEquals([0, 1], await (subStream(0).toList()));
   Completer<bool> finalized = new Completer<bool>();
   Expect.listEquals(["outer", 0, 1, "outer", 1, 2, "outer", 2],
       await (foo(finalized).take(8).toList()));
   Expect.isTrue(await (finalized.future));
-  
+
   finalized = new Completer<bool>();
   // Canceling the stream while it is yield*-ing from the sub-stream.
   Expect.listEquals(["outer", 0, 1, "outer", 1, 2, "outer"],
       await (foo(finalized).take(7).toList()));
   Expect.isTrue(await (finalized.future));
   finalized = new Completer<bool>();
- 
+
   Completer<bool> pausedCompleter = new Completer<bool>();
   Completer<bool> resumedCompleter = new Completer<bool>();
   Completer<bool> canceledCompleter = new Completer<bool>();
- 
+
   StreamController controller;
   int i = 0;
   addNext() {
@@ -60,7 +59,7 @@ test() async {
       scheduleMicrotask(addNext);
     }
   }
- 
+
   controller = new StreamController(onListen: () {
     scheduleMicrotask(addNext);
   }, onPause: () {
@@ -71,7 +70,7 @@ test() async {
   }, onCancel: () {
     canceledCompleter.complete(true);
   });
- 
+
   StreamSubscription subscription;
   // Test that the yield*'ed stream is paused and resumed.
   subscription = foo2(controller.stream).listen((event) {

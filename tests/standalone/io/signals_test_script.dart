@@ -17,6 +17,7 @@ void main(args) {
     }
     print("ready");
   }
+
   sub1 = ProcessSignal.SIGUSR1.watch().listen((signal) {
     if (signal != ProcessSignal.SIGUSR1) exit(1);
     usr1Count--;

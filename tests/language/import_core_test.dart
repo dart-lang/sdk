@@ -4,10 +4,11 @@
 // Test explicit import of dart:core in the source code..
 
 library ImportCoreTest.dart;
+
 import "dart:core";
 
 void main() {
-  var test = new Map<int,String>();
+  var test = new Map<int, String>();
   bool value = false;
   int variable = 10;
   num intval = 10;

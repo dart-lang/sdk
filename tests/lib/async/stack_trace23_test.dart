@@ -18,12 +18,13 @@ main() {
   StackTrace trace = captureStackTrace();
   asyncStart();
   var f = new Future.error(499, trace);
-  f.catchError((e) { throw "unreachable"; }, test: (e) {
-      Expect.equals(499, e);
-      return false;
-    })
-    .catchError((e, st) {
-      Expect.identical(trace, st);
-      asyncEnd();
-    }, test: (e) => e == 499);
+  f.catchError((e) {
+    throw "unreachable";
+  }, test: (e) {
+    Expect.equals(499, e);
+    return false;
+  }).catchError((e, st) {
+    Expect.identical(trace, st);
+    asyncEnd();
+  }, test: (e) => e == 499);
 }

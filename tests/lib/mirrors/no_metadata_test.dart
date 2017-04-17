@@ -9,8 +9,7 @@ import 'dart:mirrors';
 
 import 'stringify.dart';
 
-class Foo {
-}
+class Foo {}
 
 main() {
   expect('[]', reflectClass(Foo).metadata);

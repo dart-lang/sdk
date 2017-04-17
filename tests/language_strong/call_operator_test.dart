@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 
-
 // simple test with no types in signature
 class A1 {
   call() => 42;
@@ -26,7 +25,7 @@ class C {
 
 // Test named arguments
 class D {
-  call([arg=6]) => 7 * arg;
+  call([arg = 6]) => 7 * arg;
 }
 
 // Non-trivial method body combination of positional and named.
@@ -70,11 +69,11 @@ main() {
 
   var e = new E();
   Expect.equals("foo", e("foo"));
-  Expect.equals("foo:foo", e("foo", count:2));
-  Expect.equals("foo:foo:foo", e("foo", count:3));
+  Expect.equals("foo:foo", e("foo", count: 2));
+  Expect.equals("foo:foo:foo", e("foo", count: 3));
   Expect.equals("foo", e.call("foo"));
-  Expect.equals("foo:foo", e.call("foo", count:2));
-  Expect.equals("foo:foo:foo", e.call("foo", count:3));
+  Expect.equals("foo:foo", e.call("foo", count: 2));
+  Expect.equals("foo:foo:foo", e.call("foo", count: 3));
 
   Expect.isTrue(a1 is Function);
   Expect.isTrue(e is Function);

@@ -24,10 +24,10 @@ class C extends Object with M {
   // non-native mixin application.
 }
 
-B makeB() native ;
+B makeB() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 void setup() native r"""
 function B() {}

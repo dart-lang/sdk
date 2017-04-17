@@ -20,17 +20,18 @@ main() {
       testStream("BSC$mode", controller, controller.stream, overrideDone);
       controller = new StreamController(sync: sync);
       testStream("SCAB$mode", controller, controller.stream.asBroadcastStream(),
-                 overrideDone, 3);
+          overrideDone, 3);
       controller = new StreamController(sync: sync);
       testStream("SCMap$mode", controller, controller.stream.map((x) => x),
-                 overrideDone, 3);
+          overrideDone, 3);
     }
   }
   asyncEnd();
 }
 
-void testStream(String name, StreamController controller, Stream stream,
-                bool overrideDone, [int registerExpect = 0]) {
+void testStream(
+    String name, StreamController controller, Stream stream, bool overrideDone,
+    [int registerExpect = 0]) {
   asyncStart();
   StreamSubscription sub;
   Zone zone;
@@ -38,7 +39,10 @@ void testStream(String name, StreamController controller, Stream stream,
   int callbackBits = 0;
   int stepCount = 0;
   Function step;
-  void nextStep() { Zone.ROOT.scheduleMicrotask(step); }
+  void nextStep() {
+    Zone.ROOT.scheduleMicrotask(step);
+  }
+
   runZoned(() {
     zone = Zone.current;
     sub = stream.listen((v) {
@@ -59,32 +63,30 @@ void testStream(String name, StreamController controller, Stream stream,
     });
     registerExpect += 3;
     Expect.equals(registerExpect, registerCount, name);
-  }, zoneSpecification: new ZoneSpecification(
-    registerCallback: (self, p, z, callback()) {
-      Expect.identical(zone, self, name);
-      registerCount++;
-      return () {
-        Expect.identical(zone, Zone.current, name);
-        callback();
-      };
-    },
-    registerUnaryCallback: (self, p, z, callback(a)) {
-      Expect.identical(zone, self, name);
-      registerCount++;
-      return (a) {
-        Expect.identical(zone, Zone.current, name);
-        callback(a);
-      };
-    },
-    registerBinaryCallback: (self, package, z, callback(a, b)) {
-      Expect.identical(zone, self, name);
-      registerCount++;
-      return (a, b) {
-        Expect.identical(zone, Zone.current, name);
-        callback(a, b);
-      };
-    }
-  ));
+  },
+      zoneSpecification:
+          new ZoneSpecification(registerCallback: (self, p, z, callback()) {
+        Expect.identical(zone, self, name);
+        registerCount++;
+        return () {
+          Expect.identical(zone, Zone.current, name);
+          callback();
+        };
+      }, registerUnaryCallback: (self, p, z, callback(a)) {
+        Expect.identical(zone, self, name);
+        registerCount++;
+        return (a) {
+          Expect.identical(zone, Zone.current, name);
+          callback(a);
+        };
+      }, registerBinaryCallback: (self, package, z, callback(a, b)) {
+        Expect.identical(zone, self, name);
+        registerCount++;
+        return (a, b) {
+          Expect.identical(zone, Zone.current, name);
+          callback(a, b);
+        };
+      }));
 
   int expectedBits = 0;
   step = () {

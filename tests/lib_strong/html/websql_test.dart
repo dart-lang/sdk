@@ -1,4 +1,5 @@
 library WebDBTest;
+
 import 'dart:async';
 import 'dart:html';
 import 'dart:web_sql';
@@ -17,34 +18,30 @@ Future<SqlTransaction> transaction(SqlDatabase db) {
   return completer.future;
 }
 
-Future<SqlResultSet> createTable(SqlTransaction transaction, String tableName,
-    String columnName) {
+Future<SqlResultSet> createTable(
+    SqlTransaction transaction, String tableName, String columnName) {
   final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'CREATE TABLE $tableName ($columnName)';
-  transaction.executeSql(sql, [],
-    (SqlTransaction tx, SqlResultSet rs) {
-      completer.complete(rs);
-    },
-    (SqlTransaction tx, SqlError error) {
-      completer.completeError(error);
-    });
+  transaction.executeSql(sql, [], (SqlTransaction tx, SqlResultSet rs) {
+    completer.complete(rs);
+  }, (SqlTransaction tx, SqlError error) {
+    completer.completeError(error);
+  });
 
   return completer.future;
 }
 
-Future<SqlResultSet> insert(SqlTransaction transaction, String tableName,
-    String columnName, value) {
+Future<SqlResultSet> insert(
+    SqlTransaction transaction, String tableName, String columnName, value) {
   final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'INSERT INTO $tableName ($columnName) VALUES (?)';
-  transaction.executeSql(sql, [value],
-    (SqlTransaction tx, SqlResultSet rs) {
-      completer.complete(rs);
-    },
-    (SqlTransaction tx, SqlError error) {
-      completer.completeError(error);
-    });
+  transaction.executeSql(sql, [value], (SqlTransaction tx, SqlResultSet rs) {
+    completer.complete(rs);
+  }, (SqlTransaction tx, SqlError error) {
+    completer.completeError(error);
+  });
 
   return completer.future;
 }
@@ -53,13 +50,11 @@ Future<SqlResultSet> queryTable(SqlTransaction transaction, String tableName) {
   final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'SELECT * FROM $tableName';
-  transaction.executeSql(sql, [],
-    (SqlTransaction tx, SqlResultSet rs) {
-      completer.complete(rs);
-    },
-    (SqlTransaction tx, SqlError error) {
-      completer.completeError(error);
-    });
+  transaction.executeSql(sql, [], (SqlTransaction tx, SqlResultSet rs) {
+    completer.complete(rs);
+  }, (SqlTransaction tx, SqlError error) {
+    completer.completeError(error);
+  });
 
   return completer.future;
 }
@@ -69,17 +64,15 @@ Future<SqlResultSet> dropTable(SqlTransaction transaction, String tableName,
   final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'DROP TABLE $tableName';
-  transaction.executeSql(sql, [],
-    (SqlTransaction tx, SqlResultSet rs) {
-      completer.complete(rs);
-    },
-    (SqlTransaction tx, SqlError error) {
-      if (ignoreFailure) {
-        completer.complete(null);
-      } else {
-        completer.completeError(error);
-      }
-    });
+  transaction.executeSql(sql, [], (SqlTransaction tx, SqlResultSet rs) {
+    completer.complete(rs);
+  }, (SqlTransaction tx, SqlError error) {
+    if (ignoreFailure) {
+      completer.complete(null);
+    } else {
+      completer.completeError(error);
+    }
+  });
 
   return completer.future;
 }
@@ -99,7 +92,6 @@ main() {
       expect(() {
         window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
       }, expectation);
-
     });
     test('Web Database', () {
       // Skip if not supported.

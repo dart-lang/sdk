@@ -18,10 +18,10 @@ main() {
   var checkBoolFuture = new TypeTest<Future<bool>, Future<String>>();
   var checkStringFuture = new TypeTest<Future<String>, Future<int>>();
   var checkIntSetFuture = new TypeTest<Future<Set<int>>, Future<Set<String>>>();
-  var checkIntListFuture = new TypeTest<Future<List<int>>,
-                                        Future<List<String>>>();
-  var checkIntSubscription = new TypeTest<StreamSubscription<int>,
-                                          StreamSubscription<String>>();
+  var checkIntListFuture =
+      new TypeTest<Future<List<int>>, Future<List<String>>>();
+  var checkIntSubscription =
+      new TypeTest<StreamSubscription<int>, StreamSubscription<String>>();
 
   // Generic function used as parameter for, e.g., `skipWhile` and `reduce`.
   f([_1, _2]) => throw "unreachable";
@@ -42,7 +42,7 @@ main() {
 
       checkIntFuture(stream().length, "$name.length");
       checkBoolFuture(stream().isEmpty, "$name.is");
-      checkBoolFuture(stream().any(f) , "$name.any");
+      checkBoolFuture(stream().any(f), "$name.any");
       checkBoolFuture(stream().every(f), "$name.every");
       checkBoolFuture(stream().contains(null), "$name.contains");
       checkStringFuture(stream().join(), "$name.join");
@@ -55,12 +55,12 @@ main() {
       testIntStream(() => stream().skipWhile(f), "$name.skipWhile", n);
       testIntStream(() => stream().distinct(f), "$name.distinct", n);
       testIntStream(() => stream().handleError(f), "$name.handleError", n);
-      testIntStream(() => stream().asBroadcastStream(),
-                    "$name.asBroadcastStream", n);
+      testIntStream(
+          () => stream().asBroadcastStream(), "$name.asBroadcastStream", n);
     }
   }
 
   testIntStream(() => new StreamController<int>().stream, "Stream<int>", 3);
   testIntStream(() => new StreamController<int>.broadcast().stream,
-                "BroadcastStream<int>", 3);
+      "BroadcastStream<int>", 3);
 }

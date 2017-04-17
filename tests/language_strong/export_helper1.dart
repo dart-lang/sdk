@@ -7,6 +7,4 @@ library export_helper1;
 import 'export_helper2.dart';
 export 'export_helper2.dart';
 
-class Exported extends ReExported {
-
-}
+class Exported extends ReExported {}

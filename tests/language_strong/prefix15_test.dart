@@ -5,6 +5,7 @@
 // Use qualified symbols with generics at various places.
 
 library Prefix15Test.dart;
+
 import "package:expect/expect.dart";
 import "library12.dart" as lib12;
 
@@ -16,6 +17,7 @@ class myInterface<T> implements lib12.Library12Interface {
     myfld.fld = (value1.fld + value2.fld + myfld.fld);
     return myfld;
   }
+
   T myfld;
 }
 

@@ -9,7 +9,6 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 
-
 void testWatchCreateFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(join(dir.path, 'file'));
@@ -19,8 +18,7 @@ void testWatchCreateFile() {
   asyncStart();
   var sub;
   sub = watcher.listen((event) {
-    if (event is FileSystemCreateEvent &&
-        event.path.endsWith('file')) {
+    if (event is FileSystemCreateEvent && event.path.endsWith('file')) {
       Expect.isFalse(event.isDirectory);
       asyncEnd();
       sub.cancel();
@@ -34,7 +32,6 @@ void testWatchCreateFile() {
   file.createSync();
 }
 
-
 void testWatchCreateDir() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var subdir = new Directory(join(dir.path, 'dir'));
@@ -44,8 +41,7 @@ void testWatchCreateDir() {
   asyncStart();
   var sub;
   sub = watcher.listen((event) {
-    if (event is FileSystemCreateEvent &&
-        event.path.endsWith('dir')) {
+    if (event is FileSystemCreateEvent && event.path.endsWith('dir')) {
       Expect.isTrue(event.isDirectory);
       asyncEnd();
       sub.cancel();
@@ -58,7 +54,6 @@ void testWatchCreateDir() {
 
   subdir.createSync();
 }
-
 
 void testWatchModifyFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
@@ -83,7 +78,6 @@ void testWatchModifyFile() {
 
   file.writeAsStringSync('a');
 }
-
 
 void testWatchMoveFile() {
   // Mac OS doesn't report move events.
@@ -114,7 +108,6 @@ void testWatchMoveFile() {
   file.renameSync(join(dir.path, 'file2'));
 }
 
-
 void testWatchDeleteFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(join(dir.path, 'file'));
@@ -139,7 +132,6 @@ void testWatchDeleteFile() {
   file.deleteSync();
 }
 
-
 void testWatchDeleteDir() {
   // Windows keeps the directory handle open, even though it's deleted. It'll
   // be flushed completely, once the watcher is closed as well.
@@ -159,7 +151,6 @@ void testWatchDeleteDir() {
 
   dir.deleteSync();
 }
-
 
 void testWatchOnlyModifyFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
@@ -183,7 +174,6 @@ void testWatchOnlyModifyFile() {
   file.createSync();
   file.writeAsStringSync('a');
 }
-
 
 void testMultipleEvents() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
@@ -229,7 +219,6 @@ void testMultipleEvents() {
   file2.deleteSync();
 }
 
-
 void testWatchRecursive() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   if (Platform.isLinux) {
@@ -257,7 +246,6 @@ void testWatchRecursive() {
 
   file.createSync();
 }
-
 
 void testWatchNonRecursive() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
@@ -287,20 +275,17 @@ void testWatchNonRecursive() {
   });
 }
 
-
 void testWatchNonExisting() {
   // MacOS allows listening on non-existing paths.
   if (Platform.isMacOS) return;
   asyncStart();
-  new Directory('__some_none_existing_dir__').watch()
-    .listen((_) {
-      Expect.fail('unexpected error');
-    }, onError: (e) {
-      asyncEnd();
-      Expect.isTrue(e is FileSystemException);
-    });
+  new Directory('__some_none_existing_dir__').watch().listen((_) {
+    Expect.fail('unexpected error');
+  }, onError: (e) {
+    asyncEnd();
+    Expect.isTrue(e is FileSystemException);
+  });
 }
-
 
 void testWatchMoveSelf() {
   // Windows keeps the directory handle open, even though it's deleted. It'll
@@ -327,7 +312,6 @@ void testWatchMoveSelf() {
 
   dir2.renameSync(join(dir.path, 'new_dir'));
 }
-
 
 void main() {
   if (!FileSystemEntity.isWatchSupported) return;

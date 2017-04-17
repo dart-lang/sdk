@@ -18,7 +18,7 @@ isomain1(replyPort) {
 
 void main() {
   asyncStart();
-  var completer = new Completer();  // Completed by first reply from isolate.
+  var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate isolate) {
     completer.future.then((SendPort echoPort) {

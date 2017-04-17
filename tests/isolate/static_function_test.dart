@@ -5,32 +5,48 @@
 // Test starting isolate with static functions (and toplevel ones, for sanity).
 
 library static_function_test;
+
 import 'dart:isolate';
 import 'dart:async';
 import 'static_function_lib.dart' as lib;
 import 'package:unittest/unittest.dart';
 import 'remote_unittest_helper.dart';
 
-void function(SendPort port) { port.send("TOP"); }
-void _function(SendPort port) { port.send("_TOP"); }
+void function(SendPort port) {
+  port.send("TOP");
+}
+
+void _function(SendPort port) {
+  port.send("_TOP");
+}
 
 // A closure created at top-level (not inside a method), but not by a top-level
 // function declaration.
-var staticClosure = (SendPort port) { port.send("WHAT?"); };
+var staticClosure = (SendPort port) {
+  port.send("WHAT?");
+};
 
 // An unnamed closure created inside a function.
-get dynamicClosure => (SendPort port) { port.send("WHAT??"); };
+get dynamicClosure => (SendPort port) {
+      port.send("WHAT??");
+    };
 
 // A named closure created inside a function.
 get namedDynamicClosure {
-  void foo(SendPort port) { port.send("WHAT FOO??"); };
+  void foo(SendPort port) {
+    port.send("WHAT FOO??");
+  }
+
+  ;
   return foo;
 }
 
 class C {
   // Unnamed closure created during object initialization, but not inside
   // a method or constructor.
-  final Function instanceClosure = (SendPort port) { port.send("C WHAT?"); };
+  final Function instanceClosure = (SendPort port) {
+    port.send("C WHAT?");
+  };
   // Unnamed closure created during object initializer list evaluation.
   final Function constructorInitializerClosure;
   // Unnamed closure created inside constructor body.
@@ -38,35 +54,51 @@ class C {
   // Named closure created inside constructor body.
   Function namedConstructorBodyClosure;
 
-  C() : constructorInitializerClosure =
-            ((SendPort port) { port.send("Init?"); }) {
+  C()
+      : constructorInitializerClosure = ((SendPort port) {
+          port.send("Init?");
+        }) {
     constructorBodyClosure = (SendPort port) {
       port.send("bodyClosure?");
     };
     void foo(SendPort port) {
       port.send("namedBodyClosure?");
     }
+
     namedConstructorBodyClosure = foo;
   }
 
-  static void function(SendPort port) { port.send("YES"); }
-  static void _function(SendPort port) { port.send("PRIVATE"); }
-  void instanceMethod(SendPort port) { port.send("INSTANCE WHAT?"); }
+  static void function(SendPort port) {
+    port.send("YES");
+  }
+
+  static void _function(SendPort port) {
+    port.send("PRIVATE");
+  }
+
+  void instanceMethod(SendPort port) {
+    port.send("INSTANCE WHAT?");
+  }
 }
 
 class _C {
-  static void function(SendPort port) { port.send("_YES"); }
-  static void _function(SendPort port) { port.send("_PRIVATE"); }
+  static void function(SendPort port) {
+    port.send("_YES");
+  }
+
+  static void _function(SendPort port) {
+    port.send("_PRIVATE");
+  }
 }
 
 void spawnTest(name, function, response) {
   test(name, () {
     ReceivePort r = new ReceivePort();
-      Isolate.spawn(function, r.sendPort);
-      r.listen(expectAsync((v) {
-        expect(v, response);
-        r.close();
-      }));
+    Isolate.spawn(function, r.sendPort);
+    r.listen(expectAsync((v) {
+      expect(v, response);
+      r.close();
+    }));
   });
 }
 
@@ -103,10 +135,10 @@ void main([args, port]) {
   functionFailTest("dynamic closure", dynamicClosure);
   functionFailTest("named dynamic closure", namedDynamicClosure);
   functionFailTest("instance closure", new C().instanceClosure);
-  functionFailTest("initializer closure",
-                   new C().constructorInitializerClosure);
+  functionFailTest(
+      "initializer closure", new C().constructorInitializerClosure);
   functionFailTest("constructor closure", new C().constructorBodyClosure);
-  functionFailTest("named constructor closure",
-                   new C().namedConstructorBodyClosure);
+  functionFailTest(
+      "named constructor closure", new C().namedConstructorBodyClosure);
   functionFailTest("instance method", new C().instanceMethod);
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library TypedArraysRangeCheckTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -13,8 +14,8 @@ const N = 1024;
 class _TestList {
   _TestList(int n);
 
-  operator[](int i) => i;
-  operator[]=(int i, v) {}
+  operator [](int i) => i;
+  operator []=(int i, v) {}
 }
 
 _obfuscatedList() {
@@ -36,42 +37,42 @@ main() {
   }
 
   test('outOfRangeAccess_dynamic', () {
-      var a = _obfuscatedList();
+    var a = _obfuscatedList();
 
-      expect(() => a[a.length], throws);
-      expect(() => a[a.length + 1], throws);
-      expect(() => a[a.length + N], throws);
+    expect(() => a[a.length], throws);
+    expect(() => a[a.length + 1], throws);
+    expect(() => a[a.length + N], throws);
 
-      expect(() => a[-1], throws);
-      expect(() => a[1.5], throws);
-      expect(() => a['length'], throws);
+    expect(() => a[-1], throws);
+    expect(() => a[1.5], throws);
+    expect(() => a['length'], throws);
 
-      expect(() => a[a.length] = 0xdeadbeef, throws);
-      expect(() => a[a.length + 1] = 0xdeadbeef, throws);
-      expect(() => a[a.length + N] = 0xdeadbeef, throws);
+    expect(() => a[a.length] = 0xdeadbeef, throws);
+    expect(() => a[a.length + 1] = 0xdeadbeef, throws);
+    expect(() => a[a.length + N] = 0xdeadbeef, throws);
 
-      expect(() => a[-1] = 0xdeadbeef, throws);
-      expect(() => a[1.5] = 0xdeadbeef, throws);
-      expect(() => a['length'] = 1, throws);
+    expect(() => a[-1] = 0xdeadbeef, throws);
+    expect(() => a[1.5] = 0xdeadbeef, throws);
+    expect(() => a['length'] = 1, throws);
   });
 
   test('outOfRange_typed', () {
-      Uint8List a = new Uint8List(N);
+    Uint8List a = new Uint8List(N);
 
-      expect(() => a[a.length], throws);
-      expect(() => a[a.length + 1], throws);
-      expect(() => a[a.length + N], throws);
+    expect(() => a[a.length], throws);
+    expect(() => a[a.length + 1], throws);
+    expect(() => a[a.length + N], throws);
 
-      expect(() => a[-1], throws);
-      expect(() => a[1.5], throws);
-      expect(() => a['length'], throws);
+    expect(() => a[-1], throws);
+    expect(() => a[1.5], throws);
+    expect(() => a['length'], throws);
 
-      expect(() => a[a.length] = 0xdeadbeef, throws);
-      expect(() => a[a.length + 1] = 0xdeadbeef, throws);
-      expect(() => a[a.length + N] = 0xdeadbeef, throws);
+    expect(() => a[a.length] = 0xdeadbeef, throws);
+    expect(() => a[a.length + 1] = 0xdeadbeef, throws);
+    expect(() => a[a.length + N] = 0xdeadbeef, throws);
 
-      expect(() => a[-1] = 0xdeadbeef, throws);
-      expect(() => a[1.5] = 0xdeadbeef, throws);
-      expect(() => a['length'] = 1, throws);
+    expect(() => a[-1] = 0xdeadbeef, throws);
+    expect(() => a[1.5] = 0xdeadbeef, throws);
+    expect(() => a['length'] = 1, throws);
   });
 }

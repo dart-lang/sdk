@@ -34,14 +34,16 @@ main() {
   events.add("after");
   scheduleMicrotask(() {
     scheduleMicrotask(() {
-      Expect.listEquals(
-          ["body entry",
-           "handler", "handler done",
-           "after",
-           "run async body",
-           "handler", "handler done",
-           "run nested body"],
-          events);
+      Expect.listEquals([
+        "body entry",
+        "handler",
+        "handler done",
+        "after",
+        "run async body",
+        "handler",
+        "handler done",
+        "run nested body"
+      ], events);
       asyncEnd();
     });
   });

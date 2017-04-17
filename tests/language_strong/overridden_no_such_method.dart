@@ -12,7 +12,6 @@ class GetName {
 String getName(im) => reflect(new GetName()).delegate(im);
 
 class OverriddenNoSuchMethod {
-
   OverriddenNoSuchMethod() {}
 
   noSuchMethod(Invocation mirror) {

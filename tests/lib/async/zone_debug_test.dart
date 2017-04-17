@@ -25,8 +25,8 @@ debugZoneRegisterCallback(Zone self, ZoneDelegate parent, Zone origin, f()) {
   });
 }
 
-debugZoneRegisterUnaryCallback(Zone self, ZoneDelegate parent, Zone origin,
-                               f(arg)) {
+debugZoneRegisterUnaryCallback(
+    Zone self, ZoneDelegate parent, Zone origin, f(arg)) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
   return parent.registerUnaryCallback(origin, (arg) {
     restoredStackTrace = savedTrace;
@@ -125,10 +125,11 @@ main() {
   done.future.whenComplete(() {
     // We don't really care for the order.
     events.sort();
-    Expect.listEquals([ "handling uncaught error bar",
-                        "handling uncaught error foo",
-                        "handling uncaught error gee"],
-                      events);
+    Expect.listEquals([
+      "handling uncaught error bar",
+      "handling uncaught error foo",
+      "handling uncaught error gee"
+    ], events);
     asyncEnd();
   });
 }

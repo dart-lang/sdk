@@ -12,7 +12,7 @@ class Node {
   final parentNode;
 }
 
-makeNode(parent) native ;
+makeNode(parent) native;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

@@ -6,7 +6,7 @@ abstract class Link<T> {
   factory Link.create() = LinkFactory.create;
 }
 
-class A<T> { }
+class A<T> {}
 
 class LinkFactory<T> extends A<T> {
   factory LinkFactory.create() {

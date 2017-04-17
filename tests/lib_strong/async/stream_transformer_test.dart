@@ -23,13 +23,15 @@ class MyStreamSubscription<T> implements StreamSubscription<T> {
 
   Future cancel() => null;
   void onData(void handleData(T data)) {
-    this.handleData = handleData == null ? _defaultData: handleData;
+    this.handleData = handleData == null ? _defaultData : handleData;
   }
+
   void onError(Function handleError) {
-    this.handleError = handleError == null ? _defaultError: handleError;
+    this.handleError = handleError == null ? _defaultError : handleError;
   }
+
   void onDone(void handleDone()) {
-    this.handleDone = handleDone == null ? _defaultDone: handleDone;
+    this.handleDone = handleDone == null ? _defaultDone : handleDone;
   }
 
   void pause([Future resumeSignal]) {}
@@ -40,15 +42,16 @@ class MyStreamSubscription<T> implements StreamSubscription<T> {
 }
 
 main() {
-  var transformer = new StreamTransformer<int, String> (
-    (stream, cancelOnError) => new MyStreamSubscription(stream, cancelOnError));
+  var transformer = new StreamTransformer<int, String>(
+      (stream, cancelOnError) =>
+          new MyStreamSubscription(stream, cancelOnError));
 
   var controller = new StreamController(sync: true);
   var stream = controller.stream;
   var transformed = stream.transform(transformer);
 
   var handleData = (String _) => 499;
-  var handleError = (e,st) => 42;
+  var handleError = (e, st) => 42;
   var handleDone = () => 99;
 
   var subscription =

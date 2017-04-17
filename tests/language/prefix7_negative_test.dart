@@ -4,11 +4,11 @@
 //
 
 library Prefix7NegativeTest.dart;
+
 import "library10.dart" as lib10;
 
 // Top level variables cannot shadow library prefixes, they should collide.
 
 var lib10;
 
-main() {
-}
+main() {}

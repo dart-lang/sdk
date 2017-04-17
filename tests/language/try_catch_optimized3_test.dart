@@ -26,4 +26,3 @@ main() {
   test_double(1.0, false);
   Expect.equals(1.0, test_double(1.0, true));
 }
-

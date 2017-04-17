@@ -18,7 +18,7 @@ int test(int a) {
 main() {
   bool foundError = false;
   try {
-    test(10, x:99);  // 1 positional arg, as expected. Param x does not exist.
+    test(10, x: 99); // 1 positional arg, as expected. Param x does not exist.
   } on NoSuchMethodError catch (e) {
     foundError = true;
   }

@@ -12,9 +12,7 @@ class Mixin {
   get getter => 42;
 }
 
-class Superclass {
-
-}
+class Superclass {}
 
 class Subclass extends Superclass with Mixin {
   method() => super.getter;

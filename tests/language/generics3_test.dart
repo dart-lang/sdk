@@ -6,10 +6,18 @@
 // Regression test for issue 8710.
 
 class C1<T> {}
+
 class C2<T> {}
+
 class C3<T> extends C2<C1<T>> {}
-class C4<T> extends C3<T> { f() => new C5<C1<T>>(new C1<T>()); }
-class C5<T> { C5(T x); }  // Checked mode: x must be of type C1<String>.
+
+class C4<T> extends C3<T> {
+  f() => new C5<C1<T>>(new C1<T>());
+}
+
+class C5<T> {
+  C5(T x);
+} // Checked mode: x must be of type C1<String>.
 
 main() {
   new C4<String>().f();

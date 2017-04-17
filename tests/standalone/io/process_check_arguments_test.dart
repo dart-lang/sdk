@@ -21,7 +21,7 @@ test(args) {
 main() {
   // Get the Dart script file which checks arguments.
   var scriptFile =
-    new File("tests/standalone/io/process_check_arguments_script.dart");
+      new File("tests/standalone/io/process_check_arguments_script.dart");
   if (!scriptFile.existsSync()) {
     scriptFile =
         new File("../tests/standalone/io/process_check_arguments_script.dart");
@@ -36,4 +36,3 @@ main() {
   test([scriptFile.path, '4', '0', 'a\tb', 'a\t\t\t\tb']);
   test([scriptFile.path, '4', '0', 'a\tb', 'a    b']);
 }
-

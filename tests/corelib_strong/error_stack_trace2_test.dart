@@ -19,11 +19,11 @@ main() {
   bool hasThrown = false;
   try {
     cyclicStatic + 1;
-  } catch(e2) {
+  } catch (e2) {
     var e = e2;
     hasThrown = true;
-    Expect.isTrue(e.stackTrace is StackTrace,
-                  "$e doesn't have a non-null stack trace");
+    Expect.isTrue(
+        e.stackTrace is StackTrace, "$e doesn't have a non-null stack trace");
   }
   Expect.isTrue(hasThrown);
 }

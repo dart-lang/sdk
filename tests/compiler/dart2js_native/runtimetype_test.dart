@@ -13,8 +13,8 @@ class A {}
 @Native("TAGY")
 class B extends A {}
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

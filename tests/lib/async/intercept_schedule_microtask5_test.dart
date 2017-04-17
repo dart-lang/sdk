@@ -41,14 +41,20 @@ main() {
       onScheduleMicrotask: handler);
   events.add("after");
   Timer.run(() {
-    Expect.listEquals(
-        ["body entry",
-         "handler2", "handler", "handler done", "handler2 done",
-         "after",
-         "run async body",
-         "handler2", "handler", "handler done", "handler2 done",
-         "run nested body"],
-        events);
+    Expect.listEquals([
+      "body entry",
+      "handler2",
+      "handler",
+      "handler done",
+      "handler2 done",
+      "after",
+      "run async body",
+      "handler2",
+      "handler",
+      "handler done",
+      "handler2 done",
+      "run nested body"
+    ], events);
     asyncEnd();
- });
+  });
 }

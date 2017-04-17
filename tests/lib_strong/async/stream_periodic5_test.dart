@@ -18,8 +18,8 @@ watchMs(Stopwatch watch) {
 
 main() {
   test("stream-periodic4", () {
-    Stream stream = new Stream.periodic(const Duration(milliseconds: 5),
-                                        (x) => x);
+    Stream stream =
+        new Stream.periodic(const Duration(milliseconds: 5), (x) => x);
     Stopwatch watch = new Stopwatch()..start();
     var subscription;
     subscription = stream.take(10).listen((i) {
@@ -28,7 +28,7 @@ main() {
       if (i == 2) {
         Stopwatch watch2 = new Stopwatch()..start();
         // Busy wait.
-        while (watch2.elapsedMilliseconds < 15) { }
+        while (watch2.elapsedMilliseconds < 15) {}
         // Make sure the stream can be paused when it has overdue events.
         // We just busy waited for 15ms, even though the stream is supposed to
         // emit events every 5ms.
@@ -38,7 +38,7 @@ main() {
           watch.start();
           subscription.resume();
         });
-      } 
-    }, onDone: expectAsync(() { }));
+      }
+    }, onDone: expectAsync(() {}));
   });
 }

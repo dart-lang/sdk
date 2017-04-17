@@ -13,7 +13,9 @@ main() {
   test("subscription.asFuture success", () {
     Stream stream = new Stream.fromIterable([1, 2, 3]);
     var output = [];
-    var subscription = stream.listen((x) { output.add(x); });
+    var subscription = stream.listen((x) {
+      output.add(x);
+    });
     subscription.asFuture(output).then(expectAsync((o) {
       Expect.listEquals([1, 2, 3], o);
     }));
@@ -25,7 +27,9 @@ main() {
     controller.close();
     Stream stream = controller.stream;
     var output = [];
-    var subscription = stream.listen((x) { output.add(x); });
+    var subscription = stream.listen((x) {
+      output.add(x);
+    });
     subscription.asFuture(output).then(expectAsync((o) {
       Expect.listEquals([1, 2, 3], o);
     }));
@@ -34,7 +38,9 @@ main() {
   test("subscription.asFuture success 3", () {
     Stream stream = new Stream.fromIterable([1, 2, 3]).map((x) => x);
     var output = [];
-    var subscription = stream.listen((x) { output.add(x); });
+    var subscription = stream.listen((x) {
+      output.add(x);
+    });
     subscription.asFuture(output).then(expectAsync((o) {
       Expect.listEquals([1, 2, 3], o);
     }));
@@ -44,7 +50,9 @@ main() {
     Stream stream = new Stream<int>.fromIterable([1, 2, 3]);
     var asyncCallback = expectAsync(() => {});
     var output = [];
-    var subscription = stream.listen((x) { output.add(x); });
+    var subscription = stream.listen((x) {
+      output.add(x);
+    });
     subscription.asFuture("string").then((String o) {
       Expect.listEquals([1, 2, 3], output);
       Expect.equals("string", o);
@@ -59,20 +67,23 @@ main() {
     controller.close();
     Stream stream = controller.stream;
     var output = [];
-    var subscription = stream.listen((x) { output.add(x); });
+    var subscription = stream.listen((x) {
+      output.add(x);
+    });
     subscription.asFuture(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
     }));
   });
 
   test("subscription.asFuture failure2", () {
-    Stream stream = new Stream.fromIterable([1, 2, 3, 4])
-      .map((x) {
-        if (x == 4) throw "foo";
-        return x;
-      });
+    Stream stream = new Stream.fromIterable([1, 2, 3, 4]).map((x) {
+      if (x == 4) throw "foo";
+      return x;
+    });
     var output = [];
-    var subscription = stream.listen((x) { output.add(x); });
+    var subscription = stream.listen((x) {
+      output.add(x);
+    });
     subscription.asFuture(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
     }));
@@ -87,7 +98,9 @@ main() {
     controller.close();
     Stream stream = controller.stream;
     var output = [];
-    var subscription = stream.listen((x) { output.add(x); });
+    var subscription = stream.listen((x) {
+      output.add(x);
+    });
     bool catchErrorHasRun = false;
     subscription.asFuture(output).catchError(expectAsync((error) {
       Expect.equals(error, "foo");
@@ -109,7 +122,9 @@ main() {
       controller.close();
       Stream stream = controller.stream;
       var output = [];
-      var subscription = stream.listen((x) { output.add(x); });
+      var subscription = stream.listen((x) {
+        output.add(x);
+      });
       bool catchErrorHasRun = false;
       subscription.asFuture(output).catchError(expectAsync((error) {
         Expect.equals(error, "foo");

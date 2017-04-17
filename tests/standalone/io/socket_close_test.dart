@@ -19,7 +19,6 @@ import "package:expect/expect.dart";
 const SERVERSHUTDOWN = -1;
 const ITERATIONS = 10;
 
-
 Future sendReceive(SendPort port, message) {
   ReceivePort receivePort = new ReceivePort();
   port.send([message, receivePort.sendPort]);
@@ -27,7 +26,6 @@ Future sendReceive(SendPort port, message) {
 }
 
 class SocketClose {
-
   SocketClose.start(this._mode, this._done)
       : _sendPort = null,
         _readBytes = 0,
@@ -47,7 +45,6 @@ class SocketClose {
   }
 
   void sendData() {
-
     void dataHandler(bytes) {
       switch (_mode) {
         case 0:
@@ -102,8 +99,7 @@ class SocketClose {
     }
 
     void connectHandler(socket) {
-      socket.listen(
-          dataHandler,
+      socket.listen(dataHandler,
           onDone: () => closeHandler(socket),
           onError: (error) => errorHandler(socket));
 
@@ -128,14 +124,14 @@ class SocketClose {
           break;
         case 4:
           writeHello();
-          socket.close();  // Half close.
+          socket.close(); // Half close.
           break;
         case 5:
           writeHello();
           break;
         case 6:
           writeHello();
-          socket.close();  // Half close.
+          socket.close(); // Half close.
           break;
         default:
           Expect.fail("Unknown test mode");
@@ -159,7 +155,9 @@ class SocketClose {
   }
 
   void shutdown() {
-    sendReceive(_sendPort, SERVERSHUTDOWN).then((_) { _done(); });
+    sendReceive(_sendPort, SERVERSHUTDOWN).then((_) {
+      _done();
+    });
 
     switch (_mode) {
       case 0:
@@ -200,13 +198,11 @@ class SocketClose {
   Function _done;
 }
 
-
 class ConnectionData {
   ConnectionData(Socket this.connection) : readBytes = 0;
   Socket connection;
   int readBytes;
 }
-
 
 void startSocketCloseServer(SendPort replyTo) {
   var server = new SocketCloseServer();
@@ -214,7 +210,6 @@ void startSocketCloseServer(SendPort replyTo) {
 }
 
 class SocketCloseServer {
-
   static const HOST = "127.0.0.1";
 
   SocketCloseServer() : _dispatchPort = new ReceivePort() {
@@ -242,7 +237,9 @@ class SocketCloseServer {
           Expect.fail("No data expected");
           break;
         case 1:
-          readBytes(bytes, () { _dataEvents++; });
+          readBytes(bytes, () {
+            _dataEvents++;
+          });
           break;
         case 2:
           readBytes(bytes, () {
@@ -268,7 +265,7 @@ class SocketCloseServer {
           readBytes(bytes, () {
             _dataEvents++;
             writeHello();
-            connection.close();  // Half close.
+            connection.close(); // Half close.
           });
           break;
         default:
@@ -287,10 +284,7 @@ class SocketCloseServer {
 
     _iterations++;
 
-    connection.listen(
-        dataHandler,
-        onDone: closeHandler,
-        onError: errorHandler);
+    connection.listen(dataHandler, onDone: closeHandler, onError: errorHandler);
   }
 
   void errorHandlerServer(e) {
@@ -353,13 +347,10 @@ class SocketCloseServer {
       _mode = command;
       ServerSocket.bind("127.0.0.1", 0).then((server) {
         _server = server;
-        _server.listen(
-          (socket) {
-            var data = new ConnectionData(socket);
-            connectionHandler(data);
-          },
-          onError: errorHandlerServer
-        );
+        _server.listen((socket) {
+          var data = new ConnectionData(socket);
+          connectionHandler(data);
+        }, onError: errorHandlerServer);
         replyTo.send(_server.port);
       });
     } else {
@@ -377,7 +368,6 @@ class SocketCloseServer {
   int _iterations;
   int _mode;
 }
-
 
 main() {
   // Run the close test in these different "modes".

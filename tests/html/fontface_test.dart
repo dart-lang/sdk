@@ -13,8 +13,7 @@ main() {
   useHtmlConfiguration();
 
   test("Creation with parameters", () {
-    var font =
-        new FontFace('Ahem', 'url(Ahem.ttf)', {'variant': 'small-caps'});
+    var font = new FontFace('Ahem', 'url(Ahem.ttf)', {'variant': 'small-caps'});
     expect(font is FontFace, isTrue);
     expect(font.family, 'Ahem');
     expect(font.variant, 'small-caps');

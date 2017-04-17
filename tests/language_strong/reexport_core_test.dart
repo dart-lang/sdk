@@ -18,4 +18,3 @@ void main() {
   var o = new Object();
   Expect.isTrue(o is core.Object);
 }
-

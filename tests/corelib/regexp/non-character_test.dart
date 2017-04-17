@@ -27,8 +27,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test for regular expressions with non-character values in them, specifically in character classes.'
-  );
+      'Test for regular expressions with non-character values in them, specifically in character classes.');
 
   shouldBeNull(firstMatch("F", new RegExp(r"[\uD7FF]")));
   shouldBeNull(firstMatch("0", new RegExp(r"[\uD800]")));

@@ -23,9 +23,10 @@ main() {
   var script = Platform.script.resolve('regress_7191_script.dart').toFilePath();
   Process.start(executable, [script]).then((process) {
     process.stdin.add([0]);
-    process.stdout.listen((_) { },
-                           onDone: () { process.stdin.add([0]); });
-    process.stderr.listen((_) { });
+    process.stdout.listen((_) {}, onDone: () {
+      process.stdin.add([0]);
+    });
+    process.stderr.listen((_) {});
     process.exitCode.then((exitCode) {
       asyncEnd();
       if (exitCode != 0) throw "Bad exit code";

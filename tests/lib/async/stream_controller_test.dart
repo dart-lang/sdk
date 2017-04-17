@@ -12,20 +12,22 @@ import 'event_helper.dart';
 
 const MS = const Duration(milliseconds: 1);
 
-fail(e) { Expect.fail("Unexepected error: $e"); }
+fail(e) {
+  Expect.fail("Unexepected error: $e");
+}
 
 void testMultiController() {
   // Test normal flow.
   {
     var c = new StreamController(sync: true);
     Events expectedEvents = new Events()
-        ..add(42)
-        ..add("dibs")
-        ..error("error!")
-        ..error("error too!")
-        ..close();
+      ..add(42)
+      ..add("dibs")
+      ..error("error!")
+      ..error("error too!")
+      ..close();
     CaptureEvents actualEvents =
-      new Events.capture(c.stream.asBroadcastStream());
+        new Events.capture(c.stream.asBroadcastStream());
     expectedEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -33,11 +35,15 @@ void testMultiController() {
   // Test automatic unsubscription on error.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add(42)..error("error");
-    var actualEvents = new Events.capture(c.stream.asBroadcastStream(),
-                                      cancelOnError: true);
-    Events sentEvents =
-        new Events()..add(42)..error("error")..add("Are you there?");
+    var expectedEvents = new Events()
+      ..add(42)
+      ..error("error");
+    var actualEvents =
+        new Events.capture(c.stream.asBroadcastStream(), cancelOnError: true);
+    Events sentEvents = new Events()
+      ..add(42)
+      ..error("error")
+      ..add("Are you there?");
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -45,12 +51,15 @@ void testMultiController() {
   // Test manual unsubscription.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add(42)..error("error")..add(37);
-    var actualEvents = new Events.capture(c.stream.asBroadcastStream(),
-                                      cancelOnError: false);
+    var expectedEvents = new Events()
+      ..add(42)
+      ..error("error")
+      ..add(37);
+    var actualEvents =
+        new Events.capture(c.stream.asBroadcastStream(), cancelOnError: false);
     expectedEvents.replay(c);
     actualEvents.subscription.cancel();
-    c.add("Are you there");  // Not sent to actualEvents.
+    c.add("Are you there"); // Not sent to actualEvents.
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
 
@@ -58,12 +67,16 @@ void testMultiController() {
   {
     var c = new StreamController(sync: true);
     var expectedEvents = new Events()
-      ..add("a string")..add("another string")..close();
+      ..add("a string")
+      ..add("another string")
+      ..close();
     var sentEvents = new Events()
-      ..add("a string")..add(42)..add("another string")..close();
-    var actualEvents = new Events.capture(c.stream
-      .asBroadcastStream()
-      .where((v) => v is String));
+      ..add("a string")
+      ..add(42)
+      ..add("another string")
+      ..close();
+    var actualEvents = new Events.capture(
+        c.stream.asBroadcastStream().where((v) => v is String));
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -71,11 +84,16 @@ void testMultiController() {
   // Test map.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add("abab")..error("error")..close();
-    var sentEvents = new Events()..add("ab")..error("error")..close();
-    var actualEvents = new Events.capture(c.stream
-      .asBroadcastStream()
-      .map((v) => "$v$v"));
+    var expectedEvents = new Events()
+      ..add("abab")
+      ..error("error")
+      ..close();
+    var sentEvents = new Events()
+      ..add("ab")
+      ..error("error")
+      ..close();
+    var actualEvents =
+        new Events.capture(c.stream.asBroadcastStream().map((v) => "$v$v"));
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -83,16 +101,22 @@ void testMultiController() {
   // Test handleError.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add("ab")..error("[foo]");
-    var sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
-    var actualEvents = new Events.capture(c.stream
-      .asBroadcastStream()
-      .handleError((error) {
+    var expectedEvents = new Events()
+      ..add("ab")
+      ..error("[foo]");
+    var sentEvents = new Events()
+      ..add("ab")
+      ..error("foo")
+      ..add("ab")
+      ..close();
+    var actualEvents = new Events.capture(
+        c.stream.asBroadcastStream().handleError((error) {
           if (error is String) {
             // TODO(floitsch): this test originally changed the stacktrace.
             throw "[${error}]";
           }
-        }), cancelOnError: true);
+        }),
+        cancelOnError: true);
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -102,11 +126,22 @@ void testMultiController() {
   // Test expand
   {
     var c = new StreamController(sync: true);
-    var sentEvents = new Events()..add(3)..add(2)..add(4)..close();
-    var expectedEvents = new Events()..add(1)..add(2)..add(3)
-                                ..add(1)..add(2)
-                                ..add(1)..add(2)..add(3)..add(4)
-                                ..close();
+    var sentEvents = new Events()
+      ..add(3)
+      ..add(2)
+      ..add(4)
+      ..close();
+    var expectedEvents = new Events()
+      ..add(1)
+      ..add(2)
+      ..add(3)
+      ..add(1)
+      ..add(2)
+      ..add(1)
+      ..add(2)
+      ..add(3)
+      ..add(4)
+      ..close();
     var actualEvents =
         new Events.capture(c.stream.asBroadcastStream().expand((v) {
       var l = [];
@@ -120,18 +155,27 @@ void testMultiController() {
   // Test transform.
   {
     var c = new StreamController(sync: true);
-    var sentEvents = new Events()..add("a")..error(42)..add("b")..close();
-    var expectedEvents =
-        new Events()..error("a")..add(42)..error("b")..add("foo")..close();
-    var actualEvents =
-        new Events.capture(c.stream.asBroadcastStream().transform(
-        new StreamTransformer.fromHandlers(
-            handleData: (v, s) { s.addError(v); },
-            handleError: (e, st, s) { s.add(e); },
-            handleDone: (s) {
-              s.add("foo");
-              s.close();
-            })));
+    var sentEvents = new Events()
+      ..add("a")
+      ..error(42)
+      ..add("b")
+      ..close();
+    var expectedEvents = new Events()
+      ..error("a")
+      ..add(42)
+      ..error("b")
+      ..add("foo")
+      ..close();
+    var actualEvents = new Events.capture(c.stream
+        .asBroadcastStream()
+        .transform(new StreamTransformer.fromHandlers(handleData: (v, s) {
+          s.addError(v);
+        }, handleError: (e, st, s) {
+          s.add(e);
+        }, handleDone: (s) {
+          s.add("foo");
+          s.close();
+        })));
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -139,20 +183,24 @@ void testMultiController() {
   // Test multiple filters.
   {
     var c = new StreamController(sync: true);
-    var sentEvents = new Events()..add(42)
-                            ..add("snugglefluffy")
-                            ..add(7)
-                            ..add("42")
-                            ..error("not FormatException")  // Unsubscribes.
-                            ..close();
-    var expectedEvents = new Events()..add(42)..error("not FormatException");
+    var sentEvents = new Events()
+      ..add(42)
+      ..add("snugglefluffy")
+      ..add(7)
+      ..add("42")
+      ..error("not FormatException") // Unsubscribes.
+      ..close();
+    var expectedEvents = new Events()
+      ..add(42)
+      ..error("not FormatException");
     var actualEvents = new Events.capture(
-        c.stream.asBroadcastStream().where((v) => v is String)
-        .map((v) => int.parse(v))
-        .handleError((error) {
-            if (error is! FormatException) throw error;
-          })
-        .where((v) => v > 10),
+        c.stream
+            .asBroadcastStream()
+            .where((v) => v is String)
+            .map((v) => int.parse(v))
+            .handleError((error) {
+          if (error is! FormatException) throw error;
+        }).where((v) => v > 10),
         cancelOnError: true);
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -191,11 +239,11 @@ testSingleController() {
   {
     var c = new StreamController(sync: true);
     Events expectedEvents = new Events()
-        ..add(42)
-        ..add("dibs")
-        ..error("error!")
-        ..error("error too!")
-        ..close();
+      ..add(42)
+      ..add("dibs")
+      ..error("error!")
+      ..error("error too!")
+      ..close();
     CaptureEvents actualEvents = new Events.capture(c.stream);
     expectedEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -204,10 +252,14 @@ testSingleController() {
   // Test automatic unsubscription on error.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add(42)..error("error");
+    var expectedEvents = new Events()
+      ..add(42)
+      ..error("error");
     var actualEvents = new Events.capture(c.stream, cancelOnError: true);
-    Events sentEvents =
-        new Events()..add(42)..error("error")..add("Are you there?");
+    Events sentEvents = new Events()
+      ..add(42)
+      ..error("error")
+      ..add("Are you there?");
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -215,11 +267,14 @@ testSingleController() {
   // Test manual unsubscription.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add(42)..error("error")..add(37);
+    var expectedEvents = new Events()
+      ..add(42)
+      ..error("error")
+      ..add(37);
     var actualEvents = new Events.capture(c.stream, cancelOnError: false);
     expectedEvents.replay(c);
     actualEvents.subscription.cancel();
-    c.add("Are you there");  // Not sent to actualEvents.
+    c.add("Are you there"); // Not sent to actualEvents.
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
 
@@ -227,9 +282,14 @@ testSingleController() {
   {
     var c = new StreamController(sync: true);
     var expectedEvents = new Events()
-      ..add("a string")..add("another string")..close();
+      ..add("a string")
+      ..add("another string")
+      ..close();
     var sentEvents = new Events()
-      ..add("a string")..add(42)..add("another string")..close();
+      ..add("a string")
+      ..add(42)
+      ..add("another string")
+      ..close();
     var actualEvents = new Events.capture(c.stream.where((v) => v is String));
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -238,8 +298,14 @@ testSingleController() {
   // Test map.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add("abab")..error("error")..close();
-    var sentEvents = new Events()..add("ab")..error("error")..close();
+    var expectedEvents = new Events()
+      ..add("abab")
+      ..error("error")
+      ..close();
+    var sentEvents = new Events()
+      ..add("ab")
+      ..error("error")
+      ..close();
     var actualEvents = new Events.capture(c.stream.map((v) => "$v$v"));
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -248,14 +314,20 @@ testSingleController() {
   // Test handleError.
   {
     var c = new StreamController(sync: true);
-    var expectedEvents = new Events()..add("ab")..error("[foo]");
-    var sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
+    var expectedEvents = new Events()
+      ..add("ab")
+      ..error("[foo]");
+    var sentEvents = new Events()
+      ..add("ab")
+      ..error("foo")
+      ..add("ab")
+      ..close();
     var actualEvents = new Events.capture(c.stream.handleError((error) {
-          if (error is String) {
-            // TODO(floitsch): this error originally changed the stack trace.
-            throw "[${error}]";
-          }
-        }), cancelOnError: true);
+      if (error is String) {
+        // TODO(floitsch): this error originally changed the stack trace.
+        throw "[${error}]";
+      }
+    }), cancelOnError: true);
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -265,11 +337,22 @@ testSingleController() {
   // Test expand
   {
     var c = new StreamController(sync: true);
-    var sentEvents = new Events()..add(3)..add(2)..add(4)..close();
-    var expectedEvents = new Events()..add(1)..add(2)..add(3)
-                                ..add(1)..add(2)
-                                ..add(1)..add(2)..add(3)..add(4)
-                                ..close();
+    var sentEvents = new Events()
+      ..add(3)
+      ..add(2)
+      ..add(4)
+      ..close();
+    var expectedEvents = new Events()
+      ..add(1)
+      ..add(2)
+      ..add(3)
+      ..add(1)
+      ..add(2)
+      ..add(1)
+      ..add(2)
+      ..add(3)
+      ..add(4)
+      ..close();
     var actualEvents = new Events.capture(c.stream.expand((v) {
       var l = [];
       for (int i = 0; i < v; i++) l.add(i + 1);
@@ -283,7 +366,11 @@ testSingleController() {
   {
     var c = new StreamController(sync: true);
     // Error after match is not important.
-    var sentEvents = new Events()..add("a")..add("x")..error("FAIL")..close();
+    var sentEvents = new Events()
+      ..add("a")
+      ..add("x")
+      ..error("FAIL")
+      ..close();
     Future<bool> contains = c.stream.contains("x");
     contains.then((var c) {
       Expect.isTrue(c);
@@ -294,7 +381,11 @@ testSingleController() {
   {
     var c = new StreamController(sync: true);
     // Not matching is ok.
-    var sentEvents = new Events()..add("a")..add("x")..add("b")..close();
+    var sentEvents = new Events()
+      ..add("a")
+      ..add("x")
+      ..add("b")
+      ..close();
     Future<bool> contains = c.stream.contains("y");
     contains.then((var c) {
       Expect.isFalse(c);
@@ -305,7 +396,11 @@ testSingleController() {
   {
     var c = new StreamController(sync: true);
     // Error before match makes future err.
-    var sentEvents = new Events()..add("a")..error("FAIL")..add("b")..close();
+    var sentEvents = new Events()
+      ..add("a")
+      ..error("FAIL")
+      ..add("b")
+      ..close();
     Future<bool> contains = c.stream.contains("b");
     contains.then((var c) {
       Expect.fail("no value expected");
@@ -318,17 +413,26 @@ testSingleController() {
   // Test transform.
   {
     var c = new StreamController(sync: true);
-    var sentEvents = new Events()..add("a")..error(42)..add("b")..close();
-    var expectedEvents =
-        new Events()..error("a")..add(42)..error("b")..add("foo")..close();
-    var actualEvents = new Events.capture(c.stream.transform(
-        new StreamTransformer.fromHandlers(
-            handleData: (v, s) { s.addError(v); },
-            handleError: (e, st, s) { s.add(e); },
-            handleDone: (s) {
-              s.add("foo");
-              s.close();
-            })));
+    var sentEvents = new Events()
+      ..add("a")
+      ..error(42)
+      ..add("b")
+      ..close();
+    var expectedEvents = new Events()
+      ..error("a")
+      ..add(42)
+      ..error("b")
+      ..add("foo")
+      ..close();
+    var actualEvents = new Events.capture(c.stream
+        .transform(new StreamTransformer.fromHandlers(handleData: (v, s) {
+      s.addError(v);
+    }, handleError: (e, st, s) {
+      s.add(e);
+    }, handleDone: (s) {
+      s.add("foo");
+      s.close();
+    })));
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
   }
@@ -336,20 +440,23 @@ testSingleController() {
   // Test multiple filters.
   {
     var c = new StreamController(sync: true);
-    var sentEvents = new Events()..add(42)
-                            ..add("snugglefluffy")
-                            ..add(7)
-                            ..add("42")
-                            ..error("not FormatException")  // Unsubscribes.
-                            ..close();
-    var expectedEvents = new Events()..add(42)..error("not FormatException");
+    var sentEvents = new Events()
+      ..add(42)
+      ..add("snugglefluffy")
+      ..add(7)
+      ..add("42")
+      ..error("not FormatException") // Unsubscribes.
+      ..close();
+    var expectedEvents = new Events()
+      ..add(42)
+      ..error("not FormatException");
     var actualEvents = new Events.capture(
-        c.stream.where((v) => v is String)
-        .map((v) => int.parse(v))
-        .handleError((error) {
-            if (error is! FormatException) throw error;
-          })
-        .where((v) => v > 10),
+        c.stream
+            .where((v) => v is String)
+            .map((v) => int.parse(v))
+            .handleError((error) {
+          if (error is! FormatException) throw error;
+        }).where((v) => v > 10),
         cancelOnError: true);
     sentEvents.replay(c);
     Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -361,7 +468,9 @@ testSingleController() {
     var sink = c.sink;
     var stream = c.stream;
     var counter = 0;
-    var subscription = stream.listen((data) { counter += data; });
+    var subscription = stream.listen((data) {
+      counter += data;
+    });
     Expect.throws(() => stream.listen(null), (e) => e is StateError);
     sink.add(1);
     Expect.equals(1, counter);
@@ -370,10 +479,16 @@ testSingleController() {
 }
 
 testExtraMethods() {
-  Events sentEvents = new Events()..add(1)..add(2)..add(3)..close();
+  Events sentEvents = new Events()
+    ..add(1)
+    ..add(2)
+    ..add(3)
+    ..close();
 
   var c = new StreamController(sync: true);
-  Events expectedEvents = new Events()..add(3)..close();
+  Events expectedEvents = new Events()
+    ..add(3)
+    ..close();
   Events actualEvents = new Events.capture(c.stream.skip(2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -396,57 +511,88 @@ testExtraMethods() {
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-
   c = new StreamController(sync: true);
-  expectedEvents = new Events()..add(3)..close();
+  expectedEvents = new Events()
+    ..add(3)
+    ..close();
   actualEvents = new Events.capture(c.stream.skipWhile((x) => x <= 2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-
   c = new StreamController(sync: true);
-  expectedEvents = new Events()..add(2)..add(3)..close();
+  expectedEvents = new Events()
+    ..add(2)
+    ..add(3)
+    ..close();
   actualEvents = new Events.capture(c.stream.skipWhile((x) => x <= 1));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-
   c = new StreamController(sync: true);
-  expectedEvents = new Events()..add(1)..add(2)..add(3)..close();
+  expectedEvents = new Events()
+    ..add(1)
+    ..add(2)
+    ..add(3)
+    ..close();
   actualEvents = new Events.capture(c.stream.skipWhile((x) => false));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-
   c = new StreamController(sync: true);
-  expectedEvents = new Events()..add(1)..add(2)..close();
+  expectedEvents = new Events()
+    ..add(1)
+    ..add(2)
+    ..close();
   actualEvents = new Events.capture(c.stream.take(2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-
   c = new StreamController(sync: true);
-  expectedEvents = new Events()..add(1)..add(2)..close();
+  expectedEvents = new Events()
+    ..add(1)
+    ..add(2)
+    ..close();
   actualEvents = new Events.capture(c.stream.takeWhile((x) => x <= 2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-
   c = new StreamController(sync: true);
   sentEvents = new Events()
-      ..add(1)..add(1)..add(2)..add(1)..add(2)..add(2)..add(2)..close();
+    ..add(1)
+    ..add(1)
+    ..add(2)
+    ..add(1)
+    ..add(2)
+    ..add(2)
+    ..add(2)
+    ..close();
   expectedEvents = new Events()
-      ..add(1)..add(2)..add(1)..add(2)..close();
+    ..add(1)
+    ..add(2)
+    ..add(1)
+    ..add(2)
+    ..close();
   actualEvents = new Events.capture(c.stream.distinct());
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-
   c = new StreamController(sync: true);
   sentEvents = new Events()
-      ..add(5)..add(6)..add(4)..add(6)..add(8)..add(3)..add(4)..add(1)..close();
+    ..add(5)
+    ..add(6)
+    ..add(4)
+    ..add(6)
+    ..add(8)
+    ..add(3)
+    ..add(4)
+    ..add(1)
+    ..close();
   expectedEvents = new Events()
-      ..add(5)..add(4)..add(3)..add(1)..close();
+    ..add(5)
+    ..add(4)
+    ..add(3)
+    ..add(1)
+    ..close();
   // Use 'distinct' as a filter with access to the previously emitted event.
   actualEvents = new Events.capture(c.stream.distinct((a, b) => a < b));
   sentEvents.replay(c);
@@ -560,7 +706,7 @@ void testCancelThrow() {
       asyncEnd();
     });
   });
-  done.catchError(fail).whenComplete(asyncEnd);  // Must complete without error.
+  done.catchError(fail).whenComplete(asyncEnd); // Must complete without error.
 }
 
 void testCancelThrow2() {
@@ -576,7 +722,7 @@ void testCancelThrow2() {
   c2.add(1);
   c2.add(2);
   Future done2 = c2.close();
-  done2.catchError(fail).whenComplete(asyncEnd);  // Should not get error;
+  done2.catchError(fail).whenComplete(asyncEnd); // Should not get error;
 
   StreamController c = new StreamController();
   var sub;
@@ -590,9 +736,9 @@ void testCancelThrow2() {
     });
   });
   var addDone = c.addStream(c2.stream);
-  addDone.catchError(fail).whenComplete(asyncEnd);  // Should not get error.
+  addDone.catchError(fail).whenComplete(asyncEnd); // Should not get error.
   var done = c.done;
-  done.catchError(fail).whenComplete(asyncEnd);  // Should not get error.
+  done.catchError(fail).whenComplete(asyncEnd); // Should not get error.
 }
 
 void testCancelThrow3() {
@@ -609,7 +755,7 @@ void testCancelThrow3() {
   c2.add(1);
   c2.add(2);
   var done2 = c2.close();
-  done2.catchError(fail).whenComplete(asyncEnd);  // Should not get error;
+  done2.catchError(fail).whenComplete(asyncEnd); // Should not get error;
 
   StreamController c = new StreamController(onCancel: () {
     asyncEnd();
@@ -626,7 +772,7 @@ void testCancelThrow3() {
     });
   });
   var addDone = c.addStream(c2.stream);
-  addDone.catchError(fail).whenComplete(asyncEnd);  // Error must not go here.
+  addDone.catchError(fail).whenComplete(asyncEnd); // Error must not go here.
   c.done.catchError(fail).whenComplete(asyncEnd); // Error must not go here.
 }
 
@@ -652,7 +798,9 @@ void testBroadcastListenAfterClosePaused() {
     sub.pause();
     sub.pause();
     new Timer(MS * 100, () {
-      sub.asFuture().whenComplete(() { Expect.fail("Bad complete"); });
+      sub.asFuture().whenComplete(() {
+        Expect.fail("Bad complete");
+      });
       sub.resume();
       new Timer(MS * 100, () {
         sub.onDone(asyncEnd);
@@ -690,7 +838,9 @@ void testAsBroadcastListenAfterClosePaused() {
     sub.pause();
     sub.pause();
     new Timer(MS * 100, () {
-      sub.asFuture().whenComplete(() { Expect.fail("Bad complete"); });
+      sub.asFuture().whenComplete(() {
+        Expect.fail("Bad complete");
+      });
       sub.resume();
       new Timer(MS * 100, () {
         sub.onDone(asyncEnd);
@@ -707,6 +857,7 @@ void testEventInListen() {
   void send() {
     c.add(1);
   }
+
   int i = 1;
   c = new StreamController.broadcast(onListen: send, sync: true);
   c.stream.listen((v) {
@@ -765,30 +916,39 @@ void testSyncControllerNotReentrant() {
 void testSettingCallbacks() {
   const int initial = 0;
   const int running = 1;
-  const int paused  = 2;
+  const int paused = 2;
   const int canceled = 3;
 
   var controller = new StreamController();
   var stream = controller.stream;
   var state = initial;
 
-  var onListen = () { state = running; };
-  var onPause  = () { state = paused; };
-  var onResume = () { state = running; };
-  var onCancel = () { state = canceled; };
+  var onListen = () {
+    state = running;
+  };
+  var onPause = () {
+    state = paused;
+  };
+  var onResume = () {
+    state = running;
+  };
+  var onCancel = () {
+    state = canceled;
+  };
 
   Expect.isNull(controller.onListen);
   Expect.isNull(controller.onPause);
   Expect.isNull(controller.onResume);
   Expect.isNull(controller.onCancel);
 
-  controller..onListen = onListen
-            ..onPause  = onPause
-            ..onResume = onResume
-            ..onCancel = onCancel;
+  controller
+    ..onListen = onListen
+    ..onPause = onPause
+    ..onResume = onResume
+    ..onCancel = onCancel;
 
   Expect.equals(onListen, controller.onListen);
-  Expect.equals(onPause,  controller.onPause);
+  Expect.equals(onPause, controller.onPause);
   Expect.equals(onResume, controller.onResume);
   Expect.equals(onCancel, controller.onCancel);
 
@@ -802,18 +962,27 @@ void testSettingCallbacks() {
   Expect.equals(running, state);
   Expect.isFalse(controller.isPaused);
 
-  var onListen2 = () { state = -running; };
-  var onPause2  = () { state = -paused; };
-  var onResume2 = () { state = -running; };
-  var onCancel2 = () { state = -canceled; };
+  var onListen2 = () {
+    state = -running;
+  };
+  var onPause2 = () {
+    state = -paused;
+  };
+  var onResume2 = () {
+    state = -running;
+  };
+  var onCancel2 = () {
+    state = -canceled;
+  };
   // Changing them later does make a difference.
-  controller..onListen = onListen2
-            ..onPause  = onPause2
-            ..onResume = onResume2
-            ..onCancel = onCancel2;
+  controller
+    ..onListen = onListen2
+    ..onPause = onPause2
+    ..onResume = onResume2
+    ..onCancel = onCancel2;
 
   Expect.equals(onListen2, controller.onListen);
-  Expect.equals(onPause2,  controller.onPause);
+  Expect.equals(onPause2, controller.onPause);
   Expect.equals(onResume2, controller.onResume);
   Expect.equals(onCancel2, controller.onCancel);
 
@@ -830,10 +999,11 @@ void testSettingCallbacks() {
 
 void testSettingNullCallbacks() {
   failCallback() => fail("Callback should not be called");
-  var controller = new StreamController(onListen: failCallback,
-                                        onPause : failCallback,
-                                        onResume: failCallback,
-                                        onCancel: failCallback);
+  var controller = new StreamController(
+      onListen: failCallback,
+      onPause: failCallback,
+      onResume: failCallback,
+      onCancel: failCallback);
 
   var stream = controller.stream;
 
@@ -886,13 +1056,20 @@ void testBroadcastSettingCallbacks() {
   var stream = controller.stream;
   var state = initial;
 
-  Expect.throws(() { controller.onPause = () {}; },
-                (e) => e is UnsupportedError);
-  Expect.throws(() { controller.onResume = () {}; },
-                (e) => e is UnsupportedError);
+  Expect.throws(() {
+    controller.onPause = () {};
+  }, (e) => e is UnsupportedError);
+  Expect.throws(() {
+    controller.onResume = () {};
+  }, (e) => e is UnsupportedError);
 
-  controller..onListen = () { state = running; }
-            ..onCancel = () { state = canceled; };
+  controller
+    ..onListen = () {
+      state = running;
+    }
+    ..onCancel = () {
+      state = canceled;
+    };
 
   Expect.equals(initial, state);
   var sub = stream.listen(null);
@@ -901,8 +1078,13 @@ void testBroadcastSettingCallbacks() {
   Expect.equals(canceled, state);
 
   // Changing them later does make a difference.
-  controller..onListen = () { state = -running; }
-            ..onCancel = () { state = -canceled; };
+  controller
+    ..onListen = () {
+      state = -running;
+    }
+    ..onCancel = () {
+      state = -canceled;
+    };
 
   var sub2 = stream.listen(null);
   Expect.equals(-running, state);
@@ -912,8 +1094,8 @@ void testBroadcastSettingCallbacks() {
 
 void testBroadcastSettingNullCallbacks() {
   failCallback() => fail("Callback should not be called");
-  var controller = new StreamController.broadcast(onListen: failCallback,
-                                                  onCancel: failCallback);
+  var controller = new StreamController.broadcast(
+      onListen: failCallback, onCancel: failCallback);
 
   var stream = controller.stream;
 

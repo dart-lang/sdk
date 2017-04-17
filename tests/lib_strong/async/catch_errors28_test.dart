@@ -24,18 +24,23 @@ main() {
       events.add(counter);
     });
   }).listen((x) {
-      events.add(x);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give handlers time to run.
     Timer.run(() {
       Expect.listEquals([
-                         "main exit",
-                         1, 2, 3, 4, 5, 6,
-                         ],
-                         events);
+        "main exit",
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+      ], events);
       asyncEnd();
     });
   });

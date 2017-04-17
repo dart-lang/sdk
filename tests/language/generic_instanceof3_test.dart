@@ -7,37 +7,19 @@ import "package:expect/expect.dart";
 
 // Tests involving generics.
 
-abstract class I<T> {
-}
+abstract class I<T> {}
 
+class A implements I<bool> {}
 
-class A implements I<bool> {
-}
+class B<T> implements I<bool> {}
 
+abstract class K<T> {}
 
-class B<T> implements I<bool> {
-}
+abstract class L<T> extends K<bool> {}
 
+class C implements L<String> {}
 
-abstract class K<T> {
-
-}
-
-abstract class L<T> extends K<bool> {
-
-}
-
-
-class C implements L<String> {
-
-}
-
-
-class D implements B<String> {
-
-}
-
-
+class D implements B<String> {}
 
 main() {
   var a = new A();

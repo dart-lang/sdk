@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file
 
 library UnknownElementTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -20,15 +21,17 @@ main() {
   document.body.nodes.addAll([foo, bar]);
 
   test('type-check', () {
-      expect(foo, isUnknownElement);
-      expect(bar, isUnknownElement);
-      expect(query('#foo'), equals(foo));
-      expect(query('#bar'), equals(bar));
-    });
+    expect(foo, isUnknownElement);
+    expect(bar, isUnknownElement);
+    expect(query('#foo'), equals(foo));
+    expect(query('#bar'), equals(bar));
+  });
 
   test('dispatch-fail', () {
-      expect(() => foo.method1(), throwsNoSuchMethodError);
-      expect(() => foo.field1, throwsNoSuchMethodError);
-      expect(() { foo.field1 = 42; }, throwsNoSuchMethodError);
-    });
+    expect(() => foo.method1(), throwsNoSuchMethodError);
+    expect(() => foo.field1, throwsNoSuchMethodError);
+    expect(() {
+      foo.field1 = 42;
+    }, throwsNoSuchMethodError);
+  });
 }

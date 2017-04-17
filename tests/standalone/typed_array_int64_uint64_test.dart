@@ -6,6 +6,7 @@
 
 // Library tag to be able to run in html test framework.
 library TypedArray;
+
 import "package:expect/expect.dart";
 import 'package:async_helper/async_helper.dart';
 import 'dart:async';
@@ -29,6 +30,7 @@ Int64List initInt64() {
   int64[1] = 100000000;
   return int64;
 }
+
 Int64List int64 = initInt64();
 
 int64_receiver() {
@@ -56,7 +58,6 @@ int64_sender(message) {
   r.send(a);
 }
 
-
 // Uint64 array.
 Uint64List initUint64() {
   var uint64 = new Uint64List(2);
@@ -64,6 +65,7 @@ Uint64List initUint64() {
   uint64[1] = 0x7fffffffffffffff;
   return uint64;
 }
+
 Uint64List uint64 = initUint64();
 
 uint64_receiver() {

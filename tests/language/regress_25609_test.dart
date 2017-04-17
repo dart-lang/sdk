@@ -8,6 +8,6 @@ import 'regress_25609_lib1.dart';
 
 Foo baz() => null;
 
-main () {
+main() {
   baz();
 }

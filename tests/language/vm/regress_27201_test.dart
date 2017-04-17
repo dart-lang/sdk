@@ -36,21 +36,17 @@ test_loaded() {
   }
 }
 
-
 main() {
   p.loadLibrary().then((v) {
     test_loaded();
-  },
-  onError: (e) {
+  }, onError: (e) {
     Expect.fail("Should have loaded library!");
   });
 
   // Ensure bad library import is handled correctly.
   q.loadLibrary().then((v) {
     Expect.fail("Should have failed");
-  },
-  onError: (e) {
+  }, onError: (e) {
     Expect.throws(() => q.x);
   });
 }
-

@@ -19,4 +19,3 @@ abstract class EntityState<ES extends EntityState<ES>>
 
 abstract class MutableEntityState<S extends MutableEntityState<S>>
     extends EntityState<S> implements ComponentState<S> {}
-

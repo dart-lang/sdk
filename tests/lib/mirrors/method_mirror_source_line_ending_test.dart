@@ -20,12 +20,12 @@ main() {
   Expect.stringEquals('oneLineCRLF(x) => x;', sourceOf(oneLineCRLF));
 
   // Source includes line breaks.
-  Expect.stringEquals('multiLineLF(y) {\n  return y + 1;\n}',
-                      sourceOf(multiLineLF));
-  Expect.stringEquals('multiLineCR(y) {\r  return y + 1;\r}',
-                      sourceOf(multiLineCR));
-  Expect.stringEquals('multiLineCRLF(y) {\r\n  return y + 1;\r\n}',
-                      sourceOf(multiLineCRLF));
+  Expect.stringEquals(
+      'multiLineLF(y) {\n  return y + 1;\n}', sourceOf(multiLineLF));
+  Expect.stringEquals(
+      'multiLineCR(y) {\r  return y + 1;\r}', sourceOf(multiLineCR));
+  Expect.stringEquals(
+      'multiLineCRLF(y) {\r\n  return y + 1;\r\n}', sourceOf(multiLineCRLF));
 
   // First and last characters separated from middle by line breaks.
   Expect.stringEquals('a\n(){\n}', sourceOf(a));

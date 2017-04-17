@@ -25,8 +25,8 @@ main() {
     check('q', () => new QuoteElement() is QuoteElement);
     check('script', () => new ScriptElement() is ScriptElement);
     check('select', () => new SelectElement() is SelectElement);
-    check('shadow',
-        () => new ShadowElement() is ShadowElement, ShadowElement.supported);
+    check('shadow', () => new ShadowElement() is ShadowElement,
+        ShadowElement.supported);
     check('source', () => new SourceElement() is SourceElement);
     check('span', () => new SpanElement() is SpanElement);
     check('style', () => new StyleElement() is StyleElement);

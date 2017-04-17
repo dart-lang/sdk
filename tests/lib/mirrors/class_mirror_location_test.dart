@@ -33,10 +33,11 @@ enum AnnotatedEnum { SALT, PEPPER }
 
 // We only check for a suffix of the uri because the test might be run from
 // any number of absolute paths.
-expectLocation(DeclarationMirror mirror, String uriSuffix, int line, int column) {
+expectLocation(
+    DeclarationMirror mirror, String uriSuffix, int line, int column) {
   Uri uri = mirror.location.sourceUri;
-  Expect.isTrue(uri.toString().endsWith(uriSuffix),
-  	        "Expected suffix $uriSuffix in $uri");
+  Expect.isTrue(
+      uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
   Expect.equals(line, mirror.location.line, "line");
   Expect.equals(column, mirror.location.column, "column");
 }
@@ -56,7 +57,7 @@ main() {
   expectLocation(reflectClass(WithMetadata), mainSuffix, 26, 1);
   expectLocation(reflectClass(Enum), mainSuffix, 29, 1);
   expectLocation(reflectClass(AnnotatedEnum), mainSuffix, 31, 1);
-  
+
   // Another part.
   expectLocation(reflectClass(ClassInOtherFile), otherSuffix, 7, 1);
   expectLocation(reflectClass(SpaceIndentedInOtherFile), otherSuffix, 9, 3);

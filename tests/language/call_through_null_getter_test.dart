@@ -11,7 +11,6 @@ const TOP_LEVEL_NULL = null;
 var topLevel;
 
 class CallThroughNullGetterTest {
-
   static void testMain() {
     testTopLevel();
     testField();
@@ -21,49 +20,69 @@ class CallThroughNullGetterTest {
 
   static void testTopLevel() {
     topLevel = null;
-    expectThrowsNoSuchMethodError(() { topLevel(); });
-    expectThrowsNoSuchMethodError(() { (topLevel)(); });
-    expectThrowsNoSuchMethodError(() { TOP_LEVEL_NULL(); });
-    expectThrowsNoSuchMethodError(() { (TOP_LEVEL_NULL)(); });
+    expectThrowsNoSuchMethodError(() {
+      topLevel();
+    });
+    expectThrowsNoSuchMethodError(() {
+      (topLevel)();
+    });
+    expectThrowsNoSuchMethodError(() {
+      TOP_LEVEL_NULL();
+    });
+    expectThrowsNoSuchMethodError(() {
+      (TOP_LEVEL_NULL)();
+    });
   }
 
   static void testField() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNoSuchMethodError(() { a.field(); });
-    expectThrowsNoSuchMethodError(() { (a.field)(); });
+    expectThrowsNoSuchMethodError(() {
+      a.field();
+    });
+    expectThrowsNoSuchMethodError(() {
+      (a.field)();
+    });
   }
 
   static void testGetter() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNoSuchMethodError(() { a.getter(); });
-    expectThrowsNoSuchMethodError(() { (a.getter)(); });
+    expectThrowsNoSuchMethodError(() {
+      a.getter();
+    });
+    expectThrowsNoSuchMethodError(() {
+      (a.getter)();
+    });
   }
 
   static void testMethod() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNoSuchMethodError(() { a.method()(); });
+    expectThrowsNoSuchMethodError(() {
+      a.method()();
+    });
   }
 
   static void expectThrowsNoSuchMethodError(fn) {
-    Expect.throws(fn, (e) => e is NoSuchMethodError,
-                  "Should throw NoSuchMethodError");
+    Expect.throws(
+        fn, (e) => e is NoSuchMethodError, "Should throw NoSuchMethodError");
   }
 }
 
-
 class A {
-
-  A() { }
+  A() {}
   var field;
-  get getter { return field; }
-  method() { return field; }
+  get getter {
+    return field;
+  }
 
+  method() {
+    return field;
+  }
 }
 
 main() {

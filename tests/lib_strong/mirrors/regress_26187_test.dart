@@ -18,8 +18,12 @@ typedef void f(@A() int, String);
 typedef void g(@B() int, String);
 
 main() {
-  ParameterMirror fParamMirror = (reflectType(f) as TypedefMirror).referent.parameters[0];
-  ParameterMirror gParamMirror = (reflectType(g) as TypedefMirror).referent.parameters[0];
-  Expect.equals('.A', MirrorSystem.getName(fParamMirror.metadata[0].type.qualifiedName));
-  Expect.equals('.B', MirrorSystem.getName(gParamMirror.metadata[0].type.qualifiedName));
+  ParameterMirror fParamMirror =
+      (reflectType(f) as TypedefMirror).referent.parameters[0];
+  ParameterMirror gParamMirror =
+      (reflectType(g) as TypedefMirror).referent.parameters[0];
+  Expect.equals(
+      '.A', MirrorSystem.getName(fParamMirror.metadata[0].type.qualifiedName));
+  Expect.equals(
+      '.B', MirrorSystem.getName(gParamMirror.metadata[0].type.qualifiedName));
 }

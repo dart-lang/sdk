@@ -16,7 +16,8 @@ import 'package:js/js.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-@JS() @anonymous
+@JS()
+@anonymous
 class Literal {
   external factory Literal({int x, String y, num z});
 

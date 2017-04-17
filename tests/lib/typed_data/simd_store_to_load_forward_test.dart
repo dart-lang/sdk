@@ -15,7 +15,6 @@ Float32x4 testLoadStoreForwardingFloat32x4(Float32x4List l, Float32x4 v) {
   return r;
 }
 
-
 main() {
   Float32x4List l = new Float32x4List(4);
   Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);

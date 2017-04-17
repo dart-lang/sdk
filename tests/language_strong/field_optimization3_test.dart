@@ -11,15 +11,22 @@ class A {
   var b = 0;
   foo() {
     var c = b + 27;
-    for (var i = 0; i < 1 ; i++) {
+    for (var i = 0; i < 1; i++) {
       for (var j = 0; j < 1; j++) {
         Expect.equals(50, c + 23);
       }
     }
     return a > 0.2;
   }
-  setA(value) { a = value; }
-  setB(value) { b = value; }
+
+  setA(value) {
+    a = value;
+  }
+
+  setB(value) {
+    b = value;
+  }
+
   operator >(other) => other == 0.2;
 }
 

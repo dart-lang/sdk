@@ -31,19 +31,20 @@ void main() {
   var asyncValueFuture = foo().then(events.add);
   var asyncErrorFuture = bar().catchError(events.add);
   Future.wait([
-      asyncValueFuture,
-      delayedValue.future,
-      asyncErrorFuture,
-      delayedError.future]).then((_) {
+    asyncValueFuture,
+    delayedValue.future,
+    asyncErrorFuture,
+    delayedError.future
+  ]).then((_) {
     // The body completed before nested microtask. So they should appear
     // before the delayed functions. In other words, the async function should
     // not unnecessarily delay the propagation of errors and values.
     Expect.listEquals([
-        "in async function",
-        "in async function error",
-        "in microtask",
-        "in microtask error"],
-        events);
+      "in async function",
+      "in async function error",
+      "in microtask",
+      "in microtask error"
+    ], events);
     asyncEnd();
   });
 }

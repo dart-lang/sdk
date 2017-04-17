@@ -23,23 +23,23 @@ main() {
       throw "error $counter";
     });
   }).listen((x) {
-      events.add(x);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give time to complete the handlers.
     Timer.run(() {
       Expect.listEquals([
-                         "main exit",
-                         "error 1",
-                         "error 2",
-                         "error 3",
-                         "error 4",
-                         "error 5",
-                         "error 6",
-                         ],
-                         events);
+        "main exit",
+        "error 1",
+        "error 2",
+        "error 3",
+        "error 4",
+        "error 5",
+        "error 6",
+      ], events);
       asyncEnd();
     });
   });

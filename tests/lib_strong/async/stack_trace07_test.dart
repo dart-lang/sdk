@@ -18,13 +18,12 @@ main() {
   Completer completer = new Completer();
   StackTrace trace = captureStackTrace();
   asyncStart();
-  completer.future
-    .whenComplete(() => 499)
-    .then((_) { throw "bad things happen"; })
-    .catchError((e, st) {
-      Expect.equals("bad things happen", e);
-      Expect.isNotNull(st);
-      asyncEnd();
-    });
+  completer.future.whenComplete(() => 499).then((_) {
+    throw "bad things happen";
+  }).catchError((e, st) {
+    Expect.equals("bad things happen", e);
+    Expect.isNotNull(st);
+    asyncEnd();
+  });
   completer.complete(499);
 }

@@ -8,21 +8,19 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 
-
 typedef void FunTakes<T>(T x);
 typedef T FunReturns<T>();
 
 main() {
-  Expect.isTrue(499 is FutureOr);  // Same as `is Object`.
+  Expect.isTrue(499 is FutureOr); // Same as `is Object`.
   Expect.isTrue(499 is FutureOr<int>);
   Expect.isFalse(499 is FutureOr<String>);
 
-  Expect.isTrue(new Future.value(499) is FutureOr);  // Same as `is Object`.
+  Expect.isTrue(new Future.value(499) is FutureOr); // Same as `is Object`.
   Expect.isTrue(new Future.value(499) is FutureOr<int>);
   Expect.isFalse(new Future.value(499) is FutureOr<String>);
 
-
-  void foo(FutureOr x) {}  // Equivalent to `void bar(Object x) {}`.
+  void foo(FutureOr x) {} // Equivalent to `void bar(Object x) {}`.
 
   // A function that takes Object takes everything.
   Expect.isTrue(foo is FunTakes<dynamic>);
@@ -38,8 +36,7 @@ main() {
   Expect.isTrue(foo is FunTakes<FutureOr<FutureOr<int>>>);
   Expect.isTrue(foo is FunTakes<FutureOr<FutureOr<String>>>);
 
-
-  FutureOr bar() => 499;  // Equivalent to `Object foo() => 499`.
+  FutureOr bar() => 499; // Equivalent to `Object foo() => 499`.
 
   Expect.isTrue(bar is FunReturns<dynamic>);
   Expect.isTrue(bar is FunReturns<Object>);
@@ -53,7 +50,6 @@ main() {
   Expect.isTrue(bar is FunReturns<FutureOr<FutureOr<Object>>>);
   Expect.isFalse(bar is FunReturns<FutureOr<FutureOr<int>>>);
   Expect.isFalse(bar is FunReturns<FutureOr<FutureOr<String>>>);
-
 
   void foo2(FutureOr<String> x) {}
 
@@ -73,7 +69,6 @@ main() {
   Expect.isFalse(foo2 is FunTakes<FutureOr<FutureOr<int>>>);
   Expect.isFalse(foo2 is FunTakes<FutureOr<FutureOr<String>>>);
 
-
   FutureOr<int> bar2() => 499;
 
   Expect.isTrue(bar2 is FunReturns<dynamic>);
@@ -88,7 +83,6 @@ main() {
   Expect.isTrue(bar2 is FunReturns<FutureOr<FutureOr<Object>>>);
   Expect.isTrue(bar2 is FunReturns<FutureOr<FutureOr<int>>>);
   Expect.isFalse(bar2 is FunReturns<FutureOr<FutureOr<String>>>);
-
 
   void foo3(String x) {}
 
@@ -107,7 +101,6 @@ main() {
   Expect.isFalse(foo3 is FunTakes<FutureOr<FutureOr<Object>>>);
   Expect.isFalse(foo3 is FunTakes<FutureOr<FutureOr<int>>>);
   Expect.isFalse(foo3 is FunTakes<FutureOr<FutureOr<String>>>);
-
 
   int bar3() => 499;
 

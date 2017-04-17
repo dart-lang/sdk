@@ -30,4 +30,3 @@ main() {
   for (var i = 0; i < 20; i++) test_object_type(x);
   Expect.equals(true, test_object_type(x));
 }
-

@@ -9,7 +9,9 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class Superclass {}
+
 class Subclass1 extends Superclass {}
+
 class Subclass2 extends Superclass {}
 
 typedef bool NumberPredicate(num x);
@@ -21,7 +23,9 @@ typedef int IntegerGenerator();
 typedef double DoubleGenerator();
 
 class A<T> {}
+
 class B<T> extends A<T> {}
+
 class C<T extends num> {}
 
 test(MirrorSystem mirrors) {
@@ -57,7 +61,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Super.isAssignableTo(Obj));
   Expect.isTrue(Obj.isAssignableTo(Super));
 
-
   // Function typedef - argument type.
   TypeMirror Func = coreLibrary.declarations[#Function];
   TypedefMirror NumPred = thisLibrary.declarations[#NumberPredicate];
@@ -90,7 +93,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Obj.isAssignableTo(IntPred));
   Expect.isTrue(Obj.isAssignableTo(DubPred));
 
-
   // Function typedef - return type.
   TypedefMirror NumGen = thisLibrary.declarations[#NumberGenerator];
   TypedefMirror IntGen = thisLibrary.declarations[#IntegerGenerator];
@@ -121,7 +123,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Obj.isAssignableTo(IntGen));
   Expect.isTrue(Obj.isAssignableTo(DubGen));
 
-  
   // Function - argument type.
   TypeMirror NumPredRef = NumPred.referent;
   TypeMirror IntPredRef = IntPred.referent;
@@ -153,7 +154,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Obj.isAssignableTo(IntPredRef));
   Expect.isTrue(Obj.isAssignableTo(DubPredRef));
 
-
   // Function - return type.
   TypeMirror NumGenRef = NumGen.referent;
   TypeMirror IntGenRef = IntGen.referent;
@@ -184,7 +184,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Obj.isAssignableTo(IntGenRef));
   Expect.isTrue(Obj.isAssignableTo(DubGenRef));
 
-
   // Function typedef / function.
   Expect.isTrue(NumPred.isAssignableTo(NumPredRef));
   Expect.isTrue(IntPred.isAssignableTo(IntPredRef));
@@ -193,7 +192,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(IntPredRef.isAssignableTo(IntPred));
   Expect.isTrue(DubPredRef.isAssignableTo(DubPred));
 
-
   // Function typedef / function.
   Expect.isTrue(NumGen.isAssignableTo(NumGenRef));
   Expect.isTrue(IntGen.isAssignableTo(IntGenRef));
@@ -201,7 +199,6 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(NumGenRef.isAssignableTo(NumGen));
   Expect.isTrue(IntGenRef.isAssignableTo(IntGen));
   Expect.isTrue(DubGenRef.isAssignableTo(DubGen));
-
 
   // Type variable.
   TypeMirror TFromA =
@@ -221,11 +218,10 @@ test(MirrorSystem mirrors) {
   Expect.isFalse(TFromB.isAssignableTo(TFromC));
   Expect.isFalse(TFromC.isAssignableTo(TFromA));
   Expect.isFalse(TFromC.isAssignableTo(TFromB));
-  
+
   TypeMirror Num = coreLibrary.declarations[#num];
   Expect.isTrue(TFromC.isAssignableTo(Num));
   Expect.isTrue(Num.isAssignableTo(TFromC));
-
 
   // dynamic & void.
   TypeMirror Dynamic = mirrors.dynamicType;

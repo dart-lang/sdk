@@ -24,8 +24,8 @@ class CC {
   static CC create() => new CC();
 }
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup1() native """
 // Poison hidden native names 'BB' and 'CC' to prove the compiler didn't place

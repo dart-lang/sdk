@@ -6,33 +6,37 @@
 import "package:expect/expect.dart";
 
 class Switcher {
+  Switcher() {}
 
-  Switcher() { }
-
-  test1 (val) {
+  test1(val) {
     var x = 0;
     switch (val) {
       case 1:
-        x = 100; break;
+        x = 100;
+        break;
       case 2:
       case 3:
-        x = 200; break;
+        x = 200;
+        break;
       case 4:
-      default: {
-        x = 400; break;
-      }
+      default:
+        {
+          x = 400;
+          break;
+        }
     }
     return x;
   }
 
-  test2 (val) {
+  test2(val) {
     switch (val) {
-      case 1:    return 200;
-      default:   return 400;
+      case 1:
+        return 200;
+      default:
+        return 400;
     }
   }
 }
-
 
 class SwitchTest {
   static testMain() {
@@ -47,7 +51,6 @@ class SwitchTest {
     Expect.equals(400, s.test2(2));
   }
 }
-
 
 class Enum {
   static const Enum e1 = const Enum(1);
@@ -80,15 +83,15 @@ const int ic2 = 2;
 void testSwitchIntExpression(int input, int expect) {
   int result = null;
   switch (input) {
-    case 1 + 1:  // 2
+    case 1 + 1: // 2
     case ic1 + 2: // 3
       result = 11;
       break;
-    case ic2 * 2:  // 4
-    case 1 * 5:  // 5
+    case ic2 * 2: // 4
+    case 1 * 5: // 5
       result = 21;
       break;
-    case ic1 % ic2 + 5:  // 6
+    case ic1 % ic2 + 5: // 6
       result = 31;
       break;
   }

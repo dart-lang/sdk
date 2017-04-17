@@ -29,7 +29,7 @@ main() {
     port.first.then(expectAsync((msg) {
       expect("timer_fired", msg);
       expect(stopwatch.elapsedMilliseconds + safetyMargin,
-             greaterThanOrEqualTo(TIMEOUT.inMilliseconds));
+          greaterThanOrEqualTo(TIMEOUT.inMilliseconds));
     }));
 
     stopwatch.start();

@@ -8,7 +8,7 @@ import 'constructor_name_clash_lib.dart' as lib;
 class A extends lib.A {
   A() {
     lib.global += 100;
-    try {} catch(e) {} // no inline
+    try {} catch (e) {} // no inline
   }
 }
 

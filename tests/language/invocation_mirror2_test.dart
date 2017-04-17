@@ -18,8 +18,8 @@ class C {
 }
 
 main() {
- var c = new C();
- c.flif = 42;
- Expect.equals(42, getName(c.im));
- Expect.equals(42, c.im.positionalArguments[0]);
+  var c = new C();
+  c.flif = 42;
+  Expect.equals(42, getName(c.im));
+  Expect.equals(42, c.im.positionalArguments[0]);
 }

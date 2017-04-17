@@ -37,12 +37,10 @@ class BName extends Name {
   get attr => null;
 }
 
-
 class Member {
   Member(this.name);
   var name;
 }
-
 
 Member find(List<Member> members, Name name) {
   int low = 0, high = members.length - 1;
@@ -61,14 +59,14 @@ Member find(List<Member> members, Name name) {
   return null;
 }
 
-
 main() {
-  var list = [new Member(new AName()),
-              new Member(new BName("a")),
-              new Member(new BName("b")),
-              new Member(new BName("c")),
-              new Member(new BName("d"))
-              ];
+  var list = [
+    new Member(new AName()),
+    new Member(new BName("a")),
+    new Member(new BName("b")),
+    new Member(new BName("c")),
+    new Member(new BName("d"))
+  ];
 
   find(list, new AName());
   find(list, new BName("e"));

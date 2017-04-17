@@ -28,7 +28,8 @@ Stream<int> foo3(p) async* {
   yield null;
   while (true) {
     i++;
-    a: for (int i = 0; i < p; i++) {
+    a:
+    for (int i = 0; i < p; i++) {
       if (!t) {
         for (int j = 0; j < 3; j++) {
           yield -1;
@@ -60,14 +61,14 @@ Stream<int> foo4() async* {
 test() async {
   Expect.listEquals([1, 20], await (foo1().toList()));
   Expect.listEquals([0, 1, 2, 3], await (foo2().take(4).toList()));
-  Expect.listEquals([null, -1, 0, 1, 2, 3, 0, 1, 2, 3],
-      await (foo3(4).take(10).toList()));
-  Expect.listEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-      await (foo4().take(10).toList()));
+  Expect.listEquals(
+      [null, -1, 0, 1, 2, 3, 0, 1, 2, 3], await (foo3(4).take(10).toList()));
+  Expect.listEquals(
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], await (foo4().take(10).toList()));
   Expect.isTrue(await (finalized.future));
 }
 
-main ()  {
+main() {
   asyncStart();
   test().then((_) {
     asyncEnd();

@@ -27,10 +27,9 @@ main() {
     });
     return 'allDone';
   }).listen((x) {
-      Expect.fail("Unexpected callback");
-    },
-    onDone: () {
-      Expect.fail("Unexpected callback");
-    });
+    Expect.fail("Unexpected callback");
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
   done.future.whenComplete(asyncEnd);
 }

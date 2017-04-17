@@ -9,27 +9,29 @@
 import 'package:expect/expect.dart';
 
 typedef A F<A>(A arg1, A arg2);
-typedef B G<A,B>(B arg1, B arg2);
+typedef B G<A, B>(B arg1, B arg2);
 
 typedef Set<A> FS<A>(Set<A> arg1, Set<A> arg2);
 
-@NoInline() @AssumeDynamic() dyn(x) => x;
+@NoInline()
+@AssumeDynamic()
+dyn(x) => x;
 
 class CheckEnv<X, Y> {
   test(bool intX) {
     Expect.isTrue(<F<X>>[] is List<F>);
     Expect.isTrue(<F<X>>[] is List<F<X>>);
-    Expect.isTrue(<F<X>>[] is List<G<Y,X>>);
+    Expect.isTrue(<F<X>>[] is List<G<Y, X>>);
 
     Expect.isTrue(dyn(<F<X>>[]) is List<F>);
     Expect.isTrue(dyn(<F<X>>[]) is List<F<X>>);
-    Expect.isTrue(dyn(<F<X>>[]) is List<G<Y,X>>);
+    Expect.isTrue(dyn(<F<X>>[]) is List<G<Y, X>>);
 
     Expect.isTrue(<F<X>>[] is! List<F<Y>>);
-    Expect.isTrue(<F<X>>[] is! List<G<X,Y>>);
+    Expect.isTrue(<F<X>>[] is! List<G<X, Y>>);
 
     Expect.isTrue(dyn(<F<X>>[]) is! List<F<Y>>);
-    Expect.isTrue(dyn(<F<X>>[]) is! List<G<X,Y>>);
+    Expect.isTrue(dyn(<F<X>>[]) is! List<G<X, Y>>);
 
     Expect.isTrue(dyn(<FS<X>>[]) is List<FS>);
     Expect.isTrue(dyn(<FS<X>>[]) is List<FS<X>>);
@@ -42,14 +44,12 @@ class CheckEnv<X, Y> {
   }
 }
 
-
-
 main() {
   Expect.isTrue(<F<int>>[] is List<F<int>>);
   Expect.isTrue(dyn(<F<int>>[]) is List<F<int>>);
-  Expect.isTrue(<F<int>>[] is List<G<bool,int>>);
-  Expect.isTrue(dyn(<F<int>>[]) is List<G<bool,int>>);
+  Expect.isTrue(<F<int>>[] is List<G<bool, int>>);
+  Expect.isTrue(dyn(<F<int>>[]) is List<G<bool, int>>);
 
-  new CheckEnv<int,String>().test(true);
-  new CheckEnv<String,int>().test(false);
+  new CheckEnv<int, String>().test(true);
+  new CheckEnv<String, int>().test(false);
 }

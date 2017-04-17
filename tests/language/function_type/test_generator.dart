@@ -448,8 +448,8 @@ List<FunctionType> buildFunctionTypes() {
         [new Parameter(new NominalType("int"), "x")],
         [new Parameter(parameterType, null)]));
     // int Function({int x}).
-    result.add(new FunctionType(returnType, generics, null, null,
-        [new Parameter(parameterType, "x")]));
+    result.add(new FunctionType(
+        returnType, generics, null, null, [new Parameter(parameterType, "x")]));
     // int Function(int, {int x})
     result.add(new FunctionType(
         returnType,
@@ -546,7 +546,6 @@ final bool inCheckedMode =
     (() { bool result = false; assert(result = true); return result; })();
 """;
 
-
 class Unit {
   final String name;
   final StringBuffer typedefs = new StringBuffer();
@@ -592,7 +591,6 @@ void main() {
     """);
   }
 }
-
 
 final TEST_METHOD_HEADER = """
   void #testName() {
@@ -670,6 +668,7 @@ String createTypeCode(FunctionType type) {
   type.writeType(typeBuffer);
   return typeBuffer.toString();
 }
+
 String createStaticFunCode(FunctionType type, int id) {
   StringBuffer staticFunBuffer = new StringBuffer();
   type.writeFunction(staticFunBuffer, createStaticFunName(id));
@@ -732,7 +731,6 @@ void generateTests() {
     String methodFunCode = createMethodFunCode(type, typeCounter);
     String testMethodCode =
         createTestMethodFunCode(type, typeCode, typeCounter);
-
 
     unit.typedefs.writeln("typedef $typeName<T> = $typeCode;");
     unit.globals.writeln(staticFunCode);

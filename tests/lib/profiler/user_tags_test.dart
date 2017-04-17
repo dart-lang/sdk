@@ -18,7 +18,6 @@ void testLabel() {
   Expect.equals(label, tag.label);
 }
 
-
 // Test that we canonicalize UserTag by name.
 void testCanonicalize(tag1) {
   var label = 'Global Tag';
@@ -29,13 +28,11 @@ void testCanonicalize(tag1) {
   Expect.isTrue(identical(UserTag.defaultTag, defaultTag));
 }
 
-
 // Test that we made the tag current.
 void testMakeCurrent(tag) {
   tag.makeCurrent();
   Expect.isTrue(identical(tag, getCurrentTag()));
 }
-
 
 // Test that we reach a limit of tags an exception is thrown.
 void testExhaust() {
@@ -46,7 +43,6 @@ void testExhaust() {
     i++;
   }
 }
-
 
 var callerTag = new UserTag('caller');
 var calleeTag = new UserTag('callee');
@@ -66,7 +62,6 @@ void testCallerPattern() {
   old.makeCurrent();
   Expect.isTrue(identical(UserTag.defaultTag, getCurrentTag()));
 }
-
 
 main() {
   testDefault();

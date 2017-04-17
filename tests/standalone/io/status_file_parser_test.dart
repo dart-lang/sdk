@@ -10,7 +10,6 @@ import "../../../tools/testing/dart/path.dart";
 import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/utils.dart";
 
-
 void main() {
   TestReadStatusFile("runtime/tests/vm/vm.status");
   TestReadStatusFile("samples/tests/samples/samples.status");

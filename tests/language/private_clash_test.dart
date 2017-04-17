@@ -11,7 +11,7 @@ class A extends lib.B {
   var _b$_c$ = 100; // With library prefix: _a$_b$_c$
 
   getValueB() {
-    try {} catch(e) {} // no inline
+    try {} catch (e) {} // no inline
     return this._b$_c$;
   }
 }

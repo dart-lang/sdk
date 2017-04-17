@@ -23,8 +23,9 @@ jsonThrowsTest(testName, action(sink)) {
     Expect.fail("Should have thrown: $testName");
   });
   var decoderSink = JSON.decoder.startChunkedConversion(sink);
-  Expect.throws(() { action(decoderSink); }, (e) => e is FormatException,
-                testName);
+  Expect.throws(() {
+    action(decoderSink);
+  }, (e) => e is FormatException, testName);
 }
 
 main() {
@@ -90,6 +91,7 @@ void testNumbers() {
       }
     }
   }
+
   for (var sign in ["-", ""]) {
     for (var intPart in ["0", "1", "99"]) {
       for (var decimalPoint in [".", ""]) {

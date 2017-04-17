@@ -5,22 +5,22 @@
 import 'package:expect/expect.dart';
 
 main() {
-	var x = "x";
-	var y = "y";
-	Expect.throws(() => x < y);
-	Expect.throws(() => x <= y);
-	Expect.throws(() => x > y);
-	Expect.throws(() => x >= y);
-	Expect.throws(() => x - y);
-	Expect.throws(() => x * y);
-	Expect.throws(() => x / y);
-	Expect.throws(() => x ~/ y);
-	Expect.throws(() => x % y);
-	Expect.throws(() => x >> y);
-	Expect.throws(() => x << y);
-	Expect.throws(() => x & y);
-	Expect.throws(() => x | y);
-	Expect.throws(() => x ^ y);
-	Expect.throws(() => -x);
-	Expect.throws(() => ~x);
+  var x = "x";
+  var y = "y";
+  Expect.throws(() => x < y);
+  Expect.throws(() => x <= y);
+  Expect.throws(() => x > y);
+  Expect.throws(() => x >= y);
+  Expect.throws(() => x - y);
+  Expect.throws(() => x * y);
+  Expect.throws(() => x / y);
+  Expect.throws(() => x ~/ y);
+  Expect.throws(() => x % y);
+  Expect.throws(() => x >> y);
+  Expect.throws(() => x << y);
+  Expect.throws(() => x & y);
+  Expect.throws(() => x | y);
+  Expect.throws(() => x ^ y);
+  Expect.throws(() => -x);
+  Expect.throws(() => ~x);
 }

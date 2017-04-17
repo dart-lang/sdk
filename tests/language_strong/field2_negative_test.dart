@@ -9,6 +9,7 @@ class C {
   get a {
     return 1;
   }
+
   set a(int val) {
     var x = val;
   }
@@ -16,13 +17,13 @@ class C {
   get b {
     return 2;
   }
+
   set b(int val) {
     var x = val;
   }
 
   var a;
 }
-
 
 class Field2NegativeTest {
   static testMain() {

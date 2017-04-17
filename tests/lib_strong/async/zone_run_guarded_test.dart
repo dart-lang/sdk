@@ -15,21 +15,21 @@ main() {
 
   Expect.identical(Zone.ROOT, Zone.current);
   Zone forked;
-  forked = Zone.current.fork(specification: new ZoneSpecification(
-      run: (Zone self, ZoneDelegate parent, Zone origin, f()) {
-        // The zone is still the same as when origin.run was invoked, which
-        // is the root zone. (The origin zone hasn't been set yet).
-        Expect.identical(Zone.ROOT, Zone.current);
-        events.add("forked.run");
-        return parent.run(origin, f);
-      },
-      handleUncaughtError:
-          (Zone self, ZoneDelegate parent, Zone origin, error, stackTrace) {
-        Expect.identical(Zone.ROOT, Zone.current);
-        Expect.identical(forked, origin);
-        events.add("forked.handleUncaught $error");
-        return 499;
-      }));
+  forked = Zone.current.fork(
+      specification: new ZoneSpecification(
+          run: (Zone self, ZoneDelegate parent, Zone origin, f()) {
+    // The zone is still the same as when origin.run was invoked, which
+    // is the root zone. (The origin zone hasn't been set yet).
+    Expect.identical(Zone.ROOT, Zone.current);
+    events.add("forked.run");
+    return parent.run(origin, f);
+  }, handleUncaughtError:
+              (Zone self, ZoneDelegate parent, Zone origin, error, stackTrace) {
+    Expect.identical(Zone.ROOT, Zone.current);
+    Expect.identical(forked, origin);
+    events.add("forked.handleUncaught $error");
+    return 499;
+  }));
 
   var result = forked.runGuarded(() {
     events.add("runGuarded 1");
@@ -47,10 +47,14 @@ main() {
   });
   Expect.equals(499, result);
 
-  Expect.listEquals(
-      [ "forked.run", "runGuarded 1", "after runGuarded 1",
-        "forked.run", "runGuarded 2", "forked.handleUncaught 42" ],
-      events);
+  Expect.listEquals([
+    "forked.run",
+    "runGuarded 1",
+    "after runGuarded 1",
+    "forked.run",
+    "runGuarded 2",
+    "forked.handleUncaught 42"
+  ], events);
 
   events.clear();
   asyncStart();
@@ -69,11 +73,15 @@ main() {
   Expect.equals(499, result);
 
   done.future.whenComplete(() {
-    Expect.listEquals(
-        ["forked.run", "run closure", "forked.handleUncaught 1234",
-         "after nested scheduleMicrotask", "forked.run", "run closure 2",
-         "forked.handleUncaught 88" ],
-        events);
+    Expect.listEquals([
+      "forked.run",
+      "run closure",
+      "forked.handleUncaught 1234",
+      "after nested scheduleMicrotask",
+      "forked.run",
+      "run closure 2",
+      "forked.handleUncaught 88"
+    ], events);
     asyncEnd();
   });
 }

@@ -10,8 +10,7 @@ main() {
   for (int i = 0; i < 20; i++) testNumberIdentity();
 }
 
-
-testNumberIdentity () {
+testNumberIdentity() {
   const int smi = 8;
   const int mint = 9223372036854775806;
   const int bigint = 22107138293752210713829375;

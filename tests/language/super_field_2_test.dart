@@ -33,7 +33,6 @@ class D extends C {
   BCD_Sfoo() => super.foo;
 }
 
-
 var inscrutable;
 
 main() {
@@ -44,8 +43,8 @@ main() {
   var d = new D('Da', 'Dc');
 
   // Check access via plain getter.
-  var b_bc = inscrutable(true) ? b : c;  // B, but compiler thinks can also be C
-  var c_bc = inscrutable(true) ? c : b;  // C, but compiler thinks can also be B
+  var b_bc = inscrutable(true) ? b : c; // B, but compiler thinks can also be C
+  var c_bc = inscrutable(true) ? c : b; // C, but compiler thinks can also be B
 
   Expect.equals('Ba', b.foo);
   Expect.equals('Cc', c.foo);
@@ -83,6 +82,4 @@ main() {
   Expect.equals('Ba', inscrutable(b).BCD_Sfoo());
   Expect.equals('Ca', inscrutable(c).BCD_Sfoo());
   Expect.equals('Dc', inscrutable(d).BCD_Sfoo());
-
-
 }

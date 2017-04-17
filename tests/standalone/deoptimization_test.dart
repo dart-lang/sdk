@@ -43,7 +43,6 @@ class SmiCompares {
   }
 }
 
-
 class SmiBinop {
   static subWithLiteral(a) {
     return a - 1;
@@ -71,12 +70,11 @@ class SmiBinop {
   }
 }
 
-
 class ObjectsEquality {
   static bool compareEqual(a, b) {
     return a == b;
   }
-  
+
   static bool compareNotEqual(a, b) {
     return a != b;
   }
@@ -85,7 +83,7 @@ class ObjectsEquality {
   static void objectsEqualityTest() {
     var a = new ObjectsEquality();
     var b = new ObjectsEquality();
-    final nan = 0.0/0.0;
+    final nan = 0.0 / 0.0;
     for (int i = 0; i < 1000; i++) {
       Expect.equals(true, compareEqual(a, a));
       Expect.equals(true, compareEqual(null, null));
@@ -117,13 +115,13 @@ class DeoptimizationTest {
 
   static test1() {
     for (int i = 0; i < 2000; i++) {
-      Expect.equals(2, foo(3, 1));  // <-- Optimizes 'foo',
+      Expect.equals(2, foo(3, 1)); // <-- Optimizes 'foo',
     }
-    Expect.equals(2.2, foo(1.2, -1.0));  // <-- Deoptimizes 'foo'.
+    Expect.equals(2.2, foo(1.2, -1.0)); // <-- Deoptimizes 'foo'.
     for (int i = 0; i < 10000; i++) {
-       Expect.equals(2, foo(3, 1));  // <-- Optimizes 'foo'.
+      Expect.equals(2, foo(3, 1)); // <-- Optimizes 'foo'.
     }
-    Expect.equals(2.2, foo(1.2, -1));  // <-- Deoptimizes 'foo'.
+    Expect.equals(2.2, foo(1.2, -1)); // <-- Deoptimizes 'foo'.
   }
 
   static moo(n) {
@@ -132,24 +130,24 @@ class DeoptimizationTest {
 
   static test2() {
     for (int i = 0; i < 2000; i++) {
-      Expect.equals(4, moo(3));  // <-- Optimizes 'moo',
+      Expect.equals(4, moo(3)); // <-- Optimizes 'moo',
     }
-    Expect.equals(2.2, moo(1.2));  // <-- Deoptimizes 'moo'.
+    Expect.equals(2.2, moo(1.2)); // <-- Deoptimizes 'moo'.
     for (int i = 0; i < 10000; i++) {
-       Expect.equals(4, moo(3));  // <-- Optimizes 'moo'.
+      Expect.equals(4, moo(3)); // <-- Optimizes 'moo'.
     }
-    Expect.equals(2.2, moo(1.2));  // <-- Deoptimizes 'moo'.
+    Expect.equals(2.2, moo(1.2)); // <-- Deoptimizes 'moo'.
   }
 
   static test3() {
     for (int i = 0; i < 2000; i++) {
-      Expect.equals(2.0, foo(3.0, 1.0));  // <-- Optimizes 'foo',
+      Expect.equals(2.0, foo(3.0, 1.0)); // <-- Optimizes 'foo',
     }
-    Expect.equals(2, foo(1, -1));  // <-- Deoptimizes 'foo'.
+    Expect.equals(2, foo(1, -1)); // <-- Deoptimizes 'foo'.
     for (int i = 0; i < 2000; i++) {
-      Expect.equals(2.0, foo(3.0, 1.0));  // <-- Optimizes 'foo',
+      Expect.equals(2.0, foo(3.0, 1.0)); // <-- Optimizes 'foo',
     }
-    Expect.equals(2.2, moo(1.2));  // <-- Deoptimizes 'moo'.
+    Expect.equals(2.2, moo(1.2)); // <-- Deoptimizes 'moo'.
   }
 
   static bool compareInt(a, b) {
@@ -171,8 +169,10 @@ class DeoptimizationTest {
   }
 
   static smiRightShift() {
-    int ShiftRight(int a, int b) { return a >> b; }
-    
+    int ShiftRight(int a, int b) {
+      return a >> b;
+    }
+
     for (int i = 0; i < 2000; i++) {
       var r = ShiftRight(10, 2);
       Expect.equals(2, r);
@@ -185,7 +185,9 @@ class DeoptimizationTest {
   }
 
   static doubleUnary() {
-    num unary(num a) { return -a; }
+    num unary(num a) {
+      return -a;
+    }
 
     for (int i = 0; i < 2000; i++) {
       var r = unary(2.0);

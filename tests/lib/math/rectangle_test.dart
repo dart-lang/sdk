@@ -9,7 +9,8 @@ import 'package:unittest/unittest.dart';
 
 main() {
   Rectangle createRectangle(List<num> a) {
-    return a != null ? new Rectangle(a[0], a[1], a[2] - a[0], a[3] - a[1])
+    return a != null
+        ? new Rectangle(a[0], a[1], a[2] - a[0], a[3] - a[1])
         : null;
   }
 
@@ -28,10 +29,27 @@ main() {
 
   test('intersection', () {
     var tests = [
-        [[10, 10, 20, 20], [15, 15, 25, 25], [15, 15, 20, 20]],
-        [[10, 10, 20, 20], [20, 0, 30, 10], [20, 10, 20, 10]],
-        [[0, 0, 1, 1], [10, 11, 12, 13], null],
-        [[11, 12, 98, 99], [22, 23, 34, 35], [22, 23, 34, 35]]];
+      [
+        [10, 10, 20, 20],
+        [15, 15, 25, 25],
+        [15, 15, 20, 20]
+      ],
+      [
+        [10, 10, 20, 20],
+        [20, 0, 30, 10],
+        [20, 10, 20, 10]
+      ],
+      [
+        [0, 0, 1, 1],
+        [10, 11, 12, 13],
+        null
+      ],
+      [
+        [11, 12, 98, 99],
+        [22, 23, 34, 35],
+        [22, 23, 34, 35]
+      ]
+    ];
 
     for (var test in tests) {
       var r0 = createRectangle(test[0]);
@@ -57,10 +75,27 @@ main() {
 
   test('boundingBox', () {
     var tests = [
-        [[10, 10, 20, 20], [15, 15, 25, 25], [10, 10, 25, 25]],
-        [[10, 10, 20, 20], [20, 0, 30, 10], [10, 0, 30, 20]],
-        [[0, 0, 1, 1], [10, 11, 12, 13], [0, 0, 12, 13]],
-        [[11, 12, 98, 99], [22, 23, 34, 35], [11, 12, 98, 99]]];
+      [
+        [10, 10, 20, 20],
+        [15, 15, 25, 25],
+        [10, 10, 25, 25]
+      ],
+      [
+        [10, 10, 20, 20],
+        [20, 0, 30, 10],
+        [10, 0, 30, 20]
+      ],
+      [
+        [0, 0, 1, 1],
+        [10, 11, 12, 13],
+        [0, 0, 12, 13]
+      ],
+      [
+        [11, 12, 98, 99],
+        [22, 23, 34, 35],
+        [11, 12, 98, 99]
+      ]
+    ];
 
     for (var test in tests) {
       var r0 = createRectangle(test[0]);
@@ -76,8 +111,10 @@ main() {
     var r = new Rectangle(-10, 0, 20, 10);
     expect(r.containsRectangle(r), isTrue);
 
-    expect(r.containsRectangle(
-        new Rectangle(double.NAN, double.NAN, double.NAN, double.NAN)), isFalse);
+    expect(
+        r.containsRectangle(
+            new Rectangle(double.NAN, double.NAN, double.NAN, double.NAN)),
+        isFalse);
 
     var r2 = new Rectangle(0, 2, 5, 5);
     expect(r.containsRectangle(r2), isTrue);
@@ -129,7 +166,8 @@ main() {
     expect(a.hashCode == c.hashCode, isFalse);
   });
 
-  {  // Edge cases for boundingBox/intersection
+  {
+    // Edge cases for boundingBox/intersection
     edgeTest(a, l) {
       test('edge case $a/$l', () {
         var r = new Rectangle(a, a, l, l);
@@ -247,4 +285,3 @@ main() {
     }
   });
 }
-

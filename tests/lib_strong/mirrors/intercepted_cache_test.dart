@@ -10,16 +10,13 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-
 class Foo {
   Foo(this.length);
   int length;
 }
 
 main() {
-  Expect.equals(
-      1, reflect(new Foo(1)).getField(#length).reflectee);
-  Expect.equals(
-      2, reflect(new Foo(2)).getField(#length).reflectee);
+  Expect.equals(1, reflect(new Foo(1)).getField(#length).reflectee);
+  Expect.equals(2, reflect(new Foo(2)).getField(#length).reflectee);
   Expect.equals(0, reflect([]).getField(#length).reflectee);
 }

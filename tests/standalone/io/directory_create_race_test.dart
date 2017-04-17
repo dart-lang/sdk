@@ -18,16 +18,17 @@ void testCreateRecursiveRace() {
   var temp = Directory.systemTemp.createTempSync('dart_directory_create_race');
   var d = new Directory('${temp.path}/a/b/c/d/e');
   Future.wait([
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true),
-      d.create(recursive: true)]).then((_) {
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true),
+    d.create(recursive: true)
+  ]).then((_) {
     Expect.isTrue(new Directory('${temp.path}/a').existsSync());
     Expect.isTrue(new Directory('${temp.path}/a/b').existsSync());
     Expect.isTrue(new Directory('${temp.path}/a/b/c').existsSync());

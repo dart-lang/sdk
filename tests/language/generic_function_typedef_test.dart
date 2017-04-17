@@ -5,8 +5,7 @@
 
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
 typedef F<T> = Function<S>(List<S> list, Function<A>(A), T);
 

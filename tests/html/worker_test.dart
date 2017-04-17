@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library worker_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -19,7 +20,6 @@ main() {
   var workerScript = '''postMessage('WorkerMessage');''';
 
   group('functional', () {
-
     test('unsupported', () {
       if (!Worker.supported) {
         expect(() => new Worker('worker.js'), throws);

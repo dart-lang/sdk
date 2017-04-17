@@ -19,13 +19,17 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 
-class MyListOfOneElement
-    extends Object with ListMixin<int> implements List<int> {
+class MyListOfOneElement extends Object
+    with ListMixin<int>
+    implements List<int> {
   int _value;
   MyListOfOneElement(this._value);
   int get length => 1;
   operator [](int index) => _value;
-  void set length(int index) { throw "Unsupported"; }
+  void set length(int index) {
+    throw "Unsupported";
+  }
+
   operator []=(int index, value) {
     if (index != 0) {
       throw "Unsupported";
@@ -43,6 +47,7 @@ class FileTest {
     asyncStart();
     ++numLiveAsyncTests;
   }
+
   static void asyncTestDone(String name) {
     asyncEnd();
     --numLiveAsyncTests;
@@ -70,25 +75,24 @@ class FileTest {
     Expect.isTrue('$file'.contains(file.path));
     var subscription;
     List<int> buffer = new List<int>();
-    subscription = file.openRead().listen(
-        (d) {
-          buffer.addAll(d);
-          if (buffer.length >= 12) {
-            subscription.cancel();
-            Expect.equals(47, buffer[0]);  // represents '/' in the file.
-            Expect.equals(47, buffer[1]);  // represents '/' in the file.
-            Expect.equals(32, buffer[2]);  // represents ' ' in the file.
-            Expect.equals(67, buffer[3]);  // represents 'C' in the file.
-            Expect.equals(111, buffer[4]);  // represents 'o' in the file.
-            Expect.equals(112, buffer[5]);  // represents 'p' in the file.
-            Expect.equals(121, buffer[6]);  // represents 'y' in the file.
-            Expect.equals(114, buffer[7]);  // represents 'r' in the file.
-            Expect.equals(105, buffer[8]);  // represents 'i' in the file.
-            Expect.equals(103, buffer[9]);  // represents 'g' in the file.
-            Expect.equals(104, buffer[10]);  // represents 'h' in the file.
-            Expect.equals(116, buffer[11]);  // represents 't' in the file.
-          }
-        });
+    subscription = file.openRead().listen((d) {
+      buffer.addAll(d);
+      if (buffer.length >= 12) {
+        subscription.cancel();
+        Expect.equals(47, buffer[0]); // represents '/' in the file.
+        Expect.equals(47, buffer[1]); // represents '/' in the file.
+        Expect.equals(32, buffer[2]); // represents ' ' in the file.
+        Expect.equals(67, buffer[3]); // represents 'C' in the file.
+        Expect.equals(111, buffer[4]); // represents 'o' in the file.
+        Expect.equals(112, buffer[5]); // represents 'p' in the file.
+        Expect.equals(121, buffer[6]); // represents 'y' in the file.
+        Expect.equals(114, buffer[7]); // represents 'r' in the file.
+        Expect.equals(105, buffer[8]); // represents 'i' in the file.
+        Expect.equals(103, buffer[9]); // represents 'g' in the file.
+        Expect.equals(104, buffer[10]); // represents 'h' in the file.
+        Expect.equals(116, buffer[11]); // represents 't' in the file.
+      }
+    });
   }
 
   // Test for file read and write functionality.
@@ -102,40 +106,35 @@ class FileTest {
 
     var file1 = new File(inFilename);
     List<int> buffer = new List<int>();
-    file1.openRead().listen(
-      (d) {
-        buffer.addAll(d);
-      },
-      onDone: () {
-        Expect.equals(42, buffer.length);
-        // Write the contents of the file just read into another file.
-        String outFilename =
-            tempDirectory.path + "/out_read_write_stream";
-        var file2 = new File(outFilename);
-        var output = file2.openWrite();
-        output.add(buffer);
-        output.flush().then((_) => output.close());
-        output.done.then((_) {
-          // Now read the contents of the file just written.
-          List<int> buffer2 = new List<int>();
-          new File(outFilename).openRead().listen(
-              (d) {
-                buffer2.addAll(d);
-              },
-              onDone: () {
-                Expect.equals(42, buffer2.length);
-                // Now compare the two buffers to check if they are
-                // identical.
-                for (int i = 0; i < buffer.length; i++) {
-                  Expect.equals(buffer[i],  buffer2[i]);
-                }
-                // Delete the output file.
-                file2.deleteSync();
-                Expect.isFalse(file2.existsSync());
-                asyncTestDone("testReadWriteStream");
-              });
-          });
+    file1.openRead().listen((d) {
+      buffer.addAll(d);
+    }, onDone: () {
+      Expect.equals(42, buffer.length);
+      // Write the contents of the file just read into another file.
+      String outFilename = tempDirectory.path + "/out_read_write_stream";
+      var file2 = new File(outFilename);
+      var output = file2.openWrite();
+      output.add(buffer);
+      output.flush().then((_) => output.close());
+      output.done.then((_) {
+        // Now read the contents of the file just written.
+        List<int> buffer2 = new List<int>();
+        new File(outFilename).openRead().listen((d) {
+          buffer2.addAll(d);
+        }, onDone: () {
+          Expect.equals(42, buffer2.length);
+          // Now compare the two buffers to check if they are
+          // identical.
+          for (int i = 0; i < buffer.length; i++) {
+            Expect.equals(buffer[i], buffer2[i]);
+          }
+          // Delete the output file.
+          file2.deleteSync();
+          Expect.isFalse(file2.existsSync());
+          asyncTestDone("testReadWriteStream");
+        });
       });
+    });
   }
 
   // Test for file stream buffered handling of large files.
@@ -145,8 +144,7 @@ class FileTest {
     for (var i = 0; i < buffer.length; ++i) {
       buffer[i] = i % 256;
     }
-    String filename =
-        tempDirectory.path + "/out_read_write_stream_large_file";
+    String filename = tempDirectory.path + "/out_read_write_stream_large_file";
     File file = new File(filename);
     IOSink output = file.openWrite();
     output.add(buffer);
@@ -154,55 +152,55 @@ class FileTest {
     output.flush().then((_) => output.close());
 
     asyncTestStarted();
-    output.done.then((_) {
-      Stream input = file.openRead();
-      int position = 0;
-      final int expectedLength = 200000;
+    output.done
+        .then((_) {
+          Stream input = file.openRead();
+          int position = 0;
+          final int expectedLength = 200000;
 
-      // Start an independent asynchronous check on the length.
-      Future lengthTest() {
-        asyncTestStarted();
-        return file.length().then((len) {
-          Expect.equals(expectedLength, len);
-          asyncTestDone('testReadWriteStreamLargeFile: length check');
-        });
-      }
+          // Start an independent asynchronous check on the length.
+          Future lengthTest() {
+            asyncTestStarted();
+            return file.length().then((len) {
+              Expect.equals(expectedLength, len);
+              asyncTestDone('testReadWriteStreamLargeFile: length check');
+            });
+          }
 
-      // Immediate read should read 0 bytes.
-      Future contentTest() {
-        asyncTestStarted();
-        var completer = new Completer();
-        input.listen(
-          (data) {
-            for (int i = 0; i < data.length; ++i) {
-              Expect.equals(buffer[(i + position) % buffer.length], data[i]);
-            }
-            position += data.length;
-          },
-          onError: (error, trace) {
-            print('Error on input in testReadWriteStreamLargeFile');
-            print('with error $error');
-            if (trace != null) print("StackTrace: $trace");
-            throw error;
-          },
-          onDone: () {
-            Expect.equals(expectedLength, position);
-            testPipe(file, buffer).then((_) {
-              asyncTestDone('testReadWriteStreamLargeFile: main test');
-            }).catchError((error, trace) {
-              print('Exception while deleting ReadWriteStreamLargeFile file');
-              print('Exception $error');
+          // Immediate read should read 0 bytes.
+          Future contentTest() {
+            asyncTestStarted();
+            var completer = new Completer();
+            input.listen((data) {
+              for (int i = 0; i < data.length; ++i) {
+                Expect.equals(buffer[(i + position) % buffer.length], data[i]);
+              }
+              position += data.length;
+            }, onError: (error, trace) {
+              print('Error on input in testReadWriteStreamLargeFile');
+              print('with error $error');
               if (trace != null) print("StackTrace: $trace");
               throw error;
-            }).whenComplete(completer.complete);
-          });
-        return completer.future;
-      }
+            }, onDone: () {
+              Expect.equals(expectedLength, position);
+              testPipe(file, buffer).then((_) {
+                asyncTestDone('testReadWriteStreamLargeFile: main test');
+              }).catchError((error, trace) {
+                print('Exception while deleting ReadWriteStreamLargeFile file');
+                print('Exception $error');
+                if (trace != null) print("StackTrace: $trace");
+                throw error;
+              }).whenComplete(completer.complete);
+            });
+            return completer.future;
+          }
 
-      return Future.forEach([lengthTest, contentTest], (test) => test());
-    }).whenComplete(file.delete).whenComplete(() {
-      asyncTestDone('testReadWriteStreamLargeFile finished');
-    });
+          return Future.forEach([lengthTest, contentTest], (test) => test());
+        })
+        .whenComplete(file.delete)
+        .whenComplete(() {
+          asyncTestDone('testReadWriteStreamLargeFile finished');
+        });
   }
 
   static Future testPipe(File file, buffer) {
@@ -214,18 +212,18 @@ class FileTest {
     input.pipe(output).then((_) {
       var copy = outputFile.openRead();
       int position = 0;
-      copy.listen(
-          (d) {
-            for (int i = 0; i < d.length; i++) {
-              Expect.equals(buffer[(position + i) % buffer.length], d[i]);
-            }
-            position += d.length;
-          },
-          onDone: () {
-            Expect.equals(2 * buffer.length, position);
-            outputFile.delete().then((ignore) { done.complete(); });
-          });
+      copy.listen((d) {
+        for (int i = 0; i < d.length; i++) {
+          Expect.equals(buffer[(position + i) % buffer.length], d[i]);
+        }
+        position += d.length;
+      }, onDone: () {
+        Expect.equals(2 * buffer.length, position);
+        outputFile.delete().then((ignore) {
+          done.complete();
+        });
       });
+    });
     return done.future;
   }
 
@@ -240,16 +238,16 @@ class FileTest {
         Expect.equals(5, bytes_read);
         file.readInto(buffer, 5, 10).then((bytes_read) {
           Expect.equals(5, bytes_read);
-          Expect.equals(47, buffer[0]);  // represents '/' in the file.
-          Expect.equals(47, buffer[1]);  // represents '/' in the file.
-          Expect.equals(32, buffer[2]);  // represents ' ' in the file.
-          Expect.equals(67, buffer[3]);  // represents 'C' in the file.
-          Expect.equals(111, buffer[4]);  // represents 'o' in the file.
-          Expect.equals(112, buffer[5]);  // represents 'p' in the file.
-          Expect.equals(121, buffer[6]);  // represents 'y' in the file.
-          Expect.equals(114, buffer[7]);  // represents 'r' in the file.
-          Expect.equals(105, buffer[8]);  // represents 'i' in the file.
-          Expect.equals(103, buffer[9]);  // represents 'g' in the file.
+          Expect.equals(47, buffer[0]); // represents '/' in the file.
+          Expect.equals(47, buffer[1]); // represents '/' in the file.
+          Expect.equals(32, buffer[2]); // represents ' ' in the file.
+          Expect.equals(67, buffer[3]); // represents 'C' in the file.
+          Expect.equals(111, buffer[4]); // represents 'o' in the file.
+          Expect.equals(112, buffer[5]); // represents 'p' in the file.
+          Expect.equals(121, buffer[6]); // represents 'y' in the file.
+          Expect.equals(114, buffer[7]); // represents 'r' in the file.
+          Expect.equals(105, buffer[8]); // represents 'i' in the file.
+          Expect.equals(103, buffer[9]); // represents 'g' in the file.
           file.close().then((ignore) => asyncEnd());
         });
       });
@@ -266,18 +264,18 @@ class FileTest {
     Expect.equals(12, bytes_read);
     bytes_read = raf.readIntoSync(buffer, 12, 42);
     Expect.equals(30, bytes_read);
-    Expect.equals(47, buffer[0]);  // represents '/' in the file.
-    Expect.equals(47, buffer[1]);  // represents '/' in the file.
-    Expect.equals(32, buffer[2]);  // represents ' ' in the file.
-    Expect.equals(67, buffer[3]);  // represents 'C' in the file.
-    Expect.equals(111, buffer[4]);  // represents 'o' in the file.
-    Expect.equals(112, buffer[5]);  // represents 'p' in the file.
-    Expect.equals(121, buffer[6]);  // represents 'y' in the file.
-    Expect.equals(114, buffer[7]);  // represents 'r' in the file.
-    Expect.equals(105, buffer[8]);  // represents 'i' in the file.
-    Expect.equals(103, buffer[9]);  // represents 'g' in the file.
-    Expect.equals(104, buffer[10]);  // represents 'h' in the file.
-    Expect.equals(116, buffer[11]);  // represents 't' in the file.
+    Expect.equals(47, buffer[0]); // represents '/' in the file.
+    Expect.equals(47, buffer[1]); // represents '/' in the file.
+    Expect.equals(32, buffer[2]); // represents ' ' in the file.
+    Expect.equals(67, buffer[3]); // represents 'C' in the file.
+    Expect.equals(111, buffer[4]); // represents 'o' in the file.
+    Expect.equals(112, buffer[5]); // represents 'p' in the file.
+    Expect.equals(121, buffer[6]); // represents 'y' in the file.
+    Expect.equals(114, buffer[7]); // represents 'r' in the file.
+    Expect.equals(105, buffer[8]); // represents 'i' in the file.
+    Expect.equals(103, buffer[9]); // represents 'g' in the file.
+    Expect.equals(104, buffer[10]); // represents 'h' in the file.
+    Expect.equals(116, buffer[11]); // represents 't' in the file.
     raf.closeSync();
 
     filename = getFilename("fixed_length_file");
@@ -289,6 +287,7 @@ class FileTest {
       f.closeSync();
       return res;
     }
+
     Expect.equals(0, read(0));
     Expect.equals(1, read(1));
     Expect.equals(len - 1, read(len - 1));
@@ -331,7 +330,7 @@ class FileTest {
                           // are identical.
                           Expect.equals(buffer1.length, buffer2.length);
                           for (int i = 0; i < buffer1.length; i++) {
-                            Expect.equals(buffer1[i],  buffer2[i]);
+                            Expect.equals(buffer1[i], buffer2[i]);
                           }
                           // Delete the output file.
                           final file4 = file3;
@@ -373,10 +372,9 @@ class FileTest {
     // the existing content.
     openedFile = (new File(filename)).openSync(mode: APPEND);
     openedFile.writeFromSync(buffer, 2, buffer.length - 2);
-    Expect.equals(content.length + content.length - 4,
-                  openedFile.lengthSync());
+    Expect.equals(content.length + content.length - 4, openedFile.lengthSync());
     Expect.equals(content + content.substring(2, content.length - 2),
-                  file.readAsStringSync());
+        file.readAsStringSync());
     openedFile.closeSync();
     file.deleteSync();
   }
@@ -440,7 +438,6 @@ class FileTest {
     });
   }
 
-
   static void testReadWriteSync() {
     // Read a file.
     String inFilename = getFilename("fixed_length_file");
@@ -472,7 +469,7 @@ class FileTest {
     // Now compare the two buffers to check if they are identical.
     Expect.equals(buffer1.length, buffer2.length);
     for (int i = 0; i < buffer1.length; i++) {
-      Expect.equals(buffer1[i],  buffer2[i]);
+      Expect.equals(buffer1[i], buffer2[i]);
     }
     // Delete the output file.
     outFile.deleteSync();
@@ -510,7 +507,7 @@ class FileTest {
     // Now compare the two buffers to check if they are identical.
     Expect.equals(buffer1.length, buffer2.length);
     for (int i = 0; i < buffer1.length; i++) {
-      Expect.equals(buffer1[i],  buffer2[i]);
+      Expect.equals(buffer1[i], buffer2[i]);
     }
     // Delete the output file.
     outFile.deleteSync();
@@ -558,7 +555,7 @@ class FileTest {
         var x = 12345678901234567890123456789012345678901234567890;
         var y = 12345678901234567890123456789012345678901234567893;
         openedFile.writeFromSync([y - x], 0, 1);
-        openedFile.writeFromSync([260], 0, 1);  // 260 = 256 + 4 = 0x104.
+        openedFile.writeFromSync([260], 0, 1); // 260 = 256 + 4 = 0x104.
         openedFile.writeFromSync(const [261], 0, 1);
         openedFile.writeFromSync(new MyListOfOneElement(262), 0, 1);
         x = 12345678901234567890123456789012345678901234567890;
@@ -610,14 +607,14 @@ class FileTest {
     asyncTestStarted();
     var tempDir = tempDirectory.path;
     var file = new File("${tempDir}/testDirectory");
-      file.create().then((ignore) {
-          Directory d = file.parent;
-          d.exists().then((xexists) {
-          Expect.isTrue(xexists);
-          Expect.isTrue(d.path.endsWith(tempDir));
-          file.delete().then((ignore) => asyncTestDone("testDirectory"));
-        });
+    file.create().then((ignore) {
+      Directory d = file.parent;
+      d.exists().then((xexists) {
+        Expect.isTrue(xexists);
+        Expect.isTrue(d.path.endsWith(tempDir));
+        file.delete().then((ignore) => asyncTestDone("testDirectory"));
       });
+    });
   }
 
   static void testDirectorySync() {
@@ -841,13 +838,15 @@ class FileTest {
     var openedFile = await file.open(mode: WRITE);
 
     await openedFile.writeFrom(buffer);
-    var result = []..addAll(buffer);;
+    var result = []..addAll(buffer);
+    ;
 
     write([start, end]) async {
       var returnValue = await openedFile.writeFrom(buffer, start, end);
       Expect.identical(openedFile, returnValue);
       result.addAll(buffer.sublist(start, end));
     }
+
     await write(0, 3);
     await write(0, 2);
     await write(1, 2);
@@ -870,12 +869,14 @@ class FileTest {
     var openedFile = file.openSync(mode: WRITE);
 
     openedFile.writeFromSync(buffer);
-    var result = []..addAll(buffer);;
+    var result = []..addAll(buffer);
+    ;
 
     write([start, end]) {
       var returnValue = openedFile.writeFromSync(buffer, start, end);
       result.addAll(buffer.sublist(start, end));
     }
+
     write(0, 3);
     write(0, 2);
     write(1, 2);
@@ -983,12 +984,11 @@ class FileTest {
   static void testCloseExceptionStream() {
     asyncTestStarted();
     List<int> buffer = new List<int>(42);
-    File file =
-        new File(tempDirectory.path + "/out_close_exception_stream");
+    File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
     var output = file.openWrite();
     output.close();
-    output.add(buffer);  // Ignored.
+    output.add(buffer); // Ignored.
     output.done.then((_) {
       file.deleteSync();
       asyncTestDone("testCloseExceptionStream");
@@ -999,8 +999,7 @@ class FileTest {
   static void testBufferOutOfBoundsException() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
-    File file =
-        new File(tempDirectory.path + "/out_buffer_out_of_bounds");
+    File file = new File(tempDirectory.path + "/out_buffer_out_of_bounds");
     RandomAccessFile openedFile = file.openSync(mode: WRITE);
     try {
       List<int> buffer = new List<int>(10);
@@ -1096,8 +1095,9 @@ class FileTest {
   static void testOpenDirectoryAsFile() {
     var f = new File('.');
     var future = f.open(mode: READ);
-    future.then((r) => Expect.fail('Directory opened as file'))
-          .catchError((e) {});
+    future
+        .then((r) => Expect.fail('Directory opened as file'))
+        .catchError((e) {});
   }
 
   static void testOpenDirectoryAsFileSync() {
@@ -1195,14 +1195,20 @@ class FileTest {
     Expect.listEquals(expected, text.codeUnits);
     // First character is not ASCII. The default ASCII decoder will throw.
     Expect.throws(() => new File(name).readAsStringSync(encoding: ASCII),
-                  (e) => e is FileSystemException);
+        (e) => e is FileSystemException);
     // We can use an ASCII decoder that inserts the replacement character.
     var lenientAscii = const AsciiCodec(allowInvalid: true);
     text = new File(name).readAsStringSync(encoding: lenientAscii);
     // Default replacement character is the Unicode replacement character.
-    expected = [UNICODE_REPLACEMENT_CHARACTER_RUNE,
-                UNICODE_REPLACEMENT_CHARACTER_RUNE,
-                120, 46, 32, 120, 10];
+    expected = [
+      UNICODE_REPLACEMENT_CHARACTER_RUNE,
+      UNICODE_REPLACEMENT_CHARACTER_RUNE,
+      120,
+      46,
+      32,
+      120,
+      10
+    ];
     Expect.listEquals(expected, text.codeUnits);
     text = new File(name).readAsStringSync(encoding: LATIN1);
     expected = [206, 187, 120, 46, 32, 120, 10];
@@ -1241,7 +1247,6 @@ class FileTest {
     Expect.equals(10, lines.length);
   }
 
-
   static void testReadAsErrors() {
     asyncTestStarted();
     var f = new File('.');
@@ -1249,14 +1254,17 @@ class FileTest {
     Expect.throws(f.readAsStringSync, (e) => e is FileSystemException);
     Expect.throws(f.readAsLinesSync, (e) => e is FileSystemException);
     var readAsBytesFuture = f.readAsBytes();
-    readAsBytesFuture.then((bytes) => Expect.fail("no bytes expected"))
-    .catchError((e) {
-      var readAsStringFuture = f.readAsString(encoding: UTF8);
-      readAsStringFuture.then((text) => Expect.fail("no text expected"))
-      .catchError((e) {
-        var readAsLinesFuture = f.readAsLines(encoding: UTF8);
-        readAsLinesFuture.then((lines) => Expect.fail("no lines expected"))
+    readAsBytesFuture
+        .then((bytes) => Expect.fail("no bytes expected"))
         .catchError((e) {
+      var readAsStringFuture = f.readAsString(encoding: UTF8);
+      readAsStringFuture
+          .then((text) => Expect.fail("no text expected"))
+          .catchError((e) {
+        var readAsLinesFuture = f.readAsLines(encoding: UTF8);
+        readAsLinesFuture
+            .then((lines) => Expect.fail("no lines expected"))
+            .catchError((e) {
           asyncTestDone("testReadAsLines");
         });
       });
@@ -1288,17 +1296,18 @@ class FileTest {
     int done = 0;
     bool error = false;
     void getLength() {
-      file.length()
-          .catchError((e) { error = true; })
-          .whenComplete(() {
-            if (++done == 2) {
-              asyncTestDone("testDoubleAsyncOperation");
-              Expect.isTrue(error);
-              file.lengthSync();
-              file.closeSync();
-            }
-          });
+      file.length().catchError((e) {
+        error = true;
+      }).whenComplete(() {
+        if (++done == 2) {
+          asyncTestDone("testDoubleAsyncOperation");
+          Expect.isTrue(error);
+          file.lengthSync();
+          file.closeSync();
+        }
+      });
     }
+
     getLength();
     getLength();
     Expect.throws(() => file.lengthSync());
@@ -1362,7 +1371,6 @@ class FileTest {
     Expect.equals(1, stat.modified.day);
   }
 
-
   static testSetLastModified() async {
     asyncTestStarted();
     String newFilePath = '${tempDirectory.path}/set_last_modified_test';
@@ -1376,7 +1384,6 @@ class FileTest {
     Expect.equals(1, stat.modified.day);
     asyncTestDone("testSetLastModified");
   }
-
 
   static void testSetLastModifiedSyncDirectory() {
     Directory tmp = tempDirectory.createTempSync('file_last_modified_test_');
@@ -1408,7 +1415,6 @@ class FileTest {
     Expect.equals(1, stat.accessed.day);
   }
 
-
   static testSetLastAccessed() async {
     asyncTestStarted();
     String newFilePath = '${tempDirectory.path}/set_last_accessed_test';
@@ -1422,7 +1428,6 @@ class FileTest {
     Expect.equals(1, stat.accessed.day);
     asyncTestDone("testSetLastAccessed");
   }
-
 
   static void testSetLastAccessedSyncDirectory() {
     Directory tmp = tempDirectory.createTempSync('file_last_accessed_test_');
@@ -1507,8 +1512,8 @@ class FileTest {
                         Expect.stringEquals(readBack, '$string$string');
                         file.delete().then((_) {
                           file.exists().then((e) {
-                           Expect.isFalse(e);
-                           asyncTestDone("testWriteStringUtf8");
+                            Expect.isFalse(e);
+                            asyncTestDone("testWriteStringUtf8");
                           });
                         });
                       });
@@ -1542,34 +1547,33 @@ class FileTest {
   }
 
   static void testRename({bool targetExists}) {
-    lift(Function f) =>
-      (futureValue) => futureValue.then((value) => f(value));
+    lift(Function f) => (futureValue) => futureValue.then((value) => f(value));
     asyncTestStarted();
 
     String source = join(tempDirectory.path, 'rename_${targetExists}_source');
     String dest = join(tempDirectory.path, 'rename_${targetExists}_dest');
     var file = new File(source);
     var newfile = new File(dest);
-    file.create()
-      .then((_) => targetExists ? newfile.create() : null)
-      .then((_) => file.rename(dest))
-      .then((_) => lift(Expect.isFalse)(file.exists()))
-      .then((_) => lift(Expect.isTrue)(newfile.exists()))
-      .then((_) => newfile.delete())
-      .then((_) => lift(Expect.isFalse)(newfile.exists()))
-      .then((_) {
-        if (Platform.operatingSystem != "windows") {
-          new Link(source).create(dest)
-            .then((_) => file.rename("xxx"))
-            .then((_) { throw "Rename of broken link succeeded"; })
-            .catchError((e) {
-              Expect.isTrue(e is FileSystemException);
-              asyncTestDone("testRename$targetExists");
-            });
-        } else {
+    file
+        .create()
+        .then((_) => targetExists ? newfile.create() : null)
+        .then((_) => file.rename(dest))
+        .then((_) => lift(Expect.isFalse)(file.exists()))
+        .then((_) => lift(Expect.isTrue)(newfile.exists()))
+        .then((_) => newfile.delete())
+        .then((_) => lift(Expect.isFalse)(newfile.exists()))
+        .then((_) {
+      if (Platform.operatingSystem != "windows") {
+        new Link(source).create(dest).then((_) => file.rename("xxx")).then((_) {
+          throw "Rename of broken link succeeded";
+        }).catchError((e) {
+          Expect.isTrue(e is FileSystemException);
           asyncTestDone("testRename$targetExists");
-        }
-      });
+        });
+      } else {
+        asyncTestDone("testRename$targetExists");
+      }
+    });
   }
 
   static void testRenameSync({bool targetExists}) {

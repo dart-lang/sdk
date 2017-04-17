@@ -4,8 +4,7 @@
 // Check that const objects (including literals) are immutable.
 
 // should be 'const {}'
-invalid([var p = {}]) {
-}
+invalid([var p = {}]) {}
 
 main() {
   invalid();

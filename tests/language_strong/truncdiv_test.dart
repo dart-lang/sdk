@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   for (int i = -30; i < 30; i++) {
     Expect.equals(i % 9, foo(i, 9));
@@ -24,7 +23,7 @@ main() {
 foo(i, x) => i % x;
 
 foo2(i) {
-  // Make sure x has a range computed. 
+  // Make sure x has a range computed.
   var x = 0;
   if (i < 0) {
     x = -i;

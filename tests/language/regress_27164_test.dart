@@ -17,4 +17,3 @@ class Echo {
 void main() {
   Expect.equals("hello", const Echo().echo("hello"));
 }
-

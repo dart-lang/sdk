@@ -43,4 +43,3 @@ main() {
     Expect.equals(i, foo(a, b, c, i));
   }
 }
-

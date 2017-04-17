@@ -7,7 +7,9 @@ import "package:expect/expect.dart";
 
 class LocalFunction3Test {
   static testExceptions() {
-    var f = (int n) { return n + 1; };
+    var f = (int n) {
+      return n + 1;
+    };
     Expect.equals(true, f is Object);
     bool exception_caught = false;
     try {
@@ -35,4 +37,3 @@ class LocalFunction3Test {
 main() {
   LocalFunction3Test.testMain();
 }
-

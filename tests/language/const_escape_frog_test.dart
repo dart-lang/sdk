@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 
 class Foo {
-  final Bar<Foo> bar = const Bar/* comment here use to trigger bug 323 */();
+  final Bar<Foo> bar = const Bar /* comment here use to trigger bug 323 */ ();
 }
 
 class Bar<T extends Foo> {

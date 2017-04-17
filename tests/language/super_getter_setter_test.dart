@@ -15,7 +15,10 @@ class A {
   var missingAllField;
   var indexField = new List(2);
 
-  set setterInSuperClass(a) { setterInSuperClassField = a; }
+  set setterInSuperClass(a) {
+    setterInSuperClassField = a;
+  }
+
   get getterInSuperClass => getterInSuperClassField;
 }
 
@@ -23,14 +26,23 @@ class B extends A {
   get missingSetter => missingSetterField;
   get setterInSuperClass => setterInSuperClassField;
 
-  set missingGetter(a) { missingGetterField = a; }
-  set getterInSuperClass(a) { getterInSuperClassField = a; }
+  set missingGetter(a) {
+    missingGetterField = a;
+  }
+
+  set getterInSuperClass(a) {
+    getterInSuperClassField = a;
+  }
 
   get getterSetter => getterSetterField;
-  set getterSetter(a) { getterSetterField = a; }
+  set getterSetter(a) {
+    getterSetterField = a;
+  }
 
-  operator[](index) => indexField[index];
-  operator[]=(index, value) { indexField[index] = value; }
+  operator [](index) => indexField[index];
+  operator []=(index, value) {
+    indexField[index] = value;
+  }
 
   noSuchMethod(Invocation im) {
     String name = MirrorSystem.getName(im.memberName);

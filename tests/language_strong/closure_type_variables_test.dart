@@ -13,6 +13,7 @@ class A<T> {
     g() {
       new A<T>();
     }
+
     g();
   }
 
@@ -20,6 +21,7 @@ class A<T> {
     g() {
       return new A<T>();
     }
+
     return g();
   }
 }

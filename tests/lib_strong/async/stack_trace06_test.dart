@@ -18,13 +18,12 @@ main() {
   Completer completer = new Completer();
   StackTrace trace = captureStackTrace();
   asyncStart();
-  completer.future
-    .whenComplete(() => 499)
-    .then((_) { throw "should never be reached"; })
-    .catchError((e, st) {
-      Expect.equals("c-error", e);
-      Expect.identical(trace, st);
-      asyncEnd();
-    });
+  completer.future.whenComplete(() => 499).then((_) {
+    throw "should never be reached";
+  }).catchError((e, st) {
+    Expect.equals("c-error", e);
+    Expect.identical(trace, st);
+    asyncEnd();
+  });
   completer.completeError("c-error", trace);
 }

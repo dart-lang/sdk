@@ -4,11 +4,9 @@
 
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
-class $B extends A {
-}
+class $B extends A {}
 
 class C implements $B {
   // Try to clash with dart2js's isCLASS field.

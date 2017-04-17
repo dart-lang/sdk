@@ -7,11 +7,13 @@ import "package:expect/expect.dart";
 class Magnitude<T> {
   get t => T;
 }
+
 class Real extends Magnitude<Real> {}
 
 class FBound<F extends FBound<F>> {
   get f => F;
 }
+
 class Bar extends FBound<Bar> {}
 
 main() {

@@ -13,17 +13,22 @@ main() {
 }
 
 Future runTest() async {
-  unreachable([a,b]) { throw "UNREACHABLE"; }
+  unreachable([a, b]) {
+    throw "UNREACHABLE";
+  }
+
   int tick = 0;
-  ticker() { tick++; }
+  ticker() {
+    tick++;
+  }
 
   asyncStart();
 
-  Stream<int> s = const Stream<int>.empty();  // Is const constructor.
-  Expect.isFalse(s is Stream<String>);  // Respects type parameter.
+  Stream<int> s = const Stream<int>.empty(); // Is const constructor.
+  Expect.isFalse(s is Stream<String>); // Respects type parameter.
   StreamSubscription<int> sub =
-     s.listen(unreachable, onError: unreachable, onDone: ticker);
-  Expect.isFalse(sub is StreamSubscription<String>);  // Type parameter in sub.
+      s.listen(unreachable, onError: unreachable, onDone: ticker);
+  Expect.isFalse(sub is StreamSubscription<String>); // Type parameter in sub.
 
   // Doesn't do callback in response to listen.
   Expect.equals(tick, 0);
@@ -34,7 +39,7 @@ Future runTest() async {
   // It's a broadcast stream - can listen twice.
   Expect.isTrue(s.isBroadcast);
   StreamSubscription<int> sub2 =
-     s.listen(unreachable, onError: unreachable, onDone: unreachable);
+      s.listen(unreachable, onError: unreachable, onDone: unreachable);
   // respects pause.
   sub2.pause();
   await flushMicrotasks();
@@ -45,7 +50,7 @@ Future runTest() async {
   // Still not complete.
 
   StreamSubscription<int> sub3 =
-     s.listen(unreachable, onError: unreachable, onDone: ticker);
+      s.listen(unreachable, onError: unreachable, onDone: ticker);
   // respects pause.
   sub3.pause();
   Expect.equals(tick, 1);

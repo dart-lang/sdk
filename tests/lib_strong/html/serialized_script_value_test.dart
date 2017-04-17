@@ -21,16 +21,16 @@ main() {
   serializationTest('string', 'hey!');
 
   final simpleMap = {'a': 100, 'b': 's'};
-  final dagMap = { 'x': simpleMap, 'y': simpleMap };
-  final cyclicMap = { 'b': dagMap };
+  final dagMap = {'x': simpleMap, 'y': simpleMap};
+  final cyclicMap = {'b': dagMap};
   cyclicMap['a'] = cyclicMap;
   serializationTest('simple map', simpleMap);
   serializationTest('dag map', dagMap);
   serializationTest('cyclic map', cyclicMap);
 
-  final simpleList = [ 100, 's'];
-  final dagList = [ simpleList, simpleList ];
-  final cyclicList = [ dagList ];
+  final simpleList = [100, 's'];
+  final dagList = [simpleList, simpleList];
+  final cyclicList = [dagList];
   cyclicList.add(cyclicList);
   serializationTest('simple list', simpleList);
   serializationTest('dag list', dagList);
@@ -39,8 +39,7 @@ main() {
   serializationTest('datetime', [new DateTime.now()]);
 
   var blob = new Blob(
-      ['Indescribable... Indestructible! Nothing can stop it!'],
-      'text/plain');
+      ['Indescribable... Indestructible! Nothing can stop it!'], 'text/plain');
   serializationTest('blob', [blob]);
 
   var canvas = new CanvasElement();

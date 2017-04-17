@@ -14,4 +14,3 @@ main() {
   Expect.equals(val, arr[0].z);
   Expect.equals(val, arr[0].w);
 }
-

@@ -19,27 +19,33 @@ main() {
   // `catchErrors` it is caught there.
   catchErrors(() {
     catchErrors(() {
-      controller.stream.map((x) { throw x; }).listen((x) {
+      controller.stream.map((x) {
+        throw x;
+      }).listen((x) {
         // Should not happen.
         events.add("bad: $x");
       });
     }).listen((x) {
-                events.add("caught: $x");
-                if (x == 4) done.complete(true);
-              },
-              onDone: () { Expect.fail("Unexpected callback"); });
-  }).listen((x) { events.add("outer: $x"); },
-            onDone: () { Expect.fail("Unexpected callback"); });
+      events.add("caught: $x");
+      if (x == 4) done.complete(true);
+    }, onDone: () {
+      Expect.fail("Unexpected callback");
+    });
+  }).listen((x) {
+    events.add("outer: $x");
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give handlers time to run.
     Timer.run(() {
-      Expect.listEquals(["caught: 1",
-                          "caught: 2",
-                          "caught: 3",
-                          "caught: 4",
-                        ],
-                        events);
+      Expect.listEquals([
+        "caught: 1",
+        "caught: 2",
+        "caught: 3",
+        "caught: 4",
+      ], events);
       asyncEnd();
     });
   });

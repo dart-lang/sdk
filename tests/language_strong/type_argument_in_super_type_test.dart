@@ -4,8 +4,7 @@
 
 import "package:expect/expect.dart";
 
-class C {
-}
+class C {}
 
 class A<T> {
   var field;

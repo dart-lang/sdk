@@ -6,6 +6,8 @@ library GetterSetterInLib3;
 
 var _f = 33;
 
-set bar(a) { _f = a; }
+set bar(a) {
+  _f = a;
+}
 
 get bar => _f;

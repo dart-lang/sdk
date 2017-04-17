@@ -43,4 +43,3 @@ class Fisk {
 main() {
   new Fisk(0).nodes.prepend(new Fisk(1)).prepend(new Fisk(2));
 }
-

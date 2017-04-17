@@ -22,7 +22,7 @@ int get safetyMargin => identical(1, 1.0) ? 100 : 0;
 
 void timeoutHandler() {
   expect(stopwatch.elapsedMilliseconds + safetyMargin,
-         greaterThanOrEqualTo(timeout));
+      greaterThanOrEqualTo(timeout));
   if (iteration < ITERATIONS) {
     iteration++;
     timeout = timeout - DECREASE;

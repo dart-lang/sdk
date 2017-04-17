@@ -20,14 +20,14 @@ main() {
 
   C c = new C();
   InstanceMirror im = reflect(c);
-  expectThrowsNSM(() => im.invoke(#_method, [2,4,8]));
+  expectThrowsNSM(() => im.invoke(#_method, [2, 4, 8]));
   expectThrowsNSM(() => im.getField(#_getter));
   expectThrowsNSM(() => im.getField(#_field));
   expectThrowsNSM(() => im.setField(#_setter, 'foo'));
   expectThrowsNSM(() => im.setField(#_field, 'bar'));
 
   ClassMirror cm = reflectClass(C);
-  expectThrowsNSM(() => cm.invoke(#_staticFunction, [3,4]));
+  expectThrowsNSM(() => cm.invoke(#_staticFunction, [3, 4]));
   expectThrowsNSM(() => cm.getField(#_staticGetter));
   expectThrowsNSM(() => cm.getField(#_staticField));
   expectThrowsNSM(() => cm.setField(#_staticSetter, 'sfoo'));
@@ -35,7 +35,7 @@ main() {
   expectThrowsNSM(() => cm.newInstance(#_named, ['my value']));
 
   LibraryMirror lm = cm.owner;
-  expectThrowsNSM(() => lm.invoke(#_libraryFunction, [':',')']));
+  expectThrowsNSM(() => lm.invoke(#_libraryFunction, [':', ')']));
   expectThrowsNSM(() => lm.getField(#_libraryGetter));
   expectThrowsNSM(() => lm.getField(#_libraryField));
   expectThrowsNSM(() => lm.setField(#_librarySetter, 'lfoo'));

@@ -5,6 +5,7 @@
 // Dart test for top level declarations involving an imported type.
 
 library main;
+
 import "package:expect/expect.dart";
 import "library11.dart" as lib11;
 

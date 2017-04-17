@@ -46,20 +46,20 @@ main() {
   Expect.equals("baz", forked[baz]);
   Expect.isNull(Zone.current[mimic]);
   Expect.equals("zero!", forked[0]);
-  Expect.equals("zero!", forked[0.0]);  // Lookup uses equality.
+  Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);
   Expect.equals(baz, forked[null]);
   Expect.isNull(forked["qux"]);
 
   forked.run(() {
-    Expect.identical(forked, Zone.current);  // Sanity check.
+    Expect.identical(forked, Zone.current); // Sanity check.
     // Values are present on current when inside zone.
     Expect.equals(499, Zone.current[#foo]);
     Expect.listEquals([], Zone.current["bar"]);
     Expect.equals("baz", Zone.current[baz]);
     Expect.isNull(Zone.current[mimic]);
     Expect.equals("zero!", Zone.current[0]);
-    Expect.equals("zero!", Zone.current[0.0]);  // Lookup uses equality.
+    Expect.equals("zero!", Zone.current[0.0]); // Lookup uses equality.
     Expect.equals("zero!", Zone.current[-0.0]);
     Expect.equals(baz, Zone.current[null]);
     Expect.isNull(Zone.current["qux"]);
@@ -79,7 +79,7 @@ main() {
   zoneValues["bar"].add(42);
 
   forked.run(() {
-    Expect.identical(forked, Zone.current);  // Sanity check.
+    Expect.identical(forked, Zone.current); // Sanity check.
     // Values are still there when inside the zone. The list was modified.
     Expect.equals(499, Zone.current[#foo]);
     Expect.listEquals([42], Zone.current["bar"]);
@@ -108,19 +108,19 @@ main() {
   Expect.equals("floo", forkedChild[baz]); //        Overridden by mimic.
   Expect.equals("floo", forkedChild[mimic]); //      Now recognizes mimic.
   Expect.equals("zero!ZERO!", forkedChild[0]); //    Overridden by 0.0.
-  Expect.equals("zero!ZERO!", forkedChild[0.0]);  // Overriding 0.
+  Expect.equals("zero!ZERO!", forkedChild[0.0]); // Overriding 0.
   Expect.equals(baz, forkedChild[null]); //          Inherited.
   Expect.equals(99, forkedChild["qux"]); //          Added.
 
   forkedChild.run(() {
-    Expect.identical(forkedChild, Zone.current);  // Sanity check.
+    Expect.identical(forkedChild, Zone.current); // Sanity check.
     // New values available on current zone when the zone is current.
     Expect.equals(-499, Zone.current[#foo]); //         Overridden.
     Expect.isNull(Zone.current["bar"]); //              Overridden to null.
     Expect.equals("floo", Zone.current[baz]); //        Overridden by mimic.
     Expect.equals("floo", Zone.current[mimic]); //      Now recognizes mimic.
     Expect.equals("zero!ZERO!", Zone.current[0]); //    Overridden by 0.0.
-    Expect.equals("zero!ZERO!", Zone.current[0.0]);  // Overriding 0.
+    Expect.equals("zero!ZERO!", Zone.current[0.0]); // Overriding 0.
     Expect.equals(baz, Zone.current[null]); //          Inherited.
     Expect.equals(99, Zone.current["qux"]); //          Added.
   });
@@ -131,7 +131,7 @@ main() {
   Expect.equals("baz", forked[baz]);
   Expect.isNull(Zone.current[mimic]);
   Expect.equals("zero!", forked[0]);
-  Expect.equals("zero!", forked[0.0]);  // Lookup uses equality.
+  Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);
   Expect.equals(baz, forked[null]);
   Expect.isNull(forked["qux"]);
@@ -143,6 +143,6 @@ class Mimic {
   final Object original;
   Mimic(this.original);
   int get hashCode => original.hashCode;
-  bool operator==(Object other) =>
+  bool operator ==(Object other) =>
       (other is Mimic) ? this == other.original : original == other;
 }

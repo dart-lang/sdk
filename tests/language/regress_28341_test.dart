@@ -4,9 +4,7 @@
 
 import "package:expect/expect.dart";
 
-enum E {
-  A
-}
+enum E { A }
 
 main() {
   Expect.isTrue(E.values == const <E>[E.A]);

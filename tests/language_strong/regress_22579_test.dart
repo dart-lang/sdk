@@ -8,8 +8,7 @@ import "package:expect/expect.dart";
 foo() async {
   try {
     await 1;
-  } catch(e) {
-  }
+  } catch (e) {}
   throw "error";
 }
 
@@ -22,4 +21,3 @@ main() async {
   }
   Expect.equals("error", error);
 }
-

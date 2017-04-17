@@ -9,6 +9,7 @@ class A {
   void set x(int val) {
     _x = val;
   }
+
   int get x => _x;
 }
 

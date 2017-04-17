@@ -11,7 +11,7 @@ main() async {
   useHtmlConfiguration();
 
   setUp(() {
-      context['defaultPackagesBase'] = 'path1/';
+    context['defaultPackagesBase'] = 'path1/';
   });
 
   test('hook overrides package-uri resolution', () async {

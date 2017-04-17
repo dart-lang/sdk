@@ -27,14 +27,14 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  "This page tests the regex examples from the ECMA-262 specification."
-  );
+      "This page tests the regex examples from the ECMA-262 specification.");
 
   var regex01 = new RegExp(r"a|ab");
   shouldBe(regex01.firstMatch("abc"), ["a"]);
 
   var regex02 = new RegExp(r"((a)|(ab))((c)|(bc))");
-  shouldBe(regex02.firstMatch("abc"), ["abc", "a", "a", null, "bc", null, "bc"]);
+  shouldBe(
+      regex02.firstMatch("abc"), ["abc", "a", "a", null, "bc", null, "bc"]);
 
   var regex03 = new RegExp(r"a[a-z]{2,4}");
   shouldBe(regex03.firstMatch("abcdefghi"), ["abcde"]);
@@ -46,10 +46,13 @@ void main() {
   shouldBe(regex05.firstMatch("aabaac"), ["aaba", "ba"]);
 
   var regex06 = new RegExp(r"^(a+)\1*,\1+$");
-  Expect.equals("aaaaaaaaaa,aaaaaaaaaaaaaaa".replaceAllMapped(regex06,(m) => m.group(1)), "aaaaa");
+  Expect.equals(
+      "aaaaaaaaaa,aaaaaaaaaaaaaaa".replaceAllMapped(regex06, (m) => m.group(1)),
+      "aaaaa");
 
   var regex07 = new RegExp(r"(z)((a+)?(b+)?(c))*");
-  shouldBe(regex07.firstMatch("zaacbbbcac"), ["zaacbbbcac", "z", "ac", "a", null, "c"]);
+  shouldBe(regex07.firstMatch("zaacbbbcac"),
+      ["zaacbbbcac", "z", "ac", "a", null, "c"]);
 
   var regex08 = new RegExp(r"(a*)*");
   shouldBe(regex08.firstMatch("b"), ["", null]);

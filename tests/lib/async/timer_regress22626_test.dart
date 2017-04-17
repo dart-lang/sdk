@@ -17,17 +17,17 @@ var rng = new Random(1234);
 
 void test(int delay, int delta) {
   var t0 = new Timer(new Duration(milliseconds: delay + delta),
-                     () => Expect.fail("should have been cancelled by now"));
+      () => Expect.fail("should have been cancelled by now"));
   new Timer(Duration.ZERO, () => t0.cancel());
-  new Timer(Duration.ZERO,
-            () => new Timer(new Duration(milliseconds: delay),
-                            () {
-                              if (--countdown == 0) {
-                                print("done");
-                              } else {
-                                test(delay, max(0, delta + rng.nextInt(2) - 1));
-                              }
-                            }));
+  new Timer(
+      Duration.ZERO,
+      () => new Timer(new Duration(milliseconds: delay), () {
+            if (--countdown == 0) {
+              print("done");
+            } else {
+              test(delay, max(0, delta + rng.nextInt(2) - 1));
+            }
+          }));
 }
 
 void main() {

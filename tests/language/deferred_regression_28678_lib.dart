@@ -4,4 +4,4 @@
 
 var v;
 
-class Clazz { }
+class Clazz {}

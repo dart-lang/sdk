@@ -16,7 +16,7 @@ main() {
   Expect.equals(a, a.path1[0]);
   Expect.equals(a, a.path1[1]);
 
-  Expect.equals(1, a.path2.length);  // NPE.
+  Expect.equals(1, a.path2.length); // NPE.
 
   var b = new Element(a);
   Expect.equals(2, b.path0.length);
@@ -28,9 +28,8 @@ main() {
   Expect.equals(a, b.path1[1]);
   Expect.equals(b, b.path1[2]);
 
-  Expect.equals(2, b.path2.length);  // NPE.
+  Expect.equals(2, b.path2.length); // NPE.
 }
-
 
 class Element {
   final Element parent;
@@ -46,7 +45,8 @@ class Element {
   }
 
   List<Element> get path1 {
-    return (parent == null) ? <Element>[this] : parent.path1..add(this);
+    return (parent == null) ? <Element>[this] : parent.path1
+      ..add(this);
   }
 
   List<Element> get path2 {

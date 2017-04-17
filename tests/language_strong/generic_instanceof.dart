@@ -8,8 +8,9 @@ part of GenericInstanceofTest.dart;
 class Foo<T> {
   Foo() {}
 
-  bool isT(x) { // Untyped parameter to ensure that the static type
-                // does not affect the result.
+  bool isT(x) {
+    // Untyped parameter to ensure that the static type
+    // does not affect the result.
     return x is T;
   }
 

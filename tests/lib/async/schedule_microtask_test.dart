@@ -6,7 +6,6 @@ import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
 
-
 Future testOneScheduleMicrotask() {
   var completer = new Completer();
   Timer.run(() {
@@ -14,7 +13,6 @@ Future testOneScheduleMicrotask() {
   });
   return completer.future;
 }
-
 
 Future testMultipleScheduleMicrotask() {
   var completer = new Completer();
@@ -24,13 +22,13 @@ Future testMultipleScheduleMicrotask() {
     for (int i = 0; i < TOTAL; i++) {
       scheduleMicrotask(() {
         done++;
-        if (done == TOTAL) completer.complete();;
+        if (done == TOTAL) completer.complete();
+        ;
       });
     }
   });
   return completer.future;
 }
-
 
 Future testScheduleMicrotaskThenTimer() {
   var completer = new Completer();
@@ -48,7 +46,6 @@ Future testScheduleMicrotaskThenTimer() {
   return completer.future;
 }
 
-
 Future testTimerThenScheduleMicrotask() {
   var completer = new Completer();
   Timer.run(() {
@@ -65,7 +62,6 @@ Future testTimerThenScheduleMicrotask() {
   return completer.future;
 }
 
-
 Future testTimerThenScheduleMicrotaskChain() {
   var completer = new Completer();
   Timer.run(() {
@@ -81,19 +77,18 @@ Future testTimerThenScheduleMicrotaskChain() {
         scheduleMicrotask(scheduleMicrotaskCallback);
       }
     }
+
     scheduleMicrotask(scheduleMicrotaskCallback);
   });
   return completer.future;
 }
 
-
 main() {
   asyncStart();
   testOneScheduleMicrotask()
-    .then((_) => testMultipleScheduleMicrotask())
-    .then((_) => testScheduleMicrotaskThenTimer())
-    .then((_) => testTimerThenScheduleMicrotask())
-    .then((_) => testTimerThenScheduleMicrotaskChain())
-    .then((_) => asyncEnd());
+      .then((_) => testMultipleScheduleMicrotask())
+      .then((_) => testScheduleMicrotaskThenTimer())
+      .then((_) => testTimerThenScheduleMicrotask())
+      .then((_) => testTimerThenScheduleMicrotaskChain())
+      .then((_) => asyncEnd());
 }
-

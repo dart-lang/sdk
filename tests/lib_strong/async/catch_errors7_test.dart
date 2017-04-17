@@ -29,22 +29,22 @@ main() {
     }
     throw "catch error";
   }).listen((x) {
-      events.add(x);
-    },
-    onDone: () { Expect.fail("Unexpected callback"); });
+    events.add(x);
+  }, onDone: () {
+    Expect.fail("Unexpected callback");
+  });
 
   done.future.whenComplete(() {
     // Give handlers time to execute.
     Timer.run(() {
-      Expect.listEquals(
-          ["catch error entry",
-            "main exit",
-            "catch error",
-            "future error",
-            "future error2",
-            499,
-          ],
-          events);
+      Expect.listEquals([
+        "catch error entry",
+        "main exit",
+        "catch error",
+        "future error",
+        "future error2",
+        499,
+      ], events);
       asyncEnd();
     });
   });

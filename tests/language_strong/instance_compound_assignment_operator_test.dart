@@ -18,19 +18,22 @@ class A {
     gGetCount++;
     return _g;
   }
+
   set g(value) {
     gSetCount++;
     _g = value;
   }
 }
 
-
 class B {
-  B() : _a = new A(), count = 0 {}
+  B()
+      : _a = new A(),
+        count = 0 {}
   get a {
     count++;
     return _a;
   }
+
   var _a;
   var count;
 }

@@ -13,18 +13,20 @@ test1() {
   runZoned(() {
     runZoned(() {
       var c = new StreamController();
-      c.stream.listen(
-          (x) => events.add("stream: $x"),
-           onError: (x) => events.add("stream: error $x"),
-           onDone: done.complete);
+      c.stream.listen((x) => events.add("stream: $x"),
+          onError: (x) => events.add("stream: error $x"),
+          onDone: done.complete);
       c.add(1);
       c.addError(2);
       c.close();
     }, onError: (x) => events.add("rza: error $x"));
   }, onError: (x) => events.add("rzb: error $x"));
-  return [done.future, () {
-    Expect.listEquals(["stream: 1", "stream: error 2"], events);
-  }];
+  return [
+    done.future,
+    () {
+      Expect.listEquals(["stream: 1", "stream: error 2"], events);
+    }
+  ];
 }
 
 /// Adding errors to the stream controller from an outside zone.
@@ -35,18 +37,20 @@ test2() {
     var c;
     runZoned(() {
       c = new StreamController();
-      c.stream.listen(
-          (x) => events.add("stream: $x"),
-           onError: (x) => events.add("stream: error $x"),
-           onDone: done.complete);
+      c.stream.listen((x) => events.add("stream: $x"),
+          onError: (x) => events.add("stream: error $x"),
+          onDone: done.complete);
     }, onError: (x) => events.add("rza: error $x"));
     c.add(1);
     c.addError(2);
     c.close();
   }, onError: (x) => events.add("rzb: error $x"));
-  return [done.future, () {
-    Expect.listEquals(["stream: 1", "stream: error 2"], events);
-  }];
+  return [
+    done.future,
+    () {
+      Expect.listEquals(["stream: 1", "stream: error 2"], events);
+    }
+  ];
 }
 
 /// Adding errors to the stream controller from a more nested zone.
@@ -55,19 +59,20 @@ test3() {
   var done = new Completer();
   runZoned(() {
     var c = new StreamController();
-    c.stream.listen(
-        (x) => events.add("stream: $x"),
-          onError: (x) => events.add("stream: error $x"),
-          onDone: done.complete);
+    c.stream.listen((x) => events.add("stream: $x"),
+        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
     runZoned(() {
       c.add(1);
       c.addError(2);
       c.close();
     }, onError: (x) => events.add("rza: error $x"));
   }, onError: (x) => events.add("rzb: error $x"));
-  return [done.future, () {
-    Expect.listEquals(["stream: 1", "stream: error 2"], events);
-  }];
+  return [
+    done.future,
+    () {
+      Expect.listEquals(["stream: 1", "stream: error 2"], events);
+    }
+  ];
 }
 
 /// Feeding a stream from a different zone into another controller.
@@ -76,10 +81,8 @@ test4() {
   var done = new Completer();
   runZoned(() {
     var c = new StreamController();
-    c.stream.listen(
-        (x) => events.add("stream: $x"),
-          onError: (x) => events.add("stream: error $x"),
-          onDone: done.complete);
+    c.stream.listen((x) => events.add("stream: $x"),
+        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
     runZoned(() {
       var c2 = new StreamController();
       c.addStream(c2.stream).whenComplete(c.close);
@@ -88,9 +91,12 @@ test4() {
       c2.close();
     }, onError: (x) => events.add("rza: error $x"));
   }, onError: (x) => events.add("rzb: error $x"));
-  return [done.future, () {
-    Expect.listEquals(["stream: 1", "stream: error 2"], events);
-  }];
+  return [
+    done.future,
+    () {
+      Expect.listEquals(["stream: 1", "stream: error 2"], events);
+    }
+  ];
 }
 
 /// Feeding a stream from a different zone into another controller.
@@ -102,10 +108,9 @@ test5() {
     var c;
     runZoned(() {
       c = new StreamController();
-      c.stream.listen(
-          (x) => events.add("stream: $x"),
-            onError: (x) => events.add("stream: error $x"),
-            onDone: done.complete);
+      c.stream.listen((x) => events.add("stream: $x"),
+          onError: (x) => events.add("stream: error $x"),
+          onDone: done.complete);
     }, onError: (x) => events.add("rza: error $x"));
     var c2 = new StreamController();
     c.addStream(c2.stream).whenComplete(c.close);
@@ -113,11 +118,13 @@ test5() {
     c2.addError(2);
     c2.close();
   }, onError: (x) => events.add("rzb: error $x"));
-  return [done.future, () {
-    Expect.listEquals(["stream: 1", "stream: error 2"], events);
-  }];
+  return [
+    done.future,
+    () {
+      Expect.listEquals(["stream: 1", "stream: error 2"], events);
+    }
+  ];
 }
-
 
 test6() {
   var events = [];
@@ -125,10 +132,8 @@ test6() {
   var c;
   runZoned(() {
     c = new StreamController();
-    c.stream.listen(
-        (x) => events.add("stream: $x"),
-          onError: (x) => events.add("stream: error $x"),
-          onDone: done.complete);
+    c.stream.listen((x) => events.add("stream: $x"),
+        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
   }, onError: (x) => events.add("rza: error $x"));
   runZoned(() {
     var c2 = new StreamController();
@@ -137,9 +142,12 @@ test6() {
     c2.addError(2);
     c2.close();
   }, onError: (x) => events.add("rzb: error $x"));
-  return [done.future, () {
-    Expect.listEquals(["stream: 1", "stream: error 2"], events);
-  }];
+  return [
+    done.future,
+    () {
+      Expect.listEquals(["stream: 1", "stream: error 2"], events);
+    }
+  ];
 }
 
 /// Adding errors to the stream controller from a parallel zone.
@@ -149,19 +157,20 @@ test7() {
   var c;
   runZoned(() {
     c = new StreamController();
-    c.stream.listen(
-        (x) => events.add("stream: $x"),
-          onError: (x) => events.add("stream: error $x"),
-          onDone: done.complete);
+    c.stream.listen((x) => events.add("stream: $x"),
+        onError: (x) => events.add("stream: error $x"), onDone: done.complete);
   }, onError: (x) => events.add("rza: error $x"));
   runZoned(() {
     c.add(1);
     c.addError(2);
     c.close();
   }, onError: (x) => events.add("rzb: error $x"));
-  return [done.future, () {
-    Expect.listEquals(["stream: 1", "stream: error 2"], events);
-  }];
+  return [
+    done.future,
+    () {
+      Expect.listEquals(["stream: 1", "stream: error 2"], events);
+    }
+  ];
 }
 
 main() {

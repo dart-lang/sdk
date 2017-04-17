@@ -13,15 +13,15 @@ void main() {
   try {
     new File(null);
     Expect.fail('ArgumentError expected.');
-  } on ArgumentError catch(e) {
+  } on ArgumentError catch (e) {
     // Expected.
   }
   try {
     new File(1);
     Expect.fail('Error expected.');
-  } on ArgumentError catch(e) {
+  } on ArgumentError catch (e) {
     if (developerMode) rethrow;
-  } on TypeError catch(e) {
+  } on TypeError catch (e) {
     if (!developerMode) rethrow;
   }
 }

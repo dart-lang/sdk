@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library json_tests;
+
 import 'package:expect/expect.dart';
 import 'dart:convert';
 
@@ -11,7 +12,7 @@ class A {
   A(this.x);
 }
 
-toEncodable(A a) => { "A": a.x };
+toEncodable(A a) => {"A": a.x};
 reviver(key, value) {
   if (value is Map && value.length == 1 && value["A"] != null) {
     return new A(value["A"]);
@@ -23,7 +24,10 @@ const extendedJson =
     const JsonCodec(toEncodable: toEncodable, reviver: reviver);
 
 main() {
-  var encoded = extendedJson.encode([new A(0), { "2": new A(1) }]);
+  var encoded = extendedJson.encode([
+    new A(0),
+    {"2": new A(1)}
+  ]);
   Expect.equals('[{"A":0},{"2":{"A":1}}]', encoded);
   var decoded = extendedJson.decode(encoded);
   Expect.isTrue(decoded is List);
@@ -42,9 +46,8 @@ main() {
   testInvalidMap();
 }
 
-
 void testInvalidMap() {
-  var map = {"a" : 42, "b": 42, 37: 42};  // Non-string key.
+  var map = {"a": 42, "b": 42, 37: 42}; // Non-string key.
   var enc = new JsonEncoder((_) => "fixed");
   var res = enc.convert(map);
   Expect.equals('"fixed"', res);

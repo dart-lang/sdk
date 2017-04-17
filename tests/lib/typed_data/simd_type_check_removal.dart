@@ -18,7 +18,6 @@ bool testFloat32x4TypeCheck(Float32x4 v) {
   return b is Float32x4;
 }
 
-
 main() {
   Float32x4List l = new Float32x4List(4);
   Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);

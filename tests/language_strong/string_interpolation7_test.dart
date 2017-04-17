@@ -7,14 +7,14 @@ import "package:expect/expect.dart";
 // Dart test program testing string interpolation with toString on custom
 // classes and on null.
 
-
 class A {
   const A();
-  String toString() { return "A"; }
+  String toString() {
+    return "A";
+  }
 }
 
 class StringInterpolation7Test {
-
   static testMain() {
     A a = new A();
     Expect.equals("A + A", "$a + $a");

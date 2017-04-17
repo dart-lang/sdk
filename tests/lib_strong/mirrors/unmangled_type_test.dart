@@ -6,8 +6,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-class Foo {
-}
+class Foo {}
 
 main() {
   Expect.stringEquals('Foo', '${new Foo().runtimeType}');

@@ -6,14 +6,12 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   Expect.isFalse(identical(new Duration(days: 1), new Duration(days: 1)));
   Expect.isTrue(identical(const Duration(days: 2), const Duration(days: 2)));
   Expect.isTrue(identical(const B(3.0), const B(3.0)));
   Expect.isTrue(identical(const F(main), const F(main)));
 }
-
 
 class A {
   final a;
@@ -22,7 +20,9 @@ class A {
 
 class B extends A {
   final b;
-  const B(v) : super(v), b = v + 1.0;
+  const B(v)
+      : super(v),
+        b = v + 1.0;
 }
 
 class F {

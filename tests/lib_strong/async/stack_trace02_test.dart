@@ -9,7 +9,9 @@ import 'dart:async';
 main() {
   StackTrace trace;
   asyncStart();
-  var f = new Future(() { throw "foo"; });
+  var f = new Future(() {
+    throw "foo";
+  });
   f.catchError((e, st) {
     Expect.equals("foo", e);
     Expect.isNotNull(st);

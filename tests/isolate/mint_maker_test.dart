@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library MintMakerTest;
+
 import 'dart:async';
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
@@ -37,7 +38,6 @@ class Mint {
   }
 }
 
-
 class MintWrapper {
   SendPort _mint;
   MintWrapper(SendPort this._mint) {}
@@ -49,7 +49,6 @@ class MintWrapper {
     });
     _mint.send([balance, reply.sendPort]);
   }
-
 }
 
 class Purse {
@@ -83,9 +82,13 @@ class Purse {
     });
   }
 
-  int queryBalance() { return balance; }
+  int queryBalance() {
+    return balance;
+  }
 
-  Purse sproutPurse() { return mint.createPurse(0); }
+  Purse sproutPurse() {
+    return mint.createPurse(0);
+  }
 
   void deposit(int amount, Purse source) {
     // TODO: Throw an exception if the source purse doesn't hold
@@ -94,7 +97,6 @@ class Purse {
     source.balance -= amount;
   }
 }
-
 
 class PurseWrapper {
   SendPort _purse;
@@ -118,7 +120,7 @@ class PurseWrapper {
   }
 
   void deposit(PurseWrapper source, int amount) {
-    _purse.send([ "deposit", amount, source._purse ]);
+    _purse.send(["deposit", amount, source._purse]);
   }
 }
 
@@ -136,15 +138,18 @@ class MintMakerWrapper {
 
   static Future<MintMakerWrapper> create() {
     ReceivePort reply = new ReceivePort();
-    return Isolate.spawn(mintMakerWrapper, reply.sendPort).then((_) =>
-        reply.first.then((port) => new MintMakerWrapper._(port)));
+    return Isolate
+        .spawn(mintMakerWrapper, reply.sendPort)
+        .then((_) => reply.first.then((port) => new MintMakerWrapper._(port)));
   }
 
   MintMakerWrapper._(this._port);
 
   void makeMint(handleMint(MintWrapper mint)) {
     ReceivePort reply = new ReceivePort();
-    reply.first.then((SendPort mint) { handleMint(new MintWrapper(mint)); });
+    reply.first.then((SendPort mint) {
+      handleMint(new MintWrapper(mint));
+    });
     _port.send(reply.sendPort);
   }
 }

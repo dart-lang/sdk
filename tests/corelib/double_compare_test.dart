@@ -14,8 +14,8 @@ void main() {
   Expect.equals(0, (-2e50).compareTo(-2e50));
   Expect.equals(0, double.NAN.compareTo(double.NAN));
   Expect.equals(0, double.INFINITY.compareTo(double.INFINITY));
-  Expect.equals(0,
-                double.NEGATIVE_INFINITY.compareTo(double.NEGATIVE_INFINITY));
+  Expect.equals(
+      0, double.NEGATIVE_INFINITY.compareTo(double.NEGATIVE_INFINITY));
   Expect.equals(0, (-0.0).compareTo(-0.0));
   Expect.isTrue((0.0).compareTo(1.0) < 0);
   Expect.isTrue((1.0).compareTo(0.0) > 0);
