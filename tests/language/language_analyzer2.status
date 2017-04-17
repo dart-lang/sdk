@@ -14,8 +14,8 @@ regress_29025_test: StaticWarning # Issue 29081
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
-deep_nesting1_negative_test: Crash # Issue 25558
-deep_nesting2_negative_test: Crash # Issue 25558
+deep_nesting1_negative_test: CompileTimeError # Issue 25558
+deep_nesting2_negative_test: CompileTimeError # Issue 25558
 
 enum_syntax_test/05: Fail # 21649
 enum_syntax_test/06: Fail # 21649

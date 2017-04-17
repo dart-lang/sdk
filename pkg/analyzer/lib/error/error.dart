@@ -437,6 +437,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY,
   ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
   ParserErrorCode.SETTER_IN_FUNCTION,
+  ParserErrorCode.STACK_OVERFLOW,
   ParserErrorCode.STATIC_AFTER_CONST,
   ParserErrorCode.STATIC_AFTER_FINAL,
   ParserErrorCode.STATIC_AFTER_VAR,

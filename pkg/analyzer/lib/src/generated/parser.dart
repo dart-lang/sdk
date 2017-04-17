@@ -170,6 +170,8 @@ class Parser {
 
   static String _YIELD = Keyword.YIELD.syntax;
 
+  static const int _MAX_TREE_DEPTH = 300;
+
   /**
    * The source being parsed.
    */
@@ -213,6 +215,12 @@ class Parser {
    * The next token to be parsed.
    */
   Token _currentToken;
+
+  /**
+   * The depth of the current AST. When this depth is too high, so we're at the
+   * risk of overflowing the stack, we stop parsing and report an error.
+   */
+  int _treeDepth = 0;
 
   /**
    * A flag indicating whether the parser is currently in a function body marked
@@ -1960,8 +1968,16 @@ class Parser {
             [_currentToken.lexeme]);
         _advance();
       } else {
-        CompilationUnitMember member =
-            parseCompilationUnitMember(commentAndMetadata);
+        CompilationUnitMember member;
+        try {
+          member = parseCompilationUnitMember(commentAndMetadata);
+        } on _TooDeepTreeError {
+          _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
+          Token eof = new Token(TokenType.EOF, 0);
+          eof.previous = eof;
+          eof.setNext(eof);
+          return astFactory.compilationUnit(eof, null, null, null, eof);
+        }
         if (member != null) {
           declarations.add(member);
         }
@@ -2712,37 +2728,45 @@ class Parser {
    *       | throwExpression
    */
   Expression parseExpression2() {
-    Keyword keyword = _currentToken.keyword;
-    if (keyword == Keyword.THROW) {
-      return parseThrowExpression();
-    } else if (keyword == Keyword.RETHROW) {
-      // TODO(brianwilkerson) Rethrow is a statement again.
-      return parseRethrowExpression();
+    if (_treeDepth > _MAX_TREE_DEPTH) {
+      throw new _TooDeepTreeError();
     }
-    //
-    // assignableExpression is a subset of conditionalExpression, so we can
-    // parse a conditional expression and then determine whether it is followed
-    // by an assignmentOperator, checking for conformance to the restricted
-    // grammar after making that determination.
-    //
-    Expression expression = parseConditionalExpression();
-    TokenType type = _currentToken.type;
-    if (type == TokenType.PERIOD_PERIOD) {
-      List<Expression> cascadeSections = <Expression>[];
-      do {
-        Expression section = parseCascadeSection();
-        if (section != null) {
-          cascadeSections.add(section);
-        }
-      } while (_currentToken.type == TokenType.PERIOD_PERIOD);
-      return astFactory.cascadeExpression(expression, cascadeSections);
-    } else if (type.isAssignmentOperator) {
-      Token operator = getAndAdvance();
-      _ensureAssignable(expression);
-      return astFactory.assignmentExpression(
-          expression, operator, parseExpression2());
+    _treeDepth++;
+    try {
+      Keyword keyword = _currentToken.keyword;
+      if (keyword == Keyword.THROW) {
+        return parseThrowExpression();
+      } else if (keyword == Keyword.RETHROW) {
+        // TODO(brianwilkerson) Rethrow is a statement again.
+        return parseRethrowExpression();
+      }
+      //
+      // assignableExpression is a subset of conditionalExpression, so we can
+      // parse a conditional expression and then determine whether it is followed
+      // by an assignmentOperator, checking for conformance to the restricted
+      // grammar after making that determination.
+      //
+      Expression expression = parseConditionalExpression();
+      TokenType type = _currentToken.type;
+      if (type == TokenType.PERIOD_PERIOD) {
+        List<Expression> cascadeSections = <Expression>[];
+        do {
+          Expression section = parseCascadeSection();
+          if (section != null) {
+            cascadeSections.add(section);
+          }
+        } while (_currentToken.type == TokenType.PERIOD_PERIOD);
+        return astFactory.cascadeExpression(expression, cascadeSections);
+      } else if (type.isAssignmentOperator) {
+        Token operator = getAndAdvance();
+        _ensureAssignable(expression);
+        return astFactory.assignmentExpression(
+            expression, operator, parseExpression2());
+      }
+      return expression;
+    } finally {
+      _treeDepth--;
     }
-    return expression;
   }
 
   /**
@@ -4795,20 +4819,29 @@ class Parser {
    *         label* nonLabeledStatement
    */
   Statement parseStatement2() {
-    List<Label> labels = null;
-    while (_matchesIdentifier() && _currentToken.next.type == TokenType.COLON) {
-      Label label = parseLabel(isDeclaration: true);
-      if (labels == null) {
-        labels = <Label>[label];
-      } else {
-        labels.add(label);
+    if (_treeDepth > _MAX_TREE_DEPTH) {
+      throw new _TooDeepTreeError();
+    }
+    _treeDepth++;
+    try {
+      List<Label> labels = null;
+      while (
+          _matchesIdentifier() && _currentToken.next.type == TokenType.COLON) {
+        Label label = parseLabel(isDeclaration: true);
+        if (labels == null) {
+          labels = <Label>[label];
+        } else {
+          labels.add(label);
+        }
       }
+      Statement statement = parseNonLabeledStatement();
+      if (labels == null) {
+        return statement;
+      }
+      return astFactory.labeledStatement(labels, statement);
+    } finally {
+      _treeDepth--;
     }
-    Statement statement = parseNonLabeledStatement();
-    if (labels == null) {
-      return statement;
-    }
-    return astFactory.labeledStatement(labels, statement);
   }
 
   /**
@@ -8567,3 +8600,10 @@ class Parser {
     }
   }
 }
+
+/**
+ * Instances of this class are thrown when the parser detects that AST has
+ * too many nested expressions to be parsed safely and avoid possibility of
+ * [StackOverflowError] in the parser or during later analysis.
+ */
+class _TooDeepTreeError {}
