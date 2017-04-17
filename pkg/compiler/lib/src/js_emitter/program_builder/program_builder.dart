@@ -502,6 +502,7 @@ class ProgramBuilder {
       // if it does not we can suppress it completely.
       onlyForRti = true;
     }
+    bool isClosureBaseClass = element == _compiler.commonElements.closureClass;
 
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
@@ -551,9 +552,8 @@ class ProgramBuilder {
       });
     }
 
-    if (element == _compiler.commonElements.closureClass) {
-      // We add a special getter here to allow for tearing off a closure from
-      // itself.
+    if (isClosureBaseClass) {
+      // We add a special getter to allow for tearing off a closure from itself.
       js.Name name = namer.getterForMember(Names.call);
       js.Fun function = js.js('function() { return this; }');
       callStubs.add(_buildStubMethod(name, function));
@@ -617,6 +617,7 @@ class ProgramBuilder {
     if (element.isMixinApplication && !onlyForRti) {
       assert(!backend.nativeData.isNativeClass(element));
       assert(methods.isEmpty);
+      assert(!isClosureBaseClass);
 
       result = new MixinApplication(
           element,
@@ -647,7 +648,8 @@ class ProgramBuilder {
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
-          isNative: backend.nativeData.isNativeClass(element));
+          isNative: backend.nativeData.isNativeClass(element),
+          isClosureBaseClass: isClosureBaseClass);
     }
     _classes[element] = result;
     return result;

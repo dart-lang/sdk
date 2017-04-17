@@ -230,6 +230,7 @@ class Class implements FieldContainer {
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
   final bool isNative;
+  final bool isClosureBaseClass; // Common base class for closures.
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
@@ -262,10 +263,12 @@ class Class implements FieldContainer {
       {this.hasRtiField,
       this.onlyForRti,
       this.isDirectlyInstantiated,
-      this.isNative}) {
+      this.isNative,
+      this.isClosureBaseClass}) {
     assert(onlyForRti != null);
     assert(isDirectlyInstantiated != null);
     assert(isNative != null);
+    assert(isClosureBaseClass != null);
   }
 
   bool get isMixinApplication => false;
@@ -312,7 +315,8 @@ class MixinApplication extends Class {
             hasRtiField: hasRtiField,
             onlyForRti: onlyForRti,
             isDirectlyInstantiated: isDirectlyInstantiated,
-            isNative: false);
+            isNative: false,
+            isClosureBaseClass: false);
 
   bool get isMixinApplication => true;
   Class get mixinClass => _mixinClass;

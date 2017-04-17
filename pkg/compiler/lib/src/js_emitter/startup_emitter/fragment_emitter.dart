@@ -716,6 +716,7 @@ class FragmentEmitter {
     List<js.Property> properties = <js.Property>[];
 
     if (cls.superclass == null) {
+      // TODO(sra): What is this doing? Document or remove.
       properties
           .add(new js.Property(js.string("constructor"), classReference(cls)));
       properties
@@ -730,6 +731,15 @@ class FragmentEmitter {
         properties.add(prop);
       });
     });
+
+    if (cls.isClosureBaseClass) {
+      // Closures extend a common base class, so we can put properties on the
+      // prototype for common values.
+
+      // Most closures have no optional arguments.
+      properties.add(new js.Property(
+          js.string(namer.defaultValuesField), new js.LiteralNull()));
+    }
 
     return new js.ObjectInitializer(properties);
   }
@@ -805,12 +815,23 @@ class FragmentEmitter {
       }
 
       if (method.isClosureCallMethod && method.canBeApplied) {
+        // TODO(sra): We should also add these properties for the user-defined
+        // `call` method on classes. Function.apply is currently broken for
+        // complex cases. [forceAdd] might be true when this is fixed.
+        bool forceAdd = !method.isClosureCallMethod;
+
         properties[js.string(namer.callCatchAllName)] =
             js.quoteName(method.name);
         properties[js.string(namer.requiredParameterField)] =
             js.number(method.requiredParameterCount);
-        properties[js.string(namer.defaultValuesField)] =
+
+        js.Expression defaultValues =
             _encodeOptionalParameterDefaultValues(method);
+        // Default values property of `null` is stored on the common JS
+        // superclass.
+        if (defaultValues is! js.LiteralNull || forceAdd) {
+          properties[js.string(namer.defaultValuesField)] = defaultValues;
+        }
       }
     }
 
