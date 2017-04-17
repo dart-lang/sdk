@@ -162,13 +162,12 @@ uintptr_t OS::MaxRSS() {
 
 
 void OS::Sleep(int64_t millis) {
-  mx_nanosleep(millis * kMicrosecondsPerMillisecond *
-               kNanosecondsPerMicrosecond);
+  SleepMicros(millis * kMicrosecondsPerMillisecond);
 }
 
 
 void OS::SleepMicros(int64_t micros) {
-  mx_nanosleep(micros * kNanosecondsPerMicrosecond);
+  mx_nanosleep(mx_deadline_after(micros * kNanosecondsPerMicrosecond));
 }
 
 

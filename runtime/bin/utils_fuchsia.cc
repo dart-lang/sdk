@@ -97,8 +97,8 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
 
 
 void TimerUtils::Sleep(int64_t millis) {
-  mx_nanosleep(millis * kMicrosecondsPerMillisecond *
-               kNanosecondsPerMicrosecond);
+  mx_nanosleep(mx_deadline_after(millis * kMicrosecondsPerMillisecond *
+                                 kNanosecondsPerMicrosecond));
 }
 
 }  // namespace bin
