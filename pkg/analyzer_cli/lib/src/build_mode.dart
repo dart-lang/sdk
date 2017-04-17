@@ -169,13 +169,7 @@ class BuildMode {
         .toList());
 
     // Prepare the analysis context.
-    try {
-      _createContext();
-    } on ConflictingSummaryException catch (e) {
-      errorSink.writeln('$e');
-      io.exitCode = ErrorSeverity.ERROR.ordinal;
-      return ErrorSeverity.ERROR;
-    }
+    _createContext();
 
     // Add sources.
     ChangeSet changeSet = new ChangeSet();
