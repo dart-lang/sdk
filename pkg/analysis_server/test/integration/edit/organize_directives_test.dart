@@ -72,7 +72,4 @@ int minified(int x, int y) => min(x, y);
       expect(message.error['code'], 'ORGANIZE_DIRECTIVES_ERROR');
     }
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -1,7 +1,5 @@
 Checklist to ensure that we have integration test coverage of all analysis
-server calls.
-
-This file is validated by `coverage_test.dart`.
+server calls. This file is validated by `coverage_test.dart`.
 
 ## analysis domain
 - [x] analysis.getErrors

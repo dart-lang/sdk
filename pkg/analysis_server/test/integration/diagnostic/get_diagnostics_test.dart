@@ -27,7 +27,4 @@ class GetDiagnosticsTest extends AbstractAnalysisServerIntegrationTest {
     ContextData context = result.contexts.first;
     expect(context.name, isNotEmpty);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -11,12 +11,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNavigationTest);
-    defineReflectiveTests(AnalysisNavigationTest_Driver);
   });
 }
 
-class AbstractAnalysisNavigationTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class AnalysisNavigationTest extends AbstractAnalysisServerIntegrationTest {
   test_navigation() async {
     String pathname1 = sourcePath('test1.dart');
     String text1 = r'''
@@ -133,13 +132,4 @@ part of foo;
     checkLocal(
         'TypeParameter field;', 'TypeParameter>', ElementKind.TYPE_PARAMETER);
   }
-}
-
-@reflectiveTest
-class AnalysisNavigationTest extends AbstractAnalysisNavigationTest {}
-
-@reflectiveTest
-class AnalysisNavigationTest_Driver extends AbstractAnalysisNavigationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

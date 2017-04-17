@@ -15,8 +15,8 @@ main() {
   });
 }
 
-class AbstractLintIntegrationTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class LintIntegrationTest extends AbstractAnalysisServerIntegrationTest {
   test_no_lints_when_not_specified() async {
     String source = sourcePath('test.dart');
     writeFile(
@@ -91,6 +91,3 @@ class a { // lint: not CamelCase
     expect(error.type, AnalysisErrorType.LINT);
   }
 }
-
-@reflectiveTest
-class LintIntegrationTest extends AbstractLintIntegrationTest {}

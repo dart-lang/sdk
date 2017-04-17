@@ -11,11 +11,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
-    defineReflectiveTests(UpdateContentTest_Driver);
   });
 }
 
-class AbstractUpdateContentTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
   test_updateContent_list() {
     String pathname = sourcePath('test.dart');
     String goodText = r'''
@@ -49,13 +49,4 @@ main() {
       expect(currentAnalysisErrors[pathname], isEmpty);
     });
   }
-}
-
-@reflectiveTest
-class UpdateContentTest extends AbstractUpdateContentTest {}
-
-@reflectiveTest
-class UpdateContentTest_Driver extends AbstractUpdateContentTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

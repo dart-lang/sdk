@@ -44,7 +44,4 @@ class Bar {
     Map<String, List<String>> map = packageMaps[packageMaps.keys.first];
     expect(map.keys, isEmpty);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -39,7 +39,4 @@ class Foo {
         lastAnalyzedFiles.any((String file) => file.endsWith('core/core.dart')),
         true);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

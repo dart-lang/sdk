@@ -46,7 +46,4 @@ class Bar {
     expect(keys, contains(url));
     expect(sources[url], contains('dart:core'));
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

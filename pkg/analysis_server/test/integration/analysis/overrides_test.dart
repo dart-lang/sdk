@@ -11,11 +11,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OverridesTest);
-    defineReflectiveTests(OverridesTest_Driver);
   });
 }
 
-class AbstractOverridesTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class OverridesTest extends AbstractAnalysisServerIntegrationTest {
   test_overrides() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -119,13 +119,4 @@ class Target extends Base implements Interface1, Interface2 {
       checkOverrides('method7', false, []);
     });
   }
-}
-
-@reflectiveTest
-class OverridesTest extends AbstractOverridesTest {}
-
-@reflectiveTest
-class OverridesTest_Driver extends AbstractOverridesTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

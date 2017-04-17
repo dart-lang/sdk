@@ -12,12 +12,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetAnalysisRootsTest);
-    defineReflectiveTests(SetAnalysisRootsTest_Driver);
   });
 }
 
-class AbstractSetAnalysisRootsTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
   test_package_root() {
     String projPath = sourcePath('project');
     String mainPath = path.join(projPath, 'main.dart');
@@ -76,13 +75,4 @@ f() {}
       expect(found, isTrue);
     });
   }
-}
-
-@reflectiveTest
-class SetAnalysisRootsTest extends AbstractSetAnalysisRootsTest {}
-
-@reflectiveTest
-class SetAnalysisRootsTest_Driver extends AbstractSetAnalysisRootsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

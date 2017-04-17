@@ -49,7 +49,4 @@ class Foo {
     expect(result.kind.name, SearchResultKind.INVOCATION.name);
     expect(result.path.first.name, 'baz');
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

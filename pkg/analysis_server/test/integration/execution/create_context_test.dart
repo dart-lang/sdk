@@ -21,7 +21,4 @@ class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
         (await sendExecutionCreateContext(sourceDirectory.path)).id;
     expect(contextId, isNotNull);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

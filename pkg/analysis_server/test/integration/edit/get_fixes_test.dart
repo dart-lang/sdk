@@ -63,7 +63,4 @@ Future f;
         await sendEditGetFixes(pathname, text.indexOf('Future f'));
     expect(result.fixes, isEmpty);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

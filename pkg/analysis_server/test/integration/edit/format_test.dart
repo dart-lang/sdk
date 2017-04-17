@@ -77,7 +77,4 @@ class Class1 {
       expect(message.error['code'], 'FORMAT_WITH_ERRORS');
     }
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -12,11 +12,11 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ShutdownTest);
-    defineReflectiveTests(ShutdownTest_Driver);
   });
 }
 
-class AbstractShutdownTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class ShutdownTest extends AbstractAnalysisServerIntegrationTest {
   test_shutdown() {
     return sendServerShutdown().then((_) {
       return new Future.delayed(new Duration(seconds: 1)).then((_) {
@@ -28,13 +28,4 @@ class AbstractShutdownTest extends AbstractAnalysisServerIntegrationTest {
       });
     });
   }
-}
-
-@reflectiveTest
-class ShutdownTest extends AbstractShutdownTest {}
-
-@reflectiveTest
-class ShutdownTest_Driver extends AbstractShutdownTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

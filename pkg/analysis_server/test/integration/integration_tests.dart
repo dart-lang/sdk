@@ -159,11 +159,6 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
-   * Return `true` if the new analysis driver should be used by these tests.
-   */
-  bool get enableNewAnalysisDriver => false;
-
-  /**
    * Print out any messages exchanged with the server.  If some messages have
    * already been exchanged with the server, they are printed out immediately.
    */
@@ -266,7 +261,6 @@ abstract class AbstractAnalysisServerIntegrationTest
       server.start(
           checked: checked,
           diagnosticPort: diagnosticPort,
-          enableNewAnalysisDriver: enableNewAnalysisDriver,
           servicesPort: servicesPort);
 
   /**
@@ -657,7 +651,6 @@ class Server {
   Future start({
     bool checked: true,
     int diagnosticPort,
-    bool enableNewAnalysisDriver: false,
     bool profileServer: false,
     String sdkPath,
     int servicesPort,
@@ -710,9 +703,6 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
-    }
-    if (!enableNewAnalysisDriver) {
-      arguments.add('--disable-new-analysis-driver');
     }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');

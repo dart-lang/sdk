@@ -34,7 +34,4 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
     String responseBody = await UTF8.decodeStream(response);
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

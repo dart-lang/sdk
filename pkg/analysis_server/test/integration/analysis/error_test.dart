@@ -14,7 +14,8 @@ main() {
   });
 }
 
-class AbstractAnalysisErrorIntegrationTest
+@reflectiveTest
+class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
@@ -67,7 +68,15 @@ abstract class C extends B {
             "The class 'C' can't be used as a mixin because it references 'super'."));
   }
 
+  @failingTest
   test_super_mixins_enabled() async {
+    // We see errors here with the new driver (#28870).
+    //  Expected: empty
+    //    Actual: [
+    //    AnalysisError:{"severity":"ERROR","type":"COMPILE_TIME_ERROR","location":{"file":"/var/folders/00/0w95r000h01000cxqpysvccm003j4q/T/analysisServerfbuOQb/test.dart","offset":31,"length":1,"startLine":1,"startColumn":32},"message":"The class 'C' can't be used as a mixin because it extends a class other than Object.","correction":"","code":"mixin_inherits_from_not_object","hasFix":false},
+    //    AnalysisError:{"severity":"ERROR","type":"COMPILE_TIME_ERROR","location":{"file":"/var/folders/00/0w95r000h01000cxqpysvccm003j4q/T/analysisServerfbuOQb/test.dart","offset":31,"length":1,"startLine":1,"startColumn":32},"message":"The class 'C' can't be used as a mixin because it references 'super'.","correction":"","code":"mixin_references_super","hasFix":false}
+    //  ]
+
     String pathname = sourcePath('test.dart');
     writeFile(
         pathname,
@@ -94,7 +103,3 @@ abstract class C extends B {
     expect(errors, isEmpty);
   }
 }
-
-@reflectiveTest
-class AnalysisErrorIntegrationTest
-    extends AbstractAnalysisErrorIntegrationTest {}

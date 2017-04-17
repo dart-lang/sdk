@@ -27,7 +27,4 @@ class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
     ServerStatusParams status = await analysisFinished;
     expect(status.analysis.isAnalyzing, false);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
