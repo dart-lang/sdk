@@ -1428,6 +1428,20 @@ var V;
     await driver.getResult(testFile);
   }
 
+  test_getResult_nameConflict_local_typeInference() async {
+    String content = r'''
+typedef F();
+var F;
+F _ff() => null;
+var f = _ff(); // the inference must fail
+main() {
+  f();
+}
+''';
+    addTestFile(content);
+    await driver.getResult(testFile);
+  }
+
   test_getResult_notDartFile() async {
     var path = _p('/test/lib/test.txt');
     provider.newFile(path, 'class A {}');

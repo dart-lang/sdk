@@ -1056,7 +1056,9 @@ abstract class CompilationUnitElementForLink
               resolveRef(containingReference).getContainedName(name);
         }
       } else if (linkedReference.dependency == 0) {
-        if (name == 'void') {
+        if (linkedReference.kind == ReferenceKind.unresolved) {
+          _references[index] = UndefinedElementForLink.instance;
+        } else if (name == 'void') {
           _references[index] = enclosingElement._linker.voidElement;
         } else if (name == '*bottom*') {
           _references[index] = enclosingElement._linker.bottomElement;
