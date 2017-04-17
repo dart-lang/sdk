@@ -271,7 +271,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     const Function& func = Function::Handle(zone, code.function());
 
     if (FLAG_trace_natives) {
-      OS::Print("Resolving native target for %s\n", func.ToCString());
+      THR_Print("Resolving native target for %s\n", func.ToCString());
     }
 
     target_function =
@@ -320,7 +320,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                                    patch_target_function, trampoline);
 
     if (FLAG_trace_natives) {
-      OS::Print("    -> %p (%s)\n", target_function,
+      THR_Print("    -> %p (%s)\n", target_function,
                 is_bootstrap_native ? "bootstrap" : "non-bootstrap");
     }
   }

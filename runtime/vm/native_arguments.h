@@ -69,17 +69,6 @@ void VerifyOnTransition();
 
 #endif
 
-#ifndef PRODUCT
-#define TRACE_NATIVE_CALL(format, name)                                        \
-  if (FLAG_trace_natives) {                                                    \
-    OS::Print("Calling native: " format "\n", name);                           \
-  }
-#else
-#define TRACE_NATIVE_CALL(format, name)                                        \
-  do {                                                                         \
-  } while (0)
-#endif
-
 // Class NativeArguments is used to access arguments passed in from
 // generated dart code to a runtime function or a dart library native
 // function. It is also used to set the return value if any at the slot
