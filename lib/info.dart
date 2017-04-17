@@ -108,7 +108,7 @@ abstract class BasicInfo implements Info {
 /// methods)
 abstract class CodeInfo implements Info {
   /// How does this function or field depend on others.
-  final List<DependencyInfo> uses = <DependencyInfo>[];
+  final Set<DependencyInfo> uses = new SplayTreeSet<DependencyInfo>();
 }
 
 /// The entire information produced while compiling a program.
@@ -414,7 +414,7 @@ class ClosureInfo extends BasicInfo {
 }
 
 /// Information about how a dependency is used.
-class DependencyInfo {
+class DependencyInfo implements Comparable<DependencyInfo> {
   /// The dependency, either a FunctionInfo or FieldInfo.
   final Info target;
 
@@ -424,6 +424,21 @@ class DependencyInfo {
   final String mask;
 
   DependencyInfo(this.target, this.mask);
+
+  int compareTo(DependencyInfo other) {
+    var value = target.serializedId.compareTo(other.target.serializedId);
+    if (value == 0) {
+      value = mask.compareTo(other.mask);
+    }
+    return value;
+  }
+
+  bool operator ==(other) =>
+      other is DependencyInfo &&
+      target.serializedId == other.target.serializedId &&
+      mask == other.mask;
+
+  int get hashCode => target.serializedId.hashCode * 37 ^ mask.hashCode;
 }
 
 /// Name and type information about a function parameter.

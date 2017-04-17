@@ -337,10 +337,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     var map = new SplayTreeMap<String, List>(compareNatural);
     void helper(CodeInfo info) {
       if (info.uses.isEmpty) return;
-      map[info.serializedId] = info.uses
-          .map((u) => _visitDependencyInfo(u))
-          .toList()
-            ..sort((Map a, Map b) => compareNatural(a['id'], b['id']));
+      map[info.serializedId] = info.uses.map(_visitDependencyInfo).toList();
     }
 
     allInfo.functions.forEach(helper);

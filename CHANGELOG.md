@@ -1,8 +1,10 @@
-## 0.5.5-dev
+## 0.5.4+2
 
 - Updated minimum SDK dependency to align with package dependencies.
 - Allowed the latest version of `pkg/quiver`.
 - Updated the homepage.
+- Improved the stability and eliminated duplicates in "holding" dump info
+  output.
 
 ## 0.5.4+1
 
