@@ -361,61 +361,6 @@ dsendRepl(obj, method, @rest args) => _callMethodRepl(obj, method, null, args);
 dgsendRepl(obj, typeArgs, method, @rest args) =>
     _callMethodRepl(obj, method, typeArgs, args);
 
-class _MethodStats {
-  final String typeName;
-  final String frame;
-  int count;
-
-  _MethodStats(this.typeName, this.frame) {
-    count = 0;
-  }
-}
-
-Map<String, _MethodStats> _callMethodStats = new Map();
-
-List<List<Object>> getDynamicStats() {
-  List<List<Object>> ret = [];
-
-  var keys = _callMethodStats.keys.toList();
-
-  keys.sort(
-      (a, b) => _callMethodStats[b].count.compareTo(_callMethodStats[a].count));
-  for (var key in keys) {
-    var stats = _callMethodStats[key];
-    ret.add([stats.typeName, stats.frame, stats.count]);
-  }
-
-  return ret;
-}
-
-clearDynamicStats() {
-  _callMethodStats.clear();
-}
-
-bool trackProfile = JS('bool', 'dart.global.trackDdcProfile');
-
-_trackCall(obj) {
-  if (JS('bool', '!#', trackProfile)) return;
-
-  var actual = getReifiedType(obj);
-  String stackStr = JS('String', "new Error().stack");
-  var stack = stackStr.split('\n    at ');
-  var src = '';
-  for (int i = 2; i < stack.length; ++i) {
-    var frame = stack[i];
-    if (!frame.contains('dart_sdk.js')) {
-      src = frame;
-      break;
-    }
-  }
-
-  var actualTypeName = typeName(actual);
-  _callMethodStats
-      .putIfAbsent(
-          "$actualTypeName <$src>", () => new _MethodStats(actualTypeName, src))
-      .count++;
-}
-
 /// Shared code for dsend, dindex, and dsetindex.
 _callMethod(obj, name, typeArgs, args, displayName) {
   var symbol = _canonicalMember(obj, name);

@@ -7,6 +7,7 @@ library dart._runtime;
 import 'dart:async';
 import 'dart:collection';
 
+import 'dart:_debugger' show stackTraceMapper;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper'
@@ -29,6 +30,7 @@ part 'types.dart';
 part 'errors.dart';
 part 'generators.dart';
 part 'operations.dart';
+part 'profile.dart';
 part 'utils.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.

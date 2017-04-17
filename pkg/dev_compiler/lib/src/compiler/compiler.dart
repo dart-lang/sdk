@@ -499,9 +499,6 @@ class JSModuleFile {
     if (options.sourceMap && sourceMap != null) {
       builtMap =
           placeSourceMap(sourceMap.build(jsUrl), mapUrl, options.bazelMapping);
-      if (name == 'dart_sdk') {
-        builtMap = cleanupSdkSourcemap(builtMap);
-      }
       if (options.sourceMapComment) {
         var relativeMapUrl = path
             .toUri(
@@ -587,6 +584,7 @@ Map placeSourceMap(
   var list = new List.from(map['sources']);
   map['sources'] = list;
   String transformUri(String uri) {
+    if (uri.startsWith('dart:')) return uri;
     var match = bazelMappings[path.absolute(uri)];
     if (match != null) return match;
 
@@ -598,18 +596,5 @@ Map placeSourceMap(
     list[i] = transformUri(list[i]);
   }
   map['file'] = transformUri(map['file']);
-  return map;
-}
-
-/// Cleanup the dart_sdk source map.
-///
-/// Strip out files that should not be included in the sdk sourcemap as they
-/// are implementation details that would just confuse users.
-/// Normalize sdk urls to use "dart:" for more understandable stack traces.
-Map cleanupSdkSourcemap(Map sourceMap) {
-  var map = new Map.from(sourceMap);
-  map['sources'] = map['sources']
-      .map((url) => url.contains('/_internal/') ? null : url)
-      .toList();
   return map;
 }

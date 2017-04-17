@@ -49,8 +49,14 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       // parts.
       _currentTopLevelDeclaration = node;
       unit = node.getAncestor((n) => n is CompilationUnit);
+      var source = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
+      // Use the uri for dart: uris instead of the path of the source file
+      // on disk as that results in much cleaner stack traces.
+      // Example:
+      // source.uri = dart:core/object.dart
+      // source.fullName = gen/patched_sdk/lib/core/object.dart
       sourcePath =
-          resolutionMap.elementDeclaredByCompilationUnit(unit).source.fullName;
+          source.isInSystemLibrary ? source.uri.toString() : source.fullName;
     }
     // Skip MethodDeclarations - in the case of a one line function it finds the
     // declaration rather than the body and confuses devtools.

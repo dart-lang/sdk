@@ -5889,7 +5889,13 @@ Value:
 -----------------------------------
 Test: Test library Module header
 Value:
-null
+[
+    "span",
+    {
+        "style": "background-color: #d9edf7;"
+    },
+    "Library Module: lib/html/debugger_test"
+]
 -----------------------------------
 Test: Test library Module body
 Value:
@@ -8814,4 +8820,3 @@ Value:
     ]
 ]
 -----------------------------------
-
