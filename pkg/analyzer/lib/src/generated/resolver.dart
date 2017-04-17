@@ -8419,9 +8419,17 @@ class TypeNameResolver {
           typeArguments[i] = dynamicType;
         }
       }
-      type = typeSystem.instantiateType(type, typeArguments);
+      if (element is GenericTypeAliasElementImpl) {
+        type = element.typeAfterSubstitution(typeArguments) ?? dynamicType;
+      } else {
+        type = typeSystem.instantiateType(type, typeArguments);
+      }
     } else {
-      type = typeSystem.instantiateToBounds(type);
+      if (element is GenericTypeAliasElementImpl) {
+        type = element.typeAfterSubstitution(null) ?? dynamicType;
+      } else {
+        type = typeSystem.instantiateToBounds(type);
+      }
     }
     typeName.staticType = type;
     node.type = type;
@@ -8486,7 +8494,7 @@ class TypeNameResolver {
             typeArguments[i] = _getType(arguments[i]);
           }
         }
-        return element.typeAfterSubstitution(typeArguments);
+        return element.typeAfterSubstitution(typeArguments) ?? dynamicType;
       }
     }
     return type;
