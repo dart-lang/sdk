@@ -3946,18 +3946,19 @@ class Library : public Object {
   void InitClassDictionary() const;
 
   RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
-  void InitResolvedNamesCache(intptr_t size) const;
-  void AllocateExportedNamesCache() const;
-  void InitExportedNamesCache() const;
-  static void InvalidateExportedNamesCaches();
   bool LookupResolvedNamesCache(const String& name, Object* obj) const;
   void AddToResolvedNamesCache(const String& name, const Object& obj) const;
+  void InitResolvedNamesCache() const;
+  void ClearResolvedNamesCache() const;
   void InvalidateResolvedName(const String& name) const;
   void InvalidateResolvedNamesCache() const;
 
   RawArray* exported_names() const { return raw_ptr()->exported_names_; }
   bool LookupExportedNamesCache(const String& name, Object* obj) const;
   void AddToExportedNamesCache(const String& name, const Object& obj) const;
+  void InitExportedNamesCache() const;
+  void ClearExportedNamesCache() const;
+  static void InvalidateExportedNamesCaches();
 
 
   void InitImportList() const;

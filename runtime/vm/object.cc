@@ -10121,6 +10121,9 @@ typedef UnorderedHashMap<StringEqualsTraits> ResolvedNamesMap;
 // obj is set to the cached entry. It may be null, indicating that the
 // name does not resolve to anything in this library.
 bool Library::LookupResolvedNamesCache(const String& name, Object* obj) const {
+  if (resolved_names() == Array::null()) {
+    return false;
+  }
   ResolvedNamesMap cache(resolved_names());
   bool present = false;
   *obj = cache.GetOrNull(name, &present);
@@ -10146,6 +10149,9 @@ void Library::AddToResolvedNamesCache(const String& name,
                                       const Object& obj) const {
   if (!FLAG_use_lib_cache || Compiler::IsBackgroundCompilation()) {
     return;
+  }
+  if (resolved_names() == Array::null()) {
+    InitResolvedNamesCache();
   }
   ResolvedNamesMap cache(resolved_names());
   cache.UpdateOrInsert(name, obj);
@@ -10181,7 +10187,7 @@ void Library::AddToExportedNamesCache(const String& name,
     return;
   }
   if (exported_names() == Array::null()) {
-    AllocateExportedNamesCache();
+    InitExportedNamesCache();
   }
   ResolvedNamesMap cache(exported_names());
   cache.UpdateOrInsert(name, obj);
@@ -10195,7 +10201,7 @@ void Library::InvalidateResolvedName(const String& name) const {
   Object& entry = Object::Handle(zone);
   if (LookupResolvedNamesCache(name, &entry)) {
     // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
-    InvalidateResolvedNamesCache();
+    ClearResolvedNamesCache();
   }
   // When a new name is added to a library, we need to invalidate all
   // caches that contain an entry for this name. If the name was previously
@@ -10207,15 +10213,9 @@ void Library::InvalidateResolvedName(const String& name) const {
   for (intptr_t i = 0; i < num_libs; i++) {
     lib ^= libs.At(i);
     if (lib.LookupExportedNamesCache(name, &entry)) {
-      lib.InitExportedNamesCache();
+      lib.ClearExportedNamesCache();
     }
   }
-}
-
-
-void Library::InvalidateResolvedNamesCache() const {
-  const intptr_t kInvalidatedCacheSize = 16;
-  InitResolvedNamesCache(kInvalidatedCacheSize);
 }
 
 
@@ -10227,7 +10227,7 @@ void Library::InvalidateExportedNamesCaches() {
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
     lib ^= libs.At(i);
-    lib.InitExportedNamesCache();
+    lib.ClearExportedNamesCache();
   }
 }
 
@@ -10426,7 +10426,7 @@ bool Library::RemoveObject(const Object& obj, const String& name) const {
   intptr_t used_elements = Smi::Value(Smi::RawCast(dict.At(dict_size))) - 1;
   dict.SetAt(dict_size, Smi::Handle(zone, Smi::New(used_elements)));
 
-  InvalidateResolvedNamesCache();
+  ClearResolvedNamesCache();
   InvalidateExportedNamesCaches();
 
   return true;
@@ -10839,24 +10839,27 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 }
 
 
-void Library::InitResolvedNamesCache(intptr_t size) const {
+void Library::InitResolvedNamesCache() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   StorePointer(&raw_ptr()->resolved_names_,
-               HashTables::New<ResolvedNamesMap>(size));
+               HashTables::New<ResolvedNamesMap>(64));
 }
 
 
-void Library::AllocateExportedNamesCache() const {
+void Library::ClearResolvedNamesCache() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  StorePointer(&raw_ptr()->resolved_names_, Array::null());
+}
+
+
+void Library::InitExportedNamesCache() const {
   StorePointer(&raw_ptr()->exported_names_,
                HashTables::New<ResolvedNamesMap>(16));
 }
 
 
-void Library::InitExportedNamesCache() const {
-  if (exported_names() != Array::null()) {
-    StorePointer(&raw_ptr()->exported_names_,
-                 HashTables::New<ResolvedNamesMap>(16));
-  }
+void Library::ClearExportedNamesCache() const {
+  StorePointer(&raw_ptr()->exported_names_, Array::null());
 }
 
 
@@ -10895,8 +10898,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
-  result.StorePointer(&result.raw_ptr()->resolved_names_,
-                      Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->resolved_names_, Array::null());
   result.StorePointer(&result.raw_ptr()->exported_names_, Array::null());
   result.StorePointer(&result.raw_ptr()->dictionary_,
                       Object::empty_array().raw());
@@ -10929,8 +10931,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
   result.StoreNonPointer(&result.raw_ptr()->index_, -1);
-  const intptr_t kInitialNameCacheSize = 64;
-  result.InitResolvedNamesCache(kInitialNameCacheSize);
   result.InitClassDictionary();
   result.InitImportList();
   result.AllocatePrivateKey();

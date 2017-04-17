@@ -1153,14 +1153,11 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
       library.StorePointer((library.raw()->from() + i),
                            reader->PassiveObjectHandle()->raw());
     }
-    // Initialize cache of resolved names.
-    const intptr_t kInitialNameCacheSize = 64;
-    // The cache of resolved names in library scope is not serialized.
-    library.InitResolvedNamesCache(kInitialNameCacheSize);
-    library.Register(reader->thread());
+    // Initialize caches that are not serialized.
+    library.StorePointer(&library.raw_ptr()->resolved_names_, Array::null());
     library.StorePointer(&library.raw_ptr()->exported_names_, Array::null());
-    // Initialize cache of loaded scripts.
     library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
+    library.Register(reader->thread());
   }
   return library.raw();
 }

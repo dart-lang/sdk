@@ -1460,21 +1460,6 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->is_in_fullsnapshot_ = true;
     }
   }
-
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    // TODO(rmacnak): This is surprisingly slow, roughly 20% of deserialization
-    // time for the JIT. Maybe make the lookups happy with a null?
-
-    NOT_IN_PRODUCT(TimelineDurationScope tds(
-        Thread::Current(), Timeline::GetIsolateStream(), "PostLoadLibrary"));
-
-    Library& lib = Library::Handle(zone);
-    for (intptr_t i = start_index_; i < stop_index_; i++) {
-      lib ^= refs.At(i);
-      const intptr_t kInitialNameCacheSize = 64;
-      lib.InitResolvedNamesCache(kInitialNameCacheSize);
-    }
-  }
 };
 
 
