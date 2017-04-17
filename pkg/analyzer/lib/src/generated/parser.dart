@@ -431,7 +431,7 @@ class Parser {
     }
     Token afterReturnType = skipTypeName(_currentToken);
     if (afterReturnType != null &&
-        _tokenMatchesKeyword(afterReturnType, Keyword.FUNCTION)) {
+        _tokenMatchesString(afterReturnType, 'Function')) {
       afterReturnType = skipGenericFunctionTypeAfterReturnType(afterReturnType);
     }
     if (afterReturnType == null) {
@@ -4174,7 +4174,7 @@ class Parser {
         return astFactory
             .emptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (_inGenerator && _matchesKeyword(Keyword.YIELD)) {
+    } else if (_inGenerator && _matchesString(_YIELD)) {
       return parseYieldStatement();
     } else if (_inAsync && _matchesString(_AWAIT)) {
       if (_tokenMatchesKeyword(_peek(), Keyword.FOR)) {
