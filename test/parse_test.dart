@@ -19,10 +19,10 @@ main() {
       expect(program, isNotNull);
 
       expect(program.entrypoint, isNotNull);
-      expect(program.size, 10116);
+      expect(program.size, 10324);
       expect(program.compilationMoment,
-          DateTime.parse("2016-10-06 10:14:59.145665"));
-      expect(program.compilationDuration, new Duration(microseconds: 2729236));
+          DateTime.parse("2017-04-17 09:46:41.661617"));
+      expect(program.compilationDuration, new Duration(microseconds: 357402));
       expect(program.toJsonDuration, new Duration(milliseconds: 4));
       expect(program.dumpInfoDuration, new Duration(seconds: 0));
       expect(program.noSuchMethodEnabled, false);
