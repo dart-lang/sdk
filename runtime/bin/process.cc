@@ -366,6 +366,26 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, external_array);
 }
 
+
+void FUNCTION_NAME(ProcessInfo_CurrentRSS)(Dart_NativeArguments args) {
+  int64_t current_rss = Process::CurrentRSS();
+  if (current_rss < 0) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    return;
+  }
+  Dart_SetIntegerReturnValue(args, current_rss);
+}
+
+
+void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {
+  int64_t max_rss = Process::MaxRSS();
+  if (max_rss < 0) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    return;
+  }
+  Dart_SetIntegerReturnValue(args, max_rss);
+}
+
 }  // namespace bin
 }  // namespace dart
 

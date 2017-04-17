@@ -80,7 +80,8 @@ bool CanonicalName::IsMember() {
 
 // Note the two occurrences of the parameter 'literal'.
 #define COMPARE_NAME(canonical_name, literal)                                  \
-  ((canonical_name)->name()->size() == strlen(literal) &&                      \
+  ((canonical_name)->name()->size() ==                                         \
+       static_cast<intptr_t>(strlen(literal)) &&                               \
    memcmp((canonical_name)->name()->buffer(), (literal), strlen(literal)) ==   \
        0)
 

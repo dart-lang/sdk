@@ -165,6 +165,30 @@ class _ProcessUtils {
   }
 }
 
+@patch
+class ProcessInfo {
+  @patch
+  static int get maxRss {
+    var result = _maxRss();
+    if (result is OSError) {
+      throw result;
+    }
+    return result;
+  }
+
+  @patch
+  static int get currentRss {
+    var result = _currentRss();
+    if (result is OSError) {
+      throw result;
+    }
+    return result;
+  }
+
+  static _maxRss() native "ProcessInfo_MaxRSS";
+  static _currentRss() native "ProcessInfo_CurrentRSS";
+}
+
 class _ProcessStartStatus {
   int _errorCode; // Set to OS error code if process start failed.
   String _errorMessage; // Set to OS error message if process start failed.

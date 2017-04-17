@@ -9,6 +9,7 @@
 
 #include "bin/process.h"
 
+#include <psapi.h>    // NOLINT
 #include <process.h>  // NOLINT
 
 #include "bin/builtin.h"
@@ -938,6 +939,24 @@ void Process::TerminateExitCodeHandler() {
 
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
+}
+
+
+int64_t Process::CurrentRSS() {
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    return -1;
+  }
+  return pmc.WorkingSetSize;
+}
+
+
+int64_t Process::MaxRSS() {
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    return -1;
+  }
+  return pmc.PeakWorkingSetSize;
 }
 
 

@@ -291,6 +291,19 @@ class _ProcessUtils {
 }
 
 @patch
+class ProcessInfo {
+  @patch
+  static int get currentRss {
+    throw new UnsupportedError("ProcessInfo.currentRss");
+  }
+
+  @patch
+  static int get maxRss {
+    throw new UnsupportedError("ProcessInfo.maxRss");
+  }
+}
+
+@patch
 class Process {
   @patch
   static Future<Process> start(String executable, List<String> arguments,
