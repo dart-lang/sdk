@@ -4,7 +4,7 @@
 
 library dart2js.js_emitter.program_builder;
 
-import '../../closure.dart' show ClosureFieldElement;
+import '../../closure.dart' show ClosureTask, ClosureFieldElement;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../compiler.dart' show Compiler;
@@ -36,8 +36,10 @@ import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart'
     show
         JavaScriptBackend,
-        RuntimeTypesEncoder,
+        RuntimeTypesChecks,
         RuntimeTypesNeed,
+        RuntimeTypesEncoder,
+        RuntimeTypesSubstitutions,
         SuperMemberData;
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/constant_handler_javascript.dart'
@@ -47,6 +49,7 @@ import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/mirrors_data.dart';
+import '../../js_backend/js_interop_analysis.dart';
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/selector.dart' show Selector;
@@ -105,17 +108,20 @@ class ProgramBuilder {
   Types get _types => _compiler.types;
   CommonElements get _commonElements => _compiler.commonElements;
   CompilerOptions get _options => _compiler.options;
+  ClosureTask get _closureToClassMapper => _compiler.closureToClassMapper;
   NativeCodegenEnqueuer get _nativeCodegenEnqueuer =>
       _backend.nativeCodegenEnqueuer;
   BackendUsage get _backendUsage => _backend.backendUsage;
-  CodeEmitterTask get _emitter => _backend.emitter;
   JavaScriptConstantCompiler get _constantHandler => _backend.constants;
   NativeData get _nativeData => _backend.nativeData;
   RuntimeTypesNeed get _rtiNeed => _backend.rtiNeed;
   MirrorsData get _mirrorsData => _backend.mirrorsData;
   InterceptorData get _interceptorData => _backend.interceptorData;
   SuperMemberData get _superMemberData => _backend.superMemberData;
+  RuntimeTypesChecks get _rtiChecks => _backend.rtiChecks;
   RuntimeTypesEncoder get _rtiEncoder => _backend.rtiEncoder;
+  RuntimeTypesSubstitutions get _rtiSubstitutions => _backend.rtiSubstitutions;
+  JsInteropAnalysis get _jsInteropAnalysis => _backend.jsInteropAnalysis;
   OneShotInterceptorData get _oneShotInterceptorData =>
       _backend.oneShotInterceptorData;
   CustomElementsCodegenAnalysis get _customElementsCodegenAnalysis =>
@@ -245,7 +251,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _emitter,
+        _task,
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
@@ -275,8 +281,8 @@ class ProgramBuilder {
   js.Statement _buildInvokeMain() {
     if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
 
-    MainCallStubGenerator generator =
-        new MainCallStubGenerator(_backend, _emitter);
+    MainCallStubGenerator generator = new MainCallStubGenerator(
+        _commonElements, _task.emitter, _backendUsage);
     return generator.generateInvokeMain(_compiler.mainFunction);
   }
 
@@ -553,8 +559,17 @@ class ProgramBuilder {
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
         _namer, _backend, _worldBuilder, _closedWorld,
         enableMinification: _options.enableMinification);
-    RuntimeTypeGenerator runtimeTypeGenerator =
-        new RuntimeTypeGenerator(_compiler, _task, _namer);
+    RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
+        _commonElements,
+        _closureToClassMapper,
+        _task,
+        _namer,
+        _nativeData,
+        _rtiChecks,
+        _rtiEncoder,
+        _rtiNeed,
+        _rtiSubstitutions,
+        _jsInteropAnalysis);
 
     void visitMember(ClassElement enclosing, MemberElement member) {
       assert(invariant(element, member.isDeclaration));
@@ -822,11 +837,9 @@ class ProgramBuilder {
       ResolutionDartType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(
-          _emitter.emitter, type, thisAccess);
+      return _rtiEncoder.getSignatureEncoding(_task.emitter, type, thisAccess);
     } else {
-      return _emitter.metadataCollector
-          .reifyTypeForOutputUnit(type, outputUnit);
+      return _task.metadataCollector.reifyTypeForOutputUnit(type, outputUnit);
     }
   }
 
@@ -867,7 +880,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _emitter,
+        _task,
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
@@ -946,7 +959,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _emitter,
+        _task,
         _nativeCodegenEnqueuer,
         _constantHandler,
         _namer,
