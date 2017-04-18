@@ -1070,7 +1070,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     inferrer.closedWorldRefiner
-        .registerSideEffects(analyzedElement, sideEffects);
+        .registerSideEffects(analyzedElement.declaration, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;

@@ -191,7 +191,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
       }
     }
 
-    entities.forEach(processElementMetadata);
+    entities.forEach((MemberElement member) => processElementMetadata(member));
   }
 
   void onResolutionComplete() {

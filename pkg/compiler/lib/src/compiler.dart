@@ -836,18 +836,14 @@ abstract class Compiler {
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(resolutionEnqueuer.processedEntities);
-    for (Element e in codegenEnqueuer.processedEntities) {
+    for (MemberEntity e in codegenEnqueuer.processedEntities) {
       resolved.remove(e);
     }
-    for (Element e in new Set.from(resolved)) {
-      if (e.isClass ||
-          e.isField ||
-          e.isTypeVariable ||
-          e.isTypedef ||
-          identical(e.kind, ElementKind.ABSTRACT_FIELD)) {
+    for (MemberEntity e in new Set.from(resolved)) {
+      if (e.isField) {
         resolved.remove(e);
       }
-      if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
+      if (e.isConstructor && (e as ConstructorEntity).isGenerativeConstructor) {
         resolved.remove(e);
       }
       if (backend.isTargetSpecificLibrary(e.library)) {
@@ -855,7 +851,7 @@ abstract class Compiler {
       }
     }
     reporter.log('Excess resolution work: ${resolved.length}.');
-    for (Element e in resolved) {
+    for (MemberEntity e in resolved) {
       reporter.reportWarningMessage(e, MessageKind.GENERIC,
           {'text': 'Warning: $e resolved but not compiled.'});
     }

@@ -132,7 +132,8 @@ class InferrerEngine {
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
-      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
+      sideEffects.add(
+          closedWorldRefiner.getCurrentlyKnownSideEffects(callee.declaration));
     }
   }
 
@@ -557,7 +558,8 @@ class InferrerEngine {
     types.allocatedCalls.forEach((info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
-        closedWorldRefiner.addFunctionCalledInLoop(info.calledElement);
+        closedWorldRefiner
+            .addFunctionCalledInLoop(info.calledElement.declaration);
       } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
@@ -970,7 +972,7 @@ class InferrerEngine {
     int max = 0;
     Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
     compiler.enqueuer.resolution.processedEntities
-        .forEach((AstElement element) {
+        .forEach((MemberElement element) {
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;

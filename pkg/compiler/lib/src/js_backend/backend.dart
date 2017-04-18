@@ -775,7 +775,8 @@ class JavaScriptBackend {
 
   void onResolutionComplete(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
-    for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
+    for (MemberEntity entity
+        in compiler.enqueuer.resolution.processedEntities) {
       processAnnotations(entity, closedWorldRefiner);
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
@@ -1221,14 +1222,14 @@ class JavaScriptBackend {
 
   /// Process backend specific annotations.
   void processAnnotations(
-      Element element, ClosedWorldRefiner closedWorldRefiner) {
+      MemberElement element, ClosedWorldRefiner closedWorldRefiner) {
     if (element.isMalformed) {
       // Elements that are marked as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
       return;
     }
 
-    Element implementation = element.implementation;
+    MemberElement implementation = element.implementation;
     if (element.isFunction || element.isConstructor) {
       if (annotations.noInline(implementation)) {
         inlineCache.markAsNonInlinable(implementation);

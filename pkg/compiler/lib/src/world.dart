@@ -13,7 +13,6 @@ import 'elements/elements.dart'
     show
         ClassElement,
         Element,
-        FunctionElement,
         MemberElement,
         MixinApplicationElement,
         TypedefElement;
@@ -295,23 +294,23 @@ abstract class ClosedWorld implements World {
   FieldEntity locateSingleField(Selector selector, TypeMask mask);
 
   /// Returns the side effects of executing [element].
-  SideEffects getSideEffectsOfElement(Element element);
+  SideEffects getSideEffectsOfElement(Entity element);
 
   /// Returns the side effects of calling [selector] on a receiver of type
   /// [mask].
   SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask);
 
   /// Returns `true` if [element] is guaranteed not to throw an exception.
-  bool getCannotThrow(Element element);
+  bool getCannotThrow(Entity element);
 
   /// Returns `true` if [element] is called in a loop.
   // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
-  bool isCalledInLoop(Element element);
+  bool isCalledInLoop(Entity element);
 
   /// Returns `true` if [element] might be passed to `Function.apply`.
   // TODO(johnniwinther): Is this 'passed invocation target` or
   // `passed as argument`?
-  bool getMightBePassedToApply(Element element);
+  bool getMightBePassedToApply(Entity element);
 
   /// Returns a string representation of the closed world.
   ///
@@ -326,29 +325,29 @@ abstract class ClosedWorldRefiner {
   ClosedWorld get closedWorld;
 
   /// Registers the side [effects] of executing [element].
-  void registerSideEffects(Element element, SideEffects effects);
+  void registerSideEffects(Entity element, SideEffects effects);
 
   /// Registers the executing of [element] as without side effects.
-  void registerSideEffectsFree(Element element);
+  void registerSideEffectsFree(Entity element);
 
   /// Returns the currently known side effects of executing [element].
-  SideEffects getCurrentlyKnownSideEffects(Element element);
+  SideEffects getCurrentlyKnownSideEffects(Entity element);
 
   /// Registers that [element] might be passed to `Function.apply`.
   // TODO(johnniwinther): Is this 'passed invocation target` or
   // `passed as argument`?
-  void registerMightBePassedToApply(Element element);
+  void registerMightBePassedToApply(Entity element);
 
   /// Returns `true` if [element] might be passed to `Function.apply` given the
   /// currently inferred information.
-  bool getCurrentlyKnownMightBePassedToApply(Element element);
+  bool getCurrentlyKnownMightBePassedToApply(Entity element);
 
   /// Registers that [element] is called in a loop.
   // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
-  void addFunctionCalledInLoop(Element element);
+  void addFunctionCalledInLoop(Entity element);
 
   /// Registers that [element] is guaranteed not to throw an exception.
-  void registerCannotThrow(Element element);
+  void registerCannotThrow(Entity element);
 
   /// Adds the closure class [cls] to the inference world. The class is
   /// considered directly instantiated.
@@ -404,15 +403,14 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
       <ClassEntity, Map<ClassEntity, bool>>{};
 
-  final Set<Element> functionsCalledInLoop = new Set<Element>();
-  final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
+  final Set<Entity> _functionsCalledInLoop = new Set<Entity>();
+  final Map<Entity, SideEffects> _sideEffects = new Map<Entity, SideEffects>();
 
-  final Set<Element> sideEffectsFreeElements = new Set<Element>();
+  final Set<Entity> _sideEffectsFreeElements = new Set<Entity>();
 
-  final Set<Element> elementsThatCannotThrow = new Set<Element>();
+  final Set<Entity> _elementsThatCannotThrow = new Set<Entity>();
 
-  final Set<Element> functionsThatMightBePassedToApply =
-      new Set<FunctionElement>();
+  final Set<Entity> _functionsThatMightBePassedToApply = new Set<Entity>();
 
   CommonMasks _commonMasks;
 
@@ -464,6 +462,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
         _canonicalizedTypeMasks[flags] ??= <ClassEntity, TypeMask>{};
     return cachedMasks.putIfAbsent(base, createMask);
   }
+
+  bool _checkEntity(Entity element);
 
   bool _checkClass(ClassEntity cls);
 
@@ -897,6 +897,71 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     }
     return sideEffects;
   }
+
+  SideEffects getSideEffectsOfElement(Entity element) {
+    assert(_checkEntity(element));
+    return _sideEffects.putIfAbsent(element, () {
+      return new SideEffects();
+    });
+  }
+
+  @override
+  SideEffects getCurrentlyKnownSideEffects(Entity element) {
+    return getSideEffectsOfElement(element);
+  }
+
+  void registerSideEffects(Entity element, SideEffects effects) {
+    assert(_checkEntity(element));
+    if (_sideEffectsFreeElements.contains(element)) return;
+    _sideEffects[element] = effects;
+  }
+
+  void registerSideEffectsFree(Entity element) {
+    assert(_checkEntity(element));
+    _sideEffects[element] = new SideEffects.empty();
+    _sideEffectsFreeElements.add(element);
+  }
+
+  void addFunctionCalledInLoop(Entity element) {
+    assert(_checkEntity(element));
+    _functionsCalledInLoop.add(element);
+  }
+
+  bool isCalledInLoop(Entity element) {
+    assert(_checkEntity(element));
+    return _functionsCalledInLoop.contains(element);
+  }
+
+  void registerCannotThrow(Entity element) {
+    assert(_checkEntity(element));
+    _elementsThatCannotThrow.add(element);
+  }
+
+  bool getCannotThrow(Entity element) {
+    return _elementsThatCannotThrow.contains(element);
+  }
+
+  void registerMightBePassedToApply(Entity element) {
+    _functionsThatMightBePassedToApply.add(element);
+  }
+
+  bool getMightBePassedToApply(Entity element) {
+    // We have to check whether the element we look at was created after
+    // type inference ran. This is currently only the case for the call
+    // method of function classes that were generated for function
+    // expressions. In such a case, we have to look at the original
+    // function expressions's element.
+    // TODO(herhut): Generate classes for function expressions earlier.
+    if (element is SynthesizedCallMethodElementX) {
+      return getMightBePassedToApply(element.expression);
+    }
+    return _functionsThatMightBePassedToApply.contains(element);
+  }
+
+  @override
+  bool getCurrentlyKnownMightBePassedToApply(Entity element) {
+    return getMightBePassedToApply(element);
+  }
 }
 
 class ClosedWorldImpl extends ClosedWorldBase {
@@ -922,6 +987,7 @@ class ClosedWorldImpl extends ClosedWorldBase {
             classSets: classSets);
 
   bool _checkClass(ClassElement cls) => cls.isDeclaration;
+  bool _checkEntity(Element element) => element.isDeclaration;
 
   bool _checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
     return invariant(cls, cls.isDeclaration,
@@ -1147,61 +1213,6 @@ class ClosedWorldImpl extends ClosedWorldBase {
     // contain the side effects of the initializers.
     assert(!element.isGenerativeConstructorBody);
     assert(!element.isField);
-    return sideEffects.putIfAbsent(element.declaration, () {
-      return new SideEffects();
-    });
-  }
-
-  @override
-  SideEffects getCurrentlyKnownSideEffects(Element element) {
-    return getSideEffectsOfElement(element);
-  }
-
-  void registerSideEffects(Element element, SideEffects effects) {
-    if (sideEffectsFreeElements.contains(element)) return;
-    sideEffects[element.declaration] = effects;
-  }
-
-  void registerSideEffectsFree(Element element) {
-    sideEffects[element.declaration] = new SideEffects.empty();
-    sideEffectsFreeElements.add(element);
-  }
-
-  void addFunctionCalledInLoop(Element element) {
-    functionsCalledInLoop.add(element.declaration);
-  }
-
-  bool isCalledInLoop(Element element) {
-    return functionsCalledInLoop.contains(element.declaration);
-  }
-
-  void registerCannotThrow(Element element) {
-    elementsThatCannotThrow.add(element);
-  }
-
-  bool getCannotThrow(Element element) {
-    return elementsThatCannotThrow.contains(element);
-  }
-
-  void registerMightBePassedToApply(Element element) {
-    functionsThatMightBePassedToApply.add(element);
-  }
-
-  bool getMightBePassedToApply(Element element) {
-    // We have to check whether the element we look at was created after
-    // type inference ran. This is currently only the case for the call
-    // method of function classes that were generated for function
-    // expressions. In such a case, we have to look at the original
-    // function expressions's element.
-    // TODO(herhut): Generate classes for function expressions earlier.
-    if (element is SynthesizedCallMethodElementX) {
-      return getMightBePassedToApply(element.expression);
-    }
-    return functionsThatMightBePassedToApply.contains(element);
-  }
-
-  @override
-  bool getCurrentlyKnownMightBePassedToApply(Element element) {
-    return getMightBePassedToApply(element);
+    return super.getSideEffectsOfElement(element);
   }
 }

@@ -121,8 +121,9 @@ void checkResolutionEnqueuers(
     bool elementFilter(Element element),
     bool verbose: false}) {
   checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
-      "Processed element mismatch", areElementsEquivalent,
-      elementFilter: elementFilter, verbose: verbose);
+      "Processed element mismatch", areElementsEquivalent, elementFilter: (e) {
+    return elementFilter != null ? elementFilter(e) : true;
+  }, verbose: verbose);
 
   ElementResolutionWorldBuilder worldBuilder1 = enqueuer1.worldBuilder;
   ElementResolutionWorldBuilder worldBuilder2 = enqueuer2.worldBuilder;
