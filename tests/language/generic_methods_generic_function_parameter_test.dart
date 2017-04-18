@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 
 class C<T> {
   bar<V>(T t, int u, V v) => t.toString() + u.toString() + v.toString();
-  foo<U>(bar(T t, U u, V v)) => bar<int>(1 as T, 2 as U, 3);
+  foo<U>(bar<V>(T t, U u, V v)) => bar<int>(1 as T, 2 as U, 3);
 }
 
 main() {

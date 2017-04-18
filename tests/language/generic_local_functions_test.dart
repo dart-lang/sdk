@@ -12,7 +12,7 @@ library generic_local_functions_test;
 import "package:expect/expect.dart";
 
 // Declare a generic function parameter.
-int f(Y g(Map<X, Y> arg, X x)) => g<int, int>(<int, int>{1: 42}, 1);
+int f(Y g<X, Y>(Map<X, Y> arg, X x)) => g<int, int>(<int, int>{1: 42}, 1);
 
 main() {
   // Declare a generic local function
