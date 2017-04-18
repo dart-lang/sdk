@@ -258,8 +258,8 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
 
   jsAst.Statement tearOffGetter;
   if (!compiler.options.useContentSecurityPolicy) {
-    jsAst.Expression tearOffAccessText =
-        new jsAst.UnparsedNode(tearOffAccessExpression, compiler, false);
+    jsAst.Expression tearOffAccessText = new jsAst.UnparsedNode(
+        tearOffAccessExpression, compiler.options, false);
     tearOffGetter = js.statement(
         '''
 function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {

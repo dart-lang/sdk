@@ -347,7 +347,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
     RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
     for (ResolutionDartType argument in type.typeArguments) {
-      arguments.add(rtiEncoder.getTypeRepresentation(argument, unexpected));
+      arguments.add(rtiEncoder.getTypeRepresentation(
+          backend.emitter.emitter, argument, unexpected));
     }
     return new jsAst.ArrayInitializer(arguments);
   }

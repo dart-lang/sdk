@@ -4,7 +4,6 @@
 
 library dart2js.js_emitter.type_test_registry;
 
-import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart'
     show
         ResolutionDartType,
@@ -16,6 +15,7 @@ import '../elements/elements.dart'
     show ClassElement, Element, ElementKind, MemberElement, MethodElement;
 import '../js_backend/js_backend.dart'
     show JavaScriptBackend, RuntimeTypesSubstitutions, TypeChecks;
+import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 
 class TypeTestRegistry {
@@ -42,8 +42,7 @@ class TypeTestRegistry {
 
   Iterable<ClassElement> get classesUsingTypeVariableTests {
     if (cachedClassesUsingTypeVariableTests == null) {
-      cachedClassesUsingTypeVariableTests = compiler
-          .codegenWorldBuilder.isChecks
+      cachedClassesUsingTypeVariableTests = _codegenWorldBuilder.isChecks
           .where((ResolutionDartType t) => t is ResolutionTypeVariableType)
           .map((ResolutionTypeVariableType v) => v.element.enclosingClass)
           .toList();
@@ -51,12 +50,11 @@ class TypeTestRegistry {
     return cachedClassesUsingTypeVariableTests;
   }
 
-  final Compiler compiler;
+  final CodegenWorldBuilder _codegenWorldBuilder;
+  final JavaScriptBackend _backend;
   final ClosedWorld closedWorld;
 
-  TypeTestRegistry(this.compiler, this.closedWorld);
-
-  JavaScriptBackend get backend => compiler.backend;
+  TypeTestRegistry(this._codegenWorldBuilder, this._backend, this.closedWorld);
 
   /**
    * Returns the classes with constructors used as a 'holder' in
@@ -66,7 +64,7 @@ class TypeTestRegistry {
    * from type substitutions.
    */
   Set<ClassElement> computeClassesModifiedByEmitRuntimeTypeSupport() {
-    TypeChecks typeChecks = backend.rtiChecks.requiredChecks;
+    TypeChecks typeChecks = _backend.rtiChecks.requiredChecks;
     Set<ClassElement> result = new Set<ClassElement>();
     for (ClassElement cls in typeChecks.classes) {
       if (typeChecks[cls].isNotEmpty) result.add(cls);
@@ -94,8 +92,8 @@ class TypeTestRegistry {
     //     argument checks.
     // TODO(karlklose): merge this case with 2 when unifying argument and
     // object checks.
-    RuntimeTypesSubstitutions rtiSubstitutions = backend.rtiSubstitutions;
-    backend.rtiChecks
+    RuntimeTypesSubstitutions rtiSubstitutions = _backend.rtiSubstitutions;
+    _backend.rtiChecks
         .getRequiredArgumentClasses()
         .forEach(addClassWithSuperclasses);
 
@@ -123,8 +121,7 @@ class TypeTestRegistry {
         return false;
       } else if (function.isInstanceMember) {
         if (!function.enclosingClass.isClosure) {
-          return compiler.codegenWorldBuilder
-              .hasInvokedGetter(function, closedWorld);
+          return _codegenWorldBuilder.hasInvokedGetter(function, closedWorld);
         }
       }
       return false;
@@ -139,16 +136,16 @@ class TypeTestRegistry {
 
     bool canBeReified(MemberElement element) {
       return (canTearOff(element) ||
-          backend.mirrorsData.isMemberAccessibleByReflection(element));
+          _backend.mirrorsData.isMemberAccessibleByReflection(element));
     }
 
     // Find all types referenced from the types of elements that can be
     // reflected on 'as functions'.
-    backend.generatedCode.keys.where((element) {
+    _backend.generatedCode.keys.where((element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((MethodElement function) {
       ResolutionDartType type = function.type;
-      for (ClassElement cls in backend.rtiChecks.getReferencedClasses(type)) {
+      for (ClassElement cls in _backend.rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
           rtiNeededClasses.add(cls);
           cls = cls.superclass;
@@ -162,13 +159,13 @@ class TypeTestRegistry {
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null && checkedFunctionTypes == null);
 
-    backend.rtiChecksBuilder.registerImplicitChecks(
-        compiler.codegenWorldBuilder, classesUsingTypeVariableTests);
-    backend.finalizeRti();
+    _backend.rtiChecksBuilder.registerImplicitChecks(
+        _codegenWorldBuilder, classesUsingTypeVariableTests);
+    _backend.finalizeRti();
 
     checkedClasses = new Set<ClassElement>();
     checkedFunctionTypes = new Set<ResolutionFunctionType>();
-    compiler.codegenWorldBuilder.isChecks.forEach((ResolutionDartType t) {
+    _codegenWorldBuilder.isChecks.forEach((ResolutionDartType t) {
       if (t is ResolutionInterfaceType) {
         checkedClasses.add(t.element);
       } else if (t is ResolutionFunctionType) {

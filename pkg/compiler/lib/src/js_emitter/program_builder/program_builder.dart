@@ -781,7 +781,8 @@ class ProgramBuilder {
       ResolutionDartType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
-      return backend.rtiEncoder.getSignatureEncoding(type, thisAccess);
+      return backend.rtiEncoder
+          .getSignatureEncoding(backend.emitter.emitter, type, thisAccess);
     } else {
       return backend.emitter.metadataCollector
           .reifyTypeForOutputUnit(type, outputUnit);

@@ -3004,7 +3004,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case TypeInfoExpressionKind.COMPLETE:
         int index = 0;
         js.Expression result = _rtiEncoder.getTypeRepresentation(
-            node.dartType, (TypeVariableType variable) => arguments[index++]);
+            _emitter.emitter,
+            node.dartType,
+            (TypeVariableType variable) => arguments[index++]);
         assert(index == node.inputs.length);
         push(result);
         return;

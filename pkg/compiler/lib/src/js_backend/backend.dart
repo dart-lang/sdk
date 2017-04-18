@@ -42,7 +42,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask, Emitter;
 import '../kernel/task.dart';
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
@@ -1028,7 +1028,7 @@ class JavaScriptBackend {
    */
   String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    return jsAst.prettyPrint(generatedCode[element], compiler);
+    return jsAst.prettyPrint(generatedCode[element], compiler.options);
   }
 
   /// Called to finalize the [RuntimeTypesChecks] information.
@@ -1177,9 +1177,9 @@ class JavaScriptBackend {
     _closedWorld = closedWorld;
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
-    emitter.createEmitter(namer, closedWorld);
-    _rtiEncoder = _namer.rtiEncoder =
-        new _RuntimeTypesEncoder(namer, emitter, commonElements);
+    _rtiEncoder =
+        _namer.rtiEncoder = new _RuntimeTypesEncoder(namer, commonElements);
+    emitter.createEmitter(namer, closedWorld, codegenWorldBuilder);
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,

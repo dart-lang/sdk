@@ -260,8 +260,9 @@ class ModelEmitter {
       code
     ]);
 
-    mainOutput.addBuffer(
-        js.createCodeBuffer(program, compiler, monitor: compiler.dumpInfoTask));
+    mainOutput.addBuffer(js.createCodeBuffer(
+        program, compiler.options, backend.sourceInformationStrategy,
+        monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
       mainOutput.add(SourceMapBuilder.generateSourceMapTag(
@@ -321,8 +322,9 @@ class ModelEmitter {
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 
-    output.addBuffer(
-        js.createCodeBuffer(program, compiler, monitor: compiler.dumpInfoTask));
+    output.addBuffer(js.createCodeBuffer(
+        program, compiler.options, backend.sourceInformationStrategy,
+        monitor: compiler.dumpInfoTask));
 
     // Make a unique hash of the code (before the sourcemaps are added)
     // This will be used to retrieve the initializing function from the global

@@ -14,6 +14,7 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart' show ClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
@@ -156,11 +157,21 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, ClosedWorld closedWorld) {
+  void createEmitter(Namer namer, ClosedWorld closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder) {
     measure(() {
       _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
-      metadataCollector = new MetadataCollector(compiler, _emitter);
-      typeTestRegistry = new TypeTestRegistry(compiler, closedWorld);
+      metadataCollector = new MetadataCollector(
+          compiler.options,
+          compiler.reporter,
+          compiler.deferredLoadTask,
+          _emitter,
+          backend.constants,
+          backend.typeVariableCodegenAnalysis,
+          backend.mirrorsData,
+          backend.rtiEncoder);
+      typeTestRegistry = new TypeTestRegistry(
+          codegenWorldBuilder, compiler.backend, closedWorld);
     });
   }
 

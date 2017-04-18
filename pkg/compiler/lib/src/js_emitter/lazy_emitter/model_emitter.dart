@@ -151,7 +151,10 @@ class ModelEmitter {
 
     // TODO(johnnniwinther): Support source maps in this emitter.
     for (int i = 0; i < fragmentsCode.length; ++i) {
-      String code = js.createCodeBuffer(fragmentsCode[i], compiler).getText();
+      String code = js
+          .createCodeBuffer(fragmentsCode[i], compiler.options,
+              backend.sourceInformationStrategy)
+          .getText();
       totalSize += code.length;
       compiler.outputProvider(
           fragments[i + 1].outputFileName, deferredExtension, OutputType.jsPart)
@@ -159,7 +162,10 @@ class ModelEmitter {
         ..close();
     }
 
-    String mainCode = js.createCodeBuffer(mainAst, compiler).getText();
+    String mainCode = js
+        .createCodeBuffer(
+            mainAst, compiler.options, backend.sourceInformationStrategy)
+        .getText();
     compiler.outputProvider(mainFragment.outputFileName, 'js', OutputType.js)
       ..add(buildGeneratedBy(compiler))
       ..add(mainCode)
@@ -179,7 +185,7 @@ class ModelEmitter {
   /// See [_UnparsedNode] for details.
   js.Literal unparse(Compiler compiler, js.Node value,
       {bool protectForEval: true}) {
-    return new js.UnparsedNode(value, compiler, protectForEval);
+    return new js.UnparsedNode(value, compiler.options, protectForEval);
   }
 
   String buildGeneratedBy(compiler) {

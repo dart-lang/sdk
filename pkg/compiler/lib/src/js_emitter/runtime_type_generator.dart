@@ -120,8 +120,8 @@ class RuntimeTypeGenerator {
             emitterTask.metadataCollector.reifyType(type);
       } else {
         RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
-        jsAst.Expression encoding =
-            rtiEncoder.getSignatureEncoding(type, thisAccess);
+        jsAst.Expression encoding = rtiEncoder.getSignatureEncoding(
+            emitterTask.emitter, type, thisAccess);
         jsAst.Name operatorSignature = namer.asName(namer.operatorSignature);
         result.properties[operatorSignature] = encoding;
       }
@@ -137,7 +137,8 @@ class RuntimeTypeGenerator {
       Substitution substitution =
           rtiSubstitutions.getSubstitution(classElement, cls);
       if (substitution != null) {
-        expression = rtiEncoder.getSubstitutionCode(substitution);
+        expression =
+            rtiEncoder.getSubstitutionCode(emitterTask.emitter, substitution);
       }
       if (expression == null && (emitNull || needsNativeCheck)) {
         expression = new jsAst.LiteralNull();
@@ -152,8 +153,8 @@ class RuntimeTypeGenerator {
       generateIsTest(checkedClass);
       Substitution substitution = check.substitution;
       if (substitution != null) {
-        jsAst.Expression body =
-            backend.rtiEncoder.getSubstitutionCode(substitution);
+        jsAst.Expression body = backend.rtiEncoder
+            .getSubstitutionCode(emitterTask.emitter, substitution);
         result.properties[namer.substitutionName(checkedClass)] = body;
       }
     }
@@ -166,8 +167,8 @@ class RuntimeTypeGenerator {
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();
         RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
-        jsAst.Expression encoding =
-            rtiEncoder.getSignatureEncoding(type, thisAccess);
+        jsAst.Expression encoding = rtiEncoder.getSignatureEncoding(
+            emitterTask.emitter, type, thisAccess);
         jsAst.Name operatorSignature = namer.asName(namer.operatorSignature);
         result.properties[operatorSignature] = encoding;
       }

@@ -1534,7 +1534,8 @@ class Emitter implements js_emitter.Emitter {
         compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
-    mainOutput.addBuffer(jsAst.createCodeBuffer(program, compiler,
+    mainOutput.addBuffer(jsAst.createCodeBuffer(
+        program, compiler.options, backend.sourceInformationStrategy,
         monitor: compiler.dumpInfoTask));
 
     if (compiler.options.deferredMapUri != null) {
@@ -1868,7 +1869,8 @@ class Emitter implements js_emitter.Emitter {
 
       outputBuffers[outputUnit] = output;
 
-      output.addBuffer(jsAst.createCodeBuffer(outputAsts[outputUnit], compiler,
+      output.addBuffer(jsAst.createCodeBuffer(outputAsts[outputUnit],
+          compiler.options, backend.sourceInformationStrategy,
           monitor: compiler.dumpInfoTask));
 
       // Make a unique hash of the code (before the sourcemaps are added)

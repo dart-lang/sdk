@@ -54,27 +54,32 @@ void testTypeRepresentations() {
                 env.compiler.backend.constants,
                 const TypeMaskStrategy()));
         TypeRepresentationGenerator typeRepresentation =
-            new TypeRepresentationGenerator(
-                env.compiler.backend.namer, env.compiler.backend.emitter);
+            new TypeRepresentationGenerator(env.compiler.backend.namer);
 
         Expression onVariable(ResolutionTypeVariableType variable) {
           return new VariableUse(variable.name);
         }
 
         String stringify(Expression expression) {
-          return prettyPrint(expression, env.compiler);
+          return prettyPrint(expression, env.compiler.options);
         }
 
         void expect(ResolutionDartType type, String expectedRepresentation,
             [String expectedTypedefRepresentation]) {
           bool encodeTypedefName = false;
           Expression expression = typeRepresentation.getTypeRepresentation(
-              type, onVariable, (x) => encodeTypedefName);
+              env.compiler.backend.emitter.emitter,
+              type,
+              onVariable,
+              (x) => encodeTypedefName);
           Expect.stringEquals(expectedRepresentation, stringify(expression));
 
           encodeTypedefName = true;
           expression = typeRepresentation.getTypeRepresentation(
-              type, onVariable, (x) => encodeTypedefName);
+              env.compiler.backend.emitter.emitter,
+              type,
+              onVariable,
+              (x) => encodeTypedefName);
           if (expectedTypedefRepresentation == null) {
             expectedTypedefRepresentation = expectedRepresentation;
           }
@@ -83,7 +88,8 @@ void testTypeRepresentations() {
         }
 
         String getJsName(Element cls) {
-          Expression name = typeRepresentation.getJavaScriptClassName(cls);
+          Expression name = typeRepresentation.getJavaScriptClassName(
+              cls, env.compiler.backend.emitter.emitter);
           return stringify(name);
         }
 
