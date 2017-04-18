@@ -1415,7 +1415,9 @@ class AnalysisDriverScheduler {
   void add(AnalysisDriverGeneric driver) {
     _drivers.add(driver);
     _hasWork.notify();
-    driverWatcher?.addedDriver(driver, driver.contextRoot);
+    if (driver is AnalysisDriver) {
+      driverWatcher?.addedDriver(driver, driver.contextRoot);
+    }
   }
 
   /**
