@@ -7175,16 +7175,11 @@ RawString* Function::QualifiedName(NameVisibility name_visibility) const {
   }
   const Class& cls = Class::Handle(Owner());
   if (!cls.IsTopLevel()) {
-    if (kind() == RawFunction::kConstructor) {
-      result = String::Concat(Symbols::ConstructorStacktracePrefix(), result,
-                              Heap::kOld);
-    } else {
-      result = String::Concat(Symbols::Dot(), result, Heap::kOld);
-      const String& cls_name = String::Handle(name_visibility == kScrubbedName
-                                                  ? cls.ScrubbedName()
-                                                  : cls.UserVisibleName());
-      result = String::Concat(cls_name, result, Heap::kOld);
-    }
+    result = String::Concat(Symbols::Dot(), result, Heap::kOld);
+    const String& cls_name = String::Handle(name_visibility == kScrubbedName
+                                                ? cls.ScrubbedName()
+                                                : cls.UserVisibleName());
+    result = String::Concat(cls_name, result, Heap::kOld);
   }
   return result.raw();
 }

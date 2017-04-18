@@ -233,7 +233,6 @@ map_literal4_test: SkipByDesign # Requires checked mode.
 
 vm/type_vm_test: Fail,OK  # Expects exact type name.
 
-stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $browser ]
 # The following tests are supposed to fail.

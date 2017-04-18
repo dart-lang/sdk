@@ -422,7 +422,6 @@ class ObjectPointerVisitor;
   V(removeLast, "removeLast")                                                  \
   V(add, "add")                                                                \
   V(ConstructorClosurePrefix, "new#")                                          \
-  V(ConstructorStacktracePrefix, "new ")                                       \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(DartLibrary, "dart.library.")                                              \
