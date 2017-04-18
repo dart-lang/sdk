@@ -19,6 +19,13 @@ testIfElse() {
     return; // OK
   else return; // LINT
 
+  if (false) {
+  }
+  else if (false) { // OK
+  }
+  else {
+  }
+
   if (false) { } // OK
   else return; // LINT
 
