@@ -467,6 +467,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   bool _checkClass(ClassEntity cls);
 
+  bool _checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true});
+
   @override
   bool isInstantiated(ClassEntity cls) {
     assert(_checkClass(cls));
@@ -508,6 +510,21 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
     return _resolverWorld.isImplemented(cls);
+  }
+
+  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
+  /// instance of [y].
+  bool isSubtypeOf(ClassEntity x, ClassEntity y) {
+    assert(_checkInvariants(x));
+    assert(_checkInvariants(y, mustBeInstantiated: false));
+    return _classSets[y].hasSubtype(_classHierarchyNodes[x]);
+  }
+
+  /// Return `true` if [x] is a (non-strict) subclass of [y].
+  bool isSubclassOf(ClassEntity x, ClassEntity y) {
+    assert(_checkInvariants(x));
+    assert(_checkInvariants(y));
+    return _classHierarchyNodes[y].hasSubclass(_classHierarchyNodes[x]);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -920,33 +937,6 @@ class ClosedWorldImpl extends ClosedWorldBase {
        invariant(cls, isInstantiated(cls),
                  message: '$cls is not instantiated.'))*/
         ;
-  }
-
-  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
-  /// instance of [y].
-  bool isSubtypeOf(ClassElement x, ClassElement y) {
-    assert(_checkInvariants(x));
-    assert(_checkInvariants(y, mustBeInstantiated: false));
-
-    if (y == commonElements.objectClass) return true;
-    if (x == commonElements.objectClass) return false;
-    if (x.asInstanceOf(y) != null) return true;
-    if (y != commonElements.functionClass) return false;
-    return x.callType != null;
-  }
-
-  /// Return `true` if [x] is a (non-strict) subclass of [y].
-  bool isSubclassOf(ClassElement x, ClassElement y) {
-    assert(_checkInvariants(x));
-    assert(_checkInvariants(y));
-
-    if (y == commonElements.objectClass) return true;
-    if (x == commonElements.objectClass) return false;
-    while (x != null && x.hierarchyDepth >= y.hierarchyDepth) {
-      if (x == y) return true;
-      x = x.superclass;
-    }
-    return false;
   }
 
   /// Returns an iterable over the common supertypes of the [classes].

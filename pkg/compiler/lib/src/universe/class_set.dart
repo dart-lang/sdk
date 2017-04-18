@@ -228,6 +228,11 @@ class ClassHierarchyNode {
     return false;
   }
 
+  /// Returns `true` if `other.cls` is a subclass of [cls].
+  bool hasSubclass(ClassHierarchyNode other) {
+    return contains(other);
+  }
+
   /// `true` if [cls] has been directly, indirectly, or abstractly instantiated.
   bool get isInstantiated =>
       isExplicitlyInstantiated || isIndirectlyInstantiated;
@@ -479,6 +484,20 @@ class ClassSet {
   ClassSet(this.node);
 
   ClassEntity get cls => node.cls;
+
+  /// Returns `true` if `other.cls` is a subclass of [cls].
+  bool hasSubclass(ClassHierarchyNode other) => node.hasSubclass(other);
+
+  /// Returns `true` if `other.cls` is a subtype of [cls].
+  bool hasSubtype(ClassHierarchyNode other) {
+    if (hasSubclass(other)) return true;
+    if (_subtypes != null) {
+      for (ClassHierarchyNode subtypeNode in _subtypes) {
+        if (subtypeNode.hasSubclass(other)) return true;
+      }
+    }
+    return false;
+  }
 
   /// Returns the number of directly instantiated subtypes of [cls].
   int get instantiatedSubtypeCount {
