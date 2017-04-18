@@ -117,11 +117,11 @@ class Angle extends Interceptor {
 
   @DomName('SVGAngle.convertToSpecifiedUnits')
   @DocsEditable()
-  void convertToSpecifiedUnits(int unitType) native ;
+  void convertToSpecifiedUnits(int unitType) native;
 
   @DomName('SVGAngle.newValueSpecifiedUnits')
   @DocsEditable()
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native ;
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -517,31 +517,31 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.beginElement')
   @DocsEditable()
-  void beginElement() native ;
+  void beginElement() native;
 
   @DomName('SVGAnimationElement.beginElementAt')
   @DocsEditable()
-  void beginElementAt(num offset) native ;
+  void beginElementAt(num offset) native;
 
   @DomName('SVGAnimationElement.endElement')
   @DocsEditable()
-  void endElement() native ;
+  void endElement() native;
 
   @DomName('SVGAnimationElement.endElementAt')
   @DocsEditable()
-  void endElementAt(num offset) native ;
+  void endElementAt(num offset) native;
 
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() native ;
+  double getCurrentTime() native;
 
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  double getSimpleDuration() native ;
+  double getSimpleDuration() native;
 
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  double getStartTime() native ;
+  double getStartTime() native;
 
   // From SVGTests
 
@@ -559,7 +559,7 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native ;
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1659,7 +1659,7 @@ class FEGaussianBlurElement extends SvgElement
 
   @DomName('SVGFEGaussianBlurElement.setStdDeviation')
   @DocsEditable()
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) native ;
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -2550,12 +2550,12 @@ class GeometryElement extends GraphicsElement {
   @DomName('SVGGeometryElement.isPointInFill')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isPointInFill(Point point) native ;
+  bool isPointInFill(Point point) native;
 
   @DomName('SVGGeometryElement.isPointInStroke')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isPointInStroke(Point point) native ;
+  bool isPointInStroke(Point point) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2595,24 +2595,24 @@ class GraphicsElement extends SvgElement implements Tests {
   @DomName('SVGGraphicsElement.getBBox')
   @DocsEditable()
   @Experimental() // untriaged
-  Rect getBBox() native ;
+  Rect getBBox() native;
 
   @JSName('getCTM')
   @DomName('SVGGraphicsElement.getCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getCtm() native ;
+  Matrix getCtm() native;
 
   @JSName('getScreenCTM')
   @DomName('SVGGraphicsElement.getScreenCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getScreenCtm() native ;
+  Matrix getScreenCtm() native;
 
   @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getTransformToElement(SvgElement element) native ;
+  Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTests
 
@@ -2634,7 +2634,7 @@ class GraphicsElement extends SvgElement implements Tests {
   @DomName('SVGGraphicsElement.hasExtension')
   @DocsEditable()
   @Experimental() // untriaged
-  bool hasExtension(String extension) native ;
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2763,11 +2763,11 @@ class Length extends Interceptor {
 
   @DomName('SVGLength.convertToSpecifiedUnits')
   @DocsEditable()
-  void convertToSpecifiedUnits(int unitType) native ;
+  void convertToSpecifiedUnits(int unitType) native;
 
   @DomName('SVGLength.newValueSpecifiedUnits')
   @DocsEditable()
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native ;
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2840,35 +2840,35 @@ class LengthList extends Interceptor
   @DomName('SVGLengthList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Length newItem) native ;
+  void __setter__(int index, Length newItem) native;
 
   @DomName('SVGLengthList.appendItem')
   @DocsEditable()
-  Length appendItem(Length newItem) native ;
+  Length appendItem(Length newItem) native;
 
   @DomName('SVGLengthList.clear')
   @DocsEditable()
-  void clear() native ;
+  void clear() native;
 
   @DomName('SVGLengthList.getItem')
   @DocsEditable()
-  Length getItem(int index) native ;
+  Length getItem(int index) native;
 
   @DomName('SVGLengthList.initialize')
   @DocsEditable()
-  Length initialize(Length newItem) native ;
+  Length initialize(Length newItem) native;
 
   @DomName('SVGLengthList.insertItemBefore')
   @DocsEditable()
-  Length insertItemBefore(Length newItem, int index) native ;
+  Length insertItemBefore(Length newItem, int index) native;
 
   @DomName('SVGLengthList.removeItem')
   @DocsEditable()
-  Length removeItem(int index) native ;
+  Length removeItem(int index) native;
 
   @DomName('SVGLengthList.replaceItem')
   @DocsEditable()
-  Length replaceItem(Length newItem, int index) native ;
+  Length replaceItem(Length newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3031,11 +3031,11 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGMarkerElement.setOrientToAngle')
   @DocsEditable()
-  void setOrientToAngle(Angle angle) native ;
+  void setOrientToAngle(Angle angle) native;
 
   @DomName('SVGMarkerElement.setOrientToAuto')
   @DocsEditable()
-  void setOrientToAuto() native ;
+  void setOrientToAuto() native;
 
   // From SVGFitToViewBox
 
@@ -3112,7 +3112,7 @@ class MaskElement extends SvgElement implements Tests {
 
   @DomName('SVGMaskElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native ;
+  bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3154,47 +3154,47 @@ class Matrix extends Interceptor {
 
   @DomName('SVGMatrix.flipX')
   @DocsEditable()
-  Matrix flipX() native ;
+  Matrix flipX() native;
 
   @DomName('SVGMatrix.flipY')
   @DocsEditable()
-  Matrix flipY() native ;
+  Matrix flipY() native;
 
   @DomName('SVGMatrix.inverse')
   @DocsEditable()
-  Matrix inverse() native ;
+  Matrix inverse() native;
 
   @DomName('SVGMatrix.multiply')
   @DocsEditable()
-  Matrix multiply(Matrix secondMatrix) native ;
+  Matrix multiply(Matrix secondMatrix) native;
 
   @DomName('SVGMatrix.rotate')
   @DocsEditable()
-  Matrix rotate(num angle) native ;
+  Matrix rotate(num angle) native;
 
   @DomName('SVGMatrix.rotateFromVector')
   @DocsEditable()
-  Matrix rotateFromVector(num x, num y) native ;
+  Matrix rotateFromVector(num x, num y) native;
 
   @DomName('SVGMatrix.scale')
   @DocsEditable()
-  Matrix scale(num scaleFactor) native ;
+  Matrix scale(num scaleFactor) native;
 
   @DomName('SVGMatrix.scaleNonUniform')
   @DocsEditable()
-  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native ;
+  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
 
   @DomName('SVGMatrix.skewX')
   @DocsEditable()
-  Matrix skewX(num angle) native ;
+  Matrix skewX(num angle) native;
 
   @DomName('SVGMatrix.skewY')
   @DocsEditable()
-  Matrix skewY(num angle) native ;
+  Matrix skewY(num angle) native;
 
   @DomName('SVGMatrix.translate')
   @DocsEditable()
-  Matrix translate(num x, num y) native ;
+  Matrix translate(num x, num y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3305,35 +3305,35 @@ class NumberList extends Interceptor
   @DomName('SVGNumberList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Number newItem) native ;
+  void __setter__(int index, Number newItem) native;
 
   @DomName('SVGNumberList.appendItem')
   @DocsEditable()
-  Number appendItem(Number newItem) native ;
+  Number appendItem(Number newItem) native;
 
   @DomName('SVGNumberList.clear')
   @DocsEditable()
-  void clear() native ;
+  void clear() native;
 
   @DomName('SVGNumberList.getItem')
   @DocsEditable()
-  Number getItem(int index) native ;
+  Number getItem(int index) native;
 
   @DomName('SVGNumberList.initialize')
   @DocsEditable()
-  Number initialize(Number newItem) native ;
+  Number initialize(Number newItem) native;
 
   @DomName('SVGNumberList.insertItemBefore')
   @DocsEditable()
-  Number insertItemBefore(Number newItem, int index) native ;
+  Number insertItemBefore(Number newItem, int index) native;
 
   @DomName('SVGNumberList.removeItem')
   @DocsEditable()
-  Number removeItem(int index) native ;
+  Number removeItem(int index) native;
 
   @DomName('SVGNumberList.replaceItem')
   @DocsEditable()
-  Number replaceItem(Number newItem, int index) native ;
+  Number replaceItem(Number newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3384,118 +3384,118 @@ class PathElement extends GeometryElement {
   @DomName('SVGPathElement.createSVGPathSegArcAbs')
   @DocsEditable()
   PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle,
-      bool largeArcFlag, bool sweepFlag) native ;
+      bool largeArcFlag, bool sweepFlag) native;
 
   @JSName('createSVGPathSegArcRel')
   @DomName('SVGPathElement.createSVGPathSegArcRel')
   @DocsEditable()
   PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle,
-      bool largeArcFlag, bool sweepFlag) native ;
+      bool largeArcFlag, bool sweepFlag) native;
 
   @JSName('createSVGPathSegClosePath')
   @DomName('SVGPathElement.createSVGPathSegClosePath')
   @DocsEditable()
-  PathSegClosePath createSvgPathSegClosePath() native ;
+  PathSegClosePath createSvgPathSegClosePath() native;
 
   @JSName('createSVGPathSegCurvetoCubicAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
   @DocsEditable()
   PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(
-      num x, num y, num x1, num y1, num x2, num y2) native ;
+      num x, num y, num x1, num y1, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoCubicRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
   @DocsEditable()
   PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(
-      num x, num y, num x1, num y1, num x2, num y2) native ;
+      num x, num y, num x1, num y1, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoCubicSmoothAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
   @DocsEditable()
   PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(
-      num x, num y, num x2, num y2) native ;
+      num x, num y, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoCubicSmoothRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
   @DocsEditable()
   PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(
-      num x, num y, num x2, num y2) native ;
+      num x, num y, num x2, num y2) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
   @DocsEditable()
   PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(
-      num x, num y, num x1, num y1) native ;
+      num x, num y, num x1, num y1) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
   @DocsEditable()
   PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(
-      num x, num y, num x1, num y1) native ;
+      num x, num y, num x1, num y1) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticSmoothAbs')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
   @DocsEditable()
   PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(
-      num x, num y) native ;
+      num x, num y) native;
 
   @JSName('createSVGPathSegCurvetoQuadraticSmoothRel')
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
   @DocsEditable()
   PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(
-      num x, num y) native ;
+      num x, num y) native;
 
   @JSName('createSVGPathSegLinetoAbs')
   @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
   @DocsEditable()
-  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native ;
+  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native;
 
   @JSName('createSVGPathSegLinetoHorizontalAbs')
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
   @DocsEditable()
-  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native ;
+  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native;
 
   @JSName('createSVGPathSegLinetoHorizontalRel')
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
   @DocsEditable()
-  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native ;
+  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native;
 
   @JSName('createSVGPathSegLinetoRel')
   @DomName('SVGPathElement.createSVGPathSegLinetoRel')
   @DocsEditable()
-  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native ;
+  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native;
 
   @JSName('createSVGPathSegLinetoVerticalAbs')
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
   @DocsEditable()
-  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native ;
+  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native;
 
   @JSName('createSVGPathSegLinetoVerticalRel')
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
   @DocsEditable()
-  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native ;
+  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native;
 
   @JSName('createSVGPathSegMovetoAbs')
   @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
   @DocsEditable()
-  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native ;
+  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native;
 
   @JSName('createSVGPathSegMovetoRel')
   @DomName('SVGPathElement.createSVGPathSegMovetoRel')
   @DocsEditable()
-  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native ;
+  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native;
 
   @DomName('SVGPathElement.getPathSegAtLength')
   @DocsEditable()
-  int getPathSegAtLength(num distance) native ;
+  int getPathSegAtLength(num distance) native;
 
   @DomName('SVGPathElement.getPointAtLength')
   @DocsEditable()
-  Point getPointAtLength(num distance) native ;
+  Point getPointAtLength(num distance) native;
 
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  double getTotalLength() native ;
+  double getTotalLength() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4124,35 +4124,35 @@ class PathSegList extends Interceptor
   @DomName('SVGPathSegList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, PathSeg newItem) native ;
+  void __setter__(int index, PathSeg newItem) native;
 
   @DomName('SVGPathSegList.appendItem')
   @DocsEditable()
-  PathSeg appendItem(PathSeg newItem) native ;
+  PathSeg appendItem(PathSeg newItem) native;
 
   @DomName('SVGPathSegList.clear')
   @DocsEditable()
-  void clear() native ;
+  void clear() native;
 
   @DomName('SVGPathSegList.getItem')
   @DocsEditable()
-  PathSeg getItem(int index) native ;
+  PathSeg getItem(int index) native;
 
   @DomName('SVGPathSegList.initialize')
   @DocsEditable()
-  PathSeg initialize(PathSeg newItem) native ;
+  PathSeg initialize(PathSeg newItem) native;
 
   @DomName('SVGPathSegList.insertItemBefore')
   @DocsEditable()
-  PathSeg insertItemBefore(PathSeg newItem, int index) native ;
+  PathSeg insertItemBefore(PathSeg newItem, int index) native;
 
   @DomName('SVGPathSegList.removeItem')
   @DocsEditable()
-  PathSeg removeItem(int index) native ;
+  PathSeg removeItem(int index) native;
 
   @DomName('SVGPathSegList.replaceItem')
   @DocsEditable()
-  PathSeg replaceItem(PathSeg newItem, int index) native ;
+  PathSeg replaceItem(PathSeg newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4278,7 +4278,7 @@ class PatternElement extends SvgElement
 
   @DomName('SVGPatternElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) native ;
+  bool hasExtension(String extension) native;
 
   // From SVGURIReference
 
@@ -4310,7 +4310,7 @@ class Point extends Interceptor {
 
   @DomName('SVGPoint.matrixTransform')
   @DocsEditable()
-  Point matrixTransform(Matrix matrix) native ;
+  Point matrixTransform(Matrix matrix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4338,35 +4338,35 @@ class PointList extends Interceptor {
   @DomName('SVGPointList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Point newItem) native ;
+  void __setter__(int index, Point newItem) native;
 
   @DomName('SVGPointList.appendItem')
   @DocsEditable()
-  Point appendItem(Point newItem) native ;
+  Point appendItem(Point newItem) native;
 
   @DomName('SVGPointList.clear')
   @DocsEditable()
-  void clear() native ;
+  void clear() native;
 
   @DomName('SVGPointList.getItem')
   @DocsEditable()
-  Point getItem(int index) native ;
+  Point getItem(int index) native;
 
   @DomName('SVGPointList.initialize')
   @DocsEditable()
-  Point initialize(Point newItem) native ;
+  Point initialize(Point newItem) native;
 
   @DomName('SVGPointList.insertItemBefore')
   @DocsEditable()
-  Point insertItemBefore(Point newItem, int index) native ;
+  Point insertItemBefore(Point newItem, int index) native;
 
   @DomName('SVGPointList.removeItem')
   @DocsEditable()
-  Point removeItem(int index) native ;
+  Point removeItem(int index) native;
 
   @DomName('SVGPointList.replaceItem')
   @DocsEditable()
-  Point replaceItem(Point newItem, int index) native ;
+  Point replaceItem(Point newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4809,35 +4809,35 @@ class StringList extends Interceptor
   @DomName('SVGStringList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, String newItem) native ;
+  void __setter__(int index, String newItem) native;
 
   @DomName('SVGStringList.appendItem')
   @DocsEditable()
-  String appendItem(String newItem) native ;
+  String appendItem(String newItem) native;
 
   @DomName('SVGStringList.clear')
   @DocsEditable()
-  void clear() native ;
+  void clear() native;
 
   @DomName('SVGStringList.getItem')
   @DocsEditable()
-  String getItem(int index) native ;
+  String getItem(int index) native;
 
   @DomName('SVGStringList.initialize')
   @DocsEditable()
-  String initialize(String newItem) native ;
+  String initialize(String newItem) native;
 
   @DomName('SVGStringList.insertItemBefore')
   @DocsEditable()
-  String insertItemBefore(String item, int index) native ;
+  String insertItemBefore(String item, int index) native;
 
   @DomName('SVGStringList.removeItem')
   @DocsEditable()
-  String removeItem(int index) native ;
+  String removeItem(int index) native;
 
   @DomName('SVGStringList.replaceItem')
   @DocsEditable()
-  String replaceItem(String newItem, int index) native ;
+  String replaceItem(String newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5374,12 +5374,12 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.blur')
   @DocsEditable()
   @Experimental() // untriaged
-  void blur() native ;
+  void blur() native;
 
   @DomName('SVGElement.focus')
   @DocsEditable()
   @Experimental() // untriaged
-  void focus() native ;
+  void focus() native;
 
   @DomName('SVGElement.onabort')
   @DocsEditable()
@@ -5729,108 +5729,107 @@ class SvgSvgElement extends GraphicsElement
 
   @DomName('SVGSVGElement.animationsPaused')
   @DocsEditable()
-  bool animationsPaused() native ;
+  bool animationsPaused() native;
 
   @DomName('SVGSVGElement.checkEnclosure')
   @DocsEditable()
-  bool checkEnclosure(SvgElement element, Rect rect) native ;
+  bool checkEnclosure(SvgElement element, Rect rect) native;
 
   @DomName('SVGSVGElement.checkIntersection')
   @DocsEditable()
-  bool checkIntersection(SvgElement element, Rect rect) native ;
+  bool checkIntersection(SvgElement element, Rect rect) native;
 
   @JSName('createSVGAngle')
   @DomName('SVGSVGElement.createSVGAngle')
   @DocsEditable()
-  Angle createSvgAngle() native ;
+  Angle createSvgAngle() native;
 
   @JSName('createSVGLength')
   @DomName('SVGSVGElement.createSVGLength')
   @DocsEditable()
-  Length createSvgLength() native ;
+  Length createSvgLength() native;
 
   @JSName('createSVGMatrix')
   @DomName('SVGSVGElement.createSVGMatrix')
   @DocsEditable()
-  Matrix createSvgMatrix() native ;
+  Matrix createSvgMatrix() native;
 
   @JSName('createSVGNumber')
   @DomName('SVGSVGElement.createSVGNumber')
   @DocsEditable()
-  Number createSvgNumber() native ;
+  Number createSvgNumber() native;
 
   @JSName('createSVGPoint')
   @DomName('SVGSVGElement.createSVGPoint')
   @DocsEditable()
-  Point createSvgPoint() native ;
+  Point createSvgPoint() native;
 
   @JSName('createSVGRect')
   @DomName('SVGSVGElement.createSVGRect')
   @DocsEditable()
-  Rect createSvgRect() native ;
+  Rect createSvgRect() native;
 
   @JSName('createSVGTransform')
   @DomName('SVGSVGElement.createSVGTransform')
   @DocsEditable()
-  Transform createSvgTransform() native ;
+  Transform createSvgTransform() native;
 
   @JSName('createSVGTransformFromMatrix')
   @DomName('SVGSVGElement.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) native ;
+  Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
   @DomName('SVGSVGElement.deselectAll')
   @DocsEditable()
-  void deselectAll() native ;
+  void deselectAll() native;
 
   @DomName('SVGSVGElement.forceRedraw')
   @DocsEditable()
-  void forceRedraw() native ;
+  void forceRedraw() native;
 
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() native ;
+  double getCurrentTime() native;
 
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
-  Element getElementById(String elementId) native ;
+  Element getElementById(String elementId) native;
 
   @DomName('SVGSVGElement.getEnclosureList')
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native ;
+  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
 
   @DomName('SVGSVGElement.getIntersectionList')
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement)
-      native ;
+  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
 
   @DomName('SVGSVGElement.pauseAnimations')
   @DocsEditable()
-  void pauseAnimations() native ;
+  void pauseAnimations() native;
 
   @DomName('SVGSVGElement.setCurrentTime')
   @DocsEditable()
-  void setCurrentTime(num seconds) native ;
+  void setCurrentTime(num seconds) native;
 
   @DomName('SVGSVGElement.suspendRedraw')
   @DocsEditable()
-  int suspendRedraw(int maxWaitMilliseconds) native ;
+  int suspendRedraw(int maxWaitMilliseconds) native;
 
   @DomName('SVGSVGElement.unpauseAnimations')
   @DocsEditable()
-  void unpauseAnimations() native ;
+  void unpauseAnimations() native;
 
   @DomName('SVGSVGElement.unsuspendRedraw')
   @DocsEditable()
-  void unsuspendRedraw(int suspendHandleId) native ;
+  void unsuspendRedraw(int suspendHandleId) native;
 
   @DomName('SVGSVGElement.unsuspendRedrawAll')
   @DocsEditable()
-  void unsuspendRedrawAll() native ;
+  void unsuspendRedrawAll() native;
 
   // From SVGFitToViewBox
 
@@ -5996,39 +5995,39 @@ class TextContentElement extends GraphicsElement {
 
   @DomName('SVGTextContentElement.getCharNumAtPosition')
   @DocsEditable()
-  int getCharNumAtPosition(Point point) native ;
+  int getCharNumAtPosition(Point point) native;
 
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  double getComputedTextLength() native ;
+  double getComputedTextLength() native;
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
-  Point getEndPositionOfChar(int charnum) native ;
+  Point getEndPositionOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getExtentOfChar')
   @DocsEditable()
-  Rect getExtentOfChar(int charnum) native ;
+  Rect getExtentOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getNumberOfChars')
   @DocsEditable()
-  int getNumberOfChars() native ;
+  int getNumberOfChars() native;
 
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  double getRotationOfChar(int charnum) native ;
+  double getRotationOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
-  Point getStartPositionOfChar(int charnum) native ;
+  Point getStartPositionOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  double getSubStringLength(int charnum, int nchars) native ;
+  double getSubStringLength(int charnum, int nchars) native;
 
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
-  void selectSubString(int charnum, int nchars) native ;
+  void selectSubString(int charnum, int nchars) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6238,27 +6237,27 @@ class Transform extends Interceptor {
 
   @DomName('SVGTransform.setMatrix')
   @DocsEditable()
-  void setMatrix(Matrix matrix) native ;
+  void setMatrix(Matrix matrix) native;
 
   @DomName('SVGTransform.setRotate')
   @DocsEditable()
-  void setRotate(num angle, num cx, num cy) native ;
+  void setRotate(num angle, num cx, num cy) native;
 
   @DomName('SVGTransform.setScale')
   @DocsEditable()
-  void setScale(num sx, num sy) native ;
+  void setScale(num sx, num sy) native;
 
   @DomName('SVGTransform.setSkewX')
   @DocsEditable()
-  void setSkewX(num angle) native ;
+  void setSkewX(num angle) native;
 
   @DomName('SVGTransform.setSkewY')
   @DocsEditable()
-  void setSkewY(num angle) native ;
+  void setSkewY(num angle) native;
 
   @DomName('SVGTransform.setTranslate')
   @DocsEditable()
-  void setTranslate(num tx, num ty) native ;
+  void setTranslate(num tx, num ty) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6331,44 +6330,44 @@ class TransformList extends Interceptor
   @DomName('SVGTransformList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Transform newItem) native ;
+  void __setter__(int index, Transform newItem) native;
 
   @DomName('SVGTransformList.appendItem')
   @DocsEditable()
-  Transform appendItem(Transform newItem) native ;
+  Transform appendItem(Transform newItem) native;
 
   @DomName('SVGTransformList.clear')
   @DocsEditable()
-  void clear() native ;
+  void clear() native;
 
   @DomName('SVGTransformList.consolidate')
   @DocsEditable()
-  Transform consolidate() native ;
+  Transform consolidate() native;
 
   @JSName('createSVGTransformFromMatrix')
   @DomName('SVGTransformList.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) native ;
+  Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
   @DomName('SVGTransformList.getItem')
   @DocsEditable()
-  Transform getItem(int index) native ;
+  Transform getItem(int index) native;
 
   @DomName('SVGTransformList.initialize')
   @DocsEditable()
-  Transform initialize(Transform newItem) native ;
+  Transform initialize(Transform newItem) native;
 
   @DomName('SVGTransformList.insertItemBefore')
   @DocsEditable()
-  Transform insertItemBefore(Transform newItem, int index) native ;
+  Transform insertItemBefore(Transform newItem, int index) native;
 
   @DomName('SVGTransformList.removeItem')
   @DocsEditable()
-  Transform removeItem(int index) native ;
+  Transform removeItem(int index) native;
 
   @DomName('SVGTransformList.replaceItem')
   @DocsEditable()
-  Transform replaceItem(Transform newItem, int index) native ;
+  Transform replaceItem(Transform newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
