@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This file declares a "shadow hierarchy" of concrete classes which extend
-/// the kernel class hierarchy using mixins from `builder/shadow_ast.dart`.
+/// the kernel class hierarchy, adding methods and fields needed by the
+/// BodyBuilder.
 ///
 /// Instances of these classes may be created using the factory methods in
 /// `ast_factory.dart`.
@@ -18,188 +19,53 @@
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
 
-import '../builder/shadow_ast.dart';
-
 /// Concrete shadow object representing a statement block in kernel form.
-class KernelBlock extends Block with ShadowBlock implements KernelStatement {
+class KernelBlock extends Block implements KernelStatement {
   KernelBlock(List<KernelStatement> statements) : super(statements);
-
-  @override
-  List<KernelStatement> get shadowStatements => statements;
 }
 
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
-abstract class KernelExpression implements Expression, ShadowExpression {}
+abstract class KernelExpression implements Expression {}
 
 /// Concrete shadow object representing a function expression in kernel form.
 class KernelFunctionExpression extends FunctionExpression
-    with ShadowFunctionExpression
     implements KernelExpression {
   KernelFunctionExpression(FunctionNode function) : super(function);
-
-  @override
-  KernelStatement get shadowBody => function.body;
-
-  @override
-  DartType get shadowFunctionType {
-    return function.functionType;
-  }
-
-  @override
-  bool get shadowIsAsync {
-    // TODO(paulberry): is there a helper function in kernel that does this?
-    var asyncMarker = function.asyncMarker;
-    return asyncMarker == AsyncMarker.Async ||
-        asyncMarker == AsyncMarker.AsyncStar;
-  }
-
-  @override
-  bool get shadowIsExpressionFunction => function.body is ReturnStatement;
-
-  @override
-  bool get shadowIsGenerator {
-    // TODO(paulberry): is there a helper function in kernel that does this?
-    var asyncMarker = function.asyncMarker;
-    return asyncMarker == AsyncMarker.SyncStar ||
-        asyncMarker == AsyncMarker.AsyncStar;
-  }
-
-  @override
-  set shadowReturnType(DartType type) {
-    function.returnType = type;
-  }
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
-class KernelIntLiteral extends IntLiteral
-    with ShadowIntLiteral
-    implements KernelExpression {
+class KernelIntLiteral extends IntLiteral implements KernelExpression {
   KernelIntLiteral(int value) : super(value);
 }
 
 /// Concrete shadow object representing a list literal in kernel form.
-class KernelListLiteral extends _KernelListLiteral
-    with ShadowListLiteral
-    implements KernelExpression {
-  /// TODO(paulberry): see if we can eliminate the need for this by allowing
-  /// `null` to be stored in [ListLiteral] prior to type inference.
-  DartType _declaredTypeArgument;
-
+class KernelListLiteral extends ListLiteral implements KernelExpression {
   KernelListLiteral(List<KernelExpression> expressions,
       {DartType typeArgument, bool isConst: false})
-      : _declaredTypeArgument = typeArgument,
-        super(expressions, typeArgument ?? const DynamicType(), isConst);
-
-  @override
-  Iterable<KernelExpression> get shadowExpressions {
-    List<KernelExpression> shadowExpressions = expressions;
-    return shadowExpressions;
-  }
-
-  @override
-  DartType get shadowTypeArgument => _declaredTypeArgument;
-
-  @override
-  set shadowTypeArgument(DartType type) {
-    typeArgument = type;
-  }
+      : super(expressions, typeArgument: typeArgument, isConst: isConst);
 }
 
 /// Concrete shadow object representing a null literal in kernel form.
-class KernelNullLiteral extends NullLiteral
-    with ShadowNullLiteral
-    implements KernelExpression {}
+class KernelNullLiteral extends NullLiteral implements KernelExpression {}
 
 /// Concrete shadow object representing a return statement in kernel form.
-class KernelReturnStatement extends _KernelReturnStatement
-    with ShadowReturnStatement
-    implements KernelStatement {
+class KernelReturnStatement extends ReturnStatement implements KernelStatement {
   KernelReturnStatement([KernelExpression expression]) : super(expression);
-
-  @override
-  KernelExpression get shadowExpression => expression;
 }
 
 /// Common base class for shadow objects representing statements in kernel
 /// form.
-abstract class KernelStatement extends Statement implements ShadowStatement {}
+abstract class KernelStatement extends Statement {}
 
 /// Concrete shadow object representing a variable declaration in kernel form.
-class KernelVariableDeclaration extends _KernelVariableDeclaration
-    with ShadowVariableDeclaration
+class KernelVariableDeclaration extends VariableDeclaration
     implements KernelStatement {
-  /// TODO(paulberry): see if we can eliminate the need for this by allowing
-  /// `null` to be stored in [VariableDeclaration] prior to type
-  /// inference.  Alternative: create a subclass of DynamicType which represents
-  /// implicit dynamic ("MissingType" or "ImplicitDynamicType" perhaps).
-  DartType _declaredType;
-
   KernelVariableDeclaration(String name,
       {KernelExpression initializer,
       DartType type,
       bool isFinal: false,
       bool isConst: false})
-      : _declaredType = type,
-        super(name, initializer, type ?? const DynamicType(), isFinal, isConst);
-
-  @override
-  KernelExpression get shadowInitializer => initializer;
-
-  @override
-  DartType get shadowType => _declaredType;
-
-  @override
-  set shadowType(DartType type) {
-    this.type = type;
-  }
-
-  @override
-  set type(DartType type) {
-    super.type = _declaredType = type;
-  }
-}
-
-/// Concrete shadow object representing a read from a variable in kernel form.
-class KernelVariableGet extends _KernelVariableGet
-    with ShadowVariableGet
-    implements KernelExpression {
-  KernelVariableGet(VariableDeclaration variable, [DartType promotedType])
-      : super(variable, promotedType);
-
-  @override
-  KernelVariableDeclaration get shadowDeclaration => variable;
-}
-
-/// Adaptor class allowing [ListLiteral] to be extended with a mixin.
-///
-/// TODO(paulberry): see if we can eliminate the need for this class by adding
-/// a named constructor to [ListLiteral] in which all arguments are
-/// required.
-class _KernelListLiteral extends ListLiteral {
-  _KernelListLiteral(
-      List<Expression> expressions, DartType typeArgument, bool isConst)
-      : super(expressions, typeArgument: typeArgument, isConst: isConst);
-}
-
-/// Adaptor class allowing [ReturnStatement] to be extended with a mixin.
-///
-/// TODO(paulberry): see if we can eliminate the need for this class by adding
-/// a named constructor to [ReturnStatement] in which all arguments are
-/// required.
-class _KernelReturnStatement extends ReturnStatement {
-  _KernelReturnStatement(KernelExpression expression) : super(expression);
-}
-
-/// Adaptor class allowing [VariableDeclaration] to be extended with a
-/// mixin.
-///
-/// TODO(paulberry): see if we can eliminate the need for this class by adding
-/// a named constructor to [VariableDeclaration] in which all arguments
-/// are required.
-class _KernelVariableDeclaration extends VariableDeclaration {
-  _KernelVariableDeclaration(String name, Expression initializer, DartType type,
-      bool isFinal, bool isConst)
       : super(name,
             initializer: initializer,
             type: type,
@@ -207,12 +73,8 @@ class _KernelVariableDeclaration extends VariableDeclaration {
             isConst: isConst);
 }
 
-/// Adaptor class allowing [VariableGet] to be extended with a mixin.
-///
-/// TODO(paulberry): see if we can eliminate the need for this class by adding
-/// a named constructor to [VariableGet] in which all arguments are
-/// required.
-class _KernelVariableGet extends VariableGet {
-  _KernelVariableGet(VariableDeclaration variable, DartType promotedType)
+/// Concrete shadow object representing a read from a variable in kernel form.
+class KernelVariableGet extends VariableGet implements KernelExpression {
+  KernelVariableGet(VariableDeclaration variable, [DartType promotedType])
       : super(variable, promotedType);
 }
