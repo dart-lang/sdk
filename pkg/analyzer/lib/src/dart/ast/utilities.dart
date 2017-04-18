@@ -2777,7 +2777,7 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
       if (first) {
         first = false;
       } else {
-        buffer.write('in ');
+        buffer.write(' in ');
       }
       buffer.write(currentNode.runtimeType);
       currentNode = currentNode.parent;
