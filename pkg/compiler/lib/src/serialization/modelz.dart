@@ -932,7 +932,7 @@ class ClassElementZ extends DeserializedElementZ
         ClassElementMixin
     implements ClassElement {
   bool _isObject;
-  ResolutionDartType _supertype;
+  ResolutionInterfaceType _supertype;
   OrderedTypeSet _allSupertypesAndSelf;
   Link<ResolutionDartType> _interfaces;
   ResolutionFunctionType _callType;

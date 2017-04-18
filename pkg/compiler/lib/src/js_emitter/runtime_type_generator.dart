@@ -10,7 +10,7 @@ import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionFunctionType;
+    show ResolutionDartType, ResolutionFunctionType, ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, MixinApplicationElement;
 import '../js/js.dart' as jsAst;
@@ -242,7 +242,7 @@ class RuntimeTypeGenerator {
     }
 
     if (supertypesNeedSubstitutions) {
-      for (ResolutionDartType supertype in cls.allSupertypes) {
+      for (ResolutionInterfaceType supertype in cls.allSupertypes) {
         ClassElement superclass = supertype.element;
         if (generated.contains(superclass)) continue;
 

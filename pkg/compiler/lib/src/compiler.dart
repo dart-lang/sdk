@@ -1905,7 +1905,8 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   @override
   void forEachSupertype(
       ClassElement cls, void f(ResolutionInterfaceType supertype)) {
-    cls.allSupertypes.forEach((ResolutionDartType supertype) => f(supertype));
+    cls.allSupertypes
+        .forEach((ResolutionInterfaceType supertype) => f(supertype));
   }
 
   @override

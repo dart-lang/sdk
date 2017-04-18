@@ -2702,7 +2702,7 @@ abstract class BaseClassElementX extends ElementX
     implements ClassElement {
   final int id;
 
-  ResolutionDartType supertype;
+  ResolutionInterfaceType supertype;
   Link<ResolutionDartType> interfaces;
   int supertypeLoadState;
   int resolutionState;

@@ -538,7 +538,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
    */
   void calculateAllSupertypes(BaseClassElementX cls) {
     if (cls.allSupertypesAndSelf != null) return;
-    final ResolutionDartType supertype = cls.supertype;
+    final ResolutionInterfaceType supertype = cls.supertype;
     if (supertype != null) {
       cls.allSupertypesAndSelf = new OrderedTypeSetBuilder(cls,
               reporter: reporter, objectType: commonElements.objectType)

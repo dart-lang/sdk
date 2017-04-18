@@ -9,7 +9,7 @@ library class_set_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart' show ClassElement;
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/util/util.dart';

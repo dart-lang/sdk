@@ -467,7 +467,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
       // and precompute the substitutions for them.
       assert(invariant(element, element.allSupertypes != null,
           message: 'Supertypes have not been computed for $element.'));
-      for (ResolutionDartType supertype in element.allSupertypes) {
+      for (ResolutionInterfaceType supertype in element.allSupertypes) {
         ClassElement superelement = supertype.element;
         if (checked.contains(superelement)) {
           Substitution substitution =
@@ -548,7 +548,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
         directCollector.collect(type, isTypeArgument: isTypeArgument);
         if (type.isInterfaceType) {
           ClassElement cls = type.element;
-          for (ResolutionDartType supertype in cls.allSupertypes) {
+          for (ResolutionInterfaceType supertype in cls.allSupertypes) {
             superCollector.collect(supertype, isTypeArgument: isTypeArgument);
           }
         }
@@ -559,7 +559,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     collectTypeArguments(checkedTypeArguments, isTypeArgument: true);
 
     for (ClassElement cls in superCollector.classes.toList()) {
-      for (ResolutionDartType supertype in cls.allSupertypes) {
+      for (ResolutionInterfaceType supertype in cls.allSupertypes) {
         superCollector.collect(supertype);
       }
     }

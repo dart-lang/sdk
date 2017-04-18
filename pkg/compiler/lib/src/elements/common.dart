@@ -11,6 +11,7 @@ import '../common_elements.dart' show CommonElements;
 import '../util/util.dart' show Link;
 import 'entities.dart';
 import 'elements.dart';
+import 'types.dart';
 import 'resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType, ResolutionFunctionType;
 
@@ -190,7 +191,7 @@ abstract class CompilationUnitElementCommon implements CompilationUnitElement {}
 
 abstract class ClassElementCommon implements ClassElement {
   @override
-  Link<ResolutionDartType> get allSupertypes => allSupertypesAndSelf.supertypes;
+  Link<InterfaceType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
   @override
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
@@ -198,7 +199,7 @@ abstract class ClassElementCommon implements ClassElement {
   @override
   ResolutionInterfaceType asInstanceOf(ClassElement cls) {
     if (cls == this) return thisType;
-    return allSupertypesAndSelf.asInstanceOf(cls);
+    return allSupertypesAndSelf.asInstanceOf(cls, cls.hierarchyDepth);
   }
 
   @override
@@ -435,9 +436,11 @@ abstract class ClassElementCommon implements ClassElement {
   }
 
   @override
-  bool implementsInterface(ClassElement intrface) {
-    return this != intrface &&
-        allSupertypesAndSelf.asInstanceOf(intrface) != null;
+  bool implementsInterface(ClassElement interface) {
+    return this != interface &&
+        allSupertypesAndSelf.asInstanceOf(
+                interface, interface.hierarchyDepth) !=
+            null;
   }
 
   @override

@@ -1628,7 +1628,7 @@ class Types implements DartTypes {
         ResolutionInterfaceType type, int depth) {
       OrderedTypeSet types = type.element.allSupertypesAndSelf;
       Set<ResolutionDartType> set = new Set<ResolutionDartType>();
-      types.forEach(depth, (ResolutionDartType supertype) {
+      types.forEach(depth, (ResolutionInterfaceType supertype) {
         set.add(supertype.substByContext(type));
       });
       return set;

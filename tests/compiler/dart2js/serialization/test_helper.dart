@@ -287,7 +287,7 @@ bool checkTypes(Object object1, Object object2, String property,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkTypeLists(Object object1, Object object2, String property,
-    List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
+    List<DartType> list1, List<DartType> list2) {
   return checkListEquivalence(
       object1, object2, property, list1, list2, checkTypes);
 }

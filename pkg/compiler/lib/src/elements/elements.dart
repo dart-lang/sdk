@@ -25,6 +25,7 @@ import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
 import 'resolution_types.dart';
+import 'types.dart';
 import 'visitor.dart' show ElementVisitor;
 
 part 'names.dart';
@@ -1600,7 +1601,7 @@ abstract class ClassElement extends TypeDeclarationElement
   OrderedTypeSet get allSupertypesAndSelf;
 
   /// A list of all supertypes of this class excluding the class itself.
-  Link<ResolutionDartType> get allSupertypes;
+  Link<InterfaceType> get allSupertypes;
 
   /// Returns the this type of this class as an instance of [cls].
   ResolutionInterfaceType asInstanceOf(ClassElement cls);

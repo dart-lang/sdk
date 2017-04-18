@@ -198,8 +198,8 @@ class ClosureFieldElement extends ElementX
 // TODO(ahe): These classes continuously cause problems.  We need to find
 // a more general solution.
 class ClosureClassElement extends ClassElementX {
-  ResolutionDartType rawType;
-  ResolutionDartType thisType;
+  ResolutionInterfaceType rawType;
+  ResolutionInterfaceType thisType;
   ResolutionFunctionType callType;
 
   /// Node that corresponds to this closure, used for source position.

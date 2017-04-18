@@ -432,7 +432,7 @@ class DeferredLoadTask extends CompilerTask {
 
       ClassElement cls = element.declaration;
       cls.implementation.forEachMember(addLiveInstanceMember);
-      for (var type in cls.implementation.allSupertypes) {
+      for (ResolutionInterfaceType type in cls.implementation.allSupertypes) {
         elements.add(type.element.implementation);
       }
       elements.add(cls.implementation);

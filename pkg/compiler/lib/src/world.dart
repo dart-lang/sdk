@@ -18,6 +18,7 @@ import 'elements/elements.dart'
         MixinApplicationElement,
         TypedefElement;
 import 'elements/resolution_types.dart';
+import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
@@ -972,14 +973,14 @@ class ClosedWorldImpl extends ClosedWorldBase {
 
     List<ClassElement> commonSupertypes = <ClassElement>[];
     OUTER:
-    for (Link<ResolutionDartType> link = typeSet[depth];
+    for (Link<InterfaceType> link = typeSet[depth];
         link.head.element != commonElements.objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;
       for (Link<OrderedTypeSet> link = otherTypeSets;
           !link.isEmpty;
           link = link.tail) {
-        if (link.head.asInstanceOf(cls) == null) {
+        if (link.head.asInstanceOf(cls, cls.hierarchyDepth) == null) {
           continue OUTER;
         }
       }
