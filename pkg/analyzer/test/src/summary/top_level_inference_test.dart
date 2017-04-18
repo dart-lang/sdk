@@ -1450,6 +1450,27 @@ Null V;
 ''');
   }
 
+  test_instanceField_error_noSetterParameter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int x;
+}
+class B implements A {
+  set x() {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int x;
+}
+class B implements A {
+  void set x() {}
+}
+''');
+  }
+
   test_instanceField_fieldFormal() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {

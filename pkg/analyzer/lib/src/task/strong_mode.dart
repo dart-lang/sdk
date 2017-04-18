@@ -273,11 +273,14 @@ class InstanceMemberInferrer {
     if (element.kind == ElementKind.GETTER) {
       (element as ExecutableElementImpl).returnType = typeResult.type;
     } else if (element.kind == ElementKind.SETTER) {
-      var parameter = element.parameters[0] as ParameterElementImpl;
-      if (parameter.hasImplicitType) {
-        parameter.type = typeResult.type;
+      List<ParameterElement> parameters = element.parameters;
+      if (parameters.isNotEmpty) {
+        var parameter = parameters[0] as ParameterElementImpl;
+        if (parameter.hasImplicitType) {
+          parameter.type = typeResult.type;
+        }
+        parameter.inheritsCovariant = typeResult.isCovariant;
       }
-      parameter.inheritsCovariant = typeResult.isCovariant;
     }
     setFieldType(element.variable, typeResult.type);
   }
