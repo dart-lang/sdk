@@ -5915,6 +5915,49 @@ main() {
 ''');
   }
 
+  test_removeInitializer_field() async {
+    String src = '''
+class Test {
+  int /*LINT*/x = null;
+}
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+class Test {
+  int x;
+}
+''');
+  }
+
+  test_removeInitializer_listOfVariableDeclarations() async {
+    String src = '''
+String a = 'a', /*LINT*/b = null, c = 'c';
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+String a = 'a', b, c = 'c';
+''');
+  }
+
+  test_removeInitializer_topLevel() async {
+    String src = '''
+var /*LINT*/x = null;
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+var x;
+''');
+  }
+
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }

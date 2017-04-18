@@ -109,7 +109,8 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
         (errorCode.name == LintNames.annotate_overrides ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp));
+            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.avoid_init_to_null));
 
 /**
  * An enumeration of possible quick fix kinds.
@@ -195,6 +196,8 @@ class DartFixKind {
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const MAKE_FIELD_NOT_FINAL =
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
+  static const REMOVE_INITIALIZER =
+      const FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,

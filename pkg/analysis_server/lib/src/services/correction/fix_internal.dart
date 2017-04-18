@@ -384,6 +384,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
         _addLintRemoveInterpolationBraces();
       }
+      if (errorCode.name == LintNames.avoid_init_to_null) {
+        _addFix_removeInitializer();
+      }
     }
     // done
     return fixes;
@@ -1795,6 +1798,20 @@ class FixProcessor {
     }
   }
 
+  void _addFix_removeInitializer() {
+    // Retrieve the linted node.
+    VariableDeclaration ancestor =
+        node.getAncestor((a) => a is VariableDeclaration);
+    if (ancestor == null) {
+      return;
+    }
+
+    final start = ancestor.name.end;
+    final end = ancestor.initializer.end;
+    _addRemoveEdit(rf.rangeStartLength(start, end - start));
+    _addFix(DartFixKind.REMOVE_INITIALIZER, []);
+  }
+
   void _addFix_removeParameters_inGetterDeclaration() {
     if (node is MethodDeclaration) {
       MethodDeclaration method = node as MethodDeclaration;
@@ -2998,6 +3015,7 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
+  static const String avoid_init_to_null = 'avoid_init_to_null';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
 }
