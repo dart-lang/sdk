@@ -11472,12 +11472,11 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   }
   const Token::Kind assignment_op = CurrentToken();
   const TokenPosition assignment_pos = TokenPos();
-  ConsumeToken();
-  const TokenPosition right_expr_pos = TokenPos();
-  if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
-    ReportError(right_expr_pos,
+  if (require_compiletime_const) {
+    ReportError(assignment_pos,
                 "expression is not a valid compile-time constant");
   }
+  ConsumeToken();
   AstNode* right_expr = ParseExpr(require_compiletime_const, consume_cascades);
   if (assignment_op != Token::kASSIGN) {
     // Compound assignment: store inputs with side effects into temp. locals.

@@ -572,3 +572,4 @@ issue_1751477_test: CompileTimeError # Deferred loading kernel issue 28335.
 regress_22443_test: CompileTimeError # Deferred loading kernel issue 28335.
 regress_23408_test: CompileTimeError # Deferred loading kernel issue 28335.
 regress_28278_test: CompileTimeError # Deferred loading kernel issue 28335.
+case_expression_with_assignment_test/01: Crash # Issue 29379
