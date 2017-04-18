@@ -361,7 +361,7 @@ class Server {
       serverPrint("Observatory server failed to start after $attempts tries");
       if (attempts > maxAttempts) {
         serverPrint('Could not start Observatory HTTP server:\n'
-                    '$pollError\n$pollStack\n');
+            '$pollError\n$pollStack\n');
         _notifyServerState("");
         onServerAddressChange(null);
         return this;

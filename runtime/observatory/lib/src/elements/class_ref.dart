@@ -52,7 +52,8 @@ class ClassRefElement extends HtmlElement implements Renderable {
       new AnchorElement(
           href: (_isolate == null)
               ? null
-              : Uris.inspect(_isolate, object: _class))..text = _class.name
+              : Uris.inspect(_isolate, object: _class))
+        ..text = _class.name
     ];
   }
 }

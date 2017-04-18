@@ -223,8 +223,8 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
         ..value = tagToString(_tag)
         ..children = values.map((tag) {
           return new OptionElement(
-              value: tagToString(tag),
-              selected: _tag == tag)..text = tagToString(tag);
+              value: tagToString(tag), selected: _tag == tag)
+            ..text = tagToString(tag);
         }).toList(growable: false)
         ..onChange.listen((_) {
           _tag = values[s.selectedIndex];

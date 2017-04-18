@@ -1039,7 +1039,7 @@ _processLoadRequest(request) {
           loaderState = new IsolateLoaderState(isolateId);
           isolateEmbedderData[isolateId] = loaderState;
           loaderState.init(
-            packageRoot, packagesFile, workingDirectory, rootScript);
+              packageRoot, packagesFile, workingDirectory, rootScript);
         } else {
           loaderState.updatePackageMap(packagesFile);
         }

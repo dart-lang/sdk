@@ -1247,7 +1247,6 @@ class VmNameCommand extends DebuggerCommand {
       'Syntax: vm name <name>\n';
 }
 
-
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger)
       : super(debugger, 'vm', [
@@ -2567,22 +2566,21 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                                           queue: _r.queue)
                                     ]
                                 ]
-                      ]
-                        ..addAll(_frame.variables
-                            .map((v) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = [
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..text = v.name,
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..children = [
-                                    anyRef(_isolate, v['value'], _instances,
-                                        queue: _r.queue)
-                                  ]
-                              ])
-                            .toList()))
+                      ]..addAll(_frame.variables
+                          .map((v) => new DivElement()
+                            ..classes = ['memberItem']
+                            ..children = [
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..text = v.name,
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..children = [
+                                  anyRef(_isolate, v['value'], _instances,
+                                      queue: _r.queue)
+                                ]
+                            ])
+                          .toList()))
                   ]
               ],
             new DivElement()
@@ -2877,13 +2875,12 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                               ..onClick.listen((_) {
                                 previewButton.disabled = true;
                               })
-                          ]
-                            ..addAll(_preview == null
-                                ? const []
-                                : [
-                                    anyRef(_isolate, _preview, _instances,
-                                        queue: _r.queue)
-                                  ]))
+                          ]..addAll(_preview == null
+                              ? const []
+                              : [
+                                  anyRef(_isolate, _preview, _instances,
+                                      queue: _r.queue)
+                                ]))
                       ]
                   ]
               ],

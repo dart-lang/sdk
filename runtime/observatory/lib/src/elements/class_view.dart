@@ -384,7 +384,8 @@ class ClassViewElement extends HtmlElement implements Renderable {
                       new ClassRefElement(_isolate, subcls, queue: _r.queue),
                       new SpanElement()..text = ', '
                     ])
-                .toList()..removeLast())
+                .toList()
+                  ..removeLast())
         ]);
     }
 
@@ -405,7 +406,8 @@ class ClassViewElement extends HtmlElement implements Renderable {
                           queue: _r.queue),
                       new SpanElement()..text = ', '
                     ])
-                .toList()..removeLast())
+                .toList()
+                  ..removeLast())
         ]);
     }
     if (_cls.name != _cls.vmName) {

@@ -184,7 +184,8 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                         _scripts, _instances, _events,
                         currentPos:
                             M.topFrame(isolate.pauseEvent).location.tokenPos,
-                        queue: _r.queue)..classes = ['header_inset']
+                        queue: _r.queue)
+                      ..classes = ['header_inset']
                   ]
                 : const [],
           new HRElement(),

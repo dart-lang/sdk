@@ -260,7 +260,8 @@ class InstanceRefElement extends HtmlElement implements Renderable {
                 new SpanElement()..text = '[ ${index++} ] : ',
                 anyRef(_isolate, element, _instances, queue: _r.queue)
               ])
-            .toList()..addAll(_createShowMoreButton());
+            .toList()
+              ..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
         return _loadedInstance.associations
             .map((association) => new DivElement()
@@ -270,7 +271,8 @@ class InstanceRefElement extends HtmlElement implements Renderable {
                 new SpanElement()..text = ' ] : ',
                 anyRef(_isolate, association.value, _instances, queue: _r.queue)
               ])
-            .toList()..addAll(_createShowMoreButton());
+            .toList()
+              ..addAll(_createShowMoreButton());
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -288,7 +290,8 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         var index = 0;
         return _loadedInstance.typedElements
             .map((e) => new DivElement()..text = '[ ${index++} ] : $e')
-            .toList()..addAll(_createShowMoreButton());
+            .toList()
+              ..addAll(_createShowMoreButton());
       case M.InstanceKind.mirrorReference:
         return [
           new SpanElement()..text = '<referent> : ',
