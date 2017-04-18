@@ -26,7 +26,7 @@ import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -1176,19 +1176,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /**
    * Return the lint code with the given [errorName], or `null` if there is no
-   * lint registered with that name or the lint is not enabled in the analysis
-   * options.
+   * lint registered with that name.
    */
   ErrorCode _lintCodeByUniqueName(String errorName) {
-    if (errorName.startsWith('_LintCode.')) {
-      String lintName = errorName.substring(10);
-      List<Linter> lintRules = _analysisOptions.lintRules;
-      for (Linter linter in lintRules) {
-        if (linter.name == lintName) {
-          return linter.lintCode;
-        }
-      }
+    const String lintPrefix = 'LintCode.';
+    if (errorName.startsWith(lintPrefix)) {
+      String lintName = errorName.substring(lintPrefix.length);
+      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
     }
+
+    const String lintPrefixOld = '_LintCode.';
+    if (errorName.startsWith(lintPrefixOld)) {
+      String lintName = errorName.substring(lintPrefixOld.length);
+      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
+    }
+
     return null;
   }
 
