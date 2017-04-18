@@ -48,6 +48,7 @@ const List<ErrorCode> errorCodeValues = const [
   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+  CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
   CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
   CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
   CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,

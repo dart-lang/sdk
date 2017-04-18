@@ -1260,6 +1260,25 @@ class A {
     verify([source]);
   }
 
+  test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addNamedSource(
+        '/a.dart',
+        r'''
+import 'b.dart';
+const v = const MyClass();
+''');
+    addNamedSource(
+        '/b.dart',
+        r'''
+class MyClass {
+  const MyClass([p = foo]);
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
   test_constInitializedWithNonConstValue() async {
     Source source = addSource(r'''
 f(p) {
@@ -4774,12 +4793,12 @@ class B {
   final a;
 }
 var b = const B();''');
-    // TODO(paulberry): the error INVALID_CONSTAT is redundant and ought to be
-    // suppressed.
+    // TODO(scheglov): the error CONST_EVAL_THROWS_EXCEPTION is redundant and
+    // ought to be suppressed. Or not?
     await computeAnalysisResult(source);
     assertErrors(source, [
       CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
-      CompileTimeErrorCode.INVALID_CONSTANT
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
     ]);
     verify([source]);
   }
