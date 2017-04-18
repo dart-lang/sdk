@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show DartType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
 /// Abstract implementation of type inference which is independent of the
-/// underlying AST representation.
+/// underlying AST representation (but still uses DartType from kernel).
+///
+/// TODO(paulberry): would it make more sense to abstract away the
+/// representation of types as well?
 ///
 /// Derived classes should set S, E, V, and F to the class they use to represent
 /// statements, expressions, variable declarations, and field declarations,
