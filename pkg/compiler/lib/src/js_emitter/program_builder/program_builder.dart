@@ -847,8 +847,15 @@ class ProgramBuilder {
       MethodElement element, bool canTearOff) {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
-    ParameterStubGenerator generator =
-        new ParameterStubGenerator(_compiler, _namer, _backend, _closedWorld);
+    ParameterStubGenerator generator = new ParameterStubGenerator(
+        _commonElements,
+        _task,
+        _constantHandler,
+        _namer,
+        _nativeData,
+        _interceptorData,
+        _worldBuilder,
+        _closedWorld);
     return generator.generateParameterStubs(element, canTearOff: canTearOff);
   }
 
