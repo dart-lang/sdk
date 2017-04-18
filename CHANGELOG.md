@@ -7,7 +7,10 @@
 ### Core library changes
 
 * `dart:io`
-  * Added `Platform.localeName`.
+  * Added `Platform.localeName`, needed for accessing the locale on platforms
+    that don't store it in an environment variable.
+  * Added `ProcessInfo.currentRss` and `ProcessInfo.maxRss` for inspecting
+    the Dart VM process current and peak resident set size.
 
 ### Dart VM
 
