@@ -291,10 +291,6 @@ regress_22443_test: Crash # Requires deferred libraries
 regress_28278_test: Crash # Requires deferred libraries
 conditional_import_test: Crash # Requires deferred libraries
 conditional_import_string_test: Crash # Requires deferred libraries
-override_field_method1_negative_test: Pass, Crash # Issue 27835
-override_field_method2_negative_test: Pass, Crash # Issue 27835
-override_field_method4_negative_test: Pass, Crash # Issue 27835
-override_field_method5_negative_test: Pass, Crash # Issue 27835
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 vm/optimized_stacktrace_test: Pass, Slow
 

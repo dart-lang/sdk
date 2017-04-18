@@ -973,6 +973,8 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       break;
   }
 
+  Thread* thread = Thread::Current();
+  NoReloadScope no_reload_scope(thread->isolate(), thread);
   return DartLibraryCalls::InstanceCreate(library, *class_name,
                                           *constructor_name, arguments);
 }

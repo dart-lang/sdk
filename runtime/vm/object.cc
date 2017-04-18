@@ -15368,6 +15368,8 @@ RawString* LanguageError::FormatMessage() const {
 
 
 const char* LanguageError::ToErrorCString() const {
+  Thread* thread = Thread::Current();
+  NoReloadScope no_reload_scope(thread->isolate(), thread);
   const String& msg_str = String::Handle(FormatMessage());
   return msg_str.ToCString();
 }
@@ -15425,6 +15427,7 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 const char* UnhandledException::ToErrorCString() const {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  NoReloadScope no_reload_scope(isolate, thread);
   HANDLESCOPE(thread);
   Object& strtmp = Object::Handle();
   const char* exc_str;

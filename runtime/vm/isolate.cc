@@ -652,6 +652,7 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
+  NoReloadScope no_reload_scope(T->isolate(), T);
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
   String& stacktrace_str = String::Handle(T->zone());
