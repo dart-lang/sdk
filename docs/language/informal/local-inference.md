@@ -114,10 +114,10 @@ Inference relies on various operations on constraint sets.
 
 The merge of constraint set `C` for a type variable `T` is a pair of types `Mb
 <: T <: Mt` defined as follows:
-    - let `Mt` be the lower bound of the `Mi` such that `T <: Mi` is in `C`
+  - let `Mt` be the lower bound of the `Mi` such that `T <: Mi` is in `C`
       (and `?` if there are no subtype bounds for T in `C`)
-    - let `Mb` be the upper bound of the `Mi` such that `Mi <: T` is in `C`
-      (and `?` if there are no supertype bounds for T in `C`)
+  - let `Mb` be the upper bound of the `Mi` such that `Mi <: T` is in `C` (and
+      `?` if there are no supertype bounds for T in `C`)
 
 #### Constraint solution for a type variable
 
