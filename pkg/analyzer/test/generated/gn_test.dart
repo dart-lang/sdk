@@ -59,9 +59,10 @@ class GnWorkspaceTest extends _BaseTest {
     provider.newFolder(_p('/workspace/some/code'));
     provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
     String packageLocation = _p('/workspace/this/is/the/package');
+    Uri packageUri = provider.pathContext.toUri(packageLocation);
     provider.newFile(
         _p('/workspace/out/debug-x87_128/gen/some/code/foo.packages'),
-        'flutter:$packageLocation');
+        'flutter:$packageUri');
     GnWorkspace workspace =
         GnWorkspace.find(provider, _p('/workspace/some/code'));
     expect(workspace, isNotNull);
