@@ -68,6 +68,7 @@ final subpackageRules = {
     'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
     'lib/src/fasta/source',
+    'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
   ]),
   'lib/src/fasta/parser': new SubpackageRules(allowedDependencies: [
@@ -89,6 +90,7 @@ final subpackageRules = {
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
+    'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
   ]),
   'lib/src/fasta/testing':
@@ -99,6 +101,7 @@ final subpackageRules = {
     'lib/src/fasta/analyzer',
     'lib/src/fasta/scanner',
   ]),
+  'lib/src/fasta/type_inference': new SubpackageRules(),
   'lib/src/fasta/util': new SubpackageRules(),
   'lib/src/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/base',

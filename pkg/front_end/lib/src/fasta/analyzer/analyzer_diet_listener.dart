@@ -22,7 +22,7 @@ class AnalyzerDietListener extends DietListener {
   final ElementStore elementStore;
 
   AnalyzerDietListener(SourceLibraryBuilder library, this.elementStore)
-      : super(library, null, null);
+      : super(library, null, null, null);
 
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,

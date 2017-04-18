@@ -11,6 +11,12 @@ import '../parser/parser.dart' show FormalParameterType, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show KernelVariableDeclaration;
+
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
@@ -79,6 +85,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final Uri uri;
 
+  final TypeInferrer<Statement, Expression, KernelVariableDeclaration, Field>
+      _typeInferrer;
+
   Scope formalParameterScope;
 
   bool inInitializer = false;
@@ -112,7 +121,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       this.coreTypes,
       this.classBuilder,
       this.isInstanceMember,
-      this.uri)
+      this.uri,
+      this._typeInferrer)
       : enclosingScope = scope,
         library = library,
         isDartLibrary = library.uri.scheme == "dart",
@@ -423,6 +433,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       internalError("Unhandled: ${builder.runtimeType}");
     }
+    _typeInferrer.inferBody(body, uri);
     builder.body = body;
     if (formals?.optional != null) {
       Iterator<FormalParameterBuilder> formalBuilders =

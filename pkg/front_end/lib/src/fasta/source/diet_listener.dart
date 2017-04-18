@@ -4,6 +4,9 @@
 
 library fasta.diet_listener;
 
+import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
+    show TypeInferrer;
+
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -40,6 +43,8 @@ class DietListener extends StackListener {
 
   final bool isDartLibrary;
 
+  final TypeInferrer localTypeInferrer;
+
   ClassBuilder currentClass;
 
   /// For top-level declarations, this is the library scope. For class members,
@@ -49,7 +54,8 @@ class DietListener extends StackListener {
   @override
   Uri uri;
 
-  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes)
+  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
+      this.localTypeInferrer)
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
@@ -384,8 +390,17 @@ class DietListener extends StackListener {
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
-    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
-        hierarchy, coreTypes, currentClass, isInstanceMember, uri);
+    return new BodyBuilder(
+        library,
+        builder,
+        memberScope,
+        formalParameterScope,
+        hierarchy,
+        coreTypes,
+        currentClass,
+        isInstanceMember,
+        uri,
+        localTypeInferrer);
   }
 
   void buildFunctionBody(Token token, ProcedureBuilder builder) {
