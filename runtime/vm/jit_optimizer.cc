@@ -1542,6 +1542,17 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
 
+  const bool is_dense = CheckClassInstr::IsDenseCidRange(unary_checks);
+  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
+  if (op_kind == Token::kEQ &&
+      number_of_checks > FLAG_max_equality_polymorphic_checks && !is_dense &&
+      flow_graph()->InstanceCallNeedsClassCheck(
+          instr, RawFunction::kRegularFunction)) {
+    // Too many checks, it will be megamorphic which needs unary checks.
+    instr->set_ic_data(&unary_checks);
+    return;
+  }
+
   if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
     return;
   }
