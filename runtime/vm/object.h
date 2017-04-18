@@ -2433,6 +2433,7 @@ class Function : public Object {
       case RawFunction::kInvokeFieldDispatcher:
         return true;
       case RawFunction::kClosureFunction:
+      case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
       case RawFunction::kIrregexpFunction:
@@ -2456,7 +2457,11 @@ class Function : public Object {
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
+      case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
+      case RawFunction::kMethodExtractor:
+      case RawFunction::kNoSuchMethodDispatcher:
+      case RawFunction::kInvokeFieldDispatcher:
         return false;
       default:
         UNREACHABLE();

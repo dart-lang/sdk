@@ -112,6 +112,7 @@ io/web_socket_protocol_processor_test: Pass, CompileTimeError # Issue 28843
 *: Skip # Issue 28649
 
 [ $compiler == dart2js ]
+regress_29350_test: MissingCompileTimeError
 number_identity_test: Skip # Bigints and int/double diff. not supported.
 typed_data_test: Skip # dart:typed_data support needed.
 bytedata_test: Skip # dart:typed_data support needed.
@@ -443,7 +444,7 @@ io/http_response_deadline_test: Skip # Flaky.
 io/http_reuse_server_port_test: Skip # Flaky.
 io/http_server_close_response_after_error_test: Skip # Flaky.
 io/raw_datagram_socket_test: Skip # Flaky.
-
+regress_29350_test: MissingCompileTimeError
 assert_test: RuntimeError
 io/compile_all_test: Crash
 io/http_cookie_test: RuntimeError
