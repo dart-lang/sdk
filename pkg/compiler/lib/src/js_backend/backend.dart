@@ -4,8 +4,6 @@
 
 library js_backend.backend;
 
-import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
-
 import '../common.dart';
 import '../common/backend_api.dart'
     show ForeignResolver, NativeRegistry, ImpactTransformer;
@@ -1131,24 +1129,6 @@ class JavaScriptBackend {
         ..add(commonElements.jsInterceptorClass)
         ..add(commonElements.jsNullClass);
     }
-  }
-
-  jsAst.Call generateIsJsIndexableCall(
-      jsAst.Expression use1, jsAst.Expression use2) {
-    String dispatchPropertyName = embeddedNames.DISPATCH_PROPERTY_NAME;
-    jsAst.Expression dispatchProperty =
-        emitter.generateEmbeddedGlobalAccess(dispatchPropertyName);
-
-    // We pass the dispatch property record to the isJsIndexable
-    // helper rather than reading it inside the helper to increase the
-    // chance of making the dispatch record access monomorphic.
-    jsAst.PropertyAccess record =
-        new jsAst.PropertyAccess(use2, dispatchProperty);
-
-    List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
-    MethodElement helper = commonElements.isJsIndexable;
-    jsAst.Expression helperExpression = emitter.staticFunctionAccess(helper);
-    return new jsAst.Call(helperExpression, arguments);
   }
 
   /// Called after the queue is closed. [onQueueEmpty] may be called multiple

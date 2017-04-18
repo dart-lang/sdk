@@ -42,6 +42,7 @@ import '../../js_backend/backend.dart'
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/constant_handler_javascript.dart'
     show JavaScriptConstantCompiler;
+import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/interceptor_data.dart';
@@ -73,9 +74,9 @@ part 'registry.dart';
 /// emitted more easily by the individual emitters.
 class ProgramBuilder {
   final Compiler _compiler;
-  final Namer namer;
+  final Namer _namer;
   final CodeEmitterTask _task;
-  final ClosedWorld closedWorld;
+  final ClosedWorld _closedWorld;
 
   /// Contains the collected information the program builder used to build
   /// the model.
@@ -89,13 +90,13 @@ class ProgramBuilder {
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
 
-  ProgramBuilder(Compiler compiler, Namer namer, this._task, Emitter emitter,
+  ProgramBuilder(Compiler compiler, Namer _namer, this._task, Emitter emitter,
       ClosedWorld closedWorld, Set<ClassElement> rtiNeededClasses)
       : this._compiler = compiler,
-        this.namer = namer,
-        this.closedWorld = closedWorld,
+        this._namer = _namer,
+        this._closedWorld = closedWorld,
         this.collector = new Collector(
-            compiler, namer, closedWorld, rtiNeededClasses, emitter),
+            compiler, _namer, closedWorld, rtiNeededClasses, emitter),
         this._registry = new Registry(compiler);
 
   JavaScriptBackend get _backend => _compiler.backend;
@@ -106,7 +107,6 @@ class ProgramBuilder {
   CompilerOptions get _options => _compiler.options;
   NativeCodegenEnqueuer get _nativeCodegenEnqueuer =>
       _backend.nativeCodegenEnqueuer;
-  Namer get _namer => _backend.namer;
   BackendUsage get _backendUsage => _backend.backendUsage;
   CodeEmitterTask get _emitter => _backend.emitter;
   JavaScriptConstantCompiler get _constantHandler => _backend.constants;
@@ -118,6 +118,8 @@ class ProgramBuilder {
   RuntimeTypesEncoder get _rtiEncoder => _backend.rtiEncoder;
   OneShotInterceptorData get _oneShotInterceptorData =>
       _backend.oneShotInterceptorData;
+  CustomElementsCodegenAnalysis get _customElementsCodegenAnalysis =>
+      _backend.customElementsCodegenAnalysis;
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -240,8 +242,19 @@ class ProgramBuilder {
   }
 
   js.Expression _buildTypeToInterceptorMap() {
-    InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(_compiler, namer, _backend, closedWorld);
+    InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
+        _options,
+        _commonElements,
+        _emitter,
+        _nativeCodegenEnqueuer,
+        _constantHandler,
+        _namer,
+        _nativeData,
+        _interceptorData,
+        _oneShotInterceptorData,
+        _customElementsCodegenAnalysis,
+        _worldBuilder,
+        _closedWorld);
     return stubGenerator.generateTypeToInterceptorMap();
   }
 
@@ -302,10 +315,10 @@ class ProgramBuilder {
         _constantHandler.getConstantValue(element.constant);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
-    _registry.registerHolder(namer.globalObjectForConstant(initialValue),
+    _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
         isConstantsHolder: true);
     js.Expression code = _task.emitter.constantReference(initialValue);
-    js.Name name = namer.globalPropertyName(element);
+    js.Name name = _namer.globalPropertyName(element);
     bool isFinal = false;
     bool isLazy = false;
 
@@ -338,7 +351,7 @@ class ProgramBuilder {
     // before code generation.
     if (code == null) return null;
 
-    js.Name name = namer.globalPropertyName(element);
+    js.Name name = _namer.globalPropertyName(element);
     bool isFinal = element.isFinal;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
@@ -360,7 +373,7 @@ class ProgramBuilder {
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
     if (_classes.containsKey(_commonElements.objectClass)) {
-      var toStringInvocation = namer.invocationName(Selectors.toString_);
+      var toStringInvocation = _namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
       // from JavaScript.
       _classes[_commonElements.objectClass].callStubs.add(_buildStubMethod(
@@ -388,7 +401,7 @@ class ProgramBuilder {
                   _worldBuilder.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 for (var selector in selectors.keys) {
-                  var stubName = namer.invocationName(selector);
+                  var stubName = _namer.invocationName(selector);
                   if (stubNames.add(stubName.key)) {
                     interceptorClass.callStubs.add(_buildStubMethod(stubName,
                         js.js('function(obj) { return obj.# }', [jsName]),
@@ -402,7 +415,7 @@ class ProgramBuilder {
               var selectors =
                   _worldBuilder.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
-                var stubName = namer.setterForElement(member);
+                var stubName = _namer.setterForElement(member);
                 if (stubNames.add(stubName.key)) {
                   interceptorClass.callStubs.add(_buildStubMethod(stubName,
                       js.js('function(obj, v) { return obj.# = v }', [jsName]),
@@ -467,7 +480,7 @@ class ProgramBuilder {
                   if (selector.namedArgumentCount > 0) continue;
                   if (argumentCount < minArgs) continue;
                   if (argumentCount > maxArgs) continue;
-                  var stubName = namer.invocationName(selector);
+                  var stubName = _namer.invocationName(selector);
                   if (!stubNames.add(stubName.key)) continue;
                   var parameters =
                       new List<String>.generate(argumentCount, (i) => 'p$i');
@@ -538,10 +551,10 @@ class ProgramBuilder {
     List<StubMethod> callStubs = <StubMethod>[];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
-        namer, _backend, _worldBuilder, closedWorld,
+        _namer, _backend, _worldBuilder, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator =
-        new RuntimeTypeGenerator(_compiler, _task, namer);
+        new RuntimeTypeGenerator(_compiler, _task, _namer);
 
     void visitMember(ClassElement enclosing, MemberElement member) {
       assert(invariant(element, member.isDeclaration));
@@ -584,7 +597,7 @@ class ProgramBuilder {
 
     if (isClosureBaseClass) {
       // We add a special getter to allow for tearing off a closure from itself.
-      js.Name name = namer.getterForMember(Names.call);
+      js.Name name = _namer.getterForMember(Names.call);
       js.Fun function = js.js('function() { return this; }');
       callStubs.add(_buildStubMethod(name, function));
     }
@@ -624,7 +637,7 @@ class ProgramBuilder {
           FieldElement element = field.element;
           js.Expression code = _backend.generatedCode[element];
           assert(code != null);
-          js.Name name = namer.deriveSetterName(field.accessorName);
+          js.Name name = _namer.deriveSetterName(field.accessorName);
           checkedSetters.add(_buildStubMethod(name, code, element: element));
         }
       }
@@ -634,8 +647,8 @@ class ProgramBuilder {
       });
     }
 
-    js.Name name = namer.className(element);
-    String holderName = namer.globalObjectFor(element);
+    js.Name name = _namer.className(element);
+    String holderName = _namer.globalObjectFor(element);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
@@ -694,7 +707,7 @@ class ProgramBuilder {
 
   bool _methodCanBeApplied(FunctionElement method) {
     return _backendUsage.isFunctionApplyUsed &&
-        closedWorld.getMightBePassedToApply(method);
+        _closedWorld.getMightBePassedToApply(method);
   }
 
   /* Map | List */ _computeParameterDefaultValues(FunctionSignature signature) {
@@ -719,7 +732,7 @@ class ProgramBuilder {
 
   DartMethod _buildMethod(MethodElement element) {
     assert(element.isDeclaration);
-    js.Name name = namer.methodPropertyName(element);
+    js.Name name = _namer.methodPropertyName(element);
     js.Expression code = _backend.generatedCode[element];
 
     // TODO(kasperl): Figure out under which conditions code is null.
@@ -734,7 +747,7 @@ class ProgramBuilder {
     bool canBeApplied = _methodCanBeApplied(element);
 
     js.Name aliasName = _superMemberData.isAliasedSuperMember(element)
-        ? namer.aliasedSuperMemberPropertyName(element)
+        ? _namer.aliasedSuperMemberPropertyName(element)
         : null;
 
     if (isNotApplyTarget) {
@@ -745,11 +758,11 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _worldBuilder.hasInvokedGetter(element, closedWorld) ||
+        canTearOff = _worldBuilder.hasInvokedGetter(element, _closedWorld) ||
             (canBeReflected && !element.isOperator);
         assert(canTearOff ||
             !_worldBuilder.methodsNeedingSuperGetter.contains(element));
-        tearOffName = namer.getterForElement(element);
+        tearOffName = _namer.getterForElement(element);
       }
     }
 
@@ -763,7 +776,7 @@ class ProgramBuilder {
     if (canTearOff) {
       Selector callSelector =
           new Selector.fromElement(element).toCallSelector();
-      callName = namer.invocationName(callSelector);
+      callName = _namer.invocationName(callSelector);
     }
 
     ResolutionDartType memberType;
@@ -822,7 +835,7 @@ class ProgramBuilder {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
     ParameterStubGenerator generator =
-        new ParameterStubGenerator(_compiler, namer, _backend, closedWorld);
+        new ParameterStubGenerator(_compiler, _namer, _backend, _closedWorld);
     return generator.generateParameterStubs(element, canTearOff: canTearOff);
   }
 
@@ -851,11 +864,22 @@ class ProgramBuilder {
   }
 
   Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
-    InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(_compiler, namer, _backend, closedWorld);
+    InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
+        _options,
+        _commonElements,
+        _emitter,
+        _nativeCodegenEnqueuer,
+        _constantHandler,
+        _namer,
+        _nativeData,
+        _interceptorData,
+        _oneShotInterceptorData,
+        _customElementsCodegenAnalysis,
+        _worldBuilder,
+        _closedWorld);
 
     String holderName =
-        namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
+        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
@@ -873,7 +897,7 @@ class ProgramBuilder {
   List<Field> _buildFields(Element holder,
       {bool visitStatics, bool isHolderInterceptedClass: false}) {
     List<Field> fields = <Field>[];
-    new FieldVisitor(_compiler, namer, closedWorld)
+    new FieldVisitor(_compiler, _namer, _closedWorld)
         .visitFields(holder, visitStatics, (FieldElement field,
             js.Name name,
             js.Name accessorName,
@@ -919,11 +943,22 @@ class ProgramBuilder {
   }
 
   Iterable<StaticStubMethod> _generateOneShotInterceptors() {
-    InterceptorStubGenerator stubGenerator =
-        new InterceptorStubGenerator(_compiler, namer, _backend, closedWorld);
+    InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
+        _options,
+        _commonElements,
+        _emitter,
+        _nativeCodegenEnqueuer,
+        _constantHandler,
+        _namer,
+        _nativeData,
+        _interceptorData,
+        _oneShotInterceptorData,
+        _customElementsCodegenAnalysis,
+        _worldBuilder,
+        _closedWorld);
 
     String holderName =
-        namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
+        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
@@ -936,8 +971,8 @@ class ProgramBuilder {
   }
 
   StaticDartMethod _buildStaticMethod(MethodElement element) {
-    js.Name name = namer.methodPropertyName(element);
-    String holder = namer.globalObjectFor(element);
+    js.Name name = _namer.methodPropertyName(element);
+    String holder = _namer.globalObjectFor(element);
     js.Expression code = _backend.generatedCode[element];
 
     bool isApplyTarget = !element.isConstructor && !element.isAccessor;
@@ -949,13 +984,13 @@ class ProgramBuilder {
             _worldBuilder.staticFunctionsNeedingGetter.contains(element));
 
     js.Name tearOffName =
-        needsTearOff ? namer.staticClosureName(element) : null;
+        needsTearOff ? _namer.staticClosureName(element) : null;
 
     js.Name callName = null;
     if (needsTearOff) {
       Selector callSelector =
           new Selector.fromElement(element).toCallSelector();
-      callName = namer.invocationName(callSelector);
+      callName = _namer.invocationName(callSelector);
     }
     js.Expression functionType;
     ResolutionDartType type = element.type;
@@ -993,8 +1028,8 @@ class ProgramBuilder {
     for (ConstantValue constantValue in constantValues) {
       _registry.registerConstant(outputUnit, constantValue);
       assert(!_constants.containsKey(constantValue));
-      js.Name name = namer.constantName(constantValue);
-      String constantObject = namer.globalObjectForConstant(constantValue);
+      js.Name name = _namer.constantName(constantValue);
+      String constantObject = _namer.globalObjectForConstant(constantValue);
       Holder holder =
           _registry.registerHolder(constantObject, isConstantsHolder: true);
       Constant constant = new Constant(name, holder, constantValue);
@@ -1003,7 +1038,7 @@ class ProgramBuilder {
   }
 
   Holder _registerStaticStateHolder() {
-    return _registry.registerHolder(namer.staticStateHolder,
+    return _registry.registerHolder(_namer.staticStateHolder,
         isStaticStateHolder: true);
   }
 }
