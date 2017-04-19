@@ -4,6 +4,19 @@
 
 // test w/ `pub run test -N omit_local_variable_types`
 
+void printItems(Iterable items) {
+  for (var item in items) { // OK
+    print(item);
+  }
+}
+
+void foo() {
+  final array = [];
+  for (a in array) { // OK
+
+  }
+}
+
 int goodGlobalVariable = 3, a = 4; // OK
 
 Map<int, List<Person>> badGroupByZip(Iterable<Person> people) {
