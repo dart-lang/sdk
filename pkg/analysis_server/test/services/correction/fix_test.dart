@@ -5986,6 +5986,126 @@ var x;
 ''');
   }
 
+  test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<int,/*comment*/int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <int,/*comment*/int>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withDynamicGenerics() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<dynamic,dynamic>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <dynamic,dynamic>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<int,int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <int,int>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withoutGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = {};
+''');
+  }
+
+  test_replaceWithLiteral_list_withGeneric() async {
+    String src = '''
+final a = /*LINT*/new List<int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = <int>[];
+''');
+  }
+
+  test_replaceWithLiteral_list_withoutGeneric() async {
+    String src = '''
+final a = /*LINT*/new List();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = [];
+''');
+  }
+
+  test_replaceWithLiteral_map_withGeneric() async {
+    String src = '''
+final a = /*LINT*/new Map<int,int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = <int,int>{};
+''');
+  }
+
+  test_replaceWithLiteral_map_withoutGeneric() async {
+    String src = '''
+final a = /*LINT*/new Map();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = {};
+''');
+  }
+
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
