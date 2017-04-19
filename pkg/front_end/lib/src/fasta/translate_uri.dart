@@ -12,8 +12,6 @@ import 'errors.dart' show inputError;
 
 import 'io.dart' show readBytesFromFile;
 
-import 'scanner/characters.dart' show $LF;
-
 class TranslateUri {
   final Map<String, Uri> packages;
   final Map<String, Uri> dartLibraries;
@@ -78,12 +76,10 @@ class TranslateUri {
       };
     }
     uri ??= Uri.base.resolve(".packages");
-    List<int> bytes = await readBytesFromFile(uri);
+    List<int> bytes =
+        await readBytesFromFile(uri, ensureZeroTermination: false);
     Map<String, Uri> packages = const <String, Uri>{};
     try {
-      // We always add an extra zero byte at the end of files. We change that
-      // to a newline to avoid a format error from `packages_file.parse`.
-      bytes[bytes.length - 1] = $LF;
       packages = packages_file.parse(bytes, uri);
     } on FormatException catch (e) {
       return inputError(uri, e.offset, e.message);

@@ -12,9 +12,11 @@ import 'errors.dart' show inputError;
 
 import 'scanner/io.dart' as scanner_io show readBytesFromFile;
 
-Future<List<int>> readBytesFromFile(Uri uri) async {
+Future<List<int>> readBytesFromFile(Uri uri,
+    {bool ensureZeroTermination: true}) async {
   try {
-    return await scanner_io.readBytesFromFile(uri);
+    return await scanner_io.readBytesFromFile(uri,
+        ensureZeroTermination: ensureZeroTermination);
   } on FileSystemException catch (e) {
     String message = e.message;
     String osMessage = e.osError?.message;
