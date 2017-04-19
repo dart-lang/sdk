@@ -62,17 +62,15 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitForEachStatement(ForEachStatement node) {
-    final staticType = node.loopVariable.type;
+    final staticType = node.loopVariable?.type;
     if (staticType == null) {
       return;
     }
-    if (node.iterable.bestType is! InterfaceType) {
-      return;
-    }
-    DartType iterableType = node.iterable.bestType;
+    final iterableType = node.iterable.bestType;
     if (iterableType is InterfaceType &&
-        iterableType.typeArguments.single == staticType.type) {
-      rule.reportLint(node);
+        iterableType.typeArguments.length == 1 &&
+        iterableType.typeArguments.first == staticType.type) {
+      rule.reportLint(node.loopVariable);
     }
   }
 
