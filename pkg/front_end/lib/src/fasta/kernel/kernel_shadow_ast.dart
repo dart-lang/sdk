@@ -37,7 +37,8 @@ class KernelBlock extends Block implements KernelStatement {
 abstract class KernelExpression implements Expression {
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [KernelExpression] this is.
-  DartType _inferExpression(DartType typeContext, bool typeNeeded);
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded);
 }
 
 /// Concrete shadow object representing a function expression in kernel form.
@@ -46,7 +47,8 @@ class KernelFunctionExpression extends FunctionExpression
   KernelFunctionExpression(FunctionNode function) : super(function);
 
   @override
-  DartType _inferExpression(DartType typeContext, bool typeNeeded) {
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(paulberry): implement.
     return typeNeeded ? const DynamicType() : null;
   }
@@ -57,7 +59,8 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
   KernelIntLiteral(int value) : super(value);
 
   @override
-  DartType _inferExpression(DartType typeContext, bool typeNeeded) {
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(paulberry): implement.
     return typeNeeded ? const DynamicType() : null;
   }
@@ -70,7 +73,8 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
       : super(expressions, typeArgument: typeArgument, isConst: isConst);
 
   @override
-  DartType _inferExpression(DartType typeContext, bool typeNeeded) {
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(paulberry): implement.
     return typeNeeded ? const DynamicType() : null;
   }
@@ -79,7 +83,8 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
 /// Concrete shadow object representing a null literal in kernel form.
 class KernelNullLiteral extends NullLiteral implements KernelExpression {
   @override
-  DartType _inferExpression(DartType typeContext, bool typeNeeded) {
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(paulberry): implement.
     return typeNeeded ? const DynamicType() : null;
   }
@@ -119,7 +124,7 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
       // TODO(paulberry): experiment to see if dynamic dispatch would be better,
       // so that the type hierarchy will be simpler (which may speed up "is"
       // checks).
-      return expression._inferExpression(typeContext, typeNeeded);
+      return expression._inferExpression(this, typeContext, typeNeeded);
     } else {
       // Encountered an expression type for which type inference is not yet
       // implemented, so just infer dynamic for now.
@@ -173,7 +178,8 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
       : super(variable, promotedType);
 
   @override
-  DartType _inferExpression(DartType typeContext, bool typeNeeded) {
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(paulberry): implement.
     return typeNeeded ? const DynamicType() : null;
   }
