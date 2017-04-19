@@ -73,8 +73,6 @@ front_end/*: SkipByDesign
 
 [ $runtime == vm && $mode == debug ]
 analysis_server/test/completion_test: Pass, Slow
-kernel/test/baseline_spec_mode_test: Crash # Issue 29300
-kernel/test/baseline_strong_mode_test: Crash # Issue 29300
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Pass, Slow
