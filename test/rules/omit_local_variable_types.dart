@@ -4,8 +4,24 @@
 
 // test w/ `pub run test -N omit_local_variable_types`
 
+abstract class StringIterator<E> implements Iterable<E> {}
+
+void printItems2(StringIterator<String> items) {
+  for (String item in items) { // LINT
+    print(item);
+  }
+}
+
+abstract class StringIterator2 implements StringIterator<String> {}
+
+void printItems3(StringIterator2 items) {
+  for (String item in items) { // LINT
+    print(item);
+  }
+}
+
 void printItems(Iterable items) {
-  for (var item in items) { // OK
+  for (String item in items) { // OK
     print(item);
   }
 }
