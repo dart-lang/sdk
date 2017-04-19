@@ -1381,8 +1381,9 @@ class _RootZone extends _Zone {
 
   ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(R f(T arg)) => f;
 
-  ZoneBinaryCallback<R, T1, T2>
-      registerBinaryCallback<R, T1, T2>(R f(T1 arg1, T2 arg2)) => f;
+  ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
+          R f(T1 arg1, T2 arg2)) =>
+      f;
 
   AsyncError errorCallback(Object error, StackTrace stackTrace) => null;
 

@@ -871,8 +871,8 @@ abstract class Stream<T> {
    * In case of a `done` event the future completes with the given
    * [futureValue].
    */
-  Future<E> drain<E>([E futureValue]) => listen(null, cancelOnError: true)
-      .asFuture<E>(futureValue);
+  Future<E> drain<E>([E futureValue]) =>
+      listen(null, cancelOnError: true).asFuture<E>(futureValue);
 
   /**
    * Provides at most the first [count] data events of this stream.

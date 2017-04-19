@@ -455,7 +455,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getFloat32')
   @Returns('num')
-  num _getFloat32(int byteOffset, [bool littleEndian]) native ;
+  num _getFloat32(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the floating point number represented by the eight bytes at
@@ -470,7 +470,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getFloat64')
   @Returns('num')
-  num _getFloat64(int byteOffset, [bool littleEndian]) native ;
+  num _getFloat64(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the (possibly negative) integer represented by the two bytes at
@@ -487,7 +487,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getInt16')
   @Returns('int')
-  int _getInt16(int byteOffset, [bool littleEndian]) native ;
+  int _getInt16(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the (possibly negative) integer represented by the four bytes at
@@ -504,7 +504,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getInt32')
   @Returns('int')
-  int _getInt32(int byteOffset, [bool littleEndian]) native ;
+  int _getInt32(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the (possibly negative) integer represented by the eight bytes at
@@ -528,7 +528,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  int getInt8(int byteOffset) native ;
+  int getInt8(int byteOffset) native;
 
   /**
    * Returns the positive integer represented by the two bytes starting
@@ -544,7 +544,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getUint16')
   @Returns('JSUInt31')
-  int _getUint16(int byteOffset, [bool littleEndian]) native ;
+  int _getUint16(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the positive integer represented by the four bytes starting
@@ -560,7 +560,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
   @JSName('getUint32')
   @Returns('JSUInt32')
-  int _getUint32(int byteOffset, [bool littleEndian]) native ;
+  int _getUint32(int byteOffset, [bool littleEndian]) native;
 
   /**
    * Returns the positive integer represented by the eight bytes starting
@@ -583,7 +583,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  int getUint8(int byteOffset) native ;
+  int getUint8(int byteOffset) native;
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -607,7 +607,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setFloat32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setFloat32')
-  void _setFloat32(int byteOffset, num value, [bool littleEndian]) native ;
+  void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -622,7 +622,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setFloat64(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setFloat64')
-  void _setFloat64(int byteOffset, num value, [bool littleEndian]) native ;
+  void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this
@@ -638,7 +638,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setInt16(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setInt16')
-  void _setInt16(int byteOffset, int value, [bool littleEndian]) native ;
+  void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -654,7 +654,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setInt32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setInt32')
-  void _setInt32(int byteOffset, int value, [bool littleEndian]) native ;
+  void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -679,7 +679,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  void setInt8(int byteOffset, int value) native ;
+  void setInt8(int byteOffset, int value) native;
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this object
@@ -695,7 +695,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setUint16(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setUint16')
-  void _setUint16(int byteOffset, int value, [bool littleEndian]) native ;
+  void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this object
@@ -711,7 +711,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
       _setUint32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setUint32')
-  void _setUint32(int byteOffset, int value, [bool littleEndian]) native ;
+  void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this object
@@ -736,7 +736,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative,
    * or greater than or equal to the length of this object.
    */
-  void setUint8(int byteOffset, int value) native ;
+  void setUint8(int byteOffset, int value) native;
 
   static NativeByteData _create1(arg) =>
       JS('NativeByteData', 'new DataView(new ArrayBuffer(#))', arg);

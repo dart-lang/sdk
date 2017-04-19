@@ -121,8 +121,8 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
 
   bool get isPaused => _subscription.isPaused;
 
-  Future<T>
-      asFuture<T>([T futureValue]) => _subscription.asFuture<T>(futureValue);
+  Future<T> asFuture<T>([T futureValue]) =>
+      _subscription.asFuture<T>(futureValue);
 
   Future cancel() {
     _isCanceled = true;
@@ -199,7 +199,8 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
         return subscription..resume();
       }
       return new _HttpDetachedStreamSubscription(
-          subscription, bufferedData, onData)..resume();
+          subscription, bufferedData, onData)
+        ..resume();
     } else {
       // TODO(26379): add test for this branch.
       return new Stream<List<int>>.fromIterable([bufferedData]).listen(onData,

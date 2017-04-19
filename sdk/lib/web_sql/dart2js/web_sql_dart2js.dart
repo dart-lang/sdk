@@ -115,19 +115,19 @@ class SqlDatabase extends Interceptor {
   void changeVersion(String oldVersion, String newVersion,
       [SqlTransactionCallback callback,
       SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native ;
+      VoidCallback successCallback]) native;
 
   @DomName('Database.readTransaction')
   @DocsEditable()
   void readTransaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native ;
+      VoidCallback successCallback]) native;
 
   @DomName('Database.transaction')
   @DocsEditable()
   void transaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native ;
+      VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -284,7 +284,7 @@ class SqlResultSetRowList extends Interceptor
   @JSName('item')
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  _item_1(index) native ;
+  _item_1(index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -309,5 +309,5 @@ class SqlTransaction extends Interceptor {
   void executeSql(String sqlStatement,
       [List arguments,
       SqlStatementCallback callback,
-      SqlStatementErrorCallback errorCallback]) native ;
+      SqlStatementErrorCallback errorCallback]) native;
 }
