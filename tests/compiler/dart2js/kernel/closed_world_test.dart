@@ -100,24 +100,27 @@ main(List<String> args) {
     ElementResolutionWorldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);
+    compiler.resolutionWorldBuilder.closeWorld();
 
     JavaScriptBackend backend = compiler.backend;
     // Create a new resolution enqueuer and feed it with the [WorldImpact]s
     // computed from kernel through the [build] in `kernel_impact.dart`.
+    List list = createResolutionEnqueuerListener(compiler);
+    ResolutionEnqueuerListener resolutionEnqueuerListener = list[0];
+    BackendUsageBuilder backendUsageBuilder = list[1];
     ResolutionEnqueuer enqueuer = new ResolutionEnqueuer(
         compiler.enqueuer,
         compiler.options,
         compiler.reporter,
         const TreeShakingEnqueuerStrategy(),
-        createResolutionEnqueuerListener(compiler),
+        resolutionEnqueuerListener,
         new ElementResolutionWorldBuilder(
             backend, compiler.resolution, const OpenWorldStrategy()),
         new KernelWorkItemBuilder(compiler),
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(
         compiler.reporter, enqueuer, compiler.elementEnvironment);
-    BackendUsage backendUsage = compiler.backend.backendUsageBuilder.close();
+    BackendUsage backendUsage = backendUsageBuilder.close();
     checkResolutionEnqueuers(
         backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
@@ -144,27 +147,31 @@ main(List<String> args) {
   });
 }
 
-EnqueuerListener createResolutionEnqueuerListener(Compiler compiler) {
+List createResolutionEnqueuerListener(Compiler compiler) {
   JavaScriptBackend backend = compiler.backend;
-  return new ResolutionEnqueuerListener(
+  BackendUsageBuilder backendUsageBuilder =
+      new BackendUsageBuilderImpl(compiler.commonElements);
+  ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       compiler.options,
       compiler.elementEnvironment,
       compiler.commonElements,
       backend.impacts,
       backend.nativeBasicData,
-      backend.interceptorDataBuilder,
-      backend.backendUsageBuilder,
+      new InterceptorDataBuilderImpl(backend.nativeBasicData,
+          compiler.elementEnvironment, compiler.commonElements),
+      backendUsageBuilder,
       backend.rtiNeedBuilder,
       backend.mirrorsDataBuilder,
       backend.noSuchMethodRegistry,
       backend.customElementsResolutionAnalysis,
       backend.lookupMapResolutionAnalysis,
       backend.mirrorsResolutionAnalysis,
-      new TypeVariableResolutionAnalysis(compiler.elementEnvironment,
-          backend.impacts, backend.backendUsageBuilder),
+      new TypeVariableResolutionAnalysis(
+          compiler.elementEnvironment, backend.impacts, backendUsageBuilder),
       backend.nativeResolutionEnqueuer,
       compiler.deferredLoadTask,
       backend.kernelTask);
+  return [listener, backendUsageBuilder];
 }
 
 ClosedWorld computeClosedWorld(DiagnosticReporter reporter,
@@ -174,7 +181,7 @@ ClosedWorld computeClosedWorld(DiagnosticReporter reporter,
   enqueuer.forEach((WorkItem work) {
     enqueuer.applyImpact(work.run(), impactSource: work.element);
   });
-  return enqueuer.worldBuilder.closeWorld(reporter);
+  return enqueuer.worldBuilder.closeWorld();
 }
 
 class KernelWorkItemBuilder implements WorkItemBuilder {

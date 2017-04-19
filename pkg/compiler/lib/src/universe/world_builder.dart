@@ -23,7 +23,8 @@ import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
+import '../world.dart'
+    show World, ClosedWorld, ClosedWorldImpl, KernelClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
 import 'use.dart'
     show

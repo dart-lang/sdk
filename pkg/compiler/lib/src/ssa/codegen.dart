@@ -1761,8 +1761,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     var isolate = new js.VariableUse(
         _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary));
     Selector selector = node.selector;
-    js.Name methodName =
-        _oneShotInterceptorData.registerOneShotInterceptor(selector, _namer);
+    js.Name methodName = _oneShotInterceptorData.registerOneShotInterceptor(
+        selector, _namer, _closedWorld);
     push(js
         .propertyCall(isolate, methodName, arguments)
         .withSourceInformation(node.sourceInformation));
