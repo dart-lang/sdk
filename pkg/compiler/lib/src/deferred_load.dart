@@ -927,7 +927,6 @@ class DeferredLoadTask extends CompilerTask {
   /// - <list of files> is a list of the filenames the must be loaded when that
   ///   import is loaded.
   Map<String, Map<String, dynamic>> computeDeferredMap() {
-    JavaScriptBackend backend = compiler.backend;
     Map<String, Map<String, dynamic>> mapping =
         new Map<String, Map<String, dynamic>>();
     _deferredImportDescriptions.keys.forEach((_DeferredImport import) {
@@ -942,10 +941,24 @@ class DeferredLoadTask extends CompilerTask {
 
       libraryMap["imports"][importDeferName[import]] =
           outputUnits.map((OutputUnit outputUnit) {
-        return backend.deferredPartFileName(outputUnit.name);
+        return deferredPartFileName(outputUnit.name);
       }).toList();
     });
     return mapping;
+  }
+
+  /// Returns the filename for the output-unit named [name].
+  ///
+  /// The filename is of the form "<main output file>_<name>.part.js".
+  /// If [addExtension] is false, the ".part.js" suffix is left out.
+  String deferredPartFileName(String name, {bool addExtension: true}) {
+    assert(name != "");
+    String outPath = compiler.options.outputUri != null
+        ? compiler.options.outputUri.path
+        : "out";
+    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
+    String extension = addExtension ? ".part.js" : "";
+    return "${outName}_$name$extension";
   }
 
   /// Creates a textual representation of the output unit content.

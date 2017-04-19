@@ -1734,8 +1734,8 @@ class Emitter implements js_emitter.Emitter {
           new List<_DeferredOutputUnitHash>();
       deferredLibraryHashes[loadId] = new List<_DeferredOutputUnitHash>();
       for (OutputUnit outputUnit in outputUnits) {
-        uris.add(
-            js.escapedString(backend.deferredPartFileName(outputUnit.name)));
+        uris.add(js.escapedString(
+            compiler.deferredLoadTask.deferredPartFileName(outputUnit.name)));
         hashes.add(deferredLoadHashes[outputUnit]);
       }
 
@@ -1861,8 +1861,8 @@ class Emitter implements js_emitter.Emitter {
         outputListeners.add(locationCollector);
       }
 
-      String partPrefix =
-          backend.deferredPartFileName(outputUnit.name, addExtension: false);
+      String partPrefix = compiler.deferredLoadTask
+          .deferredPartFileName(outputUnit.name, addExtension: false);
       CodeOutput output = new StreamCodeOutput(
           compiler.outputProvider(partPrefix, 'part.js', OutputType.jsPart),
           outputListeners);

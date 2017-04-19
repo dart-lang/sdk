@@ -7,7 +7,6 @@ library dart2js.js_emitter.program_builder;
 import '../../closure.dart' show ClosureTask, ClosureFieldElement;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
-import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show CommonElements;
@@ -35,7 +34,6 @@ import '../../elements/types.dart' show DartType;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart'
     show
-        JavaScriptBackend,
         RuntimeTypesChecks,
         RuntimeTypesNeed,
         RuntimeTypesEncoder,
@@ -76,7 +74,27 @@ part 'registry.dart';
 /// Builds a self-contained representation of the program that can then be
 /// emitted more easily by the individual emitters.
 class ProgramBuilder {
-  final Compiler _compiler;
+  final CompilerOptions _options;
+  final CommonElements _commonElements;
+  final Types _types;
+  final DeferredLoadTask _deferredLoadTask;
+  final ClosureTask _closureToClassMapper;
+  final CodegenWorldBuilder _worldBuilder;
+  final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
+  final BackendUsage _backendUsage;
+  final JavaScriptConstantCompiler _constantHandler;
+  final NativeData _nativeData;
+  final RuntimeTypesNeed _rtiNeed;
+  final MirrorsData _mirrorsData;
+  final InterceptorData _interceptorData;
+  final SuperMemberData _superMemberData;
+  final RuntimeTypesChecks _rtiChecks;
+  final RuntimeTypesEncoder _rtiEncoder;
+  final RuntimeTypesSubstitutions _rtiSubstitutions;
+  final JsInteropAnalysis _jsInteropAnalysis;
+  final OneShotInterceptorData _oneShotInterceptorData;
+  final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+  final Map<MemberElement, js.Expression> _generatedCode;
   final Namer _namer;
   final CodeEmitterTask _task;
   final ClosedWorld _closedWorld;
@@ -90,42 +108,57 @@ class ProgramBuilder {
 
   final Registry _registry;
 
+  final FunctionEntity _mainFunction;
+  final bool _isMockCompilation;
+
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
 
-  ProgramBuilder(Compiler compiler, Namer _namer, this._task, Emitter emitter,
-      ClosedWorld closedWorld, Set<ClassElement> rtiNeededClasses)
-      : this._compiler = compiler,
-        this._namer = _namer,
-        this._closedWorld = closedWorld,
+  ProgramBuilder(
+      this._options,
+      this._commonElements,
+      this._types,
+      this._deferredLoadTask,
+      this._closureToClassMapper,
+      this._worldBuilder,
+      this._nativeCodegenEnqueuer,
+      this._backendUsage,
+      this._constantHandler,
+      this._nativeData,
+      this._rtiNeed,
+      this._mirrorsData,
+      this._interceptorData,
+      this._superMemberData,
+      this._rtiChecks,
+      this._rtiEncoder,
+      this._rtiSubstitutions,
+      this._jsInteropAnalysis,
+      this._oneShotInterceptorData,
+      this._customElementsCodegenAnalysis,
+      this._generatedCode,
+      this._namer,
+      this._task,
+      this._closedWorld,
+      Set<ClassElement> rtiNeededClasses,
+      this._mainFunction,
+      {bool isMockCompilation})
+      : this._isMockCompilation = isMockCompilation,
         this.collector = new Collector(
-            compiler, _namer, closedWorld, rtiNeededClasses, emitter),
-        this._registry = new Registry(compiler);
-
-  JavaScriptBackend get _backend => _compiler.backend;
-  CodegenWorldBuilder get _worldBuilder => _compiler.codegenWorldBuilder;
-  DeferredLoadTask get _deferredLoadTask => _compiler.deferredLoadTask;
-  Types get _types => _compiler.types;
-  CommonElements get _commonElements => _compiler.commonElements;
-  CompilerOptions get _options => _compiler.options;
-  ClosureTask get _closureToClassMapper => _compiler.closureToClassMapper;
-  NativeCodegenEnqueuer get _nativeCodegenEnqueuer =>
-      _backend.nativeCodegenEnqueuer;
-  BackendUsage get _backendUsage => _backend.backendUsage;
-  JavaScriptConstantCompiler get _constantHandler => _backend.constants;
-  NativeData get _nativeData => _backend.nativeData;
-  RuntimeTypesNeed get _rtiNeed => _backend.rtiNeed;
-  MirrorsData get _mirrorsData => _backend.mirrorsData;
-  InterceptorData get _interceptorData => _backend.interceptorData;
-  SuperMemberData get _superMemberData => _backend.superMemberData;
-  RuntimeTypesChecks get _rtiChecks => _backend.rtiChecks;
-  RuntimeTypesEncoder get _rtiEncoder => _backend.rtiEncoder;
-  RuntimeTypesSubstitutions get _rtiSubstitutions => _backend.rtiSubstitutions;
-  JsInteropAnalysis get _jsInteropAnalysis => _backend.jsInteropAnalysis;
-  OneShotInterceptorData get _oneShotInterceptorData =>
-      _backend.oneShotInterceptorData;
-  CustomElementsCodegenAnalysis get _customElementsCodegenAnalysis =>
-      _backend.customElementsCodegenAnalysis;
+            _options,
+            _commonElements,
+            _deferredLoadTask,
+            _worldBuilder,
+            _namer,
+            _task.emitter,
+            _constantHandler,
+            _nativeData,
+            _interceptorData,
+            _oneShotInterceptorData,
+            _mirrorsData,
+            _closedWorld,
+            rtiNeededClasses,
+            _generatedCode),
+        this._registry = new Registry(_deferredLoadTask);
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -279,17 +312,18 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
-    if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
+    if (_isMockCompilation) return js.js.comment("Mock compilation");
 
     MainCallStubGenerator generator = new MainCallStubGenerator(
         _commonElements, _task.emitter, _backendUsage);
-    return generator.generateInvokeMain(_compiler.mainFunction);
+    return generator.generateInvokeMain(_mainFunction);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
     DeferredFragment result = new DeferredFragment(
         librariesMap.outputUnit,
-        _backend.deferredPartFileName(librariesMap.name, addExtension: false),
+        _deferredLoadTask.deferredPartFileName(librariesMap.name,
+            addExtension: false),
         librariesMap.name,
         _buildLibraries(librariesMap),
         _buildStaticNonFinalFields(librariesMap),
@@ -351,7 +385,7 @@ class ProgramBuilder {
   }
 
   StaticField _buildLazyField(FieldElement element) {
-    js.Expression code = _backend.generatedCode[element];
+    js.Expression code = _generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
     // before code generation.
@@ -655,7 +689,7 @@ class ProgramBuilder {
         if (field.needsCheckedSetter) {
           assert(!field.needsUncheckedSetter);
           FieldElement element = field.element;
-          js.Expression code = _backend.generatedCode[element];
+          js.Expression code = _generatedCode[element];
           assert(code != null);
           js.Name name = _namer.deriveSetterName(field.accessorName);
           checkedSetters.add(_buildStubMethod(name, code, element: element));
@@ -753,7 +787,7 @@ class ProgramBuilder {
   DartMethod _buildMethod(MethodElement element) {
     assert(element.isDeclaration);
     js.Name name = _namer.methodPropertyName(element);
-    js.Expression code = _backend.generatedCode[element];
+    js.Expression code = _generatedCode[element];
 
     // TODO(kasperl): Figure out under which conditions code is null.
     if (code == null) return null;
@@ -999,7 +1033,7 @@ class ProgramBuilder {
   StaticDartMethod _buildStaticMethod(MethodElement element) {
     js.Name name = _namer.methodPropertyName(element);
     String holder = _namer.globalObjectFor(element);
-    js.Expression code = _backend.generatedCode[element];
+    js.Expression code = _generatedCode[element];
 
     bool isApplyTarget = !element.isConstructor && !element.isAccessor;
     bool canBeApplied = _methodCanBeApplied(element);

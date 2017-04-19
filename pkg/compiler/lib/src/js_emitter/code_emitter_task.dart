@@ -179,7 +179,33 @@ class CodeEmitterTask extends CompilerTask {
     return measure(() {
       Set<ClassEntity> rtiNeededClasses = _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
-          compiler, namer, this, emitter, closedWorld, rtiNeededClasses);
+          compiler.options,
+          compiler.commonElements,
+          compiler.types,
+          compiler.deferredLoadTask,
+          compiler.closureToClassMapper,
+          compiler.codegenWorldBuilder,
+          backend.nativeCodegenEnqueuer,
+          backend.backendUsage,
+          backend.constants,
+          backend.nativeData,
+          backend.rtiNeed,
+          backend.mirrorsData,
+          backend.interceptorData,
+          backend.superMemberData,
+          backend.rtiChecks,
+          backend.rtiEncoder,
+          backend.rtiSubstitutions,
+          backend.jsInteropAnalysis,
+          backend.oneShotInterceptorData,
+          backend.customElementsCodegenAnalysis,
+          backend.generatedCode,
+          namer,
+          this,
+          closedWorld,
+          rtiNeededClasses,
+          compiler.mainFunction,
+          isMockCompilation: compiler.isMockCompilation);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
