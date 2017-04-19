@@ -6661,23 +6661,22 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   FunctionType getReifiedType(DartType objectType) {
-    // Collect the covariant parameters. Do this first so we don't allocate
-    // anything in the common case where there are none.
-    Set<String> covariantNames;
+    // Check whether we have any covariant parameters.
+    // Usually we don't, so we can use the same type.
+    bool hasCovariant = false;
     for (ParameterElement parameter in parameters) {
       if (parameter.isCovariant) {
-        covariantNames ??= new Set();
-        covariantNames.add(parameter.name);
+        hasCovariant = true;
+        break;
       }
     }
 
-    if (covariantNames == null) return type;
+    if (!hasCovariant) {
+      return type;
+    }
 
     List<ParameterElement> covariantParameters = parameters.map((parameter) {
-      if (!covariantNames.contains(parameter.name)) {
-        return parameter;
-      }
-
+      DartType type = parameter.isCovariant ? objectType : parameter.type;
       return new ParameterElementImpl.synthetic(
           parameter.name, objectType, parameter.parameterKind);
     }).toList();
