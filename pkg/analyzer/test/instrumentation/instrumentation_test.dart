@@ -88,6 +88,80 @@ class InstrumentationServiceTest {
     assertNormal(server, InstrumentationService.TAG_NOTIFICATION, message);
   }
 
+  void test_logPluginError() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    PluginData plugin = new PluginData('path', 'name', 'version');
+    String code = 'code';
+    String message = 'exceptionMessage';
+    String stackTraceText = 'stackTrace';
+    service.logPluginError(plugin, code, message, stackTraceText);
+    assertNormal(server, InstrumentationService.TAG_PLUGIN_ERROR,
+        '$code:$message:$stackTraceText:path:name:version');
+  }
+
+  void test_logPluginException_noTrace() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    PluginData plugin = new PluginData('path', 'name', 'version');
+    String message = 'exceptionMessage';
+    service.logPluginException(plugin, message, null);
+    assertNormal(server, InstrumentationService.TAG_PLUGIN_EXCEPTION,
+        '$message:null:path:name:version');
+  }
+
+  void test_logPluginException_withTrace() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    PluginData plugin = new PluginData('path', 'name', 'version');
+    String message = 'exceptionMessage';
+    String stackTraceText = 'stackTrace';
+    StackTrace stackTrace = new StackTrace.fromString(stackTraceText);
+    service.logPluginException(plugin, message, stackTrace);
+    assertNormal(server, InstrumentationService.TAG_PLUGIN_EXCEPTION,
+        '$message:$stackTraceText:path:name:version');
+  }
+
+  void test_logPluginNotification() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    Uri uri = new Uri.file('path');
+    String notification = 'notification';
+    service.logPluginNotification(uri, notification);
+    assertNormal(server, InstrumentationService.TAG_PLUGIN_NOTIFICATION,
+        'path:$notification');
+  }
+
+  void test_logPluginRequest() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    Uri uri = new Uri.file('path');
+    String request = 'request';
+    service.logPluginRequest(uri, request);
+    assertNormal(
+        server, InstrumentationService.TAG_PLUGIN_REQUEST, 'path:$request');
+  }
+
+  void test_logPluginResponse() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    Uri uri = new Uri.file('path');
+    String response = 'response';
+    service.logPluginResponse(uri, response);
+    assertNormal(
+        server, InstrumentationService.TAG_PLUGIN_RESPONSE, 'path:$response');
+  }
+
+  void test_logPluginTimeout() {
+    TestInstrumentationServer server = new TestInstrumentationServer();
+    InstrumentationService service = new InstrumentationService(server);
+    PluginData plugin = new PluginData('path', 'name', 'version');
+    String request = 'request';
+    service.logPluginTimeout(plugin, request);
+    assertNormal(server, InstrumentationService.TAG_PLUGIN_TIMEOUT,
+        '$request:path:name:version');
+  }
+
   void test_logRequest() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
@@ -163,10 +237,10 @@ class TestInstrumentationServer implements InstrumentationServer {
   StringBuffer priorityChannel = new StringBuffer();
 
   @override
-  String get sessionId => '';
+  String get describe => 'test instrumentation';
 
   @override
-  String get describe => 'test instrumentation';
+  String get sessionId => '';
 
   @override
   void log(String message) {
