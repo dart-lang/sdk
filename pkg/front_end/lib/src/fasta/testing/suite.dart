@@ -10,6 +10,9 @@ import 'dart:convert' show JSON;
 
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 
+import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
+    show ValidatingInstrumentation;
+
 import 'package:kernel/ast.dart' show Library, Program;
 
 import 'package:analyzer/src/kernel/loader.dart' show DartLoader;
@@ -87,7 +90,8 @@ class FastaContext extends TestContext {
       bool fullCompile,
       AstKind astKind)
       : steps = <Step>[
-          new Outline(fullCompile, astKind, strongMode),
+          new Outline(fullCompile, astKind, strongMode,
+              updateExpectations: updateExpectations),
           const Print(),
           new Verify(fullCompile),
           new MatchExpectation(
@@ -161,7 +165,10 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   final bool strongMode;
 
-  const Outline(this.fullCompile, this.astKind, this.strongMode);
+  const Outline(this.fullCompile, this.astKind, this.strongMode,
+      {this.updateExpectations: false});
+
+  final bool updateExpectations;
 
   String get name {
     return fullCompile ? "${astKind} compile" : "outline";
@@ -185,9 +192,20 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     try {
       sourceTarget.read(description.uri);
       await dillTarget.writeOutline(null);
+      var instrumentation = new ValidatingInstrumentation();
+      await instrumentation.loadExpectations(description.uri);
+      sourceTarget.loader.instrumentation = instrumentation;
       p = await sourceTarget.writeOutline(null);
       if (fullCompile) {
         p = await sourceTarget.writeProgram(null);
+        instrumentation.finish();
+        if (instrumentation.hasProblems) {
+          if (updateExpectations) {
+            await instrumentation.fixSource(description.uri);
+          } else {
+            return fail(null, instrumentation.problemsAsString);
+          }
+        }
       }
     } on InputError catch (e, s) {
       return fail(null, e.error, s);

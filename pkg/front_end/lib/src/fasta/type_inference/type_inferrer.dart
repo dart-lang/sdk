@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:front_end/src/base/instrumentation.dart';
 import 'package:kernel/ast.dart' show DartType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -20,11 +21,13 @@ abstract class TypeInferrer<S, E, V, F> {
 
   final ClassHierarchy classHierarchy;
 
+  final Instrumentation instrumentation;
+
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
   Uri uri;
 
-  TypeInferrer(this.coreTypes, this.classHierarchy);
+  TypeInferrer(this.coreTypes, this.classHierarchy, this.instrumentation);
 
   /// Performs type inference on a method with the given method [body].
   ///

@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
+
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelTypeInferrer;
 
@@ -52,6 +54,8 @@ class SourceLoader<L> extends Loader<L> {
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
+
+  Instrumentation instrumentation;
 
   SourceLoader(TargetImplementation target) : super(target);
 
@@ -123,7 +127,7 @@ class SourceLoader<L> extends Loader<L> {
 
   DietListener createDietListener(LibraryBuilder library) {
     return new DietListener(library, hierarchy, coreTypes,
-        new KernelTypeInferrer(coreTypes, hierarchy));
+        new KernelTypeInferrer(coreTypes, hierarchy, instrumentation));
   }
 
   void resolveParts() {

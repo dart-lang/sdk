@@ -17,6 +17,7 @@
 /// This means that in some cases multiple shadow classes may extend the same
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
+import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -112,8 +113,9 @@ abstract class KernelStatement extends Statement {
 /// objects.
 class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
     KernelVariableDeclaration, Field> {
-  KernelTypeInferrer(CoreTypes coreTypes, ClassHierarchy classHierarchy)
-      : super(coreTypes, classHierarchy);
+  KernelTypeInferrer(CoreTypes coreTypes, ClassHierarchy classHierarchy,
+      Instrumentation instrumentation)
+      : super(coreTypes, classHierarchy, instrumentation);
 
   @override
   DartType inferExpression(
