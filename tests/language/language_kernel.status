@@ -169,6 +169,7 @@ function_type_alias7_test/02: MissingCompileTimeError
 function_type_alias9_test/00: MissingCompileTimeError
 function_type_parameter2_negative_test: Crash
 function_type_parameter_negative_test: Crash
+function_type/*: DartkCrash
 generic_closure_test: RuntimeError
 generic_field_mixin2_test: RuntimeError
 generic_field_mixin3_test: RuntimeError
