@@ -140,7 +140,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
-                List<Future<Response>> responses = manager.broadcast(
+                Map<PluginInfo, Future<Response>> responses = manager.broadcast(
                     contextRoot,
                     new CompletionGetSuggestionsParams(
                         '/pkg1/lib/pkg1.dart', 100));
@@ -226,7 +226,7 @@ class PluginManagerTest {
 
   void test_broadcast_none() {
     ContextRoot contextRoot = new ContextRoot('/pkg1', []);
-    List<Future<Response>> responses = manager.broadcast(contextRoot,
+    Map<PluginInfo, Future<Response>> responses = manager.broadcast(contextRoot,
         new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100));
     expect(responses, hasLength(0));
   }

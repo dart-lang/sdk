@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library edit.domain;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
@@ -13,6 +11,9 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/domain_abstract.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -37,6 +38,9 @@ import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
 
 int test_resetCount = 0;
@@ -53,23 +57,21 @@ bool test_simulateRefactoringReset_afterInitialConditions = false;
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]
  * that handles requests in the edit domain.
  */
-class EditDomainHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
-  final AnalysisServer server;
-
+class EditDomainHandler extends AbstractRequestHandler {
   /**
    * The [SearchEngine] for this server.
    */
   SearchEngine searchEngine;
 
+  /**
+   * The object used to manage uncompleted refactorings.
+   */
   _RefactoringManager refactoringManager;
 
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  EditDomainHandler(this.server) {
+  EditDomainHandler(AnalysisServer server) : super(server) {
     searchEngine = server.searchEngine;
     _newRefactoringManager();
   }
@@ -185,6 +187,17 @@ class EditDomainHandler implements RequestHandler {
 
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     if (server.options.enableNewAnalysisDriver) {
+      //
+      // Allow plugins to start computing fixes.
+      //
+      AnalysisDriver driver = server.getAnalysisDriver(file);
+      plugin.EditGetFixesParams requestParams =
+          new plugin.EditGetFixesParams(file, offset);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures =
+          server.pluginManager.broadcast(driver.contextRoot, requestParams);
+      //
+      // Compute fixes associated with server-generated errors.
+      //
       AnalysisResult result = await server.getAnalysisResult(file);
       if (result != null) {
         CompilationUnit unit = result.unit;
@@ -215,6 +228,18 @@ class EditDomainHandler implements RequestHandler {
             }
           }
         }
+      }
+      //
+      // Add the fixes produced by plugins to the server-generated fixes.
+      //
+      List<plugin.Response> responses = await waitForResponses(pluginFutures,
+          requestParameters: requestParams);
+      ResultConverter converter = new ResultConverter();
+      for (plugin.Response response in responses) {
+        plugin.EditGetFixesResult result =
+            new plugin.EditGetFixesResult.fromResponse(response);
+        errorFixesList
+            .addAll(result.fixes.map(converter.convertAnalysisErrorFixes));
       }
     } else {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);

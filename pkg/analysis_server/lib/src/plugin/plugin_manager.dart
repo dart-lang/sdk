@@ -25,7 +25,6 @@ import 'package:path/path.dart' as path;
 /**
  * Information about a single plugin.
  */
-@visibleForTesting
 class PluginInfo {
   /**
    * The path to the root directory of the definition of the plugin on disk (the
@@ -71,6 +70,12 @@ class PluginInfo {
    */
   PluginInfo(this.path, this.executionPath, this.packagesPath,
       this.notificationManager, this.instrumentationService);
+
+  /**
+   * Return the data known about this plugin.
+   */
+  PluginData get data =>
+      new PluginData(path, currentSession?.name, currentSession?.version);
 
   /**
    * Add the given [contextRoot] to the set of context roots being analyzed by
@@ -198,12 +203,15 @@ class PluginManager {
    * containing futures that will complete when each of the plugins have sent a
    * response.
    */
-  List<Future<Response>> broadcast(
+  Map<PluginInfo, Future<Response>> broadcast(
       analyzer.ContextRoot contextRoot, RequestParams params) {
     List<PluginInfo> plugins = pluginsForContextRoot(contextRoot);
-    return plugins
-        .map((PluginInfo plugin) => plugin.currentSession?.sendRequest(params))
-        .toList();
+    Map<PluginInfo, Future<Response>> responseMap =
+        <PluginInfo, Future<Response>>{};
+    for (PluginInfo plugin in plugins) {
+      responseMap[plugin] = plugin.currentSession?.sendRequest(params);
+    }
+    return responseMap;
   }
 
   /**
