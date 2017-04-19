@@ -1906,13 +1906,13 @@ class ICData : public Object {
   V(BinaryMintOp)                                                              \
   V(DoubleToSmi)                                                               \
   V(CheckSmi)                                                                  \
+  V(CheckClass)                                                                \
   V(Unknown)                                                                   \
   V(PolymorphicInstanceCallTestFail)                                           \
   V(UnaryMintOp)                                                               \
   V(BinaryDoubleOp)                                                            \
   V(UnaryOp)                                                                   \
   V(UnboxInteger)                                                              \
-  V(CheckClass)                                                                \
   V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \
   V(GuardField)                                                                \
