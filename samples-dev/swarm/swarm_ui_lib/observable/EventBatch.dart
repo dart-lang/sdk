@@ -11,7 +11,6 @@ part of observable;
  * AbstractObservable, which works with this class to implement batching.
  */
 class EventBatch {
-
   /** The current active batch, if any. */
   static EventBatch current;
 
@@ -88,7 +87,7 @@ class EventBatch {
     int uid = obj.uid;
     EventSummary summary = summaries[uid];
     if (summary == null) {
-      assert (!sealed);
+      assert(!sealed);
       summary = new EventSummary(obj);
       summaries[uid] = summary;
     }

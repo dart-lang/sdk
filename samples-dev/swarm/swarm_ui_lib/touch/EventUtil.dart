@@ -8,7 +8,6 @@ part of touch;
  * Common events related helpers.
  */
 class EventUtil {
-
   /**
    * Add an event listener to an element.
    * The event callback is specified by [handler].
@@ -16,14 +15,18 @@ class EventUtil {
    * If [removeHandlerOnFocus] is true the handler is removed when there is any
    * focus event, and added back on blur events.
    */
-  static void observe(/*Element or Document*/ element,
-                      Stream stream, Function handler,
-                      [bool removeHandlerOnFocus = false]) {
+  static void observe(
+      /*Element or Document*/ element, Stream stream, Function handler,
+      [bool removeHandlerOnFocus = false]) {
     var subscription = stream.listen(handler);
     // TODO(jacobr): this remove on focus behavior seems really ugly.
     if (removeHandlerOnFocus) {
-      element.onFocus.listen((e) { subscription.cancel(); });
-      element.onBlur.listen((e) { subscription.cancel(); });
+      element.onFocus.listen((e) {
+        subscription.cancel();
+      });
+      element.onBlur.listen((e) {
+        subscription.cancel();
+      });
     }
   }
 

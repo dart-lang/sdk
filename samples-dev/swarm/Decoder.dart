@@ -19,7 +19,7 @@ class Decoder {
   // For more info, see appengine/encoder.py.
   int readInt() {
     var r = 0;
-    for (var i=0; ; i++) {
+    for (var i = 0;; i++) {
       var v = data.codeUnitAt(index++);
       r |= (v & 0x3F) << (6 * i);
       if ((v & 0x40) == 0) break;
@@ -29,15 +29,14 @@ class Decoder {
 
   bool readBool() {
     final ch = data[index++];
-    assert (ch == 'T' || ch == 'F');
+    assert(ch == 'T' || ch == 'F');
     return ch == 'T';
   }
 
   String readString() {
     int len = readInt();
-    String s = data.substring(index, index+len);
+    String s = data.substring(index, index + len);
     index += len;
     return s;
   }
 }
-

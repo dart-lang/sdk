@@ -8,7 +8,7 @@ testAbstractObservable() {
   group('addChangeListener()', () {
     test('adding the same listener twice returns false the second time', () {
       final target = new AbstractObservable();
-      final listener = (e) { };
+      final listener = (e) {};
 
       expect(target.addChangeListener(listener), isTrue);
       expect(target.addChangeListener(listener), isFalse);
@@ -17,10 +17,10 @@ testAbstractObservable() {
     test('modifies listeners list', () {
       // check that add/remove works, see contents of listeners too
       final target = new AbstractObservable();
-      final l1 = (e) { };
-      final l2 = (e) { };
-      final l3 = (e) { };
-      final l4 = (e) { };
+      final l1 = (e) {};
+      final l2 = (e) {};
+      final l3 = (e) {};
+      final l4 = (e) {};
 
       expect(target.listeners, orderedEquals([]));
 

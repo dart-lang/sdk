@@ -31,14 +31,18 @@ void checkNormal(List l) {
   // Count how many times each byte value occurs.  Assert that the counts
   // are all within a reasonable (six-sigma) range.
   List counts = new List<int>.filled(256, 0);
-  for (var e in l) { counts[e]++; }
+  for (var e in l) {
+    counts[e]++;
+  }
   new RandomArray().randomArray(18, 256000).then(checkCorrelation(counts));
 }
 
 Function checkCorrelation(List counts) {
   return (List l) {
     List counts_2 = new List<int>.filled(256, 0);
-    for (var e in l) { counts_2[e]++; }
+    for (var e in l) {
+      counts_2[e]++;
+    }
     var product = 0;
     for (var i = 0; i < 256; ++i) {
       check(counts[i] < 1200, "counts[i] < 1200");

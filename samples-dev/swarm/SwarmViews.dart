@@ -70,13 +70,12 @@ class FrontView extends CompositeView {
     headerView = new HeaderView(swarm);
     topView.addChild(headerView);
 
-    sliderMenu = new SliderMenu(swarm.sections.sectionTitles,
-        (sectionTitle) {
-          swarm.state.moveToNewSection(sectionTitle);
-          _onSectionSelected(sectionTitle);
-          // Start with no articles selected.
-          swarm.state.selectedArticle.value = null;
-        });
+    sliderMenu = new SliderMenu(swarm.sections.sectionTitles, (sectionTitle) {
+      swarm.state.moveToNewSection(sectionTitle);
+      _onSectionSelected(sectionTitle);
+      // Start with no articles selected.
+      swarm.state.selectedArticle.value = null;
+    });
     topView.addChild(sliderMenu);
     addChild(topView);
 
@@ -99,8 +98,12 @@ class FrontView extends CompositeView {
 
   void afterRender(Element node) {
     _createSectionViews();
-    attachWatch(swarm.state.currentArticle, (e) { _refreshCurrentArticle(); });
-    attachWatch(swarm.state.storyMaximized, (e) { _refreshMaximized(); });
+    attachWatch(swarm.state.currentArticle, (e) {
+      _refreshCurrentArticle();
+    });
+    attachWatch(swarm.state.storyMaximized, (e) {
+      _refreshMaximized();
+    });
   }
 
   void _refreshCurrentArticle() {
@@ -121,8 +124,8 @@ class FrontView extends CompositeView {
 
     headerView.startTransitionToMainView();
 
-    currentSection.dataSourceView.reattachSubview(
-        detachedView.source, detachedView, true);
+    currentSection.dataSourceView
+        .reattachSubview(detachedView.source, detachedView, true);
 
     storyView.node.onTransitionEnd.first.then((e) {
       currentSection.hidden = false;
@@ -157,8 +160,8 @@ class FrontView extends CompositeView {
       // TODO(jmesserly): make this code better
       final view = currentSection.findView(source);
 
-      final newPosition = FxUtil.computeRelativePosition(
-         view.node, bottomView.node);
+      final newPosition =
+          FxUtil.computeRelativePosition(view.node, bottomView.node);
       currentSection.dataSourceView.detachSubview(view.source);
       detachedView = view;
 
@@ -197,8 +200,8 @@ class FrontView extends CompositeView {
   void _animateDataSourceToMaximized() {
     FxUtil.setWebkitTransform(topView.node, 0, -HeaderView.HEIGHT);
     if (detachedView != null) {
-      FxUtil.setWebkitTransform(detachedView.node, 0,
-          -DataSourceView.TAB_ONLY_HEIGHT);
+      FxUtil.setWebkitTransform(
+          detachedView.node, 0, -DataSourceView.TAB_ONLY_HEIGHT);
     }
   }
 
@@ -326,7 +329,9 @@ class SwarmBackButton extends View {
   Element render() => new Element.html('<div class="back-arrow button"></div>');
 
   void afterRender(Element node) {
-    addOnClick((e) { _backToMain(swarm.state); });
+    addOnClick((e) {
+      _backToMain(swarm.state);
+    });
   }
 }
 
@@ -365,9 +370,13 @@ class HeaderView extends CompositeView {
 
   void afterRender(Element node) {
     // Respond to changes to whether the story is being shown as text or web.
-    attachWatch(swarm.state.storyTextMode, (e) { refreshWebStoryButtons(); });
+    attachWatch(swarm.state.storyTextMode, (e) {
+      refreshWebStoryButtons();
+    });
 
-    _title.addOnClick((e) { _backToMain(swarm.state); });
+    _title.addOnClick((e) {
+      _backToMain(swarm.state);
+    });
 
     // Wire up the events.
     _configButton.addOnClick((e) {
@@ -418,7 +427,6 @@ class HeaderView extends CompositeView {
     startTransitionToMainView();
   }
 
-
   /**
    * Refreshes whether or not the buttons specific to the display of a story in
    * the web perspective are visible.
@@ -433,7 +441,7 @@ class HeaderView extends CompositeView {
 
     _webBackButton.hidden = webButtonsHidden;
     _webForwardButton.hidden = webButtonsHidden;
-    _newWindowButton.hidden  = webButtonsHidden;
+    _newWindowButton.hidden = webButtonsHidden;
   }
 
   void startTransitionToMainView() {
@@ -457,7 +465,6 @@ class HeaderView extends CompositeView {
   }
 }
 
-
 /** A back button for the web view of a story that is equivalent to clicking
  * "back" in the browser. */
 // TODO(rnystrom): We have nearly identical versions of this littered through
@@ -470,7 +477,9 @@ class WebBackButton extends View {
   }
 
   void afterRender(Element node) {
-    addOnClick((e) { back(); });
+    addOnClick((e) {
+      back();
+    });
   }
 
   /** Equivalent to [window.history.back] */
@@ -491,7 +500,9 @@ class WebForwardButton extends View {
   }
 
   void afterRender(Element node) {
-    addOnClick((e) { forward(); });
+    addOnClick((e) {
+      forward();
+    });
   }
 
   /** Equivalent to [window.history.forward] */
@@ -514,12 +525,11 @@ class DataSourceViewFactory implements ViewFactory<Feed> {
   int get height => null; // Width for this view isn't known.
 }
 
-
 /**
  * A view for the items from a single data source.
  * Shows a title and a list of items.
  */
-class DataSourceView extends CompositeView  {
+class DataSourceView extends CompositeView {
   // TODO(jacobr): make this value be coupled with the CSS file.
   static const TAB_ONLY_HEIGHT = 34;
 
@@ -527,19 +537,20 @@ class DataSourceView extends CompositeView  {
   VariableSizeListView<Article> itemsView;
 
   DataSourceView(this.source, Swarm swarm) : super('query') {
-
     // TODO(jacobr): make the title a view or decide it is sane for a subclass
     // of component view to manually add some DOM cruft.
-    node.nodes.add(new Element.html(
-        '<h2>${source.title}</h2>'));
+    node.nodes.add(new Element.html('<h2>${source.title}</h2>'));
 
     // TODO(jacobr): use named arguments when available.
     itemsView = addChild(new VariableSizeListView<Article>(
         source.articles,
         new ArticleViewFactory(swarm),
-        true, /* scrollable */
-        true, /* vertical */
-        swarm.state.currentArticle, /* selectedItem */
+        true,
+        /* scrollable */
+        true,
+        /* vertical */
+        swarm.state.currentArticle,
+        /* selectedItem */
         !Device.supportsTouch /* snapToArticles */,
         false /* paginate */,
         true /* removeClippedViews */,
@@ -562,14 +573,16 @@ class ToggleButton extends View {
   List<String> states;
 
   ToggleButton(this.states)
-    : super(),
-      onChanged = new EventListeners();
+      : super(),
+        onChanged = new EventListeners();
 
   Element render() => new Element.tag('button');
 
   void afterRender(Element node) {
     state = states[0];
-    node.onClick.listen((event) { toggle(); });
+    node.onClick.listen((event) {
+      toggle();
+    });
   }
 
   String get state {
@@ -599,8 +612,7 @@ class ArticleViewFactory implements VariableSizeViewFactory<Article> {
   Swarm swarm;
 
   ArticleViewLayout layout;
-  ArticleViewFactory(this.swarm)
-    : layout = ArticleViewLayout.getSingleton();
+  ArticleViewFactory(this.swarm) : layout = ArticleViewLayout.getSingleton();
 
   View newView(Article item) => new ArticleView(item, swarm, layout);
 
@@ -637,9 +649,9 @@ class ArticleViewLayout {
 
   int width;
   static ArticleViewLayout _singleton;
-  ArticleViewLayout() :
-    measureBodyText = new MeasureText(BODY_FONT),
-    measureTitleText = new MeasureText(TITLE_FONT) {
+  ArticleViewLayout()
+      : measureBodyText = new MeasureText(BODY_FONT),
+        measureTitleText = new MeasureText(TITLE_FONT) {
     num screenWidth = window.screen.width;
     width = DESKTOP_WIDTH;
   }
@@ -665,19 +677,18 @@ class ArticleViewLayout {
    * titleContainer and snippetContainer may be null in which case the size is
    * computed but no actual layout is performed.
    */
-  ArticleViewMetrics computeLayout(Article item,
-      StringBuffer titleBuffer,
-      StringBuffer snippetBuffer) {
+  ArticleViewMetrics computeLayout(
+      Article item, StringBuffer titleBuffer, StringBuffer snippetBuffer) {
     int titleWidth = width - BODY_MARGIN_LEFT;
 
     if (item.hasThumbnail) {
       titleWidth = width - TITLE_MARGIN_LEFT;
     }
 
-    final titleLines = measureTitleText.addLineBrokenText(titleBuffer,
-        item.title, titleWidth, MAX_TITLE_LINES);
-    final bodyLines = measureBodyText.addLineBrokenText(snippetBuffer,
-        item.textBody, width - BODY_MARGIN_LEFT, MAX_BODY_LINES);
+    final titleLines = measureTitleText.addLineBrokenText(
+        titleBuffer, item.title, titleWidth, MAX_TITLE_LINES);
+    final bodyLines = measureBodyText.addLineBrokenText(
+        snippetBuffer, item.textBody, width - BODY_MARGIN_LEFT, MAX_BODY_LINES);
 
     int height = bodyLines * LINE_HEIGHT + TOTAL_MARGIN;
 
@@ -741,7 +752,6 @@ class ArticleView extends View {
   }
 
   void afterRender(Element node) {
-
     // Select this view's item.
     addOnClick((e) {
       // Mark the item as read, so it shows as read in other views
@@ -791,13 +801,13 @@ class ArticleView extends View {
         // Story View.
         swarm.frontView.detachedView.itemsView.showView(selArticle);
       } else {
-        if(swarm.frontView.currentSection.inCurrentView(selArticle)) {
+        if (swarm.frontView.currentSection.inCurrentView(selArticle)) {
           // Scroll horizontally if needed.
-          swarm.frontView.currentSection.dataSourceView.showView(
-              selArticle.dataSource);
-          DataSourceView dataView = swarm.frontView.currentSection
-              .findView(selArticle.dataSource);
-          if(dataView != null) {
+          swarm.frontView.currentSection.dataSourceView
+              .showView(selArticle.dataSource);
+          DataSourceView dataView =
+              swarm.frontView.currentSection.findView(selArticle.dataSource);
+          if (dataView != null) {
             dataView.itemsView.showView(selArticle);
           }
         }
@@ -807,8 +817,8 @@ class ArticleView extends View {
 
   String getDataUriForImage(final img) {
     // TODO(hiltonc,jimhug) eval perf of this vs. reusing one canvas element
-    final CanvasElement canvas = new CanvasElement(
-      height: img.height, width: img.width);
+    final CanvasElement canvas =
+        new CanvasElement(height: img.height, width: img.width);
 
     final CanvasRenderingContext2D ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, img.width, img.height);
@@ -848,8 +858,8 @@ class StoryContentView extends View {
   get childViews => [_pagedStory];
 
   Element render() {
-    final storyContent = new Element.html(
-        '<div class="story-content">${item.htmlBody}</div>');
+    final storyContent =
+        new Element.html('<div class="story-content">${item.htmlBody}</div>');
     for (Element element in storyContent.querySelectorAll(
         "iframe, script, style, object, embed, frameset, frame")) {
       element.remove();
@@ -896,9 +906,9 @@ class SectionView extends CompositeView {
   final PageState pageState;
 
   SectionView(this.swarm, this.section, this._viewFactory)
-    : super('section-view'),
-      loadingText = new View.html('<div class="loading-section"></div>'),
-      pageState = new PageState() {
+      : super('section-view'),
+        loadingText = new View.html('<div class="loading-section"></div>'),
+        pageState = new PageState() {
     addChild(loadingText);
   }
 
@@ -912,14 +922,16 @@ class SectionView extends CompositeView {
     if (dataSourceView == null) {
       // TODO(jacobr): use named arguments when available.
       dataSourceView = new ListView<Feed>(
-          section.feeds, _viewFactory,
+          section.feeds,
+          _viewFactory,
           true /* scrollable */,
           false /* vertical */,
           null /* selectedItem */,
           true /* snapToItems */,
           true /* paginate */,
           true /* removeClippedViews */,
-          false, /* showScrollbar */
+          false,
+          /* showScrollbar */
           pageState);
       dataSourceView.addClass("data-source-view");
       addChild(dataSourceView);

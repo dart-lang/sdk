@@ -33,7 +33,9 @@ testObservableValue() {
     expect(value.value, equals('foo'));
 
     bool called = false;
-    value.addChangeListener((summary) { called = true; });
+    value.addChangeListener((summary) {
+      called = true;
+    });
 
     // Set it to the same value.
     value.value = 'foo';

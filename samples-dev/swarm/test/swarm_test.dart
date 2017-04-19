@@ -33,15 +33,16 @@ void main() {
   getStoryNode() => swarm.frontView.storyView.node;
 
   getView(Section section) {
-    return CollectionUtils.find(swarm.frontView.sections.childViews,
-        (view) => view.section == section);
+    return CollectionUtils.find(
+        swarm.frontView.sections.childViews, (view) => view.section == section);
   }
 
   getHistory(Article article) {
     final feed = article.dataSource;
     return {
-      'section': CollectionUtils.find(swarm.sections,
-          (s) => s.feeds.indexOf(feed, 0) >= 0).id,
+      'section': CollectionUtils
+          .find(swarm.sections, (s) => s.feeds.indexOf(feed, 0) >= 0)
+          .id,
       'feed': feed.id,
       'article': article.id
     };
@@ -113,7 +114,6 @@ click(Element element) {
   element.dispatchEvent(event);
 }
 
-
 /** A proxy so we can intercept history calls */
 class UIStateProxy extends SwarmState {
   List<Map<String, String>> history;
@@ -153,6 +153,7 @@ void _serialInvokeAsync(List closures) {
         Timer.run(expectAsync(invokeNext));
       }
     }
+
     Timer.run(expectAsync(invokeNext));
   }
 }

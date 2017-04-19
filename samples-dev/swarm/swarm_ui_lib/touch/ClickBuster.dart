@@ -69,10 +69,8 @@ class ClickBuster {
     */
     DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
     while (entry != null) {
-      if (_hitTest(entry.element,
-                   entry.nextEntry().element,
-                   coord.x,
-                   coord.y)) {
+      if (_hitTest(
+          entry.element, entry.nextEntry().element, coord.x, coord.y)) {
         entry.nextEntry().remove();
         entry.remove();
         return;
@@ -96,9 +94,9 @@ class ClickBuster {
     final coord = new Coordinate.fromClient(te.touches[0]);
     _coordinates.add(coord.x);
     _coordinates.add(coord.y);
-    new Timer(
-        const Duration(milliseconds: _TIME_THRESHOLD),
-        () { _removeCoordinate(coord.x, coord.y); });
+    new Timer(const Duration(milliseconds: _TIME_THRESHOLD), () {
+      _removeCoordinate(coord.x, coord.y);
+    });
     _toggleTapHighlights(true);
   }
 
@@ -180,27 +178,29 @@ class ClickBuster {
     if (_coordinates == null) {
       // Listen to clicks on capture phase so they can be busted before anything
       // else gets a chance to handle them.
-      Element.clickEvent.forTarget(document, useCapture: true).listen(
-          (e) { _onClick(e); });
-      Element.focusEvent.forTarget(document, useCapture: true).listen(
-          (e) { _lastPreventedTime = 0; });
+      Element.clickEvent.forTarget(document, useCapture: true).listen((e) {
+        _onClick(e);
+      });
+      Element.focusEvent.forTarget(document, useCapture: true).listen((e) {
+        _lastPreventedTime = 0;
+      });
 
       // Listen to touchstart on capture phase since it must be called prior to
       // every click or else we will accidentally prevent the click even if we
       // don't call preventGhostClick.
-      Function startFn = (e) { _onTouchStart(e); };
+      Function startFn = (e) {
+        _onTouchStart(e);
+      };
       if (!Device.supportsTouch) {
         startFn = mouseToTouchCallback(startFn);
       }
       var stream;
       if (Device.supportsTouch) {
-        stream = Element.touchStartEvent.forTarget(document, useCapture:true);
+        stream = Element.touchStartEvent.forTarget(document, useCapture: true);
       } else {
-        stream = Element.mouseDownEvent.forTarget(document, useCapture:true);
+        stream = Element.mouseDownEvent.forTarget(document, useCapture: true);
       }
-      EventUtil.observe(document,
-          stream,
-          startFn, true);
+      EventUtil.observe(document, stream, startFn, true);
       _coordinates = new DoubleLinkedQueue<num>();
     }
 
