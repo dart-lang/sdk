@@ -1310,11 +1310,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
  */
 abstract class AnalysisDriverGeneric {
   /**
-   * Information about the context root being analyzed by this driver.
-   */
-  ContextRoot get contextRoot;
-
-  /**
    * Return `true` if the driver has a file to analyze.
    */
   bool get hasFilesToAnalyze;
