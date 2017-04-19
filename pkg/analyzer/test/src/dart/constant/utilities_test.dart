@@ -57,8 +57,9 @@ class ConstantFinderTest {
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
-    _node = elementAnnotation.annotationAst = AstTestFactory.annotation(
-        AstTestFactory.identifier3('x'))..elementAnnotation = elementAnnotation;
+    _node = elementAnnotation.annotationAst = AstTestFactory
+        .annotation(AstTestFactory.identifier3('x'))
+          ..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
 
