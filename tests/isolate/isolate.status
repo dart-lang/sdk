@@ -256,7 +256,7 @@ message3_test/int32x4: Crash
 message_test: RuntimeError
 ping_pause_test: Timeout
 spawn_function_custom_class_test: Timeout
-spawn_uri_exported_main_test: Crash
+spawn_uri_exported_main_test: RuntimeError
 spawn_uri_nested_vm_test: Pass, Timeout
 
 [ $runtime == flutter ]

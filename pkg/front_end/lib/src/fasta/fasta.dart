@@ -191,6 +191,10 @@ Future<CompilationResult> parseScript(
       return new CompilationResult.error(e.format());
     }
 
+    if (program.mainMethod == null) {
+      return new CompilationResult.error("No 'main' method found.");
+    }
+
     // Perform target-specific transformations.
     target.performModularTransformations(program);
     target.performGlobalTransformations(program);

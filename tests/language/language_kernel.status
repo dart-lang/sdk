@@ -116,9 +116,8 @@ enum_syntax_test/06: MissingCompileTimeError
 enum_syntax_test/21: MissingCompileTimeError
 enum_syntax_test/30: MissingCompileTimeError
 evaluation_redirecting_constructor_test: RuntimeError
-export_ambiguous_main_negative_test: Crash
-export_double_same_main_test: Crash
-export_main_test: Crash
+export_double_same_main_test: CompileTimeError
+export_main_test: CompileTimeError
 export_private_test/01: MissingCompileTimeError
 external_test/11: MissingCompileTimeError
 external_test/12: MissingCompileTimeError
@@ -209,7 +208,6 @@ library_ambiguous_test/04: MissingRuntimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
-main_not_a_function_test/01: Crash
 malformed2_test/00: RuntimeError
 malformed_inheritance_test/09: MissingCompileTimeError
 malformed_inheritance_test/10: MissingCompileTimeError
@@ -266,7 +264,6 @@ named_parameters_aggregated_test/03: MissingCompileTimeError
 named_parameters_aggregated_test/04: MissingCompileTimeError
 named_parameters_default_eq_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-no_main_test/01: Crash
 not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301
 on_catch_malformed_type_test: RuntimeError
