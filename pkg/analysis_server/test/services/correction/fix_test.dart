@@ -3380,6 +3380,34 @@ main() {
 ''');
   }
 
+  test_importLibraryProject_BAD_notInLib_BUILD() async {
+    testFile = '/aaa/bin/test.dart';
+    provider.newFile('/aaa/BUILD', '');
+    provider.newFile('/bbb/BUILD', '');
+    addSource('/bbb/test/lib.dart', 'class Test {}');
+    await resolveTestUnit('''
+main() {
+  Test t;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
+  }
+
+  test_importLibraryProject_BAD_notInLib_pubspec() async {
+    testFile = '/aaa/bin/test.dart';
+    provider.newFile('/aaa/pubspec.yaml', 'name: aaa');
+    provider.newFile('/bbb/pubspec.yaml', 'name: bbb');
+    addSource('/bbb/test/lib.dart', 'class Test {}');
+    await resolveTestUnit('''
+main() {
+  Test t;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
+  }
+
   test_importLibraryProject_withClass_annotation() async {
     addSource(
         '/lib.dart',

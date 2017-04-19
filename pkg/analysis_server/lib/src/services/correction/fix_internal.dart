@@ -103,8 +103,8 @@ class FixProcessor {
   CompilationUnitElement unitElement;
   Source unitSource;
   LibraryElement unitLibraryElement;
-  String unitLibraryFile;
-  String unitLibraryFolder;
+  File unitLibraryFile;
+  Folder unitLibraryFolder;
 
   final List<Fix> fixes = <Fix>[];
 
@@ -136,8 +136,9 @@ class FixProcessor {
     fileStamp = context.getModificationStamp(unitSource);
     // library
     unitLibraryElement = unitElement.library;
-    unitLibraryFile = unitLibraryElement.source.fullName;
-    unitLibraryFolder = dirname(unitLibraryFile);
+    String unitLibraryPath = unitLibraryElement.source.fullName;
+    unitLibraryFile = resourceProvider.getFile(unitLibraryPath);
+    unitLibraryFolder = unitLibraryFile.parent;
     // error
     error = dartContext.error;
   }
@@ -1634,6 +1635,9 @@ class FixProcessor {
         if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }
+        if (!_isSourceVisibleToLibrary(librarySource)) {
+          continue;
+        }
         // Compute the fix kind.
         FixKind fixKind;
         if (librarySource.isInSystemLibrary) {
@@ -2897,6 +2901,36 @@ class FixProcessor {
       }
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the [source] can be imported into [unitLibraryFile].
+   */
+  bool _isSourceVisibleToLibrary(Source source) {
+    if (!source.uri.isScheme('file')) {
+      return true;
+    }
+
+    // Prepare the root of our package.
+    Folder packageRoot;
+    for (Folder folder = unitLibraryFolder;
+        folder != null;
+        folder = folder.parent) {
+      if (folder.getChildAssumingFile('pubspec.yaml').exists ||
+          folder.getChildAssumingFile('BUILD').exists) {
+        packageRoot = folder;
+        break;
+      }
+    }
+
+    // This should be rare / never situation.
+    if (packageRoot == null) {
+      return true;
+    }
+
+    // We cannot use relative URIs to reference files outside of our package.
+    return resourceProvider.pathContext
+        .isWithin(packageRoot.path, source.fullName);
   }
 
   /**
