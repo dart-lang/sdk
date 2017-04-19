@@ -14,9 +14,6 @@ compile_time_constant_k_test/02: RuntimeError
 compile_time_constant_k_test/03: RuntimeError
 compile_time_constant_o_test/01: RuntimeError
 compile_time_constant_o_test/02: RuntimeError
-compile_time_constant_r_test/01: Crash
-compile_time_constant_r_test/02: Crash
-compile_time_constant_r_test/03: Crash
 compile_time_constant_test/01: MissingCompileTimeError
 conditional_method_invocation_test/11: MissingCompileTimeError
 conditional_property_access_test/09: MissingCompileTimeError

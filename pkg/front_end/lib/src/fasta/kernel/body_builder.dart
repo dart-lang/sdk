@@ -1391,7 +1391,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     Expression expression = popForValue();
-    push(new Throw(expression)..fileOffset = throwToken.charOffset);
+    if (constantExpressionRequired) {
+      push(buildCompileTimeError(
+          "Not a constant expression.", throwToken.charOffset));
+    } else {
+      push(new Throw(expression)..fileOffset = throwToken.charOffset);
+    }
   }
 
   @override
