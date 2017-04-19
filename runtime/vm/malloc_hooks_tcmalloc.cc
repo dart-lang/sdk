@@ -4,8 +4,7 @@
 
 #include "platform/globals.h"
 
-#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&                         \
-    !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
+#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
 
 #include "vm/malloc_hooks.h"
 
@@ -262,7 +261,7 @@ void MallocHooksState::TearDown() {
 
 
 void MallocHooks::InitOnce() {
-  if (!FLAG_enable_malloc_hooks || MallocHooks::Active()) {
+  if (!FLAG_profiler_native_memory || MallocHooks::Active()) {
     return;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -281,7 +280,7 @@ void MallocHooks::InitOnce() {
 
 
 void MallocHooks::TearDown() {
-  if (!FLAG_enable_malloc_hooks || !MallocHooks::Active()) {
+  if (!FLAG_profiler_native_memory || !MallocHooks::Active()) {
     return;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -319,7 +318,7 @@ void MallocHooks::set_stack_trace_collection_enabled(bool enabled) {
 
 
 void MallocHooks::ResetStats() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_profiler_native_memory) {
     return;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -331,7 +330,7 @@ void MallocHooks::ResetStats() {
 
 
 bool MallocHooks::Active() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_profiler_native_memory) {
     return false;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -342,7 +341,7 @@ bool MallocHooks::Active() {
 
 
 void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_profiler_native_memory) {
     return;
   }
   intptr_t allocated_memory = 0;
@@ -368,7 +367,7 @@ void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
 
 
 intptr_t MallocHooks::allocation_count() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_profiler_native_memory) {
     return 0;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -378,7 +377,7 @@ intptr_t MallocHooks::allocation_count() {
 
 
 intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_profiler_native_memory) {
     return 0;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),

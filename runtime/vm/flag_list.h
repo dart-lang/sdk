@@ -75,9 +75,6 @@
     "Emit DWARF line number and inlining info"                                 \
     "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
-  R(enable_malloc_hooks, false, bool, false,                                   \
-    "Enable native memory statistic collection. Enabled by default in Debug "  \
-    "mode")                                                                    \
   C(enable_mirrors, false, false, bool, true,                                  \
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \
@@ -145,6 +142,8 @@
     "Print variable descriptors in disassembly.")                              \
   R(profiler, false, bool, !USING_DBC && !USING_FUCHSIA,                       \
     "Enable the profiler.")                                                    \
+  R(profiler_native_memory, false, bool, false,                                \
+    "Enable native memory statistic collection.")                              \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(causal_async_stacks, false, false, bool, true, "Improved async stacks")    \
   C(stress_async_stacks, false, false, bool, false,                            \

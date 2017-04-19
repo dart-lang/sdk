@@ -4,8 +4,7 @@
 
 #include "platform/globals.h"
 
-#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&                         \
-    !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
+#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
 
 #include "platform/assert.h"
 #include "vm/globals.h"
@@ -28,8 +27,8 @@ static void MallocHookTestBufferInitializer(volatile char* buffer,
 
 
 UNIT_TEST_CASE(BasicMallocHookTest) {
-  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
-  FLAG_enable_malloc_hooks = true;
+  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
+  FLAG_profiler_native_memory = true;
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
@@ -48,13 +47,13 @@ UNIT_TEST_CASE(BasicMallocHookTest) {
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
   MallocHooks::TearDown();
 
-  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
+  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
 
 UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
-  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
-  FLAG_enable_malloc_hooks = true;
+  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
+  FLAG_profiler_native_memory = true;
 
   MallocHooks::InitOnce();
   const intptr_t pre_hook_buffer_size = 3;
@@ -84,13 +83,13 @@ UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
   MallocHooks::TearDown();
 
-  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
+  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
 
 VM_UNIT_TEST_CASE(StackTraceMallocHookSimpleTest) {
-  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
-  FLAG_enable_malloc_hooks = true;
+  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
+  FLAG_profiler_native_memory = true;
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
@@ -108,7 +107,7 @@ VM_UNIT_TEST_CASE(StackTraceMallocHookSimpleTest) {
   EXPECT(sample == NULL);
   MallocHooks::TearDown();
   MallocHooks::set_stack_trace_collection_enabled(enable_stack_traces_saved);
-  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
+  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
 
@@ -120,8 +119,8 @@ static char* DART_NOINLINE StackTraceLengthHelper(uintptr_t* end_address) {
 
 
 VM_UNIT_TEST_CASE(StackTraceMallocHookLengthTest) {
-  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
-  FLAG_enable_malloc_hooks = true;
+  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
+  FLAG_profiler_native_memory = true;
 
   uintptr_t test_start_address =
       reinterpret_cast<uintptr_t>(Dart_TestStackTraceMallocHookLengthTest);
@@ -169,13 +168,13 @@ VM_UNIT_TEST_CASE(StackTraceMallocHookLengthTest) {
   free(var);
   MallocHooks::TearDown();
   MallocHooks::set_stack_trace_collection_enabled(enable_stack_traces_saved);
-  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
+  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
 
 ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
-  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
-  FLAG_enable_malloc_hooks = true;
+  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
+  FLAG_profiler_native_memory = true;
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
@@ -205,7 +204,7 @@ ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
   free(var);
   MallocHooks::TearDown();
   MallocHooks::set_stack_trace_collection_enabled(enable_stack_traces_saved);
-  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
+  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
 };  // namespace dart

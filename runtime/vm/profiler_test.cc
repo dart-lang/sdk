@@ -326,8 +326,8 @@ DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
 
 
 ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
-  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
-  FLAG_enable_malloc_hooks = true;
+  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
+  FLAG_profiler_native_memory = true;
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
@@ -522,7 +522,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   MallocHooks::set_stack_trace_collection_enabled(
       stack_trace_collection_enabled);
   MallocHooks::TearDown();
-  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
+  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 #endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
         // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
