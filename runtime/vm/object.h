@@ -6044,15 +6044,18 @@ class Type : public AbstractType {
 
 
 // A TypeRef is used to break cycles in the representation of recursive types.
-// Its only field is the recursive AbstractType it refers to.
+// Its only field is the recursive AbstractType it refers to, which can
+// temporarily be null during finalization.
 // Note that the cycle always involves type arguments.
 class TypeRef : public AbstractType {
  public:
   virtual bool IsFinalized() const {
-    return AbstractType::Handle(type()).IsFinalized();
+    const AbstractType& ref_type = AbstractType::Handle(type());
+    return !ref_type.IsNull() && ref_type.IsFinalized();
   }
   virtual bool IsBeingFinalized() const {
-    return AbstractType::Handle(type()).IsBeingFinalized();
+    const AbstractType& ref_type = AbstractType::Handle(type());
+    return ref_type.IsNull() || ref_type.IsBeingFinalized();
   }
   virtual bool IsMalformed() const {
     return AbstractType::Handle(type()).IsMalformed();

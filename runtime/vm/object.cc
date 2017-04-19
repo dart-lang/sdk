@@ -4701,7 +4701,7 @@ bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
   for (intptr_t i = from_index; i < from_index + len; i++) {
     type = TypeAt(i);
     other_type = other.TypeAt(i);
-    if (!type.IsEquivalent(other_type, trail)) {
+    if (!type.IsNull() && !type.IsEquivalent(other_type, trail)) {
       return false;
     }
   }
@@ -4735,6 +4735,9 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
   Class& type_class = Class::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
+    if (type.IsNull()) {
+      return false;
+    }
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
         // An uninstantiated type parameter is equivalent to dynamic (even in
@@ -4766,10 +4769,9 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
   AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    ASSERT(!type.IsNull());
     other_type = other.TypeAt(from_index + i);
-    ASSERT(!other_type.IsNull());
-    if (!type.TypeTest(test_kind, other_type, bound_error, bound_trail,
+    if (type.IsNull() || other_type.IsNull() ||
+        !type.TypeTest(test_kind, other_type, bound_error, bound_trail,
                        space)) {
       return false;
     }
@@ -4862,11 +4864,13 @@ bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
 
 
 bool TypeArguments::IsUninstantiatedIdentity() const {
-  ASSERT(!IsInstantiated());
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
+    if (type.IsNull()) {
+      continue;
+    }
     if (!type.IsTypeParameter()) {
       return false;
     }
@@ -4875,6 +4879,9 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     if ((type_param.index() != i) || type_param.IsFunctionTypeParameter()) {
       return false;
     }
+    // TODO(regis): Do the bounds really matter, since they are checked at
+    // finalization time (creating BoundedTypes where required)? Understand
+    // why ignoring bounds here causes failures.
     // If this type parameter specifies an upper bound, then the type argument
     // vector does not really represent the identity vector. It cannot be
     // substituted by the instantiator's type argument vector without checking
@@ -17661,7 +17668,8 @@ bool TypeRef::IsInstantiated(Genericity genericity, TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return true;
   }
-  return AbstractType::Handle(type()).IsInstantiated(genericity, trail);
+  const AbstractType& ref_type = AbstractType::Handle(type());
+  return !ref_type.IsNull() && ref_type.IsInstantiated(genericity, trail);
 }
 
 
@@ -17675,7 +17683,8 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (TestAndAddBuddyToTrail(&trail, AbstractType::Cast(other))) {
     return true;
   }
-  return AbstractType::Handle(type()).IsEquivalent(other, trail);
+  const AbstractType& ref_type = AbstractType::Handle(type());
+  return !ref_type.IsNull() && ref_type.IsEquivalent(other, trail);
 }
 
 
@@ -17695,7 +17704,7 @@ RawTypeRef* TypeRef::InstantiateFrom(
   AddOnlyBuddyToTrail(&instantiation_trail, instantiated_type_ref);
 
   AbstractType& ref_type = AbstractType::Handle(type());
-  ASSERT(!ref_type.IsTypeRef());
+  ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
       instantiator_type_arguments, function_type_arguments, bound_error,
@@ -17716,7 +17725,7 @@ RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
   cloned_type_ref = TypeRef::New();
   AddOnlyBuddyToTrail(&trail, cloned_type_ref);
   AbstractType& ref_type = AbstractType::Handle(type());
-  ASSERT(!ref_type.IsTypeRef());
+  ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
   AbstractType& cloned_ref_type = AbstractType::Handle();
   cloned_ref_type = ref_type.CloneUninstantiated(new_owner, trail);
   ASSERT(!cloned_ref_type.IsTypeRef());
@@ -17743,6 +17752,7 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
   // TODO(regis): Try to reduce the number of nodes required to represent the
   // referenced recursive type.
   AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsNull());
   ref_type = ref_type.Canonicalize(trail);
   set_type(ref_type);
   return raw();
@@ -17752,6 +17762,7 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
 #if defined(DEBUG)
 bool TypeRef::CheckIsCanonical(Thread* thread) const {
   AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsNull());
   return ref_type.CheckIsCanonical(thread);
 }
 #endif  // DEBUG
@@ -17778,8 +17789,9 @@ RawString* TypeRef::EnumerateURIs() const {
 
 intptr_t TypeRef::Hash() const {
   // Do not calculate the hash of the referenced type to avoid divergence.
-  const uint32_t result =
-      Class::Handle(AbstractType::Handle(type()).type_class()).id();
+  const AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsNull());
+  const uint32_t result = Class::Handle(ref_type.type_class()).id();
   return FinalizeHash(result, kHashBits);
 }
 
@@ -18282,8 +18294,10 @@ RawAbstractType* BoundedType::InstantiateFrom(
     // (or instantiated) either.
     // Note that instantiator_type_arguments must have the final length, though.
   }
+  // If instantiated_bounded_type is not finalized, it is too early to check
+  // its upper bound. It will be checked in a second finalization phase.
   if ((Isolate::Current()->type_checks()) && (bound_error != NULL) &&
-      bound_error->IsNull()) {
+      bound_error->IsNull() && instantiated_bounded_type.IsFinalized()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     AbstractType& instantiated_upper_bound =
@@ -18302,8 +18316,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
         return bounded_type.raw();
       }
       const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
-      if (!instantiated_bounded_type.IsFinalized() ||
-          !instantiated_upper_bound.IsFinalized() ||
+      if (instantiated_upper_bound.IsFinalized() &&
           (!type_param.CheckBound(instantiated_bounded_type,
                                   instantiated_upper_bound, bound_error,
                                   bound_trail, space) &&
@@ -18316,9 +18329,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
         // error yet: if the upper bound is a function type, but the bounded
         // type is not and its class is not compiled yet, i.e. we cannot look
         // for a call method yet.
-        ASSERT(instantiated_bounded_type.IsBeingFinalized() ||
-               instantiated_upper_bound.IsBeingFinalized() ||
-               !instantiated_bounded_type.IsInstantiated() ||
+        ASSERT(!instantiated_bounded_type.IsInstantiated() ||
                !instantiated_upper_bound.IsInstantiated() ||
                (!instantiated_bounded_type.IsFunctionType() &&
                 instantiated_upper_bound.IsFunctionType() &&
