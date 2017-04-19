@@ -7,8 +7,7 @@ analyzer:
   language:
     enableSuperMixins: true
   exclude:
-    # TODO(devoncarew): Without this exclude I see ~400 analysis errors.
-    - test/fasta/**
+    - testcases/**
   errors:
     # Omits warnings due to missing `@virtual`
     # TODO(sigmund): enable once #28601 is fixed

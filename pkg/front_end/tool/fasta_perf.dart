@@ -236,7 +236,8 @@ class _PartialAstBuilder extends AstBuilder {
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
 // TODO(sigmund): update to uyse the frontend api once fasta is beind hit.
-generateKernel(Uri entryUri, {bool compileSdk: true}) async {
+generateKernel(Uri entryUri,
+    {bool compileSdk: true, bool strongMode: false}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
   scanReachableFiles(entryUri);
@@ -244,7 +245,8 @@ generateKernel(Uri entryUri, {bool compileSdk: true}) async {
   var timer = new Stopwatch()..start();
   final Ticker ticker = new Ticker();
   final DillTarget dillTarget = new DillTarget(ticker, uriResolver);
-  final KernelTarget kernelTarget = new KernelTarget(dillTarget, uriResolver);
+  final KernelTarget kernelTarget =
+      new KernelTarget(dillTarget, uriResolver, strongMode);
   var entrypoints = [
     entryUri,
     // These extra libraries are added to match the same set of libraries

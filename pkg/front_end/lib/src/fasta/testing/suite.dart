@@ -34,7 +34,7 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-export 'kernel_chain.dart' show TestContext;
+export 'kernel_chain.dart' show STRONG_MODE, TestContext;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
@@ -51,12 +51,12 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-String shortenAstKindName(AstKind astKind) {
+String shortenAstKindName(AstKind astKind, bool strongMode) {
   switch (astKind) {
     case AstKind.Analyzer:
-      return "dartk";
+      return strongMode ? "dartk-strong" : "dartk";
     case AstKind.Kernel:
-      return "direct";
+      return strongMode ? "strong" : "direct";
   }
   throw "Unknown AST kind: $astKind";
 }
@@ -87,12 +87,12 @@ class FastaContext extends TestContext {
       bool fullCompile,
       AstKind astKind)
       : steps = <Step>[
-          new Outline(fullCompile, astKind),
+          new Outline(fullCompile, astKind, strongMode),
           const Print(),
           new Verify(fullCompile),
           new MatchExpectation(
               fullCompile
-                  ? ".${shortenAstKindName(astKind)}.expect"
+                  ? ".${shortenAstKindName(astKind, strongMode)}.expect"
                   : ".outline.expect",
               updateExpectations: updateExpectations)
         ],
@@ -159,7 +159,9 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   final AstKind astKind;
 
-  const Outline(this.fullCompile, this.astKind);
+  final bool strongMode;
+
+  const Outline(this.fullCompile, this.astKind, this.strongMode);
 
   String get name {
     return fullCompile ? "${astKind} compile" : "outline";
@@ -176,8 +178,8 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
-        ? new AnalyzerTarget(dillTarget, context.uriTranslator)
-        : new KernelTarget(dillTarget, context.uriTranslator);
+        ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
+        : new KernelTarget(dillTarget, context.uriTranslator, strongMode);
 
     Program p;
     try {

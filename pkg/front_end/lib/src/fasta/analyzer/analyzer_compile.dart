@@ -47,9 +47,11 @@ Future<Uri> compile(List<String> arguments) async {
 class AnalyzerCompileTask extends CompileTask {
   AnalyzerCompileTask(CompilerContext c, Ticker ticker) : super(c, ticker);
 
+  @override
   AnalyzerTarget createKernelTarget(
-      DillTarget dillTarget, TranslateUri uriTranslator) {
-    return new AnalyzerTarget(dillTarget, uriTranslator, c.uriToSource);
+      DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode) {
+    return new AnalyzerTarget(
+        dillTarget, uriTranslator, strongMode, c.uriToSource);
   }
 }
 

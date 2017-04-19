@@ -43,6 +43,8 @@ import 'package:package_config/discovery.dart' show loadPackagesFile;
 
 import '../environment_variable.dart' show EnvironmentVariable;
 
+const String STRONG_MODE = " strong mode ";
+
 typedef Future<TestContext> TestContextConstructor(
     Chain suite,
     Map<String, String> environment,
@@ -126,7 +128,7 @@ abstract class TestContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
-    bool strongMode = false;
+    bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
     return constructor(
         suite,

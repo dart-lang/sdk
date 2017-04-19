@@ -1,0 +1,58 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class UnusedClass extends core::Object {
+  constructor •() → void
+    ;
+}
+abstract class UsedAsBaseClass extends core::Object {
+  constructor •() → void
+    ;
+  method usedInSubclass() → void
+    ;
+  method calledFromB() → void
+    ;
+  method calledFromSubclass() → void
+    ;
+}
+class UsedAsInterface extends core::Object {
+  constructor •() → void
+    ;
+  method usedInSubclass() → void
+    ;
+}
+class InstantiatedButMethodsUnused extends core::Object {
+  constructor •() → void
+    ;
+  method usedInSubclass() → void
+    ;
+}
+class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
+  constructor •() → void
+    ;
+  method usedInSubclass() → void
+    ;
+}
+class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
+  constructor •() → void
+    ;
+  method usedInSubclass() → void
+    ;
+  method calledFromSubclass() → void
+    ;
+}
+static method baseClassCall(self::UsedAsBaseClass object) → void
+  ;
+static method interfaceCall(self::UsedAsInterface object) → void
+  ;
+static method exactCallA(self::ClassA object) → void
+  ;
+static method exactCallB(self::ClassB object) → void
+  ;
+static method unusedTopLevel() → dynamic
+  ;
+static method usedTopLevel() → dynamic
+  ;
+static method main() → dynamic
+  ;

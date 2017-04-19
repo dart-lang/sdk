@@ -92,6 +92,8 @@ import 'kernel_builder.dart'
 import 'verifier.dart' show verifyProgram;
 
 class KernelTarget extends TargetImplementation {
+  final bool strongMode;
+
   final DillTarget dillTarget;
 
   /// Shared with [CompilerContext].
@@ -105,7 +107,8 @@ class KernelTarget extends TargetImplementation {
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
 
-  KernelTarget(DillTarget dillTarget, TranslateUri uriTranslator,
+  KernelTarget(
+      DillTarget dillTarget, TranslateUri uriTranslator, this.strongMode,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,

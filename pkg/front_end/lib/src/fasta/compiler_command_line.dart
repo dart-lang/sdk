@@ -83,6 +83,8 @@ class CompilerCommandLine extends CommandLine {
 
   bool get nitsAreFatal => fatal.contains("nits");
 
+  bool get strongMode => options.containsKey("--strong-mode");
+
   static dynamic withGlobalOptions(String programName, List<String> arguments,
       dynamic f(CompilerContext context)) {
     return CompilerContext.withGlobalOptions(

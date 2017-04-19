@@ -110,8 +110,9 @@ class CompileTask {
   CompileTask(this.c, this.ticker);
 
   KernelTarget createKernelTarget(
-      DillTarget dillTarget, TranslateUri uriTranslator) {
-    return new KernelTarget(dillTarget, uriTranslator, c.uriToSource);
+      DillTarget dillTarget, TranslateUri uriTranslator, bool strongMode) {
+    return new KernelTarget(
+        dillTarget, uriTranslator, strongMode, c.uriToSource);
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
@@ -119,7 +120,11 @@ class CompileTask {
         await TranslateUri.parse(c.options.sdk, c.options.packages);
     ticker.logMs("Read packages file");
     DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-    KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
+    KernelTarget kernelTarget =
+        createKernelTarget(dillTarget, uriTranslator, c.options.strongMode);
+    if (c.options.strongMode) {
+      print("Note: strong mode support is preliminary and may not work.");
+    }
     Uri platform = c.options.platform;
     if (platform != null) {
       dillTarget.read(platform);
@@ -151,7 +156,8 @@ class CompileTask {
 }
 
 Future<CompilationResult> parseScript(
-    Uri fileName, Uri packages, Uri patchedSdk, bool verbose) async {
+    Uri fileName, Uri packages, Uri patchedSdk,
+    {bool verbose: false, bool strongMode: false}) async {
   try {
     if (!await new File.fromUri(fileName).exists()) {
       return new CompilationResult.error(
@@ -171,7 +177,7 @@ Future<CompilationResult> parseScript(
       final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
       dillTarget.read(patchedSdk.resolve('platform.dill'));
       final KernelTarget kernelTarget =
-          new KernelTarget(dillTarget, uriTranslator);
+          new KernelTarget(dillTarget, uriTranslator, strongMode);
       kernelTarget.read(fileName);
       await dillTarget.writeOutline(null);
       program = await kernelTarget.writeOutline(null);
@@ -229,7 +235,7 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     DillTarget dillTarget = new DillTarget(ticker, uriTranslator)
       ..read(platform);
     KernelTarget kernelTarget =
-        new KernelTarget(dillTarget, uriTranslator, c.uriToSource);
+        new KernelTarget(dillTarget, uriTranslator, false, c.uriToSource);
 
     kernelTarget.read(script);
     await dillTarget.writeOutline(null);
