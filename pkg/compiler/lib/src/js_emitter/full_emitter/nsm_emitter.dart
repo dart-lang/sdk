@@ -35,7 +35,12 @@ class NsmEmitter extends CodeEmitterHelper {
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
     ClassStubGenerator generator = new ClassStubGenerator(
-        namer, backend, codegenWorldBuilder, closedWorld,
+        task.emitter,
+        compiler.commonElements,
+        namer,
+        codegenWorldBuilder,
+        backend.interceptorData,
+        closedWorld,
         enableMinification: compiler.options.enableMinification);
 
     // Keep track of the JavaScript names we've already added so we

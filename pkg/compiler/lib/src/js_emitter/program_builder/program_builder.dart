@@ -557,7 +557,12 @@ class ProgramBuilder {
     List<StubMethod> callStubs = <StubMethod>[];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
-        _namer, _backend, _worldBuilder, _closedWorld,
+        _task.emitter,
+        _commonElements,
+        _namer,
+        _worldBuilder,
+        _interceptorData,
+        _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,

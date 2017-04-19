@@ -208,7 +208,8 @@ class ModelEmitter {
     Map<String, dynamic> holes = {
       'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
       'holders': emitHolders(program.holders),
-      'tearOff': buildTearOffCode(backend),
+      'tearOff': buildTearOffCode(compiler.options, backend.emitter.emitter,
+          backend.namer, compiler.commonElements),
       'parseFunctionDescriptor':
           js.js.statement(parseFunctionDescriptorBoilerplate, {
         'argumentCount': js.string(namer.requiredParameterField),

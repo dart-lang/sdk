@@ -139,7 +139,8 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
     'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
         backend.backendUsage.isFunctionApplyUsed,
-    'tearOffCode': buildTearOffCode(backend),
+    'tearOffCode': buildTearOffCode(compiler.options, backend.emitter.emitter,
+        backend.namer, compiler.commonElements),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
     'deferredActionString': js.string(namer.deferredAction)

@@ -470,7 +470,8 @@ class FragmentEmitter {
       'cyclicThrow': backend.emitter
           .staticFunctionAccess(compiler.commonElements.cyclicThrowHelper),
       'operatorIsPrefix': js.string(namer.operatorIsPrefix),
-      'tearOffCode': new js.Block(buildTearOffCode(backend)),
+      'tearOffCode': new js.Block(buildTearOffCode(compiler.options,
+          backend.emitter.emitter, backend.namer, compiler.commonElements)),
       'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
       'embeddedInterceptorTags':
           generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
