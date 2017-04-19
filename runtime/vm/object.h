@@ -2822,7 +2822,8 @@ class Function : public Object {
                           bool is_external,
                           bool is_native,
                           const Object& owner,
-                          TokenPosition token_pos);
+                          TokenPosition token_pos,
+                          Heap::Space space = Heap::kOld);
 
   // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
@@ -2832,7 +2833,8 @@ class Function : public Object {
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
   static RawFunction* NewSignatureFunction(const Object& owner,
-                                           TokenPosition token_pos);
+                                           TokenPosition token_pos,
+                                           Heap::Space space = Heap::kOld);
 
   static RawFunction* NewEvalFunction(const Class& owner,
                                       const Script& script,
@@ -2997,7 +2999,7 @@ class Function : public Object {
   void set_kind_tag(uint32_t value) const;
   void set_data(const Object& value) const;
 
-  static RawFunction* New();
+  static RawFunction* New(Heap::Space space = Heap::kOld);
 
   RawString* QualifiedName(NameVisibility name_visibility) const;
 
@@ -3077,7 +3079,7 @@ class SignatureData : public Object {
   RawType* signature_type() const { return raw_ptr()->signature_type_; }
   void set_signature_type(const Type& value) const;
 
-  static RawSignatureData* New();
+  static RawSignatureData* New(Heap::Space space = Heap::kOld);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SignatureData, Object);
   friend class Class;

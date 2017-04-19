@@ -6476,11 +6476,12 @@ RawFunction* Function::InstantiateSignatureFrom(
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
-  // TODO(regis): Should we change Function::New() to accept a space, since
-  // InstantiateFrom is sometimes called with Heap::kNew?
   ASSERT(!HasInstantiatedSignature());
   Function& sig = Function::Handle(
-      zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
+      zone,
+      Function::NewSignatureFunction(owner, TokenPosition::kNoSource, space));
+  // TODO(regis): If type parameter bounds are not IsInstantiated(kFunctions),
+  // clone finalized type parameters and instantiate bounds.
   sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
@@ -6682,10 +6683,10 @@ bool Function::IsConstructorClosureFunction() const {
 }
 
 
-RawFunction* Function::New() {
+RawFunction* Function::New(Heap::Space space) {
   ASSERT(Object::function_class() != Class::null());
-  RawObject* raw = Object::Allocate(Function::kClassId,
-                                    Function::InstanceSize(), Heap::kOld);
+  RawObject* raw =
+      Object::Allocate(Function::kClassId, Function::InstanceSize(), space);
   return reinterpret_cast<RawFunction*>(raw);
 }
 
@@ -6698,9 +6699,10 @@ RawFunction* Function::New(const String& name,
                            bool is_external,
                            bool is_native,
                            const Object& owner,
-                           TokenPosition token_pos) {
+                           TokenPosition token_pos,
+                           Heap::Space space) {
   ASSERT(!owner.IsNull() || (kind == RawFunction::kSignatureFunction));
-  const Function& result = Function::Handle(Function::New());
+  const Function& result = Function::Handle(Function::New(space));
   result.set_parameter_types(Object::empty_array());
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
@@ -6738,11 +6740,17 @@ RawFunction* Function::New(const String& name,
   result.SetInstructionsSafe(
       Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
+    ASSERT(space == Heap::kOld);
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
   } else if (kind == RawFunction::kSignatureFunction) {
-    const SignatureData& data = SignatureData::Handle(SignatureData::New());
+    const SignatureData& data =
+        SignatureData::Handle(SignatureData::New(space));
     result.set_data(data);
+  } else {
+    // Functions other than signature functions have no reason to be allocated
+    // in new space.
+    ASSERT(space == Heap::kOld);
   }
   return result.raw();
 }
@@ -6803,7 +6811,8 @@ RawFunction* Function::NewClosureFunction(const String& name,
 
 
 RawFunction* Function::NewSignatureFunction(const Object& owner,
-                                            TokenPosition token_pos) {
+                                            TokenPosition token_pos,
+                                            Heap::Space space) {
   const Function& result = Function::Handle(Function::New(
       Symbols::AnonymousSignature(), RawFunction::kSignatureFunction,
       /* is_static = */ false,
@@ -6812,7 +6821,7 @@ RawFunction* Function::NewSignatureFunction(const Object& owner,
       /* is_external = */ false,
       /* is_native = */ false,
       owner,  // Same as function type scope class.
-      token_pos));
+      token_pos, space));
   result.set_is_reflectable(false);
   result.set_is_visible(false);
   result.set_is_debuggable(false);
@@ -7486,10 +7495,10 @@ void SignatureData::set_signature_type(const Type& value) const {
 }
 
 
-RawSignatureData* SignatureData::New() {
+RawSignatureData* SignatureData::New(Heap::Space space) {
   ASSERT(Object::signature_data_class() != Class::null());
   RawObject* raw = Object::Allocate(SignatureData::kClassId,
-                                    SignatureData::InstanceSize(), Heap::kOld);
+                                    SignatureData::InstanceSize(), space);
   return reinterpret_cast<RawSignatureData*>(raw);
 }
 
