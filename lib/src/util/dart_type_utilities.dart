@@ -6,6 +6,7 @@ library linter.src.util.dart_type_utilities;
 
 import 'dart:collection';
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -94,6 +95,11 @@ class DartTypeUtilities {
           .element
           .lookUpInheritedConcreteGetter(node.name.name, node.element.library);
 
+  static MethodElement lookUpInheritedConcreteMethod(MethodDeclaration node) =>
+      (node.parent as ClassDeclaration)
+          .element
+          .lookUpInheritedConcreteMethod(node.name.name, node.element.library);
+
   static PropertyAccessorElement lookUpInheritedConcreteSetter(
           MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
@@ -109,6 +115,56 @@ class DartTypeUtilities {
       (node.parent as ClassDeclaration)
           .element
           .lookUpSetter(node.name.name, node.element.library);
+
+  static bool matchesArgumentsWithParameters(
+      NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
+    final namedParameters = <String, Element>{};
+    final namedArguments = <String, Element>{};
+    final positionalParameters = <Element>[];
+    final positionalArguments = <Element>[];
+    for (final parameter in parameters) {
+      if (parameter.kind == ParameterKind.NAMED) {
+        namedParameters[parameter.identifier.name] =
+            parameter.identifier.bestElement;
+      } else {
+        positionalParameters.add(parameter.identifier.bestElement);
+      }
+    }
+    for (final argument in arguments) {
+      if (argument is NamedExpression) {
+        final element = DartTypeUtilities
+            .getCanonicalElementFromIdentifier(argument.expression);
+        if (element == null) {
+          return false;
+        }
+        namedArguments[argument.name.label.name] = element;
+      } else {
+        final element =
+            DartTypeUtilities.getCanonicalElementFromIdentifier(argument);
+        if (element == null) {
+          return false;
+        }
+        positionalArguments.add(element);
+      }
+    }
+    if (positionalParameters.length != positionalArguments.length ||
+        namedParameters.keys.length != namedArguments.keys.length) {
+      return false;
+    }
+    for (var i = 0; i < positionalArguments.length; i++) {
+      if (positionalArguments[i] != positionalParameters[i]) {
+        return false;
+      }
+    }
+
+    for (final key in namedParameters.keys) {
+      if (namedParameters[key] != namedArguments[key]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself, it excludes the nodes for which the exclusion

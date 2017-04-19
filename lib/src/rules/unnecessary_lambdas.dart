@@ -106,22 +106,13 @@ class _Visitor extends SimpleAstVisitor {
 
   void _visitInvocationExpression(
       InvocationExpression node, FunctionExpression nodeToLint) {
-    if (nodeToLint.parameters.parameters.length !=
-        node.argumentList.arguments.length) {
-      return;
-    }
-    if (node.argumentList.arguments.any((e) => e is! SimpleIdentifier)) {
+    if (!DartTypeUtilities.matchesArgumentsWithParameters(
+        node.argumentList.arguments, nodeToLint.parameters.parameters)) {
       return;
     }
     final parameters =
         nodeToLint.parameters.parameters.map((e) => e.identifier.bestElement);
-    final arguments = node.argumentList.arguments
-        .map((e) => (e as SimpleIdentifier).bestElement);
-    for (int i = 0; i < parameters.length; i++) {
-      if (parameters.elementAt(i) != arguments.elementAt(i)) {
-        return;
-      }
-    }
+
     Iterable<Element> restOfElements = [];
     if (node is FunctionExpressionInvocation) {
       restOfElements = _extractElementsOfSimpleIdentifiers(node.function);
