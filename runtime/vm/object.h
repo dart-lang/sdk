@@ -3769,7 +3769,6 @@ class Library : public Object {
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
-  bool RemoveObject(const Object& obj, const String& name) const;
   RawObject* LookupReExport(const String& name,
                             ZoneGrowableArray<intptr_t>* visited = NULL) const;
   RawObject* LookupObjectAllowPrivate(const String& name) const;
@@ -3832,7 +3831,7 @@ class Library : public Object {
   RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
 
-  void DropDependencies() const;
+  void DropDependenciesAndCaches() const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
@@ -3967,7 +3966,7 @@ class Library : public Object {
 
 
   void InitImportList() const;
-  void GrowDictionary(const Array& dict, intptr_t dict_size) const;
+  void RehashDictionary(const Array& old_dict, intptr_t new_dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url, bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t* index) const;
 
@@ -3985,11 +3984,12 @@ class Library : public Object {
   friend class Bootstrap;
   friend class Class;
   friend class Debugger;
-  friend class Isolate;
   friend class DictionaryIterator;
+  friend class Isolate;
+  friend class LibraryDeserializationCluster;
   friend class Namespace;
   friend class Object;
-  friend class LibraryDeserializationCluster;
+  friend class Precompiler;
 };
 
 

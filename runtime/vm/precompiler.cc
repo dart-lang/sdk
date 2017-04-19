@@ -495,6 +495,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
+      DropLibraryEntries();
     }
     DropClasses();
     DropLibraries();
@@ -1711,7 +1712,6 @@ void Precompiler::DropFunctions() {
   Function& function = Function::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
-  String& name = String::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1731,15 +1731,6 @@ void Precompiler::DropFunctions() {
         if (retain) {
           retained_functions.Add(function);
         } else {
-          bool top_level = cls.IsTopLevel();
-          if (top_level &&
-              (function.kind() != RawFunction::kImplicitStaticFinalGetter)) {
-            // Implicit static final getters are not added to the library
-            // dictionary in the first place.
-            name = function.DictionaryName();
-            bool removed = lib.RemoveObject(function, name);
-            ASSERT(removed);
-          }
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Dropping function %s\n",
@@ -1782,7 +1773,6 @@ void Precompiler::DropFields() {
   Array& fields = Array::Handle(Z);
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
-  String& name = String::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1804,11 +1794,6 @@ void Precompiler::DropFields() {
           type = field.type();
           AddType(type);
         } else {
-          bool top_level = cls.IsTopLevel();
-          if (top_level) {
-            name = field.DictionaryName();
-            lib.RemoveObject(field, name);
-          }
           dropped_field_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Dropping field %s\n", field.ToCString());
@@ -1995,11 +1980,52 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 }
 
 
-void Precompiler::DropClasses() {
+void Precompiler::DropLibraryEntries() {
   Library& lib = Library::Handle(Z);
+  Array& dict = Array::Handle(Z);
+  Object& entry = Object::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+
+    dict = lib.dictionary();
+    intptr_t dict_size = dict.Length() - 1;
+    intptr_t used = 0;
+    for (intptr_t j = 0; j < dict_size; j++) {
+      entry = dict.At(j);
+      if (entry.IsNull()) continue;
+
+      if (entry.IsClass()) {
+        if (classes_to_retain_.HasKey(&Class::Cast(entry))) {
+          used++;
+          continue;
+        }
+      } else if (entry.IsFunction()) {
+        if (functions_to_retain_.HasKey(&Function::Cast(entry))) {
+          used++;
+          continue;
+        }
+      } else if (entry.IsField()) {
+        if (fields_to_retain_.HasKey(&Field::Cast(entry))) {
+          used++;
+          continue;
+        }
+      } else if (entry.IsLibraryPrefix()) {
+        // Always drop.
+      } else {
+        FATAL1("Unexpected library entry: %s", entry.ToCString());
+      }
+      dict.SetAt(j, Object::null_object());
+    }
+    lib.RehashDictionary(dict, used * 4 / 3 + 1);
+    lib.DropDependenciesAndCaches();
+  }
+}
+
+
+void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
-  String& name = String::Handle(Z);
 
 #if defined(DEBUG)
   // We are about to remove classes from the class table. For this to be safe,
@@ -2056,10 +2082,6 @@ void Precompiler::DropClasses() {
     class_table->Unregister(cid);
 #endif
     cls.set_id(kIllegalCid);  // We check this when serializing.
-
-    lib = cls.library();
-    name = cls.DictionaryName();
-    lib.RemoveObject(cls, name);
   }
 }
 
@@ -2070,15 +2092,15 @@ void Precompiler::DropLibraries() {
   const Library& root_lib =
       Library::Handle(Z, I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
+  Class& toplevel_class = Class::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
-    lib.DropDependencies();
     intptr_t entries = 0;
     DictionaryIterator it(lib);
     while (it.HasNext()) {
-      it.GetNext();
       entries++;
+      it.GetNext();
     }
     bool retain = false;
     if (entries > 0) {
@@ -2094,8 +2116,8 @@ void Precompiler::DropLibraries() {
     } else {
       // A type for a top-level class may be referenced from an object pool as
       // part of an error message.
-      const Class& top = Class::Handle(Z, lib.toplevel_class());
-      if (classes_to_retain_.HasKey(&top)) {
+      toplevel_class = lib.toplevel_class();
+      if (classes_to_retain_.HasKey(&toplevel_class)) {
         retain = true;
       }
     }
@@ -2104,6 +2126,12 @@ void Precompiler::DropLibraries() {
       lib.set_index(retained_libraries.Length());
       retained_libraries.Add(lib);
     } else {
+      toplevel_class = lib.toplevel_class();
+#if defined(DEBUG)
+      I->class_table()->Unregister(toplevel_class.id());
+#endif
+      toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
+
       dropped_library_count_++;
       lib.set_index(-1);
       if (FLAG_trace_precompiler) {

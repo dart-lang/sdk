@@ -10239,9 +10239,9 @@ void Library::InvalidateExportedNamesCaches() {
 }
 
 
-void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
-  // TODO(iposva): Avoid exponential growth.
-  intptr_t new_dict_size = dict_size * 2;
+void Library::RehashDictionary(const Array& old_dict,
+                               intptr_t new_dict_size) const {
+  intptr_t old_dict_size = old_dict.Length() - 1;
   const Array& new_dict =
       Array::Handle(Array::New(new_dict_size + 1, Heap::kOld));
   // Rehash all elements from the original dictionary
@@ -10249,8 +10249,9 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
   Object& entry = Class::Handle();
   String& entry_name = String::Handle();
   Object& new_entry = Object::Handle();
-  for (intptr_t i = 0; i < dict_size; i++) {
-    entry = dict.At(i);
+  intptr_t used = 0;
+  for (intptr_t i = 0; i < old_dict_size; i++) {
+    entry = old_dict.At(i);
     if (!entry.IsNull()) {
       entry_name = entry.DictionaryName();
       ASSERT(!entry_name.IsNull());
@@ -10262,10 +10263,12 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
         new_entry = new_dict.At(index);
       }
       new_dict.SetAt(index, entry);
+      used++;
     }
   }
-  // Copy used count.
-  new_entry = dict.At(dict_size);
+  // Set used count.
+  ASSERT(used < new_dict_size);  // Need at least one empty slot.
+  new_entry = Smi::New(used);
   new_dict.SetAt(new_dict_size, new_entry);
   // Remember the new dictionary now.
   StorePointer(&raw_ptr()->dictionary_, new_dict.raw());
@@ -10299,7 +10302,8 @@ void Library::AddObject(const Object& obj, const String& name) const {
 
   // Rehash if symbol_table is 75% full.
   if (used_elements > ((dict_size / 4) * 3)) {
-    GrowDictionary(dict, dict_size);
+    // TODO(iposva): Avoid exponential growth.
+    RehashDictionary(dict, 2 * dict_size);
   }
 
   // Invalidate the cache of loaded scripts.
@@ -10388,55 +10392,6 @@ void Library::ReplaceObject(const Object& obj, const String& name) const {
   // The value is guaranteed to be found.
   const Array& dict = Array::Handle(dictionary());
   dict.SetAt(index, obj);
-}
-
-
-bool Library::RemoveObject(const Object& obj, const String& name) const {
-  Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  Zone* zone = thread->zone();
-  Object& entry = Object::Handle(zone);
-
-  intptr_t index;
-  entry = LookupEntry(name, &index);
-  if (entry.raw() != obj.raw()) {
-    return false;
-  }
-
-  const Array& dict = Array::Handle(zone, dictionary());
-  dict.SetAt(index, Object::null_object());
-  intptr_t dict_size = dict.Length() - 1;
-
-  // Fix any downstream collisions.
-  String& key = String::Handle(zone);
-  for (;;) {
-    index = (index + 1) % dict_size;
-    entry = dict.At(index);
-
-    if (entry.IsNull()) break;
-
-    key = entry.DictionaryName();
-    intptr_t new_index = key.Hash() % dict_size;
-    while ((dict.At(new_index) != entry.raw()) &&
-           (dict.At(new_index) != Object::null())) {
-      new_index = (new_index + 1) % dict_size;
-    }
-
-    if (index != new_index) {
-      ASSERT(dict.At(new_index) == Object::null());
-      dict.SetAt(new_index, entry);
-      dict.SetAt(index, Object::null_object());
-    }
-  }
-
-  // Update used count.
-  intptr_t used_elements = Smi::Value(Smi::RawCast(dict.At(dict_size))) - 1;
-  dict.SetAt(dict_size, Smi::Handle(zone, Smi::New(used_elements)));
-
-  ClearResolvedNamesCache();
-  InvalidateExportedNamesCaches();
-
-  return true;
 }
 
 
@@ -10798,10 +10753,13 @@ bool Library::ImportsCorelib() const {
 }
 
 
-void Library::DropDependencies() const {
+void Library::DropDependenciesAndCaches() const {
   StorePointer(&raw_ptr()->imports_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
   StoreNonPointer(&raw_ptr()->num_imports_, 0);
+  StorePointer(&raw_ptr()->resolved_names_, Array::null());
+  StorePointer(&raw_ptr()->exported_names_, Array::null());
+  StorePointer(&raw_ptr()->loaded_scripts_, Array::null());
 }
 
 

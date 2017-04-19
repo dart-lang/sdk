@@ -402,6 +402,7 @@ class Precompiler : public ValueObject {
   void DropTypes();
   void DropTypeArguments();
   void DropScriptData();
+  void DropLibraryEntries();
   void DropClasses();
   void DropLibraries();
 

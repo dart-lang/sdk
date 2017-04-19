@@ -114,8 +114,7 @@ class ClassSerializationCluster : public SerializationCluster {
     }
     intptr_t class_id = cls->ptr()->id_;
     if (class_id == kIllegalCid) {
-      FATAL1("Attempting to serialize class with illegal cid: %s\n",
-             Class::Handle(cls).ToCString());
+      s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
@@ -4504,7 +4503,13 @@ Serializer::Serializer(Thread* thread,
       num_cids_(0),
       num_base_objects_(0),
       num_written_objects_(0),
-      next_ref_index_(1) {
+      next_ref_index_(1)
+#if defined(SNAPSHOT_BACKTRACE)
+      ,
+      current_parent_(Object::null()),
+      parent_pairs_()
+#endif
+{
   num_cids_ = thread->isolate()->class_table()->NumCids();
   clusters_by_cid_ = new SerializationCluster*[num_cids_];
   for (intptr_t i = 0; i < num_cids_; i++) {
@@ -4649,6 +4654,45 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 }
 
 
+void Serializer::Push(RawObject* object) {
+  if (!object->IsHeapObject()) {
+    RawSmi* smi = Smi::RawCast(object);
+    if (smi_ids_.Lookup(smi) == NULL) {
+      SmiObjectIdPair pair;
+      pair.smi_ = smi;
+      pair.id_ = 1;
+      smi_ids_.Insert(pair);
+      stack_.Add(object);
+      num_written_objects_++;
+    }
+    return;
+  }
+
+  if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+    return;  // Do not trace, will write null.
+  }
+
+  if (object->IsSendPort()) {
+    // TODO(rmacnak): Do a better job of resetting fields in precompilation
+    // and assert this is unreachable.
+    return;  // Do not trace, will write null.
+  }
+
+  intptr_t id = heap_->GetObjectId(object);
+  if (id == 0) {
+    heap_->SetObjectId(object, 1);
+    ASSERT(heap_->GetObjectId(object) != 0);
+    stack_.Add(object);
+    num_written_objects_++;
+
+#if defined(SNAPSHOT_BACKTRACE)
+    parent_pairs_.Add(&Object::Handle(object));
+    parent_pairs_.Add(&Object::Handle(current_parent_));
+#endif
+  }
+}
+
+
 void Serializer::Trace(RawObject* object) {
   intptr_t cid;
   if (!object->IsHeapObject()) {
@@ -4665,8 +4709,42 @@ void Serializer::Trace(RawObject* object) {
     clusters_by_cid_[cid] = cluster;
   }
   ASSERT(cluster != NULL);
+
+#if defined(SNAPSHOT_BACKTRACE)
+  current_parent_ = object;
+#endif
+
   cluster->Trace(this, object);
+
+#if defined(SNAPSHOT_BACKTRACE)
+  current_parent_ = Object::null();
+#endif
 }
+
+
+void Serializer::UnexpectedObject(RawObject* raw_object, const char* message) {
+  Object& object = Object::Handle(raw_object);
+  OS::PrintErr("Unexpected object (%s): %s\n", message, object.ToCString());
+#if defined(SNAPSHOT_BACKTRACE)
+  while (!object.IsNull()) {
+    object = ParentOf(object);
+    OS::PrintErr("referenced by %s\n", object.ToCString());
+  }
+#endif
+  OS::Abort();
+}
+
+
+#if defined(SNAPSHOT_BACKTRACE)
+RawObject* Serializer::ParentOf(const Object& object) {
+  for (intptr_t i = 0; i < parent_pairs_.length(); i += 2) {
+    if (parent_pairs_[i]->raw() == object.raw()) {
+      return parent_pairs_[i + 1]->raw();
+    }
+  }
+  return Object::null();
+}
+#endif  // SNAPSHOT_BACKTRACE
 
 
 void Serializer::WriteVersionAndFeatures() {
