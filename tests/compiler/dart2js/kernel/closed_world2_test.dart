@@ -70,7 +70,7 @@ main(List<String> args) {
     ElementResolutionWorldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.resolutionWorldBuilder.closeWorld();
+    compiler.resolutionWorldBuilder.closeWorld(compiler.reporter);
 
     KernelWorldBuilder worldBuilder = new KernelWorldBuilder(
         compiler.reporter, compiler.backend.kernelTask.program);

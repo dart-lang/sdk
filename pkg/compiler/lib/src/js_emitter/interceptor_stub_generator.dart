@@ -378,7 +378,7 @@ class InterceptorStubGenerator {
     Selector selector =
         _oneShotInterceptorData.getOneShotInterceptorSelector(name);
     Set<ClassEntity> classes =
-        _interceptorData.getInterceptedClassesOn(selector.name, _closedWorld);
+        _interceptorData.getInterceptedClassesOn(selector.name);
     jsAst.Name getInterceptorName = _namer.nameForGetInterceptor(classes);
 
     List<String> parameterNames = <String>[];

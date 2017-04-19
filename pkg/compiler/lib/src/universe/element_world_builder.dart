@@ -184,7 +184,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     }
   }
 
-  ClosedWorld closeWorld() {
+  ClosedWorld closeWorld(DiagnosticReporter reporter) {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         new Map<ClassEntity, Set<ClassEntity>>();
 
@@ -197,8 +197,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       }
       assert(cls.isDeclaration);
       if (!cls.isResolved) {
-        throw new SpannableAssertionFailure(
-            cls, 'Class "${cls.name}" is not resolved.');
+        reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
       _updateClassHierarchyNodeForClass(cls,
@@ -227,11 +226,8 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
     _closed = true;
     return _closedWorldCache = new ClosedWorldImpl(
+        backend: _backend,
         commonElements: _commonElements,
-        constantSystem: _backend.constantSystem,
-        nativeData: _backend.nativeData,
-        interceptorData: _backend.interceptorData,
-        backendUsage: _backend.backendUsage,
         resolutionWorldBuilder: this,
         functionSetBuilder: _allFunctions,
         allTypedefs: _allTypedefs,

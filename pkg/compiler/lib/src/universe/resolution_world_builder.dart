@@ -796,23 +796,9 @@ class KernelResolutionWorldBuilder extends ResolutionWorldBuilderBase {
             selectorConstraintsStrategy);
 
   @override
-  ClosedWorld closeWorld() {
+  ClosedWorld closeWorld(DiagnosticReporter reporter) {
     // TODO(johnniwinther): Implement this.
-    return _closedWorldCache = new KernelClosedWorld(
-        commonElements: _commonElements,
-        // TODO(johnniwinther): Compute these.
-        constantSystem: null,
-        nativeData: null,
-        interceptorData: null,
-        backendUsage: null,
-        resolutionWorldBuilder: this,
-        functionSetBuilder: _allFunctions,
-        allTypedefs: _allTypedefs,
-        mixinUses: _mixinUses,
-        // TODO(johnniwinther): Compute this.
-        typesImplementedBySubclasses: null,
-        classHierarchyNodes: _classHierarchyNodes,
-        classSets: _classSets);
+    return null;
   }
 
   @override

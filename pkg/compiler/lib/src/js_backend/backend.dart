@@ -757,7 +757,6 @@ class JavaScriptBackend {
     });
   }
 
-  /// Called before processing of the resolution queue is started.
   void onResolutionStart(ResolutionEnqueuer enqueuer) {
     // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
     // calls. Currently needed to ensure resolution of the classes for various
@@ -772,14 +771,7 @@ class JavaScriptBackend {
     validateInterceptorImplementsAllObjectMethods(commonElements.jsNullClass);
   }
 
-  /// Called when the resolution queue has been closed.
-  void onResolutionEnd() {
-    _backendUsage = backendUsageBuilder.close();
-    _interceptorData = interceptorDataBuilder.onResolutionComplete();
-  }
-
-  /// Called when the closed world from resolution has been computed.
-  void onResolutionClosedWorld(
+  void onResolutionComplete(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (MemberEntity entity
         in compiler.enqueuer.resolution.processedEntities) {
@@ -787,6 +779,7 @@ class JavaScriptBackend {
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
+    _backendUsage = backendUsageBuilder.close();
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
         compiler.enqueuer.resolution.worldBuilder,
         closedWorld,
@@ -794,6 +787,7 @@ class JavaScriptBackend {
         commonElements,
         _backendUsage,
         enableTypeAssertions: compiler.options.enableTypeAssertions);
+    _interceptorData = interceptorDataBuilder.onResolutionComplete(closedWorld);
     _oneShotInterceptorData =
         new OneShotInterceptorData(interceptorData, commonElements);
     mirrorsResolutionAnalysis.onResolutionComplete();

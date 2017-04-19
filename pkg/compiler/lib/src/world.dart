@@ -18,7 +18,7 @@ import 'elements/elements.dart'
         TypedefElement;
 import 'elements/resolution_types.dart';
 import 'elements/types.dart';
-import 'js_backend/backend_usage.dart' show BackendUsage;
+import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
 import 'ordered_typeset.dart';
@@ -364,7 +364,7 @@ abstract class OpenWorld implements World {
   void registerUsedElement(MemberEntity element);
   void registerTypedef(TypedefElement typedef);
 
-  ClosedWorld closeWorld();
+  ClosedWorld closeWorld(DiagnosticReporter reporter);
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
@@ -384,11 +384,8 @@ enum ClassQuery {
 }
 
 abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
-  final ConstantSystem constantSystem;
-  final NativeData nativeData;
-  final InterceptorData interceptorData;
-  final BackendUsage _backendUsage;
-
+  final JavaScriptBackend _backend;
+  InterceptorData get interceptorData => _backend.interceptorData;
   FunctionSet _allFunctions;
 
   final Iterable<TypedefElement> _allTypedefs;
@@ -422,11 +419,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final ResolutionWorldBuilder _resolverWorld;
 
   ClosedWorldBase(
-      {this.commonElements,
-      this.constantSystem,
-      this.nativeData,
-      this.interceptorData,
-      BackendUsage backendUsage,
+      {JavaScriptBackend backend,
+      this.commonElements,
       ResolutionWorldBuilder resolutionWorldBuilder,
       FunctionSetBuilder functionSetBuilder,
       Iterable<TypedefElement> allTypedefs,
@@ -434,7 +428,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : this._backendUsage = backendUsage,
+      : this._backend = backend,
         this._resolverWorld = resolutionWorldBuilder,
         this._allTypedefs = allTypedefs,
         this._mixinUses = mixinUses,
@@ -444,6 +438,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     _commonMasks = new CommonMasks(this);
     _allFunctions = functionSetBuilder.close(this);
   }
+
+  NativeData get nativeData => _backend.nativeData;
 
   @override
   ClosedWorld get closedWorld => this;
@@ -459,6 +455,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return _commonMasks;
   }
 
+  ConstantSystem get constantSystem => _backend.constantSystem;
+
   TypeMask getCachedMask(ClassEntity base, int flags, TypeMask createMask()) {
     Map<ClassEntity, TypeMask> cachedMasks =
         _canonicalizedTypeMasks[flags] ??= <ClassEntity, TypeMask>{};
@@ -470,18 +468,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   bool _checkClass(ClassEntity cls);
 
   bool _checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true});
-
-  OrderedTypeSet _getOrderedTypeSet(ClassEntity cls);
-
-  int _getHierarchyDepth(ClassEntity cls);
-
-  ClassEntity _getSuperClass(ClassEntity cls);
-
-  Iterable<ClassEntity> _getInterfaces(ClassEntity cls);
-
-  ClassEntity _getAppliedMixin(ClassEntity cls);
-
-  bool _isNamedMixinApplication(ClassEntity cls);
 
   @override
   bool isInstantiated(ClassEntity cls) {
@@ -823,130 +809,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     }
   }
 
-  /// Returns an iterable over the common supertypes of the [classes].
-  Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes) {
-    Iterator<ClassEntity> iterator = classes.iterator;
-    if (!iterator.moveNext()) return const <ClassEntity>[];
-
-    ClassEntity cls = iterator.current;
-    assert(_checkInvariants(cls));
-    OrderedTypeSet typeSet = _getOrderedTypeSet(cls);
-    if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
-
-    int depth = typeSet.maxDepth;
-    Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
-    do {
-      ClassEntity otherClass = iterator.current;
-      assert(_checkInvariants(otherClass));
-      OrderedTypeSet otherTypeSet = _getOrderedTypeSet(otherClass);
-      otherTypeSets = otherTypeSets.prepend(otherTypeSet);
-      if (otherTypeSet.maxDepth < depth) {
-        depth = otherTypeSet.maxDepth;
-      }
-    } while (iterator.moveNext());
-
-    List<ClassEntity> commonSupertypes = <ClassEntity>[];
-    OUTER:
-    for (Link<InterfaceType> link = typeSet[depth];
-        link.head.element != commonElements.objectClass;
-        link = link.tail) {
-      ClassEntity cls = link.head.element;
-      for (Link<OrderedTypeSet> link = otherTypeSets;
-          !link.isEmpty;
-          link = link.tail) {
-        if (link.head.asInstanceOf(cls, _getHierarchyDepth(cls)) == null) {
-          continue OUTER;
-        }
-      }
-      commonSupertypes.add(cls);
-    }
-    commonSupertypes.add(commonElements.objectClass);
-    return commonSupertypes;
-  }
-
-  Iterable<ClassEntity> commonSubclasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    // TODO(johnniwinther): Use [ClassSet] to compute this.
-    // Compute the set of classes that are contained in both class subsets.
-    Set<ClassEntity> common =
-        _commonContainedClasses(cls1, query1, cls2, query2);
-    if (common == null || common.isEmpty) return const <ClassEntity>[];
-    // Narrow down the candidates by only looking at common classes
-    // that do not have a superclass or supertype that will be a
-    // better candidate.
-    return common.where((ClassEntity each) {
-      bool containsSuperclass = common.contains(_getSuperClass(each));
-      // If the superclass is also a candidate, then we don't want to
-      // deal with this class. If we're only looking for a subclass we
-      // know we don't have to look at the list of interfaces because
-      // they can never be in the common set.
-      if (containsSuperclass ||
-          query1 == ClassQuery.SUBCLASS ||
-          query2 == ClassQuery.SUBCLASS) {
-        return !containsSuperclass;
-      }
-      // Run through the direct supertypes of the class. If the common
-      // set contains the direct supertype of the class, we ignore the
-      // the class because the supertype is a better candidate.
-
-      for (ClassEntity interface in _getInterfaces(each)) {
-        if (common.contains(interface)) return false;
-      }
-      return true;
-    });
-  }
-
-  /// Returns an iterable over the live mixin applications that mixin [cls].
-  Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
-    if (_liveMixinUses == null) {
-      _liveMixinUses = new Map<ClassEntity, List<ClassEntity>>();
-      for (ClassEntity mixin in _mixinUses.keys) {
-        List<ClassEntity> uses = <ClassEntity>[];
-
-        void addLiveUse(ClassEntity mixinApplication) {
-          if (isInstantiated(mixinApplication)) {
-            uses.add(mixinApplication);
-          } else if (_isNamedMixinApplication(mixinApplication)) {
-            Set<ClassEntity> next = _mixinUses[mixinApplication];
-            if (next != null) {
-              next.forEach(addLiveUse);
-            }
-          }
-        }
-
-        _mixinUses[mixin].forEach(addLiveUse);
-        if (uses.isNotEmpty) {
-          _liveMixinUses[mixin] = uses;
-        }
-      }
-    }
-    Iterable<ClassEntity> uses = _liveMixinUses[cls];
-    return uses != null ? uses : const <ClassEntity>[];
-  }
-
-  /// Returns `true` if any live class that mixes in [mixin] is also a subclass
-  /// of [superclass].
-  bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin) {
-    return mixinUsesOf(mixin).any((ClassEntity each) {
-      return isSubclassOf(each, superclass);
-    });
-  }
-
-  /// Returns `true` if [cls] or any superclass mixes in [mixin].
-  bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin) {
-    assert(_checkClass(cls));
-    assert(_checkClass(mixin));
-    if (isUsedAsMixin(mixin)) {
-      ClassEntity current = cls;
-      while (current != null) {
-        ClassEntity currentMixin = _getAppliedMixin(cls);
-        if (currentMixin == mixin) return true;
-        current = _getSuperClass(current);
-      }
-    }
-    return false;
-  }
-
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
   ///
@@ -986,7 +848,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = _backendUsage.isInvokeOnUsed &&
+      canReachAll = _backend.backendUsage.isInvokeOnUsed &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
     return canReachAll ? commonMasks.dynamicType : mask;
@@ -1104,11 +966,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
 class ClosedWorldImpl extends ClosedWorldBase {
   ClosedWorldImpl(
-      {CommonElements commonElements,
-      ConstantSystem constantSystem,
-      NativeData nativeData,
-      InterceptorData interceptorData,
-      BackendUsage backendUsage,
+      {JavaScriptBackend backend,
+      CommonElements commonElements,
       ResolutionWorldBuilder resolutionWorldBuilder,
       FunctionSetBuilder functionSetBuilder,
       Iterable<TypedefElement> allTypedefs,
@@ -1117,11 +976,8 @@ class ClosedWorldImpl extends ClosedWorldBase {
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : super(
+            backend: backend,
             commonElements: commonElements,
-            constantSystem: constantSystem,
-            nativeData: nativeData,
-            interceptorData: interceptorData,
-            backendUsage: backendUsage,
             resolutionWorldBuilder: resolutionWorldBuilder,
             functionSetBuilder: functionSetBuilder,
             allTypedefs: allTypedefs,
@@ -1131,7 +987,6 @@ class ClosedWorldImpl extends ClosedWorldBase {
             classSets: classSets);
 
   bool _checkClass(ClassElement cls) => cls.isDeclaration;
-
   bool _checkEntity(Element element) => element.isDeclaration;
 
   bool _checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
@@ -1150,28 +1005,129 @@ class ClosedWorldImpl extends ClosedWorldBase {
         ;
   }
 
-  OrderedTypeSet _getOrderedTypeSet(ClassElement cls) =>
-      cls.allSupertypesAndSelf;
+  /// Returns an iterable over the common supertypes of the [classes].
+  Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes) {
+    Iterator<ClassElement> iterator = classes.iterator;
+    if (!iterator.moveNext()) return const <ClassElement>[];
 
-  int _getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
+    ClassElement cls = iterator.current;
+    assert(_checkInvariants(cls));
+    OrderedTypeSet typeSet = cls.allSupertypesAndSelf;
+    if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
 
-  ClassEntity _getSuperClass(ClassElement cls) => cls.superclass;
+    int depth = typeSet.maxDepth;
+    Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
+    do {
+      ClassElement otherClass = iterator.current;
+      assert(_checkInvariants(otherClass));
+      OrderedTypeSet otherTypeSet = otherClass.allSupertypesAndSelf;
+      otherTypeSets = otherTypeSets.prepend(otherTypeSet);
+      if (otherTypeSet.maxDepth < depth) {
+        depth = otherTypeSet.maxDepth;
+      }
+    } while (iterator.moveNext());
 
-  Iterable<ClassEntity> _getInterfaces(ClassElement cls) sync* {
-    for (Link link = cls.interfaces; !link.isEmpty; link = link.tail) {
-      yield link.head.element;
+    List<ClassElement> commonSupertypes = <ClassElement>[];
+    OUTER:
+    for (Link<InterfaceType> link = typeSet[depth];
+        link.head.element != commonElements.objectClass;
+        link = link.tail) {
+      ClassElement cls = link.head.element;
+      for (Link<OrderedTypeSet> link = otherTypeSets;
+          !link.isEmpty;
+          link = link.tail) {
+        if (link.head.asInstanceOf(cls, cls.hierarchyDepth) == null) {
+          continue OUTER;
+        }
+      }
+      commonSupertypes.add(cls);
     }
+    commonSupertypes.add(commonElements.objectClass);
+    return commonSupertypes;
   }
 
-  bool _isNamedMixinApplication(ClassElement cls) =>
-      cls.isNamedMixinApplication;
+  Iterable<ClassEntity> commonSubclasses(ClassEntity cls1, ClassQuery query1,
+      ClassEntity cls2, ClassQuery query2) {
+    // TODO(johnniwinther): Use [ClassSet] to compute this.
+    // Compute the set of classes that are contained in both class subsets.
+    Set<ClassEntity> common =
+        _commonContainedClasses(cls1, query1, cls2, query2);
+    if (common == null || common.isEmpty) return const <ClassEntity>[];
+    // Narrow down the candidates by only looking at common classes
+    // that do not have a superclass or supertype that will be a
+    // better candidate.
+    return common.where((ClassElement each) {
+      bool containsSuperclass = common.contains(each.supertype.element);
+      // If the superclass is also a candidate, then we don't want to
+      // deal with this class. If we're only looking for a subclass we
+      // know we don't have to look at the list of interfaces because
+      // they can never be in the common set.
+      if (containsSuperclass ||
+          query1 == ClassQuery.SUBCLASS ||
+          query2 == ClassQuery.SUBCLASS) {
+        return !containsSuperclass;
+      }
+      // Run through the direct supertypes of the class. If the common
+      // set contains the direct supertype of the class, we ignore the
+      // the class because the supertype is a better candidate.
+      for (Link link = each.interfaces; !link.isEmpty; link = link.tail) {
+        if (common.contains(link.head.element)) return false;
+      }
+      return true;
+    });
+  }
 
-  ClassEntity _getAppliedMixin(ClassElement cls) {
-    if (cls.isMixinApplication) {
-      MixinApplicationElement application = cls;
-      return application.mixin;
+  /// Returns an iterable over the live mixin applications that mixin [cls].
+  Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
+    if (_liveMixinUses == null) {
+      _liveMixinUses = new Map<ClassEntity, List<ClassEntity>>();
+      for (ClassElement mixin in _mixinUses.keys) {
+        List<ClassEntity> uses = <ClassEntity>[];
+
+        void addLiveUse(MixinApplicationElement mixinApplication) {
+          if (isInstantiated(mixinApplication)) {
+            uses.add(mixinApplication);
+          } else if (mixinApplication.isNamedMixinApplication) {
+            Set<ClassEntity> next = _mixinUses[mixinApplication];
+            if (next != null) {
+              next.forEach(addLiveUse);
+            }
+          }
+        }
+
+        _mixinUses[mixin].forEach(addLiveUse);
+        if (uses.isNotEmpty) {
+          _liveMixinUses[mixin] = uses;
+        }
+      }
     }
-    return null;
+    Iterable<ClassEntity> uses = _liveMixinUses[cls];
+    return uses != null ? uses : const <ClassEntity>[];
+  }
+
+  /// Returns `true` if any live class that mixes in [mixin] is also a subclass
+  /// of [superclass].
+  bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin) {
+    return mixinUsesOf(mixin).any((ClassElement each) {
+      return each.isSubclassOf(superclass);
+    });
+  }
+
+  /// Returns `true` if [cls] or any superclass mixes in [mixin].
+  bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin) {
+    assert(_checkClass(cls));
+    assert(_checkClass(mixin));
+    if (isUsedAsMixin(mixin)) {
+      ClassElement current = cls;
+      while (current != null) {
+        if (current.isMixinApplication) {
+          MixinApplicationElement application = current;
+          if (application.mixin == mixin) return true;
+        }
+        current = current.superclass;
+      }
+    }
+    return false;
   }
 
   @override
@@ -1258,95 +1214,5 @@ class ClosedWorldImpl extends ClosedWorldBase {
     assert(!element.isGenerativeConstructorBody);
     assert(!element.isField);
     return super.getSideEffectsOfElement(element);
-  }
-}
-
-class KernelClosedWorld extends ClosedWorldBase {
-  KernelClosedWorld(
-      {CommonElements commonElements,
-      ConstantSystem constantSystem,
-      NativeData nativeData,
-      InterceptorData interceptorData,
-      BackendUsage backendUsage,
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      FunctionSetBuilder functionSetBuilder,
-      Iterable<TypedefElement> allTypedefs,
-      Map<ClassEntity, Set<ClassEntity>> mixinUses,
-      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
-      : super(
-            commonElements: commonElements,
-            constantSystem: constantSystem,
-            nativeData: nativeData,
-            interceptorData: interceptorData,
-            backendUsage: backendUsage,
-            resolutionWorldBuilder: resolutionWorldBuilder,
-            functionSetBuilder: functionSetBuilder,
-            allTypedefs: allTypedefs,
-            mixinUses: mixinUses,
-            typesImplementedBySubclasses: typesImplementedBySubclasses,
-            classHierarchyNodes: classHierarchyNodes,
-            classSets: classSets);
-
-  @override
-  bool hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity stopAtSuperclass}) {
-    throw new UnimplementedError('KernelClosedWorld.hasConcreteMatch');
-  }
-
-  @override
-  bool _isNamedMixinApplication(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._isNamedMixinApplication');
-  }
-
-  @override
-  ClassEntity _getAppliedMixin(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getAppliedMixin');
-  }
-
-  @override
-  Iterable<ClassEntity> _getInterfaces(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getInterfaces');
-  }
-
-  @override
-  ClassEntity _getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getSuperClass');
-  }
-
-  @override
-  int _getHierarchyDepth(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getHierarchyDepth');
-  }
-
-  @override
-  OrderedTypeSet _getOrderedTypeSet(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getOrderedTypeSet');
-  }
-
-  @override
-  bool _checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
-      true;
-
-  @override
-  bool _checkClass(ClassEntity cls) => true;
-
-  @override
-  bool _checkEntity(Entity element) => true;
-
-  @override
-  void registerClosureClass(ClassElement cls) {
-    throw new UnimplementedError('KernelClosedWorld.registerClosureClass');
-  }
-
-  @override
-  String dump([ClassEntity cls]) {
-    throw new UnimplementedError('KernelClosedWorld.dump');
-  }
-
-  @override
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
-    throw new UnimplementedError('KernelClosedWorld.hasElementIn');
   }
 }
