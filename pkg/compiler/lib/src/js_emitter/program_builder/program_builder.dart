@@ -551,7 +551,7 @@ class ProgramBuilder {
       // if it does not we can suppress it completely.
       onlyForRti = true;
     }
-    bool isClosureBaseClass = element == _compiler.commonElements.closureClass;
+    bool isClosureBaseClass = element == _commonElements.closureClass;
 
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
@@ -917,7 +917,8 @@ class ProgramBuilder {
   List<Field> _buildFields(Element holder,
       {bool visitStatics, bool isHolderInterceptedClass: false}) {
     List<Field> fields = <Field>[];
-    new FieldVisitor(_compiler, _namer, _closedWorld)
+    new FieldVisitor(_options, _worldBuilder, _nativeData, _mirrorsData, _namer,
+            _closedWorld)
         .visitFields(holder, visitStatics, (FieldElement field,
             js.Name name,
             js.Name accessorName,

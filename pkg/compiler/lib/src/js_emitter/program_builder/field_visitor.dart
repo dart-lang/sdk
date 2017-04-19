@@ -26,13 +26,15 @@ typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
     bool needsGetter, bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
-  final Compiler compiler;
-  final Namer namer;
-  final ClosedWorld closedWorld;
+  final CompilerOptions _options;
+  final CodegenWorldBuilder _codegenWorldBuilder;
+  final NativeData _nativeData;
+  final MirrorsData _mirrorsData;
+  final Namer _namer;
+  final ClosedWorld _closedWorld;
 
-  JavaScriptBackend get backend => compiler.backend;
-
-  FieldVisitor(this.compiler, this.namer, this.closedWorld);
+  FieldVisitor(this._options, this._codegenWorldBuilder, this._nativeData,
+      this._mirrorsData, this._namer, this._closedWorld);
 
   /**
    * Invokes [f] for each of the fields of [element].
@@ -59,12 +61,12 @@ class FieldVisitor {
     bool isInstantiated = false;
     if (element.isClass) {
       cls = element;
-      isNativeClass = backend.nativeData.isNativeClass(cls);
+      isNativeClass = _nativeData.isNativeClass(cls);
 
       // If the class is never instantiated we still need to set it up for
       // inheritance purposes, but we can simplify its JavaScript constructor.
-      isInstantiated = compiler.codegenWorldBuilder.directlyInstantiatedClasses
-          .contains(cls);
+      isInstantiated =
+          _codegenWorldBuilder.directlyInstantiatedClasses.contains(cls);
     } else if (element.isLibrary) {
       isLibrary = true;
       assert(invariant(element, visitStatics));
@@ -89,13 +91,13 @@ class FieldVisitor {
         needsSetter = fieldNeedsSetter(field);
       }
 
-      if ((isInstantiated && !backend.nativeData.isNativeClass(cls)) ||
+      if ((isInstantiated && !_nativeData.isNativeClass(cls)) ||
           needsGetter ||
           needsSetter) {
-        js.Name accessorName = namer.fieldAccessorName(field);
-        js.Name fieldName = namer.fieldPropertyName(field);
+        js.Name accessorName = _namer.fieldAccessorName(field);
+        js.Name fieldName = _namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
-        if (compiler.options.enableTypeAssertions &&
+        if (_options.enableTypeAssertions &&
             needsSetter &&
             !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;
@@ -132,18 +134,18 @@ class FieldVisitor {
   bool fieldNeedsGetter(FieldElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    if (backend.mirrorsData.shouldRetainGetter(field)) return true;
+    if (_mirrorsData.shouldRetainGetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorldBuilder.hasInvokedGetter(field, closedWorld);
+        _codegenWorldBuilder.hasInvokedGetter(field, _closedWorld);
   }
 
   bool fieldNeedsSetter(FieldElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (field.isFinal || field.isConst) return false;
-    if (backend.mirrorsData.shouldRetainSetter(field)) return true;
+    if (_mirrorsData.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorldBuilder.hasInvokedSetter(field, closedWorld);
+        _codegenWorldBuilder.hasInvokedSetter(field, _closedWorld);
   }
 
   static bool fieldAccessNeverThrows(VariableElement field) {

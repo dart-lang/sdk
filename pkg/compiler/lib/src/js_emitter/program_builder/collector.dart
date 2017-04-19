@@ -134,9 +134,14 @@ class Collector {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           backend.mirrorsData.retainMetadataOfClass(cls);
-          new FieldVisitor(compiler, namer, closedWorld).visitFields(cls, false,
-              (FieldElement member, js.Name name, js.Name accessorName,
-                  bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
+          new FieldVisitor(compiler.options, compiler.codegenWorldBuilder,
+                  backend.nativeData, backend.mirrorsData, namer, closedWorld)
+              .visitFields(cls, false, (FieldElement member,
+                  js.Name name,
+                  js.Name accessorName,
+                  bool needsGetter,
+                  bool needsSetter,
+                  bool needsCheckedSetter) {
             bool needsAccessor = needsGetter || needsSetter;
             if (needsAccessor &&
                 backend.mirrorsData.isMemberAccessibleByReflection(member)) {
