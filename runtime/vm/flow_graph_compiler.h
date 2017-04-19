@@ -8,8 +8,8 @@
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/code_descriptors.h"
-#include "vm/code_generator.h"
 #include "vm/intermediate_language.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 

@@ -10,7 +10,6 @@
 #include "vm/branch_optimizer.h"
 #include "vm/cha.h"
 #include "vm/class_finalizer.h"
-#include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/constant_propagator.h"
@@ -28,6 +27,7 @@
 #include "vm/hash_table.h"
 #include "vm/il_printer.h"
 #include "vm/isolate.h"
+#include "vm/json_parser.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -39,13 +39,13 @@
 #include "vm/regexp_assembler.h"
 #include "vm/regexp_parser.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/type_table.h"
 #include "vm/version.h"
-#include "vm/json_parser.h"
 
 namespace dart {
 

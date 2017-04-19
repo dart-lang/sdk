@@ -4,15 +4,15 @@
 
 #include "vm/class_finalizer.h"
 
-#include "vm/code_generator.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
-#include "vm/longjump.h"
 #include "vm/log.h"
+#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/program_visitor.h"
+#include "vm/runtime_entry.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/type_table.h"

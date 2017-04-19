@@ -6,7 +6,7 @@
 
 #include "vm/become.h"
 #include "vm/bit_vector.h"
-#include "vm/code_generator.h"
+#include "vm/runtime_entry.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/hash_table.h"

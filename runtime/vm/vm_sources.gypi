@@ -86,8 +86,6 @@
     'code_descriptors.cc',
     'code_descriptors.h',
     'code_descriptors_test.cc',
-    'code_generator.cc',
-    'code_generator.h',
     'code_generator_test.cc',
     'code_observers.cc',
     'code_observers.h',

@@ -9,10 +9,10 @@
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
-#include "vm/code_generator.h"
 #include "vm/exceptions.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
+#include "vm/runtime_entry.h"
 #include "vm/verifier.h"
 
 #include "include/dart_api.h"

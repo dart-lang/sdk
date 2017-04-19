@@ -5,11 +5,11 @@
 #include "vm/dart_entry.h"
 
 #include "vm/class_finalizer.h"
-#include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/debugger.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/safepoint.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"

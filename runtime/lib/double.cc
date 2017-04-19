@@ -6,13 +6,13 @@
 
 #include "platform/math.h"
 
-#include "vm/code_generator.h"  // DartModulo.
 #include "vm/dart_entry.h"
 #include "vm/double_conversion.h"
 #include "vm/double_internals.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/runtime_entry.h"  // DartModulo.
 #include "vm/symbols.h"
 
 namespace dart {

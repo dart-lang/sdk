@@ -6,9 +6,9 @@
 
 #include "platform/assert.h"
 
-#include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/object.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
