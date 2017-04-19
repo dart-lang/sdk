@@ -109,9 +109,8 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
         (errorCode.name == LintNames.annotate_overrides ||
-            errorCode.name == LintNames.avoid_init_to_null ||
-            errorCode.name == LintNames.prefer_collection_literals ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp));
+            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.avoid_init_to_null));
 
 /**
  * An enumeration of possible quick fix kinds.
@@ -223,8 +222,6 @@ class DartFixKind {
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
-  static const REPLACE_WITH_LITERAL =
-      const FixKind('REPLACE_WITH_LITERAL', 50, 'Replace with literal');
   static const REPLACE_WITH_NULL_AWARE = const FixKind(
       'REPLACE_WITH_NULL_AWARE',
       50,

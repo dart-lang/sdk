@@ -381,14 +381,11 @@ class FixProcessor {
       if (errorCode.name == LintNames.annotate_overrides) {
         _addLintFixAddOverrideAnnotation();
       }
-      if (errorCode.name == LintNames.avoid_init_to_null) {
-        _addFix_removeInitializer();
-      }
-      if (errorCode.name == LintNames.prefer_collection_literals) {
-        _addFix_replaceWithLiteral();
-      }
       if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
         _addLintRemoveInterpolationBraces();
+      }
+      if (errorCode.name == LintNames.avoid_init_to_null) {
+        _addFix_removeInitializer();
       }
     }
     // done
@@ -1902,24 +1899,6 @@ class FixProcessor {
     }
   }
 
-  void _addFix_replaceWithLiteral() {
-    final InstanceCreationExpression instanceCreation =
-        node.getAncestor((node) => node is InstanceCreationExpression);
-    final InterfaceType type = instanceCreation.staticType;
-    final buffer = new StringBuffer();
-    final generics = instanceCreation.constructorName.type.typeArguments;
-    if (generics != null) {
-      buffer.write(utils.getNodeText(generics));
-    }
-    if (type.name == 'List') {
-      buffer.write('[]');
-    } else {
-      buffer.write('{}');
-    }
-    _addReplaceEdit(rf.rangeNode(instanceCreation), buffer.toString());
-    _addFix(DartFixKind.REPLACE_WITH_LITERAL, []);
-  }
-
   void _addFix_undefinedClass_useSimilar() {
     AstNode node = this.node;
     // Prepare the optional import prefix name.
@@ -3037,7 +3016,6 @@ class FixProcessor {
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
   static const String avoid_init_to_null = 'avoid_init_to_null';
-  static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String unnecessary_brace_in_string_interp =
       'unnecessary_brace_in_string_interp';
 }
