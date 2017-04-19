@@ -380,37 +380,45 @@ abstract class Compiler {
       backend.setAnnotations(library);
     });
 
-    for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
-      if (loadedLibraries.containsLibrary(uri)) {
-        Set<String> importChains = computeImportChainsFor(loadedLibraries, uri);
-        reporter.reportInfo(
-            NO_LOCATION_SPANNABLE, MessageKind.DISALLOWED_LIBRARY_IMPORT, {
-          'uri': uri,
-          'importChain': importChains
-              .join(MessageTemplate.DISALLOWED_LIBRARY_IMPORT_PADDING)
-        });
+    // TODO(efortuna, sigmund): These validation steps should be done in the
+    // front end for the Kernel path since Kernel doesn't have the notion of
+    // imports (everything has already been resolved). (See
+    // https://github.com/dart-lang/sdk/issues/29368)
+    if (!options.useKernel && !options.loadFromDill) {
+      for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
+        if (loadedLibraries.containsLibrary(uri)) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, uri);
+          reporter.reportInfo(
+              NO_LOCATION_SPANNABLE, MessageKind.DISALLOWED_LIBRARY_IMPORT, {
+            'uri': uri,
+            'importChain': importChains
+                .join(MessageTemplate.DISALLOWED_LIBRARY_IMPORT_PADDING)
+          });
+        }
       }
-    }
 
-    if (loadedLibraries.containsLibrary(Uris.dart_core)) {
-      bool importsMirrorsLibrary =
-          loadedLibraries.containsLibrary(Uris.dart_mirrors);
-      if (importsMirrorsLibrary && !backend.supportsReflection) {
-        Set<String> importChains =
-            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-        reporter.reportErrorMessage(NO_LOCATION_SPANNABLE,
-            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND, {
-          'importChain': importChains
-              .join(MessageTemplate.MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING)
-        });
-      } else if (importsMirrorsLibrary && !options.enableExperimentalMirrors) {
-        Set<String> importChains =
-            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-        reporter.reportWarningMessage(
-            NO_LOCATION_SPANNABLE, MessageKind.IMPORT_EXPERIMENTAL_MIRRORS, {
-          'importChain': importChains
-              .join(MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)
-        });
+      if (loadedLibraries.containsLibrary(Uris.dart_core)) {
+        bool importsMirrorsLibrary =
+            loadedLibraries.containsLibrary(Uris.dart_mirrors);
+        if (importsMirrorsLibrary && !backend.supportsReflection) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
+          reporter.reportErrorMessage(NO_LOCATION_SPANNABLE,
+              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND, {
+            'importChain': importChains
+                .join(MessageTemplate.MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING)
+          });
+        } else if (importsMirrorsLibrary &&
+            !options.enableExperimentalMirrors) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
+          reporter.reportWarningMessage(
+              NO_LOCATION_SPANNABLE, MessageKind.IMPORT_EXPERIMENTAL_MIRRORS, {
+            'importChain': importChains
+                .join(MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)
+          });
+        }
       }
     }
     backend.onLibrariesLoaded(loadedLibraries);
@@ -595,14 +603,12 @@ abstract class Compiler {
           libraryLoader.libraries.where((LibraryEntity library) {
             return !serialization.isDeserialized(library);
           }).forEach((LibraryEntity library) {
-            reporter
-                .log('Enqueuing ${(library as LibraryElement).canonicalUri}');
+            reporter.log('Enqueuing ${library.canonicalUri}');
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (analyzeAll) {
           libraryLoader.libraries.forEach((LibraryEntity library) {
-            reporter
-                .log('Enqueuing ${(library as LibraryElement).canonicalUri}');
+            reporter.log('Enqueuing ${library.canonicalUri}');
             resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         } else if (options.analyzeMain) {
@@ -647,18 +653,7 @@ abstract class Compiler {
             return !serialization.isDeserialized(library);
           }));
         }
-        if (options.analyzeOnly) {
-          if (!analyzeAll && !compilationFailed) {
-            // No point in reporting unused code when [analyzeAll] is true: all
-            // code is artificially used.
-            // If compilation failed, it is possible that the error prevents the
-            // compiler from analyzing all the code.
-            // TODO(johnniwinther): Reenable this when the reporting is more
-            // precise.
-            //reportUnusedCode();
-          }
-          return;
-        }
+        if (options.analyzeOnly) return;
         assert(mainFunction != null);
 
         ClosedWorldRefiner closedWorldRefiner = closeResolution();
@@ -929,41 +924,6 @@ abstract class Compiler {
   }
 
   bool get isMockCompilation => false;
-
-  void reportUnusedCode() {
-    void checkLive(member) {
-      if (member.isMalformed) return;
-      if (member.isFunction) {
-        if (!resolutionWorldBuilder.isMemberUsed(member)) {
-          reporter.reportHintMessage(
-              member, MessageKind.UNUSED_METHOD, {'name': member.name});
-        }
-      } else if (member.isClass) {
-        if (!member.isResolved) {
-          reporter.reportHintMessage(
-              member, MessageKind.UNUSED_CLASS, {'name': member.name});
-        } else {
-          member.forEachLocalMember(checkLive);
-        }
-      } else if (member.isTypedef) {
-        if (!member.isResolved) {
-          reporter.reportHintMessage(
-              member, MessageKind.UNUSED_TYPEDEF, {'name': member.name});
-        }
-      }
-    }
-
-    libraryLoader.libraries.forEach((LibraryEntity entity) {
-      // TODO(ahe): Implement better heuristics to discover entry points of
-      // packages and use that to discover unused implementation details in
-      // packages.
-      LibraryElement library = entity;
-      if (library.isPlatformLibrary || library.isPackageLibrary) return;
-      library.compilationUnits.forEach((unit) {
-        unit.forEachLocalMember(checkLive);
-      });
-    });
-  }
 
   /// Helper for determining whether the current element is declared within
   /// 'user code'.

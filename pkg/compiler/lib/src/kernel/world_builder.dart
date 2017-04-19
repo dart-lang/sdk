@@ -456,6 +456,11 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   LibraryEntity getLibrary(ir.Library node) => _getLibrary(node);
 
+  ir.Library getKernelLibrary(KLibrary entity) =>
+      _libraryEnvs[entity.libraryIndex].library;
+
+  ir.Class getKernelClass(KClass entity) => _classEnvs[entity.classIndex].cls;
+
   @override
   Local getLocalFunction(ir.TreeNode node) => _getLocal(node);
 

@@ -1091,16 +1091,13 @@ class JavaScriptBackend {
 
   /// This method is called immediately after the [library] and its parts have
   /// been loaded.
-  void setAnnotations(LibraryElement library) {
+  void setAnnotations(LibraryEntity library) {
     if (!compiler.serialization.isDeserialized(library)) {
+      AnnotationProcessor processor = new AnnotationProcessor(compiler);
       if (canLibraryUseNative(library)) {
-        library.forEachLocalMember((Element element) {
-          if (element.isClass) {
-            checkNativeAnnotation(compiler, element, nativeBasicDataBuilder);
-          }
-        });
+        processor.extractNativeAnnotations(library, nativeBasicDataBuilder);
       }
-      checkJsInteropClassAnnotations(compiler, library, nativeBasicDataBuilder);
+      processor.extractJsInteropAnnotations(library, nativeBasicDataBuilder);
     }
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
