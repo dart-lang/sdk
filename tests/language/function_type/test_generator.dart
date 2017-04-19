@@ -547,6 +547,7 @@ final bool inCheckedMode =
 """;
 
 class Unit {
+  int typeCounter = 0;
   final String name;
   final StringBuffer typedefs = new StringBuffer();
   final StringBuffer globals = new StringBuffer();
@@ -593,8 +594,8 @@ void main() {
 }
 
 final TEST_METHOD_HEADER = """
-  void #testName() {
-    // #typeCode""";
+  /// #typeCode
+  void #testName() {""";
 
 // Tests that apply for every type.
 final COMMON_TESTS_TEMPLATE = """
@@ -718,9 +719,11 @@ void generateTests() {
 
   var types = buildFunctionTypes();
 
-  int typeCounter = 0;
+  int unitCounter = 0;
   types.forEach((FunctionType type) {
-    Unit unit = units[typeCounter % units.length];
+    Unit unit = units[unitCounter % units.length];
+    unitCounter++;
+    int typeCounter = unit.typeCounter++;
 
     String typeName = createTypeName(typeCounter);
     String fieldName = createFieldName(typeCounter);
@@ -738,8 +741,6 @@ void generateTests() {
     unit.methods.writeln("  $methodFunCode");
     unit.testMethods.writeln("$testMethodCode");
     unit.tests.writeln("    $testName();");
-
-    typeCounter++;
   });
 
   for (int i = 0; i < units.length; i++) {
