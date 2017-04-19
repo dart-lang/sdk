@@ -345,8 +345,6 @@ try_catch_syntax_test/09: MissingCompileTimeError
 try_catch_syntax_test/10: MissingCompileTimeError
 try_catch_syntax_test/11: MissingCompileTimeError
 try_catch_syntax_test/12: MissingCompileTimeError
-try_catch_syntax_test/16: Crash
-try_catch_syntax_test/17: Crash
 type_variable_conflict_test/01: MissingCompileTimeError
 type_variable_conflict_test/02: MissingCompileTimeError
 type_variable_conflict_test/03: MissingCompileTimeError

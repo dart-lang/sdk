@@ -94,6 +94,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   bool inCatchClause = false;
 
+  bool inCatchBlock = false;
+
   int functionNestingLevel = 0;
 
   Statement compileTimeErrorInTry;
@@ -1529,12 +1531,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endCatchClause(Token token) {
     debugEvent("CatchClause");
     inCatchClause = false;
+    push(inCatchBlock);
+    inCatchBlock = true;
   }
 
   @override
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     debugEvent("CatchBlock");
     Block body = pop();
+    inCatchBlock = pop();
     if (catchKeyword != null) {
       exitLocalScope();
     }
@@ -1921,11 +1926,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     functionNestingLevel++;
     push(switchScope ?? NullValue.SwitchScope);
     switchScope = null;
+    push(inCatchBlock);
+    inCatchBlock = false;
   }
 
   void exitFunction() {
     debugEvent("exitFunction");
     functionNestingLevel--;
+    inCatchBlock = pop();
     switchScope = pop();
   }
 
@@ -2111,8 +2119,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endRethrowStatement(Token throwToken, Token endToken) {
     debugEvent("RethrowStatement");
-    push(new ExpressionStatement(
-        new Rethrow()..fileOffset = throwToken.charOffset));
+    if (inCatchBlock) {
+      push(new ExpressionStatement(
+          new Rethrow()..fileOffset = throwToken.charOffset));
+    } else {
+      push(buildCompileTimeErrorStatement(
+          "'rethrow' can only be used in catch clauses.",
+          throwToken.charOffset));
+    }
   }
 
   @override

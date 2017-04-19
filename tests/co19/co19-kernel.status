@@ -147,12 +147,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: RuntimeError
 Language/Expressions/This/placement_t04: MissingCompileTimeError
-Language/Expressions/Throw/no_catch_clause_t01: Crash
-Language/Expressions/Throw/no_catch_clause_t02: Crash
-Language/Expressions/Throw/no_catch_clause_t03: Crash
-Language/Expressions/Throw/no_catch_clause_t04: Crash
-Language/Expressions/Throw/no_catch_clause_t05: Crash
-Language/Expressions/Throw/no_catch_clause_t06: Crash
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Cast/evaluation_t04: RuntimeError
 Language/Expressions/Type_Cast/evaluation_t05: RuntimeError
@@ -292,8 +286,6 @@ Language/Statements/Local_Function_Declaration/reference_before_declaration_t01:
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t11: MissingCompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t20: MissingCompileTimeError
-Language/Statements/Rethrow/on_catch_clause_t01: Crash
-Language/Statements/Rethrow/on_catch_clause_t02: Crash
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t01: MissingCompileTimeError
