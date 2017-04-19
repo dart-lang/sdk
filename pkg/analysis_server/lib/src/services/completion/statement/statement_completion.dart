@@ -39,6 +39,10 @@ class DartStatementCompletion {
       'COMPLETE_IF_STMT', "Complete if-statement");
   static const COMPLETE_FOR_STMT = const StatementCompletionKind(
       'COMPLETE_FOR_STMT', "Complete for-statement");
+  static const COMPLETE_FOR_EACH_STMT = const StatementCompletionKind(
+      'COMPLETE_FOR_EACH_STMT', "Complete for-each-statement");
+  static const COMPLETE_SWITCH_STMT = const StatementCompletionKind(
+      'COMPLETE_SWITCH_STMT', "Complete switch-statement");
   static const COMPLETE_WHILE_STMT = const StatementCompletionKind(
       'COMPLETE_WHILE_STMT', "Complete while-statement");
 }
@@ -234,6 +238,15 @@ class StatementCompletionProcessor {
     return text;
   }
 
+  bool _complete_controlFlowBlock() {
+    //TODO(messick) Implement _complete_controlFlowBlock
+    // Use statement completion to move the cursor to a new line outside the
+    // current block. The statement has no errors in this case. Used to jump
+    // out of do/for/if/while blocks.
+    //TODO(messick) Move has-errors checking into dispatch method.
+    return false;
+  }
+
   bool _complete_doStatement() {
     if (errors.isEmpty || node is! DoStatement) {
       return false;
@@ -311,8 +324,49 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_forEachStatement() {
-    // TODO(messick) Implement _complete_forEachStatement
-    return false;
+    if (errors.isEmpty || node is! ForEachStatement) {
+      return false;
+    }
+    ForEachStatement forNode = node;
+    if (forNode.inKeyword.isSynthetic) {
+      return false; // Can't happen -- would be parsed as a for-statement.
+    }
+    SourceBuilder sb =
+        new SourceBuilder(file, forNode.rightParenthesis.offset + 1);
+    AstNode name = forNode.identifier;
+    name ??= forNode.loopVariable;
+    String src = utils.getNodeText(forNode);
+    if (name == null) {
+      exitPosition = new Position(file, forNode.leftParenthesis.offset + 1);
+      src = src.substring(forNode.leftParenthesis.offset - forNode.offset);
+      if (src.startsWith(new RegExp(r'\(\s*in\s*\)'))) {
+        _addReplaceEdit(
+            rangeStartEnd(forNode.leftParenthesis.offset + 1,
+                forNode.rightParenthesis.offset),
+            ' in ');
+      } else if (src.startsWith(new RegExp(r'\(\s*in'))) {
+        _addReplaceEdit(
+            rangeStartEnd(
+                forNode.leftParenthesis.offset + 1, forNode.inKeyword.offset),
+            ' ');
+      }
+    } else if (_isSyntheticExpression(forNode.iterable)) {
+      exitPosition = new Position(file, forNode.rightParenthesis.offset + 1);
+      src = src.substring(forNode.inKeyword.offset - forNode.offset);
+      if (src.startsWith(new RegExp(r'in\s*\)'))) {
+        _addReplaceEdit(
+            rangeStartEnd(forNode.inKeyword.offset + forNode.inKeyword.length,
+                forNode.rightParenthesis.offset),
+            ' ');
+      }
+    }
+    if (_isEmptyStatement(forNode.body)) {
+      sb.append(' ');
+      _appendEmptyBraces(sb, exitPosition == null);
+    }
+    _insertBuilder(sb);
+    _setCompletion(DartStatementCompletion.COMPLETE_FOR_EACH_STMT);
+    return true;
   }
 
   bool _complete_forStatement() {
@@ -483,8 +537,43 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_switchStatement() {
-    // TODO(messick) Implement _complete_switchStatement
-    return false;
+    if (errors.isEmpty || node is! SwitchStatement) {
+      return false;
+    }
+    SourceBuilder sb;
+    SwitchStatement switchNode = node;
+    if (switchNode.leftParenthesis.isSynthetic &&
+        switchNode.rightParenthesis.isSynthetic) {
+      exitPosition = new Position(file, switchNode.switchKeyword.end + 2);
+      String src = utils.getNodeText(switchNode);
+      if (src
+          .substring(switchNode.switchKeyword.end - switchNode.offset)
+          .startsWith(new RegExp(r'[ \t]+'))) {
+        sb = new SourceBuilder(file, switchNode.switchKeyword.end + 1);
+      } else {
+        sb = new SourceBuilder(file, switchNode.switchKeyword.end);
+        sb.append(' ');
+      }
+      sb.append('()');
+    } else if (switchNode.leftParenthesis.isSynthetic ||
+        switchNode.rightParenthesis.isSynthetic) {
+      return false;
+    } else {
+      sb = new SourceBuilder(file, switchNode.rightParenthesis.offset + 1);
+      if (_isSyntheticExpression(switchNode.expression)) {
+        exitPosition =
+            new Position(file, switchNode.leftParenthesis.offset + 1);
+      }
+    }
+    if (switchNode
+        .leftBracket.isSynthetic /*&& switchNode.rightBracket.isSynthetic*/) {
+      // See https://github.com/dart-lang/sdk/issues/29391
+      sb.append(' ');
+      _appendEmptyBraces(sb, exitPosition == null);
+    }
+    _insertBuilder(sb);
+    _setCompletion(DartStatementCompletion.COMPLETE_SWITCH_STMT);
+    return true;
   }
 
   bool _complete_tryStatement() {
@@ -560,12 +649,12 @@ class StatementCompletionProcessor {
     return stmt is Block && stmt.statements.isEmpty;
   }
 
-  bool _isSyntheticExpression(Expression expr) {
-    return expr is SimpleIdentifier && expr.isSynthetic;
-  }
-
   bool _isEmptyStatement(AstNode stmt) {
     return stmt is EmptyStatement || _isEmptyBlock(stmt);
+  }
+
+  bool _isSyntheticExpression(Expression expr) {
+    return expr is SimpleIdentifier && expr.isSynthetic;
   }
 
   Position _newPosition(int offset) {

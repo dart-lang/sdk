@@ -16,8 +16,10 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_DoCompletionTest);
     defineReflectiveTests(_ForCompletionTest);
+    defineReflectiveTests(_ForEachCompletionTest);
     defineReflectiveTests(_IfCompletionTest);
     defineReflectiveTests(_SimpleCompletionTest);
+    defineReflectiveTests(_SwitchCompletionTest);
     defineReflectiveTests(_WhileCompletionTest);
   });
 }
@@ -349,6 +351,72 @@ main() {
 }
 
 @reflectiveTest
+class _ForEachCompletionTest extends StatementCompletionTest {
+  test_emptyIdentifier() async {
+    await _prepareCompletion(
+        'in xs)',
+        '''
+main() {
+  for (in xs)
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete for-each-statement',
+        '''
+main() {
+  for ( in xs) {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'for ('));
+  }
+
+  test_emptyIdentifierAndIterable() async {
+    await _prepareCompletion(
+        'in)',
+        '''
+main() {
+  for (in)
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete for-each-statement',
+        '''
+main() {
+  for ( in ) {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'for ('));
+  }
+
+  test_emptyIterable() async {
+    await _prepareCompletion(
+        'in)',
+        '''
+main() {
+  for (var x in)
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete for-each-statement',
+        '''
+main() {
+  for (var x in ) {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'in '));
+  }
+}
+
+@reflectiveTest
 class _IfCompletionTest extends StatementCompletionTest {
   test_afterCondition_BAD() async {
     // TODO(messick): Fix the code to make this like test_completeIfWithCondition.
@@ -523,6 +591,72 @@ main() {
 }
 ''',
         (s) => _afterLast(s, '  '));
+  }
+}
+
+@reflectiveTest
+class _SwitchCompletionTest extends StatementCompletionTest {
+  test_emptyCondition() async {
+    await _prepareCompletion(
+        'switch',
+        '''
+main() {
+  switch ()
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+main() {
+  switch () {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'switch ('));
+  }
+
+  test_keywordOnly() async {
+    await _prepareCompletion(
+        'switch',
+        '''
+main() {
+  switch////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+main() {
+  switch () {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'switch ('));
+  }
+
+  test_keywordSpace() async {
+    await _prepareCompletion(
+        'switch',
+        '''
+main() {
+  switch ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete switch-statement',
+        '''
+main() {
+  switch () {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'switch ('));
   }
 }
 
