@@ -7,7 +7,6 @@
 part of gardening.shard2group;
 
 const Map<String, List<String>> shardGroups = const {
-
   'vm': const <String>[
     'vm-mac-debug-simdbc64-be',
     'vm-mac-release-simdbc64-be',

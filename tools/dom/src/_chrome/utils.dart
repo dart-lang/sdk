@@ -46,8 +46,7 @@ abstract class ChromeObject {
  */
 Object _convertMapArgument(Map argument) {
   Map m = new Map();
-  for (Object key in argument.keys)
-    m[key] = convertArgument(argument[key]);
+  for (Object key in argument.keys) m[key] = convertArgument(argument[key]);
   return convertDartToNative_Dictionary(m);
 }
 
@@ -57,8 +56,7 @@ Object _convertMapArgument(Map argument) {
  */
 List _convertListArgument(List argument) {
   List l = new List();
-  for (var i = 0; i < argument.length; i ++)
-    l.add(convertArgument(argument[i]));
+  for (var i = 0; i < argument.length; i++) l.add(convertArgument(argument[i]));
   return l;
 }
 
@@ -73,20 +71,16 @@ List _convertListArgument(List argument) {
  * Cannot be used for functions.
  */
 Object convertArgument(var argument) {
-  if (argument == null)
-    return argument;
+  if (argument == null) return argument;
 
   if (argument is num || argument is String || argument is bool)
     return argument;
 
-  if (argument is ChromeObject)
-    return argument._jsObject;
+  if (argument is ChromeObject) return argument._jsObject;
 
-  if (argument is List)
-    return _convertListArgument(argument);
+  if (argument is List) return _convertListArgument(argument);
 
-  if (argument is Map)
-    return _convertMapArgument(argument);
+  if (argument is Map) return _convertMapArgument(argument);
 
   if (argument is Function)
     throw new Exception("Cannot serialize Function argument ${argument}.");
@@ -140,7 +134,6 @@ class Rule extends ChromeObject {
   set priority(int priority) {
     JS('void', '#.priority = #', this._jsObject, priority);
   }
-
 }
 
 /**
@@ -187,35 +180,19 @@ class Event {
    */
 
   /// Registers an event listener <em>callback</em> to an event.
-  void addListener(Function callback) =>
-      JS('void',
-         '#.addListener(#)',
-         this._jsObject,
-         convertDartClosureToJS(callback, this._callbackArity)
-      );
+  void addListener(Function callback) => JS('void', '#.addListener(#)',
+      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
 
   /// Deregisters an event listener <em>callback</em> from an event.
-  void removeListener(Function callback) =>
-      JS('void',
-         '#.removeListener(#)',
-         this._jsObject,
-         convertDartClosureToJS(callback, this._callbackArity)
-      );
+  void removeListener(Function callback) => JS('void', '#.removeListener(#)',
+      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
 
   /// Returns True if <em>callback</em> is registered to the event.
-  bool hasListener(Function callback) =>
-      JS('bool',
-         '#.hasListener(#)',
-         this._jsObject,
-         convertDartClosureToJS(callback, this._callbackArity)
-      );
+  bool hasListener(Function callback) => JS('bool', '#.hasListener(#)',
+      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
 
   /// Returns true if any event listeners are registered to the event.
-  bool hasListeners() =>
-      JS('bool',
-         '#.hasListeners()',
-         this._jsObject
-      );
+  bool hasListeners() => JS('bool', '#.hasListeners()', this._jsObject);
 
   /// Registers rules to handle events.
   ///
@@ -224,26 +201,25 @@ class Event {
   /// rules. [callback] is called with registered rules.
   ///
   void addRules(String eventName, List<Rule> rules,
-                [void callback(List<Rule> rules)]) {
+      [void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
       if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
-        for (Object o in rules)
-          __proxy_rules.add(new Rule._proxy(o));
+        for (Object o in rules) __proxy_rules.add(new Rule._proxy(o));
 
         callback(__proxy_rules);
       }
     }
 
-    JS('void',
-       '#.addRules(#, #, #)',
-       this._jsObject,
-       convertArgument(eventName),
-       convertArgument(rules),
-       convertDartClosureToJS(__proxy_callback, 1)
-    );
+    JS(
+        'void',
+        '#.addRules(#, #, #)',
+        this._jsObject,
+        convertArgument(eventName),
+        convertArgument(rules),
+        convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Returns currently registered rules.
@@ -252,27 +228,26 @@ class Event {
   /// is passed as [ruleIdentifiers], only rules with identifiers contained in
   /// this array are returned. [callback] is called with registered rules.
   ///
-  void getRules(String eventName, [List<String> ruleIdentifiers,
-                                   void callback(List<Rule> rules)]) {
+  void getRules(String eventName,
+      [List<String> ruleIdentifiers, void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
       if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
-        for (Object o in rules)
-          __proxy_rules.add(new Rule._proxy(o));
+        for (Object o in rules) __proxy_rules.add(new Rule._proxy(o));
 
         callback(__proxy_rules);
       }
     }
 
-    JS('void',
-       '#.getRules(#, #, #)',
-       this._jsObject,
-       convertArgument(eventName),
-       convertArgument(ruleIdentifiers),
-       convertDartClosureToJS(__proxy_callback, 1)
-    );
+    JS(
+        'void',
+        '#.getRules(#, #, #)',
+        this._jsObject,
+        convertArgument(eventName),
+        convertArgument(ruleIdentifiers),
+        convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Unregisters currently registered rules.
@@ -282,14 +257,13 @@ class Event {
   /// this array are unregistered. [callback] is called when the rules are
   /// unregistered.
   ///
-  void removeRules(String eventName, [List<String> ruleIdentifiers,
-                                      void callback()]) =>
-      JS('void',
-         '#.removeRules(#, #, #)',
-         this._jsObject,
-         convertArgument(eventName),
-         convertArgument(ruleIdentifiers),
-         convertDartClosureToJS(callback, 0)
-      );
+  void removeRules(String eventName,
+          [List<String> ruleIdentifiers, void callback()]) =>
+      JS(
+          'void',
+          '#.removeRules(#, #, #)',
+          this._jsObject,
+          convertArgument(eventName),
+          convertArgument(ruleIdentifiers),
+          convertDartClosureToJS(callback, 0));
 }
-

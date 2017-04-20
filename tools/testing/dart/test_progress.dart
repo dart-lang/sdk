@@ -284,8 +284,10 @@ class TestOutcomeLogWriter extends EventListener {
       if (output != null) {
         double duration = output.time.inMicroseconds / 1000.0;
         totalDuration += duration;
-        commandResults
-            .add({'name': command.displayName, 'duration': duration,});
+        commandResults.add({
+          'name': command.displayName,
+          'duration': duration,
+        });
       }
     }
     _writeTestOutcomeRecord({
@@ -334,8 +336,7 @@ class UnexpectedCrashLogger extends EventListener {
       final binName = lastCommand.executable;
       final binFile = new File(binName);
       final binBaseName = new Path(binName).filename;
-      if (!archivedBinaries.containsKey(binName) &&
-          binFile.existsSync()) {
+      if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
         final mode = test.configuration['mode'];
         final arch = test.configuration['arch'];
         final archived = "binary.${mode}_${arch}_${binBaseName}";

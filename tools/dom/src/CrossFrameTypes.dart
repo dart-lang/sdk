@@ -139,7 +139,8 @@ abstract class WindowBase implements EventTarget {
    * * [Cross-document messaging](https://html.spec.whatwg.org/multipage/comms.html#web-messaging)
    *   from WHATWG.
    */
-  void postMessage(var message, String targetOrigin, [List<MessagePort> messagePorts]);
+  void postMessage(var message, String targetOrigin,
+      [List<MessagePort> messagePorts]);
 }
 
 abstract class LocationBase {

@@ -13,9 +13,9 @@ class _DOMWindowCrossFrame implements WindowBase {
 
   // Fields.
   HistoryBase get history =>
-    _HistoryCrossFrame._createSafe(JS('HistoryBase', '#.history', _window));
-  LocationBase get location =>
-    _LocationCrossFrame._createSafe(JS('LocationBase', '#.location', _window));
+      _HistoryCrossFrame._createSafe(JS('HistoryBase', '#.history', _window));
+  LocationBase get location => _LocationCrossFrame
+      ._createSafe(JS('LocationBase', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
@@ -30,13 +30,18 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Methods.
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin,
+      [List messagePorts = null]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window,
           convertDartToNative_SerializedScriptValue(message), targetOrigin);
     } else {
-      JS('void', '#.postMessage(#,#,#)', _window,
-          convertDartToNative_SerializedScriptValue(message), targetOrigin,
+      JS(
+          'void',
+          '#.postMessage(#,#,#)',
+          _window,
+          convertDartToNative_SerializedScriptValue(message),
+          targetOrigin,
           messagePorts);
     }
   }
@@ -55,25 +60,29 @@ class _DOMWindowCrossFrame implements WindowBase {
 
   // TODO(efortuna): Remove this method. dartbug.com/16814
   Events get on => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+      'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _addEventListener(String type, EventListener listener, [bool useCapture])
-      => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+  void _addEventListener(String type, EventListener listener,
+          [bool useCapture]) =>
+      throw new UnsupportedError(
+          'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void addEventListener(String type, EventListener listener, [bool useCapture])
-      => throw new UnsupportedError(
-        'You can only attach EventListeners to your own window.');
+  void addEventListener(String type, EventListener listener,
+          [bool useCapture]) =>
+      throw new UnsupportedError(
+          'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   bool dispatchEvent(Event event) => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+      'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void _removeEventListener(String type, EventListener listener,
-      [bool useCapture]) => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+          [bool useCapture]) =>
+      throw new UnsupportedError(
+          'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void removeEventListener(String type, EventListener listener,
-      [bool useCapture]) => throw new UnsupportedError(
+          [bool useCapture]) =>
+      throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
 }
 

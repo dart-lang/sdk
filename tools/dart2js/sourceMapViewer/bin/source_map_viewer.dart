@@ -71,7 +71,7 @@ void startServer() {
   Directory directory = new Directory(root);
   if (!directory.existsSync()) {
     print("Directory '$root' does not exist. "
-          "Run 'pub build' to generate the output.");
+        "Run 'pub build' to generate the output.");
     exit(-1);
   }
 
@@ -80,10 +80,10 @@ void startServer() {
   HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
     port = server.port;
     print("Source mapping server is running on "
-           "'http://${server.address.address}:$port/'");
+        "'http://${server.address.address}:$port/'");
     Router router = new Router(server)
-                ..serve('/file').listen(handleFile)
-                ..serve('/map').listen(handleSourceMapFile);
+      ..serve('/file').listen(handleFile)
+      ..serve('/map').listen(handleSourceMapFile);
 
     // Set up default handler. This will serve files from our 'build'
     // directory. Disable jail root, as packages are local symlinks.

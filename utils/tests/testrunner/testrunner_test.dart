@@ -11,8 +11,8 @@ import 'package:unittest/unittest.dart';
 var dart;
 var debug = false;
 
-Future runTestrunner(command, List<String> args,
-                     List<String> stdout, List<String> stderr) {
+Future runTestrunner(
+    command, List<String> args, List<String> stdout, List<String> stderr) {
   if (debug) {
     print("Running $command ${args.join(' ')}");
   }
@@ -20,8 +20,7 @@ Future runTestrunner(command, List<String> args,
     var lineEndings = new RegExp("\r\n|\n");
     stdout.addAll(result.stdout.trim().split(lineEndings));
     stderr.addAll(result.stderr.trim().split(lineEndings));
-  })
-  .catchError((e) {
+  }).catchError((e) {
     stderr.add("Error starting process:");
     stderr.add("  Command: $command");
     stderr.add("  Error: ${e}");
@@ -33,22 +32,21 @@ Future runTestrunner(command, List<String> args,
 void dump(label, list) {
   if (!debug) return;
   print('\n@=[ $label ]=============================\n');
-  for (var i = 0; i < list.length; i++)
+  for (var i = 0; i < list.length; i++) {
     print('@ ${list[i]}\n');
+  }
   print('------------------------------------------\n');
 }
 
 int stringCompare(String s1, String s2) => s1.compareTo(s2);
 
-Future runTest(
-    List<String> args,
-    List<String> expected_stdout,
+Future runTest(List<String> args, List<String> expected_stdout,
     {List<String> expected_stderr, sort: false}) {
   var stdout = new List<String>();
   var stderr = new List<String>();
   for (var i = 0; i < expected_stdout.length; i++) {
-    expected_stdout[i] = expected_stdout[i].
-        replaceAll('/', Platform.pathSeparator);
+    expected_stdout[i] =
+        expected_stdout[i].replaceAll('/', Platform.pathSeparator);
   }
   if (debug) {
     args.insert(1, "--log=stderr");
@@ -79,12 +77,12 @@ Future runTest(
         if (expected_stdout[l].startsWith('*')) {
           expect(actual, endsWith(expected_stdout[l].substring(1)));
         } else if (expected_stdout[l].startsWith('?')) {
-	  var pat = expected_stdout[l].substring(1);
-	  if (Platform.operatingSystem == 'windows') {
-	    // The joys of Windows...
-	    pat = pat.replaceAll('\\','\\\\');
+          var pat = expected_stdout[l].substring(1);
+          if (Platform.operatingSystem == 'windows') {
+            // The joys of Windows...
+            pat = pat.replaceAll('\\', '\\\\');
           }
-          expect(actual, matches(pat));		  
+          expect(actual, matches(pat));
         } else {
           expect(actual, expected_stdout[l]);
         }
@@ -100,7 +98,7 @@ Future runTest(
 
 // A useful function to quickly disable a group of tests; just
 // replace group() with skip_group().
-skip_group(_1,_2) {}
+skip_group(_1, _2) {}
 
 main() {
   dart = Platform.executable;
@@ -111,212 +109,236 @@ main() {
   }
   var _ = Platform.pathSeparator;
   var testrunner = '../../testrunner/testrunner.dart'
-          .replaceAll('/', Platform.pathSeparator);
+      .replaceAll('/', Platform.pathSeparator);
 
   group("list tests", () {
     test('list file', () {
-      return runTest(
-          [ testrunner,
-            '--list-files',
-            'non_browser_tests' ],
-          [ '?.*/non_browser_tests/non_browser_test.dart' ]);
+      return runTest([testrunner, '--list-files', 'non_browser_tests'],
+          ['?.*/non_browser_tests/non_browser_test.dart']);
     });
     test('list files', () {
-      return runTest(
-          [ testrunner,
-            '--recurse',
-            '--sort',
-            '--list-files',
-            '--test-file-pattern=.dart\$' ],
-          [ '*browser_tests/web/browser_test.dart',
-            '*http_client_tests/http_client_test.dart',
-            '*layout_tests/web/layout_test.dart',
-            '*non_browser_tests/non_browser_test.dart',
-            '*non_browser_tests/non_browser_toast.dart',
-            '*/testrunner_test.dart' ]
-      );
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--sort',
+        '--list-files',
+        '--test-file-pattern=.dart\$'
+      ], [
+        '*browser_tests/web/browser_test.dart',
+        '*http_client_tests/http_client_test.dart',
+        '*layout_tests/web/layout_test.dart',
+        '*non_browser_tests/non_browser_test.dart',
+        '*non_browser_tests/non_browser_toast.dart',
+        '*/testrunner_test.dart'
+      ]);
     });
     test('list files', () {
-      return runTest(
-          [ testrunner,
-            '--list-files',
-            '--test-file-pattern=.dart\$',
-            'non_browser_tests' ],
-          [ '*non_browser_tests/non_browser_test.dart',
-            '*non_browser_tests/non_browser_toast.dart' ],
-          sort:true
-      );
+      return runTest([
+        testrunner,
+        '--list-files',
+        '--test-file-pattern=.dart\$',
+        'non_browser_tests'
+      ], [
+        '*non_browser_tests/non_browser_test.dart',
+        '*non_browser_tests/non_browser_toast.dart'
+      ], sort: true);
     });
     test('list groups', () {
-      return runTest(
-        [ testrunner,
-          '--list-groups',
-          'non_browser_tests' ],
-        [ '*non_browser_tests/non_browser_test.dart group1',
-          '*non_browser_tests/non_browser_test.dart group2']);
+      return runTest([
+        testrunner,
+        '--list-groups',
+        'non_browser_tests'
+      ], [
+        '*non_browser_tests/non_browser_test.dart group1',
+        '*non_browser_tests/non_browser_test.dart group2'
+      ]);
     });
     test('list tests', () {
-      return runTest(
-        [ testrunner,
-          '--list-tests',
-          'non_browser_tests' ],
-        [ '*non_browser_tests/non_browser_test.dart group1 test1',
-          '*non_browser_tests/non_browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--list-tests',
+        'non_browser_tests'
+      ], [
+        '*non_browser_tests/non_browser_test.dart group1 test1',
+        '*non_browser_tests/non_browser_test.dart group2 test2'
+      ]);
     });
   });
 
   group("vm", () {
     test("vm without timing info", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1'
-              ' Expected: false',
-          '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1'
+            ' Expected: false',
+        '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2'
+      ]);
     });
-  
+
     test("vm with timing info", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--time',
-          'non_browser_tests' ],
-        [ '?FAIL [0-9.]+s .*/non_browser_tests/non_browser_test.dart group1'
-              ' test1 Expected: false',
-          '?PASS [0-9.]+s .*/non_browser_tests/non_browser_test.dart group2'
-              ' test2' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--time',
+        'non_browser_tests'
+      ], [
+        '?FAIL [0-9.]+s .*/non_browser_tests/non_browser_test.dart group1'
+            ' test1 Expected: false',
+        '?PASS [0-9.]+s .*/non_browser_tests/non_browser_test.dart group2'
+            ' test2'
+      ]);
     });
   });
-  
+
   group("selection", () {
     test("--include", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--include=group1',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
-              'Expected: false' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--include=group1',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
+            'Expected: false'
+      ]);
     });
-  
+
     test("--exclude", () {
       return runTest(
-        [ testrunner,
-          '--recurse',
-          '--exclude=group1',
-          'non_browser_tests' ],
-        [ '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2' ]);
+          [testrunner, '--recurse', '--exclude=group1', 'non_browser_tests'],
+          ['?PASS .*/non_browser_tests/non_browser_test.dart group2 test2']);
     });
-  
+
     test("test file pattern", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--test-file-pattern=toast',
-          'non_browser_tests' ],
-        [ '?PASS .*/non_browser_tests/non_browser_toast.dart foo bar' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--test-file-pattern=toast',
+        'non_browser_tests'
+      ], [
+        '?PASS .*/non_browser_tests/non_browser_toast.dart foo bar'
+      ]);
     });
   });
 
   group("stop on failure tests", () {
     test("without stop", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--sort',
-          '--tasks=1',
-          '--test-file-pattern=.dart\$',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
-              'Expected: false',
-          '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2',
-          '?PASS .*/non_browser_tests/non_browser_toast.dart foo bar' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--sort',
+        '--tasks=1',
+        '--test-file-pattern=.dart\$',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
+            'Expected: false',
+        '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2',
+        '?PASS .*/non_browser_tests/non_browser_toast.dart foo bar'
+      ]);
     });
     test("with stop", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--sort',
-          '--tasks=1',
-          '--test-file-pattern=.dart\$',
-          '--stop-on-failure',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
-              'Expected: false',
-          '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--sort',
+        '--tasks=1',
+        '--test-file-pattern=.dart\$',
+        '--stop-on-failure',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
+            'Expected: false',
+        '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2'
+      ]);
     });
   });
 
   group("output control", () {
     test("summary test", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--summary',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
-              'Expected: false',
-          '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2',
-          '',
-          '?.*/non_browser_tests/non_browser_test.dart: '
-              '1 PASSED, 1 FAILED, 0 ERRORS' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--summary',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
+            'Expected: false',
+        '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2',
+        '',
+        '?.*/non_browser_tests/non_browser_test.dart: '
+            '1 PASSED, 1 FAILED, 0 ERRORS'
+      ]);
     });
 
     test('list tests with custom format', () {
-      return runTest(
-        [ testrunner,
-          '--list-tests',
-          '--list-format="<FILENAME><TESTNAME>"',
-          'non_browser_tests' ],
-        [ '?.*/non_browser_tests/non_browser_test.dart test1',
-          '?.*/non_browser_tests/non_browser_test.dart test2' ]);
+      return runTest([
+        testrunner,
+        '--list-tests',
+        '--list-format="<FILENAME><TESTNAME>"',
+        'non_browser_tests'
+      ], [
+        '?.*/non_browser_tests/non_browser_test.dart test1',
+        '?.*/non_browser_tests/non_browser_test.dart test2'
+      ]);
     });
-  
+
     test("custom message formatting", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--pass-format=YIPPEE! <GROUPNAME><TESTNAME>',
-          '--fail-format=EPIC FAIL! <GROUPNAME><TESTNAME>',
-          'non_browser_tests' ],
-        [ 'EPIC FAIL! group1 test1', 'YIPPEE! group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--pass-format=YIPPEE! <GROUPNAME><TESTNAME>',
+        '--fail-format=EPIC FAIL! <GROUPNAME><TESTNAME>',
+        'non_browser_tests'
+      ], [
+        'EPIC FAIL! group1 test1',
+        'YIPPEE! group2 test2'
+      ]);
     });
   });
 
   test("checked mode test", () {
-    return runTest(
-      [ testrunner,
-        '--recurse',
-        '--checked',
-        'non_browser_tests' ],
-      [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
-            'Expected: false',
-        "?FAIL .*/non_browser_tests/non_browser_test.dart group2 test2 "
-            "Caught type 'int' is not a subtype of type 'bool' of 'x'." ]);
+    return runTest([
+      testrunner,
+      '--recurse',
+      '--checked',
+      'non_browser_tests'
+    ], [
+      '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
+          'Expected: false',
+      "?FAIL .*/non_browser_tests/non_browser_test.dart group2 test2 "
+          "Caught type 'int' is not a subtype of type 'bool' of 'x'."
+    ]);
   });
 
   group("browser", () {
     test("native test", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--runtime=drt-dart',
-          'browser_tests' ],
-        [ '?FAIL .*/browser_tests/web/browser_test.dart group1 test1 '
-              'Expected: false',
-          '?PASS .*/browser_tests/web/browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--runtime=drt-dart',
+        'browser_tests'
+      ], [
+        '?FAIL .*/browser_tests/web/browser_test.dart group1 test1 '
+            'Expected: false',
+        '?PASS .*/browser_tests/web/browser_test.dart group2 test2'
+      ]);
     });
-  
+
     test("compiled test", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--runtime=drt-js',
-          'browser_tests' ],
-        [ '?FAIL .*/browser_tests/web/browser_test.dart group1 test1 '
-              'Expected: false',
-          '?PASS .*/browser_tests/web/browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--runtime=drt-js',
+        'browser_tests'
+      ], [
+        '?FAIL .*/browser_tests/web/browser_test.dart group1 test1 '
+            'Expected: false',
+        '?PASS .*/browser_tests/web/browser_test.dart group2 test2'
+      ]);
     });
   });
 
@@ -327,33 +349,39 @@ main() {
         if (f.existsSync()) {
           f.deleteSync();
         }
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-dart',
-            '--recurse',
-            '--layout-text',
-            'layout_tests' ],
-          [ '?FAIL .*/layout_tests/web/layout_test.dart layout '
-                'No expectation file' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-dart',
+          '--recurse',
+          '--layout-text',
+          'layout_tests'
+        ], [
+          '?FAIL .*/layout_tests/web/layout_test.dart layout '
+              'No expectation file'
+        ]);
       });
       test("create baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-dart',
-            '--recurse',
-            '--layout-text',
-            '--regenerate',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-dart',
+          '--recurse',
+          '--layout-text',
+          '--regenerate',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
       test("test baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-dart',
-            '--recurse',
-            '--layout-text',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-dart',
+          '--recurse',
+          '--layout-text',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
     });
     group("drt-js", () {
@@ -362,33 +390,39 @@ main() {
         if (f.existsSync()) {
           f.deleteSync();
         }
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-js',
-            '--recurse',
-            '--layout-text',
-            'layout_tests' ],
-          [ '?FAIL .*/layout_tests/web/layout_test.dart layout '
-                'No expectation file' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-js',
+          '--recurse',
+          '--layout-text',
+          'layout_tests'
+        ], [
+          '?FAIL .*/layout_tests/web/layout_test.dart layout '
+              'No expectation file'
+        ]);
       });
       test("create baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-js',
-            '--recurse',
-            '--layout-text',
-            '--regenerate',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-js',
+          '--recurse',
+          '--layout-text',
+          '--regenerate',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
       test("test baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-js',
-            '--recurse',
-            '--layout-text',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-js',
+          '--recurse',
+          '--layout-text',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
     });
   });
@@ -400,33 +434,39 @@ main() {
         if (f.existsSync()) {
           f.deleteSync();
         }
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-dart',
-            '--recurse',
-            '--layout-pixel',
-            'layout_tests' ],
-          [ '?FAIL .*/layout_tests/web/layout_test.dart layout '
-                'No expectation file' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-dart',
+          '--recurse',
+          '--layout-pixel',
+          'layout_tests'
+        ], [
+          '?FAIL .*/layout_tests/web/layout_test.dart layout '
+              'No expectation file'
+        ]);
       });
       test("create baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-dart',
-            '--recurse',
-            '--layout-pixel',
-            '--regenerate',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-dart',
+          '--recurse',
+          '--layout-pixel',
+          '--regenerate',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
       test("test baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-dart',
-            '--recurse',
-            '--layout-pixel',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-dart',
+          '--recurse',
+          '--layout-pixel',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
       // TODO(gram): Should add a test that changes a byte of the
       // expectation .png.
@@ -437,85 +477,98 @@ main() {
         if (f.existsSync()) {
           f.deleteSync();
         }
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-js',
-            '--recurse',
-            '--layout-pixel',
-            'layout_tests' ],
-          [ '?FAIL .*/layout_tests/web/layout_test.dart layout '
-                'No expectation file' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-js',
+          '--recurse',
+          '--layout-pixel',
+          'layout_tests'
+        ], [
+          '?FAIL .*/layout_tests/web/layout_test.dart layout '
+              'No expectation file'
+        ]);
       });
       test("create baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-js',
-            '--recurse',
-            '--layout-pixel',
-            '--regenerate',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-js',
+          '--recurse',
+          '--layout-pixel',
+          '--regenerate',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
       test("test baseline", () {
-        return runTest(
-          [ testrunner,
-            '--runtime=drt-js',
-            '--recurse',
-            '--layout-pixel',
-            'layout_tests' ],
-          [ '?PASS .*/layout_tests/web/layout_test.dart layout' ]);
+        return runTest([
+          testrunner,
+          '--runtime=drt-js',
+          '--recurse',
+          '--layout-pixel',
+          'layout_tests'
+        ], [
+          '?PASS .*/layout_tests/web/layout_test.dart layout'
+        ]);
       });
     });
   });
 
   group("run in isolate", () {
     test("vm", () {
-      return runTest(
-        [ testrunner,
-          '--runtime=vm',
-          '--recurse',
-          '--isolate',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1'
-              ' Expected: false',
-          '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--runtime=vm',
+        '--recurse',
+        '--isolate',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1'
+            ' Expected: false',
+        '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2'
+      ]);
     });
     test("drt-dart", () {
-      return runTest(
-        [ testrunner,
-          '--runtime=drt-dart',
-          '--recurse',
-          '--isolate',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1'
-              ' Expected: false',
-          '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--runtime=drt-dart',
+        '--recurse',
+        '--isolate',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1'
+            ' Expected: false',
+        '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2'
+      ]);
     });
     test("drt-js", () {
-      return runTest(
-        [ testrunner,
-          '--runtime=drt-js',
-          '--recurse',
-          '--isolate',
-          'non_browser_tests' ],
-        [ '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
-             'Expected: false',
-          '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2' ]);
+      return runTest([
+        testrunner,
+        '--runtime=drt-js',
+        '--recurse',
+        '--isolate',
+        'non_browser_tests'
+      ], [
+        '?FAIL .*/non_browser_tests/non_browser_test.dart group1 test1 '
+            'Expected: false',
+        '?PASS .*/non_browser_tests/non_browser_test.dart group2 test2'
+      ]);
     });
   });
 
   group("embedded server", () {
     test("get test", () {
-      return runTest(
-        [ testrunner,
-          '--recurse',
-          '--server',
-          '--port=3456',
-          '--root=${Directory.current.path}',
-          'http_client_tests' ],
-        [ '?PASS .*/http_client_tests/http_client_test.dart  test1',
-          '?PASS .*/http_client_tests/http_client_test.dart  test2' ]);
+      return runTest([
+        testrunner,
+        '--recurse',
+        '--server',
+        '--port=3456',
+        '--root=${Directory.current.path}',
+        'http_client_tests'
+      ], [
+        '?PASS .*/http_client_tests/http_client_test.dart  test1',
+        '?PASS .*/http_client_tests/http_client_test.dart  test2'
+      ]);
     });
   });
 }
-

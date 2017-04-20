@@ -281,16 +281,15 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
 
     return <Command>[
-      commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
-          arguments, environmentOverrides)
+      commandBuilder.getVmCommand(
+          suite.dartPrecompiledBinaryFileName, arguments, environmentOverrides)
     ];
   }
 }
 
 class DartPrecompiledAdbRuntimeConfiguration
-      extends DartVmRuntimeConfiguration {
-  static const String DeviceDir =
-      '/data/local/tmp/precompilation-testing';
+    extends DartVmRuntimeConfiguration {
+  static const String DeviceDir = '/data/local/tmp/precompilation-testing';
   static const String DeviceTestDir =
       '/data/local/tmp/precompilation-testing/test';
 
@@ -312,11 +311,8 @@ class DartPrecompiledAdbRuntimeConfiguration
     String precompiledRunner = suite.dartPrecompiledBinaryFileName;
     String processTest = suite.processTestBinaryFileName;
     return <Command>[
-      commandBuilder.getAdbPrecompiledCommand(precompiledRunner,
-                                              processTest,
-                                              script,
-                                              arguments,
-                                              useBlobs)
+      commandBuilder.getAdbPrecompiledCommand(
+          precompiledRunner, processTest, script, arguments, useBlobs)
     ];
   }
 }
@@ -330,7 +326,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   void searchForSelfCheckers() {
     Uri pkg = TestUtils.dartDirUri.resolve('pkg');
-    for (var entry in  new Directory.fromUri(pkg).listSync(recursive: true)) {
+    for (var entry in new Directory.fromUri(pkg).listSync(recursive: true)) {
       if (entry is File && entry.path.endsWith('_self_check.dart')) {
         selfCheckers.add(entry.path);
       }

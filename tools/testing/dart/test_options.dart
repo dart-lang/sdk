@@ -301,8 +301,8 @@ class TestOptionsParser {
       new _TestOptionSpecification(
           'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
           type: 'bool'),
-      new _TestOptionSpecification(
-          'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
+      new _TestOptionSpecification('no-tree-shake',
+          'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,

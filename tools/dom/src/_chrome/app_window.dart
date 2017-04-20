@@ -15,14 +15,10 @@ class AppWindowBounds extends ChromeObject {
    * Public constructor
    */
   AppWindowBounds({int left, int top, int width, int height}) {
-    if (left != null)
-      this.left = left;
-    if (top != null)
-      this.top = top;
-    if (width != null)
-      this.width = width;
-    if (height != null)
-      this.height = height;
+    if (left != null) this.left = left;
+    if (top != null) this.top = top;
+    if (width != null) this.width = width;
+    if (height != null) this.height = height;
   }
 
   /*
@@ -56,56 +52,56 @@ class AppWindowBounds extends ChromeObject {
   set height(int height) {
     JS('void', '#.height = #', this._jsObject, height);
   }
-
 }
 
 class AppWindowCreateWindowOptions extends ChromeObject {
   /*
    * Public constructor
    */
-  AppWindowCreateWindowOptions({String id, int defaultWidth, int defaultHeight, int defaultLeft, int defaultTop, int width, int height, int left, int top, int minWidth, int minHeight, int maxWidth, int maxHeight, String type, String frame, AppWindowBounds bounds, bool transparentBackground, String state, bool hidden, bool resizable, bool singleton}) {
-    if (id != null)
-      this.id = id;
-    if (defaultWidth != null)
-      this.defaultWidth = defaultWidth;
-    if (defaultHeight != null)
-      this.defaultHeight = defaultHeight;
-    if (defaultLeft != null)
-      this.defaultLeft = defaultLeft;
-    if (defaultTop != null)
-      this.defaultTop = defaultTop;
-    if (width != null)
-      this.width = width;
-    if (height != null)
-      this.height = height;
-    if (left != null)
-      this.left = left;
-    if (top != null)
-      this.top = top;
-    if (minWidth != null)
-      this.minWidth = minWidth;
-    if (minHeight != null)
-      this.minHeight = minHeight;
-    if (maxWidth != null)
-      this.maxWidth = maxWidth;
-    if (maxHeight != null)
-      this.maxHeight = maxHeight;
-    if (type != null)
-      this.type = type;
-    if (frame != null)
-      this.frame = frame;
-    if (bounds != null)
-      this.bounds = bounds;
+  AppWindowCreateWindowOptions(
+      {String id,
+      int defaultWidth,
+      int defaultHeight,
+      int defaultLeft,
+      int defaultTop,
+      int width,
+      int height,
+      int left,
+      int top,
+      int minWidth,
+      int minHeight,
+      int maxWidth,
+      int maxHeight,
+      String type,
+      String frame,
+      AppWindowBounds bounds,
+      bool transparentBackground,
+      String state,
+      bool hidden,
+      bool resizable,
+      bool singleton}) {
+    if (id != null) this.id = id;
+    if (defaultWidth != null) this.defaultWidth = defaultWidth;
+    if (defaultHeight != null) this.defaultHeight = defaultHeight;
+    if (defaultLeft != null) this.defaultLeft = defaultLeft;
+    if (defaultTop != null) this.defaultTop = defaultTop;
+    if (width != null) this.width = width;
+    if (height != null) this.height = height;
+    if (left != null) this.left = left;
+    if (top != null) this.top = top;
+    if (minWidth != null) this.minWidth = minWidth;
+    if (minHeight != null) this.minHeight = minHeight;
+    if (maxWidth != null) this.maxWidth = maxWidth;
+    if (maxHeight != null) this.maxHeight = maxHeight;
+    if (type != null) this.type = type;
+    if (frame != null) this.frame = frame;
+    if (bounds != null) this.bounds = bounds;
     if (transparentBackground != null)
       this.transparentBackground = transparentBackground;
-    if (state != null)
-      this.state = state;
-    if (hidden != null)
-      this.hidden = hidden;
-    if (resizable != null)
-      this.resizable = resizable;
-    if (singleton != null)
-      this.singleton = singleton;
+    if (state != null) this.state = state;
+    if (hidden != null) this.hidden = hidden;
+    if (resizable != null) this.resizable = resizable;
+    if (singleton != null) this.singleton = singleton;
   }
 
   /*
@@ -230,7 +226,8 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// Size and position of the content in the window (excluding the titlebar). If
   /// an id is also specified and a window with a matching id has been shown
   /// before, the remembered bounds of the window will be used instead.
-  AppWindowBounds get bounds => new AppWindowBounds._proxy(JS('', '#.bounds', this._jsObject));
+  AppWindowBounds get bounds =>
+      new AppWindowBounds._proxy(JS('', '#.bounds', this._jsObject));
 
   set bounds(AppWindowBounds bounds) {
     JS('void', '#.bounds = #', this._jsObject, convertArgument(bounds));
@@ -238,10 +235,12 @@ class AppWindowCreateWindowOptions extends ChromeObject {
 
   /// Enable window background transparency. Only supported in ash. Requires
   /// experimental API permission.
-  bool get transparentBackground => JS('bool', '#.transparentBackground', this._jsObject);
+  bool get transparentBackground =>
+      JS('bool', '#.transparentBackground', this._jsObject);
 
   set transparentBackground(bool transparentBackground) {
-    JS('void', '#.transparentBackground = #', this._jsObject, transparentBackground);
+    JS('void', '#.transparentBackground = #', this._jsObject,
+        transparentBackground);
   }
 
   /// The initial state of the window, allowing it to be created already
@@ -277,7 +276,6 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   set singleton(bool singleton) {
     JS('void', '#.singleton = #', this._jsObject, singleton);
   }
-
 }
 
 class AppWindowAppWindow extends ChromeObject {
@@ -297,7 +295,7 @@ class AppWindowAppWindow extends ChromeObject {
   // TODO(sashab, sra): Detect whether this is the current window, or an
   // external one, and return an appropriately-typed object
   WindowBase get contentWindow =>
-    JS("Window", "#.contentWindow", this._jsObject);
+      JS("Window", "#.contentWindow", this._jsObject);
 
   /*
    * Methods
@@ -327,10 +325,12 @@ class AppWindowAppWindow extends ChromeObject {
   void restore() => JS('void', '#.restore()', this._jsObject);
 
   /// Move the window to the position (|left|, |top|).
-  void moveTo(int left, int top) => JS('void', '#.moveTo(#, #)', this._jsObject, left, top);
+  void moveTo(int left, int top) =>
+      JS('void', '#.moveTo(#, #)', this._jsObject, left, top);
 
   /// Resize the window to |width|x|height| pixels in size.
-  void resizeTo(int width, int height) => JS('void', '#.resizeTo(#, #)', this._jsObject, width, height);
+  void resizeTo(int width, int height) =>
+      JS('void', '#.resizeTo(#, #)', this._jsObject, width, height);
 
   /// Draw attention to the window.
   void drawAttention() => JS('void', '#.drawAttention()', this._jsObject);
@@ -358,13 +358,14 @@ class AppWindowAppWindow extends ChromeObject {
       new AppWindowBounds._proxy(JS('void', '#.getBounds()', this._jsObject));
 
   /// Set the window's bounds.
-  void setBounds(AppWindowBounds bounds) => JS('void', '#.setBounds(#)', this._jsObject, convertArgument(bounds));
+  void setBounds(AppWindowBounds bounds) =>
+      JS('void', '#.setBounds(#)', this._jsObject, convertArgument(bounds));
 
   /// Set the app icon for the window (experimental). Currently this is only
   /// being implemented on Ash. TODO(stevenjb): Investigate implementing this on
   /// Windows and OSX.
-  void setIcon(String icon_url) => JS('void', '#.setIcon(#)', this._jsObject, icon_url);
-
+  void setIcon(String icon_url) =>
+      JS('void', '#.setIcon(#)', this._jsObject, icon_url);
 }
 
 /**
@@ -480,14 +481,15 @@ class API_app_window {
 
   // TODO(sashab): This override is no longer needed once prefixes are removed.
   void create(String url,
-              [AppWindowCreateWindowOptions options,
-              void callback(AppWindowAppWindow created_window)]) {
+      [AppWindowCreateWindowOptions options,
+      void callback(AppWindowAppWindow created_window)]) {
     void __proxy_callback(created_window) {
       if (callback != null)
         callback(new AppWindowAppWindow._proxy(created_window));
     }
-    JS('void', '#.create(#, #, #)', this._jsObject, url, convertArgument(options),
-       convertDartClosureToJS(__proxy_callback, 1));
+
+    JS('void', '#.create(#, #, #)', this._jsObject, url,
+        convertArgument(options), convertDartClosureToJS(__proxy_callback, 1));
   }
 
   /// Returns an $ref:AppWindow object for the current script context (ie
@@ -503,14 +505,21 @@ class API_app_window {
   AppWindowAppWindow current() =>
       new AppWindowAppWindow._proxy(JS('void', '#.current()', this._jsObject));
 
-  void initializeAppWindow(Object state) => JS('void', '#.initializeAppWindow(#)', this._jsObject, convertArgument(state));
+  void initializeAppWindow(Object state) => JS('void',
+      '#.initializeAppWindow(#)', this._jsObject, convertArgument(state));
 
   API_app_window(this._jsObject) {
-    onBoundsChanged = new Event_app_window_onBoundsChanged(JS('', '#.onBoundsChanged', this._jsObject));
-    onClosed = new Event_app_window_onClosed(JS('', '#.onClosed', this._jsObject));
-    onFullscreened = new Event_app_window_onFullscreened(JS('', '#.onFullscreened', this._jsObject));
-    onMaximized = new Event_app_window_onMaximized(JS('', '#.onMaximized', this._jsObject));
-    onMinimized = new Event_app_window_onMinimized(JS('', '#.onMinimized', this._jsObject));
-    onRestored = new Event_app_window_onRestored(JS('', '#.onRestored', this._jsObject));
+    onBoundsChanged = new Event_app_window_onBoundsChanged(
+        JS('', '#.onBoundsChanged', this._jsObject));
+    onClosed =
+        new Event_app_window_onClosed(JS('', '#.onClosed', this._jsObject));
+    onFullscreened = new Event_app_window_onFullscreened(
+        JS('', '#.onFullscreened', this._jsObject));
+    onMaximized = new Event_app_window_onMaximized(
+        JS('', '#.onMaximized', this._jsObject));
+    onMinimized = new Event_app_window_onMinimized(
+        JS('', '#.onMinimized', this._jsObject));
+    onRestored =
+        new Event_app_window_onRestored(JS('', '#.onRestored', this._jsObject));
   }
 }

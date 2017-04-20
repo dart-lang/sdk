@@ -7,10 +7,10 @@ part of html;
 // Iterator for arrays with fixed size.
 class FixedSizeListIterator<T> implements Iterator<T> {
   final List<T> _array;
-  final int _length;  // Cache array length for faster access.
+  final int _length; // Cache array length for faster access.
   int _position;
   T _current;
-  
+
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,

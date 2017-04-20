@@ -55,10 +55,8 @@ _Rule CHARCODE(spec, [name]) {
  * CHAR does not generate a value.
  */
 _Rule CHAR([characters]) {
-  if (characters == null)
-    return const _AnyCharRule();
-  if (characters is int)
-    return CHARCODE(characters);
+  if (characters == null) return const _AnyCharRule();
+  if (characters is int) return CHARCODE(characters);
 
   // Find the range of character codes and construct an array of flags for codes
   // within the range.
@@ -66,14 +64,11 @@ _Rule CHAR([characters]) {
   codes.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   int lo = codes[0];
   int hi = codes[codes.length - 1];
-  if (lo == hi)
-    return CHARCODE(lo);
+  if (lo == hi) return CHARCODE(lo);
   int len = hi - lo + 1;
   var flags = new List<bool>(len);
-  for (int i = 0; i < len; ++i)
-    flags[i] = false;
-  for (int code in codes)
-    flags[code - lo] = true;
+  for (int i = 0; i < len; ++i) flags[i] = false;
+  for (int code in codes) flags[code - lo] = true;
 
   return CHARCODE((code) => code >= lo && code <= hi && flags[code - lo]);
 }
@@ -137,11 +132,11 @@ _Rule LEX(arg1, [arg2]) {
  *
  * TEXT always generates a value.
  */
-_Rule TEXT(rule, [extractor]) =>
-  new _TextValueRule(_compile(rule),
-                     extractor == null
-                     ? (string, start, end) => string.substring(start, end)
-                     : extractor);
+_Rule TEXT(rule, [extractor]) => new _TextValueRule(
+    _compile(rule),
+    extractor == null
+        ? (string, start, end) => string.substring(start, end)
+        : extractor);
 
 /**
  * Matches an optional rule.
@@ -185,27 +180,80 @@ _Rule MANY0(rule, [separator = null]) {
  *
  * OR is value-generating.
  */
-_Rule OR([a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]) =>
+_Rule OR(
+        [a,
+        b,
+        c,
+        d,
+        e,
+        f,
+        g,
+        h,
+        i,
+        j,
+        k,
+        l,
+        m,
+        n,
+        o,
+        p,
+        q,
+        r,
+        s,
+        t,
+        u,
+        v,
+        w,
+        x,
+        y,
+        z]) =>
     _compileMultiRule(
-        (a is List && b == null)  // Backward compat. OR([a, b]) => OR(a, b).
-          ? a
-          : _unspread(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z),
+        (a is List && b == null) // Backward compat. OR([a, b]) => OR(a, b).
+            ? a
+            : _unspread(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s,
+                t, u, v, w, x, y, z),
         false,
-        (compiledRules, valueCount, reducer) =>
-            new _ChoiceRule(compiledRules));
+        (compiledRules, valueCount, reducer) => new _ChoiceRule(compiledRules));
 
-
-
-_Rule SEQ([a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]) =>
-  _compile(_unspread(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z));
+_Rule SEQ(
+        [a,
+        b,
+        c,
+        d,
+        e,
+        f,
+        g,
+        h,
+        i,
+        j,
+        k,
+        l,
+        m,
+        n,
+        o,
+        p,
+        q,
+        r,
+        s,
+        t,
+        u,
+        v,
+        w,
+        x,
+        y,
+        z]) =>
+    _compile(_unspread(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s,
+        t, u, v, w, x, y, z));
 
 /**
  * Matches [rule]
  */
 _Rule MEMO(rule) => new _MemoRule(_compile(rule));
 
-_Rule TAG(tag, rule) => _compile([rule, (ast) => [tag, ast]]);
-
+_Rule TAG(tag, rule) => _compile([
+      rule,
+      (ast) => [tag, ast]
+    ]);
 
 class ParseError implements Exception {
   const ParseError(String this._message);
@@ -224,7 +272,9 @@ class Grammar {
   _Rule _whitespace;
 
   _Rule get whitespace => _whitespace;
-  void set whitespace(rule) { _whitespace = _compile(rule); }
+  void set whitespace(rule) {
+    _whitespace = _compile(rule);
+  }
 
   Grammar() {
     _symbols = new Map<String, Symbol>();
@@ -236,8 +286,7 @@ class Grammar {
    * to define recursive rules.
    */
   Symbol operator [](String name) {
-    if (_symbols.containsKey(name))
-      return _symbols[name];
+    if (_symbols.containsKey(name)) return _symbols[name];
     Symbol s = new Symbol(name, this);
     _symbols[name] = s;
     return s;
@@ -249,17 +298,14 @@ class Grammar {
    */
   parse(root, String text) {
     for (var symbol in _symbols.values)
-      if (symbol._rule == null)
-        print('${symbol.name} is undefined');
+      if (symbol._rule == null) print('${symbol.name} is undefined');
 
     var state = new _ParserState(text, whitespace: whitespace);
     var match = _compile(root).match(state, 0);
-    if (match == null)
-      return diagnose(state);
+    if (match == null) return diagnose(state);
     var pos = match[0];
     pos = _skip_whitespace(state, pos);
-    if (pos == state._end)
-      return match[1];
+    if (pos == state._end) return match[1];
     // TODO: Make this complain about expecting end of file.
     return diagnose(state);
   }
@@ -268,15 +314,14 @@ class Grammar {
     var message = 'unexpected error';
     if (!state.max_rule.isEmpty) {
       var s = new Set();
-      for (var rule in state.max_rule)
-        s.add(rule.description());
+      for (var rule in state.max_rule) s.add(rule.description());
       var tokens = new List<String>.from(s);
-      tokens.sort((a, b) =>
-                  a.startsWith("'") == b.startsWith("'")
-                      ? a.compareTo(b)
-                      : a.startsWith("'") ? 1 : -1);
+      tokens.sort((a, b) => a.startsWith("'") == b.startsWith("'")
+          ? a.compareTo(b)
+          : a.startsWith("'") ? 1 : -1);
       var expected = tokens.join(' or ');
-      var found = state.max_pos == state._end ? 'end of file'
+      var found = state.max_pos == state._end
+          ? 'end of file'
           : "'${state._text[state.max_pos]}'";
       message = 'Expected $expected but found $found';
     }
@@ -305,13 +350,12 @@ class Symbol {
   Symbol(this.name, this.grammar);
 
   void set def(rule) {
-    assert(_rule == null);  // Assign once.
+    assert(_rule == null); // Assign once.
     _rule = _compile(rule);
   }
 
   toString() => _rule == null ? '<$name>' : '<$name = $_rule>';
 }
-
 
 class _ParserState {
   _ParserState(this._text, {_Rule whitespace}) {
@@ -345,7 +389,7 @@ class _Rule {
   const _Rule();
   // Returns null for a match failure or [pos, ast] for success.
   match(_ParserState state, int pos) {
-    if (! state.inWhitespaceMode) {
+    if (!state.inWhitespaceMode) {
       pos = _skip_whitespace(state, pos);
     }
     return matchAfterWS(state, pos);
@@ -387,14 +431,12 @@ class _Rule {
 int _skip_whitespace(state, pos) {
   // Returns the next non-whitespace position.
   // This is done by matching the optional whitespaceRule with the current text.
-  if (state.whitespaceRule == null)
-    return pos;
+  if (state.whitespaceRule == null) return pos;
   state.inWhitespaceMode = true;
   state.inhibitExpectedTrackingDepth++;
   while (true) {
     var match = state.whitespaceRule.match(state, pos);
-    if (match == null)
-      break;
+    if (match == null) break;
     pos = match[0];
   }
   state.inWhitespaceMode = false;
@@ -402,23 +444,19 @@ int _skip_whitespace(state, pos) {
   return pos;
 }
 
-
 _Rule _compileOptional(rule) {
   return rule == null ? null : _compile(rule);
 }
 
 _Rule _compile(rule) {
-  if (rule is _Rule)
-    return rule;
-  if (rule is String)
-    return new _StringRule(rule);
-  if (rule is Symbol)
-    return new _SymbolRule(rule);
-  if (rule is RegExp)
-    return new _RegExpRule(rule);
+  if (rule is _Rule) return rule;
+  if (rule is String) return new _StringRule(rule);
+  if (rule is Symbol) return new _SymbolRule(rule);
+  if (rule is RegExp) return new _RegExpRule(rule);
   if (rule is List) {
     return _compileMultiRule(
-        rule, true,
+        rule,
+        true,
         (compiledRules, valueCount, reducer) =>
             new _SequenceRule(compiledRules, valueCount, reducer));
   }
@@ -427,8 +465,7 @@ _Rule _compile(rule) {
 
 class _EndOfInputRule extends _Rule {
   _match(_ParserState state, int pos) {
-    if (pos == state._end)
-      return [pos, null];
+    if (pos == state._end) return [pos, null];
     return null;
   }
 
@@ -450,11 +487,9 @@ class _CharCodeRule extends _Rule {
   var _name;
   _CharCodeRule(this._predicate, this._name);
   _match(_ParserState state, int pos) {
-    if (pos == state._end)
-      return null;
+    if (pos == state._end) return null;
     int code = state._text.codeUnitAt(pos);
-    if (_predicate(code))
-      return [pos + 1, null];
+    if (_predicate(code)) return [pos + 1, null];
     return null;
   }
 
@@ -464,8 +499,7 @@ class _CharCodeRule extends _Rule {
 class _AnyCharRule extends _Rule {
   const _AnyCharRule();
   _match(_ParserState state, int pos) {
-    if (pos == state._end)
-      return null;
+    if (pos == state._end) return null;
     return [pos + 1, null];
   }
 
@@ -492,8 +526,7 @@ class _SkipRule extends _Rule {
   _SkipRule(_Rule this._rule);
   _match(_ParserState state, int pos) {
     var match = _rule.matchAfterWS(state, pos);
-    if (match == null)
-      return null;
+    if (match == null) return null;
     return [match[0], null];
   }
 
@@ -508,11 +541,9 @@ class _StringRule extends _Rule implements _Expectable {
   }
 
   _match(_ParserState state, int pos) {
-    if (pos + _len > state._end)
-      return null;
+    if (pos + _len > state._end) return null;
     for (int i = 0; i < _len; i++) {
-      if (state._text.codeUnitAt(pos + i) != _string.codeUnitAt(i))
-        return null;
+      if (state._text.codeUnitAt(pos + i) != _string.codeUnitAt(i)) return null;
     }
     return [pos + _len, null];
   }
@@ -556,7 +587,7 @@ class _LexicalRule extends _Rule implements _Expectable {
 
 class _TextValueRule extends _Rule {
   final _Rule _rule;
-  final _extract;  // Function
+  final _extract; // Function
 
   _TextValueRule(_Rule this._rule, Function this._extract);
 
@@ -574,9 +605,8 @@ class _TextValueRule extends _Rule {
   toString() => 'TEXT($_rule)';
 }
 
-_Rule _compileMultiRule(List rules,
-                        bool allowReducer,
-                        finish(compiledRules, valueCount, reducer)) {
+_Rule _compileMultiRule(
+    List rules, bool allowReducer, finish(compiledRules, valueCount, reducer)) {
   int valueCount = 0;
   List compiledRules = new List<_Rule>();
   Function reducer;
@@ -590,8 +620,7 @@ _Rule _compileMultiRule(List rules,
         throw new Exception('Bad rule: "$rule"');
     } else {
       _Rule compiledRule = _compile(rule);
-      if (compiledRule.generatesValue)
-        ++valueCount;
+      if (compiledRule.generatesValue) ++valueCount;
       compiledRules.add(compiledRule);
     }
   }
@@ -617,9 +646,8 @@ class _SequenceRule extends _Rule {
   final int _generatingSubRules;
   final Function _reducer;
   bool _generatesValue;
-  _SequenceRule(List<_Rule> this._rules,
-                int this._generatingSubRules,
-                Function this._reducer) {
+  _SequenceRule(List<_Rule> this._rules, int this._generatingSubRules,
+      Function this._reducer) {
     _generatesValue = _generatingSubRules > 0 || _reducer != null;
   }
 
@@ -627,8 +655,7 @@ class _SequenceRule extends _Rule {
     var sequence = [];
     for (var rule in _rules) {
       var match = rule.match(state, pos);
-      if (match == null)
-        return null;
+      if (match == null) return null;
       if (rule.generatesValue) {
         var ast = match[1];
         sequence.add(ast);
@@ -636,10 +663,8 @@ class _SequenceRule extends _Rule {
       pos = match[0];
     }
     if (_reducer == null) {
-      if (_generatingSubRules == 0)
-        return [pos, null];
-      if (_generatingSubRules == 1)
-        return [pos, sequence[0]];
+      if (_generatingSubRules == 0) return [pos, null];
+      if (_generatingSubRules == 1) return [pos, sequence[0]];
       return [pos, sequence];
     } else {
       return [pos, _apply(_reducer, sequence)];
@@ -683,13 +708,8 @@ class _OptionalRule extends _Rule {
   _OptionalRule(_Rule this._rule);
   _match(_ParserState state, int pos) {
     var match = _rule.match(state, pos);
-    if (_rule.generatesValue)
-      return match == null
-          ? [pos, null]
-          : match;
-    return match == null
-        ? [pos, false]
-        : [match[0], true];
+    if (_rule.generatesValue) return match == null ? [pos, null] : match;
+    return match == null ? [pos, false] : [match[0], true];
   }
 
   bool get generatesValue => true;
@@ -703,8 +723,7 @@ class _ContextRule extends _Rule {
   _match(_ParserState state, int pos) {
     // TODO: protect error state.
     var match = _rule._match(state, pos);
-    if (match == null)
-      return null;
+    if (match == null) return null;
     return [pos, null];
   }
 
@@ -717,8 +736,7 @@ class _NegativeContextRule extends _Rule {
   _match(_ParserState state, int pos) {
     // TODO: protect error state.
     var match = _rule._match(state, pos);
-    if (match == null)
-      return [pos, null];
+    if (match == null) return [pos, null];
     return null;
   }
 
@@ -736,26 +754,23 @@ class _RepeatRule extends _Rule {
   _match(state, pos) {
     // First match.
     var match = _rule.match(state, pos);
-    if (match == null)
-      if (_min == 0)
-        return [pos, []];
-      else
-        return null;
+    if (match == null) if (_min == 0)
+      return [pos, []];
+    else
+      return null;
     pos = match[0];
     var result = [match[1]];
 
     // Subsequent matches:
-    while (true)  {
+    while (true) {
       var newPos = pos;
       if (_separator != null) {
         match = _separator.match(state, pos);
-        if (match == null)
-          return [pos, result];
+        if (match == null) return [pos, result];
         newPos = match[0];
       }
       match = _rule.match(state, newPos);
-      if (match == null)
-        return [pos, result];
+      if (match == null) return [pos, result];
       pos = match[0];
       result.add(match[1]);
     }
@@ -763,7 +778,8 @@ class _RepeatRule extends _Rule {
 
   bool get generatesValue => true;
 
-  toString() => 'MANY(min:$_min, $_rule${_separator==null?'':", sep: $_separator"})';
+  toString() =>
+      'MANY(min:$_min, $_rule${_separator==null?'':", sep: $_separator"})';
 }
 
 class _MemoRule extends _Rule {
@@ -774,7 +790,7 @@ class _MemoRule extends _Rule {
   // A map from position to result.  Can this be replaced with something
   // smaller?
   // TODO: figure out how to discard the map and parseInstance after parsing.
-  Map<int,Object> map;
+  Map<int, Object> map;
 
   _MemoRule(this._rule);
 
@@ -782,7 +798,7 @@ class _MemoRule extends _Rule {
     // See if we are still parsing the same input.  Relies on the fact that the
     // input is a string and strings are immutable.
     if (!identical(parseInstance, state._text)) {
-      map = new Map<int,Object>();
+      map = new Map<int, Object>();
       parseInstance = state._text;
     }
     // TODO: does this have to check or preserve parse state (like
@@ -803,31 +819,44 @@ class _MemoRule extends _Rule {
 
 _apply(fn, List args) {
   switch (args.length) {
-    case 0: return fn();
-    case 1: return fn(args[0]);
-    case 2: return fn(args[0], args[1]);
-    case 3: return fn(args[0], args[1], args[2]);
-    case 4: return fn(args[0], args[1], args[2], args[3]);
-    case 5: return fn(args[0], args[1], args[2], args[3], args[4]);
-    case 6: return fn(args[0], args[1], args[2], args[3], args[4],
-                      args[5]);
-    case 7: return fn(args[0], args[1], args[2], args[3], args[4],
-                      args[5], args[6]);
-    case 8: return fn(args[0], args[1], args[2], args[3], args[4],
-                      args[5], args[6], args[7]);
-    case 9: return fn(args[0], args[1], args[2], args[3], args[4],
-                      args[5], args[6], args[7], args[8]);
-    case 10: return fn(args[0], args[1], args[2], args[3], args[4],
-                       args[5], args[6], args[7], args[8], args[9]);
+    case 0:
+      return fn();
+    case 1:
+      return fn(args[0]);
+    case 2:
+      return fn(args[0], args[1]);
+    case 3:
+      return fn(args[0], args[1], args[2]);
+    case 4:
+      return fn(args[0], args[1], args[2], args[3]);
+    case 5:
+      return fn(args[0], args[1], args[2], args[3], args[4]);
+    case 6:
+      return fn(args[0], args[1], args[2], args[3], args[4], args[5]);
+    case 7:
+      return fn(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+    case 8:
+      return fn(args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+          args[7]);
+    case 9:
+      return fn(args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+          args[7], args[8]);
+    case 10:
+      return fn(args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+          args[7], args[8], args[9]);
 
     default:
       throw new Exception('Too many arguments in _apply: $args');
   }
 }
 
-List _unspread(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z) {
+List _unspread(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v,
+    w, x, y, z) {
   List list = new List();
-  add(element) { if (element != null) list.add(element); }
+  add(element) {
+    if (element != null) list.add(element);
+  }
+
   add(a);
   add(b);
   add(c);

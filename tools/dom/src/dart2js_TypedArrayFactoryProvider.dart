@@ -7,7 +7,7 @@ part of html;
 class _TypedArrayFactoryProvider {
   static ByteData createByteData(int length) => _B8(length);
   static ByteData createByteData_fromBuffer(ByteBuffer buffer,
-                                  [int byteOffset = 0, int length]) {
+      [int byteOffset = 0, int length]) {
     if (length == null) return _B8_2(buffer, byteOffset);
     return _B8_3(buffer, byteOffset, length);
   }
@@ -16,7 +16,7 @@ class _TypedArrayFactoryProvider {
   static Float32List createFloat32List_fromList(List<num> list) =>
       _F32(ensureNative(list));
   static Float32List createFloat32List_fromBuffer(ByteBuffer buffer,
-                                  [int byteOffset = 0, int length]) {
+      [int byteOffset = 0, int length]) {
     if (length == null) return _F32_2(buffer, byteOffset);
     return _F32_3(buffer, byteOffset, length);
   }
@@ -87,30 +87,22 @@ class _TypedArrayFactoryProvider {
   static Uint8ClampedList createUint8ClampedList(int length) => _U8C(length);
   static Uint8ClampedList createUint8ClampedList_fromList(List<num> list) =>
       _U8C(ensureNative(list));
-  static Uint8ClampedList createUint8ClampedList_fromBuffer(
-        ByteBuffer buffer, [int byteOffset = 0, int length]) {
+  static Uint8ClampedList createUint8ClampedList_fromBuffer(ByteBuffer buffer,
+      [int byteOffset = 0, int length]) {
     if (length == null) return _U8C_2(buffer, byteOffset);
     return _U8C_3(buffer, byteOffset, length);
   }
 
   static ByteData _B8(arg) =>
       JS('ByteData', 'new DataView(new ArrayBuffer(#))', arg);
-  static Float32List _F32(arg) =>
-      JS('Float32List', 'new Float32Array(#)', arg);
-  static Float64List _F64(arg) =>
-      JS('Float64List', 'new Float64Array(#)', arg);
-  static Int8List _I8(arg) =>
-      JS('Int8List', 'new Int8Array(#)', arg);
-  static Int16List _I16(arg) =>
-      JS('Int16List', 'new Int16Array(#)', arg);
-  static Int32List _I32(arg) =>
-      JS('Int32List', 'new Int32Array(#)', arg);
-  static Uint8List _U8(arg) =>
-      JS('Uint8List', 'new Uint8Array(#)', arg);
-  static Uint16List _U16(arg) =>
-      JS('Uint16List', 'new Uint16Array(#)', arg);
-  static Uint32List _U32(arg) =>
-      JS('Uint32List', 'new Uint32Array(#)', arg);
+  static Float32List _F32(arg) => JS('Float32List', 'new Float32Array(#)', arg);
+  static Float64List _F64(arg) => JS('Float64List', 'new Float64Array(#)', arg);
+  static Int8List _I8(arg) => JS('Int8List', 'new Int8Array(#)', arg);
+  static Int16List _I16(arg) => JS('Int16List', 'new Int16Array(#)', arg);
+  static Int32List _I32(arg) => JS('Int32List', 'new Int32Array(#)', arg);
+  static Uint8List _U8(arg) => JS('Uint8List', 'new Uint8Array(#)', arg);
+  static Uint16List _U16(arg) => JS('Uint16List', 'new Uint16Array(#)', arg);
+  static Uint32List _U32(arg) => JS('Uint32List', 'new Uint32Array(#)', arg);
   static Uint8ClampedList _U8C(arg) =>
       JS('Uint8ClampedList', 'new Uint8ClampedArray(#)', arg);
 
@@ -153,11 +145,10 @@ class _TypedArrayFactoryProvider {
       JS('Uint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
   static Uint32List _U32_3(arg1, arg2, arg3) =>
       JS('Uint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
-  static Uint8ClampedList _U8C_3(arg1, arg2, arg3) =>
-      JS('Uint8ClampedList', 'new Uint8ClampedArray(#, #, #)', arg1, arg2, arg3);
-
+  static Uint8ClampedList _U8C_3(arg1, arg2, arg3) => JS(
+      'Uint8ClampedList', 'new Uint8ClampedArray(#, #, #)', arg1, arg2, arg3);
 
   // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,
   // copies the list.
-  static ensureNative(List list) => list;  // TODO: make sure.
+  static ensureNative(List list) => list; // TODO: make sure.
 }

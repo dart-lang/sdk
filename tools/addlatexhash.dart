@@ -12,7 +12,7 @@
 // typical usage would be as follows:
 //
 //   dart
-//     --package-root=<build dir>/packages \ 
+//     --package-root=<build dir>/packages \
 //     ../../tools/addlatexhash.dart dartLangSpec.tex out.tex hash.txt
 //
 // This will produce a normalized variant out.tex of the language
@@ -35,9 +35,9 @@ import 'package:utf/utf.dart';
 // Normalization of the text: removal or normalization of parts that
 // do not affect the output from latex, such as white space.
 
-final commentRE = new RegExp(r"[^\\]%.*");  // NB: . does not match \n.
+final commentRE = new RegExp(r"[^\\]%.*"); // NB: . does not match \n.
 final whitespaceAllRE = new RegExp(r"^\s+$");
-final whitespaceRE = new RegExp(r"(?:(?=\s).){2,}");  // \s except end-of-line
+final whitespaceRE = new RegExp(r"(?:(?=\s).){2,}"); // \s except end-of-line
 
 /// Removes [match]ing part of [line], adjusting that part with the
 /// given [startOffset] and [endOffset], bounded to be valid indices
@@ -55,9 +55,7 @@ cutMatch(line, match, {startOffset: 0, endOffset: 0, glue: ""}) {
 
 cutRegexp(line, re, {startOffset: 0, endOffset: 0, glue: ""}) {
   return cutMatch(line, re.firstMatch(line),
-                  startOffset: startOffset,
-                  endOffset: endOffset,
-                  glue: glue);
+      startOffset: startOffset, endOffset: endOffset, glue: glue);
 }
 
 /// Removes the rest of [line] starting from the beginning of the
@@ -114,8 +112,8 @@ normalizeWhitespace(line) {
 /// lines as white-space-only when they occur in white-space-only
 /// line blocks.
 multilineNormalize(lines) {
-  var afterBlankLines = false;    // Does [line] succeed >0 empty lines?
-  var afterCommentLines = false;  // Does [line] succeed >0 commentOnly lines?
+  var afterBlankLines = false; // Does [line] succeed >0 empty lines?
+  var afterCommentLines = false; // Does [line] succeed >0 commentOnly lines?
   var newLines = new List();
   for (var line in lines) {
     if (afterBlankLines && afterCommentLines) {
@@ -181,7 +179,7 @@ sispNormalize(line) => stripComment(line);
 // Managing fragments with significant spacing.
 
 final dartCodeBeginRE = new RegExp(r"^\s*\\begin\s*\{dartCode\}");
-final dartCodeEndRE = new RegExp (r"^\s*\\end\s*\{dartCode\}");
+final dartCodeEndRE = new RegExp(r"^\s*\\end\s*\{dartCode\}");
 
 /// Recognizes beginning of dartCode block.
 sispIsDartBegin(line) => line.contains(dartCodeBeginRE);
@@ -272,7 +270,6 @@ abstract class HashEvent {
 }
 
 class HashMarkerEvent extends HashEvent {
-
   // Line number of first line in block that gets hashed.
   var startLineNumber;
 
@@ -286,7 +283,10 @@ class HashMarkerEvent extends HashEvent {
 
   HashMarkerEvent(this.startLineNumber);
 
-  setEndLineNumber(n) { endLineNumber = n; }
+  setEndLineNumber(n) {
+    endLineNumber = n;
+  }
+
   getStartLineNumber() => startLineNumber;
 }
 
@@ -331,13 +331,16 @@ class HashAnalyzer {
 
   sectioningPrefix() {
     switch (pendingSectioning) {
-      case PENDING_IS_SECTION: return "sec:";
-      case PENDING_IS_SUBSECTION: return "subsec:";
-      case PENDING_IS_SUBSUBSECTION: return "subsubsec:";
-      case PENDING_IS_PARAGRAPH: return "par:";
+      case PENDING_IS_SECTION:
+        return "sec:";
+      case PENDING_IS_SUBSECTION:
+        return "subsec:";
+      case PENDING_IS_SUBSUBSECTION:
+        return "subsubsec:";
+      case PENDING_IS_PARAGRAPH:
+        return "par:";
       case PENDING_IS_NONE:
-        throw
-            "\\LMHash{..} should only be used after a sectioning command " +
+        throw "\\LMHash{..} should only be used after a sectioning command " +
             "(\\section, \\subsection, \\subsubsection, \\paragraph)";
       default:
         // set of PENDING_IS_.. was extended, but updates here omitted
@@ -393,13 +396,13 @@ findHashEvents(lines) {
 /// (i.e., nested {..} blocks are handled), but it may break if '{' is
 /// made an active character etc.etc.
 removeCommand(line, cmdName, startIndex) {
-  const BACKSLASH = 92;     // char code for '\\'.
-  const BRACE_BEGIN = 123;  // char code for '{'.
-  const BRACE_END = 125;    // char code for '}'.
+  const BACKSLASH = 92; // char code for '\\'.
+  const BRACE_BEGIN = 123; // char code for '{'.
+  const BRACE_END = 125; // char code for '}'.
 
   var blockStartIndex = startIndex + cmdName.length + 1;
   while (blockStartIndex < line.length &&
-         line.codeUnitAt(blockStartIndex) != BRACE_BEGIN) {
+      line.codeUnitAt(blockStartIndex) != BRACE_BEGIN) {
     blockStartIndex++;
   }
   blockStartIndex++;
@@ -408,8 +411,8 @@ removeCommand(line, cmdName, startIndex) {
   }
   // [blockStartIndex] has index just after '{'.
 
-  var afterEscape = false;  // Is true iff [index] is just after '{'.
-  var braceLevel = 1;       // Have seen so many '{'s minus so many '}'s.
+  var afterEscape = false; // Is true iff [index] is just after '{'.
+  var braceLevel = 1; // Have seen so many '{'s minus so many '}'s.
 
   for (var index = blockStartIndex; index < line.length; index++) {
     switch (line.codeUnitAt(index)) {
@@ -478,11 +481,11 @@ cleanupLine(line) => cutRegexp(line, commentRE, startOffset: 1).trimRight();
 /// a hash block terminator is encountered or [nextIndex] reached (if so,
 /// the line lines[nextIndex] itself is not included); each line is cleaned
 /// up using [cleanupLine], and " " is inserted between the lines gathered.
-gatherLines(lines, startIndex, nextIndex) =>
-    lines.getRange(startIndex, nextIndex)
-      .takeWhile(isntHashBlockTerminator)
-      .map(cleanupLine)
-      .join(" ");
+gatherLines(lines, startIndex, nextIndex) => lines
+    .getRange(startIndex, nextIndex)
+    .takeWhile(isntHashBlockTerminator)
+    .map(cleanupLine)
+    .join(" ");
 
 /// Computes the hash value for the line block starting at [startIndex]
 /// in [lines], stopping just before [nextIndex].  SIDE EFFECT:
@@ -496,10 +499,7 @@ computeHashValue(lines, startIndex, nextIndex, listSink) {
 }
 
 computeHashString(lines, startIndex, nextIndex, listSink) =>
-    hex.encode(computeHashValue(lines,
-                                            startIndex,
-                                            nextIndex,
-                                            listSink));
+    hex.encode(computeHashValue(lines, startIndex, nextIndex, listSink));
 
 /// Computes and adds hashes to \LMHash{} lines in [lines] (which
 /// must be on the line numbers specified in [hashEvents]), and emits
@@ -523,7 +523,7 @@ addHashMarks(lines, hashEvents, listSink) {
 }
 
 /// Transforms LaTeX input to LaTeX output plus hash value list file.
-main ([args]) {
+main([args]) {
   if (args.length != 3) {
     print("Usage: addlatexhash.dart <input-file> <output-file> <list-file>");
     throw "Received ${args.length} arguments, expected three";

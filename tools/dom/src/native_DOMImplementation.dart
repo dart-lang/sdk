@@ -585,8 +585,8 @@ class _Utils {
       map.forEach((symbol, mirror) {
         if (mirror.isStatic == isStatic && !mirror.isPrivate) {
           var name = MirrorSystem.getName(symbol);
-          if (mirror is MethodMirror && mirror.isSetter) name =
-              name.substring(0, name.length - 1);
+          if (mirror is MethodMirror && mirror.isSetter)
+            name = name.substring(0, name.length - 1);
           completions.add(name);
         }
       });
@@ -1074,28 +1074,45 @@ class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
       // use _DOMWindowCrossFrame.
       return window;
     }
-    return win is _DOMWindowCrossFrame ? win : _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
+    return win is _DOMWindowCrossFrame
+        ? win
+        : _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
   }
 
   // Fields.
   HistoryBase get history {
-    var history =  _blink.BlinkWindow.instance.history_Getter_(this);
-    return history is _HistoryCrossFrame ? history : _blink.Blink_Utils.setInstanceInterceptor(history, _HistoryCrossFrame);
+    var history = _blink.BlinkWindow.instance.history_Getter_(this);
+    return history is _HistoryCrossFrame
+        ? history
+        : _blink.Blink_Utils
+            .setInstanceInterceptor(history, _HistoryCrossFrame);
   }
 
   LocationBase get location {
     var location = _blink.BlinkWindow.instance.location_Getter_(this);
-    return location is _LocationCrossFrame ? location : _blink.Blink_Utils.setInstanceInterceptor(location, _LocationCrossFrame);
+    return location is _LocationCrossFrame
+        ? location
+        : _blink.Blink_Utils
+            .setInstanceInterceptor(location, _LocationCrossFrame);
   }
 
   bool get closed => _blink.BlinkWindow.instance.closed_Getter_(this);
-  WindowBase get opener => _convertNativeToDart_Window(_blink.BlinkWindow.instance.opener_Getter_(this));
-  WindowBase get parent => _convertNativeToDart_Window(_blink.BlinkWindow.instance.parent_Getter_(this));
-  WindowBase get top => _convertNativeToDart_Window(_blink.BlinkWindow.instance.top_Getter_(this));
+  WindowBase get opener => _convertNativeToDart_Window(
+      _blink.BlinkWindow.instance.opener_Getter_(this));
+  WindowBase get parent => _convertNativeToDart_Window(
+      _blink.BlinkWindow.instance.parent_Getter_(this));
+  WindowBase get top => _convertNativeToDart_Window(
+      _blink.BlinkWindow.instance.top_Getter_(this));
 
   // Methods.
   void close() => _blink.BlinkWindow.instance.close_Callback_0_(this);
-  void postMessage(Object message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(this, convertDartToNative_SerializedScriptValue(message), targetOrigin, transfer);
+  void postMessage(Object message, String targetOrigin,
+          [List<MessagePort> transfer]) =>
+      _blink.BlinkWindow.instance.postMessage_Callback_3_(
+          this,
+          convertDartToNative_SerializedScriptValue(message),
+          targetOrigin,
+          transfer);
 
   // Implementation support.
   String get typeName => "Window";
@@ -1151,7 +1168,8 @@ class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
-  set href(String value) => _blink.BlinkLocation.instance.href_Setter_(this, value);
+  set href(String value) =>
+      _blink.BlinkLocation.instance.href_Setter_(this, value);
 
   // Implementation support.
   String get typeName => "Location";
@@ -1221,6 +1239,7 @@ _helperIsolateMain(originalSendPort) {
       ping() {
         replyTo.send(_TIMER_PING);
       }
+
       ;
       _TIMER_REGISTRY[replyTo] = periodic
           ? new Timer.periodic(duration, (_) {

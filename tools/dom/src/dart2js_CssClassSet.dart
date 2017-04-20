@@ -15,8 +15,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   final List<CssClassSetImpl> _sets;
 
   factory _MultiElementCssClassSet(Iterable<Element> elements) {
-    return new _MultiElementCssClassSet._(elements,
-        elements.map((Element e) => e.classes).toList());
+    return new _MultiElementCssClassSet._(
+        elements, elements.map((Element e) => e.classes).toList());
   }
 
   _MultiElementCssClassSet._(this._elementIterable, this._sets);
@@ -43,7 +43,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  modify( f(Set<String> s)) {
+  modify(f(Set<String> s)) {
     _sets.forEach((CssClassSetImpl e) => e.modify(f));
   }
 
@@ -54,10 +54,10 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * TODO(sra): It seems wrong to collect a 'changed' flag like this when the
    * underlying toggle returns an 'is set' flag.
    */
-  bool toggle(String value, [bool shouldAdd]) =>
-      _sets.fold(false,
-          (bool changed, CssClassSetImpl e) =>
-              e.toggle(value, shouldAdd) || changed);
+  bool toggle(String value, [bool shouldAdd]) => _sets.fold(
+      false,
+      (bool changed, CssClassSetImpl e) =>
+          e.toggle(value, shouldAdd) || changed);
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -66,8 +66,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) => _sets.fold(false,
-      (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
+  bool remove(Object value) => _sets.fold(
+      false, (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
 }
 
 class _ElementCssClassSet extends CssClassSetImpl {
@@ -218,19 +218,19 @@ class _ElementCssClassSet extends CssClassSetImpl {
   // work-around for the lack of annotations to express the full behaviour of
   // the DomTokenList methods.
 
-  static DomTokenList _classListOf(Element e) =>
-      JS('returns:DomTokenList;creates:DomTokenList;effects:none;depends:all;',
-         '#.classList', e);
+  static DomTokenList _classListOf(Element e) => JS(
+      'returns:DomTokenList;creates:DomTokenList;effects:none;depends:all;',
+      '#.classList',
+      e);
 
   static int _classListLength(DomTokenList list) =>
       JS('returns:JSUInt31;effects:none;depends:all;', '#.length', list);
 
   static bool _classListContains(DomTokenList list, String value) =>
-      JS('returns:bool;effects:none;depends:all',
-          '#.contains(#)', list, value);
+      JS('returns:bool;effects:none;depends:all', '#.contains(#)', list, value);
 
   static bool _classListContainsBeforeAddOrRemove(
-      DomTokenList list, String value) =>
+          DomTokenList list, String value) =>
       // 'throws:never' is a lie, since 'contains' will throw on an illegal
       // token.  However, we always call this function immediately prior to
       // add/remove/toggle with the same token.  Often the result of 'contains'

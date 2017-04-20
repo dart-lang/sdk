@@ -31,10 +31,8 @@ class _WrappedEvent implements Event {
 
   String get type => wrapped.type;
 
-  void _initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError(
-        'Cannot initialize this Event.');
+  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
+    throw new UnsupportedError('Cannot initialize this Event.');
   }
 
   void preventDefault() {
