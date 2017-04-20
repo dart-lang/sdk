@@ -398,14 +398,22 @@ class SummaryDataStore {
   final Iterable<String> _summaryPaths;
 
   /**
+   * If true, do not accept multiple summaries that contain the same Dart uri.
+   */
+  bool _disallowOverlappingSummaries;
+
+  /**
    * Create a [SummaryDataStore] and populate it with the summaries in
    * [summaryPaths].  If [recordDependencyInfo] is `true`, record
    * [PackageDependencyInfo] for each summary, for later access via
    * [dependencies].
    */
   SummaryDataStore(Iterable<String> summaryPaths,
-      {bool recordDependencyInfo: false, ResourceProvider resourceProvider})
+      {bool recordDependencyInfo: false,
+      bool disallowOverlappingSummaries: false,
+      ResourceProvider resourceProvider})
       : _summaryPaths = summaryPaths,
+        _disallowOverlappingSummaries = disallowOverlappingSummaries,
         dependencies =
             recordDependencyInfo ? <PackageDependencyInfoBuilder>[] : null {
     summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
@@ -441,7 +449,8 @@ class SummaryDataStore {
     }
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
-      if (uriToSummaryPath.containsKey(uri) &&
+      if (_disallowOverlappingSummaries &&
+          uriToSummaryPath.containsKey(uri) &&
           (uriToSummaryPath[uri] != path)) {
         throw new ConflictingSummaryException(
             _summaryPaths, uri, uriToSummaryPath[uri], path);
