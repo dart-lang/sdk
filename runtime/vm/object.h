@@ -2205,6 +2205,7 @@ class Function : public Object {
   // function type with uninstantiated type arguments 'T' and 'R' as elements of
   // its type argument vector.
   RawType* SignatureType() const;
+  RawType* ExistingSignatureType() const;
 
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;

@@ -1007,9 +1007,10 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
-  // We don't expect to see a reference to a redicting factory.
-  ASSERT(!function.IsRedirectingFactory());
   if (functions_to_retain_.HasKey(&function)) return;
+  // We don't expect to see a reference to a redirecting factory. Only its
+  // target should remain.
+  ASSERT(!function.IsRedirectingFactory());
   functions_to_retain_.Insert(&Function::ZoneHandle(Z, function.raw()));
 
   AbstractType& type = AbstractType::Handle(Z);
@@ -1041,6 +1042,12 @@ void Precompiler::AddTypesOf(const Function& function) {
   const Function& parent = Function::Handle(Z, function.parent_function());
   if (!parent.IsNull()) {
     AddTypesOf(parent);
+  }
+  if (function.IsSignatureFunction() || function.IsClosureFunction()) {
+    type = function.ExistingSignatureType();
+    if (!type.IsNull()) {
+      AddType(type);
+    }
   }
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());

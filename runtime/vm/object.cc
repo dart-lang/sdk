@@ -5660,16 +5660,20 @@ void Function::set_implicit_closure_function(const Function& value) const {
 }
 
 
-RawType* Function::SignatureType() const {
-  Type& type = Type::Handle();
+RawType* Function::ExistingSignatureType() const {
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
   if (IsSignatureFunction()) {
-    type = SignatureData::Cast(obj).signature_type();
+    return SignatureData::Cast(obj).signature_type();
   } else {
     ASSERT(IsClosureFunction());
-    type = ClosureData::Cast(obj).signature_type();
+    return ClosureData::Cast(obj).signature_type();
   }
+}
+
+
+RawType* Function::SignatureType() const {
+  Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
     // The function type of this function is not yet cached and needs to be
     // constructed and cached here.
