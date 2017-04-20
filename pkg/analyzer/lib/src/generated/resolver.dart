@@ -3703,14 +3703,19 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     }
     // check if useless reading
     AstNode parent = node.parent;
-    if (parent.parent is ExpressionStatement &&
-        (parent is PrefixExpression ||
-            parent is PostfixExpression ||
-            parent is AssignmentExpression && parent.leftHandSide == node)) {
-      // v++;
-      // ++v;
-      // v += 2;
-      return false;
+    if (parent.parent is ExpressionStatement) {
+      if (parent is PrefixExpression || parent is PostfixExpression) {
+        // v++;
+        // ++v;
+        return false;
+      }
+      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+        // v ??= doSomething();
+        //   vs.
+        // v += 2;
+        TokenType operatorType = parent.operator?.type;
+        return operatorType == TokenType.QUESTION_QUESTION_EQ;
+      }
     }
     // OK
     return true;
