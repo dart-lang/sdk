@@ -144,6 +144,8 @@
     "Enable the profiler.")                                                    \
   R(profiler_native_memory, false, bool, false,                                \
     "Enable native memory statistic collection.")                              \
+  P(reify_generic_functions, bool, false,                                      \
+    "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(causal_async_stacks, false, false, bool, true, "Improved async stacks")    \
   C(stress_async_stacks, false, false, bool, false,                            \

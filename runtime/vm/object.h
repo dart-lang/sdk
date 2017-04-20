@@ -2283,6 +2283,10 @@ class Function : public Object {
     return NumTypeParameters(Thread::Current());
   }
 
+  // Returns true if this function has the same number of type parameters with
+  // equal bounds as the other function. Type parameter names are ignored.
+  bool HasSameTypeParametersAndBounds(const Function& other) const;
+
   // Return the number of type parameters declared in parent generic functions.
   intptr_t NumParentTypeParameters() const;
 

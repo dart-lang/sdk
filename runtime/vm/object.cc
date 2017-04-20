@@ -6432,19 +6432,17 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
-  // Map type parameters in the signature to dynamic before the test.
+  // Map type parameters referred to by formal parameter types and result type
+  // in the signature to dynamic before the test.
+  // Note that type parameters declared by a generic signature are preserved.
   Function& this_fun = Function::Handle(raw());
   if (!this_fun.HasInstantiatedSignature()) {
-    // TODO(regis): Should we pass the context explicitly here (i.e. null) once
-    // we support generic functions?
     this_fun = this_fun.InstantiateSignatureFrom(Object::null_type_arguments(),
                                                  Object::null_type_arguments(),
                                                  Heap::kOld);
   }
   Function& other_fun = Function::Handle(other.raw());
   if (!other_fun.HasInstantiatedSignature()) {
-    // TODO(regis): Should we pass the context explicitly here (i.e. null) once
-    // we support generic functions?
     other_fun = other_fun.InstantiateSignatureFrom(
         Object::null_type_arguments(), Object::null_type_arguments(),
         Heap::kOld);
@@ -6484,8 +6482,6 @@ RawFunction* Function::InstantiateSignatureFrom(
   Function& sig = Function::Handle(
       zone,
       Function::NewSignatureFunction(owner, TokenPosition::kNoSource, space));
-  // TODO(regis): If type parameter bounds are not IsInstantiated(kFunctions),
-  // clone finalized type parameters and instantiate bounds.
   sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
   AbstractType& type = AbstractType::Handle(zone, result_type());
   if (!type.IsInstantiated()) {
@@ -6553,6 +6549,40 @@ bool Function::TestParameterType(TypeTestKind test_kind,
 }
 
 
+bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const intptr_t num_type_params = NumTypeParameters(thread);
+  if (num_type_params != other.NumTypeParameters(thread)) {
+    return false;
+  }
+  if (num_type_params > 0) {
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, type_parameters());
+    ASSERT(!type_params.IsNull());
+    const TypeArguments& other_type_params =
+        TypeArguments::Handle(zone, other.type_parameters());
+    ASSERT(!other_type_params.IsNull());
+    TypeParameter& type_param = TypeParameter::Handle(zone);
+    TypeParameter& other_type_param = TypeParameter::Handle(zone);
+    AbstractType& bound = AbstractType::Handle(zone);
+    AbstractType& other_bound = AbstractType::Handle(zone);
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      other_type_param ^= other_type_params.TypeAt(i);
+      bound = type_param.bound();
+      ASSERT(bound.IsFinalized());
+      other_bound = other_type_param.bound();
+      ASSERT(other_bound.IsFinalized());
+      if (!bound.Equals(other_bound)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
 bool Function::TypeTest(TypeTestKind test_kind,
                         const Function& other,
                         Error* bound_error,
@@ -6577,14 +6607,19 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-
-  // TODO(regis): Check the type parameters and bounds of a generic function.
-
+  if (FLAG_reify_generic_functions) {
+    // Check the type parameters and bounds of generic functions.
+    if (!HasSameTypeParametersAndBounds(other)) {
+      return false;
+    }
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   // Check the result type.
   const AbstractType& other_res_type =
-      AbstractType::Handle(other.result_type());
+      AbstractType::Handle(zone, other.result_type());
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
-    const AbstractType& res_type = AbstractType::Handle(result_type());
+    const AbstractType& res_type = AbstractType::Handle(zone, result_type());
     if (res_type.IsVoidType()) {
       return false;
     }
@@ -6626,13 +6661,13 @@ bool Function::TypeTest(TypeTestKind test_kind,
   const int other_num_params =
       other_num_fixed_params + other_num_opt_named_params;
   bool found_param_name;
-  String& other_param_name = String::Handle();
+  String& other_param_name = String::Handle(zone);
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     ASSERT(other_param_name.IsSymbol());
     found_param_name = false;
     for (intptr_t j = num_fixed_params; j < num_params; j++) {
-      ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
+      ASSERT(String::Handle(zone, ParameterNameAt(j)).IsSymbol());
       if (ParameterNameAt(j) == other_param_name.raw()) {
         found_param_name = true;
         if (!TestParameterType(test_kind, j, i, other, bound_error, space)) {
@@ -6762,11 +6797,13 @@ RawFunction* Function::New(const String& name,
 
 RawFunction* Function::Clone(const Class& new_owner) const {
   ASSERT(!IsGenerativeConstructor());
-  Function& clone = Function::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& clone = Function::Handle(zone);
   clone ^= Object::Clone(*this, Heap::kOld);
-  const Class& origin = Class::Handle(this->origin());
+  const Class& origin = Class::Handle(zone, this->origin());
   const PatchClass& clone_owner =
-      PatchClass::Handle(PatchClass::New(new_owner, origin));
+      PatchClass::Handle(zone, PatchClass::New(new_owner, origin));
   clone.set_owner(clone_owner);
   clone.ClearICDataArray();
   clone.ClearCode();
@@ -6775,14 +6812,27 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
   clone.set_kernel_function(kernel_function());
-  // TODO(regis): Clone function type parameters (their bounds may change).
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
-    AbstractType& type = AbstractType::Handle(clone.result_type());
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, type_parameters());
+    if (!type_params.IsNull()) {
+      const intptr_t num_type_params = type_params.Length();
+      const TypeArguments& type_params_clone =
+          TypeArguments::Handle(zone, TypeArguments::New(num_type_params));
+      TypeParameter& type_param = TypeParameter::Handle(zone);
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param ^= type_params.TypeAt(i);
+        type_param ^= type_param.CloneUninstantiated(new_owner);
+        type_params_clone.SetTypeAt(i, type_param);
+      }
+      clone.set_type_parameters(type_params_clone);
+    }
+    AbstractType& type = AbstractType::Handle(zone, clone.result_type());
     type ^= type.CloneUninstantiated(new_owner);
     clone.set_result_type(type);
     const intptr_t num_params = clone.NumParameters();
-    Array& array = Array::Handle(clone.parameter_types());
+    Array& array = Array::Handle(zone, clone.parameter_types());
     array ^= Object::Clone(array, Heap::kOld);
     clone.set_parameter_types(array);
     for (intptr_t i = 0; i < num_params; i++) {
@@ -6859,22 +6909,28 @@ RawFunction* Function::ImplicitClosureFunction() const {
     return implicit_closure_function();
   }
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   // Create closure function.
-  const String& closure_name = String::Handle(name());
-  const Function& closure_function =
-      Function::Handle(NewClosureFunction(closure_name, *this, token_pos()));
+  const String& closure_name = String::Handle(zone, name());
+  const Function& closure_function = Function::Handle(
+      zone, NewClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
   if (is_static()) {
     closure_function.set_context_scope(Object::empty_context_scope());
   } else {
-    const ContextScope& context_scope =
-        ContextScope::Handle(LocalScope::CreateImplicitClosureScope(*this));
+    const ContextScope& context_scope = ContextScope::Handle(
+        zone, LocalScope::CreateImplicitClosureScope(*this));
     closure_function.set_context_scope(context_scope);
   }
 
+  // Set closure function's type parameters.
+  closure_function.set_type_parameters(
+      TypeArguments::Handle(zone, type_parameters()));
+
   // Set closure function's result type to this result type.
-  closure_function.set_result_type(AbstractType::Handle(result_type()));
+  closure_function.set_result_type(AbstractType::Handle(zone, result_type()));
 
   // Set closure function's end token to this end token.
   closure_function.set_end_token_pos(end_token_pos());
@@ -6896,11 +6952,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   closure_function.set_num_fixed_parameters(num_fixed_params);
   closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
   closure_function.set_parameter_types(
-      Array::Handle(Array::New(num_params, Heap::kOld)));
+      Array::Handle(zone, Array::New(num_params, Heap::kOld)));
   closure_function.set_parameter_names(
-      Array::Handle(Array::New(num_params, Heap::kOld)));
-  AbstractType& param_type = AbstractType::Handle();
-  String& param_name = String::Handle();
+      Array::Handle(zone, Array::New(num_params, Heap::kOld)));
+  AbstractType& param_type = AbstractType::Handle(zone);
+  String& param_name = String::Handle(zone);
   // Add implicit closure object parameter.
   param_type = Type::DynamicType();
   closure_function.SetParameterTypeAt(0, param_type);
@@ -6913,9 +6969,10 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   closure_function.set_kernel_function(kernel_function());
 
-  const Type& signature_type = Type::Handle(closure_function.SignatureType());
+  const Type& signature_type =
+      Type::Handle(zone, closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
-    ClassFinalizer::FinalizeType(Class::Handle(Owner()), signature_type);
+    ClassFinalizer::FinalizeType(Class::Handle(zone, Owner()), signature_type);
   }
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
@@ -7065,12 +7122,38 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
+  String& name = String::Handle(zone);
+  if (FLAG_reify_generic_functions) {
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, type_parameters());
+    if (!type_params.IsNull()) {
+      const intptr_t num_type_params = type_params.Length();
+      ASSERT(num_type_params > 0);
+      TypeParameter& type_param = TypeParameter::Handle(zone);
+      AbstractType& bound = AbstractType::Handle(zone);
+      pieces.Add(Symbols::LAngleBracket());
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param ^= type_params.TypeAt(i);
+        name = type_param.name();
+        pieces.Add(name);
+        bound = type_param.bound();
+        if (!bound.IsNull() && !bound.IsObjectType()) {
+          pieces.Add(Symbols::SpaceExtendsSpace());
+          name = bound.BuildName(name_visibility);
+          pieces.Add(name);
+        }
+        if (i < num_type_params - 1) {
+          pieces.Add(Symbols::CommaSpace());
+        }
+      }
+      pieces.Add(Symbols::RAngleBracket());
+    }
+  }
   pieces.Add(Symbols::LParen());
   BuildSignatureParameters(thread, zone, name_visibility, &pieces);
   pieces.Add(Symbols::RParenArrow());
   const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-  const String& name =
-      String::Handle(zone, res_type.BuildName(name_visibility));
+  name = res_type.BuildName(name_visibility);
   pieces.Add(name);
   return Symbols::FromConcatAll(thread, pieces);
 }
@@ -15814,7 +15897,6 @@ bool Instance::IsInstanceOf(
       if (!sig_fun.HasInstantiatedSignature()) {
         const TypeArguments& function_type_arguments =
             TypeArguments::Handle(zone, sig_fun.type_parameters());
-        // TODO(regis): Pass the closure context to InstantiateSignatureFrom().
         // No bound error possible, since the instance exists.
         sig_fun = sig_fun.InstantiateSignatureFrom(
             type_arguments, function_type_arguments, Heap::kOld);
@@ -17123,6 +17205,14 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   const Function& other_sig_fun =
       Function::Handle(zone, other_type.signature());
 
+  if (FLAG_reify_generic_functions) {
+    // Compare function type parameters and their bounds.
+    // Check the type parameters and bounds of generic functions.
+    if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
+      return false;
+    }
+  }
+
   // Compare number of function parameters.
   const intptr_t num_fixed_params = sig_fun.num_fixed_parameters();
   const intptr_t other_num_fixed_params = other_sig_fun.num_fixed_parameters();
@@ -17211,7 +17301,20 @@ RawAbstractType* Type::CloneUnfinalized() const {
     const Class& owner = Class::Handle(zone, fun.Owner());
     Function& fun_clone = Function::Handle(
         zone, Function::NewSignatureFunction(owner, TokenPosition::kNoSource));
-    // TODO(regis): Handle cloning of a generic function type.
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, fun.type_parameters());
+    if (!type_params.IsNull()) {
+      const intptr_t num_type_params = type_params.Length();
+      const TypeArguments& type_params_clone =
+          TypeArguments::Handle(zone, TypeArguments::New(num_type_params));
+      TypeParameter& type_param = TypeParameter::Handle(zone);
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param ^= type_params.TypeAt(i);
+        type_param ^= type_param.CloneUnfinalized();
+        type_params_clone.SetTypeAt(i, type_param);
+      }
+      fun_clone.set_type_parameters(type_params_clone);
+    }
     AbstractType& type = AbstractType::Handle(zone, fun.result_type());
     type = type.CloneUnfinalized();
     fun_clone.set_result_type(type);
@@ -17267,6 +17370,20 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     Function& fun_clone = Function::Handle(
         zone,
         Function::NewSignatureFunction(new_owner, TokenPosition::kNoSource));
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, fun.type_parameters());
+    if (!type_params.IsNull()) {
+      const intptr_t num_type_params = type_params.Length();
+      const TypeArguments& type_params_clone =
+          TypeArguments::Handle(zone, TypeArguments::New(num_type_params));
+      TypeParameter& type_param = TypeParameter::Handle(zone);
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param ^= type_params.TypeAt(i);
+        type_param ^= type_param.CloneUninstantiated(new_owner, trail);
+        type_params_clone.SetTypeAt(i, type_param);
+      }
+      fun_clone.set_type_parameters(type_params_clone);
+    }
     AbstractType& type = AbstractType::Handle(zone, fun.result_type());
     type = type.CloneUninstantiated(new_owner, trail);
     fun_clone.set_result_type(type);
@@ -17393,6 +17510,8 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         Function& sig_fun = Function::Handle(
             zone,
             Function::NewSignatureFunction(cls, TokenPosition::kNoSource));
+        sig_fun.set_type_parameters(
+            TypeArguments::Handle(zone, fun.type_parameters()));
         type = fun.result_type();
         type = type.Canonicalize(trail);
         sig_fun.set_result_type(type);
@@ -18020,23 +18139,26 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 RawAbstractType* TypeParameter::CloneUninstantiated(const Class& new_owner,
                                                     TrailPtr trail) const {
   ASSERT(IsFinalized());
-  TypeParameter& clone = TypeParameter::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  TypeParameter& clone = TypeParameter::Handle(zone);
   clone ^= OnlyBuddyInTrail(trail);
   if (!clone.IsNull()) {
     return clone.raw();
   }
-  const Class& old_owner = Class::Handle(parameterized_class());
-  if (old_owner.IsNull()) {
+  intptr_t new_index = index();
+  AbstractType& upper_bound = AbstractType::Handle(zone, bound());
+  const Function& fun = Function::Handle(zone, parameterized_function());
+  Class& cls = Class::Handle(zone, parameterized_class());
+  if (!cls.IsNull()) {
+    ASSERT(fun.IsNull());
+    new_index += new_owner.NumTypeArguments() - cls.NumTypeArguments();
+    cls = new_owner.raw();
+  } else {
     ASSERT(IsFunctionTypeParameter());
-    // Function type parameters do not need cloning.
-    return raw();
+    // Only the bounds of function type parameters need cloning.
   }
-  const intptr_t new_index =
-      index() + new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
-  AbstractType& upper_bound = AbstractType::Handle(bound());
-  ASSERT(parameterized_function() == Function::null());
-  clone = TypeParameter::New(new_owner, Function::Handle(), new_index,
-                             String::Handle(name()),
+  clone = TypeParameter::New(cls, fun, new_index, String::Handle(zone, name()),
                              upper_bound,  // Not cloned yet.
                              token_pos());
   clone.SetIsFinalized();

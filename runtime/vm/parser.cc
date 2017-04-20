@@ -59,10 +59,6 @@ DEFINE_FLAG(bool,
             true,
             "Enable generic function syntax.");
 DEFINE_FLAG(bool,
-            generic_method_semantics,
-            false,
-            "Enable generic function semantics (not yet supported).");
-DEFINE_FLAG(bool,
             initializing_formal_access,
             true,
             "Make initializing formal parameters visible in initializer list.");
@@ -1182,7 +1178,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     }
   }
   // ParseFunc has recorded the generic function type arguments variable.
-  ASSERT(!FLAG_generic_method_semantics ||
+  ASSERT(!FLAG_reify_generic_functions ||
          !parser.current_function().IsGeneric() ||
          (parsed_function->function_type_arguments() != NULL));
 }
@@ -3464,7 +3460,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
   ASSERT(!func.IsGenerativeConstructor());
   OpenFunctionBlock(func);  // Build local scope for function.
 
-  if (FLAG_generic_method_semantics && func.IsGeneric()) {
+  if (FLAG_reify_generic_functions && func.IsGeneric()) {
     // Lookup function type arguments variable in parent function scope, if any.
     if (func.HasGenericParent()) {
       const String* variable_name = &Symbols::FunctionTypeArgumentsVar();
@@ -5530,13 +5526,21 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
       }
       if ((CurrentToken() == Token::kEXTENDS) ||
           (!parameterizing_class && (CurrentToken() == Token::kSUPER))) {
+        const bool is_lower_bound = CurrentToken() == Token::kSUPER;
         ConsumeToken();
-        // TODO(regis): Handle 'super' differently than 'extends'.
         // A bound may refer to the owner of the type parameter it applies to,
         // i.e. to the class or function currently being parsed.
         // Postpone resolution in order to avoid resolving the owner and its
         // type parameters, as they are not fully parsed yet.
         type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
+        if (is_lower_bound) {
+          // TODO(regis): Handle 'super' differently than 'extends' if lower
+          // bounds make it in the final specification and if run time support
+          // for lower bounds is required.
+          // For now, we parse but ignore lower bounds and only support upper
+          // bounds.
+          type_parameter_bound = I->object_store()->object_type();
+        }
       } else {
         type_parameter_bound = I->object_store()->object_type();
       }
@@ -6897,6 +6901,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(TokenPosition func_pos) {
     body = Function::NewClosureFunction(body_closure_name, innermost_function(),
                                         func_pos);
     body.set_is_generated_body(true);
+    // TODO(regis): Handle generic generator function.
     body.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
@@ -7025,6 +7030,7 @@ RawFunction* Parser::OpenAsyncFunction(TokenPosition async_func_pos) {
     closure = Function::NewClosureFunction(closure_name, innermost_function(),
                                            async_func_pos);
     closure.set_is_generated_body(true);
+    // TODO(regis): Handle generic async function.
     closure.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
@@ -7161,6 +7167,7 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(TokenPosition async_func_pos) {
     closure = Function::NewClosureFunction(closure_name, innermost_function(),
                                            async_func_pos);
     closure.set_is_generated_body(true);
+    // TODO(regis): Handle generic async generator function.
     closure.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
@@ -7742,7 +7749,7 @@ void Parser::CaptureInstantiator() {
 void Parser::CaptureFunctionTypeArguments() {
   ASSERT(InGenericFunctionScope());
   ASSERT(FunctionLevel() > 0);
-  if (!FLAG_generic_method_semantics) {
+  if (!FLAG_reify_generic_functions) {
     return;
   }
   const String* variable_name = &Symbols::FunctionTypeArgumentsVar();
@@ -11896,7 +11903,7 @@ AstNode* Parser::LoadTypeParameter(PrimaryNode* primary) {
     type_parameter ^= CanonicalizeType(type_parameter);
   } else {
     ASSERT(type_parameter.IsFunctionTypeParameter());
-    if (!FLAG_generic_method_semantics) {
+    if (!FLAG_reify_generic_functions) {
       Type& type = Type::ZoneHandle(Z, Type::DynamicType());
       return new (Z) TypeNode(primary_pos, type);
     }
@@ -12405,7 +12412,7 @@ void Parser::ResolveType(AbstractType* type) {
                 String::Handle(Z, type_parameter.name()).ToCString());
             return;
           }
-          if (FLAG_generic_method_semantics) {
+          if (FLAG_reify_generic_functions) {
             ASSERT(!type_parameter.IsMalformed());
             *type = type_parameter.raw();
           } else {
@@ -13011,7 +13018,7 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
       if ((resolved == NULL) || (resolved_func_level < type_param_func_level)) {
         // The identifier is a function type parameter, possibly shadowing
         // 'resolved'.
-        if (!FLAG_generic_method_semantics) {
+        if (!FLAG_reify_generic_functions) {
           Type& type = Type::ZoneHandle(Z, Type::DynamicType());
           return new (Z) TypeNode(ident_pos, type);
         }
@@ -13859,6 +13866,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   closure.set_is_generated_body(true);
   closure.set_is_debuggable(false);
   closure.set_is_visible(false);
+  // TODO(regis): Verify that the closure cannot be generic.
   closure.set_result_type(Object::dynamic_type());
   AddFormalParamsToFunction(&params, closure);
   ResolveSignature(closure);
