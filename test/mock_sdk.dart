@@ -181,6 +181,7 @@ abstract class StreamTransformer<S, T> {}
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
+abstract class LinkedHashMap<K, V> implements HashMap<K, V> {}
 ''');
 
   static const _MockSdkLibrary LIB_CONVERT = const _MockSdkLibrary(
