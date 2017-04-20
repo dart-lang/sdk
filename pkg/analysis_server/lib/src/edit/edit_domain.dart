@@ -143,41 +143,76 @@ class EditDomainHandler extends AbstractRequestHandler {
 
   Future getAssists(Request request) async {
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
-    List<Assist> assists;
+    String file = params.file;
+    int offset = params.offset;
+    int length = params.length;
+
+    List<SourceChange> changes = <SourceChange>[];
     if (server.options.enableNewAnalysisDriver) {
-      AnalysisResult result = await server.getAnalysisResult(params.file);
+      //
+      // Allow plugins to start computing assists.
+      //
+      AnalysisDriver driver = server.getAnalysisDriver(file);
+      plugin.EditGetAssistsParams requestParams =
+          new plugin.EditGetAssistsParams(file, offset, length);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures =
+          server.pluginManager.broadcast(driver.contextRoot, requestParams);
+      //
+      // Compute fixes associated with server-generated errors.
+      //
+      AnalysisResult result = await server.getAnalysisResult(file);
       if (result != null) {
         CompilationUnit unit = result.unit;
         CompilationUnitElement compilationUnitElement =
             resolutionMap.elementDeclaredByCompilationUnit(unit);
         DartAssistContext dartAssistContext = new _DartAssistContextForValues(
             compilationUnitElement.source,
-            params.offset,
-            params.length,
+            offset,
+            length,
             compilationUnitElement.context,
             unit);
         try {
           AssistProcessor processor = new AssistProcessor(dartAssistContext);
-          assists = await processor.compute();
+          List<Assist> assists = await processor.compute();
+          for (Assist assist in assists) {
+            changes.add(assist.change);
+          }
         } catch (_) {}
       }
+      //
+      // Add the fixes produced by plugins to the server-generated fixes.
+      //
+      List<plugin.Response> responses = await waitForResponses(pluginFutures,
+          requestParameters: requestParams);
+      ResultConverter converter = new ResultConverter();
+      List<plugin.PrioritizedSourceChange> pluginChanges =
+          <plugin.PrioritizedSourceChange>[];
+      for (plugin.Response response in responses) {
+        plugin.EditGetAssistsResult result =
+            new plugin.EditGetAssistsResult.fromResponse(response);
+        pluginChanges.addAll(result.assists);
+      }
+      pluginChanges
+          .sort((first, second) => first.priority.compareTo(second.priority));
+      changes
+          .addAll(pluginChanges.map(converter.convertPrioritizedSourceChange));
     } else {
-      ContextSourcePair pair = server.getContextSourcePair(params.file);
+      ContextSourcePair pair = server.getContextSourcePair(file);
       engine.AnalysisContext context = pair.context;
       Source source = pair.source;
       if (context != null && source != null) {
-        assists = await computeAssists(
-            server.serverPlugin, context, source, params.offset, params.length);
+        List<Assist> assists = await computeAssists(
+            server.serverPlugin, context, source, offset, length);
+        for (Assist assist in assists) {
+          changes.add(assist.change);
+        }
       }
     }
-    // Send the assist changes.
-    List<SourceChange> changes = <SourceChange>[];
-    assists?.forEach((Assist assist) {
-      changes.add(assist.change);
-    });
-    Response response =
-        new EditGetAssistsResult(changes).toResponse(request.id);
-    server.sendResponse(response);
+    //
+    // Send the response.
+    //
+    server
+        .sendResponse(new EditGetAssistsResult(changes).toResponse(request.id));
   }
 
   Future getFixes(Request request) async {
@@ -269,8 +304,9 @@ class EditDomainHandler extends AbstractRequestHandler {
         }
       }
     }
-
+    //
     // Send the response.
+    //
     server.sendResponse(
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
