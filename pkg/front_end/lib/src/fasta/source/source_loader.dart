@@ -129,9 +129,8 @@ class SourceLoader<L> extends Loader<L> {
   KernelTarget get target => super.target;
 
   DietListener createDietListener(LibraryBuilder library) {
-    var typeInferrer = target.strongMode
-        ? new KernelTypeInferrer(coreTypes, hierarchy, instrumentation)
-        : null;
+    var typeInferrer = new KernelTypeInferrer(
+        coreTypes, hierarchy, instrumentation, target.strongMode);
     return new DietListener(library, hierarchy, coreTypes, typeInferrer);
   }
 

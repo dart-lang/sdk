@@ -115,8 +115,8 @@ abstract class KernelStatement extends Statement {
 class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
     KernelVariableDeclaration, Field> {
   KernelTypeInferrer(CoreTypes coreTypes, ClassHierarchy classHierarchy,
-      Instrumentation instrumentation)
-      : super(coreTypes, classHierarchy, instrumentation);
+      Instrumentation instrumentation, bool strongMode)
+      : super(coreTypes, classHierarchy, instrumentation, strongMode);
 
   @override
   DartType inferExpression(

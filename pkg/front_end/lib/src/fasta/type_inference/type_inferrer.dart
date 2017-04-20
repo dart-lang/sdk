@@ -23,11 +23,14 @@ abstract class TypeInferrer<S, E, V, F> {
 
   final Instrumentation instrumentation;
 
+  final bool strongMode;
+
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
   Uri uri;
 
-  TypeInferrer(this.coreTypes, this.classHierarchy, this.instrumentation);
+  TypeInferrer(this.coreTypes, this.classHierarchy, this.instrumentation,
+      this.strongMode);
 
   /// Performs type inference on a method with the given method [body].
   ///
@@ -75,7 +78,7 @@ abstract class TypeInferrer<S, E, V, F> {
     if (initializer == null) return;
     var inferredType =
         inferExpression(initializer, declaredType, declaredType == null);
-    if (declaredType == null) {
+    if (strongMode && declaredType == null) {
       instrumentation?.record(
           'type', uri, offset, new InstrumentationValueForType(inferredType));
       setType(inferredType);
