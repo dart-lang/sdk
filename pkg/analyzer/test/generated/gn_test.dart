@@ -69,6 +69,29 @@ class GnWorkspaceTest extends _BaseTest {
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter'][0].path, packageLocation);
   }
+
+  void test_packages_multipleFiles() {
+    provider.newFolder(_p('/workspace/.jiri_root'));
+    provider.newFolder(_p('/workspace/some/code'));
+    provider.newFile(_p('/workspace/some/code/pubspec.yaml'), '');
+    String packageOneLocation = _p('/workspace/this/is/the/package');
+    Uri packageOneUri = provider.pathContext.toUri(packageOneLocation);
+    provider.newFile(
+        _p('/workspace/out/debug-x87_128/gen/some/code/foo.packages'),
+        'flutter:$packageOneUri');
+    String packageTwoLocation = _p('/workspace/this/is/the/other/package');
+    Uri packageTwoUri = provider.pathContext.toUri(packageTwoLocation);
+    provider.newFile(
+        _p('/workspace/out/debug-x87_128/gen/some/code/foo_test.packages'),
+        'rettluf:$packageTwoUri');
+    GnWorkspace workspace =
+        GnWorkspace.find(provider, _p('/workspace/some/code'));
+    expect(workspace, isNotNull);
+    expect(workspace.root, _p('/workspace/some/code'));
+    expect(workspace.packageMap.length, 2);
+    expect(workspace.packageMap['flutter'][0].path, packageOneLocation);
+    expect(workspace.packageMap['rettluf'][0].path, packageTwoLocation);
+  }
 }
 
 class _BaseTest {
