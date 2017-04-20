@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -184,18 +185,23 @@ class StatementCompletionProcessor {
       }
     }
 
-    // TODO(messick) Consider changing (some of) this to a visitor.
-    if (_complete_ifStatement() ||
-        _complete_doStatement() ||
-        _complete_forStatement() ||
-        _complete_forEachStatement() ||
-        _complete_switchStatement() ||
-        _complete_tryStatement() ||
-        _complete_whileStatement() ||
-        _complete_simpleSemicolon() ||
-        _complete_controlFlowBlock() ||
-        _complete_simpleEnter()) {
-      return completion;
+    if (errors.isEmpty) {
+      if (_complete_simpleEnter()) {
+        return completion;
+      }
+    } else {
+      if (_complete_ifStatement() ||
+          _complete_doStatement() ||
+          _complete_forStatement() ||
+          _complete_forEachStatement() ||
+          _complete_switchStatement() ||
+          _complete_tryStatement() ||
+          _complete_whileStatement() ||
+          _complete_simpleSemicolon() ||
+          _complete_controlFlowBlock() ||
+          _complete_simpleEnter()) {
+        return completion;
+      }
     }
     return NO_COMPLETION;
   }
@@ -246,12 +252,11 @@ class StatementCompletionProcessor {
     // Use statement completion to move the cursor to a new line outside the
     // current block. The statement has no errors in this case. Used to jump
     // out of do/for/if/while blocks.
-    //TODO(messick) Move has-errors checking into dispatch method.
     return false;
   }
 
   bool _complete_doStatement() {
-    if (errors.isEmpty || node is! DoStatement) {
+    if (node is! DoStatement) {
       return false;
     }
     DoStatement statement = node;
@@ -330,7 +335,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_forEachStatement() {
-    if (errors.isEmpty || node is! ForEachStatement) {
+    if (node is! ForEachStatement) {
       return false;
     }
     ForEachStatement forNode = node;
@@ -376,7 +381,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_forStatement() {
-    if (errors.isEmpty || node is! ForStatement) {
+    if (node is! ForStatement) {
       return false;
     }
     ForStatement forNode = node;
@@ -406,8 +411,7 @@ class StatementCompletionProcessor {
             // emptyCondition
             int end = text.indexOf(')');
             sb = new SourceBuilder(file, forNode.leftSeparator.offset);
-            // TODO(messick) Consider adding two semicolons here.
-            _addReplaceEdit(rangeStartLength(sb.offset, end), '; ');
+            _addReplaceEdit(rangeStartLength(sb.offset, end), '; ; ');
             delta = end - '; '.length;
           } else {
             // emptyInitializersEmptyCondition
@@ -473,7 +477,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_ifStatement() {
-    if (errors.isEmpty || node is! IfStatement) {
+    if (node is! IfStatement) {
       return false;
     }
     IfStatement ifNode = node;
@@ -546,7 +550,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_switchStatement() {
-    if (errors.isEmpty || node is! SwitchStatement) {
+    if (node is! SwitchStatement) {
       return false;
     }
     SourceBuilder sb;
@@ -586,7 +590,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_tryStatement() {
-    if (errors.isEmpty || node is! TryStatement) {
+    if (node is! TryStatement) {
       return false;
     }
     TryStatement tryNode = node;
@@ -673,7 +677,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_whileStatement() {
-    if (errors.isEmpty || node is! WhileStatement) {
+    if (node is! WhileStatement) {
       return false;
     }
     WhileStatement whileNode = node;
