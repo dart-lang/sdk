@@ -13,6 +13,9 @@ import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelTypeInferrer;
 
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
+
 import 'package:kernel/ast.dart' show Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -35,8 +38,6 @@ import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
 import '../io.dart' show readBytesFromFile;
 
-import '../target_implementation.dart' show TargetImplementation;
-
 import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
@@ -57,7 +58,7 @@ class SourceLoader<L> extends Loader<L> {
 
   Instrumentation instrumentation;
 
-  SourceLoader(TargetImplementation target) : super(target);
+  SourceLoader(KernelTarget target) : super(target);
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
@@ -125,9 +126,13 @@ class SourceLoader<L> extends Loader<L> {
     }
   }
 
+  KernelTarget get target => super.target;
+
   DietListener createDietListener(LibraryBuilder library) {
-    return new DietListener(library, hierarchy, coreTypes,
-        new KernelTypeInferrer(coreTypes, hierarchy, instrumentation));
+    var typeInferrer = target.strongMode
+        ? new KernelTypeInferrer(coreTypes, hierarchy, instrumentation)
+        : null;
+    return new DietListener(library, hierarchy, coreTypes, typeInferrer);
   }
 
   void resolveParts() {

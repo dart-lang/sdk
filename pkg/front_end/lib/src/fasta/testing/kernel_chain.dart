@@ -260,8 +260,11 @@ class WriteDill extends Step<Program, Uri, TestContext> {
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
     try {
-      new BinaryPrinter(sink).writeProgramFile(program);
-      program.unbindCanonicalNames();
+      try {
+        new BinaryPrinter(sink).writeProgramFile(program);
+      } finally {
+        program.unbindCanonicalNames();
+      }
     } catch (e, s) {
       return fail(uri, e, s);
     } finally {

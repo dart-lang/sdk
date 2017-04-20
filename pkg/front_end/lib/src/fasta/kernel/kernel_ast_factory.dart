@@ -41,7 +41,8 @@ class KernelAstFactory implements AstFactory {
   KernelVariableDeclaration variableDeclaration(String name,
       {DartType type,
       Expression initializer,
-      int charOffset,
+      int charOffset = TreeNode.noOffset,
+      int equalsCharOffset = TreeNode.noOffset,
       bool isFinal: false,
       bool isConst: false}) {
     return new KernelVariableDeclaration(name,
@@ -49,6 +50,7 @@ class KernelAstFactory implements AstFactory {
         initializer: initializer,
         isFinal: isFinal,
         isConst: isConst)
-      ..fileEqualsOffset = charOffset;
+      ..fileOffset = charOffset
+      ..fileEqualsOffset = equalsCharOffset;
   }
 }

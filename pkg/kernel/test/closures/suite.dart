@@ -120,7 +120,7 @@ class FastaCompile
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
     KernelTarget sourceTarget =
-        new KernelTarget(dillTarget, context.uriTranslator);
+        new KernelTarget(dillTarget, context.uriTranslator, false);
 
     Program p;
     try {

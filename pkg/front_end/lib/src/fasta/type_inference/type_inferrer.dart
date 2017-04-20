@@ -49,9 +49,36 @@ abstract class TypeInferrer<S, E, V, F> {
   /// the expression type and calls the appropriate specialized "infer" method.
   DartType inferExpression(E expression, DartType typeContext, bool typeNeeded);
 
+  /// Performs the core type inference algorithm for integer literals.
+  ///
+  /// [typeContext], [typeNeeded], and the return value behave as described in
+  /// [inferExpression].
+  DartType inferIntLiteral(DartType typeContext, bool typeNeeded) {
+    return typeNeeded ? coreTypes.intClass.rawType : null;
+  }
+
   /// Performs type inference on the given [statement].
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(S statement);
+
+  /// Performs the core type inference algorithm for variable declarations.
+  ///
+  /// [declaredType] is the declared type of the variable, or `null` if the type
+  /// should be inferred.  [initializer] is the initializer expression.
+  /// [offset] is the character offset of the variable declaration (for
+  /// instrumentation).  [setType] is a callback that will be used to set the
+  /// inferred type.
+  void inferVariableDeclaration(DartType declaredType, E initializer,
+      int offset, void setType(DartType type)) {
+    if (initializer == null) return;
+    var inferredType =
+        inferExpression(initializer, declaredType, declaredType == null);
+    if (declaredType == null) {
+      instrumentation?.record(
+          'type', uri, offset, new InstrumentationValueForType(inferredType));
+      setType(inferredType);
+    }
+  }
 }

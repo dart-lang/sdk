@@ -11,6 +11,8 @@ import '../parser/parser.dart' show FormalParameterType, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
+import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
+
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelVariableDeclaration;
 
@@ -88,6 +90,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   final TypeInferrer<Statement, Expression, KernelVariableDeclaration, Field>
       _typeInferrer;
 
+  final AstFactory astFactory;
+
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
   ///
@@ -136,7 +140,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       this.classBuilder,
       this.isInstanceMember,
       this.uri,
-      this._typeInferrer)
+      this._typeInferrer,
+      this.astFactory)
       : enclosingScope = scope,
         library = library,
         isDartLibrary = library.uri.scheme == "dart",
@@ -237,7 +242,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         copy.add(statement);
       }
     }
-    return new Block(copy ?? statements)..fileOffset = charOffset;
+    return astFactory.block(copy ?? statements, charOffset);
   }
 
   Statement popStatementIfNotNull(Object value) {
@@ -441,7 +446,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void finishFunction(
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
-    _typeInferrer.inferBody(body, uri);
+    _typeInferrer?.inferBody(body, uri);
     KernelFunctionBuilder builder = member;
     builder.body = body;
     if (formals?.optional != null) {
@@ -999,8 +1004,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(
-        new IntLiteral(int.parse(token.lexeme))..fileOffset = token.charOffset);
+    push(astFactory.intLiteral(int.parse(token.lexeme), token.charOffset));
   }
 
   @override
@@ -1057,12 +1061,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == constantExpressionRequired);
-    push(new VariableDeclaration(identifier.name,
+    push(astFactory.variableDeclaration(identifier.name,
         initializer: initializer,
-        type: currentLocalVariableType ?? const DynamicType(),
+        type: currentLocalVariableType,
         isFinal: isFinal,
-        isConst: isConst)
-      ..fileEqualsOffset = equalsCharOffset);
+        isConst: isConst,
+        equalsCharOffset: equalsCharOffset));
   }
 
   @override
@@ -1521,23 +1525,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               thisKeyword.charOffset);
         }
         type = field.target.type ?? const DynamicType();
-        variable = new VariableDeclaration(name.name,
+        variable = astFactory.variableDeclaration(name.name,
             type: type,
             initializer: name.initializer,
             isFinal: isFinal,
-            isConst: isConst)
-          ..fileOffset = name.fileOffset;
+            isConst: isConst,
+            charOffset: name.fileOffset);
       } else {
         addCompileTimeError(
             name.fileOffset, "'${name.name}' isn't a field in this class.");
       }
     }
-    variable ??= new VariableDeclaration(name.name,
+    variable ??= astFactory.variableDeclaration(name.name,
         type: type ?? const DynamicType(),
         initializer: name.initializer,
         isFinal: isFinal,
-        isConst: isConst)
-      ..fileOffset = name.fileOffset;
+        isConst: isConst,
+        charOffset: name.fileOffset);
     push(variable);
   }
 
@@ -1997,7 +2001,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("FunctionName");
     Identifier name = pop();
     VariableDeclaration variable =
-        new VariableDeclaration(name.name, isFinal: true);
+        astFactory.variableDeclaration(name.name, isFinal: true);
     push(new FunctionDeclaration(
         variable, new FunctionNode(new InvalidStatement()))
       ..fileOffset = beginToken.charOffset);

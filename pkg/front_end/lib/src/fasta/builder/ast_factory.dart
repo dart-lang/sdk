@@ -64,7 +64,8 @@ abstract class AstFactory {
   VariableDeclaration variableDeclaration(String name,
       {DartType type,
       Expression initializer,
-      int charOffset: TreeNode.noOffset,
+      int charOffset = TreeNode.noOffset,
+      int equalsCharOffset = TreeNode.noOffset,
       bool isFinal: false,
       bool isConst: false});
 }

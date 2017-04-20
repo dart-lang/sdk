@@ -25,11 +25,13 @@ import 'package:kernel/core_types.dart';
 
 /// Concrete shadow object representing a statement block in kernel form.
 class KernelBlock extends Block implements KernelStatement {
-  KernelBlock(List<KernelStatement> statements) : super(statements);
+  KernelBlock(List<Statement> statements) : super(statements);
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    // TODO(paulberry): implement.
+    for (var statement in statements) {
+      inferrer.inferStatement(statement);
+    }
   }
 }
 
@@ -62,8 +64,7 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(paulberry): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return inferrer.inferIntLiteral(typeContext, typeNeeded);
   }
 }
 
@@ -157,20 +158,26 @@ class KernelTypeInferrer extends TypeInferrer<Statement, Expression,
 /// Concrete shadow object representing a variable declaration in kernel form.
 class KernelVariableDeclaration extends VariableDeclaration
     implements KernelStatement {
+  final bool _implicitlyTyped;
+
   KernelVariableDeclaration(String name,
-      {KernelExpression initializer,
+      {Expression initializer,
       DartType type,
       bool isFinal: false,
       bool isConst: false})
-      : super(name,
+      : _implicitlyTyped = type == null,
+        super(name,
             initializer: initializer,
-            type: type,
+            type: type ?? const DynamicType(),
             isFinal: isFinal,
             isConst: isConst);
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
-    // TODO(paulberry): implement.
+    inferrer.inferVariableDeclaration(
+        _implicitlyTyped ? null : type, initializer, fileOffset, (type) {
+      this.type = type;
+    });
   }
 }
 
