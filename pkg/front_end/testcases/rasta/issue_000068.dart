@@ -7,7 +7,9 @@ import "package:expect/expect.dart";
 class G<T> {}
 
 class A {}
+
 class B extends A {}
+
 class C extends B {}
 
 main() {

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 get x => 42;
-set x(val) { }
+set x(val) {}
 
 main() {
   print(x);

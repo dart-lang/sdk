@@ -12,7 +12,7 @@ class A<N, S, U> {
     Expect.isTrue(s is S);
   }
 
-  A.empty() : field = null{}
+  A.empty() : field = null {}
 
   factory A.f(S s) {
     Expect.isTrue(s is S);
@@ -25,19 +25,17 @@ class A<N, S, U> {
     return field;
   }
 
-  void set setter(S s){}
+  void set setter(S s) {}
 }
 
-abstract class J<Aa, B>{}
+abstract class J<Aa, B> {}
 
-abstract class I<H, C, K> extends J<C, K>
-{ }
-
+abstract class I<H, C, K> extends J<C, K> {}
 
 main() {
   new A<num, double, List>(1, 2.0);
   A a = new A<int, int, int>.f(1);
-  const A<int, int, List>.c(const[], 1);
+  const A<int, int, List>.c(const [], 1);
 
   var z = a.getter;
   a.setter = 1;

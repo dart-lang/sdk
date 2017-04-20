@@ -232,7 +232,8 @@ class SuperCallResolutionTransformer extends Transformer {
       return new MethodInvocation(
           new DirectPropertyGet(new ThisExpression(), target),
           new Name('call'),
-          visitedArguments)..fileOffset = node.fileOffset;
+          visitedArguments)
+        ..fileOffset = node.fileOffset;
     }
   }
 

@@ -5,18 +5,18 @@
 main() {
   switch (1) {
     case 1:
-    {
-      "No fall-through error needed.";
-      break;
-      ; // Empty statement.
-    }
-    case 2:
-    {
-      "Fall-through error needed.";
-      if (true) {
+      {
+        "No fall-through error needed.";
         break;
+        ; // Empty statement.
       }
-    }
+    case 2:
+      {
+        "Fall-through error needed.";
+        if (true) {
+          break;
+        }
+      }
     case 3:
       try {
         "No fall-through error needed.";
@@ -27,13 +27,11 @@ main() {
       try {
         "No fall-through error needed.";
         break;
-      } finally {
-      }
+      } finally {}
     case 5:
       try {
         "Fall-through error needed.";
-      } finally {
-      }
+      } finally {}
     case 10000:
       "Should be last. No fall-through error, falling through allowed here.";
   }

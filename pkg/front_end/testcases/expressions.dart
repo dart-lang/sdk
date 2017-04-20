@@ -26,7 +26,7 @@ main() {
     print(e);
     if (s != null) print(s);
   }
-  for(;false;) {}
+  for (; false;) {}
   var list = ["Hello, World!"];
   print(list[i]);
   list[i] = "Hello, Brave New World!";
@@ -46,6 +46,7 @@ main() {
   f() {
     print("f was called");
   }
+
   caller(f);
   caller(() {
     print("<anon> was called");
@@ -53,6 +54,7 @@ main() {
   g([message]) {
     print(message);
   }
+
   g("Hello, World");
   caller(([x]) {
     print("<anon> was called with $x");
@@ -60,6 +62,7 @@ main() {
   h({message}) {
     print(message);
   }
+
   h(message: "Hello, World");
   caller(({x}) {
     print("<anon> was called with $x");

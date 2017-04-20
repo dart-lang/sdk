@@ -6,5 +6,4 @@ class Mixin {
   var field;
 }
 
-class A extends Object with Mixin, Mixin {
-}
+class A extends Object with Mixin, Mixin {}

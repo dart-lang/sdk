@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 class Base {}
+
 class Mixin {
   foo() => print('foo');
 }
+
 class Sub extends Base with Mixin {}
 
 main() {

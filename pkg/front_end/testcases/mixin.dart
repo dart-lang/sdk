@@ -22,8 +22,7 @@ abstract class G1<T> {
   m() => print(T);
 }
 
-class D<S> extends Object with G1<S> {
-}
+class D<S> extends Object with G1<S> {}
 
 main() {
   new B(null).m();

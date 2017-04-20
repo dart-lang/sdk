@@ -9,11 +9,9 @@ class Super<S> {
   f() => 3;
 }
 
-class C<V> extends Super<V> with Mixin<V> {
-}
+class C<V> extends Super<V> with Mixin<V> {}
 
-class D extends Super with Mixin {
-}
+class D extends Super with Mixin {}
 
 class C2<V> = Super<V> with Mixin<V>;
 

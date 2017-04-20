@@ -13,11 +13,15 @@ class A {
 class C extends A {
   C() {}
   factory C.bar() = D;
-  int m() { return 1; }
+  int m() {
+    return 1;
+  }
 }
 
 class D extends C {
-  int m() { return 2; }
+  int m() {
+    return 2;
+  }
 }
 
 main() {

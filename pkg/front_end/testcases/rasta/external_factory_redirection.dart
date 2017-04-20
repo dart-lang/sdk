@@ -5,5 +5,5 @@
 main() {
   "Should redirect to LinkedHashMap constructor.";
   new Map<Symbol, dynamic>(); // This is a patched constructor whose
-                              // implementation contains the redirection.
+  // implementation contains the redirection.
 }

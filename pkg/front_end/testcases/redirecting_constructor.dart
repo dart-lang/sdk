@@ -7,8 +7,7 @@ class A {
   factory A.fisk() = B;
 }
 
-class B extends A {
-}
+class B extends A {}
 
 main() {
   new A.fisk();

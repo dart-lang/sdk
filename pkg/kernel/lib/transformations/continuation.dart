@@ -410,7 +410,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       initEffects[i] = <Statement>[];
       if (decl.initializer != null) {
         decl.initializer = expressionRewriter.rewrite(
-            decl.initializer, initEffects[i])..parent = decl;
+            decl.initializer, initEffects[i])
+          ..parent = decl;
       }
       isSimple = isSimple && initEffects[i].isEmpty;
     }
@@ -420,7 +421,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     for (int i = 0; i < length; ++i) {
       updateEffects[i] = <Statement>[];
       stmt.updates[i] = expressionRewriter.rewrite(
-          stmt.updates[i], updateEffects[i])..parent = stmt;
+          stmt.updates[i], updateEffects[i])
+        ..parent = stmt;
       isSimple = isSimple && updateEffects[i].isEmpty;
     }
 
@@ -530,8 +532,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     }
     loopBody.add(
         new IfStatement(cond, new Block(newBody), new BreakStatement(labeled)));
-    labeled.body = new WhileStatement(
-        new BoolLiteral(true), new Block(loopBody))..parent = labeled;
+    labeled.body =
+        new WhileStatement(new BoolLiteral(true), new Block(loopBody))
+          ..parent = labeled;
     statements.add(new Block(<Statement>[]
       ..addAll(temps)
       ..add(labeled)));
@@ -567,7 +570,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var condition = new AwaitExpression(new MethodInvocation(
           new VariableGet(iteratorVariable),
           new Name('moveNext'),
-          new Arguments(<Expression>[])))..fileOffset = stmt.fileOffset;
+          new Arguments(<Expression>[])))
+        ..fileOffset = stmt.fileOffset;
 
       // var <variable> = iterator.current;
       var valueVariable = stmt.variable;
@@ -659,7 +663,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   TreeNode visitVariableDeclaration(VariableDeclaration stmt) {
     if (stmt.initializer != null) {
       stmt.initializer = expressionRewriter.rewrite(
-          stmt.initializer, statements)..parent = stmt;
+          stmt.initializer, statements)
+        ..parent = stmt;
     }
     statements.add(stmt);
     return null;
@@ -750,7 +755,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     var addExpression = new MethodInvocation(
         new VariableGet(controllerVariable),
         new Name(stmt.isYieldStar ? 'addStream' : 'add', helper.asyncLibrary),
-        new Arguments(<Expression>[expr]))..fileOffset = stmt.fileOffset;
+        new Arguments(<Expression>[expr]))
+      ..fileOffset = stmt.fileOffset;
 
     statements.add(new IfStatement(
         addExpression,

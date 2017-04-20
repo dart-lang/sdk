@@ -368,7 +368,8 @@ class BinaryBuilder {
     library.deferredImports.length = length;
     for (int i = 0; i < length; ++i) {
       library.deferredImports[i] = new DeferredImport.byReference(
-          readLibraryReference(), readStringReference())..parent = library;
+          readLibraryReference(), readStringReference())
+        ..parent = library;
     }
   }
 
@@ -658,11 +659,9 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
-        return new PropertySet.byReference(
-            readExpression(),
-            readName(),
-            readExpression(),
-            readMemberReference(allowNull: true))..fileOffset = offset;
+        return new PropertySet.byReference(readExpression(), readName(),
+            readExpression(), readMemberReference(allowNull: true))
+          ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperPropertyGet.byReference(
@@ -674,7 +673,8 @@ class BinaryBuilder {
       case Tag.DirectPropertyGet:
         int offset = readOffset();
         return new DirectPropertyGet.byReference(
-            readExpression(), readMemberReference())..fileOffset = offset;
+            readExpression(), readMemberReference())
+          ..fileOffset = offset;
       case Tag.DirectPropertySet:
         int offset = readOffset();
         return new DirectPropertySet.byReference(
@@ -687,14 +687,13 @@ class BinaryBuilder {
       case Tag.StaticSet:
         int offset = readOffset();
         return new StaticSet.byReference(
-            readMemberReference(), readExpression())..fileOffset = offset;
+            readMemberReference(), readExpression())
+          ..fileOffset = offset;
       case Tag.MethodInvocation:
         int offset = readOffset();
-        return new MethodInvocation.byReference(
-            readExpression(),
-            readName(),
-            readArguments(),
-            readMemberReference(allowNull: true))..fileOffset = offset;
+        return new MethodInvocation.byReference(readExpression(), readName(),
+            readArguments(), readMemberReference(allowNull: true))
+          ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -707,22 +706,26 @@ class BinaryBuilder {
       case Tag.StaticInvocation:
         int offset = readOffset();
         return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: false)
+            readMemberReference(), readArguments(),
+            isConst: false)
           ..fileOffset = offset;
       case Tag.ConstStaticInvocation:
         int offset = readOffset();
         return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: true)
+            readMemberReference(), readArguments(),
+            isConst: true)
           ..fileOffset = offset;
       case Tag.ConstructorInvocation:
         int offset = readOffset();
         return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: false)
+            readMemberReference(), readArguments(),
+            isConst: false)
           ..fileOffset = offset;
       case Tag.ConstConstructorInvocation:
         int offset = readOffset();
         return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(), isConst: true)
+            readMemberReference(), readArguments(),
+            isConst: true)
           ..fileOffset = offset;
       case Tag.Not:
         return new Not(readExpression());
@@ -779,28 +782,28 @@ class BinaryBuilder {
         int offset = readOffset();
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: false)..fileOffset = offset;
+            typeArgument: typeArgument, isConst: false)
+          ..fileOffset = offset;
       case Tag.ConstListLiteral:
         int offset = readOffset();
         var typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: true)..fileOffset = offset;
+            typeArgument: typeArgument, isConst: true)
+          ..fileOffset = offset;
       case Tag.MapLiteral:
         int offset = readOffset();
         var keyType = readDartType();
         var valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
-            keyType: keyType,
-            valueType: valueType,
-            isConst: false)..fileOffset = offset;
+            keyType: keyType, valueType: valueType, isConst: false)
+          ..fileOffset = offset;
       case Tag.ConstMapLiteral:
         int offset = readOffset();
         var keyType = readDartType();
         var valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
-            keyType: keyType,
-            valueType: valueType,
-            isConst: true)..fileOffset = offset;
+            keyType: keyType, valueType: valueType, isConst: true)
+          ..fileOffset = offset;
       case Tag.AwaitExpression:
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:

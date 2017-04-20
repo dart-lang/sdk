@@ -89,14 +89,14 @@ class C<T> {
     Func += 42;
     use(Func += 42);
 
-    C-= 42;
-    use(C-= 42);
-    dynamic-= 42;
-    use(dynamic-= 42);
-    T-= 42;
-    use(T-= 42);
-    Func-= 42;
-    use(Func-= 42);
+    C -= 42;
+    use(C -= 42);
+    dynamic -= 42;
+    use(dynamic -= 42);
+    T -= 42;
+    use(T -= 42);
+    Func -= 42;
+    use(Func -= 42);
   }
 }
 

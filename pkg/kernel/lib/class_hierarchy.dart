@@ -401,8 +401,8 @@ class ClassHierarchy {
   static List<Member> _inheritMembers(
       List<Member> declared, List<Member> inherited,
       {bool skipAbstractMembers: false}) {
-    List<Member> result = <Member>[]
-      ..length = declared.length + inherited.length;
+    List<Member> result = <Member>[]..length =
+        declared.length + inherited.length;
     // Since both lists are sorted, we can fuse them like in merge sort.
     int storeIndex = 0;
     int i = 0, j = 0;

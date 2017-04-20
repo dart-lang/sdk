@@ -6,8 +6,7 @@ class A {
   A(x);
 }
 
-class B extends A {
-}
+class B extends A {}
 
 main() {
   new B();

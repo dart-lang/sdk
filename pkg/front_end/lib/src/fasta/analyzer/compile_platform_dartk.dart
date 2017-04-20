@@ -109,7 +109,8 @@ mainEntryPoint(List<String> arguments) async {
           isStatic: true,
           isConst: true,
           initializer: literal,
-          fileUri: "${new Uri.file(source.fullName)}")..fileOffset = offset);
+          fileUri: "${new Uri.file(source.fullName)}")
+        ..fileOffset = offset);
     }
   }
 

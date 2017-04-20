@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 class A {
-  operator + (String s) => null;
+  operator +(String s) => null;
 
-  operator [] (i) => null;
+  operator [](i) => null;
 
-  operator []= (i, val) {}
+  operator []=(i, val) {}
 }
 
 class B extends A {
-  operator + (String s) => super + ("${s}${s}");
+  operator +(String s) => super + ("${s}${s}");
 
-  operator [] (i) => super[i];
+  operator [](i) => super[i];
 
-  operator []= (i, val) => super[i++] += val;
+  operator []=(i, val) => super[i++] += val;
 }
 
 class Autobianchi {

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A extends Missing {}
+
 class B implements Missing {}
+
 class C = Object with Missing;
 
 class D {

@@ -538,8 +538,8 @@ class ClosureConverter extends Transformer {
 
   VariableDeclaration getReplacementLoopVariable(VariableDeclaration variable) {
     VariableDeclaration newVariable = new VariableDeclaration(variable.name,
-        initializer: variable.initializer,
-        type: variable.type)..flags = variable.flags;
+        initializer: variable.initializer, type: variable.type)
+      ..flags = variable.flags;
     variable.initializer = new VariableGet(newVariable);
     variable.initializer.parent = variable;
     return newVariable;

@@ -7,6 +7,7 @@ main() {
     f(a: "Hello, World");
     f();
   }
+
   local(({a: "Default greeting!"}) {
     print(a);
   });

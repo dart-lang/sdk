@@ -4,28 +4,30 @@
 
 main() {
   var list = [1]
-      ..add(2)
-      ..add(3)
-      ..addAll([4, 5]);
+    ..add(2)
+    ..add(3)
+    ..addAll([4, 5]);
   print(list);
 
   list
-      ..add(2)
-      ..length
-      ..length = 0;
+    ..add(2)
+    ..length
+    ..length = 0;
   print(list);
 
   list
-      ..add(2)
-      ..[0]
-      ..[0] = 87;
+    ..add(2)
+    ..[0]
+    ..[0] = 87;
 
   print(list);
 
-  list = [[1]]
-      ..first.last.toString()
-      ..first[0].toString()
-      ..[0].last.toString();
+  list = [
+    [1]
+  ]
+    ..first.last.toString()
+    ..first[0].toString()
+    ..[0].last.toString();
 
   print(list);
 }

@@ -6,5 +6,6 @@ main() {
   f() {
     print('hello');
   }
+
   f();
 }

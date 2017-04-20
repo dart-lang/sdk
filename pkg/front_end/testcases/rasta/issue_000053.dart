@@ -8,6 +8,7 @@ class C {
     super == null;
   }
 }
+
 main() {
   new C().test();
 }

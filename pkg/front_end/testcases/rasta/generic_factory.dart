@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-class C1 {
-}
+class C1 {}
 
-class C2 {
-}
+class C2 {}
 
-class C3 {
-}
+class C3 {}
 
 class A<T> {
   A.internal();
@@ -20,16 +17,14 @@ class A<T> {
 }
 
 class B<S> extends A<S> {
-  B.internal()
-      : super.internal();
+  B.internal() : super.internal();
 
   factory B.a() = C<S>;
   factory B.b() = C<C2>;
 }
 
 class C<U> extends B<U> {
-  C()
-      : super.internal();
+  C() : super.internal();
 }
 
 main() {

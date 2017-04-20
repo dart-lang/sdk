@@ -34,7 +34,8 @@ class KernelFormalParameterBuilder
     return declaration ??= new VariableDeclaration(name,
         type: type?.build(library) ?? const DynamicType(),
         isFinal: isFinal,
-        isConst: isConst)..fileOffset = charOffset;
+        isConst: isConst)
+      ..fileOffset = charOffset;
   }
 
   VariableDeclaration get target => declaration;
