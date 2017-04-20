@@ -1061,7 +1061,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == constantExpressionRequired);
-    push(astFactory.variableDeclaration(identifier.name,
+    push(astFactory.variableDeclaration(identifier.name, identifier.fileOffset,
         initializer: initializer,
         type: currentLocalVariableType,
         isFinal: isFinal,
@@ -1525,23 +1525,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               thisKeyword.charOffset);
         }
         type = field.target.type ?? const DynamicType();
-        variable = astFactory.variableDeclaration(name.name,
+        variable = astFactory.variableDeclaration(name.name, name.fileOffset,
             type: type,
             initializer: name.initializer,
             isFinal: isFinal,
-            isConst: isConst,
-            charOffset: name.fileOffset);
+            isConst: isConst);
       } else {
         addCompileTimeError(
             name.fileOffset, "'${name.name}' isn't a field in this class.");
       }
     }
-    variable ??= astFactory.variableDeclaration(name.name,
+    variable ??= astFactory.variableDeclaration(name.name, name.fileOffset,
         type: type ?? const DynamicType(),
         initializer: name.initializer,
         isFinal: isFinal,
-        isConst: isConst,
-        charOffset: name.fileOffset);
+        isConst: isConst);
     push(variable);
   }
 
@@ -2000,8 +1998,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
-    VariableDeclaration variable =
-        astFactory.variableDeclaration(name.name, isFinal: true);
+    VariableDeclaration variable = astFactory
+        .variableDeclaration(name.name, name.fileOffset, isFinal: true);
     push(new FunctionDeclaration(
         variable, new FunctionNode(new InvalidStatement()))
       ..fileOffset = beginToken.charOffset);

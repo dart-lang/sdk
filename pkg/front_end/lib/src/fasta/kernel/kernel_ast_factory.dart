@@ -38,10 +38,9 @@ class KernelAstFactory implements AstFactory {
   }
 
   @override
-  KernelVariableDeclaration variableDeclaration(String name,
+  KernelVariableDeclaration variableDeclaration(String name, int charOffset,
       {DartType type,
       Expression initializer,
-      int charOffset = TreeNode.noOffset,
       int equalsCharOffset = TreeNode.noOffset,
       bool isFinal: false,
       bool isConst: false}) {

@@ -61,10 +61,9 @@ abstract class AstFactory {
   ///
   /// If the variable declaration did not have an explicitly declared type,
   /// [type] should be `null`.
-  VariableDeclaration variableDeclaration(String name,
+  VariableDeclaration variableDeclaration(String name, int charOffset,
       {DartType type,
       Expression initializer,
-      int charOffset = TreeNode.noOffset,
       int equalsCharOffset = TreeNode.noOffset,
       bool isFinal: false,
       bool isConst: false});
