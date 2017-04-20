@@ -52,8 +52,8 @@ class PluginWatcher implements DriverWatcher {
   void addedDriver(AnalysisDriver driver, ContextRoot contextRoot) {
     _driverInfo[driver] = new _DriverInfo(
         contextRoot, <String>[contextRoot.root, _getSdkPath(driver)]);
-    driver.results.listen((AnalysisResult result) {
-      List<String> addedPluginPaths = _checkPluginsFor(driver);
+    driver.fsState.knownFilesSetChanges.listen((KnownFilesSetChange change) {
+      List<String> addedPluginPaths = _checkPluginsFor(driver, change);
       for (String pluginPath in addedPluginPaths) {
         manager.addPluginToContextRoot(contextRoot, pluginPath);
       }
@@ -78,9 +78,17 @@ class PluginWatcher implements DriverWatcher {
    * seen that defines a plugin. Return a list of the roots of all such plugins
    * that are found.
    */
-  List<String> _checkPluginsFor(AnalysisDriver driver) {
+  List<String> _checkPluginsFor(
+      AnalysisDriver driver, KnownFilesSetChange change) {
+    _DriverInfo info = _driverInfo[driver];
+    if (info == null) {
+      // The driver must have been removed prior to getting the notification of
+      // newly analyzed files.
+      return const <String>[];
+    }
+    List<String> packageRoots = info.packageRoots;
+    FileSystemState fileSystemState = driver.fsState;
     AbsolutePathContext context = resourceProvider.absolutePathContext;
-    List<String> packageRoots = _driverInfo[driver].packageRoots;
 
     bool isInRoot(String path) {
       for (String root in packageRoots) {
@@ -99,8 +107,8 @@ class PluginWatcher implements DriverWatcher {
     }
 
     List<String> addedPluginPaths = <String>[];
-    for (FileState state in driver.fsState.knownFiles) {
-      String path = state.path;
+    for (String path in change.added) {
+      FileState state = fileSystemState.getFileForPath(path);
       if (!isInRoot(path)) {
         // Found a file not in a previously known package.
         Uri uri = state.uri;

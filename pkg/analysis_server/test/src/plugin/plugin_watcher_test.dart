@@ -66,6 +66,12 @@ class PluginWatcherTest {
             .convertPath('/pkg2/tools/analysis_plugin/bin/plugin.dart'),
         '');
     await driver.computeResult('package:pkg2/pk2.dart');
+    //
+    // Wait until the timer associated with the driver's FileSystemState is
+    // guaranteed to have expired and the list of changed files will have been
+    // delivered.
+    //
+    await new Future.delayed(new Duration(seconds: 1));
     expect(manager.addedContextRoots, hasLength(1));
   }
 
