@@ -185,7 +185,6 @@ getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 if_null_assignment_behavior_test/15: RuntimeError
-implicit_scope_test: Crash
 import_private_test/01: MissingCompileTimeError
 initializing_formal_capture_test: RuntimeError
 initializing_formal_final_test: RuntimeError

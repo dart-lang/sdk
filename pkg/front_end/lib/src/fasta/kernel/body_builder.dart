@@ -234,6 +234,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     var statement = pop();
     if (statement is List) {
       return new Block(new List<Statement>.from(statement));
+    } else if (statement is VariableDeclaration) {
+      return new Block(<Statement>[statement]);
     } else {
       return statement;
     }
