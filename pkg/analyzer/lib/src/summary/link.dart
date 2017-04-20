@@ -1294,8 +1294,11 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
    */
   void link() {
     if (library._linker.strongMode) {
-      new InstanceMemberInferrer(enclosingElement._linker.typeProvider,
-              enclosingElement.inheritanceManager, new Set<FieldElement>())
+      new InstanceMemberInferrer(
+              enclosingElement._linker.typeProvider,
+              (clazz) => (clazz.library as LibraryElementInBuildUnit)
+                  .inheritanceManager,
+              new Set<FieldElement>())
           .inferCompilationUnit(this);
       for (TopLevelVariableElementForLink variable in topLevelVariables) {
         variable.link(this);

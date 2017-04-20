@@ -2667,6 +2667,36 @@ class C implements B<int, String> {
 ''');
   }
 
+  test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
+    String path = _p('/other.dart');
+    provider.newFile(
+        path,
+        r'''
+import 'test.dart';
+class B extends A2 {}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'other.dart';
+class A1 {
+  int _foo() => 1;
+}
+class A2 extends A1 {
+  _foo() => 2;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'other.dart';
+class A1 {
+  int _foo() {}
+}
+class A2 extends A1 {
+  int _foo() {}
+}
+''');
+  }
+
   test_method_OK_single_withExtends_notGeneric() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
