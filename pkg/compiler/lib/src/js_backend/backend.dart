@@ -367,7 +367,6 @@ class JavaScriptBackend {
       new _RuntimeTypesNeedBuilder();
   RuntimeTypesNeed _rtiNeed;
   final _RuntimeTypes _rti;
-  RuntimeTypesChecks _rtiChecks;
 
   RuntimeTypesEncoder _rtiEncoder;
 
@@ -638,14 +637,8 @@ class JavaScriptBackend {
     return _rtiNeedBuilder;
   }
 
-  RuntimeTypesChecks get rtiChecks {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks != null,
-        message: "RuntimeTypesChecks has not been computed yet."));
-    return _rtiChecks;
-  }
-
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks == null,
+    assert(invariant(NO_LOCATION_SPANNABLE, !_rti.rtiChecksBuilderClosed,
         message: "RuntimeTypesChecks has already been computed."));
     return _rti;
   }
@@ -1027,11 +1020,6 @@ class JavaScriptBackend {
   String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
     return jsAst.prettyPrint(generatedCode[element], compiler.options);
-  }
-
-  /// Called to finalize the [RuntimeTypesChecks] information.
-  void finalizeRti() {
-    _rtiChecks = rtiChecksBuilder.computeRequiredChecks();
   }
 
   /// Generates the output and returns the total size of the generated code.

@@ -435,6 +435,8 @@ class _RuntimeTypes extends _RuntimeTypesBase
 
   JavaScriptBackend get backend => compiler.backend;
 
+  bool rtiChecksBuilderClosed = false;
+
   _RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
         checkedTypeArguments = new Set<ResolutionDartType>(),
@@ -487,6 +489,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
     cachedRequiredChecks =
         computeChecks(allInstantiatedArguments, checkedArguments);
+    rtiChecksBuilderClosed = true;
     return new _RuntimeTypesChecks(this, cachedRequiredChecks,
         directlyInstantiatedArguments, checkedArguments);
   }

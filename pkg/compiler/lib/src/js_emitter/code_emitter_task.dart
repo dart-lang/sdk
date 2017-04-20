@@ -148,12 +148,13 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.templateForBuiltin(builtin);
   }
 
-  Set<ClassEntity> _finalizeRti() {
+  void _finalizeRti() {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    typeTestRegistry.computeRequiredTypeChecks();
+    typeTestRegistry.computeRequiredTypeChecks(backend.rtiChecksBuilder);
     // Compute the classes needed by RTI.
-    return typeTestRegistry.computeRtiNeededClasses();
+    typeTestRegistry.computeRtiNeededClasses(backend.rtiSubstitutions,
+        backend.mirrorsData, backend.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
@@ -170,14 +171,13 @@ class CodeEmitterTask extends CompilerTask {
           backend.typeVariableCodegenAnalysis,
           backend.mirrorsData,
           backend.rtiEncoder);
-      typeTestRegistry = new TypeTestRegistry(
-          codegenWorldBuilder, compiler.backend, closedWorld);
+      typeTestRegistry = new TypeTestRegistry(codegenWorldBuilder, closedWorld);
     });
   }
 
   int assembleProgram(Namer namer, ClosedWorld closedWorld) {
     return measure(() {
-      Set<ClassEntity> rtiNeededClasses = _finalizeRti();
+      _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
           compiler.commonElements,
@@ -193,7 +193,7 @@ class CodeEmitterTask extends CompilerTask {
           backend.mirrorsData,
           backend.interceptorData,
           backend.superMemberData,
-          backend.rtiChecks,
+          typeTestRegistry.rtiChecks,
           backend.rtiEncoder,
           backend.rtiSubstitutions,
           backend.jsInteropAnalysis,
@@ -203,7 +203,7 @@ class CodeEmitterTask extends CompilerTask {
           namer,
           this,
           closedWorld,
-          rtiNeededClasses,
+          typeTestRegistry.rtiNeededClasses,
           compiler.mainFunction,
           isMockCompilation: compiler.isMockCompilation);
       int size = emitter.emitProgram(programBuilder);
