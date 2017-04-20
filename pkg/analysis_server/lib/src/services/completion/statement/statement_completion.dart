@@ -43,6 +43,8 @@ class DartStatementCompletion {
       'COMPLETE_FOR_EACH_STMT', "Complete for-each-statement");
   static const COMPLETE_SWITCH_STMT = const StatementCompletionKind(
       'COMPLETE_SWITCH_STMT', "Complete switch-statement");
+  static const COMPLETE_TRY_STMT = const StatementCompletionKind(
+      'COMPLETE_TRY_STMT', "Complete try-statement");
   static const COMPLETE_WHILE_STMT = const StatementCompletionKind(
       'COMPLETE_WHILE_STMT', "Complete while-statement");
 }
@@ -191,6 +193,7 @@ class StatementCompletionProcessor {
         _complete_tryStatement() ||
         _complete_whileStatement() ||
         _complete_simpleSemicolon() ||
+        _complete_controlFlowBlock() ||
         _complete_simpleEnter()) {
       return completion;
     }
@@ -291,6 +294,9 @@ class StatementCompletionProcessor {
           statement.rightParenthesis,
           null);
       sb2 = _complete_keywordCondition(stmt);
+      if (sb2 == null) {
+        return false;
+      }
       if (sb2.length == 0) {
         // true if condition is '()'
         if (exitPosition != null) {
@@ -454,6 +460,9 @@ class StatementCompletionProcessor {
   bool _complete_ifOrWhileStatement(
       _KeywordConditionBlockStructure statement, StatementCompletionKind kind) {
     SourceBuilder sb = _complete_keywordCondition(statement);
+    if (sb == null) {
+      return false;
+    }
     if (statement.block is EmptyStatement) {
       sb.append(' ');
       _appendEmptyBraces(sb, exitPosition == null);
@@ -577,8 +586,90 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_tryStatement() {
-    // TODO(messick) Implement _complete_tryStatement
-    return false;
+    if (errors.isEmpty || node is! TryStatement) {
+      return false;
+    }
+    TryStatement tryNode = node;
+    SourceBuilder sb;
+    CatchClause catchNode;
+    bool addSpace = true;
+    if (tryNode.body.leftBracket.isSynthetic) {
+      String src = utils.getNodeText(tryNode);
+      if (src
+          .substring(tryNode.tryKeyword.end - tryNode.offset)
+          .startsWith(new RegExp(r'[ \t]+'))) {
+        // keywordSpace
+        sb = new SourceBuilder(file, tryNode.tryKeyword.end + 1);
+      } else {
+        // keywordOnly
+        sb = new SourceBuilder(file, tryNode.tryKeyword.end);
+        sb.append(' ');
+      }
+      _appendEmptyBraces(sb, true);
+      _insertBuilder(sb);
+      sb = null;
+    } else if ((catchNode = _firstInvalidCatch(tryNode.catchClauses)) != null) {
+      if (catchNode.onKeyword != null) {
+        if (catchNode.exceptionType.length == 0) {
+          String src = utils.getNodeText(catchNode);
+          if (src.startsWith(new RegExp(r'on[ \t]+'))) {
+            if (src.startsWith(new RegExp(r'on[ \t][ \t]+'))) {
+              // onSpaces
+              exitPosition = new Position(file, catchNode.onKeyword.end + 1);
+              sb = new SourceBuilder(file, catchNode.onKeyword.end + 2);
+              addSpace = false;
+            } else {
+              // onSpace
+              sb = new SourceBuilder(file, catchNode.onKeyword.end + 1);
+              sb.setExitOffset();
+            }
+          } else {
+            // onOnly
+            sb = new SourceBuilder(file, catchNode.onKeyword.end);
+            sb.append(' ');
+            sb.setExitOffset();
+          }
+        } else {
+          // onType
+          sb = new SourceBuilder(file, catchNode.exceptionType.end);
+        }
+      }
+      if (catchNode.catchKeyword != null) {
+        // catchOnly
+        var struct = new _KeywordConditionBlockStructure(
+            catchNode.catchKeyword,
+            catchNode.leftParenthesis,
+            catchNode.exceptionParameter,
+            catchNode.rightParenthesis,
+            catchNode.body);
+        if (sb != null) {
+          // onCatch
+          _insertBuilder(sb);
+        }
+        sb = _complete_keywordCondition(struct);
+        if (sb == null) {
+          return false;
+        }
+      }
+      if (catchNode.body.leftBracket.isSynthetic) {
+        // onOnly and others
+        if (addSpace) {
+          sb.append(' ');
+        }
+        _appendEmptyBraces(sb, exitPosition == null);
+      }
+      _insertBuilder(sb);
+    } else if (tryNode.finallyKeyword != null) {
+      if (tryNode.finallyBlock.leftBracket.isSynthetic) {
+        // finallyOnly
+        sb = new SourceBuilder(file, tryNode.finallyKeyword.end);
+        sb.append(' ');
+        _appendEmptyBraces(sb, true);
+        _insertBuilder(sb);
+      }
+    }
+    _setCompletion(DartStatementCompletion.COMPLETE_TRY_STMT);
+    return true;
   }
 
   bool _complete_whileStatement() {
@@ -609,6 +700,21 @@ class StatementCompletionProcessor {
       return error;
     }
     return null;
+  }
+
+  CatchClause _firstInvalidCatch(NodeList<CatchClause> list) {
+    return list.firstWhere((e) {
+      bool found = false;
+      for (var error in errors) {
+        if (error.offset >= e.offset && error.offset <= e.end) {
+          if (error.errorCode is! HintCode) {
+            found = true;
+            break;
+          }
+        }
+      }
+      return found;
+    }, orElse: () => null);
   }
 
   LinkedEditGroup _getLinkedPosition(String groupId) {

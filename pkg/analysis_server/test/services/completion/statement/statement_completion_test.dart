@@ -20,6 +20,7 @@ main() {
     defineReflectiveTests(_IfCompletionTest);
     defineReflectiveTests(_SimpleCompletionTest);
     defineReflectiveTests(_SwitchCompletionTest);
+    defineReflectiveTests(_TryCompletionTest);
     defineReflectiveTests(_WhileCompletionTest);
   });
 }
@@ -657,6 +658,215 @@ main() {
 }
 ''',
         (s) => _after(s, 'switch ('));
+  }
+}
+
+@reflectiveTest
+class _TryCompletionTest extends StatementCompletionTest {
+  test_catchOnly() async {
+    await _prepareCompletion(
+        'catch',
+        '''
+main() {
+  try {
+  } catch(e){} catch ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } catch(e){} catch () {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'catch ('));
+  }
+
+  test_finallyOnly() async {
+    await _prepareCompletion(
+        'finally',
+        '''
+main() {
+  try {
+  } finally
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } finally {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
+  test_keywordOnly() async {
+    await _prepareCompletion(
+        'try',
+        '''
+main() {
+  try////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
+  test_keywordSpace() async {
+    await _prepareCompletion(
+        'try',
+        '''
+main() {
+  try ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
+  }
+
+  test_onCatch() async {
+    await _prepareCompletion(
+        'on',
+        '''
+main() {
+  try {
+  } on catch
+}
+''',
+        atEnd: true);
+    // It would be better to expect the cursor to follow the on-keyword but
+    // the parser thinks the exception type is 'catch' so it's kinda broken.
+    // See https://github.com/dart-lang/sdk/issues/29410
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } on catch () {
+    ////
+  }
+}
+''',
+        (s) => _after(s, 'catch ('));
+  }
+
+  test_onOnly() async {
+    await _prepareCompletion(
+        'on',
+        '''
+main() {
+  try {
+  } on
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } on  {
+    ////
+  }
+}
+''',
+        (s) => _after(s, ' on '));
+  }
+
+  test_onSpace() async {
+    await _prepareCompletion(
+        'on',
+        '''
+main() {
+  try {
+  } on ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } on  {
+    ////
+  }
+}
+''',
+        (s) => _after(s, ' on '));
+  }
+
+  test_onSpaces() async {
+    await _prepareCompletion(
+        'on',
+        '''
+main() {
+  try {
+  } on  ////
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } on  {
+    ////
+  }
+}
+''',
+        (s) => _after(s, ' on '));
+  }
+
+  test_onType() async {
+    await _prepareCompletion(
+        'on',
+        '''
+main() {
+  try {
+  } on Exception
+}
+''',
+        atEnd: true);
+    _assertHasChange(
+        'Complete try-statement',
+        '''
+main() {
+  try {
+  } on Exception {
+    ////
+  }
+}
+''',
+        (s) => _after(s, '    '));
   }
 }
 
