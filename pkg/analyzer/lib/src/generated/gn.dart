@@ -39,9 +39,9 @@ class GnWorkspace extends Workspace {
   final String root;
 
   /**
-   * The path to the .packages file.
+   * The paths to the .packages files.
    */
-  String _packagesFilePath;
+  final List<String> _packagesFilePaths;
 
   /**
    * The map of package locations indexed by package name.
@@ -57,7 +57,7 @@ class GnWorkspace extends Workspace {
    */
   Packages _packages;
 
-  GnWorkspace._(this.provider, this.root, this._packagesFilePath);
+  GnWorkspace._(this.provider, this.root, this._packagesFilePaths);
 
   @override
   Map<String, List<Folder>> get packageMap =>
@@ -83,9 +83,14 @@ class GnWorkspace extends Workspace {
    * Loads the packages from the .packages file.
    */
   Packages _createPackages() {
-    File configFile = provider.getFile(_packagesFilePath);
-    List<int> bytes = configFile.readAsBytesSync();
-    Map<String, Uri> map = parse(bytes, configFile.toUri());
+    Map<String, Uri> map = _packagesFilePaths.map((String path) {
+      File configFile = provider.getFile(path);
+      List<int> bytes = configFile.readAsBytesSync();
+      return parse(bytes, configFile.toUri());
+    }).reduce((mapOne, mapTwo) {
+      mapOne.addAll(mapTwo);
+      return mapOne;
+    });
     _resolveSymbolicLinks(map);
     return new MapPackages(map);
   }
@@ -148,22 +153,21 @@ class GnWorkspace extends Workspace {
   }
 
   /**
-   * For a source at `$root/foo/bar`, the packages file is generated in
+   * For a source at `$root/foo/bar`, the packages files are generated in
    * `$root/out/<debug|release>-XYZ/[hostABC/]gen/foo/bar`.
    *
    * Note that in some cases multiple .packages files can be found at that
    * location, for example if the package contains both a library and a binary
-   * target. In that case, the .packages files are almost equivalent as the
-   * binary will depend on the library itself.
+   * target.
    */
-  static String _findPackagesFile(
+  static List<String> _findPackagesFile(
       ResourceProvider provider, String root, String path,
       {forHost: false}) {
     Context pathContext = provider.pathContext;
     String sourceDirectory = pathContext.relative(path, from: root);
     Folder outDirectory = provider.getFolder(pathContext.join(root, 'out'));
     if (!outDirectory.exists) {
-      return null;
+      return const <String>[];
     }
     outDirectory = outDirectory
         .getChildren()
@@ -175,7 +179,7 @@ class GnWorkspace extends Workspace {
       return baseName.startsWith('debug') || baseName.startsWith('release');
     }, orElse: () => null);
     if (outDirectory == null) {
-      return null;
+      return const <String>[];
     }
     if (forHost) {
       outDirectory = outDirectory
@@ -188,32 +192,26 @@ class GnWorkspace extends Workspace {
               orElse: () => null);
     }
     if (outDirectory == null) {
-      return null;
+      return const <String>[];
     }
     Folder genDir = outDirectory
         .getChildAssumingFolder(pathContext.join('gen', sourceDirectory));
     if (!genDir.exists) {
-      return null;
+      return const <String>[];
     }
     return genDir
         .getChildren()
         .where((resource) => resource is File)
         .map((resource) => resource as File)
-        .firstWhere(
-            // Note: there might be multiple .packages in that location, but
-            // they will have near identical contents, with the delta unlikely
-            // to affect analysis.
-            // TODO(pylaligand): consider using the union of these files.
-            (File file) => pathContext.extension(file.path) == '.packages',
-            orElse: () => null)
-        ?.path;
+        .where((File file) => pathContext.extension(file.path) == '.packages')
+        .map((File file) => file.path)
+        .toList();
   }
 
   /**
-   * Find the Gn workspace that contains the given [path].
+   * Find the GN workspace that contains the given [path].
    *
-   * Return `null` if a workspace markers, such as the `.jiri_root` directory
-   * cannot be found.
+   * Return `null` if a workspace could not be found.
    */
   static GnWorkspace find(ResourceProvider provider, String path) {
     Context context = provider.pathContext;
@@ -234,13 +232,16 @@ class GnWorkspace extends Workspace {
       // Found the .jiri_root file, must be a non-git workspace.
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
         String root = folder.path;
-        String packagesFile =
+        List<String> packagesFiles =
             _findPackagesFile(provider, root, path, forHost: false);
-        packagesFile ??= _findPackagesFile(provider, root, path, forHost: true);
-        if (packagesFile == null) {
+        if (packagesFiles.isEmpty) {
+          packagesFiles =
+              _findPackagesFile(provider, root, path, forHost: true);
+        }
+        if (packagesFiles.isEmpty) {
           return null;
         }
-        return new GnWorkspace._(provider, path, packagesFile);
+        return new GnWorkspace._(provider, path, packagesFiles);
       }
 
       // Go up the folder.
