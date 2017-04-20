@@ -10,8 +10,9 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as path;
 
-final String testDirectory =
-    path.dirname((reflectClass(_TestUtils).owner as LibraryMirror).uri.path);
+final String testingPath =
+    path.fromUri((reflectClass(_TestUtils).owner as LibraryMirror).uri);
+final String testDirectory = path.dirname(testingPath);
 
 /// The local path to the root directory of the dev_compiler repo.
 final String repoDirectory = path.dirname(testDirectory);

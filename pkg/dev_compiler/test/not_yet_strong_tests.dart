@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:path/path.dart' as path;
 
 /// The set of tests that are not yet strong mode safe.
 final notYetStrongTests = new HashSet<String>.from([
@@ -2437,4 +2438,4 @@ final notYetStrongTests = new HashSet<String>.from([
   // TODO(jmesserly): these are both under "dart:html" as well.
   'js_test',
   'js_util_test'
-]);
+].map((p) => p.replaceAll('/', path.separator)));

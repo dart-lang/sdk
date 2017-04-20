@@ -33,7 +33,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart'
     show isDynamicInvoke, setIsDynamicInvoke, getImplicitAssignmentCast;
-import 'package:path/path.dart' show separator;
+import 'package:path/path.dart' show relative, separator;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../js_ast/js_ast.dart' as JS;
@@ -6017,16 +6017,17 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     return uri.path;
   }
   // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
-  var separator = '__';
+  var encodedSeparator = '__';
   String qualifiedPath;
   if (uri.scheme == 'package') {
     // Strip the package name.
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
-    qualifiedPath = uri.pathSegments.skip(1).join(separator);
+    qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
   } else if (uri.toFilePath().startsWith(libraryRoot)) {
-    qualifiedPath =
-        uri.path.substring(libraryRoot.length).replaceAll('/', separator);
+    qualifiedPath = uri.path
+        .substring(libraryRoot.length)
+        .replaceAll(separator, encodedSeparator);
   } else {
     // We don't have a unique name.
     throw 'Invalid library root. $libraryRoot does not contain ${uri
@@ -6041,12 +6042,13 @@ String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
   // For package: and dart: uris show the entire
   if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
 
-  if (!uri.toFilePath().startsWith(libraryRoot)) {
+  var filePath = uri.toFilePath();
+  if (!filePath.startsWith(libraryRoot)) {
     throw 'Invalid library root. $libraryRoot does not contain ${uri
         .toFilePath()}';
   }
   // Relative path to the library.
-  return uri.path.substring(libraryRoot.length);
+  return relative(filePath, from: libraryRoot);
 }
 
 String jsDebuggingLibraryName(String libraryRoot, LibraryElement library) {

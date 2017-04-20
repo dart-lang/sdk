@@ -66,7 +66,9 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
   void exitNode(JS.Node jsNode) {
     AstNode node = jsNode.sourceInformation;
-    if (unit == null || node == null || node.offset == -1) return;
+    if (unit == null || node == null || node.offset == -1 || node.isSynthetic) {
+      return;
+    }
 
     // TODO(jmesserly): in many cases marking the end will be unnecessary.
     // Skip MethodDeclarations - in the case of a one line function it finds the
@@ -95,9 +97,13 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     if (next.lineNumber == loc.lineNumber + 1) {
       loc = next;
     }
+    var sourceUrl =
+        sourcePath.startsWith('dart:') || sourcePath.startsWith('package:')
+            ? sourcePath
+            : new Uri.file(sourcePath);
     sourceMap.addLocation(
         new SourceLocation(offset,
-            sourceUrl: sourcePath,
+            sourceUrl: sourceUrl,
             line: loc.lineNumber - 1,
             column: loc.columnNumber - 1),
         new SourceLocation(buffer.length, line: _line, column: _column),
