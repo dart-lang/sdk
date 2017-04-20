@@ -6,7 +6,6 @@ library analyzer.test.generated.gn_test;
 
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/gn.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
