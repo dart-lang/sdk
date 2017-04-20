@@ -171,8 +171,8 @@ typedef _Predicate _PredicateBuilder(VariableDeclaration v);
 typedef void _VisitVariableDeclaration(VariableDeclaration node);
 
 abstract class LeakDetectorVisitor extends SimpleAstVisitor {
-  static List<_PredicateBuilder> _variablePredicateBuilders = [_hasReturn];
-  static List<_PredicateBuilder> _fieldPredicateBuilders = [
+  static final _variablePredicateBuilders = <_PredicateBuilder>[_hasReturn];
+  static final _fieldPredicateBuilders = <_PredicateBuilder>[
     _hasConstructorFieldInitializers,
     _hasFieldFormalParameter
   ];
