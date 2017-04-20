@@ -9,7 +9,11 @@ import 'package:kernel/ast.dart'
 
 import '../errors.dart' show internalError;
 
-import '../kernel/kernel_builder.dart' show Builder, MemberBuilder;
+import '../kernel/kernel_builder.dart'
+    show
+        Builder,
+        MemberBuilder,
+        isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, staticMask;
@@ -44,6 +48,11 @@ class DillMemberBuilder extends MemberBuilder {
   bool get isOperator => identical(ProcedureKind.Operator, kind);
 
   bool get isFactory => identical(ProcedureKind.Factory, kind);
+
+  bool get isRedirectingGenerativeConstructor {
+    return isConstructor &&
+        isRedirectingGenerativeConstructorImplementation(member);
+  }
 }
 
 int computeModifiers(Member member) {

@@ -289,14 +289,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return true;
   }
 
-  void buildBuilder(Builder builder);
+  void buildBuilder(Builder builder, LibraryBuilder coreLibrary);
 
-  R build() {
+  R build(LibraryBuilder coreLibrary) {
     assert(implementationBuilders.isEmpty);
     canAddImplementationBuilders = true;
     forEach((String name, Builder builder) {
       do {
-        buildBuilder(builder);
+        buildBuilder(builder, coreLibrary);
         builder = builder.next;
       } while (builder != null);
     });
@@ -305,7 +305,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       Builder builder = list[1];
       int charOffset = list[2];
       addBuilder(name, builder, charOffset);
-      buildBuilder(builder);
+      buildBuilder(builder, coreLibrary);
     }
     canAddImplementationBuilders = false;
 

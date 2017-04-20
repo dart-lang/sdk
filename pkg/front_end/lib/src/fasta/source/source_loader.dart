@@ -343,7 +343,7 @@ class SourceLoader<L> extends Loader<L> {
   void buildProgram() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        libraries.add(library.build());
+        libraries.add(library.build(coreLibrary));
       }
     });
     ticker.logMs("Built program");

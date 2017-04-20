@@ -88,6 +88,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   final TypeInferrer<Statement, Expression, KernelVariableDeclaration, Field>
       _typeInferrer;
 
+  /// Only used when [member] is a constructor. It tracks if an implicit super
+  /// initializer is needed.
+  ///
+  /// An implicit super initializer isn't needed
+  ///
+  /// 1. if the current class is Object,
+  /// 2. if there is an explicit super initializer,
+  /// 3. if there is a redirecting (this) initializer, or
+  /// 4. if a compile-time error prevented us from generating code for an
+  ///    initializer. This avoids cascading errors.
+  bool needsImplicitSuperInitializer;
+
   Scope formalParameterScope;
 
   bool inInitializer = false;
@@ -128,6 +140,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       : enclosingScope = scope,
         library = library,
         isDartLibrary = library.uri.scheme == "dart",
+        needsImplicitSuperInitializer =
+            coreTypes.objectClass != classBuilder?.cls,
         super(scope);
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
@@ -395,13 +409,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (node is FastaAccessor) {
       initializer = node.buildFieldInitializer(fieldInitializers);
     } else if (node is ConstructorInvocation) {
-      initializer = new SuperInitializer(node.target, node.arguments);
+      initializer =
+          buildSuperInitializer(node.target, node.arguments, token.charOffset);
     } else {
       if (node is! Throw) {
+        // TODO(ahe): This is probably an internal error.
+        needsImplicitSuperInitializer = false;
         node = wrapInvalid(node);
       }
-      initializer =
-          new LocalInitializer(new VariableDeclaration.forValue(node));
+      initializer = buildInvalidIntializer(node, token.charOffset);
     }
     if (member is KernelConstructorBuilder) {
       member.addInitializer(initializer);
@@ -425,19 +441,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void finishFunction(
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
-    KernelFunctionBuilder builder = member;
-    if (builder is KernelConstructorBuilder) {
-      if (asyncModifier != AsyncMarker.Sync) {
-        // TODO(ahe): Change this to a null check.
-        addCompileTimeError(body?.fileOffset,
-            "Can't be marked as ${asyncModifier}: ${builder.name}");
-      }
-    } else if (builder is KernelProcedureBuilder) {
-      builder.asyncModifier = asyncModifier;
-    } else {
-      internalError("Unhandled: ${builder.runtimeType}");
-    }
     _typeInferrer.inferBody(body, uri);
+    KernelFunctionBuilder builder = member;
     builder.body = body;
     if (formals?.optional != null) {
       Iterator<FormalParameterBuilder> formalBuilders =
@@ -449,6 +454,61 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         Expression initializer = parameter.initializer ?? new NullLiteral();
         realParameter.initializer = initializer..parent = realParameter;
       }
+    }
+    if (builder is KernelConstructorBuilder) {
+      finishConstructor(builder, asyncModifier);
+    } else if (builder is KernelProcedureBuilder) {
+      builder.asyncModifier = asyncModifier;
+    } else {
+      internalError("Unhandled: ${builder.runtimeType}");
+    }
+  }
+
+  void finishConstructor(
+      KernelConstructorBuilder builder, AsyncMarker asyncModifier) {
+    /// Quotes below are from [Dart Programming Language Specification, 4th
+    /// Edition](
+    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
+    assert(builder == member);
+    Constructor constructor = builder.constructor;
+    if (asyncModifier != AsyncMarker.Sync) {
+      // TODO(ahe): Change this to a null check.
+      int offset = builder.body?.fileOffset ?? builder.charOffset;
+      constructor.initializers.add(buildInvalidIntializer(
+          buildCompileTimeError(
+              "A constructor can't be '${asyncModifier}'.", offset),
+          offset));
+    }
+    if (needsImplicitSuperInitializer) {
+      /// >If no superinitializer is provided, an implicit superinitializer
+      /// >of the form super() is added at the end of k’s initializer list,
+      /// >unless the enclosing class is class Object.
+      Constructor superTarget = lookupConstructor(emptyName, isSuper: true);
+      Initializer initializer;
+      Arguments arguments = new Arguments.empty();
+      if (superTarget == null ||
+          !checkArguments(
+              superTarget.function, arguments, const <TypeParameter>[])) {
+        String superclass = classBuilder.supertype.fullNameForErrors;
+        String message = superTarget == null
+            ? "'$superclass' doesn't have an unnamed constructor."
+            : "The unnamed constructor in '$superclass' requires arguments.";
+        initializer = buildInvalidIntializer(
+            buildCompileTimeError(message, builder.charOffset),
+            builder.charOffset);
+      } else {
+        initializer =
+            buildSuperInitializer(superTarget, arguments, builder.charOffset);
+      }
+      constructor.initializers.add(initializer);
+    }
+    setParents(constructor.initializers, constructor);
+    if (constructor.function.body == null) {
+      /// >If a generative constructor c is not a redirecting constructor
+      /// >and no body is provided, then c implicitly has an empty body {}.
+      /// We use an empty statement instead.
+      constructor.function.body = new EmptyStatement();
+      constructor.function.body.parent = constructor.function;
     }
   }
 
@@ -1742,6 +1802,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  @override
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters) {
     if (arguments.positional.length < function.requiredParameterCount ||
@@ -2440,9 +2501,29 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Initializer buildCompileTimeErrorIntializer(error, [int charOffset = -1]) {
-    return new LocalInitializer(new VariableDeclaration.forValue(
-        buildCompileTimeError(error, charOffset)));
+  Initializer buildInvalidIntializer(Expression expression,
+      [int charOffset = -1]) {
+    needsImplicitSuperInitializer = false;
+    return new LocalInitializer(new VariableDeclaration.forValue(expression))
+      ..fileOffset = charOffset;
+  }
+
+  @override
+  Initializer buildSuperInitializer(
+      Constructor constructor, Arguments arguments,
+      [int charOffset = -1]) {
+    needsImplicitSuperInitializer = false;
+    return new SuperInitializer(constructor, arguments)
+      ..fileOffset = charOffset;
+  }
+
+  @override
+  Initializer buildRedirectingInitializer(
+      Constructor constructor, Arguments arguments,
+      [int charOffset = -1]) {
+    needsImplicitSuperInitializer = false;
+    return new RedirectingInitializer(constructor, arguments)
+      ..fileOffset = charOffset;
   }
 
   @override

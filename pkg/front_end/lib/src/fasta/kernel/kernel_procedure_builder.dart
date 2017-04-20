@@ -55,6 +55,7 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         ProcedureBuilder,
         TypeVariableBuilder,
+        isRedirectingGenerativeConstructorImplementation,
         memberError;
 
 abstract class KernelFunctionBuilder
@@ -247,6 +248,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
 // TODO(ahe): Move this to own file?
 class KernelConstructorBuilder extends KernelFunctionBuilder {
   final Constructor constructor;
+
   final int charOpenParenOffset;
 
   bool hasMovedSuperInitializer = false;
@@ -280,6 +282,10 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   AsyncMarker get asyncModifier => AsyncMarker.Sync;
 
   ProcedureKind get kind => null;
+
+  bool get isRedirectingGenerativeConstructor {
+    return isRedirectingGenerativeConstructorImplementation(constructor);
+  }
 
   Constructor build(LibraryBuilder library) {
     if (constructor.name == null) {

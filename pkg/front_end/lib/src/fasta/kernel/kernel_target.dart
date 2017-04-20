@@ -30,7 +30,6 @@ import 'package:kernel/ast.dart'
         NullLiteral,
         ProcedureKind,
         Program,
-        RedirectingInitializer,
         Source,
         StringLiteral,
         SuperInitializer,
@@ -83,6 +82,7 @@ import 'kernel_builder.dart'
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         LibraryBuilder,
+        MemberBuilder,
         MixinApplicationBuilder,
         NamedMixinApplicationBuilder,
         NamedTypeBuilder,
@@ -358,7 +358,7 @@ class KernelTarget extends TargetImplementation {
       mainBuilder.body = new ExpressionStatement(
           new Throw(new StringLiteral("${errors.join('\n')}")));
     }
-    library.build();
+    library.build(loader.coreLibrary);
     return link(<Library>[library.library]);
   }
 
@@ -565,7 +565,7 @@ class KernelTarget extends TargetImplementation {
     for (SourceClassBuilder builder in collectAllSourceClasses()) {
       Class cls = builder.target;
       if (cls != objectClass) {
-        finishConstructors(cls);
+        finishConstructors(builder);
       }
     }
     ticker.logMs("Finished constructors");
@@ -573,10 +573,11 @@ class KernelTarget extends TargetImplementation {
 
   /// Ensure constructors of [cls] have the correct initializers and other
   /// requirements.
-  void finishConstructors(Class cls) {
+  void finishConstructors(SourceClassBuilder builder) {
+    Class cls = builder.target;
+
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    Constructor superTarget;
     List<Field> uninitializedFields = <Field>[];
     List<Field> nonFinalFields = <Field>[];
     for (Field field in cls.fields) {
@@ -589,12 +590,16 @@ class KernelTarget extends TargetImplementation {
     }
     Map<Constructor, List<FieldInitializer>> fieldInitializers =
         <Constructor, List<FieldInitializer>>{};
-    for (Constructor constructor in cls.constructors) {
-      if (!isRedirectingGenerativeConstructor(constructor)) {
+    Constructor superTarget;
+    builder.constructors.forEach((String name, Builder member) {
+      if (member.isFactory) return;
+      MemberBuilder constructorBuilder = member;
+      Constructor constructor = constructorBuilder.target;
+      if (!constructorBuilder.isRedirectingGenerativeConstructor) {
         /// >If no superinitializer is provided, an implicit superinitializer
         /// >of the form super() is added at the end of k’s initializer list,
         /// >unless the enclosing class is class Object.
-        if (!constructor.initializers.any(isSuperinitializerOrInvalid)) {
+        if (constructor.initializers.isEmpty) {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
@@ -635,7 +640,7 @@ class KernelTarget extends TargetImplementation {
           nonFinalFields.clear();
         }
       }
-    }
+    });
     Set<Field> initializedFields;
     fieldInitializers.forEach(
         (Constructor constructor, List<FieldInitializer> initializers) {
@@ -697,16 +702,6 @@ class KernelTarget extends TargetImplementation {
     errors.addAll(verifyProgram(program));
     ticker.logMs("Verified program");
   }
-}
-
-bool isSuperinitializerOrInvalid(Initializer initializer) {
-  return initializer is SuperInitializer || initializer is InvalidInitializer;
-}
-
-bool isRedirectingGenerativeConstructor(Constructor constructor) {
-  List<Initializer> initializers = constructor.initializers;
-  return initializers.length == 1 &&
-      initializers.single is RedirectingInitializer;
 }
 
 /// Looks for a constructor call that matches `super()` from a constructor in

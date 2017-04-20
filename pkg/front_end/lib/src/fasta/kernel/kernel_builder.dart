@@ -48,12 +48,15 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:kernel/ast.dart'
     show
         Class,
+        Constructor,
         DartType,
         DynamicType,
         Field,
+        Initializer,
         Library,
         Member,
         Procedure,
+        RedirectingInitializer,
         TypeParameter;
 
 import '../errors.dart' show inputError;
@@ -111,4 +114,10 @@ int compareProcedures(Procedure a, Procedure b) {
   int i = a.fileUri.compareTo(b.fileUri);
   if (i != 0) return i;
   return a.fileOffset.compareTo(b.fileOffset);
+}
+
+bool isRedirectingGenerativeConstructorImplementation(Constructor constructor) {
+  List<Initializer> initializers = constructor.initializers;
+  return initializers.length == 1 &&
+      initializers.single is RedirectingInitializer;
 }

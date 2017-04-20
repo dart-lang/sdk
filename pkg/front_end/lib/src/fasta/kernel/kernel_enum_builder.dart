@@ -25,6 +25,7 @@ import 'package:kernel/ast.dart'
         ReturnStatement,
         StaticGet,
         StringLiteral,
+        SuperInitializer,
         ThisExpression,
         VariableGet;
 
@@ -41,6 +42,7 @@ import 'kernel_builder.dart'
         Builder,
         EnumBuilder,
         FormalParameterBuilder,
+        KernelClassBuilder,
         KernelConstructorBuilder,
         KernelFieldBuilder,
         KernelFormalParameterBuilder,
@@ -59,9 +61,13 @@ class KernelEnumBuilder extends SourceClassBuilder
 
   final MapLiteral toStringMap;
 
-  final KernelTypeBuilder intType;
+  final KernelNamedTypeBuilder intType;
 
-  final KernelTypeBuilder stringType;
+  final KernelNamedTypeBuilder stringType;
+
+  final KernelNamedTypeBuilder objectType;
+
+  final KernelNamedTypeBuilder listType;
 
   KernelEnumBuilder.internal(
       List<MetadataBuilder> metadata,
@@ -72,6 +78,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.constantNamesAndOffsets,
       this.toStringMap,
       this.intType,
+      this.listType,
+      this.objectType,
       this.stringType,
       LibraryBuilder parent,
       int charOffset)
@@ -88,17 +96,19 @@ class KernelEnumBuilder extends SourceClassBuilder
     constantNamesAndOffsets ??= const <Object>[];
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    KernelTypeBuilder intType = parent.addType(
-        new KernelNamedTypeBuilder("int", null, charOffset, parent.fileUri));
-    KernelTypeBuilder stringType = parent.addType(
-        new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri));
+    KernelTypeBuilder intType =
+        new KernelNamedTypeBuilder("int", null, charOffset, parent.fileUri);
+    KernelTypeBuilder stringType =
+        new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri);
+    KernelNamedTypeBuilder objectType =
+        new KernelNamedTypeBuilder("Object", null, charOffset, parent.fileUri);
     Class cls = new Class(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     KernelNamedTypeBuilder selfType =
         new KernelNamedTypeBuilder(name, null, charOffset, parent.fileUri);
-    KernelTypeBuilder listType = parent.addType(new KernelNamedTypeBuilder(
-        "List", <KernelTypeBuilder>[selfType], charOffset, parent.fileUri));
+    KernelTypeBuilder listType = new KernelNamedTypeBuilder(
+        "List", <KernelTypeBuilder>[selfType], charOffset, parent.fileUri);
 
     /// From Dart Programming Language Specification 4th Edition/December 2015:
     ///     metadata class E {
@@ -171,6 +181,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         constantNamesAndOffsets,
         toStringMap,
         intType,
+        listType,
+        objectType,
         stringType,
         parent,
         charOffset);
@@ -182,7 +194,7 @@ class KernelEnumBuilder extends SourceClassBuilder
 
     members.forEach(setParent);
     constructors.forEach(setParent);
-    selfType.builder = enumBuilder;
+    selfType.bind(enumBuilder);
     return enumBuilder;
   }
 
@@ -193,11 +205,16 @@ class KernelEnumBuilder extends SourceClassBuilder
     return cls.rawType;
   }
 
-  Class build(KernelLibraryBuilder libraryBuilder) {
+  @override
+  Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     if (constantNamesAndOffsets.isEmpty) {
       libraryBuilder.addCompileTimeError(
           -1, "An enum declaration can't be empty.");
     }
+    intType.resolveIn(coreLibrary.scope);
+    stringType.resolveIn(coreLibrary.scope);
+    objectType.resolveIn(coreLibrary.scope);
+    listType.resolveIn(coreLibrary.scope);
     toStringMap.keyType = intType.build(libraryBuilder);
     toStringMap.valueType = stringType.build(libraryBuilder);
     KernelFieldBuilder indexFieldBuilder = this["index"];
@@ -226,6 +243,20 @@ class KernelEnumBuilder extends SourceClassBuilder
         new FieldInitializer(indexField,
             new VariableGet(constructor.function.positionalParameters.single))
           ..parent = constructor);
+    KernelClassBuilder objectClass = objectType.builder;
+    MemberBuilder superConstructor =
+        objectClass.findConstructorOrFactory("", charOffset, fileUri);
+    if (superConstructor == null || !superConstructor.isConstructor) {
+      // TODO(ahe): Ideally, we would also want to check that [Object]'s
+      // unnamed constructor requires no arguments. But that information isn't
+      // always available at this point, and it's not really a situation that
+      // can happen unless you start modifying the SDK sources.
+      addCompileTimeError(-1, "'Object' has no unnamed constructor.");
+    } else {
+      constructor.initializers.add(
+          new SuperInitializer(superConstructor.target, new Arguments.empty())
+            ..parent = constructor);
+    }
     int index = 0;
     for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
       String constant = constantNamesAndOffsets[i];
@@ -236,7 +267,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       field.initializer =
           new ConstructorInvocation(constructor, arguments, isConst: true);
     }
-    return super.build(libraryBuilder);
+    return super.build(libraryBuilder, coreLibrary);
   }
 
   @override

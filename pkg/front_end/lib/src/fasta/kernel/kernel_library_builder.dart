@@ -44,6 +44,7 @@ import 'kernel_builder.dart'
         KernelProcedureBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
+        LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
         NamedMixinApplicationBuilder,
@@ -340,9 +341,10 @@ class KernelLibraryBuilder
     return builder;
   }
 
-  void buildBuilder(Builder builder) {
+  @override
+  void buildBuilder(Builder builder, LibraryBuilder coreLibrary) {
     if (builder is SourceClassBuilder) {
-      Class cls = builder.build(this);
+      Class cls = builder.build(this, coreLibrary);
       library.addClass(cls);
     } else if (builder is KernelFieldBuilder) {
       library.addMember(builder.build(this)..isStatic = true);
@@ -352,7 +354,7 @@ class KernelLibraryBuilder
       // Kernel discard typedefs and use their corresponding function types
       // directly.
     } else if (builder is KernelEnumBuilder) {
-      library.addClass(builder.build(this));
+      library.addClass(builder.build(this, coreLibrary));
     } else if (builder is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
     } else if (builder is BuiltinTypeBuilder) {
@@ -362,8 +364,9 @@ class KernelLibraryBuilder
     }
   }
 
-  Library build() {
-    super.build();
+  @override
+  Library build(LibraryBuilder coreLibrary) {
+    super.build(coreLibrary);
     library.name = name;
     library.procedures.sort(compareProcedures);
     return library;

@@ -76,7 +76,7 @@ class SourceClassBuilder extends KernelClassBuilder {
     return count + super.resolveTypes(library);
   }
 
-  Class build(KernelLibraryBuilder library) {
+  Class build(KernelLibraryBuilder library, LibraryBuilder coreLibrary) {
     void buildBuilders(String name, Builder builder) {
       do {
         if (builder is KernelFieldBuilder) {

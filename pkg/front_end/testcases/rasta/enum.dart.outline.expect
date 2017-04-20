@@ -8,7 +8,7 @@ class Foo extends core::Object {
   static const field self::Foo ec1 = const self::Foo::•(0);
   static const field self::Foo ec2 = const self::Foo::•(1);
   const constructor •(core::int index) → void
-    : self::Foo::index = index
+    : self::Foo::index = index, super core::Object::•()
     ;
   method toString() → core::String
     return const <core::int, core::String>{0: "Foo.ec1", 1: "Foo.ec2"}.[](this.{=self::Foo::index});
