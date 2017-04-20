@@ -75,48 +75,50 @@ class Environment {
 }
 
 /// Evaluate expressions.
-class Evaluator extends ExpressionVisitor1<Configuration> {
+class Evaluator extends ExpressionVisitor1<Configuration, ExpressionState> {
   Configuration eval(Expression expr, ExpressionState state) =>
       expr.accept1(this, state);
 
-  Configuration defaultExpression(Expression node, state) {
+  Configuration defaultExpression(Expression node, ExpressionState state) {
     throw new NotImplemented('Evaluation for expressions of type '
         '${node.runtimeType} is not implemented.');
   }
 
-  Configuration visitInvalidExpression1(InvalidExpression node, state) {
+  Configuration visitInvalidExpression1(
+      InvalidExpression node, ExpressionState state) {
     throw 'Invalid expression at ${node.location.toString()}';
   }
 
-  Configuration visitVariableGet(VariableGet node, state) {
+  Configuration visitVariableGet(VariableGet node, ExpressionState state) {
     Value value = state.environment.lookup(node.variable);
     return new ContinuationConfiguration(state.continuation, value);
   }
 
-  Configuration visitVariableSet(VariableSet node, state) {
+  Configuration visitVariableSet(VariableSet node, ExpressionState state) {
     var cont = new VariableSetContinuation(state, node.variable);
     return new ExpressionConfiguration(
         node.value, state.withContinuation(cont));
   }
 
-  Configuration visitPropertyGet(PropertyGet node, state) {
+  Configuration visitPropertyGet(PropertyGet node, ExpressionState state) {
     var cont = new PropertyGetContinuation(node.name, state);
     return new ExpressionConfiguration(
         node.receiver, state.withContinuation(cont));
   }
 
-  Configuration visitPropertySet(PropertySet node, state) {
+  Configuration visitPropertySet(PropertySet node, ExpressionState state) {
     var cont = new PropertySetContinuation(node.value, node.name, state);
     return new ExpressionConfiguration(
         node.receiver, state.withContinuation(cont));
   }
 
-  Configuration visitStaticGet(StaticGet node, state) =>
+  Configuration visitStaticGet(StaticGet node, ExpressionState state) =>
       defaultExpression(node, state);
-  Configuration visitStaticSet(StaticSet node, state) =>
+  Configuration visitStaticSet(StaticSet node, ExpressionState state) =>
       defaultExpression(node, state);
 
-  Configuration visitStaticInvocation(StaticInvocation node, state) {
+  Configuration visitStaticInvocation(
+      StaticInvocation node, ExpressionState state) {
     if ('print' == node.name.toString()) {
       return new ExpressionConfiguration(node.arguments.positional.first,
           state.withContinuation(new PrintContinuation(state)));
@@ -135,7 +137,8 @@ class Evaluator extends ExpressionVisitor1<Configuration> {
     }
   }
 
-  Configuration visitMethodInvocation(MethodInvocation node, state) {
+  Configuration visitMethodInvocation(
+      MethodInvocation node, ExpressionState state) {
     // Currently supports only method invocation with <2 arguments and is used
     // to evaluate implemented operators for int, double and String values.
     var cont =
@@ -145,7 +148,8 @@ class Evaluator extends ExpressionVisitor1<Configuration> {
         node.receiver, state.withContinuation(cont));
   }
 
-  Configuration visitConstructorInvocation(ConstructorInvocation node, state) {
+  Configuration visitConstructorInvocation(
+      ConstructorInvocation node, ExpressionState state) {
     Class class_ = new Class(node.target.enclosingClass.reference);
 
     // Currently we don't support initializers.
@@ -158,12 +162,13 @@ class Evaluator extends ExpressionVisitor1<Configuration> {
         state.continuation, new ObjectValue(class_, fields));
   }
 
-  Configuration visitNot(Not node, state) {
+  Configuration visitNot(Not node, ExpressionState state) {
     return new ExpressionConfiguration(
         node.operand, state.withContinuation(new NotContinuation(state)));
   }
 
-  Configuration visitLogicalExpression(LogicalExpression node, state) {
+  Configuration visitLogicalExpression(
+      LogicalExpression node, ExpressionState state) {
     if ('||' == node.operator) {
       var cont = new OrContinuation(node.right, state);
       return new ExpressionConfiguration(
@@ -176,45 +181,47 @@ class Evaluator extends ExpressionVisitor1<Configuration> {
     }
   }
 
-  Configuration visitConditionalExpression(ConditionalExpression node, state) {
+  Configuration visitConditionalExpression(
+      ConditionalExpression node, ExpressionState state) {
     var cont = new ConditionalContinuation(node.then, node.otherwise, state);
     return new ExpressionConfiguration(
         node.condition, state.withContinuation(cont));
   }
 
-  Configuration visitStringConcatenation(StringConcatenation node, state) {
+  Configuration visitStringConcatenation(
+      StringConcatenation node, ExpressionState state) {
     var cont = new StringConcatenationContinuation(node.expressions, state);
     return new ExpressionConfiguration(
         node.expressions.first, state.withContinuation(cont));
   }
 
   // Evaluation of BasicLiterals.
-  Configuration visitStringLiteral(StringLiteral node, state) {
+  Configuration visitStringLiteral(StringLiteral node, ExpressionState state) {
     return new ContinuationConfiguration(
         state.continuation, new StringValue(node.value));
   }
 
-  Configuration visitIntLiteral(IntLiteral node, state) {
+  Configuration visitIntLiteral(IntLiteral node, ExpressionState state) {
     return new ContinuationConfiguration(
         state.continuation, new IntValue(node.value));
   }
 
-  Configuration visitDoubleLiteral(DoubleLiteral node, state) {
+  Configuration visitDoubleLiteral(DoubleLiteral node, ExpressionState state) {
     return new ContinuationConfiguration(
         state.continuation, new DoubleValue(node.value));
   }
 
-  Configuration visitBoolLiteral(BoolLiteral node, state) {
+  Configuration visitBoolLiteral(BoolLiteral node, ExpressionState state) {
     Value value = node.value ? Value.trueInstance : Value.falseInstance;
     return new ContinuationConfiguration(state.continuation, value);
   }
 
-  Configuration visitNullLiteral(NullLiteral node, state) {
+  Configuration visitNullLiteral(NullLiteral node, ExpressionState state) {
     return new ContinuationConfiguration(
         state.continuation, Value.nullInstance);
   }
 
-  Configuration visitLet(Let node, state) {
+  Configuration visitLet(Let node, ExpressionState state) {
     var letCont = new LetContinuation(node.variable, node.body, state);
     return new ExpressionConfiguration(
         node.variable.initializer, state.withContinuation(letCont));
@@ -628,7 +635,7 @@ class VariableInitializerContinuation extends ExpressionContinuation {
 /// returned and applied
 /// - it returns with or without value, TBD
 /// - it throws, TBD
-class StatementExecuter extends StatementVisitor1<Configuration> {
+class StatementExecuter extends StatementVisitor1<Configuration, State> {
   Evaluator evaluator = new Evaluator();
 
   void trampolinedExecution(Configuration configuration) {
@@ -642,21 +649,22 @@ class StatementExecuter extends StatementVisitor1<Configuration> {
   Configuration eval(Expression expression, ExpressionState state) =>
       evaluator.eval(expression, state);
 
-  Configuration defaultStatement(Statement node, state) {
+  Configuration defaultStatement(Statement node, State state) {
     throw notImplemented(
         m: "Execution is not implemented for statement:\n$node ");
   }
 
-  Configuration visitInvalidStatement(InvalidStatement node, state) {
+  Configuration visitInvalidStatement(InvalidStatement node, State state) {
     throw "Invalid statement at ${node.location}";
   }
 
-  Configuration visitExpressionStatement(ExpressionStatement node, state) {
+  Configuration visitExpressionStatement(
+      ExpressionStatement node, State state) {
     return new ExpressionConfiguration(
         node.expression, new ExpressionState.fromStatementState(state));
   }
 
-  Configuration visitBlock(Block node, state) {
+  Configuration visitBlock(Block node, State state) {
     if (node.statements.isEmpty) {
       return state.statementConfiguration;
     }
@@ -670,26 +678,26 @@ class StatementExecuter extends StatementVisitor1<Configuration> {
     return configuration;
   }
 
-  Configuration visitEmptyStatement(EmptyStatement node, state) {
+  Configuration visitEmptyStatement(EmptyStatement node, State state) {
     return state.statementConfiguration;
   }
 
-  Configuration visitIfStatement(IfStatement node, state) {
+  Configuration visitIfStatement(IfStatement node, State state) {
     var expState = new ExpressionState.fromStatementState(state);
     var cont = new IfConditionContinuation(node.then, node.otherwise, state);
     return new ExpressionConfiguration(
         node.condition, expState.withContinuation(cont));
   }
 
-  Configuration visitLabeledStatement(LabeledStatement node, state) {
+  Configuration visitLabeledStatement(LabeledStatement node, State state) {
     return new StatementConfiguration(node.body, state.withBreak(node));
   }
 
-  Configuration visitBreakStatement(BreakStatement node, state) {
+  Configuration visitBreakStatement(BreakStatement node, State state) {
     return state.lookupLabel(node.target).configuration;
   }
 
-  Configuration visitWhileStatement(WhileStatement node, state) {
+  Configuration visitWhileStatement(WhileStatement node, State state) {
     var expState = new ExpressionState.fromStatementState(state);
     var cont = new WhileConditionContinuation(node, state);
 
@@ -697,7 +705,7 @@ class StatementExecuter extends StatementVisitor1<Configuration> {
         node.condition, expState.withContinuation(cont));
   }
 
-  Configuration visitDoStatement(DoStatement node, state) {
+  Configuration visitDoStatement(DoStatement node, State state) {
     WhileStatement whileStatement =
         new WhileStatement(node.condition, node.body);
     StatementConfiguration configuration =
@@ -707,7 +715,7 @@ class StatementExecuter extends StatementVisitor1<Configuration> {
         node.body, state.withConfiguration(configuration));
   }
 
-  Configuration visitReturnStatement(ReturnStatement node, state) {
+  Configuration visitReturnStatement(ReturnStatement node, State state) {
     assert(state.returnContinuation != null);
     // The new ExpressionState contains the next expression continuation.
     var expState = new ExpressionState.fromStatementState(state)
@@ -716,7 +724,8 @@ class StatementExecuter extends StatementVisitor1<Configuration> {
         node.expression ?? new NullLiteral(), expState);
   }
 
-  Configuration visitVariableDeclaration(VariableDeclaration node, state) {
+  Configuration visitVariableDeclaration(
+      VariableDeclaration node, State state) {
     if (node.initializer != null) {
       var expState = new ExpressionState.fromStatementState(state);
       var cont = new VariableInitializerContinuation(
