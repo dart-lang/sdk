@@ -404,7 +404,6 @@ ref_before_declaration_test/04: Crash
 ref_before_declaration_test/05: Crash
 ref_before_declaration_test/06: Crash
 ref_before_declaration_test/07: Crash
-ref_before_declaration_test/none: Crash
 try_catch_syntax_test/05: Crash
 vm/lazy_deopt_vm_test: Crash
 
