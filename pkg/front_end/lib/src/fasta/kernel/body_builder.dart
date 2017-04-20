@@ -590,7 +590,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
 
     if (receiver is FastaAccessor) {
-      if (constantExpressionRequired && !isIdentical(receiver)) {
+      if (constantExpressionRequired &&
+          !isIdentical(receiver) &&
+          !receiver.isInitializer) {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
       return receiver.doInvocation(charOffset, arguments);
@@ -737,13 +739,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       String name, Arguments arguments, int charOffset,
       {bool isSuper: false, isGetter: false, isSetter: false}) {
     String errorName = isSuper ? "super.$name" : name;
+    String message;
     if (isGetter) {
-      warning("Getter not found: '$errorName'.", charOffset);
+      message = "Getter not found: '$errorName'.";
     } else if (isSetter) {
-      warning("Setter not found: '$errorName'.", charOffset);
+      message = "Setter not found: '$errorName'.";
     } else {
-      warning("Method not found: '$errorName'.", charOffset);
+      message = "Method not found: '$errorName'.";
     }
+    if (constantExpressionRequired) {
+      return buildCompileTimeError(message, charOffset);
+    }
+    warning(message, charOffset);
     Constructor constructor =
         coreTypes.getClass("dart:core", "NoSuchMethodError").constructors.first;
     return new Throw(new ConstructorInvocation(
@@ -841,17 +848,27 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return new UnresolvedAccessor(this, n, charOffset);
       }
     } else if (builder.isTypeDeclaration) {
-      if (constantExpressionRequired && builder.isTypeVariable) {
+      if (constantExpressionRequired &&
+          builder.isTypeVariable &&
+          !member.isConstructor) {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
       return builder;
     } else if (builder.isLocal) {
-      if (constantExpressionRequired && !builder.isConst) {
+      if (constantExpressionRequired &&
+          !builder.isConst &&
+          !member.isConstructor) {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
       return new VariableAccessor(this, charOffset, builder.target);
     } else if (builder.isInstanceMember) {
-      if (constantExpressionRequired) {
+      if (constantExpressionRequired &&
+          !inInitializer &&
+          // TODO(ahe): This is a hack because Fasta sets up the scope
+          // "this.field" parameters according to old semantics. Under the new
+          // semantics, such parameters introduces a new parameter with that
+          // name that should be resolved here.
+          !member.isConstructor) {
         addCompileTimeError(charOffset, "Not a constant expression.");
       }
       return new ThisPropertyAccessor(
@@ -1384,7 +1401,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       warningNotError(
           "'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
-    } else if (name is TypeVariableBuilder) {
+    } else if (name is TypeVariableBuilder && !member.isConstructor) {
       if (constantExpressionRequired) {
         addCompileTimeError(
             beginToken.charOffset, "Not a constant expression.");

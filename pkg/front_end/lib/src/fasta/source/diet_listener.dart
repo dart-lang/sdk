@@ -400,7 +400,8 @@ class DietListener extends StackListener {
         currentClass,
         isInstanceMember,
         uri,
-        localTypeInferrer);
+        localTypeInferrer)
+      ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }
 
   void buildFunctionBody(Token token, ProcedureBuilder builder) {
