@@ -865,17 +865,14 @@ class FileSystemState {
 
   void _scheduleKnownFilesSetChange() {
     Duration delay = _knownFilesSetChangesDelay ?? new Duration(seconds: 1);
-    // Note: we don't use ??= here due to issue #29393
-    if (_knownFilesSetChangesTimer == null) {
-      _knownFilesSetChangesTimer = new Timer(delay, () {
-        Set<String> addedFiles = _addedKnownFiles.toSet();
-        Set<String> removedFiles = new Set<String>();
-        _knownFilesSetChangesController
-            .add(new KnownFilesSetChange(addedFiles, removedFiles));
-        _addedKnownFiles.clear();
-        _knownFilesSetChangesTimer = null;
-      });
-    }
+    _knownFilesSetChangesTimer ??= new Timer(delay, () {
+      Set<String> addedFiles = _addedKnownFiles.toSet();
+      Set<String> removedFiles = new Set<String>();
+      _knownFilesSetChangesController
+          .add(new KnownFilesSetChange(addedFiles, removedFiles));
+      _addedKnownFiles.clear();
+      _knownFilesSetChangesTimer = null;
+    });
   }
 }
 
