@@ -5,7 +5,7 @@
 #include "platform/globals.h"
 
 #if (!defined(DART_USE_TCMALLOC) && !defined(DART_USE_JEMALLOC)) ||            \
-    defined(PRODUCT) || defined(TARGET_ARCH_DBC)
+    defined(PRODUCT)
 
 #include "vm/malloc_hooks.h"
 

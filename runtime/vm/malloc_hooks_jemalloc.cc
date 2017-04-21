@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(DART_USE_JEMALLOC) && !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
+#if defined(DART_USE_JEMALLOC) && !defined(PRODUCT)
 
 #include "vm/malloc_hooks.h"
 
