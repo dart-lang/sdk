@@ -391,8 +391,8 @@ propagation?
   - If `e0` is inferred as `m0` of type `T0` in context `K`
   - And `e1` is inferred as `m1` of type `T1` in context `J`
   - Where `J` is `T0` if `K` is `_` and otherwise `K`
-  - Where `T` is the lowering of `K` if `K` is not `_` and otherwise `UP(T0,
-    T1)`
+  - Where `T` is the greatest closure of `K` with respect to `?` if `K` is not
+    `_` and otherwise `UP(T0, T1)`
 - The expression `e0..e1` is inferred as `m0..m1` of type `T` in context `K`
   - If `e0` is inferred as `m0` of type `T` in context `K`
   - And `e1` is inferred as `m1` of type `P` in context `_`
@@ -401,8 +401,8 @@ propagation?
   - If `e0` is inferred as `m0` of any type in context `bool`
   - And `e1` is inferred as `m1` of type `T0` in context `K`
   - And `e2` is inferred as `m2` of type `T1` in context `K`
-  - Where `T` is the lowering of `K` if `K` is not `_` and otherwise `UP(T0,
-    T1)`
+  - Where `T` is the greatest closure of `K` with respect to `?` if `K` is not
+    `_` and otherwise `UP(T0, T1)`
 - TODO(leafp): Generalize the following closure cases to the full function
   signature.
   - In general, if the function signature is compatible with the context type,
