@@ -1,0 +1,34 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/src/protocol/protocol_internal.dart' as server;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+
+/**
+ * An object used to convert between similar objects defined by both the plugin
+ * protocol and the server protocol.
+ */
+class RequestConverter {
+  plugin.AnalysisService convertAnalysisService(
+      server.AnalysisService service) {
+    return new plugin.AnalysisService(service.name);
+  }
+
+  Object convertFileOverlay(Object overlay) {
+    if (overlay is server.AddContentOverlay) {
+      return new plugin.AddContentOverlay(overlay.content);
+    } else if (overlay is server.ChangeContentOverlay) {
+      return new plugin.ChangeContentOverlay(
+          overlay.edits.map(convertSourceEdit).toList());
+    } else if (overlay is server.RemoveContentOverlay) {
+      return new plugin.RemoveContentOverlay();
+    }
+    return null;
+  }
+
+  plugin.SourceEdit convertSourceEdit(server.SourceEdit edit) {
+    return new plugin.SourceEdit(edit.offset, edit.length, edit.replacement);
+  }
+}
