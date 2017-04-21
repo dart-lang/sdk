@@ -531,7 +531,6 @@ class GetHandler implements AbstractGetHandler {
         results.add(LIBRARY_ERRORS_READY);
         results.add(PARSE_ERRORS);
         results.add(PARSED_UNIT);
-        results.add(REFERENCED_NAMES);
         results.add(SCAN_ERRORS);
         results.add(SOURCE_KIND);
         results.add(TOKEN_STREAM);
