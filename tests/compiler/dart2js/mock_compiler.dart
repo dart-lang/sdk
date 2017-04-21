@@ -62,7 +62,6 @@ class MockCompiler extends Compiler {
   final int expectedErrors;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
-  final String testedPatchVersion;
   final LibrarySourceProvider librariesOverride;
   final DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   final ResolvedUriTranslator resolvedUriTranslator =
@@ -87,10 +86,8 @@ class MockCompiler extends Compiler {
       int this.expectedWarnings,
       int this.expectedErrors,
       api.CompilerOutput outputProvider,
-      String patchVersion,
       LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
-        testedPatchVersion = patchVersion,
         super(
             options: new CompilerOptions(
                 entryPoint: new Uri(scheme: 'mock'),
@@ -133,10 +130,6 @@ class MockCompiler extends Compiler {
     registerSource(Uris.dart_async, buildLibrarySource(asyncLibrarySource));
     registerSource(LookupMapResolutionAnalysis.PACKAGE_LOOKUP_MAP,
         buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
-  }
-
-  String get patchVersion {
-    return testedPatchVersion != null ? testedPatchVersion : super.patchVersion;
   }
 
   /// Initialize the mock compiler with an empty main library.

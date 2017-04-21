@@ -425,10 +425,6 @@ abstract class Compiler {
     return loadedLibraries;
   }
 
-  // TODO(johnniwinther): Move this to [PatchParser] when it is moved to the
-  // [JavaScriptBackend]. Currently needed for testing.
-  String get patchVersion => backend.patchVersion;
-
   /**
    * Get an [Uri] pointing to a patch for the dart: library with
    * the given path. Returns null if there is no patch.

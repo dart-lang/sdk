@@ -2708,19 +2708,13 @@ class SsaBuilder extends ast.Visitor
           {'text': 'Error: Expected a literal string.'});
     }
     String name = string.dartString.slowToString();
-    bool value = false;
-    switch (name) {
-      case 'MUST_RETAIN_METADATA':
-        value = mirrorsData.mustRetainMetadata;
-        break;
-      case 'USE_CONTENT_SECURITY_POLICY':
-        value = options.useContentSecurityPolicy;
-        break;
-      default:
-        reporter.reportErrorMessage(node, MessageKind.GENERIC,
-            {'text': 'Error: Unknown internal flag "$name".'});
+    bool value = getFlagValue(name);
+    if (value == null) {
+      reporter.reportErrorMessage(node, MessageKind.GENERIC,
+          {'text': 'Error: Unknown internal flag "$name".'});
+    } else {
+      stack.add(graph.addConstantBool(value, closedWorld));
     }
-    stack.add(graph.addConstantBool(value, closedWorld));
   }
 
   void handleForeignJsGetName(ast.Send node) {
@@ -2989,8 +2983,7 @@ class SsaBuilder extends ast.Visitor
       graph.addConstantString(new ast.DartString.literal(loadId), closedWorld)
     ];
     push(new HInvokeStatic(loadFunction, inputs, commonMasks.nonNullType,
-        targetCanThrow: false)
-      ..sourceInformation = sourceInformation);
+        targetCanThrow: false)..sourceInformation = sourceInformation);
   }
 
   generateSuperNoSuchMethodSend(
@@ -4086,8 +4079,7 @@ class SsaBuilder extends ast.Visitor
     nativeBehavior.codeTemplate = codeTemplate;
 
     return new HForeignCode(codeTemplate, commonMasks.dynamicType, inputs,
-        nativeBehavior: nativeBehavior)
-      ..sourceInformation = sourceInformation;
+        nativeBehavior: nativeBehavior)..sourceInformation = sourceInformation;
   }
 
   void pushInvokeStatic(

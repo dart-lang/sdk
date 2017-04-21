@@ -24,9 +24,6 @@ import 'model_emitter.dart';
 
 class EmitterFactory implements emitterTask.EmitterFactory {
   @override
-  String get patchVersion => "lazy";
-
-  @override
   bool get supportsReflection => false;
 
   @override

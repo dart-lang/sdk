@@ -308,8 +308,6 @@ class JavaScriptBackend {
 
   final Compiler compiler;
 
-  String get patchVersion => emitter.patchVersion;
-
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 

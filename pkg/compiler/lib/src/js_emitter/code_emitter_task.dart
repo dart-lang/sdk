@@ -74,10 +74,6 @@ class CodeEmitterTask extends CompilerTask {
 
   String get name => 'Code emitter';
 
-  /// Returns the string that is used to find library patches that are
-  /// specialized for the emitter.
-  String get patchVersion => _emitterFactory.patchVersion;
-
   /// Returns true, if the emitter supports reflection.
   bool get supportsReflection => _emitterFactory.supportsReflection;
 
@@ -215,10 +211,6 @@ class CodeEmitterTask extends CompilerTask {
 }
 
 abstract class EmitterFactory {
-  /// Returns the string that is used to find library patches that are
-  /// specialized for this emitter.
-  String get patchVersion;
-
   /// Returns true, if the emitter supports reflection.
   bool get supportsReflection;
 

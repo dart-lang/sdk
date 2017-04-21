@@ -28,9 +28,6 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   EmitterFactory({this.generateSourceMap});
 
   @override
-  String get patchVersion => "startup";
-
-  @override
   bool get supportsReflection => false;
 
   @override
