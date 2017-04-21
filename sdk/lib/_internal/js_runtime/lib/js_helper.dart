@@ -1090,10 +1090,11 @@ class Primitives {
 
   static int getTimeZoneOffsetInMinutes(DateTime receiver) {
     // Note that JS and Dart disagree on the sign of the offset.
-    return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    // Subtract to avoid -0.0
+    return 0 - JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static valueFromDecomposedDate(
+  static int valueFromDecomposedDate(
       years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
@@ -1118,12 +1119,16 @@ class Primitives {
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
       return null;
     }
-    if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
-    return value;
+    // The JavaScript Date constructor 'corrects' year NN to 19NN. Undo that
+    // correction.
+    if (0 <= years && years < 100) return patchUpY2K(value, years, isUtc);
+    return JS('int', '#', value);
   }
 
   static patchUpY2K(value, years, isUtc) {
     var date = JS('', r'new Date(#)', value);
+    // TODO(sra): Does this work correctly if the original input wrapped months
+    // into a different year?
     if (isUtc) {
       JS('num', r'#.setUTCFullYear(#)', date, years);
     } else {
@@ -1144,43 +1149,74 @@ class Primitives {
   // The getters for date and time parts below add a positive integer to ensure
   // that the result is really an integer, because the JavaScript implementation
   // may return -0.0 instead of 0.
+  //
+  // They are marked as @NoThrows() because `receiver` comes from a receiver of
+  // a method on DateTime (i.e. is not `null`).
 
+  // TODO(sra): These methods are GVN-able. dart2js should implement an
+  // annotation for that.
+
+  // TODO(sra): These methods often occur in groups (e.g. day, month and
+  // year). Is it possible to factor them so that the `Date` is visible and can
+  // be GVN-ed without a lot of code bloat?
+
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getYear(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getMonth(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getDay(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getHours(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS(
@@ -1188,6 +1224,9 @@ class Primitives {
         : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
         ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
