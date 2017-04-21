@@ -14,16 +14,6 @@ This package contains the Dart part of the implementation and contains:
 - A frontend based on the analyzer
 - Serialization of kernel code
 
-Getting Kernel
-------------
-
-Checkout the repository and run pub get:
-```bash
-git clone https://github.com/dart-lang/kernel
-cd kernel
-pub get
-```
-
 Command-Line Tool
 -----------------
 
