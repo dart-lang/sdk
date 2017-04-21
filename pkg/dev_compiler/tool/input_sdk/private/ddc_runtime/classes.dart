@@ -291,7 +291,7 @@ bind(obj, name, f) => JS(
 /// associated function type.
 gbind(f, @rest typeArgs) {
   var result = JS('', '#.apply(null, #)', f, typeArgs);
-  var sig = JS('', '#.apply(null, #)', _getRuntimeType(f), typeArgs);
+  var sig = JS('', '#.instantiate(#)', _getRuntimeType(f), typeArgs);
   tag(result, sig);
   return result;
 }

@@ -400,12 +400,6 @@ final _inconsistentTests = new Set<String>.from([
 ].map((p) => p.replaceAll('/', path.separator)));
 
 final _crashingTests = new Set<String>.from([
-  'language/generic_methods_generic_class_tearoff_test',
-  'language/generic_methods_named_parameters_test',
-  'language/generic_methods_optional_parameters_test',
-  'language/generic_methods_tearoff_specialization_test',
-  'language/generic_methods_unused_parameter_test',
-
   // TODO(vsm): Fix these - they import files from a different directory
   // - this triggers an invalid library root build error.
   'lib/html/custom/attribute_changed_callback_test',

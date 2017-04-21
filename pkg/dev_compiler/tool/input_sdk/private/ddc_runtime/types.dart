@@ -185,61 +185,8 @@ class WrappedType extends Type {
   toString() => typeName(_wrappedType);
 }
 
-abstract class AbstractFunctionType extends TypeRep {
-  String _stringValue = null;
-  get args;
-  get optionals;
-  get metadata;
-  get named;
-  get returnType;
-
-  AbstractFunctionType() {}
-
-  toString() {
-    return name;
-  }
-
-  get name {
-    if (_stringValue != null) return _stringValue;
-
-    var buffer = '(';
-    for (var i = 0; JS('bool', '# < #.length', i, args); ++i) {
-      if (i > 0) {
-        buffer += ', ';
-      }
-      buffer += typeName(JS('', '#[#]', args, i));
-    }
-    if (JS('bool', '#.length > 0', optionals)) {
-      if (JS('bool', '#.length > 0', args)) buffer += ', ';
-      buffer += '[';
-      for (var i = 0; JS('bool', '# < #.length', i, optionals); ++i) {
-        if (i > 0) {
-          buffer += ', ';
-        }
-        buffer += typeName(JS('', '#[#]', optionals, i));
-      }
-      buffer += ']';
-    } else if (JS('bool', 'Object.keys(#).length > 0', named)) {
-      if (JS('bool', '#.length > 0', args)) buffer += ', ';
-      buffer += '{';
-      var names = getOwnPropertyNames(named);
-      JS('', '#.sort()', names);
-      for (var i = 0; JS('', '# < #.length', i, names); ++i) {
-        if (i > 0) {
-          buffer += ', ';
-        }
-        var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
-        buffer += '${JS('', '#[#]', names, i)}: $typeNameString';
-      }
-      buffer += '}';
-    }
-
-    var returnTypeName = typeName(returnType);
-    buffer += ') -> $returnTypeName';
-    _stringValue = buffer;
-    return buffer;
-  }
-}
+// Marker class for generic functions, typedefs, and non-generic functions.
+abstract class AbstractFunctionType extends TypeRep {}
 
 /// Memo table for named argument groups. A named argument packet
 /// {name1 : type1, ..., namen : typen} corresponds to the path
@@ -362,6 +309,7 @@ class FunctionType extends AbstractFunctionType {
   dynamic optionals;
   final named;
   dynamic metadata;
+  String _stringValue;
 
   /**
    * Construct a function type. There are two arrow constructors,
@@ -430,47 +378,110 @@ class FunctionType extends AbstractFunctionType {
     this.optionals = _process(this.optionals, metadata);
     // TODO(vsm): Add named arguments.
   }
-}
 
-// TODO(jacobr): we can't define this typedef due to execution order issues.
-//typedef AbstractFunctionType FunctionTypeClosure();
+  toString() => name;
+
+  get name {
+    if (_stringValue != null) return _stringValue;
+
+    var buffer = '(';
+    for (var i = 0; JS('bool', '# < #.length', i, args); ++i) {
+      if (i > 0) {
+        buffer += ', ';
+      }
+      buffer += typeName(JS('', '#[#]', args, i));
+    }
+    if (JS('bool', '#.length > 0', optionals)) {
+      if (JS('bool', '#.length > 0', args)) buffer += ', ';
+      buffer += '[';
+      for (var i = 0; JS('bool', '# < #.length', i, optionals); ++i) {
+        if (i > 0) {
+          buffer += ', ';
+        }
+        buffer += typeName(JS('', '#[#]', optionals, i));
+      }
+      buffer += ']';
+    } else if (JS('bool', 'Object.keys(#).length > 0', named)) {
+      if (JS('bool', '#.length > 0', args)) buffer += ', ';
+      buffer += '{';
+      var names = getOwnPropertyNames(named);
+      JS('', '#.sort()', names);
+      for (var i = 0; JS('', '# < #.length', i, names); ++i) {
+        if (i > 0) {
+          buffer += ', ';
+        }
+        var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
+        buffer += '${JS('', '#[#]', names, i)}: $typeNameString';
+      }
+      buffer += '}';
+    }
+
+    var returnTypeName = typeName(returnType);
+    buffer += ') -> $returnTypeName';
+    _stringValue = buffer;
+    return buffer;
+  }
+}
 
 class Typedef extends AbstractFunctionType {
   dynamic _name;
-  dynamic /*FunctionTypeClosure*/ _closure;
+  dynamic _closure;
   AbstractFunctionType _functionType;
 
   Typedef(this._name, this._closure) {}
 
-  get name {
-    return _name;
-  }
+  toString() => JS('', '# + "(" + #.toString() + ")"', _name, functionType);
+  get name => _name;
 
   AbstractFunctionType get functionType {
-    if (_functionType == null) {
-      _functionType = JS('', '#()', _closure);
+    return _functionType ??= JS('', '#()', _closure);
+  }
+}
+
+class TypeVariable extends TypeRep {
+  final String name;
+  TypeVariable(this.name);
+  toString() => name;
+}
+
+class GenericFunctionType extends AbstractFunctionType {
+  final bool definite;
+  final _instantiateTypeParts;
+  final int formalCount;
+  var _typeFormals;
+
+  GenericFunctionType(this.definite, instantiateTypeParts)
+      : _instantiateTypeParts = instantiateTypeParts,
+        formalCount = JS('int', '#.length', instantiateTypeParts);
+
+  get typeFormals {
+    if (_typeFormals != null) return _typeFormals;
+
+    // Extract parameter names from the function parameters.
+    //
+    // This is not robust in general for user-defined JS functions, but it
+    // should handle the functions generated by our compiler.
+    var str = JS('', '#.toString()', _instantiateTypeParts);
+    var match = JS('', r'#.match(/\(([^)]*)\)/)', str);
+    if (match != null) {
+      var names = JS('', r'#[1].split(",")', match);
+      return _typeFormals = JS('',
+          '#.map(function(s) { return new #(s.trim()) })', names, TypeVariable);
+    } else {
+      var name = JS('', r'#.match(/([^=]*)=>/)[1]', str);
+      return _typeFormals = JS('', '[new #(#.trim())]', TypeVariable, name);
     }
-    return _functionType;
   }
 
-  get returnType {
-    return functionType.returnType;
+  instantiate(typeArgs) {
+    var parts = JS('', '#.apply(null, #)', _instantiateTypeParts, typeArgs);
+    return JS('', '#.create(#, #[0], #[1], #[2])', FunctionType, definite,
+        parts, parts, parts);
   }
 
-  List get args {
-    return functionType.args;
-  }
-
-  List get optionals {
-    return functionType.optionals;
-  }
-
-  get named {
-    return functionType.named;
-  }
-
-  List get metadata {
-    return functionType.metadata;
+  toString() {
+    return JS('', '"<" + #.join(", ") + ">" + #.toString()', typeFormals,
+        instantiate(typeFormals));
   }
 }
 
@@ -478,26 +489,11 @@ typedef(name, /*FunctionTypeClosure*/ closure) {
   return new Typedef(name, closure);
 }
 
-final _typeFormalCount = JS('', 'Symbol("_typeFormalCount")');
-
 _functionType(definite, returnType, args, extra) => JS(
     '',
     '''(() => {
-  // TODO(jmesserly): this is a bit of a retrofit, to easily fit
-  // generic functions into all of the existing ways we generate function
-  // signatures. Given `(T) => [T, [T]]` we'll return a function that does
-  // `(T) => _functionType(definite, T, [T])` ... we could do this in the
-  // compiler instead, at a slight cost to code size.
   if ($args === void 0 && $extra === void 0) {
-    const fnTypeParts = $returnType;
-    // A closure that computes the remaining arguments.
-    // Return a function that makes the type.
-    function makeGenericFnType(...types) {
-      let parts = fnTypeParts.apply(null, types);
-      return $FunctionType.create($definite, parts[0], parts[1], parts[2]);
-    }
-    makeGenericFnType[$_typeFormalCount] = fnTypeParts.length;
-    return makeGenericFnType;
+    return new $GenericFunctionType($definite, $returnType);
   }
   return $FunctionType.create($definite, $returnType, $args, $extra);
 })()''');
@@ -529,9 +525,6 @@ String typeName(type) => JS(
   if ($type === null) return "null type";
   // Non-instance types
   if ($type instanceof $TypeRep) {
-    if ($type instanceof $Typedef) {
-      return $type.name + "(" + $type.functionType.toString() + ")";
-    }
     return $type.toString();
   }
 
@@ -570,14 +563,9 @@ String typeName(type) => JS(
   return "JSObject<" + $type.name + ">";
 })()''');
 
-/// Get the underlying function type, potentially from the call method
-/// for a class type.
-getImplicitFunctionType(type) {
-  if (isFunctionType(type)) return type;
-  return getMethodType(type, 'call');
-}
-
-bool isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
+/// Returns `true` if we have a non-generic function type representation or the
+/// type for `Function`, which is a supertype of all functions in Dart.
+bool _isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
     AbstractFunctionType, type, Function);
 
 isLazyJSSubtype(t1, LazyJSType t2, isCovariant) {
@@ -776,10 +764,42 @@ _isSubtype(t1, t2, isCovariant) => JS(
 
   // Handle Objects with call methods.  Those are functions
   // even if they do not *nominally* subtype core.Function.
-  t1 = $getImplicitFunctionType(t1);
-  if (!t1) return false;
+  if (!$_isFunctionType($t1)) {
+    $t1 = $getMethodType($t1, 'call');
+    if ($t1 == null) return false;
+  }
 
-  if ($isFunctionType($t1) && $isFunctionType($t2)) {
+  // Unwrap typedefs.
+  if ($t1 instanceof $Typedef) $t1 = $t1.functionType;
+  if ($t2 instanceof $Typedef) $t2 = $t2.functionType;
+
+  // Handle generic functions.
+  if ($t1 instanceof $GenericFunctionType) {
+    if (!($t2 instanceof $GenericFunctionType)) return false;
+
+    // Given generic functions g1 and g2, g1 <: g2 iff:
+    //
+    //     g1<TFresh> <: g2<TFresh>
+    //
+    // where TFresh is a list of fresh type variables that both g1 and g2 will
+    // be instantiated with.
+    //
+    // NOTE: this should also verify the bounds of the type parameters of g1
+    // and g2 , but it does not, see this issue:
+    // https://github.com/dart-lang/sdk/issues/27256
+    if ($t1.formalCount !== $t2.formalCount) return false;
+
+    // Using either function's type formals will work as long as they're both
+    // instantiated with the same ones.
+    let fresh = $t2.typeFormals;
+    return $isFunctionSubtype(
+        $t1.instantiate(fresh), $t2.instantiate(fresh), $isCovariant);
+  }
+
+  if ($t2 instanceof $GenericFunctionType) return false;
+
+  // Handle non-generic functions.
+  if ($_isFunctionType($t1) && $_isFunctionType($t2)) {
     return $isFunctionSubtype($t1, $t2, $isCovariant);
   }
 
@@ -874,7 +894,10 @@ isGroundType(type) => JS(
     '''(() => {
   // TODO(vsm): Cache this if we start using it at runtime.
 
-  if ($type instanceof $AbstractFunctionType) {
+  // TODO(jmesserly): implement for generic function types if we start using?
+  if ($type instanceof $Typedef) $type = $type.functionType;
+
+  if ($type instanceof $FunctionType) {
     if (!$_isTop($type.returnType)) return false;
     for (let i = 0; i < $type.args.length; ++i) {
       if (!$_isBottom($type.args[i])) return false;

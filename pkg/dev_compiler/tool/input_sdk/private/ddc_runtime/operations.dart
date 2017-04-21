@@ -267,9 +267,12 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
   }
 
   // Apply type arguments
-  let formalCount = $ftype[$_typeFormalCount];
-  if (formalCount != null) {
+  if ($ftype instanceof $GenericFunctionType) {
+    let formalCount = $ftype.formalCount;
+    
     if ($typeArgs == null) {
+      // TODO(jmesserly): this should use instantiate to bounds logic.
+      // See https://github.com/dart-lang/sdk/issues/27256
       $typeArgs = Array(formalCount).fill($dynamic);
     } else if ($typeArgs.length != formalCount) {
       // TODO(jmesserly): is this the right error?
@@ -278,8 +281,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
           $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
           formalCount + '.');
     }
-    // Instantiate the function.
-    $ftype = $ftype.apply(null, $typeArgs);
+    // Instantiate the function type.
+    $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
     $throwStrongModeError(
         'got type arguments to non-generic function ' + $typeName($ftype) +
@@ -426,7 +429,7 @@ final _ignoreTypeFailure = JS(
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
         !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
         !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
-        $isFunctionType(type) && $isFunctionType(actual) ||
+        $_isFunctionType(type) && $_isFunctionType(actual) ||
         !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream) ||
         !!$isSubtype(type, $StreamSubscription) &&
         !!$isSubtype(actual, $StreamSubscription)) {
@@ -450,7 +453,7 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
   let actual = $getReifiedType($obj);
   let result = $isSubtype(actual, $type);
   if (result || (actual == $int && $isSubtype($double, $type))) return true;
-  if (actual == $jsobject && $isFunctionType(type) &&
+  if (actual == $jsobject && $_isFunctionType(type) &&
       typeof(obj) === 'function') {
     return true;
   }
