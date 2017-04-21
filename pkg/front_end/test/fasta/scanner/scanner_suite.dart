@@ -7,7 +7,7 @@ import 'package:testing/testing.dart';
 import 'package:front_end/src/fasta/testing/scanner_chain.dart';
 
 Future<ChainContext> createContext(
-    Chain suite, Map<String, String> enviroment) async {
+    Chain suite, Map<String, String> environment) async {
   return new ScannerContext();
 }
 

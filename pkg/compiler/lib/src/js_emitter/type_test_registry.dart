@@ -26,7 +26,7 @@ import '../world.dart' show ClosedWorld;
 
 class TypeTestRegistry {
   /**
-   * Raw ClassElement symbols occuring in is-checks and type assertions.  If the
+   * Raw ClassElement symbols occurring in is-checks and type assertions.  If the
    * program contains parameterized checks `x is Set<int>` and
    * `x is Set<String>` then the ClassElement `Set` will occur once in
    * [checkedClasses].

@@ -533,7 +533,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     FunctionArgumentCollector functionArgumentCollector =
         new FunctionArgumentCollector();
 
-    // We need to add classes occuring in function type arguments, like for
+    // We need to add classes occurring in function type arguments, like for
     // instance 'I' for [: o is C<f> :] where f is [: typedef I f(); :].
     void collectFunctionTypeArguments(Iterable<ResolutionDartType> types) {
       for (ResolutionDartType type in types) {
@@ -579,7 +579,7 @@ class _RuntimeTypes extends _RuntimeTypesBase
     FunctionArgumentCollector functionArgumentCollector =
         new FunctionArgumentCollector();
 
-    // We need to add types occuring in function type arguments, like for
+    // We need to add types occurring in function type arguments, like for
     // instance 'J' for [: (J j) {} is f :] where f is
     // [: typedef void f(I i); :] and 'J' is a subtype of 'I'.
     void collectFunctionTypeArguments(Iterable<ResolutionDartType> types) {

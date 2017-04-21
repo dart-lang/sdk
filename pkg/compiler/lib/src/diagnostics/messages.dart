@@ -427,7 +427,7 @@ enum MessageKind {
 /// A message template for an error, warning, hint or info message generated
 /// by the compiler. Each template is associated with a [MessageKind] that
 /// uniquely identifies the message template.
-// TODO(johnnniwinther): For Infos, consider adding a reference to the
+// TODO(johnniwinther): For Infos, consider adding a reference to the
 // error/warning/hint that they belong to.
 class MessageTemplate {
   final MessageKind kind;

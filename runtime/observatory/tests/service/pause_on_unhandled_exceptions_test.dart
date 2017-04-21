@@ -16,7 +16,7 @@ doThrow() {
 var tests = [
   hasStoppedWithUnhandledException,
   (Isolate isolate) async {
-    print("We stoppped!");
+    print("We stopped!");
     var stack = await isolate.getStack();
     expect(stack['frames'][0].function.name, equals('doThrow'));
   }

@@ -2144,7 +2144,7 @@ static bool HasTryBlockUse(Value* use_list) {
 
 Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
-    // Environments can accomodate any representation. No need to box.
+    // Environments can accommodate any representation. No need to box.
     return value()->definition();
   }
 

@@ -1483,7 +1483,7 @@ class LibraryDependencyHandler implements LibraryLoader {
 /// Information on the set libraries loaded as a result of a call to
 /// [LibraryLoader.loadLibrary].
 abstract class LoadedLibraries {
-  /// The accesss the library object created corresponding to the library
+  /// The access the library object created corresponding to the library
   /// passed to [LibraryLoader.loadLibrary].
   LibraryEntity get rootLibrary;
 

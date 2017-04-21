@@ -20359,7 +20359,7 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Stop the current request.
    *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
+   * The request can only be stopped if readyState is `HEADERS_RECEIVED` or
    * `LOADING`. If this method is not in the process of being sent, the method
    * has no effect.
    */

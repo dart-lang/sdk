@@ -1679,7 +1679,7 @@ class TypeArguments : public Object {
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
 
-  // Returns a formatted list of occuring type arguments with their URI.
+  // Returns a formatted list of occurring type arguments with their URI.
   RawString* EnumerateURIs() const;
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
@@ -5804,7 +5804,7 @@ class AbstractType : public Instance {
     return BuildName(kUserVisibleName);
   }
 
-  // Returns a formatted list of occuring types with their URI.
+  // Returns a formatted list of occurring types with their URI.
   virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;

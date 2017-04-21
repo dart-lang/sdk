@@ -8,7 +8,7 @@ main() {
   // Test replaceFirst.
   Expect.equals("AtoBtoCDtoE", "AfromBtoCDtoE".replaceFirst("from", "to"));
 
-  // Test with the replaced string at the begining.
+  // Test with the replaced string at the beginning.
   Expect.equals("toABtoCDtoE", "fromABtoCDtoE".replaceFirst("from", "to"));
 
   // Test with the replaced string at the end.
@@ -44,11 +44,11 @@ main() {
   Expect.equals(
       "foo-AAA-foo-bar", "foo-bar-foo-bar".replaceFirst("bar", "AAA", 4));
 
-  // Test startIndex skipping one case at the begining.
+  // Test startIndex skipping one case at the beginning.
   Expect.equals(
       "foo-bar-AAA-bar", "foo-bar-foo-bar".replaceFirst("foo", "AAA", 1));
 
-  // Test startIndex skipping one case at the begining.
+  // Test startIndex skipping one case at the beginning.
   Expect.equals(
       "foo-bar-foo-AAA", "foo-bar-foo-bar".replaceFirst("bar", "AAA", 5));
 
@@ -86,7 +86,7 @@ main() {
   Expect.equals(
       "AtoBtoCDtoE", "AfromBtoCDtoE".replaceFirstMapped("from", (_) => "to"));
 
-  // Test with the replaced string at the begining.
+  // Test with the replaced string at the beginning.
   Expect.equals(
       "toABtoCDtoE", "fromABtoCDtoE".replaceFirstMapped("from", (_) => "to"));
 
@@ -124,11 +124,11 @@ main() {
   Expect.equals("foo-AAA-foo-bar",
       "foo-bar-foo-bar".replaceFirstMapped("bar", (_) => "AAA", 4));
 
-  // Test startIndex skipping one case at the begining.
+  // Test startIndex skipping one case at the beginning.
   Expect.equals("foo-bar-AAA-bar",
       "foo-bar-foo-bar".replaceFirstMapped("foo", (_) => "AAA", 1));
 
-  // Test startIndex skipping one case at the begining.
+  // Test startIndex skipping one case at the beginning.
   Expect.equals("foo-bar-foo-AAA",
       "foo-bar-foo-bar".replaceFirstMapped("bar", (_) => "AAA", 5));
 

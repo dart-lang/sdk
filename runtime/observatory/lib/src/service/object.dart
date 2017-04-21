@@ -330,7 +330,7 @@ abstract class ServiceObject {
   /// an exception.
   Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
     // TODO(turnidge): Checking for a null id should be part of the
-    // "immmutable" check.
+    // "immutable" check.
     bool hasId = (id != null) && (id != '');
     bool isVM = this is VM;
     // We should always reload the VM.

@@ -27,7 +27,7 @@
  *
  * To check subtype relations between generic classes we use a JavaScript
  * expression that describes the necessary substitution for type arguments.
- * Such a substitution expresssion can be:
+ * Such a substitution expression can be:
  *  1) `null`, if no substituted check is necessary, because the
  *     type variables are the same or there are no type variables in the class
  *     that is checked for.

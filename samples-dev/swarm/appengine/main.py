@@ -279,7 +279,7 @@ class UploadFeed(webapp.RequestHandler):
 
     self.redirect('/')
 
-# TODO(jimhug): Batch these up and request them more agressively.
+# TODO(jimhug): Batch these up and request them more aggressively.
 class DataHandler(webapp.RequestHandler):
   def get(self, name):
     if name.endswith('.jpg'):

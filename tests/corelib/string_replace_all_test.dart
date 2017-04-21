@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 testReplaceAll() {
   Expect.equals("aXXcaXXdae", "abcabdae".replaceAll("b", "XX"));
 
-  // Test with the replaced string at the begining.
+  // Test with the replaced string at the beginning.
   Expect.equals("XXbcXXbdXXe", "abcabdae".replaceAll("a", "XX"));
 
   // Test with the replaced string at the end.
@@ -57,7 +57,7 @@ testReplaceAllMapped() {
   String mark(Match m) => "[${m[0]}]";
   Expect.equals("a[b]ca[b]dae", "abcabdae".replaceAllMapped("b", mark));
 
-  // Test with the replaced string at the begining.
+  // Test with the replaced string at the beginning.
   Expect.equals("[a]bc[a]bd[a]e", "abcabdae".replaceAllMapped("a", mark));
 
   // Test with the replaced string at the end.
@@ -94,7 +94,7 @@ testSplitMapJoin() {
   Expect.equals("<a>[b]<ca>[b]<dae>",
       "abcabdae".splitMapJoin("b", onMatch: mark, onNonMatch: wrap));
 
-  // Test with the replaced string at the begining.
+  // Test with the replaced string at the beginning.
   Expect.equals("<>[a]<bc>[a]<bd>[a]<e>",
       "abcabdae".splitMapJoin("a", onMatch: mark, onNonMatch: wrap));
 

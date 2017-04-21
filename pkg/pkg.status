@@ -154,7 +154,7 @@ collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == safarimobilesim ]
-# Unexplained errors only occuring on Safari 6.1 and earlier.
+# Unexplained errors only occurring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
 [ $compiler == dart2js && $csp ]

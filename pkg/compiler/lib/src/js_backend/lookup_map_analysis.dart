@@ -406,7 +406,7 @@ class _LookupMapInfo {
   final ConstructedConstantValue original;
 
   /// Reference to the lookup map analysis to be able to refer to data shared
-  /// accross infos.
+  /// across infos.
   final _LookupMapAnalysis analysis;
 
   /// Whether we have already emitted this constant.

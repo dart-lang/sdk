@@ -111,7 +111,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
     // Encode the number of dropped frames into the pc offset.
     frame_offset ^= Smi::New(dropped_frames_);
     stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
-    // Move frames one slot down so that we can accomodate the new frame.
+    // Move frames one slot down so that we can accommodate the new frame.
     for (intptr_t i = start; i < StackTrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
       frame_code = stacktrace_.CodeAtFrame(i);

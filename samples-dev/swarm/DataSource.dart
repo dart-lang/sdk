@@ -166,7 +166,7 @@ class Article {
   final String title;
   final String author;
   final bool hasThumbnail;
-  String textBody; // TODO(jimhug): rename to snipppet.
+  String textBody; // TODO(jimhug): rename to snippet.
   final Feed dataSource; // TODO(jimhug): rename to feed.
   String _htmlBody;
   String srcUrl;

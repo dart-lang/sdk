@@ -843,7 +843,7 @@ class Isolate : public BaseIsolate {
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_;
 
-  // Invalidation generations; used to track events occuring in parallel
+  // Invalidation generations; used to track events occurring in parallel
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
   intptr_t loading_invalidation_gen_;

@@ -1840,7 +1840,7 @@ void FlowGraph::WidenSmiToInt32() {
 
   // Step 2. For each block in the graph compute which loop it belongs to.
   // We will use this information later during computation of the widening's
-  // gain: we are going to assume that only conversion occuring inside the
+  // gain: we are going to assume that only conversion occurring inside the
   // same loop should be counted against the gain, all other conversions
   // can be hoisted and thus cost nothing compared to the loop cost itself.
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers = LoopHeaders();

@@ -805,7 +805,7 @@ class StrongTypeSystemImpl extends TypeSystem {
    * 2. If the two types have the same class element, then take the
    *    pointwise least upper bound of the type arguments.  This is again
    *    the best result, except that the recursive calls may not return
-   *    the true least uppper bounds.  The result is guaranteed to be a
+   *    the true least upper bounds.  The result is guaranteed to be a
    *    well-formed type under the assumption that the input types were
    *    well-formed (and assuming that the recursive calls return
    *    well-formed types).

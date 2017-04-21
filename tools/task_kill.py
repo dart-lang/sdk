@@ -5,7 +5,7 @@
 # BSD-style license that can be found in the LICENSE file.
 #
 
-# A script to kill hanging processs. The tool will return non-zero if any
+# A script to kill hanging process. The tool will return non-zero if any
 # process was actually found.
 #
 
