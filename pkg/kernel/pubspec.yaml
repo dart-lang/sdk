@@ -11,7 +11,8 @@ dependencies:
   logging: ^0.11.2
   package_config: ^1.0.0
 dev_dependencies:
-  analyzer: ^0.30.0-alpha.0
+  analyzer: ^0.30.0-alpha.3
+  front_end: ^0.1.0-alpha.2
   test: ^0.12.15+6
   stack_trace: ^1.6.6
   ansicolor: ^0.0.9
@@ -19,5 +20,3 @@ dev_dependencies:
     git:
       url: https://github.com/peter-ahe-google/testing.git
       ref: 2e196d5
-dependency_overrides:
-  analyzer: {path: ../analyzer}
