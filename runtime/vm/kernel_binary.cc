@@ -106,15 +106,6 @@ class DowncastReader {
 };
 
 
-class StringImpl {
- public:
-  static String* ReadFrom(Reader* reader) {
-    TRACE_READ_OFFSET();
-    return String::ReadFromImpl(reader);
-  }
-};
-
-
 class VariableDeclarationImpl {
  public:
   static VariableDeclaration* ReadFrom(Reader* reader) {
@@ -130,15 +121,12 @@ String* String::ReadFrom(Reader* reader) {
 }
 
 
-String* String::ReadFromImpl(Reader* reader) {
-  TRACE_READ_OFFSET();
-  intptr_t size = reader->ReadUInt();
-  return ReadRaw(reader, size);
-}
-
-
 String* String::ReadRaw(Reader* reader, intptr_t size) {
-  return new String(reader->Consume(size), size);
+  ASSERT(reader->string_data_offset() >= 0);
+  String* result =
+      new String(reader->offset() - reader->string_data_offset(), size);
+  reader->Consume(size);
+  return result;
 }
 
 
@@ -146,11 +134,12 @@ void StringTable::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   // Read the table of end offsets.
   intptr_t length = reader->ReadUInt();
-  int* end_offsets = new int[length];
+  intptr_t* end_offsets = new intptr_t[length];
   for (intptr_t i = 0; i < length; ++i) {
     end_offsets[i] = reader->ReadUInt();
   }
   // Read the UTF-8 encoded strings.
+  reader->MarkStringDataOffset();
   strings_.EnsureInitialized(length);
   intptr_t start_offset = 0;
   for (intptr_t i = 0; i < length; ++i) {
@@ -163,22 +152,48 @@ void StringTable::ReadFrom(Reader* reader) {
 
 
 void SourceTable::ReadFrom(Reader* reader) {
-  size_ = reader->helper()->program()->source_uri_table().strings().length();
-  source_code_ = new String*[size_];
-  line_starts_ = new intptr_t*[size_];
-  line_count_ = new intptr_t[size_];
+  size_ = reader->ReadUInt();
+  sources_ = new Source[size_];
+
+  // Build a table of the URI offsets.
+  intptr_t* end_offsets = new intptr_t[size_];
   for (intptr_t i = 0; i < size_; ++i) {
-    source_code_[i] = StringImpl::ReadFrom(reader);
+    end_offsets[i] = reader->ReadUInt();
+  }
+
+  // Read the URI strings.
+  intptr_t start_offset = 0;
+  for (intptr_t i = 0; i < size_; ++i) {
+    intptr_t length = end_offsets[i] - start_offset;
+    uint8_t* buffer = new uint8_t[length];
+    memmove(buffer, reader->buffer() + reader->offset(), length);
+    reader->Consume(length);
+
+    sources_[i].uri_ = buffer;
+    sources_[i].uri_size_ = length;
+
+    start_offset = end_offsets[i];
+  }
+
+  // Read the source code strings and line starts.
+  for (intptr_t i = 0; i < size_; ++i) {
+    intptr_t length = reader->ReadUInt();
+    uint8_t* string_buffer = new uint8_t[length];
+    memmove(string_buffer, reader->buffer() + reader->offset(), length);
+    reader->Consume(length);
     intptr_t line_count = reader->ReadUInt();
     intptr_t* line_starts = new intptr_t[line_count];
-    line_count_[i] = line_count;
     intptr_t previous_line_start = 0;
     for (intptr_t j = 0; j < line_count; ++j) {
       intptr_t line_start = reader->ReadUInt() + previous_line_start;
       line_starts[j] = line_start;
       previous_line_start = line_start;
     }
-    line_starts_[i] = line_starts;
+
+    sources_[i].source_code_ = string_buffer;
+    sources_[i].source_code_size_ = length;
+    sources_[i].line_starts_ = line_starts;
+    sources_[i].line_count_ = line_count;
   }
 }
 
@@ -1365,7 +1380,7 @@ FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
 
 Name* Name::ReadFrom(Reader* reader) {
   String* name = Reference::ReadStringFrom(reader);
-  if (name->size() >= 1 && name->buffer()[0] == '_') {
+  if (name->size() >= 1 && reader->CharacterAt(name, 0) == '_') {
     CanonicalName* library_reference = reader->ReadCanonicalNameReference();
     return new Name(name, library_reference);
   } else {
@@ -1491,7 +1506,8 @@ Program* Program::ReadFrom(Reader* reader) {
   reader->helper()->set_program(program);
 
   program->string_table_.ReadFrom(reader);
-  program->source_uri_table_.ReadFrom(reader);
+  program->string_data_offset_ = reader->string_data_offset();
+  ASSERT(program->string_data_offset_ >= 0);
   program->source_table_.ReadFrom(reader);
 
   int canonical_names = reader->ReadUInt();

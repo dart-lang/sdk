@@ -64,7 +64,7 @@ type StringTable {
 }
 
 type StringReference {
-  UInt index; // Index into the Program's .strings.
+  UInt index; // Index into the Program's strings.
 }
 
 type Source {

@@ -23,8 +23,8 @@ namespace kernel {
 
 class SimpleExpressionConverter : public ExpressionVisitor {
  public:
-  explicit SimpleExpressionConverter(Thread* thread)
-      : translation_helper_(thread),
+  explicit SimpleExpressionConverter(TranslationHelper* helper)
+      : translation_helper_(*helper),
         zone_(translation_helper_.zone()),
         is_simple_(false),
         simple_value_(NULL) {}
@@ -76,7 +76,7 @@ class SimpleExpressionConverter : public ExpressionVisitor {
   dart::Zone* zone() const { return zone_; }
 
  private:
-  TranslationHelper translation_helper_;
+  TranslationHelper& translation_helper_;
   dart::Zone* zone_;
   bool is_simple_;
   dart::Instance* simple_value_;
@@ -104,6 +104,7 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(
   return reader_->LookupClass(klass).raw();
 }
 
+
 KernelReader::KernelReader(Program* program)
     : program_(program),
       thread_(dart::Thread::Current()),
@@ -114,9 +115,30 @@ KernelReader::KernelReader(Program* program)
       type_translator_(&translation_helper_,
                        &active_class_,
                        /*finalize=*/false) {
-  intptr_t source_file_count = program_->source_table().size();
+  intptr_t source_file_count = program->source_table().size();
   scripts_ = Array::New(source_file_count, Heap::kOld);
+
+  // Copy the Kernel strings out of the binary and into the VM's heap.  The size
+  // of the string data can be computed from the offset and size of the last
+  // string.  This relies on the strings occurring in order in the program's
+  // string table.
+  List<String>& strings = program->string_table().strings();
+  String* last_string = strings[strings.length() - 1];
+  intptr_t size = last_string->offset() + last_string->size();
+  TypedData& data = TypedData::Handle(
+      Z, TypedData::New(kTypedDataUint8ArrayCid, size, Heap::kOld));
+  ASSERT(program->string_data_offset() >= 0);
+  // We need at least one library to get access to the binary.
+  ASSERT(program->libraries().length() > 0);
+  {
+    NoSafepointScope no_safepoint;
+    memmove(data.DataAddr(0), program->libraries()[0]->kernel_data() +
+                                  program->string_data_offset(),
+            size);
+  }
+  H.SetStringData(data);
 }
+
 
 Object& KernelReader::ReadProgram() {
   LongJumpScope jump;
@@ -135,7 +157,7 @@ Object& KernelReader::ReadProgram() {
 
     if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
       CanonicalName* main = program_->main_method();
-      dart::Library& library = LookupLibrary(main->EnclosingName());
+      dart::Library& library = LookupLibrary(H.EnclosingName(main));
 
       // Sanity check that we can find the main entrypoint.
       Object& main_obj = Object::Handle(
@@ -428,20 +450,14 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       if (!annotation->IsConstructorInvocation()) continue;
       ConstructorInvocation* invocation =
           ConstructorInvocation::Cast(annotation);
-      CanonicalName* annotation_class = invocation->target()->EnclosingName();
-      ASSERT(annotation_class->IsClass());
+      CanonicalName* annotation_class = H.EnclosingName(invocation->target());
+      ASSERT(H.IsClass(annotation_class));
       String* class_name = annotation_class->name();
       // Just compare by name, do not generate the annotation class.
-      int length = sizeof("ExternalName") - 1;
-      if (class_name->size() != length) continue;
-      if (memcmp(class_name->buffer(), "ExternalName", length) != 0) continue;
-      ASSERT(annotation_class->parent()->IsLibrary());
+      if (!H.StringEquals(class_name, "ExternalName")) continue;
+      ASSERT(H.IsLibrary(annotation_class->parent()));
       String* library_name = annotation_class->parent()->name();
-      length = sizeof("dart:_internal") - 1;
-      if (library_name->size() != length) continue;
-      if (memcmp(library_name->buffer(), "dart:_internal", length) != 0) {
-        continue;
-      }
+      if (!H.StringEquals(library_name, "dart:_internal")) continue;
 
       is_external = false;
       ASSERT(invocation->arguments()->positional().length() == 1 &&
@@ -544,7 +560,7 @@ static RawArray* AsSortedDuplicateFreeArray(
       }
     }
     Array& array_object = Array::Handle();
-    array_object ^= Array::New(last + 1, Heap::kOld);
+    array_object = Array::New(last + 1, Heap::kOld);
     Smi& smi_value = Smi::Handle();
     for (intptr_t i = 0; i <= last; ++i) {
       smi_value = Smi::New(source->At(i));
@@ -556,26 +572,28 @@ static RawArray* AsSortedDuplicateFreeArray(
   }
 }
 
-Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
+Script& KernelReader::ScriptAt(intptr_t index, String* import_uri) {
   Script& script = Script::ZoneHandle(Z);
-  script ^= scripts_.At(source_uri_index);
+  script ^= scripts_.At(index);
   if (script.IsNull()) {
     // Create script with correct uri(s).
-    String* uri = program_->source_uri_table().strings()[source_uri_index];
-    dart::String& uri_string = H.DartString(uri, Heap::kOld);
+    uint8_t* uri_buffer = program_->source_table().UriFor(index);
+    intptr_t uri_size = program_->source_table().UriSizeFor(index);
+    dart::String& uri_string = H.DartString(uri_buffer, uri_size, Heap::kOld);
     dart::String& import_uri_string =
         import_uri == NULL ? uri_string : H.DartString(import_uri, Heap::kOld);
-    dart::String& source_code = H.DartString(
-        program_->source_table().SourceFor(source_uri_index), Heap::kOld);
+    uint8_t* source_buffer = program_->source_table().SourceCodeFor(index);
+    intptr_t source_size = program_->source_table().SourceCodeSizeFor(index);
+    dart::String& source_code =
+        H.DartString(source_buffer, source_size, Heap::kOld);
     script = Script::New(import_uri_string, uri_string, source_code,
                          RawScript::kKernelTag);
-    scripts_.SetAt(source_uri_index, script);
+    script.set_kernel_strings(H.string_data());
+    scripts_.SetAt(index, script);
 
     // Create line_starts array for the script.
-    intptr_t* line_starts =
-        program_->source_table().LineStartsFor(source_uri_index);
-    intptr_t line_count =
-        program_->source_table().LineCountFor(source_uri_index);
+    intptr_t* line_starts = program_->source_table().LineStartsFor(index);
+    intptr_t line_count = program_->source_table().LineCountFor(index);
     Array& array_object = Array::Handle(Z, Array::New(line_count, Heap::kOld));
     Smi& value = Smi::Handle(Z);
     for (intptr_t i = 0; i < line_count; ++i) {
@@ -585,13 +603,13 @@ Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
     script.set_line_starts(array_object);
 
     // Create tokens_seen array for the script.
-    array_object ^= AsSortedDuplicateFreeArray(
-        source_uri_index, &program_->valid_token_positions);
+    array_object =
+        AsSortedDuplicateFreeArray(index, &program_->valid_token_positions);
     script.set_debug_positions(array_object);
 
     // Create yield_positions array for the script.
-    array_object ^= AsSortedDuplicateFreeArray(
-        source_uri_index, &program_->yield_token_positions);
+    array_object =
+        AsSortedDuplicateFreeArray(index, &program_->yield_token_positions);
     script.set_yield_positions(array_object);
   }
   return script;
@@ -607,7 +625,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
     return;
   }
   if (kernel_field->initializer() != NULL) {
-    SimpleExpressionConverter converter(H.thread());
+    SimpleExpressionConverter converter(&H);
     const bool has_simple_initializer =
         converter.IsSimple(kernel_field->initializer());
     if (kernel_field->IsStatic()) {

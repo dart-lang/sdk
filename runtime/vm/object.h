@@ -3587,6 +3587,9 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
+  RawTypedData* kernel_strings() const { return raw_ptr()->kernel_strings_; }
+  void set_kernel_strings(const TypedData& strings) const;
+
   RawTokenStream* tokens() const {
     ASSERT(kind() != RawScript::kKernelTag);
     return raw_ptr()->tokens_;

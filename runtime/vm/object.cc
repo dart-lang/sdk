@@ -9073,6 +9073,11 @@ void Script::set_compile_time_constants(const Array& value) const {
 }
 
 
+void Script::set_kernel_strings(const TypedData& strings) const {
+  StorePointer(&raw_ptr()->kernel_strings_, strings.raw());
+}
+
+
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =
@@ -10150,11 +10155,8 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    kernel::TreeNode* kernel_node =
-        reinterpret_cast<kernel::TreeNode*>(field.kernel_field());
-
-    if (kernel_node != NULL) {
-      metadata = kernel::EvaluateMetadata(kernel_node);
+    if (field.kernel_field() != NULL) {
+      metadata = kernel::EvaluateMetadata(field);
     } else {
       metadata = Parser::ParseMetadata(field);
     }

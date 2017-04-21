@@ -360,7 +360,6 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
 
   Library& library = Library::Handle(zone);
   String& dart_name = String::Handle(zone);
-  String& kernel_name = String::Handle(zone);
   for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
@@ -368,7 +367,7 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     for (intptr_t j = 0; j < program->libraries().length(); ++j) {
       kernel::Library* kernel_library = program->libraries()[j];
       kernel::String* uri = kernel_library->import_uri();
-      kernel_name = Symbols::FromUTF8(thread, uri->buffer(), uri->size());
+      const String& kernel_name = reader.DartSymbol(uri);
       if (kernel_name.Equals(dart_name)) {
         reader.ReadLibrary(kernel_library);
         library.SetLoaded();

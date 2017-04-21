@@ -330,7 +330,7 @@ class ReaderHelper {
 class Reader {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : buffer_(buffer), size_(size), offset_(0) {}
+      : buffer_(buffer), size_(size), offset_(0), string_data_offset_(-1) {}
 
   uint32_t ReadUInt32() {
     ASSERT(offset_ + 4 <= size_);
@@ -503,6 +503,17 @@ class Reader {
 
   const uint8_t* buffer() { return buffer_; }
 
+  intptr_t string_data_offset() { return string_data_offset_; }
+  void MarkStringDataOffset() {
+    ASSERT(string_data_offset_ == -1);
+    string_data_offset_ = offset_;
+  }
+
+  uint8_t CharacterAt(String* str, intptr_t index) {
+    ASSERT(index < str->size());
+    return buffer_[string_data_offset_ + str->offset() + index];
+  }
+
  private:
   const uint8_t* buffer_;
   intptr_t size_;
@@ -511,6 +522,8 @@ class Reader {
   TokenPosition max_position_;
   TokenPosition min_position_;
   intptr_t current_script_id_;
+
+  intptr_t string_data_offset_;
 
   friend class PositionScope;
 };

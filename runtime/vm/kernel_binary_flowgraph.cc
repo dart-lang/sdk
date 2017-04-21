@@ -63,7 +63,7 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
   int canonical_name_index = builder_->ReadUInt();
   CanonicalName* target = builder_->GetCanonicalName(canonical_name_index);
 
-  if (target->IsField()) {
+  if (H.IsField(target)) {
     const dart::Field& field =
         dart::Field::Handle(Z, H.LookupFieldByKernelField(target));
     if (field.StaticValue() == Object::sentinel().raw() ||
@@ -75,17 +75,17 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
     } else {
       result_ = field.StaticValue();
     }
-  } else if (target->IsProcedure()) {
+  } else if (H.IsProcedure(target)) {
     const Function& function =
         Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
 
-    if (target->IsMethod()) {
+    if (H.IsMethod(target)) {
       Function& closure_function =
           Function::ZoneHandle(Z, function.ImplicitClosureFunction());
       closure_function.set_kernel_function(function.kernel_function());
       result_ = closure_function.ImplicitStaticClosure();
       result_ = H.Canonicalize(result_);
-    } else if (target->IsGetter()) {
+    } else if (H.IsGetter(target)) {
       UNIMPLEMENTED();
     } else {
       UNIMPLEMENTED();
@@ -307,6 +307,7 @@ Fragment StreamingFlowGraphBuilder::BuildAt(intptr_t kernel_offset) {
   return Fragment();
 }
 
+
 intptr_t StreamingFlowGraphBuilder::GetStringOffset(intptr_t index) {
   if (string_offsets_ == NULL) {
     intptr_t saved_offset = ReaderOffset();
@@ -319,17 +320,13 @@ intptr_t StreamingFlowGraphBuilder::GetStringOffset(intptr_t index) {
     for (intptr_t i = 1; i < string_offset_count_; ++i) {
       string_offsets_[i] = ReadUInt();
     }
-    // And adjust the offsets now that we know the start offset of the first
-    // string relative to the start of the binary.
-    intptr_t base = ReaderOffset();
-    for (intptr_t i = 0; i < string_offset_count_; ++i) {
-      string_offsets_[i] += base;
-    }
-
+    // Mark the start of the string data to use for decoding strings.
+    reader_->MarkStringDataOffset();
     SetOffset(saved_offset);
   }
   return string_offsets_[index];
 }
+
 
 CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
   if (index == 0) return NULL;
@@ -343,17 +340,21 @@ CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
   if (canonical_names_ == NULL) {
     // Find offset from where to read canonical names table.
 
-    // First skip the string table.  The last offset is the end offset of the
-    // last string.
-    if (string_offsets_ == NULL) {
-      // Ensure that the length and all the offsets are available.
-      GetStringOffset(0);
-    }
-    SetOffset(GetStringOffset(string_offset_count_ - 1));
+    // Skip the magic number.
+    reader_->set_offset(4);
 
-    // There is another string table for the source URIs.  Skip it as well.
+    // Skip the string table.  The last offset is the end offset of the last
+    // string which gives the length of the string data.
     intptr_t list_length = ReadListLength();
     intptr_t end_offset = 0;
+    for (intptr_t i = 0; i < list_length; ++i) {
+      end_offset = ReadUInt();
+    }
+    SkipBytes(end_offset);
+
+    // There is another string table for the source URIs.  Skip it as well.
+    list_length = ReadListLength();
+    end_offset = 0;
     for (intptr_t i = 0; i < list_length; ++i) {
       end_offset = ReadUInt();
     }
@@ -405,102 +406,127 @@ CanonicalName* StreamingFlowGraphBuilder::GetCanonicalName(intptr_t index) {
   return canonical_names_[index];
 }
 
+
 intptr_t StreamingFlowGraphBuilder::ReaderOffset() {
   return reader_->offset();
 }
+
 
 void StreamingFlowGraphBuilder::SetOffset(intptr_t offset) {
   reader_->set_offset(offset);
 }
 
+
 void StreamingFlowGraphBuilder::SkipBytes(intptr_t bytes) {
   reader_->set_offset(ReaderOffset() + bytes);
 }
+
 
 uint32_t StreamingFlowGraphBuilder::ReadUInt() {
   return reader_->ReadUInt();
 }
 
+
 intptr_t StreamingFlowGraphBuilder::ReadListLength() {
   return reader_->ReadListLength();
 }
+
 
 TokenPosition StreamingFlowGraphBuilder::ReadPosition(bool record) {
   return reader_->ReadPosition(record);
 }
 
+
 Tag StreamingFlowGraphBuilder::ReadTag(uint8_t* payload) {
   return reader_->ReadTag(payload);
 }
+
 
 CatchBlock* StreamingFlowGraphBuilder::catch_block() {
   return flow_graph_builder_->catch_block_;
 }
 
+
 ScopeBuildingResult* StreamingFlowGraphBuilder::scopes() {
   return flow_graph_builder_->scopes_;
 }
+
 
 ParsedFunction* StreamingFlowGraphBuilder::parsed_function() {
   return flow_graph_builder_->parsed_function_;
 }
 
+
 dart::String& StreamingFlowGraphBuilder::DartSymbol(intptr_t index) {
   intptr_t start = GetStringOffset(index);
   intptr_t end = GetStringOffset(index + 1);
-  return H.DartSymbol(reader_->buffer() + start, end - start);
+  return H.DartSymbol(reader_->buffer() + reader_->string_data_offset() + start,
+                      end - start);
 }
+
 
 dart::String& StreamingFlowGraphBuilder::DartString(intptr_t index) {
   intptr_t start = GetStringOffset(index);
   intptr_t end = GetStringOffset(index + 1);
-  return H.DartString(reader_->buffer() + start, end - start);
+  return H.DartString(reader_->buffer() + reader_->string_data_offset() + start,
+                      end - start);
 }
+
 
 String* StreamingFlowGraphBuilder::KernelString(intptr_t index) {
   intptr_t start = GetStringOffset(index);
   intptr_t end = GetStringOffset(index + 1);
-  return new String(reader_->buffer() + start, end - start);
+  return new String(start, end - start);
 }
+
 
 Fragment StreamingFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
   return flow_graph_builder_->DebugStepCheck(position);
 }
 
+
 Fragment StreamingFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   return flow_graph_builder_->LoadLocal(variable);
 }
 
+
 Fragment StreamingFlowGraphBuilder::PushArgument() {
   return flow_graph_builder_->PushArgument();
 }
+
 
 Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
                                                      int catch_try_index) {
   return flow_graph_builder_->RethrowException(position, catch_try_index);
 }
 
+
 Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError() {
   return flow_graph_builder_->ThrowNoSuchMethodError();
 }
+
 
 Fragment StreamingFlowGraphBuilder::Constant(const Object& value) {
   return flow_graph_builder_->Constant(value);
 }
 
+
 Fragment StreamingFlowGraphBuilder::IntConstant(int64_t value) {
   return flow_graph_builder_->IntConstant(value);
 }
 
+
 Fragment StreamingFlowGraphBuilder::LoadStaticField() {
   return flow_graph_builder_->LoadStaticField();
 }
+
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                const Function& target,
                                                intptr_t argument_count) {
   return flow_graph_builder_->StaticCall(position, target, argument_count);
 }
+
 
 Fragment StreamingFlowGraphBuilder::BuildInvalidExpression() {
   // The frontend will take care of emitting normal errors (like
@@ -509,13 +535,14 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression() {
   return ThrowNoSuchMethodError();
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildStaticGet() {
   intptr_t saved_offset = ReaderOffset() - 1;  // Include the tag.
   TokenPosition position = ReadPosition();
   int canonical_name_index = ReadUInt();
   CanonicalName* target = GetCanonicalName(canonical_name_index);
 
-  if (target->IsField()) {
+  if (H.IsField(target)) {
     const dart::Field& field =
         dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
     if (field.is_const()) {
@@ -537,9 +564,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet() {
     const Function& function =
         Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
 
-    if (target->IsGetter()) {
+    if (H.IsGetter(target)) {
       return StaticCall(position, function, 0);
-    } else if (target->IsMethod()) {
+    } else if (H.IsMethod(target)) {
       SetOffset(saved_offset);  // EvaluateExpression needs the tag.
       return Constant(constant_evaluator_.EvaluateExpression());
     } else {
@@ -550,14 +577,17 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet() {
   return Fragment();
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildSymbolLiteral() {
   SkipBytes(-1);  // EvaluateExpression needs the tag.
   return Constant(constant_evaluator_.EvaluateExpression());
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildThisExpression() {
   return LoadLocal(scopes()->this_variable);
 }
+
 
 Fragment StreamingFlowGraphBuilder::BuildRethrow() {
   TokenPosition position = ReadPosition();
@@ -571,38 +601,46 @@ Fragment StreamingFlowGraphBuilder::BuildRethrow() {
   return instructions;
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral() {
   const dart::String& value = DartString(ReadUInt());
   return Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
 }
+
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral() {
   intptr_t str_index = ReadUInt();
   return Constant(DartSymbol(str_index));
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload) {
   int64_t value = static_cast<int32_t>(payload) - SpecializedIntLiteralBias;
   return IntConstant(value);
 }
+
 
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(bool is_negative) {
   int64_t value = is_negative ? -static_cast<int64_t>(ReadUInt()) : ReadUInt();
   return IntConstant(value);
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral() {
   SkipBytes(-1);  // EvaluateExpression needs the tag.
   return Constant(constant_evaluator_.EvaluateExpression());
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildBoolLiteral(bool value) {
   return Constant(Bool::Get(value));
 }
 
+
 Fragment StreamingFlowGraphBuilder::BuildNullLiteral() {
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
 }
+
 
 }  // namespace kernel
 }  // namespace dart

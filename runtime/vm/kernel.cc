@@ -18,6 +18,18 @@ void VisitList(List<T>* list, Visitor* visitor) {
 }
 
 
+Source::~Source() {
+  delete[] uri_;
+  delete[] source_code_;
+  delete[] line_starts_;
+}
+
+
+SourceTable::~SourceTable() {
+  delete[] sources_;
+}
+
+
 CanonicalName::CanonicalName() : is_referenced_(false) {}
 
 
@@ -39,159 +51,6 @@ CanonicalName* CanonicalName::AddChild(String* name) {
   child->name_ = name;
   children_.Add(child);
   return child;
-}
-
-
-bool CanonicalName::IsAdministrative() {
-  // Administrative names start with '@'.
-  return (name()->size() > 0) && (name()->buffer()[0] == '@');
-}
-
-
-bool CanonicalName::IsPrivate() {
-  // Private names start with '_'.
-  return (name()->size() > 0) && (name()->buffer()[0] == '_');
-}
-
-
-bool CanonicalName::IsRoot() {
-  // The root is the only canonical name with no parent.
-  return parent() == NULL;
-}
-
-
-bool CanonicalName::IsLibrary() {
-  // Libraries are the only canonical names with the root as their parent.
-  return !IsRoot() && parent()->IsRoot();
-}
-
-
-bool CanonicalName::IsClass() {
-  // Classes have the library as their parent and are not an administrative
-  // name starting with @.
-  return !IsAdministrative() && !IsRoot() && parent()->IsLibrary();
-}
-
-
-bool CanonicalName::IsMember() {
-  return IsConstructor() || IsField() || IsProcedure();
-}
-
-
-// Note the two occurrences of the parameter 'literal'.
-#define COMPARE_NAME(canonical_name, literal)                                  \
-  ((canonical_name)->name()->size() ==                                         \
-       static_cast<intptr_t>(strlen(literal)) &&                               \
-   memcmp((canonical_name)->name()->buffer(), (literal), strlen(literal)) ==   \
-       0)
-
-bool CanonicalName::IsField() {
-  // Fields with private names have the import URI of the library where they are
-  // visible as the parent and the string "@fields" as the parent's parent.
-  // Fields with non-private names have the string "@fields' as the parent.
-  if (IsRoot()) {
-    return false;
-  }
-  CanonicalName* kind = this->parent();
-  if (IsPrivate()) {
-    kind = kind->parent();
-  }
-  return COMPARE_NAME(kind, "@fields");
-}
-
-
-bool CanonicalName::IsConstructor() {
-  // Constructors with private names have the import URI of the library where
-  // they are visible as the parent and the string "@constructors" as the
-  // parent's parent.  Constructors with non-private names have the string
-  // "@constructors" as the parent.
-  if (IsRoot()) {
-    return false;
-  }
-  CanonicalName* kind = this->parent();
-  if (IsPrivate()) {
-    kind = kind->parent();
-  }
-  return COMPARE_NAME(kind, "@constructors");
-}
-
-
-bool CanonicalName::IsProcedure() {
-  return IsMethod() || IsGetter() || IsSetter() || IsFactory();
-}
-
-
-bool CanonicalName::IsMethod() {
-  // Methods with private names have the import URI of the library where they
-  // are visible as the parent and the string "@methods" as the parent's parent.
-  // Methods with non-private names have the string "@methods" as the parent.
-  if (IsRoot()) {
-    return false;
-  }
-  CanonicalName* kind = this->parent();
-  if (IsPrivate()) {
-    kind = kind->parent();
-  }
-  return COMPARE_NAME(kind, "@methods");
-}
-
-
-bool CanonicalName::IsGetter() {
-  // Getters with private names have the import URI of the library where they
-  // are visible as the parent and the string "@getters" as the parent's parent.
-  // Getters with non-private names have the string "@getters" as the parent.
-  if (IsRoot()) {
-    return false;
-  }
-  CanonicalName* kind = this->parent();
-  if (IsPrivate()) {
-    kind = kind->parent();
-  }
-  return COMPARE_NAME(kind, "@getters");
-}
-
-
-bool CanonicalName::IsSetter() {
-  // Setters with private names have the import URI of the library where they
-  // are visible as the parent and the string "@setters" as the parent's parent.
-  // Setters with non-private names have the string "@setters" as the parent.
-  if (IsRoot()) {
-    return false;
-  }
-  CanonicalName* kind = this->parent();
-  if (IsPrivate()) {
-    kind = kind->parent();
-  }
-  return COMPARE_NAME(kind, "@setters");
-}
-
-
-bool CanonicalName::IsFactory() {
-  // Factories with private names have the import URI of the library where they
-  // are visible as the parent and the string "@factories" as the parent's
-  // parent.  Factories with non-private names have the string "@factories" as
-  // the parent.
-  if (IsRoot()) {
-    return false;
-  }
-  CanonicalName* kind = this->parent();
-  if (IsPrivate()) {
-    kind = kind->parent();
-  }
-  return COMPARE_NAME(kind, "@factories");
-}
-
-#undef COMPARE_NAME
-
-
-CanonicalName* CanonicalName::EnclosingName() {
-  ASSERT(IsField() || IsConstructor() || IsProcedure());
-  CanonicalName* enclosing = parent()->parent();
-  if (IsPrivate()) {
-    enclosing = enclosing->parent();
-  }
-  ASSERT(enclosing->IsLibrary() || enclosing->IsClass());
-  return enclosing;
 }
 
 

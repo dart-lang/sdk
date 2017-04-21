@@ -269,12 +269,7 @@ class ActiveFunctionScope {
 
 class TranslationHelper {
  public:
-  explicit TranslationHelper(dart::Thread* thread)
-      : thread_(thread),
-        zone_(thread->zone()),
-        isolate_(thread->isolate()),
-        allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld) {
-  }
+  explicit TranslationHelper(dart::Thread* thread);
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -284,6 +279,31 @@ class TranslationHelper {
   Isolate* isolate() { return isolate_; }
 
   Heap::Space allocation_space() { return allocation_space_; }
+
+  // Access to strings.
+  const TypedData& string_data() { return string_data_; }
+  void SetStringData(const TypedData& string_data);
+  uint8_t CharacterAt(String* str, intptr_t index);
+  bool StringEquals(String* str, const char* other);
+
+  // Predicates on CanonicalNames.
+  bool IsAdministrative(CanonicalName* name);
+  bool IsPrivate(CanonicalName* name);
+  bool IsRoot(CanonicalName* name);
+  bool IsLibrary(CanonicalName* name);
+  bool IsClass(CanonicalName* name);
+  bool IsMember(CanonicalName* name);
+  bool IsField(CanonicalName* name);
+  bool IsConstructor(CanonicalName* name);
+  bool IsProcedure(CanonicalName* name);
+  bool IsMethod(CanonicalName* name);
+  bool IsGetter(CanonicalName* name);
+  bool IsSetter(CanonicalName* name);
+  bool IsFactory(CanonicalName* name);
+
+  // For a member (field, constructor, or procedure) return the canonical name
+  // of the enclosing class or library.
+  CanonicalName* EnclosingName(CanonicalName* name);
 
   RawInstance* Canonicalize(const Instance& instance);
 
@@ -362,10 +382,12 @@ class TranslationHelper {
   const dart::String& DartGetterName(CanonicalName* parent, String* getter);
   const dart::String& DartMethodName(CanonicalName* parent, String* method);
 
-  dart::Thread* thread_;
-  dart::Zone* zone_;
-  dart::Isolate* isolate_;
+  Thread* thread_;
+  Zone* zone_;
+  Isolate* isolate_;
   Heap::Space allocation_space_;
+
+  TypedData& string_data_;
 };
 
 // Regarding malformed types:
@@ -628,20 +650,7 @@ class ScopeBuildingResult : public ZoneAllocated {
 
 class ScopeBuilder : public RecursiveVisitor {
  public:
-  ScopeBuilder(ParsedFunction* parsed_function, TreeNode* node)
-      : result_(NULL),
-        parsed_function_(parsed_function),
-        node_(node),
-        translation_helper_(Thread::Current()),
-        zone_(translation_helper_.zone()),
-        type_translator_(&translation_helper_,
-                         &active_class_,
-                         /*finalize=*/true),
-        current_function_scope_(NULL),
-        scope_(NULL),
-        depth_(0),
-        name_index_(0),
-        needs_expr_temp_(false) {}
+  ScopeBuilder(ParsedFunction* parsed_function, TreeNode* node);
 
   virtual ~ScopeBuilder() {}
 
@@ -1120,7 +1129,7 @@ class CatchBlock {
 };
 
 
-RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* EvaluateMetadata(const dart::Field& metadata_field);
 RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 
@@ -1135,7 +1144,7 @@ RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 namespace dart {
 namespace kernel {
 
-RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* EvaluateMetadata(const dart::Field& metadata_field);
 RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 }  // namespace kernel

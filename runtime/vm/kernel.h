@@ -266,27 +266,18 @@ class String {
   // Read a string reference, which is an index into the string table.
   static String* ReadFrom(Reader* reader);
 
-  // Read a string implementation, which is a size followed by a UTF-8
-  // encoded string.
-  static String* ReadFromImpl(Reader* reader);
-
   // Read a string implementation given its size.
   static String* ReadRaw(Reader* reader, intptr_t size);
 
-  String(const uint8_t* utf8, int length) {
-    buffer_ = new uint8_t[length];
-    size_ = length;
-    memmove(buffer_, utf8, length);
-  }
-  ~String() { delete[] buffer_; }
+  String(intptr_t offset, int size) : offset_(offset), size_(size) {}
 
-  uint8_t* buffer() { return buffer_; }
+  intptr_t offset() { return offset_; }
   int size() { return size_; }
 
   bool is_empty() { return size_ == 0; }
 
  private:
-  uint8_t* buffer_;
+  intptr_t offset_;
   int size_;
 
   DISALLOW_COPY_AND_ASSIGN(String);
@@ -310,34 +301,51 @@ class StringTable {
 };
 
 
-class SourceTable {
+class Source {
  public:
-  void ReadFrom(Reader* reader);
-  ~SourceTable() {
-    for (intptr_t i = 0; i < size_; ++i) {
-      delete source_code_[i];
-      delete[] line_starts_[i];
-    }
-    delete[] source_code_;
-    delete[] line_starts_;
-    delete[] line_count_;
-  }
-
-  intptr_t size() { return size_; }
-  String* SourceFor(intptr_t i) { return source_code_[i]; }
-  intptr_t* LineStartsFor(intptr_t i) { return line_starts_[i]; }
-  intptr_t LineCountFor(intptr_t i) { return line_count_[i]; }
+  ~Source();
 
  private:
-  SourceTable()
-      : source_code_(NULL), line_starts_(NULL), line_count_(NULL), size_(0) {}
+  uint8_t* uri_;               // UTF-8 encoded.
+  intptr_t uri_size_;          // In bytes.
+  uint8_t* source_code_;       // UTF-8 encoded.
+  intptr_t source_code_size_;  // In bytes.
+  intptr_t* line_starts_;
+  intptr_t line_count_;
+
+  friend class SourceTable;
+};
+
+
+class SourceTable {
+ public:
+  ~SourceTable();
+
+  void ReadFrom(Reader* reader);
+
+  intptr_t size() { return size_; }
+
+  uint8_t* UriFor(intptr_t i) { return sources_[i].uri_; }
+  intptr_t UriSizeFor(intptr_t i) { return sources_[i].uri_size_; }
+
+  uint8_t* SourceCodeFor(intptr_t i) { return sources_[i].source_code_; }
+  intptr_t SourceCodeSizeFor(intptr_t i) {
+    return sources_[i].source_code_size_;
+  }
+
+  intptr_t* LineStartsFor(intptr_t i) { return sources_[i].line_starts_; }
+  intptr_t LineCountFor(intptr_t i) { return sources_[i].line_count_; }
+
+ private:
+  SourceTable() : size_(0), sources_(NULL) {}
 
   friend class Program;
 
-  String** source_code_;
-  intptr_t** line_starts_;
-  intptr_t* line_count_;
+  // The number of entries in the table.
   intptr_t size_;
+
+  // An array of sources.
+  Source* sources_;
 
   DISALLOW_COPY_AND_ASSIGN(SourceTable);
 };
@@ -384,26 +392,7 @@ class CanonicalName {
   bool is_referenced() { return is_referenced_; }
   void set_referenced(bool referenced) { is_referenced_ = referenced; }
 
-  CanonicalName* AddChild(String* name);
-
-  bool IsAdministrative();
-  bool IsPrivate();
-
-  bool IsRoot();
-  bool IsLibrary();
-  bool IsClass();
-  bool IsMember();
-  bool IsField();
-  bool IsConstructor();
-  bool IsProcedure();
-  bool IsMethod();
-  bool IsGetter();
-  bool IsSetter();
-  bool IsFactory();
-
-  // For a member (field, constructor, or procedure) return the canonical name
-  // of the enclosing class or library.
-  CanonicalName* EnclosingName();
+  CanonicalName* AddChild(String* string);
 
   static CanonicalName* NewRoot();
 
@@ -502,28 +491,6 @@ class Library : public LinkedNode {
   List<Class>& classes() { return classes_; }
   List<Field>& fields() { return fields_; }
   List<Procedure>& procedures() { return procedures_; }
-
-  bool IsCorelibrary() {
-    static const char* dart_library = "dart:";
-    static intptr_t dart_library_length = strlen(dart_library);
-    static const char* patch_library = "dart:_patch";
-    static intptr_t patch_library_length = strlen(patch_library);
-
-    if (name_->size() < 5) return false;
-
-    // Check for dart: prefix.
-    char* buffer = reinterpret_cast<char*>(import_uri_->buffer());
-    if (strncmp(buffer, dart_library, dart_library_length) != 0) {
-      return false;
-    }
-
-    // Rasta emits dart:_patch and we should treat it as a user library.
-    if (name_->size() == patch_library_length &&
-        strncmp(buffer, patch_library, patch_library_length) == 0) {
-      return false;
-    }
-    return true;
-  }
 
   const uint8_t* kernel_data() { return kernel_data_; }
   intptr_t kernel_data_size() { return kernel_data_size_; }
@@ -2894,13 +2861,13 @@ class Program : public TreeNode {
   virtual void VisitChildren(Visitor* visitor);
 
   StringTable& string_table() { return string_table_; }
-  StringTable& source_uri_table() { return source_uri_table_; }
   SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
   CanonicalName* main_method() { return main_method_reference_; }
   CanonicalName* canonical_name_root() { return canonical_name_root_; }
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> valid_token_positions;
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> yield_token_positions;
+  intptr_t string_data_offset() { return string_data_offset_; }
 
  private:
   Program() {}
@@ -2909,8 +2876,11 @@ class Program : public TreeNode {
   List<Library> libraries_;
   Ref<CanonicalName> main_method_reference_;  // Procedure.
   StringTable string_table_;
-  StringTable source_uri_table_;
   SourceTable source_table_;
+
+  // The offset from the start of the binary to the start of the UTF-8 encoded
+  // string data.
+  intptr_t string_data_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
